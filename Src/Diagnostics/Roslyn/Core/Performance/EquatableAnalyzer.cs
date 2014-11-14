@@ -13,7 +13,7 @@ namespace Roslyn.Diagnostics.Analyzers
         private const string IEquatableMetadataName = "System.IEquatable`1";
 
         private static readonly DiagnosticDescriptor ImplementIEquatableDescriptor = new DiagnosticDescriptor(
-            RoslynDiagnosticIds.ImplementIEquatable,
+            RoslynDiagnosticIds.ImplementIEquatableRuleId,
             RoslynDiagnosticsResources.ImplementIEquatableDescription,
             RoslynDiagnosticsResources.ImplementIEquatableMessage,
             "Performance",
@@ -21,7 +21,7 @@ namespace Roslyn.Diagnostics.Analyzers
             isEnabledByDefault: true);
 
         private static readonly DiagnosticDescriptor OverridesObjectEqualsDescriptor = new DiagnosticDescriptor(
-            RoslynDiagnosticIds.OverrideObjectEquals,
+            RoslynDiagnosticIds.OverrideObjectEqualsRuleId,
             RoslynDiagnosticsResources.OverrideObjectEqualsDescription,
             RoslynDiagnosticsResources.OverrideObjectEqualsMessage,
             "Reliability",

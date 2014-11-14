@@ -32,7 +32,7 @@ class T
 }";
             var expected = new DiagnosticResult
             {
-                Id = RoslynDiagnosticIds.CancellationTokenMustBeLast,
+                Id = RoslynDiagnosticIds.CancellationTokenMustBeLastRuleId,
                 Message = string.Format(RoslynDiagnosticsResources.CancellationTokenMustBeLastMessage, "T.M(System.Threading.CancellationToken, int)"),
                 Severity = DiagnosticSeverity.Warning,
                 Locations = new[]
@@ -156,7 +156,7 @@ class T : B
             // One diagnostic for the virtual, but none for the override.
             var expected = new DiagnosticResult
             {
-                Id = RoslynDiagnosticIds.CancellationTokenMustBeLast,
+                Id = RoslynDiagnosticIds.CancellationTokenMustBeLastRuleId,
                 Message = string.Format(RoslynDiagnosticsResources.CancellationTokenMustBeLastMessage, "B.M(System.Threading.CancellationToken, int)"),
                 Severity = DiagnosticSeverity.Warning,
                 Locations = new[]
@@ -186,7 +186,7 @@ class T : I
             // One diagnostic for the interface, but none for the implementation.
             var expected = new DiagnosticResult
             {
-                Id = RoslynDiagnosticIds.CancellationTokenMustBeLast,
+                Id = RoslynDiagnosticIds.CancellationTokenMustBeLastRuleId,
                 Message = string.Format(RoslynDiagnosticsResources.CancellationTokenMustBeLastMessage, "I.M(System.Threading.CancellationToken, int)"),
                 Severity = DiagnosticSeverity.Warning,
                 Locations = new[]
@@ -216,7 +216,7 @@ class T : I
             // One diagnostic for the interface, but none for the implementation.
             var expected = new DiagnosticResult
             {
-                Id = RoslynDiagnosticIds.CancellationTokenMustBeLast,
+                Id = RoslynDiagnosticIds.CancellationTokenMustBeLastRuleId,
                 Message = string.Format(RoslynDiagnosticsResources.CancellationTokenMustBeLastMessage, "I.M(System.Threading.CancellationToken, int)"),
                 Severity = DiagnosticSeverity.Warning,
                 Locations = new[]

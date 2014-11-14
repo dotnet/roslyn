@@ -12,7 +12,7 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
     public class CancellationTokenMustBeLastAnalyzer : DiagnosticAnalyzer
     {
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
-            RoslynDiagnosticIds.CancellationTokenMustBeLast,
+            RoslynDiagnosticIds.CancellationTokenMustBeLastRuleId,
             RoslynDiagnosticsResources.CancellationTokenMustBeLastDescription,
             RoslynDiagnosticsResources.CancellationTokenMustBeLastMessage,
             "ApiDesign",

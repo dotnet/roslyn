@@ -20,7 +20,7 @@ namespace Roslyn.Diagnostics.Analyzers.CSharp.ApiDesign
     {
         public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
         {
-            return ImmutableArray.Create(RoslynDiagnosticIds.CancellationTokenMustBeLast);
+            return ImmutableArray.Create(RoslynDiagnosticIds.CancellationTokenMustBeLastRuleId);
         }
 
         public sealed override FixAllProvider GetFixAllProvider()

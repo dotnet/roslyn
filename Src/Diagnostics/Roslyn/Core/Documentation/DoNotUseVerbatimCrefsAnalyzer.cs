@@ -12,7 +12,7 @@ namespace Roslyn.Diagnostics.Analyzers.Documentation
     public abstract class DoNotUseVerbatimCrefsAnalyzer : DiagnosticAnalyzer
     {
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
-            RoslynDiagnosticIds.DoNotUseVerbatimCrefs,
+            RoslynDiagnosticIds.DoNotUseVerbatimCrefsRuleId,
             RoslynDiagnosticsResources.UseProperCrefTagsDescription,
             RoslynDiagnosticsResources.UseProperCrefTagsMessage,
             "Documentation",

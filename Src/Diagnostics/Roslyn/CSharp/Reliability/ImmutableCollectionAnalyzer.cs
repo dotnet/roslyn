@@ -14,7 +14,7 @@ namespace Roslyn.Diagnostics.Analyzers.CSharp.Reliability
         private const string ImmutableArrayMetadataName = "System.Collections.Immutable.ImmutableArray`1";
 
         public static readonly DiagnosticDescriptor DoNotCallToImmutableArrayDescriptor = new DiagnosticDescriptor(
-            RoslynDiagnosticIds.DoNotCallToImmutableArray,
+            RoslynDiagnosticIds.DoNotCallToImmutableArrayRuleId,
             RoslynDiagnosticsResources.DoNotCallToImmutableArrayMessage,
             RoslynDiagnosticsResources.DoNotCallToImmutableArrayMessage,
             "Reliability",
