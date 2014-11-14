@@ -18,13 +18,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="container">The containing type for the synthesized constructor.</param>
         ''' <param name="isShared">if set to <c>true</c> if this is a shared constructor.</param>
         Friend Sub New(
-            syntaxNode As VisualBasicSyntaxNode,
+            syntaxReference As SyntaxReference,
             container As NamedTypeSymbol,
             isShared As Boolean,
             binder As Binder,
             diagnostics As DiagnosticBag
         )
-            MyBase.New(syntaxNode, container, isShared, binder, diagnostics)
+            MyBase.New(syntaxReference, container, isShared, binder, diagnostics)
             Debug.Assert(container.TypeKind = TypeKind.Submission)
 
             ' In interactive code the constructor of the Script class takes the InteractiveSession object 
@@ -49,11 +49,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Friend Overrides Function GetBoundMethodBody(diagnostics As DiagnosticBag, Optional ByRef methodBodyBinder As Binder = Nothing) As BoundBlock
+            Dim node As VisualBasicSyntaxNode = Me.Syntax
             Return New BoundBlock(
-                Me.m_SyntaxNode,
+                node,
                 Nothing,
                 ImmutableArray(Of LocalSymbol).Empty,
-                ImmutableArray.Create(Of BoundStatement)(New BoundReturnStatement(Me.m_SyntaxNode, Nothing, Nothing, Nothing)))
+                ImmutableArray.Create(Of BoundStatement)(New BoundReturnStatement(node, Nothing, Nothing, Nothing)))
         End Function
 
         Friend Shared Function MakeSubmissionInitialization(

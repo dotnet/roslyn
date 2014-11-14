@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private _parameters As ImmutableArray(Of ParameterSymbol)
 
         Public Sub New(container As NamedTypeSymbol)
-            MyBase.New(VisualBasicSyntaxTree.Dummy.GetRoot(), container, False, Nothing, Nothing)
+            MyBase.New(VisualBasicSyntaxTree.DummyReference, container, False, Nothing, Nothing)
         End Sub
 
         ' Note: This should be called at most once, immediately after the symbol is constructed. The parameters aren't 

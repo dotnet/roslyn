@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Protected ReadOnly m_isShared As Boolean
 
-        Protected ReadOnly m_SyntaxNode As VisualBasicSyntaxNode
+        Protected ReadOnly m_syntaxReference As SyntaxReference
 
         '  NOTE: m_voidType may be nothing if we generate the constructor for PE symbol
         Protected ReadOnly m_voidType As TypeSymbol
@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="container">The containing type for the synthesized constructor.</param>
         ''' <param name="isShared">if set to <c>true</c> if this is a shared constructor.</param>
         Protected Sub New(
-            syntaxNode As VisualBasicSyntaxNode,
+            syntaxReference As SyntaxReference,
             container As NamedTypeSymbol,
             isShared As Boolean,
             binder As Binder,
@@ -37,12 +37,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         )
             MyBase.New(container)
 
-            m_SyntaxNode = syntaxNode
+            m_syntaxReference = syntaxReference
             m_isShared = isShared
 
             If binder IsNot Nothing Then
                 Debug.Assert(diagnostics IsNot Nothing)
-                m_voidType = binder.GetSpecialType(SpecialType.System_Void, syntaxNode, diagnostics)
+                m_voidType = binder.GetSpecialType(SpecialType.System_Void, syntaxReference.GetSyntax(), diagnostics)
             Else
                 ' NOTE: binder is Nothing for constructors generated for some 
                 '       external types, like PENamedTypeSymbol; 
@@ -202,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend NotOverridable Overrides ReadOnly Property Syntax As VisualBasicSyntaxNode
             Get
-                Return m_SyntaxNode
+                Return If(m_syntaxReference Is Nothing, Nothing, DirectCast(m_syntaxReference.GetSyntax(), VisualBasicSyntaxNode))
             End Get
         End Property
 

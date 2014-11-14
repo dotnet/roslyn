@@ -15,21 +15,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Initializes a new instance of the <see cref="SynthesizedConstructorSymbol" /> class.
         ''' </summary>
-        ''' <param name="syntaxNode"></param>
+        ''' <param name="syntaxReference"></param>
         ''' <param name="container">The containing type for the synthesized constructor.</param>
         ''' <param name="isShared">if set to <c>true</c> if this is a shared constructor.</param>
         ''' <param name="isDebuggable">if set to <c>true</c> if this constructor will include debuggable initializers.</param>
         ''' <param name="binder">Binder to be used for error reporting, or Nothing.</param>
         ''' <param name="diagnostics">Diagnostic bag, or Nothing.</param>
         Friend Sub New(
-            syntaxNode As VisualBasicSyntaxNode,
+            syntaxReference As SyntaxReference,
             container As NamedTypeSymbol,
             isShared As Boolean,
             isDebuggable As Boolean,
             binder As Binder,
             diagnostics As DiagnosticBag
         )
-            MyBase.New(syntaxNode, container, isShared, binder, diagnostics)
+            MyBase.New(syntaxReference, container, isShared, binder, diagnostics)
             Me._debuggable = isDebuggable
         End Sub
 

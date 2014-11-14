@@ -141,6 +141,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Shared ReadOnly Dummy As VisualBasicSyntaxTree = New DummySyntaxTree()
 
+        Friend Shared ReadOnly DummyReference As SyntaxReference = Dummy.GetReference(Dummy.GetRoot())
+
         ''' <summary>
         ''' Creates a new syntax tree from a syntax node.
         ''' </summary>

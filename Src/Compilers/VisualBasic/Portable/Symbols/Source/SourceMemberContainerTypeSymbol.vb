@@ -2689,7 +2689,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim syntaxRef = SyntaxReferences.Single()
 
                     Dim binder As Binder = BinderBuilder.CreateBinderForType(m_containingModule, syntaxRef.SyntaxTree, Me)
-                    Dim constructor As New SynthesizedSubmissionConstructorSymbol(syntaxRef.GetVisualBasicSyntax(), Me, isShared, binder, diagnostics)
+                    Dim constructor As New SynthesizedSubmissionConstructorSymbol(syntaxRef, Me, isShared, binder, diagnostics)
                     AddMember(constructor, binder, members, omitDiagnostics:=False)
                 End If
 
@@ -2746,7 +2746,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' TODO: does it need to be deterministic?
 
             Dim binder As Binder = BinderBuilder.CreateBinderForType(m_containingModule, syntaxRef.SyntaxTree, Me)
-            Dim constructor As New SynthesizedConstructorSymbol(syntaxRef.GetVisualBasicSyntax(), Me, isShared, isDebuggable, binder, diagBag)
+            Dim constructor As New SynthesizedConstructorSymbol(syntaxRef, Me, isShared, isDebuggable, binder, diagBag)
             AddMember(constructor, binder, members, omitDiagnostics:=False)
         End Sub
 
@@ -3161,7 +3161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' call AnyInitializerToBeInjectedIntoConstructor if only there is no static constructor
                     If Me.AnyInitializerToBeInjectedIntoConstructor(staticInitializers, True) Then
                         Dim syntaxRef = SyntaxReferences.First() ' use arbitrary part
-                        Return New SynthesizedConstructorSymbol(syntaxRef.GetVisualBasicSyntax(), Me,
+                        Return New SynthesizedConstructorSymbol(syntaxRef, Me,
                                                                 isShared:=True, isDebuggable:=True,
                                                                 binder:=binder, diagnostics:=diagnostics)
                     End If
