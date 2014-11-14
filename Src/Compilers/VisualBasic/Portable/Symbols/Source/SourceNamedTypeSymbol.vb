@@ -2346,6 +2346,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Private Function HasInstanceFields() As Boolean
+            Dim members = Me.GetMembersUnordered()
+            For i = 0 To members.Length - 1
+                Dim m = members(i)
+                If Not m.IsShared And m.Kind = SymbolKind.Field Then
+                    Return True
+                End If
+            Next
+
+            Return False
+        End Function
+
         Friend NotOverridable Overrides ReadOnly Property Layout As TypeLayout
             Get
                 Dim data = GetDecodedWellKnownAttributeData()
@@ -2359,8 +2371,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' 
                     ' Dev11 compiler sets the value to 1 for structs with no fields and no size specified.
                     ' It does not change the size value if it was explicitly specified to be 0, nor does it report an error.
-                    Dim size As Integer = If(Me.GetMembersUnordered().Any(Function(m) m.Kind = SymbolKind.Field), 0, 1)
-                    Return New TypeLayout(LayoutKind.Sequential, size, alignment:=0)
+                    Return New TypeLayout(LayoutKind.Sequential, If(Me.HasInstanceFields(), 0, 1), alignment:=0)
                 End If
 
                 Return Nothing

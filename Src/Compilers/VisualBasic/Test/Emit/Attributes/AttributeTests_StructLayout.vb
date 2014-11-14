@@ -745,5 +745,94 @@ BC30127: Attribute 'FieldOffsetAttribute' is not valid: Incorrect argument value
 
             End Using
         End Sub
+
+        Private Sub VerifyStructLayout(source As System.Xml.Linq.XElement, hasInstanceFields As Boolean)
+            CompileAndVerify(source, validator :=
+                Sub(assembly, _omitted)
+                    Dim reader = assembly.GetMetadataReader()
+                    Dim type = reader.TypeDefinitions _
+                        .Select(Function(handle) reader.GetTypeDefinition(handle)) _
+                        .Where(Function(typeDef) reader.GetString(typeDef.Name) = "S") _
+                        .Single()
+
+                    Dim layout = type.GetLayout()
+                    If Not hasInstanceFields Then
+                        Const typeDefMask As TypeAttributes = TypeAttributes.StringFormatMask Or TypeAttributes.LayoutMask
+    
+                        Assert.False(layout.IsDefault)
+                        Assert.Equal(TypeAttributes.SequentialLayout, type.Attributes And typeDefMask)
+                        Assert.Equal(0, layout.PackingSize)
+                        Assert.Equal(1, layout.Size)
+                    Else
+                        Assert.True(layout.IsDefault)
+                    End If
+                End Sub)
+        End Sub
+
+        <Fact>
+        Public Sub Bug1075326()
+            ' no instance fields
+            VerifyStructLayout(<compilation><file><![CDATA[
+Structure S
+End Structure
+]]></file></compilation>, hasInstanceFields := False)
+
+            VerifyStructLayout(<compilation><file><![CDATA[
+Structure S
+    Shared f As Integer
+End Structure
+]]></file></compilation>, hasInstanceFields := False)
+
+            VerifyStructLayout(<compilation><file><![CDATA[
+Structure S
+    Shared Property P As Integer
+End Structure
+]]></file></compilation>, hasInstanceFields := False)
+
+            VerifyStructLayout(<compilation><file><![CDATA[
+Structure S
+    ReadOnly Property P As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+End Structure
+]]></file></compilation>, hasInstanceFields := False)
+
+            VerifyStructLayout(<compilation><file><![CDATA[
+Structure S
+    Shared ReadOnly Property P As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+End Structure
+]]></file></compilation>, hasInstanceFields := False)
+
+            VerifyStructLayout(<compilation><file><![CDATA[
+Structure S
+    Shared Event D()
+End Structure
+]]></file></compilation>, hasInstanceFields := False)
+
+            ' instance fields
+            VerifyStructLayout(<compilation><file><![CDATA[
+Structure S
+    Private f As Integer
+End Structure
+]]></file></compilation>, hasInstanceFields := True)
+
+            VerifyStructLayout(<compilation><file><![CDATA[
+Structure S
+    Property P As Integer
+End Structure
+]]></file></compilation>, hasInstanceFields := True)
+
+            VerifyStructLayout(<compilation><file><![CDATA[
+Structure S
+    Event D()
+End Structure
+]]></file></compilation>, hasInstanceFields := True)
+        End Sub
     End Class
 End Namespace

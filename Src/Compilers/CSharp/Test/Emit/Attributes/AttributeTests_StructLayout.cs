@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
@@ -604,5 +605,54 @@ partial struct C
                 }
             }
         }
+
+        private void VerifyStructLayout(string source, bool hasInstanceFields)
+        {
+
+            CompileAndVerify(source, assemblyValidator: (assembly, _) =>
+            {
+                var reader = assembly.GetMetadataReader();
+                var type = reader.TypeDefinitions
+                    .Select(handle => reader.GetTypeDefinition(handle))
+                    .Where(typeDef => reader.GetString(typeDef.Name) == "S")
+                    .Single();
+
+                var layout = type.GetLayout();
+                if (!hasInstanceFields)
+                {
+                    const TypeAttributes typeDefMask = TypeAttributes.StringFormatMask | TypeAttributes.LayoutMask;
+
+                    Assert.False(layout.IsDefault);
+                    Assert.Equal(TypeAttributes.SequentialLayout, type.Attributes & typeDefMask);
+                    Assert.Equal(0, layout.PackingSize);
+                    Assert.Equal(1, layout.Size);
+                }
+                else
+                {
+                    Assert.True(layout.IsDefault);
+                }
+            });
+        }
+
+        [Fact]
+        public void Bug1075326()
+        {
+            // no instance fields
+            VerifyStructLayout(@"struct S {}", hasInstanceFields: false);
+            VerifyStructLayout(@"struct S { static int f; }", hasInstanceFields: false);
+            VerifyStructLayout(@"struct S { static int P { get; set; } }", hasInstanceFields: false);
+            VerifyStructLayout(@"struct S { int P { set { } } }", hasInstanceFields: false);
+            VerifyStructLayout(@"struct S { static int P { set { } } }", hasInstanceFields: false);
+            VerifyStructLayout(@"delegate void D(); struct S { static event D D; }", hasInstanceFields: false);
+            VerifyStructLayout(@"delegate void D(); struct S { event D D { add { } remove { } } }", hasInstanceFields: false);
+            VerifyStructLayout(@"delegate void D(); struct S { static event D D { add { } remove { } } }", hasInstanceFields: false);
+
+            // instance fields
+            VerifyStructLayout(@"struct S { int f; }", hasInstanceFields: true);
+            VerifyStructLayout(@"struct S { int P { get; set; } }", hasInstanceFields: true);
+            VerifyStructLayout(@"delegate void D(); struct S { event D D; }", hasInstanceFields: true);
+        }
+
+
     }
 }

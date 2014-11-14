@@ -844,6 +844,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        private bool HasInstanceFields()
+        {
+            var members = this.GetMembersUnordered();
+            for (var i = 0; i < members.Length; i++)
+            {
+                var m = members[i];
+                if (!m.IsStatic)
+                {
+                    switch (m.Kind)
+                    {
+                        case SymbolKind.Field:
+                            return true;
+
+                        case SymbolKind.Event:
+                            if (((EventSymbol)m).AssociatedField != null)
+                            {
+                                return true;
+                            }
+                            break;
+                    }
+                }
+            }
+
+            return false;
+        }
+
         internal sealed override TypeLayout Layout
         {
             get
@@ -859,11 +885,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // CLI spec 22.37.16:
                     // "A ValueType shall have a non-zero size - either by defining at least one field, or by providing a non-zero ClassSize"
                     // 
-                    // Dev11 compiler sets the value to 1 for structs with no fields and no size specified.
+                    // Dev11 compiler sets the value to 1 for structs with no instance fields and no size specified.
                     // It does not change the size value if it was explicitly specified to be 0, nor does it report an error.
-                    int size = this.GetMembersUnordered().Any(m => m.Kind == SymbolKind.Field) ? 0 : 1;
-
-                    return new TypeLayout(LayoutKind.Sequential, size, alignment: 0);
+                    return new TypeLayout(LayoutKind.Sequential, this.HasInstanceFields() ? 0 : 1, alignment: 0);
                 }
 
                 return default(TypeLayout);
