@@ -3,9 +3,7 @@
 
   <!-- This file is imported by all projects at the end of the project files -->
   <PropertyGroup Condition="'$(OpenSourceDebug)' == 'true'">
-    <DeployVSVersion>12.0</DeployVSVersion>
     <DeployVSHive>Roslyn</DeployVSHive>
-    <DeployToPackageFolders>true</DeployToPackageFolders>
     <NonShipping Condition="'$(NonShipping)' == ''">false</NonShipping>
     <AssemblyVersion>$(MajorRoslynVersion).0.0</AssemblyVersion>
     <BuildVersion>$(MajorRoslynVersion).0.0</BuildVersion>
@@ -114,28 +112,37 @@
   </Target>
 
   <!-- ====================================================================================
-  
-        Deploy binary to Preview Package folders
+        Deploy binary to 14.0 Package folders 
+  ===================================================================================== -->
+  <PropertyGroup>
+    <RoslynOssComponentPath>$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(VisualStudioVersion)$(DeployVSHive)\Extensions\MSOpenTech\OpenSourceDebug\0.7</RoslynOssComponentPath>
+    <TargetConfigFile>$(TargetPath).config</TargetConfigFile>
+    <TargetPdbFile>$(TargetDir)$(TargetName).pdb</TargetPdbFile>
+    <TargetRspFile>$(TargetDir)$(TargetName).rsp</TargetRspFile>
+  </PropertyGroup>
 
-    ==================================================================================== -->
-
-  <Target Name="DeployToPreviewPackageFolders" Condition="'$(DeployToPackageFolders)' == 'true'">
+  <Target Name="DeployToPreviewPackageFolders" Condition="'$(DeployToPackageFolders)' == 'true' and '$(VisualStudioVersion)' == '14.0'">
     <ItemGroup>
-      <FilesToCopy Include="$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\Extensions\**\$(TargetName)$(TargetExt)" />
-      <ConfigsToCopy Include="$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\Extensions\**\$(TargetName)$(TargetExt).Config" />
-      <FilesToDelete Include="$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\Extensions\**\extensions.$(PreferredUILang).cache;$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\ComponentModelCache\**\*.cache;$(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\Extensions\**\extensionSdks.$(PreferredUILang).cache; $(UserProfile)\AppData\Local\Microsoft\VisualStudio\$(DeployVSVersion)$(DeployVSHive)\Extensions\**\vssqmmulti.dll;" />
+      <CopySources Condition="('$(TargetExt)' == '.dll' or '$(TargetExt)' == '.exe') and Exists($(TargetPath))" Include="$(TargetPath)"/>
+      <CopySources Condition="('$(TargetExt)' == '.dll' or '$(TargetExt)' == '.exe') and Exists($(TargetPdb))" Include="$(TargetPdbFile)"/>
+      <CopySources Condition="'$(TargetExt)' == '.exe' and Exists($(TargetConfigFile))" Include="$(TargetConfigFile)"/>
+      <CopySources Condition="'$(TargetExt)' == '.exe' and Exists($(TargetRspFile))" Include="$(TargetRspFile)"/>
     </ItemGroup>
-
-    <Message Text="Source: @(FilesToCopy->'$(OutDir)%(Filename)%(Extension)')"/>
-    <Message Text="Config: @(ConfigsToCopy->'$(OutDir)%(Filename)%(Extension).Config')"/>
-    <Message Text="Dest: @(FilesToCopy)"/>
-    <Message Text="Delete: @(FilesToDelete)"/>
-
-    <Copy SourceFiles="@(FilesToCopy->'$(OutDir)%(Filename)%(Extension)')" DestinationFiles="@(FilesToCopy)" />
-    <Copy SourceFiles="@(ConfigsToCopy->'$(OutDir)%(Filename)%(Extension)')" DestinationFiles="@(ConfigsToCopy)" />
-    <Delete Files="@(FilesToDelete)" />
+    <Copy SourceFiles="@(CopySources)" DestinationFolder="$(RoslynOssComponentPath)"  SkipUnchangedFiles="true" />
   </Target>
 
+  <PropertyGroup>
+    <CompileDependsOn>$(CompileDependsOn);FakeSignAssembly</CompileDependsOn>
+    <FakeSignToolPath>$(OutputPath)FakeSign.exe</FakeSignToolPath>
+  </PropertyGroup>
+  <!-- ====================================================================================
+        FakeSign Assembly 
+  ===================================================================================== -->
+  <Target Name="FakeSignAssembly" Condition="'$(NeedsFakeSign)' == 'true' and '$(OpenSourceDebug)' == 'true'">
+    <Exec Command="$(FakeSignToolPath) $(IntermediateOutputPath)$(TargetFileName)"/>
+  </Target>
+ 
+ 
   <!-- ====================================================================================
   
          Support for a IncludeInVSIXLocalOnly Content metadata
