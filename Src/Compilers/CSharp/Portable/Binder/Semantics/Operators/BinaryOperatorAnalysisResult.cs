@@ -57,10 +57,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new BinaryOperatorAnalysisResult(OperatorAnalysisResultKind.Worse, this.Signature, this.LeftConversion, this.RightConversion);
         }
-
-        public BinaryOperatorAnalysisResult Inapplicable()
-        {
-            return new BinaryOperatorAnalysisResult(OperatorAnalysisResultKind.Inapplicable, this.Signature, this.LeftConversion, this.RightConversion);
-        }
     }
 }

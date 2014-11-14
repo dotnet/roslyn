@@ -2001,7 +2001,7 @@ ttttfnnnn";
             CompileAndVerify(source, expectedOutput: expected);
         }
 
-        [Fact, WorkItem(529530, "DevDiv"), WorkItem(1036392, "DevDiv")]
+        [Fact, WorkItem(529530, "DevDiv")]
         public void NullableEnumMinusNull()
         {
             var source = @"
@@ -2016,11 +2016,8 @@ class Program
     }
 }";
 
-            CompileAndVerify(source, expectedOutput: "False").VerifyDiagnostics(
-    // (9,28): warning CS0458: The result of the expression is always 'null' of type 'int?'
-    //         Console.WriteLine((xn0 - null).HasValue);
-    Diagnostic(ErrorCode.WRN_AlwaysNull, "xn0 - null").WithArguments("int?").WithLocation(9, 28)
-                );
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "xn0 - null").WithArguments("-", "System.Base64FormattingOptions?", "<null>"));
         }
 
         [Fact]
