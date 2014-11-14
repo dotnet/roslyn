@@ -4,11 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.Collections;
 using System.IO;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -789,7 +788,8 @@ namespace Microsoft.CodeAnalysis
             int maxLowerVersionDefinition = -1;
 
             // NB: Start at 1, since we checked 0 above.
-            for (int i = 1; i < definitions.Length; i++)
+            const int definitionOffset = 1;
+            for (int i = definitionOffset; i < definitions.Length; i++)
             {
                 AssemblyIdentity definition = definitions[i].Identity;
 
@@ -835,6 +835,41 @@ namespace Microsoft.CodeAnalysis
             if (maxLowerVersionDefinition != -1)
             {
                 return new AssemblyReferenceBinding(reference, maxLowerVersionDefinition, versionDifference: -1);
+            }
+
+            // If the reference is a winmd, see if there a substitute winmd that is
+            // sufficient. For instance, a debugger EE could construct a compilation
+            // from the modules of the running process, where the winmds loaded
+            // at runtime are distinct from those used when the exe was compiled.
+            if (reference.ContentType == AssemblyContentType.WindowsRuntime)
+            {
+                var defsByName = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+                for (int i = definitionOffset; i < definitions.Length; i++)
+                {
+                    var definition = definitions[i].Identity;
+                    if (definition.ContentType == AssemblyContentType.WindowsRuntime)
+                    {
+                        defsByName.Add(definition.Name, i);
+                    }
+                }
+
+                // The name of a winmd is a containing namespace for the assembly. Use
+                // the definition with the longest substring that matches the reference.
+                var refName = reference.Name;
+                while (true)
+                {
+                    int index;
+                    if (defsByName.TryGetValue(refName, out index))
+                    {
+                        return new AssemblyReferenceBinding(reference, index);
+                    }
+                    int separator = refName.LastIndexOf('.');
+                    if (separator < 0)
+                    {
+                        break;
+                    }
+                    refName = refName.Substring(0, separator);
+                }
             }
 
             // As in the native compiler (see IMPORTER::MapAssemblyRefToAid), we compare against the
