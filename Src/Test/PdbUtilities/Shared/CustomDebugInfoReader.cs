@@ -548,7 +548,8 @@ namespace Roslyn.Utilities.Pdb
             ImmutableArray<ISymUnmanagedScope> childScopes = rootScope.GetScopes();
             if (childScopes.Length == 0)
             {
-                // Debug.Assert(false, "Expected at least one child scope."); // TODO (acasey): Why can't we assume this?
+                // It seems like there should always be at least one child scope, but we've
+                // seen PDBs where that is not the case.
                 return ImmutableArray<string>.Empty;
             }
 
@@ -559,7 +560,8 @@ namespace Roslyn.Utilities.Pdb
             ImmutableArray<ISymUnmanagedNamespace> namespaces = firstChildScope.GetNamespaces();
             if (namespaces.Length == 0)
             {
-                // Debug.Assert(false, "Expected at least one namespace (i.e. the global namespace)."); // TODO (acasey): Why can't we assume this?
+                // It seems like there should always be at least one namespace (i.e. the global
+                // namespace), but we've seen PDBs where that is not the case.
                 return ImmutableArray<string>.Empty;
             }
 
