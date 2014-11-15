@@ -48,9 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CSharpSyntaxNode.DeserializeFrom(stream, cancellationToken);
             }
 
-            public override SyntaxTree CreateRecoverableTree(string filePath, ParseOptions optionsOpt, ValueSource<TextAndVersion> text, SyntaxNode root, bool reparse)
+            public override SyntaxTree CreateRecoverableTree(ProjectId cacheKey, string filePath, ParseOptions optionsOpt, ValueSource<TextAndVersion> text, SyntaxNode root)
             {
-                return RecoverableSyntaxTree.CreateRecoverableTree(this, filePath, optionsOpt ?? GetDefaultParseOptions(), text, (CompilationUnitSyntax)root, reparse);
+                return RecoverableSyntaxTree.CreateRecoverableTree(this, cacheKey, filePath, optionsOpt ?? GetDefaultParseOptions(), text, (CompilationUnitSyntax)root);
             }
         }
     }

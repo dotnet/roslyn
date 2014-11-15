@@ -12,19 +12,17 @@ namespace Microsoft.CodeAnalysis
     {
         internal readonly Workspace Workspace;
         internal readonly ITemporaryStorageService TemporaryStorage;
-        internal readonly ITextFactoryService TextFactory;
-        internal readonly ITextCacheService TextCache;
-        internal readonly ICompilationCacheService CompilationCacheService;
         internal readonly IMetadataService MetadataService;
+        internal readonly IProjectCacheHostService CacheService;
+
+        internal bool SupportsCachingRecoverableObjects { get { return this.CacheService != null; } }
 
         public SolutionServices(Workspace workspace)
         {
             this.Workspace = workspace;
             this.TemporaryStorage = workspace.Services.GetService<ITemporaryStorageService>();
-            this.TextFactory = workspace.Services.GetService<ITextFactoryService>();
-            this.TextCache = workspace.Services.GetService<ITextCacheService>();
-            this.CompilationCacheService = workspace.Services.GetService<ICompilationCacheService>();
             this.MetadataService = workspace.Services.GetService<IMetadataService>();
+            this.CacheService = workspace.Services.GetService<IProjectCacheHostService>();
         }
     }
 }

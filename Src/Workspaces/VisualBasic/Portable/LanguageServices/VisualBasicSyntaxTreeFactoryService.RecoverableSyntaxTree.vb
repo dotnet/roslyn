@@ -20,68 +20,83 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Friend NotInheritable Class RecoverableSyntaxTree
                 Inherits VisualBasicSyntaxTree
                 Implements IRecoverableSyntaxTree(Of CompilationUnitSyntax)
+                Implements ICachedObjectOwner
 
                 Private ReadOnly _recoverableRoot As RecoverableSyntaxRoot(Of CompilationUnitSyntax)
+                Private ReadOnly _info As SyntaxTreeInfo
+                Private ReadOnly _projectCacheService As IProjectCacheHostService
+                Private ReadOnly _cacheKey As ProjectId
 
-                Private Sub New(recoverableRoot As RecoverableSyntaxRoot(Of CompilationUnitSyntax))
-                    Debug.Assert(recoverableRoot IsNot Nothing)
-                    _recoverableRoot = recoverableRoot
+                Private Property CachedObject As Object Implements ICachedObjectOwner.CachedObject
+
+                Private Sub New(service As AbstractSyntaxTreeFactoryService, cacheKey As ProjectId, root As CompilationUnitSyntax, info As SyntaxTreeInfo)
+                    _recoverableRoot = New RecoverableSyntaxRoot(Of CompilationUnitSyntax)(service, root, Me)
+                    _info = info
+                    _projectCacheService = service.LanguageServices.WorkspaceServices.GetService(Of IProjectCacheHostService)
+                    _cacheKey = cacheKey
                 End Sub
 
-                Friend Shared Function CreateRecoverableTree(service As AbstractSyntaxTreeFactoryService, filePath As String, options As ParseOptions, text As ValueSource(Of TextAndVersion), root As CompilationUnitSyntax, reparse As Boolean) As SyntaxTree
-                    Dim recoverableRoot = CachedRecoverableSyntaxRoot(Of CompilationUnitSyntax).Create(service, filePath, options, text, root, reparse)
-                    Dim recoverableTree = New RecoverableSyntaxTree(recoverableRoot)
-                    recoverableRoot.SetContainingTree(recoverableTree)
-                    Return recoverableTree
+                Private Sub New(original As RecoverableSyntaxTree, info As SyntaxTreeInfo)
+                    _recoverableRoot = original._recoverableRoot.WithSyntaxTree(Me)
+                    _info = info
+                    _projectCacheService = original._projectCacheService
+                    _cacheKey = original._cacheKey
+                End Sub
+
+                Friend Shared Function CreateRecoverableTree(service As AbstractSyntaxTreeFactoryService, cacheKey As ProjectId, filePath As String, options As ParseOptions, text As ValueSource(Of TextAndVersion), root As CompilationUnitSyntax) As SyntaxTree
+                    Return If(root.Attributes.Any() OrElse root.FullSpan.Length < service.MinimumLengthForRecoverableTree,
+                        Create(root, DirectCast(options, VisualBasicParseOptions), filePath, text.GetValue().Text.Encoding),
+                        New RecoverableSyntaxTree(service, cacheKey, root, New SyntaxTreeInfo(filePath, options, text, root.FullSpan.Length)))
                 End Function
 
                 Public Overrides ReadOnly Property FilePath As String
                     Get
-                        Return _recoverableRoot.FilePath
+                        Return _info.FilePath
                     End Get
                 End Property
 
                 Public Overrides ReadOnly Property Options As VisualBasicParseOptions
                     Get
-                        Return DirectCast(_recoverableRoot.Options, VisualBasicParseOptions)
+                        Return DirectCast(_info.Options, VisualBasicParseOptions)
                     End Get
                 End Property
 
                 Public Overrides ReadOnly Property Length As Integer
                     Get
-                        Return _recoverableRoot.Length
+                        Return _info.Length
                     End Get
                 End Property
 
                 Public Overrides Function TryGetText(ByRef text As SourceText) As Boolean
-                    Return _recoverableRoot.TryGetText(text)
+                    Return _info.TryGetText(text)
                 End Function
 
                 Public Overrides Function GetText(Optional cancellationToken As CancellationToken = Nothing) As SourceText
-                    Return _recoverableRoot.GetText(cancellationToken)
+                    Return _info.TextSource.GetValue(cancellationToken).Text
                 End Function
 
                 Public Overrides Function GetTextAsync(Optional cancellationToken As CancellationToken = Nothing) As Task(Of SourceText)
-                    Return _recoverableRoot.GetTextAsync(cancellationToken)
+                    Return _info.GetTextAsync(cancellationToken)
                 End Function
 
                 Public Overrides Function TryGetRoot(ByRef root As VisualBasicSyntaxNode) As Boolean
                     Dim compilationRoot As CompilationUnitSyntax = Nothing
-                    Dim status = TryGetRoot(compilationRoot)
+                    Dim status = _recoverableRoot.TryGetValue(compilationRoot)
                     root = compilationRoot
+                    CacheRootNode(compilationRoot)
                     Return status
                 End Function
 
-                Public Overloads Function TryGetRoot(ByRef root As CompilationUnitSyntax) As Boolean
-                    Return _recoverableRoot.TryGetRoot(root)
+                Private Function CacheRootNode(compilationRoot As CompilationUnitSyntax) As CompilationUnitSyntax
+                    Return _projectCacheService.CacheObject(_cacheKey, Me, compilationRoot)
                 End Function
 
                 Public Overrides Function GetRoot(Optional cancellationToken As CancellationToken = Nothing) As VisualBasicSyntaxNode
-                    Return _recoverableRoot.GetRoot(cancellationToken)
+                    Return CacheRootNode(_recoverableRoot.GetValue(cancellationToken))
                 End Function
 
                 Public Overrides Async Function GetRootAsync(Optional cancellationToken As CancellationToken = Nothing) As Task(Of VisualBasicSyntaxNode)
-                    Return Await _recoverableRoot.GetRootAsync(cancellationToken).ConfigureAwait(False)
+                    Return CacheRootNode(Await _recoverableRoot.GetValueAsync(cancellationToken).ConfigureAwait(False))
                 End Function
 
                 Public Overrides ReadOnly Property HasCompilationUnitRoot As Boolean
@@ -107,27 +122,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
                 Public Overrides Function WithRootAndOptions(root As SyntaxNode, options As ParseOptions) As SyntaxTree
-                    Dim oldRoot As CompilationUnitSyntax = Nothing
-                    If _recoverableRoot.Options Is options AndAlso TryGetRoot(oldRoot) AndAlso root Is oldRoot Then
+                    Dim oldRoot As VisualBasicSyntaxNode = Nothing
+                    If _info.Options Is options AndAlso TryGetRoot(oldRoot) AndAlso root Is oldRoot Then
                         Return Me
                     End If
 
-                    Return New RecoverableSyntaxTree(_recoverableRoot.WithRootAndOptions(DirectCast(root, CompilationUnitSyntax), options))
+                    Return Create(DirectCast(root, CompilationUnitSyntax), Me.Options, _info.FilePath)
                 End Function
 
                 Public Overrides Function WithFilePath(path As String) As SyntaxTree
-                    If String.Equals(path, _recoverableRoot.FilePath) Then
+                    If String.Equals(path, _info.FilePath) Then
                         Return Me
                     End If
 
-                    Return New RecoverableSyntaxTree(_recoverableRoot.WithFilePath(path))
+                    Return New RecoverableSyntaxTree(Me, _info.WithFilePath(path))
                 End Function
-
-                Public ReadOnly Property IsReparsed As Boolean
-                    Get
-                        Return _recoverableRoot.IsReparsed
-                    End Get
-                End Property
             End Class
         End Class
     End Class

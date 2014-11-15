@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                         SpecializedCollections.EmptyEnumerable<SyntaxTrivia>(),
                         computeReplacementTrivia: null);
 
-                    this.intermediateSolutionContainingOnlyModifiedDocuments = this.intermediateSolutionContainingOnlyModifiedDocuments.WithDocumentSyntaxRoot(documentId, newRoot);
+                    this.intermediateSolutionContainingOnlyModifiedDocuments = this.intermediateSolutionContainingOnlyModifiedDocuments.WithDocumentSyntaxRoot(documentId, newRoot, PreservationMode.PreserveIdentity);
                 }
             }
 

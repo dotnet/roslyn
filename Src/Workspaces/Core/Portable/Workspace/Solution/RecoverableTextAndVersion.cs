@@ -23,9 +23,8 @@ namespace Microsoft.CodeAnalysis
 
         public RecoverableTextAndVersion(
             ValueSource<TextAndVersion> initialTextAndVersion,
-            ITemporaryStorageService storageService,
-            ITextCacheService textCache)
-            : base(initialTextAndVersion, textCache)
+            ITemporaryStorageService storageService)
+            : base(initialTextAndVersion)
         {
             this.storageService = storageService;
         }
@@ -56,12 +55,12 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected override async Task SaveAsync(TextAndVersion textAndVersion, CancellationToken cancellationToken)
+        protected override Task SaveAsync(TextAndVersion textAndVersion, CancellationToken cancellationToken)
         {
             this.storage = this.storageService.CreateTemporaryTextStorage(CancellationToken.None);
             this.storedVersion = textAndVersion.Version;
             this.storedFilePath = textAndVersion.FilePath;
-            await storage.WriteTextAsync(textAndVersion.Text).ConfigureAwait(false);
+            return storage.WriteTextAsync(textAndVersion.Text);
         }
     }
 }

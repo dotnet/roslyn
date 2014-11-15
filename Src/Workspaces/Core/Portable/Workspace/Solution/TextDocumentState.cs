@@ -80,15 +80,14 @@ namespace Microsoft.CodeAnalysis
 
         protected static ValueSource<TextAndVersion> CreateRecoverableText(TextAndVersion text, SolutionServices services)
         {
-            return new RecoverableTextAndVersion(CreateStrongText(text), services.TemporaryStorage, services.TextCache);
+            return new RecoverableTextAndVersion(CreateStrongText(text), services.TemporaryStorage);
         }
 
         protected static ValueSource<TextAndVersion> CreateRecoverableText(TextLoader loader, DocumentId documentId, SolutionServices services, bool catchInvalidDataException = false)
         {
             return new RecoverableTextAndVersion(
                 new AsyncLazy<TextAndVersion>(c => LoadTextAsync(loader, documentId, services, c, catchInvalidDataException), cacheResult: false),
-                services.TemporaryStorage,
-                services.TextCache);
+                services.TemporaryStorage);
         }
 
         protected static async Task<TextAndVersion> LoadTextAsync(TextLoader loader, DocumentId documentId, SolutionServices services, CancellationToken cancellationToken, bool catchInvalidDataException = false)

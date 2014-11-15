@@ -15,9 +15,6 @@ namespace Microsoft.CodeAnalysis.Host
     /// </summary>
     internal abstract class RecoverableCachedObjectSource<T> : ValueSource<T> where T : class
     {
-        private readonly IObjectCache<T> cache;
-        private readonly IWeakAction<T> evictAction;
-
         private AsyncSemaphore gateDoNotAccessDirectly; // Lazily created. Access via the Gate property
         private bool saved;
         private WeakReference<T> weakInstance;
@@ -25,13 +22,20 @@ namespace Microsoft.CodeAnalysis.Host
 
         private static readonly WeakReference<T> NoReference = new WeakReference<T>(null);
 
-        public RecoverableCachedObjectSource(ValueSource<T> initialValue, IObjectCache<T> cache)
+        public RecoverableCachedObjectSource(ValueSource<T> initialValue)
         {
             this.weakInstance = NoReference;
             this.recoverySource = initialValue;
-            this.cache = cache;
+        }
 
-            this.evictAction = new WeakAction<RecoverableCachedObjectSource<T>, T>(this, (o, d) => o.OnEvicted(d));
+        public RecoverableCachedObjectSource(RecoverableCachedObjectSource<T> savedSource)
+        {
+            Contract.ThrowIfFalse(savedSource.saved);
+            Contract.ThrowIfFalse(savedSource.GetType() == this.GetType());
+
+            this.saved = true;
+            this.weakInstance = NoReference;
+            this.recoverySource = new AsyncLazy<T>(this.RecoverAsync, this.Recover, cacheResult: false);
         }
 
         /// <summary>
@@ -64,43 +68,9 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
-        private async void OnEvicted(T instance)
-        {
-            if (!saved)
-            {
-                using (await this.Gate.DisposableWaitAsync(CancellationToken.None).ConfigureAwait(false))
-                {
-                    if (!saved)
-                    {
-                        Task saveTask;
-
-                        using (taskGuard.DisposableWait())
-                        {
-                            // force all save tasks to be in sequence so we don't hog all the threads
-                            saveTask = latestTask = latestTask.SafeContinueWithFromAsync(t =>
-                                this.SaveAsync(instance, CancellationToken.None), CancellationToken.None, TaskScheduler.Default);
-                        }
-
-                        // wait for this save to be done
-                        await saveTask.ConfigureAwait(false);
-
-                        this.saved = true;
-                    }
-                }
-            }
-        }
-
         public override bool TryGetValue(out T value)
         {
-            if (this.weakInstance.TryGetTarget(out value))
-            {
-                // let the cache know the instance was accessed
-                this.cache.AddOrAccess(value, this.evictAction);
-
-                return true;
-            }
-
-            return false;
+            return this.weakInstance.TryGetTarget(out value);
         }
 
         public override T GetValue(CancellationToken cancellationToken)
@@ -110,19 +80,18 @@ namespace Microsoft.CodeAnalysis.Host
             T instance;
             if (!this.weakInstance.TryGetTarget(out instance))
             {
-                using (this.Gate.DisposableWait())
+                Task saveTask = null;
+                using (this.Gate.DisposableWait(cancellationToken))
                 {
                     if (!this.weakInstance.TryGetTarget(out instance))
                     {
                         instance = this.recoverySource.GetValue(cancellationToken);
-                        this.weakInstance = new WeakReference<T>(instance);
-                        this.recoverySource = new AsyncLazy<T>(this.RecoverAsync, this.Recover, cacheResult: false);
+                        saveTask = EnsureInstanceIsSaved(instance);
                     }
                 }
-            }
 
-            // let the cache know the instance was accessed
-            this.cache.AddOrAccess(instance, this.evictAction);
+                ResetRecoverySource(saveTask, instance);
+            }
 
             return instance;
         }
@@ -132,22 +101,65 @@ namespace Microsoft.CodeAnalysis.Host
             T instance;
             if (!this.weakInstance.TryGetTarget(out instance))
             {
+                Task saveTask = null;
                 using (await this.Gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
                     if (!this.weakInstance.TryGetTarget(out instance))
                     {
-                        // attempt to access the initial value or recover it
                         instance = await this.recoverySource.GetValueAsync(cancellationToken).ConfigureAwait(false);
-                        this.weakInstance = new WeakReference<T>(instance);
-                        this.recoverySource = new AsyncLazy<T>(this.RecoverAsync, this.Recover, cacheResult: false);
+                        saveTask = EnsureInstanceIsSaved(instance);
                     }
                 }
+
+                ResetRecoverySource(saveTask, instance);
             }
 
-            // let the cache know the instance was accessed
-            this.cache.AddOrAccess(instance, this.evictAction);
-
             return instance;
+        }
+
+        private void ResetRecoverySource(Task saveTask, T instance)
+        {
+            if (saveTask != null)
+            {
+                saveTask.SafeContinueWith(t =>
+                {
+                    using (this.Gate.DisposableWait())
+                    {
+                        this.recoverySource = new AsyncLazy<T>(this.RecoverAsync, this.Recover, cacheResult: false);
+
+                        // Need to keep instance alive until recovery source is updated.
+                        GC.KeepAlive(instance);
+                    }
+                }, TaskScheduler.Default);
+            }
+        }
+
+        private Task EnsureInstanceIsSaved(T instance)
+        {
+            if (this.weakInstance == NoReference)
+            {
+                this.weakInstance = new WeakReference<T>(instance);
+            }
+            else
+            {
+                this.weakInstance.SetTarget(instance);
+            }
+
+            if (!saved)
+            {
+                this.saved = true;
+                using (taskGuard.DisposableWait())
+                {
+                    // force all save tasks to be in sequence so we don't hog all the threads
+                    latestTask = latestTask.SafeContinueWithFromAsync(t =>
+                         this.SaveAsync(instance, CancellationToken.None), CancellationToken.None, TaskScheduler.Default);
+                    return latestTask;
+                }
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 }

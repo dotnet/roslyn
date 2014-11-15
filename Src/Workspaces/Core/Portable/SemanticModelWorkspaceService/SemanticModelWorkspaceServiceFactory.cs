@@ -496,16 +496,10 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
 
                 private static ValueSource<Compilation> GetCompilation(Project project, Compilation compilation)
                 {
-                    var workspace = project.Solution.Workspace;
-                    var compilationCache = workspace.Services.GetService<ICompilationCacheService>();
-                    if (compilationCache == null)
+                    var cache = project.Solution.Workspace.Services.GetService<IProjectCacheHostService>();
+                    if (cache != null && project.Solution.BranchId == project.Solution.Workspace.PrimaryBranchId)
                     {
-                        return new ConstantValueSource<Compilation>(compilation);
-                    }
-
-                    if (project.Solution.BranchId == workspace.PrimaryBranchId)
-                    {
-                        return new CachedObjectSource<Compilation>(compilation, compilationCache);
+                        return new WeakConstantValueSource<Compilation>(cache.CreateStrongReference(project.Id, project, compilation));
                     }
 
                     return new ConstantValueSource<Compilation>(compilation);

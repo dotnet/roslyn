@@ -15,7 +15,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Services.UnitTests</AssemblyName>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\</SolutionDir>
+    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup Condition="'$(MSBuildAssemblyNameFragment)' == 'v12.0'">
@@ -100,6 +100,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>
   <ItemGroup>
     <Compile Include="AssemblyAttributes.cs" />
+    <Compile Include="Host\WorkspaceServices\TestProjectCacheService.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.TextMerging.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.Features.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.cs" />
@@ -131,14 +132,9 @@
     <Compile Include="FormattingTests.cs" />
     <Compile Include="Formatting\FormattingTestBase.cs" />
     <Compile Include="GeneratedCodeRecognitionTests.cs" />
-    <Compile Include="Host\WorkspaceServices\Caching\TestSyntaxTreeCacheService.cs" />
-    <Compile Include="LanguageServiceTests\SyntaxTreeFactoryServiceTests.cs" />
     <Compile Include="WorkspaceTests\MSBuildWorkspaceTests.cs" />
     <Compile Include="WorkspaceTests\MSBuildWorkspaceTestBase.cs" />
     <Compile Include="WorkspaceTests\WorkspaceTestBase.cs" />
-    <Compile Include="SolutionTests\NotKeptAliveCompilationCacheServiceFactory.cs" />
-    <Compile Include="SolutionTests\NotKeptAliveSyntaxTreeCacheServiceFactory.cs" />
-    <Compile Include="SolutionTests\NotKeptAliveTextCacheServiceFactory.cs" />
     <Compile Include="SolutionTests\ProjectDependencyGraphTests.cs" />
     <Compile Include="SolutionTests\ProjectInfoTests.cs" />
     <Compile Include="ReferencedSymbolTests.cs" />
@@ -151,7 +147,6 @@
     <Compile Include="SyntaxNodeTests.cs" />
     <Compile Include="SyntaxPathTests.cs" />
     <Compile Include="SyntaxReferenceTests.cs" />
-    <Compile Include="WorkspaceServiceTests\SyntaxTreeStorageServiceTests.cs" />
     <Compile Include="WorkspaceServiceTests\TemporaryStorageServiceTests.cs" />
     <Compile Include="Host\WorkspaceServices\TestOptionService.cs" />
     <Compile Include="TestWorkspace.cs" />

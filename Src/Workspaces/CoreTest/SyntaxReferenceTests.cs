@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Host.UnitTests;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -18,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
 
-            return new CustomWorkspace().CurrentSolution
+            return CreateEmptySolutionUsingRecoverableSyntaxTrees()
                            .AddProject(pid, "Test", "Test.dll", LanguageNames.CSharp)
                            .AddDocument(did, "Test.cs", SourceText.From(source));
         }
@@ -28,9 +30,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
 
-            return new CustomWorkspace().CurrentSolution
+            return CreateEmptySolutionUsingRecoverableSyntaxTrees()
                            .AddProject(pid, "Test", "Test.dll", LanguageNames.VisualBasic)
                            .AddDocument(did, "Test.vb", SourceText.From(source));
+        }
+
+        private static Solution CreateEmptySolutionUsingRecoverableSyntaxTrees()
+        {
+            var workspace = new CustomWorkspace(TestHost.Services, workspaceKind: "NotKeptAlive");
+            workspace.Options = workspace.Options.WithChangedOption(Host.CacheOptions.RecoverableTreeLengthThreshold, 0);
+            return workspace.CurrentSolution;
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]

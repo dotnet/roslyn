@@ -14,5 +14,9 @@ namespace Roslyn.Test.Utilities
             this.Strong = target;
             this.Weak = new WeakReference(target);
         }
+
+        public ObjectReference() : this(new object())
+        {
+        }
     }
 }

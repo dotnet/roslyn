@@ -22,81 +22,90 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// the underlying full tree to stay alive.  Think of it more as a 
             /// key that can be used to identify a tree rather than the tree itself.
             /// </summary>
-            internal sealed class RecoverableSyntaxTree : CSharpSyntaxTree, IRecoverableSyntaxTree<CompilationUnitSyntax>
+            internal sealed class RecoverableSyntaxTree : CSharpSyntaxTree, IRecoverableSyntaxTree<CompilationUnitSyntax>, ICachedObjectOwner
             {
                 private readonly RecoverableSyntaxRoot<CompilationUnitSyntax> recoverableRoot;
+                private readonly SyntaxTreeInfo info;
+                private readonly IProjectCacheHostService projectCacheService;
+                private readonly ProjectId cacheKey;
 
-                private RecoverableSyntaxTree(RecoverableSyntaxRoot<CompilationUnitSyntax> recoverableRoot)
+                object ICachedObjectOwner.CachedObject { get; set; }
+
+                private RecoverableSyntaxTree(AbstractSyntaxTreeFactoryService service, ProjectId cacheKey, CompilationUnitSyntax root, SyntaxTreeInfo info)
                 {
-                    Debug.Assert(recoverableRoot != null);
-                    this.recoverableRoot = recoverableRoot;
+                    this.recoverableRoot = new RecoverableSyntaxRoot<CompilationUnitSyntax>(service, root, this);
+                    this.info = info;
+                    this.projectCacheService = service.LanguageServices.WorkspaceServices.GetService<IProjectCacheHostService>();
+                    this.cacheKey = cacheKey;
                 }
 
-                internal static SyntaxTree CreateRecoverableTree(AbstractSyntaxTreeFactoryService service, string filePath, ParseOptions options, ValueSource<TextAndVersion> text, CompilationUnitSyntax root, bool reparse)
+                private RecoverableSyntaxTree(RecoverableSyntaxTree original, SyntaxTreeInfo info)
                 {
-                    var recoverableRoot = CachedRecoverableSyntaxRoot<CompilationUnitSyntax>.Create(service, filePath, options, text, root, reparse);
-                    var recoverableTree = new RecoverableSyntaxTree(recoverableRoot);
-                    recoverableRoot.SetContainingTree(recoverableTree);
-                    return recoverableTree;
+                    this.recoverableRoot = original.recoverableRoot.WithSyntaxTree(this);
+                    this.info = info;
+                    this.projectCacheService = original.projectCacheService;
+                    this.cacheKey = original.cacheKey;
+                }
+
+                internal static SyntaxTree CreateRecoverableTree(AbstractSyntaxTreeFactoryService service, ProjectId cacheKey, string filePath, ParseOptions options, ValueSource<TextAndVersion> text, CompilationUnitSyntax root)
+                {
+                    return root.AttributeLists.Any() || root.FullSpan.Length < service.MinimumLengthForRecoverableTree
+                        ? Create(root, (CSharpParseOptions)options, filePath, text.GetValue().Text.Encoding)
+                        : new RecoverableSyntaxTree(service, cacheKey, root, new SyntaxTreeInfo(filePath, options, text, root.FullSpan.Length));
                 }
 
                 public override string FilePath
                 {
-                    get
-                    {
-                        return recoverableRoot.FilePath;
-                    }
+                    get { return this.info.FilePath; }
                 }
 
                 public override CSharpParseOptions Options
                 {
-                    get
-                    {
-                        return (CSharpParseOptions)recoverableRoot.Options;
-                    }
+                    get { return (CSharpParseOptions)this.info.Options; }
                 }
 
                 public override int Length
                 {
-                    get { return recoverableRoot.Length; }
+                    get { return this.info.Length; }
                 }
 
                 public override bool TryGetText(out SourceText text)
                 {
-                    return recoverableRoot.TryGetText(out text);
+                    return this.info.TryGetText(out text);
                 }
 
                 public override SourceText GetText(CancellationToken cancellationToken)
                 {
-                    return recoverableRoot.GetText(cancellationToken);
+                    return this.info.TextSource.GetValue(cancellationToken).Text;
                 }
 
                 public override Task<SourceText> GetTextAsync(CancellationToken cancellationToken)
                 {
-                    return recoverableRoot.GetTextAsync(cancellationToken);
+                    return this.info.GetTextAsync(cancellationToken);
+                }
+
+                private CompilationUnitSyntax CacheRootNode(CompilationUnitSyntax node)
+                {
+                    return projectCacheService.CacheObject(this.cacheKey, this, node);
                 }
 
                 public override bool TryGetRoot(out CSharpSyntaxNode root)
                 {
                     CompilationUnitSyntax node;
-                    bool status = this.TryGetRoot(out node);
+                    bool status = recoverableRoot.TryGetValue(out node);
                     root = node;
+                    CacheRootNode(node);
                     return status;
-                }
-
-                public bool TryGetRoot(out CompilationUnitSyntax root)
-                {
-                    return recoverableRoot.TryGetRoot(out root);
                 }
 
                 public override CSharpSyntaxNode GetRoot(CancellationToken cancellationToken = default(CancellationToken))
                 {
-                    return recoverableRoot.GetRoot(cancellationToken);
+                    return CacheRootNode(recoverableRoot.GetValue(cancellationToken));
                 }
 
                 public override async Task<CSharpSyntaxNode> GetRootAsync(CancellationToken cancellationToken)
                 {
-                    return await recoverableRoot.GetRootAsync(cancellationToken).ConfigureAwait(false);
+                    return CacheRootNode(await recoverableRoot.GetValueAsync(cancellationToken).ConfigureAwait(false));
                 }
 
                 public override bool HasCompilationUnitRoot
@@ -132,28 +141,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 public override SyntaxTree WithRootAndOptions(SyntaxNode root, ParseOptions options)
                 {
-                    CompilationUnitSyntax oldRoot;
-                    if (ReferenceEquals(recoverableRoot.Options, options) && this.TryGetRoot(out oldRoot) && ReferenceEquals(root, oldRoot))
+                    CSharpSyntaxNode oldRoot;
+                    if (ReferenceEquals(this.info.Options, options) && this.TryGetRoot(out oldRoot) && ReferenceEquals(root, oldRoot))
                     {
                         return this;
                     }
 
-                    return new RecoverableSyntaxTree(recoverableRoot.WithRootAndOptions((CompilationUnitSyntax)root, options));
+                    return Create((CSharpSyntaxNode)root, this.Options, info.FilePath);
                 }
 
                 public override SyntaxTree WithFilePath(string path)
                 {
-                    if (path == recoverableRoot.FilePath)
+                    if (path == this.FilePath)
                     {
                         return this;
                     }
 
-                    return new RecoverableSyntaxTree(recoverableRoot.WithFilePath(path));
-                }
-
-                internal bool IsReparsed
-                {
-                    get { return this.recoverableRoot.IsReparsed; }
+                    return new RecoverableSyntaxTree(this, info.WithFilePath(path));
                 }
             }
         }

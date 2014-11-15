@@ -43,8 +43,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return SyntaxFactory.SyntaxTree(node, options, fileName, encoding)
             End Function
 
-            Public Overrides Function CreateRecoverableTree(filePath As String, optionsOpt As ParseOptions, text As ValueSource(Of TextAndVersion), root As SyntaxNode, reparse As Boolean) As SyntaxTree
-                Return RecoverableSyntaxTree.CreateRecoverableTree(Me, filePath, If(optionsOpt, GetDefaultParseOptions()), text, DirectCast(root, CompilationUnitSyntax), reparse)
+            Public Overrides Function CreateRecoverableTree(cacheKey As ProjectId, filePath As String, optionsOpt As ParseOptions, text As ValueSource(Of TextAndVersion), root As SyntaxNode) As SyntaxTree
+                Return RecoverableSyntaxTree.CreateRecoverableTree(Me, cacheKey, filePath, If(optionsOpt, GetDefaultParseOptions()), text, DirectCast(root, CompilationUnitSyntax))
             End Function
 
             Public Overrides Function DeserializeNodeFrom(stream As Stream, cancellationToken As CancellationToken) As SyntaxNode

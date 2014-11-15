@@ -263,6 +263,9 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="csi" />
     <InternalsVisibleTo Include="Roslyn.CSharp.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Roslyn.Diagnostics.Analyzers" />
+    <InternalsVisibleTo Include="Roslyn.Diagnostics.Analyzers.CSharp" />
+    <InternalsVisibleTo Include="Roslyn.Diagnostics.Analyzers.VisualBasic" />
     <InternalsVisibleTo Include="Roslyn.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Roslyn.InteractiveFeatures" />
     <InternalsVisibleTo Include="Roslyn.VisualBasic.InteractiveEditorFeatures" />
@@ -381,10 +384,10 @@
     <Compile Include="Versions\ISemanticVersionTrackingService.cs" />
     <Compile Include="Versions\PersistedVersionStampLogger.cs" />
     <Compile Include="Workspace\CustomWorkspace.cs" />
-    <Compile Include="Workspace\Host\Caching\AbstractCacheServiceFactory.cs" />
+    <Compile Include="Workspace\Host\Caching\ICachedObjectOwner.cs" />
     <Compile Include="Workspace\Host\Caching\CacheOptions.cs" />
-    <Compile Include="Workspace\Host\Caching\CostBasedCache.Nested.cs" />
-    <Compile Include="Workspace\Host\Caching\CostBasedCache_Logging.cs" />
+    <Compile Include="Workspace\Host\Caching\CacheServiceFactory.cs" />
+    <Compile Include="Workspace\Host\Caching\IProjectCacheService.cs" />
     <Compile Include="Differencing\Edit.cs" />
     <Compile Include="Differencing\EditKind.cs" />
     <Compile Include="Differencing\EditScript.cs">
@@ -598,7 +601,9 @@
     <Compile Include="Rename\ConflictEngine\ConflictingIdentifierTracker.cs" />
     <Compile Include="Rename\ConflictEngine\ConflictResolution.cs" />
     <Compile Include="Rename\ConflictEngine\ConflictResolver.cs" />
-    <Compile Include="Rename\ConflictEngine\ConflictResolver.Session.cs" />
+    <Compile Include="Rename\ConflictEngine\ConflictResolver.Session.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
     <Compile Include="Rename\ConflictEngine\DeclarationConflictHelpers.cs" />
     <Compile Include="Rename\ConflictEngine\RelatedLocation.cs" />
     <Compile Include="Rename\ConflictEngine\RelatedLocationType.cs" />
@@ -805,19 +810,7 @@
     <Compile Include="Utilities\Documentation\DeferredDocumentationProvider.cs" />
     <Compile Include="Utilities\Documentation\XmlDocumentationProvider.cs" />
     <Compile Include="Workspace\DocumentEventArgs.cs" />
-    <Compile Include="Workspace\Host\Caching\CachedObjectSource.cs" />
-    <Compile Include="Workspace\Host\Caching\CacheId.cs" />
-    <Compile Include="Workspace\Host\Caching\CompilationCacheServiceFactory.cs" />
-    <Compile Include="Workspace\Host\Caching\CostBasedCache.cs" />
-    <Compile Include="Workspace\Host\Caching\ICompilationCacheService.cs" />
-    <Compile Include="Workspace\Host\Caching\IObjectCache.cs" />
-    <Compile Include="Workspace\Host\Caching\ISyntaxTreeCacheService.cs" />
-    <Compile Include="Workspace\Host\Caching\ITextCacheService.cs" />
-    <Compile Include="Workspace\Host\Caching\IWeakAction.cs" />
     <Compile Include="Workspace\Host\Caching\RecoverableCachedObjectSource.cs" />
-    <Compile Include="Workspace\Host\Caching\SyntaxTreeCacheServiceFactory.cs" />
-    <Compile Include="Workspace\Host\Caching\TextCacheServiceFactory.cs" />
-    <Compile Include="Workspace\Host\Caching\WeakAction.cs" />
     <Compile Include="Workspace\Host\HostLanguageServices.cs" />
     <Compile Include="Workspace\Host\HostServices.cs" />
     <Compile Include="Workspace\Host\Metadata\MetadataServiceFactory.cs" />
@@ -828,8 +821,6 @@
     <Compile Include="Workspace\Host\PersistentStorage\NoOpPersistentStorage.cs" />
     <Compile Include="Workspace\Host\PersistentStorage\PersistentStorageOptions.cs" />
     <Compile Include="Workspace\Host\PersistentStorage\PersistentStorageServiceFactory.cs" />
-    <Compile Include="Workspace\Host\SyntaxTreeStorage\ISyntaxTreeStorageService.cs" />
-    <Compile Include="Workspace\Host\SyntaxTreeStorage\SyntaxTreeStorageService.cs" />
     <Compile Include="Workspace\Host\TaskScheduler\IWorkspaceTaskScheduler.cs" />
     <Compile Include="Workspace\Host\TaskScheduler\IWorkspaceTaskSchedulerFactory.cs" />
     <Compile Include="Workspace\Host\TaskScheduler\WorkspaceTaskSchedulerFactory.cs" />
@@ -845,6 +836,7 @@
     <Compile Include="Workspace\Host\TextFactory\TextFactoryServiceFactory.TextFactoryService.cs" />
     <Compile Include="Workspace\Solution\AbstractLinkedFileMergeConflictCommentAdditionService.cs" />
     <Compile Include="Workspace\Solution\AdditionalDocumentStream.cs" />
+    <Compile Include="Workspace\Solution\MetadataReferenceManager.cs" />
     <Compile Include="Workspace\Solution\TextDocumentState.cs">
       <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
     </Compile>

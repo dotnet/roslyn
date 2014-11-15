@@ -10,17 +10,21 @@ namespace Microsoft.CodeAnalysis.Host
 {
     internal abstract partial class AbstractSyntaxTreeFactoryService : ISyntaxTreeFactoryService
     {
-        private readonly HostLanguageServices languageServices;
+        // Recoverable trees only save significant memory for larger trees
+        internal readonly int MinimumLengthForRecoverableTree;
+
+        internal HostLanguageServices LanguageServices { get; private set; }
 
         public AbstractSyntaxTreeFactoryService(HostLanguageServices languageServices)
         {
-            this.languageServices = languageServices;
+            this.LanguageServices = languageServices;
+            this.MinimumLengthForRecoverableTree = languageServices.WorkspaceServices.Workspace.Options.GetOption(CacheOptions.RecoverableTreeLengthThreshold);
         }
 
         public abstract ParseOptions GetDefaultParseOptions();
         public abstract SyntaxTree CreateSyntaxTree(string filePath, ParseOptions options, SyntaxNode node, Encoding encoding);
         public abstract SyntaxTree ParseSyntaxTree(string filePath, ParseOptions options, SourceText text, CancellationToken cancellationToken);
-        public abstract SyntaxTree CreateRecoverableTree(string filePath, ParseOptions options, ValueSource<TextAndVersion> text, SyntaxNode root, bool reparse);
+        public abstract SyntaxTree CreateRecoverableTree(ProjectId cacheKey, string filePath, ParseOptions options, ValueSource<TextAndVersion> text, SyntaxNode root);
         public abstract SyntaxNode DeserializeNodeFrom(Stream stream, CancellationToken cancellationToken);
 
         protected static SyntaxNode RecoverNode(SyntaxTree tree, TextSpan textSpan, int kind)

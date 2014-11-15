@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Host
         SyntaxTree ParseSyntaxTree(string filePath, ParseOptions options, SourceText text, CancellationToken cancellationToken);
 
         // new recoverable tree from root node
-        SyntaxTree CreateRecoverableTree(string filePath, ParseOptions options, ValueSource<TextAndVersion> text, SyntaxNode root, bool reparse = false);
+        SyntaxTree CreateRecoverableTree(ProjectId cacheKey, string filePath, ParseOptions options, ValueSource<TextAndVersion> text, SyntaxNode root);
 
         SyntaxNode DeserializeNodeFrom(Stream stream, CancellationToken cancellationToken);
     }
