@@ -199,6 +199,14 @@ public struct StructWithValue
         var v2 = v1;
     }
 }";
+            CreateCompilationWithMscorlib(source2, options: Test.Utilities.TestOptions.ReleaseDll.WithFeatures(new[] { "strict" }.AsImmutable()), references: new MetadataReference[] { sourceReference }).VerifyDiagnostics(
+                // (6,18): error CS0165: Use of unassigned local variable 'r1'
+                //         var r2 = r1;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "r1").WithArguments("r1").WithLocation(6, 18),
+                // (9,18): error CS0165: Use of unassigned local variable 'v1'
+                //         var v2 = v1;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "v1").WithArguments("v1").WithLocation(9, 18)
+                );
             CreateCompilationWithMscorlib(source2, references: new MetadataReference[] { sourceReference }).VerifyDiagnostics(
                 // NOTE: no errors expected because we treat all imported data the same as if imported from metadata.
                 ////// (6,18): error CS0165: Use of unassigned local variable 'r1'
