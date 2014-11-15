@@ -39,11 +39,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers
             }
         }
 
-        public override FixAllProvider GetFixAllProvider()
-        {
-            return null;
-        }
-
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
             public MyCodeAction(string title, Document newDocument) :

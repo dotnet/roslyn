@@ -25,7 +25,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// Return null if the provider doesn't support fix all/multiple occurrences.
         /// Otherwise, you can return any of the well known fix all providers from <see cref="WellKnownFixAllProviders"/> or implement your own fix all provider.
         /// </summary>
-        /// <returns></returns>
-        public abstract FixAllProvider GetFixAllProvider();
+        public virtual FixAllProvider GetFixAllProvider()
+        {
+            return null;
+        }
     }
 }

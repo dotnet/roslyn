@@ -10,11 +10,6 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers
 {
     public abstract class MultipleCodeFixProviderBase : CodeFixProvider
     {
-        public override FixAllProvider GetFixAllProvider()
-        {
-            return null;
-        }
-
         internal abstract Task<IEnumerable<CodeAction>> GetFixesAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, CancellationToken cancellationToken);
 
         public sealed override async Task ComputeFixesAsync(CodeFixContext context)

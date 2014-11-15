@@ -38,11 +38,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public override FixAllProvider GetFixAllProvider()
-        {
-            return null;
-        }
-
         private class MyCodeAction : DocumentChangeAction
         {
             public MyCodeAction(string title, Document newDocument) :
