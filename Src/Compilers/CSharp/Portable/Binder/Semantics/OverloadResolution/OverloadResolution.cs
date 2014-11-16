@@ -36,6 +36,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return binder.Conversions; }
         }
 
+        // lazily compute if the compiler is in "strict" mode (rather than duplicating bugs for compatibility)
+        private bool? strict = null;
+        bool Strict
+        {
+            get
+            {
+                if (strict.HasValue) return strict.Value;
+                bool value = binder.Compilation.Feature("strict") != null;
+                strict = value;
+                return value;
+            }
+        }
+
         // UNDONE: This List<MethodResolutionResult> deal should probably be its own datastructure.
         // We need an indexable collection of mappings from method candidates to their up-to-date
         // overload resolution status. It must be fast and memory efficient, but it will very often

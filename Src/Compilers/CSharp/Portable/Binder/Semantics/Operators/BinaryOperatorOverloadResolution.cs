@@ -263,14 +263,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumSubtraction, nullableEnum, nullableEnum, nullableUnderlying));
                     operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumAndUnderlyingSubtraction, nullableEnum, nullableUnderlying, nullableEnum));
 
-                    // Due to a bug, the native compiler allows "underlying - enum", so Roslyn does as well.
-                    // (In the native compiler codebase look at GetEnumBinOpSigs; the last call to method
-                    // "ValidForEnumAndUnderlyingType" is wrong; it should be a call to "ValidForUnderlyingTypeAndEnum".
-                    // The net result of the bug is that everything that is supposed to work is fine, and we accidentally
-                    // allow underlying - enum because enum - underlying is valid.)
-
-                    operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.UnderlyingAndEnumSubtraction, underlying, enumType, enumType));
-                    operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedUnderlyingAndEnumSubtraction, nullableUnderlying, nullableEnum, nullableEnum));
+                    if (!Strict)
+                    {
+                        // SPEC VIOLATION:
+                        // Due to a bug, the native compiler allows "underlying - enum", so Roslyn does as well unless compiling in "strict" mode.
+                        operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.UnderlyingAndEnumSubtraction, underlying, enumType, enumType));
+                        operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedUnderlyingAndEnumSubtraction, nullableUnderlying, nullableEnum, nullableEnum));
+                    }
                     break;
                 case BinaryOperatorKind.Equal:
                 case BinaryOperatorKind.NotEqual:

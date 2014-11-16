@@ -6404,6 +6404,28 @@ struct TestStr
             op.GetHashCode();
         }
 
+        [Fact]
+        public void StrictEnumSubtraction()
+        {
+            var source1 =
+@"public enum Color { Red, Blue, Green }
+public static class Program
+{
+    public static void M<T>(T t) {}
+    public static void Main(string[] args)
+    {
+        M(1 - Color.Red);
+    }
+}";
+            CreateCompilationWithMscorlib(source1, options: Test.Utilities.TestOptions.ReleaseDll).VerifyDiagnostics(
+                );
+            CreateCompilationWithMscorlib(source1, options: Test.Utilities.TestOptions.ReleaseDll.WithFeatures(new[] { "strict" }.AsImmutable())).VerifyDiagnostics(
+                // (7,11): error CS0019: Operator '-' cannot be applied to operands of type 'int' and 'Color'
+                //         M(1 - Color.Red);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "1 - Color.Red").WithArguments("-", "int", "Color").WithLocation(7, 11)
+                );
+        }
+
         private sealed class EmptyRewriter : BoundTreeRewriter
         {
         }
