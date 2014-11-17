@@ -94,9 +94,6 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\FileNameUtilities.cs">
       <Link>InternalUtilities\PathUtilities.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Core\Desktop\PathUtilities.cs">
-      <Link>InternalUtilities\PathUtilities.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs">
       <Link>InternalUtilities\Hash.cs</Link>
     </Compile>
@@ -784,7 +781,6 @@
     <Compile Include="Utilities\EditDistance.cs" />
     <Compile Include="Utilities\EventMap.cs" />
     <Compile Include="Utilities\ExceptionHelpers.cs" />
-    <Compile Include="Utilities\FilePathUtilities.cs" />
     <Compile Include="Utilities\IBidirectionalMap.cs" />
     <Compile Include="Utilities\ICollectionExtensions.cs" />
     <Compile Include="Utilities\IDictionaryExtensions.cs" />

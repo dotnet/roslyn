@@ -76,6 +76,9 @@
     <Compile Include="..\..\..\Compilers\Core\Desktop\FileUtilities.cs">
       <Link>InternalUtilities\FileUtilities.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Desktop\PathUtilities.cs">
+      <Link>InternalUtilities\PathUtilities.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
       <Link>InternalUtilities\FusionAssemblyIdentity.cs</Link>
       <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
@@ -88,6 +91,7 @@
       <Link>InternalUtilities\GacFileResolver.cs</Link>
       <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
     </Compile>
+    <Compile Include="InternalUtilities\FilePathUtilities.cs" />
     <Compile Include="Log\EtwLogger.cs" />
     <Compile Include="Log\RoslynEventSource.cs" />
     <Compile Include="Options\ExportOptionsAttribute.cs" />
