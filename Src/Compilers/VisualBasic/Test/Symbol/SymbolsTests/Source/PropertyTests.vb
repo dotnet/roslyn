@@ -3,14 +3,10 @@
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -2538,7 +2534,7 @@ BC30057: Too many arguments to 'Public Overloads ReadOnly Default Property F(o A
         End Sub
 
         <WorkItem(529553, "DevDiv")>
-        <Fact(Skip:="529553")>
+        <Fact()>
         Public Sub DefaultPropertiesInterfacesWithShadowingMethod()
             Dim customIL = <![CDATA[
 // Base class with default property
@@ -2579,12 +2575,9 @@ End Module
             Dim compilation = CompilationUtils.CreateCompilationWithCustomILSource(source, customIL.Value, includeVbRuntime:=True)
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
-BC30057: Too many arguments to 'Public ReadOnly Default Property F(o As Object) As Object'.
-        value = b1(Nothing, Nothing)
-                            ~~~~~~~
-BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Default Property F(x As Object, y As Object) As Object'.
-        value = c(1)
-                ~~~~
+BC30057: Too many arguments to 'ReadOnly Default Property F(o As Object) As Object'.
+        value = b(2, 3)
+                     ~
 </expected>)
         End Sub
 
@@ -4596,7 +4589,6 @@ End Class
             CompileAndVerify(sources, sourceSymbolValidator:=validator, symbolValidator:=validator)
         End Sub
 
-
         <Fact>
         Public Sub NoAccessors()
             Dim source =
@@ -5911,7 +5903,6 @@ Interface I
     Property Q As Integer
 End Interface
     </file>
-
 </compilation>)
 
             ' Per design meeting (see bug 11253), in VB, if there's no "Get" or "Set" written,
@@ -5944,9 +5935,7 @@ Public Class A
         End Get
     End Property
 End Class
-
     </file>
-
 </compilation>)
 
             Dim globalNS = comp.SourceModule.GlobalNamespace
@@ -8166,13 +8155,13 @@ End Class
             context.Diagnostics.Verify()
         End Sub
 
-        Private Sub VerifyAccessibility([property] As PEPropertySymbol, propertyAccessibility As Accessibility, getAccessibility As Accessibility, setAccessibility As Accessibility)
+        Private Shared Sub VerifyAccessibility([property] As PEPropertySymbol, propertyAccessibility As Accessibility, getAccessibility As Accessibility, setAccessibility As Accessibility)
             Assert.Equal([property].DeclaredAccessibility, propertyAccessibility)
             VerifyAccessorAccessibility([property].GetMethod, getAccessibility)
             VerifyAccessorAccessibility([property].SetMethod, setAccessibility)
         End Sub
 
-        Private Sub VerifyAccessorAccessibility(accessor As MethodSymbol, accessorAccessibility As Accessibility)
+        Private Shared Sub VerifyAccessorAccessibility(accessor As MethodSymbol, accessorAccessibility As Accessibility)
             If accessorAccessibility = Accessibility.NotApplicable Then
                 Assert.Null(accessor)
             Else
@@ -8187,7 +8176,7 @@ End Class
 
         Private Shared ReadOnly PropertiesDll As MetadataReference = TestReferences.SymbolsTests.Properties
 
-        Private Sub VerifyPropertiesParametersCount([property] As PropertySymbol, expectedCount As Integer)
+        Private Shared Sub VerifyPropertiesParametersCount([property] As PropertySymbol, expectedCount As Integer)
             Assert.Equal([property].Parameters.Length, expectedCount)
             If [property].GetMethod IsNot Nothing Then
                 Assert.Equal([property].GetMethod.Parameters.Length, expectedCount)
@@ -8197,7 +8186,7 @@ End Class
             End If
         End Sub
 
-        Private Sub VeryifyPropertiesParametersTypes([property] As PropertySymbol, ParamArray expectedTypes() As TypeSymbol)
+        Private Shared Sub VeryifyPropertiesParametersTypes([property] As PropertySymbol, ParamArray expectedTypes() As TypeSymbol)
             Assert.Equal([property].SetMethod.Parameters.Last().Type, [property].Type)
             Assert.True((From param In [property].Parameters Select param.Type).SequenceEqual(expectedTypes))
 
