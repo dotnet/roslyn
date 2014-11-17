@@ -2,10 +2,6 @@
 
 Imports System.Threading
 Imports Microsoft.Cci
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Partial Class SynthesizedStaticLocalBackingField
@@ -34,24 +30,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If m_NameToEmit Is Nothing Then
                 Dim declaringMethod = DirectCast(Me.ImplicitlyDefinedBy.ContainingSymbol, MethodSymbol)
-
-                Dim builder = PooledStringBuilder.GetInstance()
-
-                ' Munge the name of the field using name and metadata signature of the function,
-                ' in which corresponding static local was defined, so the debugger so the debugger can find it.
-
-                builder.Builder.Append("$STATIC$")
-                builder.Builder.Append(declaringMethod.Name)
-                builder.Builder.Append("$"c)
-
-                For Each b As Byte In metadataWriter.GetMethodSignature(declaringMethod)
-                    builder.Builder.Append(String.Format("{0:X}", b))
-                Next
-
-                builder.Builder.Append("$"c)
-                builder.Builder.Append(Me.Name)
-
-                m_NameToEmit = builder.ToStringAndFree()
+                Dim signature = GeneratedNames.MakeSignatureString(metadataWriter.GetMethodSignature(declaringMethod))
+                m_NameToEmit = GeneratedNames.MakeStaticLocalFieldName(declaringMethod.Name, signature, Name)
             End If
         End Sub
 

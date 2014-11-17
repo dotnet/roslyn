@@ -2,13 +2,14 @@
 
 Imports System.Globalization
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.Collections
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
     ''' <summary>
     ''' Helper class to generate synthesized names.
     ''' </summary>
-    Friend Class GeneratedNames
+    Friend NotInheritable Class GeneratedNames
 
         ''' <summary>
         ''' Generates the name of an operator's function local based on the operator name.
@@ -313,6 +314,51 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Shared Function MakeLambdaDisplayClassStorageName(uniqueId As Integer) As String
             Return StringConstants.ClosureVariablePrefix & uniqueId
         End Function
+
+        Friend Shared Function MakeSignatureString(signature As Byte()) As String
+            Dim builder = PooledStringBuilder.GetInstance()
+            For Each b In signature
+                ' Note the format of each byte is not fixed width, so the resulting string may be
+                ' ambiguous. And since this method Is used to generate field names for static
+                ' locals, the same field name may be generated for two locals with the same
+                ' local name in overloaded methods. The native compiler has the same behavior.
+                ' Using a fixed width format {0:X2} would solve this but since the EE relies on
+                ' the format for recognizing static locals, that would be a breaking change.
+                builder.Builder.AppendFormat("{0:X}", b)
+            Next
+            Return builder.ToStringAndFree()
+        End Function
+
+        Friend Shared Function MakeStaticLocalFieldName(
+            methodName As String,
+            methodSignature As String,
+            localName As String) As String
+
+            Return String.Format(StringConstants.StaticLocalFieldNameMask, methodName, methodSignature, localName)
+        End Function
+
+        Friend Shared Function TryParseStaticLocalFieldName(
+            fieldName As String,
+            <Out> ByRef methodName As String,
+            <Out> ByRef methodSignature As String,
+            <Out> ByRef localName As String) As Boolean
+
+            If fieldName.StartsWith(StringConstants.StaticLocalFieldNamePrefix, StringComparison.Ordinal) Then
+                Dim parts = fieldName.Split("$"c)
+                If parts.Length = 5 Then
+                    methodName = parts(2)
+                    methodSignature = parts(3)
+                    localName = parts(4)
+                    Return True
+                End If
+            End If
+
+            methodName = Nothing
+            methodSignature = Nothing
+            localName = Nothing
+            Return False
+        End Function
+
     End Class
 
 End Namespace

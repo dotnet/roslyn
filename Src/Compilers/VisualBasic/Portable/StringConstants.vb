@@ -93,6 +93,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Const IteratorInitialThreadIdName As String = "$InitialThreadId"
         Friend Const IteratorParameterProxyName As String = "proto$"
 
+        Friend Const StaticLocalFieldNamePrefix = "$STATIC$"
+        Friend Const StaticLocalFieldNameMask = StaticLocalFieldNamePrefix & "{0}${1}${2}"
+
         Friend Const PropertyGetPrefix As String = "get_"
         Friend Const PropertySetPrefix As String = "set_"
         Friend Const WinMdPropertySetPrefix As String = "put_"
