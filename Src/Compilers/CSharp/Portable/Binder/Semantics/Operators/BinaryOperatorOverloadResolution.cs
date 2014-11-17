@@ -460,20 +460,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Strip the "checked" off; the checked-ness of the context does not affect which built-in operators
             // are applicable.
             kind = kind.OperatorWithLogical();
-
-            // The spec states that overload resolution is performed upon the infinite set of
-            // operators defined on enumerated types, pointers and delegates. Clearly we cannot
-            // construct the infinite set; we have to pare it down. Previous implementations of C#
-            // implement a much stricter rule; they only add the special operators to the candidate
-            // set if one of the operands is of the relevant type. This means that operands
-            // involving user-defined implicit conversions from class or struct types to enum,
-            // pointer and delegate types do not cause the right candidates to participate in
-            // overload resolution. It also presents numerous problems involving delegate variance
-            // and conversions from lambdas to delegate types.
-            //
-            // It is onerous to require the actually specified behavior. We should change the
-            // specification to match the previous implementation.
-
             var operators = ArrayBuilder<BinaryOperatorSignature>.GetInstance();
             bool isEquality = kind == BinaryOperatorKind.Equal || kind == BinaryOperatorKind.NotEqual;
             if (isEquality && UseOnlyReferenceEquality(left, right, ref useSiteDiagnostics))
@@ -486,8 +472,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 this.Compilation.builtInOperators.GetSimpleBuiltInOperators(kind, operators);
+
+                // SPEC 7.3.4: For predefined enum and delegate operators, the only operators
+                // considered are those defined by an enum or delegate type that is the binding
+                //-time type of one of the operands.
                 GetDelegateOperations(kind, left, right, operators, ref useSiteDiagnostics);
                 GetEnumOperations(kind, left, right, operators);
+
+                // We similarly limit pointer operator candidates considered.
                 GetPointerOperators(kind, left, right, operators);
             }
 
