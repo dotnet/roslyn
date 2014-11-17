@@ -2470,7 +2470,7 @@ BC30057: Too many arguments to 'Public Overloads ReadOnly Default Property F(o A
         End Sub
 
         <WorkItem(529554, "DevDiv")>
-        <Fact(Skip:="529554")>
+        <Fact()>
         Public Sub DefaultPropertiesWithShadowingMethod()
             Dim customIL = <![CDATA[
 // Base class with default property
@@ -2524,9 +2524,9 @@ End Module
 BC30057: Too many arguments to 'Public Overloads ReadOnly Default Property F(o As Object) As Object'.
         value = b(2, 3)
                      ~
-BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Default Property F(x As Object, y As Object) As Object'.
+BC30455: Argument not specified for parameter 'y' of 'Public Overloads ReadOnly Default Property F(x As Object, y As Object) As Object'.
         value = c1(1)
-                ~~~~~
+                ~~
 BC30057: Too many arguments to 'Public Overloads ReadOnly Default Property F(o As Object) As Object'.
         value = c2(2, 3)
                       ~
