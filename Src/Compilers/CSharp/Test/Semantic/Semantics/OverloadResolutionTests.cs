@@ -1141,7 +1141,7 @@ class Test2
   {
     .param [3]
     .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = {}
-	ret
+    ret
   } // end of method Derived::Method2
 
   //// Removes 'params' ////
@@ -6102,20 +6102,20 @@ class C
             var source = @"
 public class C
 {
-	public override T Override<T>(T t) 
-	{ 
-		return t;
-	}
+    public override T Override<T>(T t) 
+    { 
+        return t;
+    }
 
-	public void Test<T>(T t)
-	{
-		Override(t);
-	}
+    public void Test<T>(T t)
+    {
+        Override(t);
+    }
 }
 ";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (4,20): error CS0115: 'C.Override<T>(T)': no suitable method found to override
-                // 	public override T Override<T>(T t) 
+                //     public override T Override<T>(T t) 
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "Override").WithArguments("C.Override<T>(T)"));
         }
 
@@ -6192,19 +6192,19 @@ using System;
 
 public class C
 {
-	public static int F(int p1, char p2, ref dynamic p3) { return 2; }
-	public static int F(C p1, params dynamic[] p2) { return 3; }
+    public static int F(int p1, char p2, ref dynamic p3) { return 2; }
+    public static int F(C p1, params dynamic[] p2) { return 3; }
 
-	public static implicit operator int(C t) { return 1; }
-	public static implicit operator C(int t) { return new C(); }
+    public static implicit operator int(C t) { return 1; }
+    public static implicit operator C(int t) { return new C(); }
 
-	static void M()
-	{            
-		dynamic d1 = null;
-		C c = null;
+    static void M()
+    {            
+        dynamic d1 = null;
+        C c = null;
  
-		C.F(c, 'a', ref d1); //-C.F(int, char, ref dynamic)
-	}
+        C.F(c, 'a', ref d1); //-C.F(int, char, ref dynamic)
+    }
 }";
 
             TestOverloadResolutionWithDiff(source);
@@ -7083,5 +7083,419 @@ namespace C
             Assert.Equal("(30,19): error CS0121: The call is ambiguous between the following methods or properties: 'A.B.X.Test(int)' and 'A.C.X.Test(int)'", DiagnosticFormatter.Instance.Format(comp.GetDiagnostics()[0], System.Globalization.CultureInfo.InvariantCulture));
         }
 
+        [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
+        public void Bug1080896_0()
+        {
+
+            string source1 = @"
+using System;
+namespace ConsoleApplication2
+{
+    class Program
+    {
+        public class Foo {
+            public static bool IsThing(Foo t) { return false; }
+        }
+        public class Bar<T, V> where T : class
+        {
+            public static Bar<T, V> Create(Func<T, bool> filter)
+            {
+                System.Console.WriteLine(""Create(Func<T, bool> filter)"");
+                return null;
+            }
+            public static Bar<T, V> Create(Func<T, V> propertyPrev, Func<T, bool> filter = null)
+            {
+                System.Console.WriteLine(""Create(Func<T, V> propertyPrev, Func<T, bool> filter = null)"");
+                return null;
+            }
+        }
+        static void Main(string[] args)
+        {
+            var x = Bar<Foo, double>.Create(Foo.IsThing);
+        }
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation, expectedOutput: @"Create(Func<T, bool> filter)");
+        }
+
+        [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
+        public void Bug1080896_1()
+        {
+
+            string source1 = @"
+using System;
+namespace ConsoleApplication2
+{
+    class Program
+    {
+        public class Foo {
+            public static bool IsThing(Foo t) { return false; }
+        }
+        public class Bar<T, V> where T : class
+        {
+            public static Bar<T, V> Create(Func<T, bool> filter)
+            {
+                System.Console.WriteLine(""Create(Func < T, bool > filter)"");
+                return null;
+            }
+            public static Bar<T, V> Create(Func<T, V> propertyPrev, params Func<T, bool>[] filter)
+            {
+                System.Console.WriteLine(""Create(Func<T, V> propertyPrev, params Func<T, bool>[] filter"");
+                return null;
+            }
+        }
+        static void Main(string[] args)
+        {
+            var x = Bar<Foo, double>.Create(Foo.IsThing);
+        }
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
+
+            compilation.VerifyDiagnostics(
+    // (25,38): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Bar<T, V>.Create(Func<T, bool>)' and 'Program.Bar<T, V>.Create(Func<T, V>, params Func<T, bool>[])'
+    //             var x = Bar<Foo, double>.Create(Foo.IsThing);
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, bool>)", "ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, V>, params System.Func<T, bool>[])").WithLocation(25, 38)
+                );
+        }
+
+        [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
+        public void Bug1080896_2()
+        {
+
+            string source1 = @"
+using System;
+namespace ConsoleApplication2
+{
+    class Program
+    {
+        public class Foo {
+            public static double IsThing(Foo t) { return 0; }
+        }
+        public class Bar<T, V> where T : class
+        {
+            public static Bar<T, V> Create(Func<T, bool> filter, params int[] dummy)
+            {
+                System.Console.WriteLine(""Create(Func<T, bool> filter, params int[] dummy)"");
+                return null;
+            }
+            public static Bar<T, V> Create(Func<T, V> propertyPrev, Func<T, bool> filter = null)
+            {
+                System.Console.WriteLine(""Create(Func<T, V> propertyPrev, Func<T, bool> filter = null)"");
+                return null;
+            }
+        }
+        static void Main(string[] args)
+        {
+            var x = Bar<Foo, double>.Create(Foo.IsThing);
+        }
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation, expectedOutput: @"Create(Func<T, V> propertyPrev, Func<T, bool> filter = null)");
+        }
+
+        [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
+        public void Bug1080896_3()
+        {
+
+            string source1 = @"
+using System;
+namespace ConsoleApplication2
+{
+    class Program
+    {
+        public class Foo {
+            public static double IsThing(Foo t) { return 0; }
+        }
+        public class Bar<T, V> where T : class
+        {
+            public static Bar<T, V> Create(Func<T, bool> filter, params int[] dummy)
+            {
+                System.Console.WriteLine(""Create(Func<T, bool> filter, params int[] dummy)"");
+                return null;
+            }
+            public static Bar<T, V> Create(Func<T, V> propertyPrev)
+            {
+                System.Console.WriteLine(""Create(Func<T, V> propertyPrev)"");
+                return null;
+            }
+        }
+        static void Main(string[] args)
+        {
+            var x = Bar<Foo, double>.Create(Foo.IsThing);
+        }
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
+
+            compilation.VerifyDiagnostics(
+    // (25,38): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Bar<T, V>.Create(Func<T, bool>, params int[])' and 'Program.Bar<T, V>.Create(Func<T, V>)'
+    //             var x = Bar<Foo, double>.Create(Foo.IsThing);
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, bool>, params int[])", "ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, V>)").WithLocation(25, 38)
+                );
+        }
+
+        [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
+        public void Bug1080896_4()
+        {
+
+            string source1 = @"
+using System;
+namespace ConsoleApplication2
+{
+    class Program
+    {
+        public class Foo {
+            public static double IsThing(Foo t) { return 0; }
+        }
+        public class Bar<T, V> where T : class
+        {
+            public static Bar<T, V> Create(Func<T, V> propertyPrev)
+            {
+                System.Console.WriteLine(""Create(Func<T, V> propertyPrev)"");
+                return null;
+            }
+            public static Bar<T, V> Create(Func<T, bool> filter, params int[] dummy)
+            {
+                System.Console.WriteLine(""Create(Func<T, bool> filter, params int[] dummy)"");
+                return null;
+            }
+        }
+        static void Main(string[] args)
+        {
+            var x = Bar<Foo, double>.Create(Foo.IsThing);
+        }
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
+
+            compilation.VerifyDiagnostics(
+    // (25,38): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Bar<T, V>.Create(Func<T, V>)' and 'Program.Bar<T, V>.Create(Func<T, bool>, params int[])'
+    //             var x = Bar<Foo, double>.Create(Foo.IsThing);
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, V>)", "ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, bool>, params int[])").WithLocation(25, 38)
+                );
+        }
+
+        [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
+        public void Bug1080896_5()
+        {
+
+            string source1 = @"
+using System;
+namespace ConsoleApplication2
+{
+    class Program
+    {
+        public class Foo {
+            public static bool IsThing(Foo t) { return false; }
+        }
+        public class Bar<T, V> where T : class
+        {
+            public static Bar<T, V> Create(Func<T, V> propertyPrev, params Func<T, bool>[] filter)
+            {
+                System.Console.WriteLine(""Create(Func<T, V> propertyPrev, params Func<T, bool>[] filter"");
+                return null;
+            }
+            public static Bar<T, V> Create(Func<T, bool> filter)
+            {
+                System.Console.WriteLine(""Create(Func < T, bool > filter)"");
+                return null;
+            }
+        }
+        static void Main(string[] args)
+        {
+            var x = Bar<Foo, double>.Create(Foo.IsThing);
+        }
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
+
+            compilation.VerifyDiagnostics(
+    // (25,38): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Bar<T, V>.Create(Func<T, V>, params Func<T, bool>[])' and 'Program.Bar<T, V>.Create(Func<T, bool>)'
+    //             var x = Bar<Foo, double>.Create(Foo.IsThing);
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, V>, params System.Func<T, bool>[])", "ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, bool>)").WithLocation(25, 38)
+                );
+        }
+
+        [Fact, WorkItem(1081302, "Devdiv"), WorkItem(371, "Devdiv")]
+        public void Bug1081302_0()
+        {
+
+            string source1 = @"
+using System;
+namespace ConsoleApplication2
+{
+    public static class Foo
+    {
+        public static U IfNotNull<T, U>(this T value, Func<T, U> selector, U defaultValue = default(U))
+        {
+            System.Console.WriteLine(""IfNotNull<T, U>(this T value, Func<T, U> selector, U defaultValue = default(U))"");
+            return value != null ? selector(value) : defaultValue;
+        }
+        public static U IfNotNull<T, U>(this T? source, Func<T, U> selector) where T : struct
+        {
+            System.Console.WriteLine(""IfNotNull<T, U>(this T? source, Func<T, U> selector)"");
+            return source.HasValue ? selector(source.Value) : default(U);
+        }
+    }
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            double? val = null;
+            var d1 = val.IfNotNull(v => v / 100);
+            var d2 = Foo.IfNotNull(val, v => v / 100);
+        }
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"IfNotNull<T, U>(this T? source, Func<T, U> selector)
+IfNotNull<T, U>(this T? source, Func<T, U> selector)");
+        }
+
+        [Fact, WorkItem(1081302, "Devdiv"), WorkItem(371, "Devdiv")]
+        public void Bug1081302_1()
+        {
+
+            string source1 = @"
+using System;
+namespace ConsoleApplication2
+{
+    public static class Foo
+    {
+        public static U IfNotNull<T, U>(this T value, Func<T, U> selector, params U[] defaultValue)
+        {
+            System.Console.WriteLine(""IfNotNull<T, U>(this T value, Func<T, U> selector, params U[] defaultValue)"");
+            return value != null ? selector(value) : defaultValue[0];
+        }
+        public static U IfNotNull<T, U>(this T? source, Func<T, U> selector) where T : struct
+        {
+            System.Console.WriteLine(""IfNotNull<T, U>(this T? source, Func<T, U> selector)"");
+            return source.HasValue ? selector(source.Value) : default(U);
+        }
+    }
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            double? val = null;
+            var d1 = val.IfNotNull(v => v / 100);
+            var d2 = Foo.IfNotNull(val, v => v / 100);
+        }
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+
+            compilation.VerifyDiagnostics(
+    // (23,26): error CS0121: The call is ambiguous between the following methods or properties: 'Foo.IfNotNull<T, U>(T, Func<T, U>, params U[])' and 'Foo.IfNotNull<T, U>(T?, Func<T, U>)'
+    //             var d1 = val.IfNotNull(v => v / 100);
+    Diagnostic(ErrorCode.ERR_AmbigCall, "IfNotNull").WithArguments("ConsoleApplication2.Foo.IfNotNull<T, U>(T, System.Func<T, U>, params U[])", "ConsoleApplication2.Foo.IfNotNull<T, U>(T?, System.Func<T, U>)").WithLocation(23, 26),
+    // (24,26): error CS0121: The call is ambiguous between the following methods or properties: 'Foo.IfNotNull<T, U>(T, Func<T, U>, params U[])' and 'Foo.IfNotNull<T, U>(T?, Func<T, U>)'
+    //             var d2 = Foo.IfNotNull(val, v => v / 100);
+    Diagnostic(ErrorCode.ERR_AmbigCall, "IfNotNull").WithArguments("ConsoleApplication2.Foo.IfNotNull<T, U>(T, System.Func<T, U>, params U[])", "ConsoleApplication2.Foo.IfNotNull<T, U>(T?, System.Func<T, U>)").WithLocation(24, 26)
+                );
+        }
+
+        [Fact, WorkItem(1081302, "Devdiv"), WorkItem(371, "Devdiv")]
+        public void Bug1081302_2()
+        {
+
+            string source1 = @"
+using System;
+namespace ConsoleApplication2
+{
+    public static class Foo
+    {
+        public static U IfNotNull<T, U>(this T? source, Func<T, U> selector) where T : struct
+        {
+            System.Console.WriteLine(""IfNotNull<T, U>(this T? source, Func<T, U> selector)"");
+            return source.HasValue ? selector(source.Value) : default(U);
+        }
+        public static U IfNotNull<T, U>(this T value, Func<T, U> selector, params U[] defaultValue)
+        {
+            System.Console.WriteLine(""IfNotNull<T, U>(this T value, Func<T, U> selector, params U[] defaultValue)"");
+            return value != null ? selector(value) : defaultValue[0];
+        }
+    }
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            double? val = null;
+            var d1 = val.IfNotNull(v => v / 100);
+            var d2 = Foo.IfNotNull(val, v => v / 100);
+        }
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+
+            compilation.VerifyDiagnostics(
+    // (23,26): error CS0121: The call is ambiguous between the following methods or properties: 'Foo.IfNotNull<T, U>(T?, Func<T, U>)' and 'Foo.IfNotNull<T, U>(T, Func<T, U>, params U[])'
+    //             var d1 = val.IfNotNull(v => v / 100);
+    Diagnostic(ErrorCode.ERR_AmbigCall, "IfNotNull").WithArguments("ConsoleApplication2.Foo.IfNotNull<T, U>(T?, System.Func<T, U>)", "ConsoleApplication2.Foo.IfNotNull<T, U>(T, System.Func<T, U>, params U[])").WithLocation(23, 26),
+    // (24,26): error CS0121: The call is ambiguous between the following methods or properties: 'Foo.IfNotNull<T, U>(T?, Func<T, U>)' and 'Foo.IfNotNull<T, U>(T, Func<T, U>, params U[])'
+    //             var d2 = Foo.IfNotNull(val, v => v / 100);
+    Diagnostic(ErrorCode.ERR_AmbigCall, "IfNotNull").WithArguments("ConsoleApplication2.Foo.IfNotNull<T, U>(T?, System.Func<T, U>)", "ConsoleApplication2.Foo.IfNotNull<T, U>(T, System.Func<T, U>, params U[])").WithLocation(24, 26)
+                );
+        }
+
+        [Fact]
+        public void ExactParameterMatchAndOptionals()
+        {
+
+            string source1 = @"
+
+class CTest
+{
+    static void Main()
+    {
+        M1(0);
+    }
+
+    static void M1(int x)
+    {
+        System.Console.WriteLine(""M1(int x)"");
+    }
+
+    static void M1(int x, int y = 0)
+    {
+        System.Console.WriteLine(""M1(int x, int y = 0)"");
+    }
+
+    static void M1(int x, params int [] y)
+    {
+        System.Console.WriteLine(""M1(int x, params int [] y)"");
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
+
+            CompileAndVerify(compilation, expectedOutput: @"M1(int x)");
+        }
     }
 }
