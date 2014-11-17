@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 internal static SyntaxTree CreateRecoverableTree(AbstractSyntaxTreeFactoryService service, ProjectId cacheKey, string filePath, ParseOptions options, ValueSource<TextAndVersion> text, CompilationUnitSyntax root)
                 {
                     return root.AttributeLists.Any() || root.FullSpan.Length < service.MinimumLengthForRecoverableTree
-                        ? Create(root, (CSharpParseOptions)options, filePath, text.GetValue().Text.Encoding)
+                        ? Create(root, (CSharpParseOptions)options, filePath, root.SyntaxTree.GetText().Encoding)
                         : new RecoverableSyntaxTree(service, cacheKey, root, new SyntaxTreeInfo(filePath, options, text, root.FullSpan.Length));
                 }
 

@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Friend Shared Function CreateRecoverableTree(service As AbstractSyntaxTreeFactoryService, cacheKey As ProjectId, filePath As String, options As ParseOptions, text As ValueSource(Of TextAndVersion), root As CompilationUnitSyntax) As SyntaxTree
                     Return If(root.Attributes.Any() OrElse root.FullSpan.Length < service.MinimumLengthForRecoverableTree,
-                        Create(root, DirectCast(options, VisualBasicParseOptions), filePath, text.GetValue().Text.Encoding),
+                        Create(root, DirectCast(options, VisualBasicParseOptions), filePath, root.SyntaxTree.GetText().Encoding),
                         New RecoverableSyntaxTree(service, cacheKey, root, New SyntaxTreeInfo(filePath, options, text, root.FullSpan.Length)))
                 End Function
 
