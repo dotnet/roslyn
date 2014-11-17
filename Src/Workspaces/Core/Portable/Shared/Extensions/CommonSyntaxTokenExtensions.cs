@@ -11,19 +11,15 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         public static SyntaxNode GetAncestor(this SyntaxToken token, Func<SyntaxNode, bool> predicate)
         {
-            return token.GetAncestors(predicate).FirstOrDefault();
+            return token.GetAncestor<SyntaxNode>(predicate);
         }
 
-        public static T GetAncestor<T>(this SyntaxToken token)
+        public static T GetAncestor<T>(this SyntaxToken token, Func<T, bool> predicate = null)
             where T : SyntaxNode
         {
-            return token.GetAncestors<T>().FirstOrDefault();
-        }
-
-        public static T GetAncestor<T>(this SyntaxToken token, Func<T, bool> predicate)
-            where T : SyntaxNode
-        {
-            return token.GetAncestors<T>().FirstOrDefault(predicate);
+            return token.Parent != null
+                ? token.Parent.FirstAncestorOrSelf(predicate)
+                : default(T);
         }
 
         public static IEnumerable<T> GetAncestors<T>(this SyntaxToken token)
