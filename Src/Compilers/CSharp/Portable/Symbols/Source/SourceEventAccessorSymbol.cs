@@ -50,8 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if ((object)this.lazyReturnType == null)
             {
-                Debug.Assert((this.flags & MakeReturnsVoidFlags(returnsVoid: true)) == 0, "Default should be false so we never have to clear the bit.");
-
                 CSharpCompilation compilation = this.DeclaringCompilation;
                 Debug.Assert(compilation != null);
 
@@ -81,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         TypeSymbol voidType = compilation.GetSpecialType(SpecialType.System_Void);
                         Binder.ReportUseSiteDiagnostics(voidType, diagnostics, this.Location);
                         this.lazyReturnType = voidType;
-                        this.flags |= MakeReturnsVoidFlags(returnsVoid: true);
+                        this.SetReturnsVoid(returnsVoid: true);
 
                         var parameter = new SynthesizedAccessorValueParameterSymbol(this, eventTokenType, 0, ImmutableArray<CustomModifier>.Empty);
                         this.lazyParameters = ImmutableArray.Create<ParameterSymbol>(parameter);
@@ -95,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     TypeSymbol voidType = compilation.GetSpecialType(SpecialType.System_Void);
                     Binder.ReportUseSiteDiagnostics(voidType, diagnostics, this.Location);
                     this.lazyReturnType = voidType;
-                    this.flags |= MakeReturnsVoidFlags(returnsVoid: true);
+                    this.SetReturnsVoid(returnsVoid: true);
 
                     var parameter = new SynthesizedAccessorValueParameterSymbol(this, this.@event.Type, 0, ImmutableArray<CustomModifier>.Empty);
                     this.lazyParameters = ImmutableArray.Create<ParameterSymbol>(parameter);

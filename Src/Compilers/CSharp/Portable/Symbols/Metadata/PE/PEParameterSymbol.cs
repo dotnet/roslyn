@@ -18,6 +18,104 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// </summary>
     internal sealed class PEParameterSymbol : ParameterSymbol
     {
+        [Flags]
+        private enum WellKnownAttributeFlags
+        {
+            HasIDispatchConstantAttribute = 0x1 << 0,
+            HasIUnknownConstantAttribute = 0x1 << 1,
+            HasCallerFilePathAttribute = 0x1 << 2,
+            HasCallerLineNumberAttribute = 0x1 << 3,
+            HasCallerMemberNameAttribute = 0x1 << 4,
+            IsCallerFilePath = 0x1 << 5,
+            IsCallerLineNumber = 0x1 << 6,
+            IsCallerMemberName = 0x1 << 7,
+        }
+
+        private struct PackedFlags
+        {
+            // Layout:
+            // |.............|h|rr|cccccccc|vvvvvvvv|
+            // 
+            // v = decoded well known attribute values. 8 bits.
+            // c = completion states for well known attributes. 1 if given attribute has been decoded, 0 otherwise. 8 bits.
+            // r = RefKind. 2 bits.
+            // h = hasByRefBeforeCustomModifiers. 1 bit.
+
+            private const int WellKnownAttributeDataOffset = 0;
+            private const int WellKnownAttributeCompletionFlagOffset = 8;
+            private const int RefKindOffset = 16;
+
+            private const int RefKindMask = 0x3;
+            private const int WellKnownAttributeDataMask = 0xFF;
+            private const int WellKnownAttributeCompletionFlagMask = WellKnownAttributeDataMask;
+
+            private const int HasByRefBeforeCustomModifiersBit = 0x1 << 18;
+
+            private const int AllWellKnownAttributesCompleteNoData = WellKnownAttributeCompletionFlagMask << WellKnownAttributeCompletionFlagOffset;
+
+            private int bits;
+
+            public RefKind RefKind
+            {
+                get { return (RefKind)((this.bits >> RefKindOffset) & RefKindMask); }
+            }
+
+            public bool HasByRefBeforeCustomModifiers
+            {
+                get { return (this.bits & HasByRefBeforeCustomModifiersBit) != 0; }
+            }
+
+#if DEBUG
+            static PackedFlags()
+            {
+                // Verify a few things about the values we combine into flags.  This way, if they ever
+                // change, this will get hit and you will know you have to update this type as well.
+
+                // 1) Verify that the range of well known attributes doesn't fall outside the bounds of
+                // the attribute completion and data mask.
+                var attributeFlags = EnumExtensions.GetValues<WellKnownAttributeFlags>();
+                var maxAttributeFlag = (int)System.Linq.Enumerable.Aggregate(attributeFlags, (f1, f2) => f1 | f2);
+                Debug.Assert((maxAttributeFlag & WellKnownAttributeDataMask) == maxAttributeFlag);
+
+                // 2) Verify that the range of ref kinds doesn't fall outside the bounds of
+                // the ref kind mask.
+                var refKinds = EnumExtensions.GetValues<RefKind>();
+                var maxRefKind = (int)System.Linq.Enumerable.Aggregate(refKinds, (r1, r2) => r1 | r2);
+                Debug.Assert((maxRefKind & RefKindMask) == maxRefKind);
+            }
+#endif
+
+            public PackedFlags(RefKind refKind, bool hasByRefBeforeCustomModifiers, bool attributesAreComplete)
+            {
+                int refKindBits = ((int)refKind & RefKindMask) << RefKindOffset;
+                int hasByRefBeforeCustomModifiersBits = hasByRefBeforeCustomModifiers ? HasByRefBeforeCustomModifiersBit : 0;
+                int attributeBits = attributesAreComplete ? AllWellKnownAttributesCompleteNoData : 0;
+
+                this.bits = refKindBits | hasByRefBeforeCustomModifiersBits | attributeBits;
+            }
+
+            public bool SetWellKnownAttribute(WellKnownAttributeFlags flag, bool value)
+            {
+                // a value has been decoded:
+                int bitsToSet = (int)flag << WellKnownAttributeCompletionFlagOffset;
+                if (value)
+                {
+                    // the actual value:
+                    bitsToSet |= ((int)flag << WellKnownAttributeDataOffset);
+                }
+
+                ThreadSafeFlagOperations.Set(ref this.bits, bitsToSet);
+                return value;
+            }
+
+            public bool TryGetWellKnownAttribute(WellKnownAttributeFlags flag, out bool value)
+            {
+                int theBits = this.bits; // Read this.bits once to ensure the consistency of the value and completion flags.
+                value = (theBits & ((int)flag << WellKnownAttributeDataOffset)) != 0;
+                return (theBits & ((int)flag << WellKnownAttributeCompletionFlagOffset)) != 0;
+            }
+        }
+
         private readonly Symbol containingSymbol;
         private readonly string name;
         private readonly TypeSymbol type;
@@ -35,43 +133,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// </summary>
         private ImmutableArray<CSharpAttributeData> lazyHiddenAttributes;
 
-        // Used to track the completion state and presence of well known attributes.
-        //
-        // layout:
-        // |................|cccccccc|vvvvvvvv|
-        // 
-        // c = completion states for well known attributes. 1 if given attribute has been decoded, 0 otherwise. 8 bits.
-        // v = decoded well known attribute values. 8 bits.
-        // . = unused bit
-        private int lazyWellKnownAttributeData;
-
         private readonly ushort ordinal;
 
-        // Layout:
-        // |.....|h|rr|
-        //
-        // r = RefKind - 2 bits (RefKind)
-        // h = hasByRefBeforeCustomModifiers - 1 bit (bool)
-        private readonly byte packed;
-        private const int refKindMask = 0x3;
-        private const int hasByRefBeforeCustomModifiersMask = 0x4;
-
-        private const int WellKnownAttributeCompletionFlagOffset = 8;
-
-        [Flags]
-        private enum WellKnownAttributeFlags
-        {
-            HasIDispatchConstantAttribute = 0x1 << 0,
-            HasIUnknownConstantAttribute = 0x1 << 1,
-            HasCallerFilePathAttribute = 0x1 << 2,
-            HasCallerLineNumberAttribute = 0x1 << 3,
-            HasCallerMemberNameAttribute = 0x1 << 4,
-            IsCallerFilePath = 0x1 << 5,
-            IsCallerLineNumber = 0x1 << 6,
-            IsCallerMemberName = 0x1 << 7,
-
-            AllCompletedNoAttributes = 0xff00
-        }
+        private PackedFlags packedFlags;
 
         internal PEParameterSymbol(
             PEModuleSymbol moduleSymbol,
@@ -138,7 +202,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 this.type = type;
                 this.lazyCustomAttributes = ImmutableArray<CSharpAttributeData>.Empty;
                 this.lazyHiddenAttributes = ImmutableArray<CSharpAttributeData>.Empty;
-                this.lazyWellKnownAttributeData = (int)WellKnownAttributeFlags.AllCompletedNoAttributes;
                 this.lazyDefaultValue = ConstantValue.NotAvailable;
                 this.lazyIsParams = ThreeState.False;
             }
@@ -169,26 +232,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 this.name = "value";
             }
 
-            this.packed = Pack(refKind, hasByRefBeforeCustomModifiers);
+            this.packedFlags = new PackedFlags(refKind, hasByRefBeforeCustomModifiers, attributesAreComplete: handle.IsNil);
 
             Debug.Assert(refKind == this.RefKind);
             Debug.Assert(hasByRefBeforeCustomModifiers == this.HasByRefBeforeCustomModifiers);
-        }
-
-        private static byte Pack(RefKind refKind, bool hasByRefBeforeCustomModifiers)
-        {
-            Debug.Assert(!hasByRefBeforeCustomModifiers || refKind != RefKind.None);
-            int refKindBits = (int)refKind;
-            Debug.Assert((refKindBits & refKindMask) == refKindBits, "If the range of RefKind changes, the mask will need to be updated.");
-            int hasByRefBeforeCustomModifiersBits = hasByRefBeforeCustomModifiers ? hasByRefBeforeCustomModifiersMask : 0;
-            return (byte)(refKindBits | hasByRefBeforeCustomModifiersBits);
         }
 
         public override RefKind RefKind
         {
             get
             {
-                return (RefKind)(this.packed & refKindMask);
+                return this.packedFlags.RefKind;
             }
         }
 
@@ -317,45 +371,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        private bool SetWellKnownAttribute(WellKnownAttributeFlags flag, bool value)
-        {
-            // a value has been decoded:
-            int newFlags = (int)flag << WellKnownAttributeCompletionFlagOffset;
-            if (value)
-            {
-                // the actual value:
-                newFlags |= (int)flag;
-            }
-
-            ThreadSafeFlagOperations.Clear(ref this.lazyWellKnownAttributeData, (int)newFlags);
-            return value;
-        }
-
-        private bool IsWellKnownAttributeComplete(WellKnownAttributeFlags flag)
-        {
-            var result = (this.lazyWellKnownAttributeData & ((int)flag << WellKnownAttributeCompletionFlagOffset)) != 0;
-
-            // all well-known attributes are complete if we don't have handle:
-            Debug.Assert(!this.handle.IsNil || result);
-            return result;
-        }
-
-        private bool GetWellKnownAttribute(WellKnownAttributeFlags flag)
-        {
-            Debug.Assert(IsWellKnownAttributeComplete(flag));
-            return (this.lazyWellKnownAttributeData & (int)flag) != 0;
-        }
-
         internal override bool IsIDispatchConstant
         {
             get
             {
                 const WellKnownAttributeFlags flag = WellKnownAttributeFlags.HasIDispatchConstantAttribute;
 
-                return IsWellKnownAttributeComplete(flag)
-                    ? GetWellKnownAttribute(flag)
-                    : SetWellKnownAttribute(flag, moduleSymbol.Module.HasAttribute(this.handle,
+                bool value;
+                if (!this.packedFlags.TryGetWellKnownAttribute(flag, out value))
+                {
+                    value = this.packedFlags.SetWellKnownAttribute(flag, moduleSymbol.Module.HasAttribute(this.handle,
                         AttributeDescription.IDispatchConstantAttribute));
+                }
+                return value;
             }
         }
 
@@ -365,10 +393,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 const WellKnownAttributeFlags flag = WellKnownAttributeFlags.HasIUnknownConstantAttribute;
 
-                return IsWellKnownAttributeComplete(flag)
-                    ? GetWellKnownAttribute(flag)
-                    : SetWellKnownAttribute(flag, moduleSymbol.Module.HasAttribute(this.handle,
+                bool value;
+                if (!this.packedFlags.TryGetWellKnownAttribute(flag, out value))
+                {
+                    value = this.packedFlags.SetWellKnownAttribute(flag, moduleSymbol.Module.HasAttribute(this.handle,
                         AttributeDescription.IUnknownConstantAttribute));
+                }
+                return value;
             }
         }
 
@@ -378,10 +409,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 const WellKnownAttributeFlags flag = WellKnownAttributeFlags.HasCallerLineNumberAttribute;
 
-                return IsWellKnownAttributeComplete(flag)
-                    ? GetWellKnownAttribute(flag)
-                    : SetWellKnownAttribute(flag, moduleSymbol.Module.HasAttribute(this.handle,
+                bool value;
+                if (!this.packedFlags.TryGetWellKnownAttribute(flag, out value))
+                {
+                    value = this.packedFlags.SetWellKnownAttribute(flag, moduleSymbol.Module.HasAttribute(this.handle,
                         AttributeDescription.CallerLineNumberAttribute));
+                }
+                return value;
             }
         }
 
@@ -391,10 +425,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 const WellKnownAttributeFlags flag = WellKnownAttributeFlags.HasCallerFilePathAttribute;
 
-                return IsWellKnownAttributeComplete(flag)
-                    ? GetWellKnownAttribute(flag)
-                    : SetWellKnownAttribute(flag, moduleSymbol.Module.HasAttribute(this.handle,
+                bool value;
+                if (!this.packedFlags.TryGetWellKnownAttribute(flag, out value))
+                {
+                    value = this.packedFlags.SetWellKnownAttribute(flag, moduleSymbol.Module.HasAttribute(this.handle,
                         AttributeDescription.CallerFilePathAttribute));
+                }
+                return value;
             }
         }
 
@@ -404,10 +441,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 const WellKnownAttributeFlags flag = WellKnownAttributeFlags.HasCallerMemberNameAttribute;
 
-                return IsWellKnownAttributeComplete(flag)
-                    ? GetWellKnownAttribute(flag)
-                    : SetWellKnownAttribute(flag, moduleSymbol.Module.HasAttribute(this.handle,
+                bool value;
+                if (!this.packedFlags.TryGetWellKnownAttribute(flag, out value))
+                {
+                    value = this.packedFlags.SetWellKnownAttribute(flag, moduleSymbol.Module.HasAttribute(this.handle,
                         AttributeDescription.CallerMemberNameAttribute));
+                }
+                return value;
             }
         }
 
@@ -417,16 +457,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 const WellKnownAttributeFlags flag = WellKnownAttributeFlags.IsCallerLineNumber;
 
-                if (IsWellKnownAttributeComplete(flag))
+                bool value;
+                if (!this.packedFlags.TryGetWellKnownAttribute(flag, out value))
                 {
-                    return GetWellKnownAttribute(flag);
+                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                    bool isCallerLineNumber = HasCallerLineNumberAttribute
+                        && new TypeConversions(ContainingAssembly).HasCallerLineNumberConversion(this.Type, ref useSiteDiagnostics);
+
+                    value = this.packedFlags.SetWellKnownAttribute(flag, isCallerLineNumber);
                 }
-
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                bool isCallerLineNumber = HasCallerLineNumberAttribute
-                    && new TypeConversions(ContainingAssembly).HasCallerLineNumberConversion(this.Type, ref useSiteDiagnostics);
-
-                return SetWellKnownAttribute(flag, isCallerLineNumber);
+                return value;
             }
         }
 
@@ -436,17 +476,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 const WellKnownAttributeFlags flag = WellKnownAttributeFlags.IsCallerFilePath;
 
-                if (IsWellKnownAttributeComplete(flag))
+                bool value;
+                if (!this.packedFlags.TryGetWellKnownAttribute(flag, out value))
                 {
-                    return GetWellKnownAttribute(flag);
+                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                    bool isCallerFilePath = !HasCallerLineNumberAttribute
+                        && HasCallerFilePathAttribute
+                        && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref useSiteDiagnostics);
+
+                    value = this.packedFlags.SetWellKnownAttribute(flag, isCallerFilePath);
                 }
-
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                bool isCallerFilePath = !HasCallerLineNumberAttribute
-                    && HasCallerFilePathAttribute
-                    && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref useSiteDiagnostics);
-
-                return SetWellKnownAttribute(flag, isCallerFilePath);
+                return value;
             }
         }
 
@@ -456,18 +496,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 const WellKnownAttributeFlags flag = WellKnownAttributeFlags.IsCallerMemberName;
 
-                if (IsWellKnownAttributeComplete(flag))
+                bool value;
+                if (!this.packedFlags.TryGetWellKnownAttribute(flag, out value))
                 {
-                    return GetWellKnownAttribute(flag);
+                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                    bool isCallerMemberName = !HasCallerLineNumberAttribute
+                        && !HasCallerFilePathAttribute
+                        && HasCallerMemberNameAttribute
+                        && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref useSiteDiagnostics);
+
+                    value = this.packedFlags.SetWellKnownAttribute(flag, isCallerMemberName);
                 }
-
-                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                bool isCallerMemberName = !HasCallerLineNumberAttribute
-                    && !HasCallerFilePathAttribute
-                    && HasCallerMemberNameAttribute
-                    && new TypeConversions(ContainingAssembly).HasCallerInfoStringConversion(this.Type, ref useSiteDiagnostics);
-
-                return SetWellKnownAttribute(flag, isCallerMemberName);
+                return value;
             }
         }
 
@@ -491,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return (this.packed & hasByRefBeforeCustomModifiersMask) != 0;
+                return this.packedFlags.HasByRefBeforeCustomModifiers;
             }
         }
 

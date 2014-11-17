@@ -88,8 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxTokenList modifiers = syntax.Modifiers;
 
             // The following two values are used to compute and store the initial value of the flags
-            // field.  However, these two components are placeholders; the correct value will be
-            // computed lazily later and then the flags field will be fixed up.
+            // However, these two components are placeholders; the correct value will be
+            // computed lazily later and then the flags will be fixed up.
             const bool returnsVoid = false;
 
             var firstParam = syntax.ParameterList.Parameters.FirstOrDefault();
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var isMetadataVirtualIgnoringModifiers = (object)explicitInterfaceType != null; //explicit impls must be marked metadata virtual
 
-            this.flags = MakeFlags(methodKind, declarationModifiers, returnsVoid, isExtensionMethod, isMetadataVirtualIgnoringModifiers);
+            this.MakeFlags(methodKind, declarationModifiers, returnsVoid, isExtensionMethod, isMetadataVirtualIgnoringModifiers);
 
             // NOTE: by creating a WithMethodTypeParametersBinder, we are effectively duplicating the
             // functionality of the BinderFactory.  Unfortunately, we cannot use the BinderFactory
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // set ReturnsVoid flag
-            this.flags |= MakeReturnsVoidFlags(this.lazyReturnType.SpecialType == SpecialType.System_Void);
+            this.SetReturnsVoid(this.lazyReturnType.SpecialType == SpecialType.System_Void);
 
             var location = this.Locations[0];
             this.CheckEffectiveAccessibility(lazyReturnType, lazyParameters, diagnostics);

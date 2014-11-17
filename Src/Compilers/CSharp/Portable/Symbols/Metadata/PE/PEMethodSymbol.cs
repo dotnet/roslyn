@@ -33,6 +33,127 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        // This type is used to compact many different bits of information efficiently.
+        private struct PackedFlags
+        {
+            // We currently pack everything into a 32-bit int with the following layout:
+            //
+            // |                    |g|f|e|d|c|b|aaaaa|
+            // 
+            // a = method kind. 5 bits.
+            // b = method kind populated. 1 bit.
+            //
+            // c = isExtensionMethod. 1 bit.
+            // d = isExtensionMethod populated. 1 bit.
+            //
+            // e = isExplicitFinalizerOverride. 1 bit.
+            // f = isExplicitClassOverride. 1 bit.
+            // g = isExplicitFinalizerOverride and isExplicitClassOverride populated. 1 bit.
+            //
+            // 22 bits remain for future purposes.
+
+            private const int MethodKindOffset = 0;
+
+            private const int MethodKindMask = 0x1F;
+
+            private const int MethodKindIsPopulatedBit = 0x1 << 5;
+            private const int IsExtensionMethodBit = 0x1 << 6;
+            private const int IsExtensionMethodIsPopulatedBit = 0x1 << 7;
+            private const int IsExplicitFinalizerOverrideBit = 0x1 << 8;
+            private const int IsExplicitClassOverrideBit = 0x1 << 9;
+            private const int IsExplicitOverrideIsPopulatedBit = 0x1 << 10;
+
+            private int bits;
+
+            public MethodKind MethodKind
+            {
+                get
+                {
+                    return (MethodKind)((this.bits >> MethodKindOffset) & MethodKindMask);
+                }
+
+                set
+                {
+                    Debug.Assert((int)value == ((int)value & MethodKindMask));
+                    this.bits = (this.bits & ~(MethodKindMask << MethodKindOffset)) | (((int)value & MethodKindMask) << MethodKindOffset) | MethodKindIsPopulatedBit;
+                }
+            }
+
+            public bool MethodKindIsPopulated
+            {
+                get { return (this.bits & MethodKindIsPopulatedBit) != 0; }
+            }
+
+            public bool IsExtensionMethod
+            {
+                get { return (this.bits & IsExtensionMethodBit) != 0; }
+            }
+
+            public bool IsExtensionMethodIsPopulated
+            {
+                get { return (this.bits & IsExtensionMethodIsPopulatedBit) != 0; }
+            }
+
+            public bool IsExplicitFinalizerOverride
+            {
+                get { return (this.bits & IsExplicitFinalizerOverrideBit) != 0; }
+            }
+
+            public bool IsExplicitClassOverride
+            {
+                get { return (this.bits & IsExplicitClassOverrideBit) != 0; }
+            }
+
+            public bool IsExplicitOverrideIsPopulated
+            {
+                get { return (this.bits & IsExplicitOverrideIsPopulatedBit) != 0; }
+            }
+
+#if DEBUG
+            static PackedFlags()
+            {
+                // Verify a few things about the values we combine into flags.  This way, if they ever
+                // change, this will get hit and you will know you have to update this type as well.
+
+                // 1) Verify that the range of method kinds doesn't fall outside the bounds of the
+                // method kind mask.
+                var methodKinds = EnumExtensions.GetValues<MethodKind>();
+                var maxMethodKind = (int)System.Linq.Enumerable.Aggregate(methodKinds, (m1, m2) => m1 | m2);
+                Debug.Assert((maxMethodKind & MethodKindMask) == maxMethodKind);
+            }
+#endif
+
+            private static bool BitsAreUnsetOrSame(int bits, int mask)
+            {
+                return (bits & mask) == 0 || (bits & mask) == mask;
+            }
+
+            public void InitializeIsExtensionMethod(bool isExtensionMethod)
+            {
+                int bitsToSet = (isExtensionMethod ? IsExtensionMethodBit : 0) | IsExtensionMethodIsPopulatedBit;
+                Debug.Assert(BitsAreUnsetOrSame(this.bits, bitsToSet));
+                ThreadSafeFlagOperations.Set(ref this.bits, bitsToSet);
+            }
+
+            public void InitializeMethodKind(MethodKind methodKind)
+            {
+                Debug.Assert((int)methodKind == ((int)methodKind & MethodKindMask));
+                int bitsToSet = (((int)methodKind & MethodKindMask) << MethodKindOffset) | MethodKindIsPopulatedBit;
+                Debug.Assert(BitsAreUnsetOrSame(this.bits, bitsToSet));
+                ThreadSafeFlagOperations.Set(ref this.bits, bitsToSet);
+            }
+
+            public void InitializeIsExplicitOverride(bool isExplicitFinalizerOverride, bool isExplicitClassOverride)
+            {
+                int bitsToSet =
+                    (isExplicitFinalizerOverride ? IsExplicitFinalizerOverrideBit : 0) |
+                    (isExplicitClassOverride ? IsExplicitClassOverrideBit : 0) |
+                    IsExplicitOverrideIsPopulatedBit;    
+                Debug.Assert(BitsAreUnsetOrSame(this.bits, bitsToSet));
+                ThreadSafeFlagOperations.Set(ref this.bits, bitsToSet);
+            }
+        }
+
         private readonly MethodDefinitionHandle handle;
         private readonly string name;
         private readonly MethodImplAttributes implFlags;
@@ -41,31 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private Symbol associatedPropertyOrEventOpt;
 
-        // The bitSet int is used to compact many different bits of information efficiently into a 32
-        // bit int.  The layout is currently:
-        //
-        // |                     |g|f|e|d|c|b|aaaa|
-        // 
-        // a = method kind.  4 bits.
-        // b = method kind populated.  1 bit.
-        //
-        // c = isExtensionMethod.  1 bit.
-        // d = isExtensionMethod populated.  1 bit.
-        //
-        // e = isExplicitFinalizerOverride.  1 bit.
-        // f = isExplicitClassOverride.  1 bit.
-        // g = isExplicitFinalizerOverride and isExplicitClassOverride populated.  1 bit.
-        //
-        // 23 bits remain for future purposes.
-        private int bitSet;
-
-        private const int MethodKindMask = 0xF;
-        private const int MethodKindIsPopulatedMask = 1 << 4;
-        private const int IsExtensionMethodMask = 1 << 5;
-        private const int IsExtensionMethodIsPopulatedMask = 1 << 6;
-        private const int IsExplicitFinalizerOverrideMask = 1 << 7;
-        private const int IsExplicitClassOverrideMask = 1 << 8;
-        private const int IsExplicitOverrideIsPopulatedMask = 1 << 9;
+        private PackedFlags packedFlags;
 
         private ImmutableArray<TypeParameterSymbol> lazyTypeParameters;
         private ParameterSymbol lazyThisParameter;
@@ -175,6 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        // Exposed for testing purposes only
         internal MethodAttributes Flags
         {
             get
@@ -462,12 +560,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if ((this.bitSet & IsExplicitOverrideIsPopulatedMask) == 0)
+                if (!this.packedFlags.IsExplicitOverrideIsPopulated)
                 {
                     var unused = this.ExplicitInterfaceImplementations;
-                    Debug.Assert((this.bitSet & IsExplicitOverrideIsPopulatedMask) != 0);
+                    Debug.Assert(this.packedFlags.IsExplicitOverrideIsPopulated);
                 }
-                return (this.bitSet & IsExplicitFinalizerOverrideMask) != 0;
+                return this.packedFlags.IsExplicitFinalizerOverride;
             }
         }
 
@@ -475,12 +573,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if ((this.bitSet & IsExplicitOverrideIsPopulatedMask) == 0)
+                if (!this.packedFlags.IsExplicitOverrideIsPopulated)
                 {
                     var unused = this.ExplicitInterfaceImplementations;
-                    Debug.Assert((this.bitSet & IsExplicitOverrideIsPopulatedMask) != 0);
+                    Debug.Assert(this.packedFlags.IsExplicitOverrideIsPopulated);
                 }
-                return (this.bitSet & IsExplicitClassOverrideMask) != 0;
+                return this.packedFlags.IsExplicitClassOverride;
             }
         }
 
@@ -588,14 +686,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // by the thread that created the method symbol (and will be called before the method
                 // symbol is added to the containing type members and available to other threads).
                 this.associatedPropertyOrEventOpt = propertyOrEventSymbol;
-                Debug.Assert((MethodKindMask & (int)methodKind) == (int)methodKind);
+
                 // NOTE: may be overwriting an existing value.
                 Debug.Assert(
-                    (this.bitSet & MethodKindMask) == 0 ||
-                    (this.bitSet & MethodKindMask) == (int)MethodKind.Ordinary ||
-                    (this.bitSet & MethodKindMask) == (int)MethodKind.ExplicitInterfaceImplementation);
-                this.bitSet = (this.bitSet & ~MethodKindMask) | (MethodKindMask & (int)methodKind) | MethodKindIsPopulatedMask;
-                Debug.Assert((MethodKind)(this.bitSet & MethodKindMask) == methodKind);
+                    this.packedFlags.MethodKind == default(MethodKind) ||
+                    this.packedFlags.MethodKind == MethodKind.Ordinary ||
+                    this.packedFlags.MethodKind == MethodKind.ExplicitInterfaceImplementation);
+
+                this.packedFlags.MethodKind = methodKind;
                 return true;
             }
 
@@ -747,21 +845,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // This is also populated by loading attributes, but
                 // loading attributes is more expensive, so we should only do it if
                 // attributes are requested.
-                if ((this.bitSet & IsExtensionMethodIsPopulatedMask) == 0)
+                if (!this.packedFlags.IsExtensionMethodIsPopulated)
                 {
-                    int isExtensionMethodBits = 0;
+                    bool isExtensionMethod = false;
                     if (this.MethodKind == MethodKind.Ordinary && IsValidExtensionMethodSignature()
                         && this.ContainingType.MightContainExtensionMethods)
                     {
                         var moduleSymbol = this.containingType.ContainingPEModule;
-                        if (moduleSymbol.Module.HasExtensionAttribute(this.handle, ignoreCase: false))
-                        {
-                            isExtensionMethodBits = IsExtensionMethodMask;
-                        }
+                        isExtensionMethod = moduleSymbol.Module.HasExtensionAttribute(this.handle, ignoreCase: false);
                     }
-                    ThreadSafeFlagOperations.Set(ref this.bitSet, isExtensionMethodBits | IsExtensionMethodIsPopulatedMask);
+                    this.packedFlags.InitializeIsExtensionMethod(isExtensionMethod);
                 }
-                return (this.bitSet & IsExtensionMethodMask) != 0;
+                return this.packedFlags.IsExtensionMethod;
             }
         }
 
@@ -788,9 +883,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var containingPEModuleSymbol = this.containingType.ContainingPEModule;
 
                 // Could this possibly be an extension method?
-                bool alreadySet = (bitSet & IsExtensionMethodIsPopulatedMask) != 0;
+                bool alreadySet = this.packedFlags.IsExtensionMethodIsPopulated;
                 bool checkForExtension = alreadySet
-                    ? (bitSet & IsExtensionMethodMask) != 0
+                    ? this.packedFlags.IsExtensionMethod
                     : this.MethodKind == MethodKind.Ordinary
                         && IsValidExtensionMethodSignature()
                         && this.containingType.MightContainExtensionMethods;
@@ -810,10 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (!alreadySet)
                 {
-                    ThreadSafeFlagOperations.Set(ref this.bitSet,
-                            isExtensionMethod
-                            ? IsExtensionMethodMask | IsExtensionMethodIsPopulatedMask
-                            : IsExtensionMethodIsPopulatedMask);
+                    this.packedFlags.InitializeIsExtensionMethod(isExtensionMethod);
                 }
             }
             return this.lazyCustomAttributes;
@@ -834,13 +926,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                if ((this.bitSet & MethodKindIsPopulatedMask) == 0)
+                if (!this.packedFlags.MethodKindIsPopulated)
                 {
-                    int methodKindInt = (int)this.ComputeMethodKind();
-                    Debug.Assert((MethodKindMask & methodKindInt) == methodKindInt);
-                    ThreadSafeFlagOperations.Set(ref this.bitSet, (MethodKindMask & methodKindInt) | MethodKindIsPopulatedMask);
+                    this.packedFlags.InitializeMethodKind(this.ComputeMethodKind());
                 }
-                return (MethodKind)(this.bitSet & MethodKindMask);
+                return this.packedFlags.MethodKind;
             }
         }
 
@@ -1031,8 +1121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     // overridden method matches the method that will be returned by MethodSymbol.OverriddenMethod.
                     // Unfortunately, this MethodSymbol will not be sufficiently constructed (need IsOverride and MethodKind,
                     // which depend on this property) to determine which method OverriddenMethod will return.
-                    ThreadSafeFlagOperations.Set(ref this.bitSet,
-                        (sawObjectFinalize ? IsExplicitFinalizerOverrideMask : 0) | (anyToRemove ? IsExplicitClassOverrideMask : 0) | IsExplicitOverrideIsPopulatedMask);
+                    this.packedFlags.InitializeIsExplicitOverride(isExplicitFinalizerOverride: sawObjectFinalize, isExplicitClassOverride: anyToRemove);
 
                     var explicitInterfaceImplementations = explicitlyOverriddenMethods;
 
@@ -1129,7 +1218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return (this.bitSet & IsExtensionMethodIsPopulatedMask) != 0;
+                return this.packedFlags.IsExtensionMethodIsPopulated;
             }
         }
 
@@ -1138,7 +1227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return (this.bitSet & IsExtensionMethodMask) != 0;
+                return this.packedFlags.IsExtensionMethod;
             }
         }
     }

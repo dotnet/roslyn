@@ -21,61 +21,133 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract partial class SourceMemberContainerTypeSymbol : NamedTypeSymbol
     {        
-#if DEBUG
-        static SourceMemberContainerTypeSymbol()
+        // The flags type is used to compact many different bits of information efficiently.
+        private struct Flags
         {
-            // Verify a few things about the values we combine into flags.  This way, if they ever
-            // change, this will get hit and you will know you have to update this type as well.
+            // We current pack everything into two 32-bit ints; layouts for each are given below.
 
-            // 1) Verify that the range of special types doesn't fall outside the bounds of the
-            // special type mask.
-            var specialTypes = EnumExtensions.GetValues<SpecialType>();
-            var maxSpecialType = (int)specialTypes.Aggregate((s1, s2) => s1 | s2);
-            Debug.Assert((maxSpecialType & SpecialTypeMask) == maxSpecialType);
+            // First int:
+            //
+            // |  |d|yy|xxxxxxxxxxxxxxxxxxxxx|wwwwww|
+            //
+            // w = special type.  6 bits.
+            // x = modifiers.  21 bits.
+            // y = IsManagedType.  2 bits.
+            // d = FieldDefinitionsNoted. 1 bit
+            private const int SpecialTypeOffset = 0;
+            private const int DeclarationModifiersOffset = 6;
+            private const int IsManagedTypeOffset = 26;
 
-            // 1) Verify that the range of declaration modifiers doesn't fall outside the bounds of
-            // the declaration modifier mask.
-            var declarationModifiers = EnumExtensions.GetValues<DeclarationModifiers>();
-            var maxDeclarationModifier = (int)declarationModifiers.Aggregate((d1, d2) => d1 | d2);
-            Debug.Assert((maxDeclarationModifier & DeclarationModifiersMask) == maxDeclarationModifier);
-        }
+            private const int SpecialTypeMask = 0x3F;
+            private const int DeclarationModifiersMask = 0x1FFFFF;
+            private const int IsManagedTypeMask = 0x3;
+
+            private const int FieldDefinitionsNotedBit = 1 << 28;
+
+            private int flags;
+
+            // More flags.
+            //
+            // |                           |zzzz|f|
+            //
+            // f = FlattenedMembersIsSorted.  1 bit.
+            // z = TypeKind. 4 bits.
+            private const int TypeKindOffset = 1;
+
+            private const int TypeKindMask = 0xF;
+
+            private const int FlattenedMembersIsSortedBit = 1 << 0;
+
+            private int flags2;
+
+            public SpecialType SpecialType
+            {
+                get { return (SpecialType)((this.flags >> SpecialTypeOffset) & SpecialTypeMask); }
+            }
+            
+            public DeclarationModifiers DeclarationModifiers
+            {
+                get { return (DeclarationModifiers)((this.flags >> DeclarationModifiersOffset) & DeclarationModifiersMask); }
+            }
+
+            public ThreeState IsManagedType
+            {
+                get { return (ThreeState)((this.flags >> IsManagedTypeOffset) & IsManagedTypeMask); }
+            }
+
+            public bool FieldDefinitionsNoted
+            {
+                get { return (this.flags & FieldDefinitionsNotedBit) != 0; }
+            }
+
+            // True if "lazyMembersFlattened" is sorted.
+            public bool FlattenedMembersIsSorted
+            {
+                get { return (this.flags2 & FlattenedMembersIsSortedBit) != 0; }
+            }
+
+            public TypeKind TypeKind
+            {
+                get { return (TypeKind)((this.flags2 >> TypeKindOffset) & TypeKindMask); }
+            }
+
+
+#if DEBUG
+            static Flags()
+            {
+                // Verify a few things about the values we combine into flags.  This way, if they ever
+                // change, this will get hit and you will know you have to update this type as well.
+
+                // 1) Verify that the range of special types doesn't fall outside the bounds of the
+                // special type mask.
+                var specialTypes = EnumExtensions.GetValues<SpecialType>();
+                var maxSpecialType = (int)specialTypes.Aggregate((s1, s2) => s1 | s2);
+                Debug.Assert((maxSpecialType & SpecialTypeMask) == maxSpecialType);
+
+                // 1) Verify that the range of declaration modifiers doesn't fall outside the bounds of
+                // the declaration modifier mask.
+                var declarationModifiers = EnumExtensions.GetValues<DeclarationModifiers>();
+                var maxDeclarationModifier = (int)declarationModifiers.Aggregate((d1, d2) => d1 | d2);
+                Debug.Assert((maxDeclarationModifier & DeclarationModifiersMask) == maxDeclarationModifier);
+            }
 #endif
+
+            public Flags(SpecialType specialType, DeclarationModifiers declarationModifiers, TypeKind typeKind)
+            {
+                int specialTypeInt = ((int)specialType & SpecialTypeMask) << SpecialTypeOffset;
+                int declarationModifiersInt = ((int)declarationModifiers & DeclarationModifiersMask) << DeclarationModifiersOffset;
+                int typeKindInt = ((int)typeKind & TypeKindMask) << TypeKindOffset;
+
+                this.flags = specialTypeInt | declarationModifiersInt;
+                this.flags2 = typeKindInt;
+            }
+
+            public void SetFieldDefinitionsNoted()
+            {
+                ThreadSafeFlagOperations.Set(ref this.flags, FieldDefinitionsNotedBit);
+            }
+
+            public void SetFlattenedMembersIsSorted()
+            {
+                ThreadSafeFlagOperations.Set(ref this.flags2, (FlattenedMembersIsSortedBit));
+            }
+
+            private static bool BitsAreUnsetOrSame(int bits, int mask)
+            {
+                return (bits & mask) == 0 || (bits & mask) == mask;
+            }
+
+            public void SetIsManagedType(bool isManagedType)
+            {
+                int bitsToSet = ((int)isManagedType.ToThreeState() & IsManagedTypeMask) << IsManagedTypeOffset;
+                Debug.Assert(BitsAreUnsetOrSame(this.flags, bitsToSet));
+                ThreadSafeFlagOperations.Set(ref this.flags, bitsToSet);
+            }
+        }
 
         protected SymbolCompletionState state;
 
-        // The flags int is used to compact many different bits of information efficiently into a 32
-        // bit int.  The layout is currently:
-        //
-        // |  |d|yy|xxxxxxxxxxxxxxxxxxxxx|wwwwww|
-        //
-        // w = special type.  6 bits.
-        // x = modifiers.  21 bits.
-        // y = IsManagedType.  2 bits.
-        // d = FieldDefinitionsNoted. 1 bit
-        private const int SpecialTypeMask = 0x3F;
-        private const int DeclarationModifiersMask = 0x1FFFFF;
-        private const int IsManagedTypeMask = 0x3;
-
-        private const int SpecialTypeOffset = 0;
-        private const int DeclarationModifiersOffset = 6;
-        private const int IsManagedTypeOffset = 26;
-        private const int FieldDefinitionsNotedOffset = 28;
-
-        private int flags;
-
-        // More flags.
-        //
-        // |                           |zzzz|f|
-        //
-        // f = FlattenedMembersIsSorted.  1 bit.
-        // z = TypeKind. 4 bits.
-        private const int FlattenedMembersIsSortedMask = 0x1;   // Set if "lazyMembersFlattened" is sorted.
-        private const int TypeKindMask = 0xF;
-
-        private const int FlattenedMembersIsSortedOffset = 0;
-        private const int TypeKindOffset = 1;
-
-        private int flags2;
+        private Flags flags;
 
         private readonly NamespaceOrTypeSymbol containingSymbol;
         protected readonly MergedTypeDeclaration declaration;
@@ -121,8 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ? MakeSpecialType()
                 : SpecialType.None;
 
-            this.flags = CreateFlags(specialType, modifiers);
-            this.flags2 = CreateFlags2(typeKind);
+            this.flags = new Flags(specialType, modifiers, typeKind);
 
             if ((object)ContainingType != null && ContainingType.IsSealed &&
                 (this.DeclaredAccessibility == Accessibility.Protected || this.DeclaredAccessibility == Accessibility.ProtectedOrInternal))
@@ -131,28 +202,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             state.NotePartComplete(CompletionPart.TypeArguments); // type arguments need not be computed separately
-        }
-
-        private static int CreateFlags(SpecialType specialType, DeclarationModifiers declarationModifiers)
-        {
-            int specialTypeInt = (int)specialType;
-            int declarationModifiersInt = (int)declarationModifiers;
-            const int isManagedTypeInt = 0;
-
-            specialTypeInt &= SpecialTypeMask;
-            declarationModifiersInt &= DeclarationModifiersMask;
-            //isManagedTypeInt &= IsManagedTypeMask;
-
-            return
-                (specialTypeInt << SpecialTypeOffset) |
-                (declarationModifiersInt << DeclarationModifiersOffset) |
-                (isManagedTypeInt << IsManagedTypeOffset);
-        }
-
-        private static int CreateFlags2(TypeKind typeKind)
-        {
-            int typeKindInt = (int)typeKind;
-            return (typeKindInt << TypeKindOffset);
         }
 
         private SpecialType MakeSpecialType()
@@ -489,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void EnsureFieldDefinitionsNoted()
         {
-            if ((this.flags & (1 << FieldDefinitionsNotedOffset)) != 0)
+            if (this.flags.FieldDefinitionsNoted)
             {
                 return;
             }
@@ -502,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // we must note all fields once therefore we need to lock
             lock (this.GetMembersAndInitializers())
             {
-                if ((this.flags & (1 << FieldDefinitionsNotedOffset)) == 0)
+                if (!this.flags.FieldDefinitionsNoted)
                 {
                     if (!this.IsAbstract)
                     {
@@ -538,7 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             }
                         }
                     }
-                    ThreadSafeFlagOperations.Set(ref this.flags, 1 << FieldDefinitionsNotedOffset);
+                    this.flags.SetFieldDefinitionsNoted();
                 }
             }
         }
@@ -571,8 +620,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var value = flags >> SpecialTypeOffset;
-                return (SpecialType)(value & SpecialTypeMask);
+                return this.flags.SpecialType;
             }
         }
 
@@ -580,7 +628,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (TypeKind)((((uint)flags2) >> TypeKindOffset) & TypeKindMask);
+                return this.flags.TypeKind;
             }
         }
 
@@ -605,31 +653,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                const int IsManagedTypeTrue = 3 << IsManagedTypeOffset;
-                const int IsManagedTypeFalse = 1 << IsManagedTypeOffset;
-
-                switch (this.flags & (IsManagedTypeMask << IsManagedTypeOffset))
+                var isManagedType = this.flags.IsManagedType;
+                if (!isManagedType.HasValue())
                 {
-                    case 0:
-                        bool value = base.IsManagedType;
-                        ThreadSafeFlagOperations.Set(ref this.flags, value ? IsManagedTypeTrue : IsManagedTypeFalse);
-                        return value;
-                    case IsManagedTypeTrue:
-                        return true;
-                    case IsManagedTypeFalse:
-                        return false;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(this.flags);
+                    bool value = base.IsManagedType;
+                    this.flags.SetIsManagedType(value);
+                    return value;
                 }
-            }
-        }
-
-        private DeclarationModifiers DeclarationModifiers
-        {
-            get
-            {
-                var value = flags >> DeclarationModifiersOffset;
-                return (DeclarationModifiers)(value & DeclarationModifiersMask);
+                return isManagedType.Value();
             }
         }
 
@@ -637,7 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (this.DeclarationModifiers & DeclarationModifiers.Static) != 0;
+                return (this.flags.DeclarationModifiers & DeclarationModifiers.Static) != 0;
             }
         }
 
@@ -645,7 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (this.DeclarationModifiers & DeclarationModifiers.Sealed) != 0;
+                return (this.flags.DeclarationModifiers & DeclarationModifiers.Sealed) != 0;
             }
         }
 
@@ -653,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (this.DeclarationModifiers & DeclarationModifiers.Abstract) != 0;
+                return (this.flags.DeclarationModifiers & DeclarationModifiers.Abstract) != 0;
             }
         }
 
@@ -661,7 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (this.DeclarationModifiers & DeclarationModifiers.Partial) != 0;
+                return (this.flags.DeclarationModifiers & DeclarationModifiers.Partial) != 0;
             }
         }
 
@@ -669,7 +700,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (this.DeclarationModifiers & DeclarationModifiers.New) != 0;
+                return (this.flags.DeclarationModifiers & DeclarationModifiers.New) != 0;
             }
         }
 
@@ -677,7 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ModifierUtils.EffectiveAccessibility(this.DeclarationModifiers);
+                return ModifierUtils.EffectiveAccessibility(this.flags.DeclarationModifiers);
             }
         }
 
@@ -1007,7 +1038,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<Symbol> GetMembers()
         {
-            if ((flags2 & (FlattenedMembersIsSortedMask << FlattenedMembersIsSortedOffset)) != 0) 
+            if (this.flags.FlattenedMembersIsSorted)
             {
                 return this.lazyMembersFlattened;
             }
@@ -1022,7 +1053,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     ImmutableInterlocked.InterlockedExchange(ref this.lazyMembersFlattened, allMembers);
                 }
 
-                ThreadSafeFlagOperations.Set(ref flags2, (FlattenedMembersIsSortedMask << FlattenedMembersIsSortedOffset));
+                this.flags.SetFlattenedMembersIsSorted();
                 return allMembers;
             }
         }

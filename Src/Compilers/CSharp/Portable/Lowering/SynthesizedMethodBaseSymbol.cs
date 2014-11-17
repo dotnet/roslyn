@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.BaseMethod = baseMethod;
             this.name = name;
 
-            this.flags = MakeFlags(
+            this.MakeFlags(
                 methodKind: MethodKind.Ordinary,
                 declarationModifiers: declarationModifiers,
                 returnsVoid: baseMethod.ReturnsVoid,

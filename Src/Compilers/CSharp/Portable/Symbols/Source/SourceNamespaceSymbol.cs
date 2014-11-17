@@ -28,9 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ImmutableArray<NamedTypeSymbol> lazyTypeMembersUnordered;
 
         private const int LazyAllMembersIsSorted = 0x1;   // Set if "lazyAllMembers" is sorted.
-
         private int flags;
-
 
         private LexicalSortKey lazyLexicalSortKey = LexicalSortKey.NotInitialized;
 

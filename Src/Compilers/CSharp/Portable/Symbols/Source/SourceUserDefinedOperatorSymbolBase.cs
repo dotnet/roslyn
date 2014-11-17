@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // assume that the return type is non-void; when we do the lazy initialization
             // of the parameters and return type we will update the flag if necessary.
 
-            this.flags = MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false);
+            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: false, isExtensionMethod: false);
 
             if (this.ContainingType.IsInterface)
             {
@@ -157,11 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_ReturnTypeIsStaticClass, ReturnTypeSyntax.Location, this.lazyReturnType);
             }
 
-            this.flags |= MakeFlags(
-                MethodKind,
-                DeclarationModifiers,
-                this.lazyReturnType.SpecialType == SpecialType.System_Void,
-                IsExtensionMethod);
+            this.SetReturnsVoid(this.lazyReturnType.SpecialType == SpecialType.System_Void);
 
             // If we have an operator in an interface or static class then we already 
             // have reported that fact as  an error. No need to cascade the error further.

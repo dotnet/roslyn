@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(delegateType, syntax.GetReference(), bodySyntaxReferenceOpt: null, location: syntax.Identifier.GetLocation())
         {
             this.returnType = returnType;
-            this.flags = MakeFlags(methodKind, declarationModifiers, this.returnType.SpecialType == SpecialType.System_Void, isExtensionMethod: false);
+            this.MakeFlags(methodKind, declarationModifiers, this.returnType.SpecialType == SpecialType.System_Void, isExtensionMethod: false);
         }
 
         protected void InitializeParameters(ImmutableArray<ParameterSymbol> parameters)

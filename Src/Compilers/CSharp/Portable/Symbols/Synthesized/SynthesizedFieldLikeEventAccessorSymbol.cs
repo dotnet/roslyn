@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal SynthesizedFieldLikeEventAccessorSymbol(SourceFieldLikeEventSymbol @event, bool isAdder)
             : base(@event, null, null, @event.Locations)
         {
-            this.flags = MakeFlags(
+            this.MakeFlags(
                 isAdder ? MethodKind.EventAdd : MethodKind.EventRemove,
                 @event.Modifiers,
                 returnsVoid: false, // until we learn otherwise (in LazyMethodChecks).

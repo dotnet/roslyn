@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.explicitInterfaceImplementations = explicitInterfaceImplementations;
             this.name = name;
-            this.flags = MakeFlags(
+            this.MakeFlags(
                 isAdder ? MethodKind.EventAdd : MethodKind.EventRemove,
                 @event.Modifiers,
                 returnsVoid: false, // until we learn otherwise (in LazyMethodChecks).

@@ -15,65 +15,147 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal abstract class SourceMethodSymbol : MethodSymbol, IAttributeTargetSymbol
     {
-#if DEBUG
-        static SourceMethodSymbol()
+        // The flags type is used to compact many different bits of information.
+        protected struct Flags
         {
-            // Verify a few things about the values we combine into flags.  This way, if they ever
-            // change, this will get hit and you will know you have to update this type as well.
+            // We currently pack everything into a 32 bit int with the following layout:
+            //
+            // |   |s|r|q|z|y|xxxxxxxxxxxxxxxxxxxxx|wwwww|
+            // 
+            // w = method kind.  5 bits.
+            //
+            // x = modifiers.  21 bits.
+            //
+            // y = returnsVoid. 1 bit.
+            //
+            // z = isExtensionMethod. 1 bit.
+            //
+            // q = isMetadataVirtualIgnoringInterfaceChanges. 1 bit.
+            //
+            // r = isMetadataVirtual. 1 bit. (At least as true as isMetadataVirtualIgnoringInterfaceChanges.)
+            //
+            // s = isMetadataVirtualLocked. 1 bit.
+            //
+            // 2 bits remain for future purposes.
 
-            // 1) Verify that the range of method kinds doesn't fall outside the bounds of the
-            // method kind mask.
-            var methodKinds = EnumExtensions.GetValues<MethodKind>();
-            var maxMethodKind = (int)methodKinds.Aggregate((m1, m2) => m1 | m2);
-            Debug.Assert((maxMethodKind & (MethodKindMask >> MethodKindOffset)) == maxMethodKind);
+            private const int MethodKindOffset = 0;
+            private const int DeclarationModifiersOffset = 5;
 
-            // 1) Verify that the range of declaration modifiers doesn't fall outside the bounds of
-            // the declaration modifier mask.
-            var declarationModifiers = EnumExtensions.GetValues<DeclarationModifiers>();
-            var maxDeclarationModifier = (int)declarationModifiers.Aggregate((d1, d2) => d1 | d2);
-            Debug.Assert((maxDeclarationModifier & (DeclarationModifiersMask >> DeclarationModifiersOffset)) == maxDeclarationModifier);
-        }
+            private const int MethodKindMask = 0x1F;
+            private const int DeclarationModifiersMask = 0x1FFFFF;
+
+            private const int ReturnsVoidBit = 1 << 26;
+            private const int IsExtensionMethodBit = 1 << 27;
+            private const int IsMetadataVirtualIgnoringInterfaceChangesBit = 1 << 28;
+            private const int IsMetadataVirtualBit = 1 << 29;
+            private const int IsMetadataVirtualLockedBit = 1 << 30;
+
+            private int flags;
+
+            public bool ReturnsVoid
+            {
+                get { return (this.flags & ReturnsVoidBit) != 0; }
+                set { this.flags = value ? (this.flags | ReturnsVoidBit) : (this.flags & ~ReturnsVoidBit); }
+            }
+
+            public MethodKind MethodKind
+            {
+                get { return (MethodKind)((this.flags >> MethodKindOffset) & MethodKindMask); }
+            }
+
+            public bool IsExtensionMethod
+            {
+                get { return (this.flags & IsExtensionMethodBit) != 0; }
+            }
+
+            public bool IsMetadataVirtualLocked
+            {
+                get { return (this.flags & IsMetadataVirtualLockedBit) != 0; }
+            }
+
+            public DeclarationModifiers DeclarationModifiers
+            {
+                get { return (DeclarationModifiers)((this.flags >> DeclarationModifiersOffset) & DeclarationModifiersMask); }
+            }
+
+#if DEBUG
+            static Flags()
+            {
+                // Verify a few things about the values we combine into flags.  This way, if they ever
+                // change, this will get hit and you will know you have to update this type as well.
+
+                // 1) Verify that the range of method kinds doesn't fall outside the bounds of the
+                // method kind mask.
+                var methodKinds = EnumExtensions.GetValues<MethodKind>();
+                var maxMethodKind = (int)methodKinds.Aggregate((m1, m2) => m1 | m2);
+                Debug.Assert((maxMethodKind & MethodKindMask) == maxMethodKind);
+
+                // 2) Verify that the range of declaration modifiers doesn't fall outside the bounds of
+                // the declaration modifier mask.
+                var declarationModifiers = EnumExtensions.GetValues<DeclarationModifiers>();
+                var maxDeclarationModifier = (int)declarationModifiers.Aggregate((d1, d2) => d1 | d2);
+                Debug.Assert((maxDeclarationModifier & DeclarationModifiersMask) == maxDeclarationModifier);
+            }
 #endif
+
+            private static bool ModifiersRequireMetadataVirtual(DeclarationModifiers modifiers)
+            {
+                return (modifiers & (DeclarationModifiers.Abstract | DeclarationModifiers.Virtual | DeclarationModifiers.Override)) != 0;
+            }
+
+            public Flags(
+                MethodKind methodKind,
+                DeclarationModifiers declarationModifiers,
+                bool returnsVoid,
+                bool isExtensionMethod,
+                bool isMetadataVirtualIgnoringModifiers = false)
+            {
+                bool isMetadataVirtual = isMetadataVirtualIgnoringModifiers || ModifiersRequireMetadataVirtual(declarationModifiers);
+
+                int methodKindInt = ((int)methodKind & MethodKindMask) << MethodKindOffset;
+                int declarationModifiersInt = ((int)declarationModifiers & DeclarationModifiersMask) << DeclarationModifiersOffset;
+                int returnsVoidInt = returnsVoid ? ReturnsVoidBit: 0;
+                int isExtensionMethodInt = isExtensionMethod ? IsExtensionMethodBit : 0;
+                int isMetadataVirtualIgnoringInterfaceImplementationChangesInt = isMetadataVirtual ? IsMetadataVirtualIgnoringInterfaceChangesBit : 0;
+                int isMetadataVirtualInt = isMetadataVirtual ? IsMetadataVirtualBit : 0;
+
+                this.flags = methodKindInt | declarationModifiersInt | returnsVoidInt | isExtensionMethodInt | isMetadataVirtualIgnoringInterfaceImplementationChangesInt | isMetadataVirtualInt;
+            }
+
+            public bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
+            {
+                // This flag is immutable, so there's no reason to set a lock bit, as we do below.
+                if (ignoreInterfaceImplementationChanges)
+                {
+                    return (this.flags & IsMetadataVirtualIgnoringInterfaceChangesBit) != 0;
+                }
+
+                if (!IsMetadataVirtualLocked)
+                {
+                    ThreadSafeFlagOperations.Set(ref this.flags, IsMetadataVirtualLockedBit);
+                }
+
+                return (this.flags & IsMetadataVirtualBit) != 0;
+            }
+
+            public void EnsureMetadataVirtual()
+            {
+                // ACASEY: This assert is here to check that we're not mutating the value of IsMetadataVirtual after
+                // someone has consumed it.  The best practice is to not access IsMetadataVirtual before ForceComplete
+                // has been called on all SourceNamedTypeSymbols.  If it is necessary to do so, then you can pass
+                // ignoreInterfaceImplementationChanges: true, but you must be conscious that seeing "false" may not
+                // reflect the final, emitted modifier.
+                Debug.Assert(!IsMetadataVirtualLocked);
+                if ((this.flags & IsMetadataVirtualBit) == 0)
+                {
+                    ThreadSafeFlagOperations.Set(ref this.flags, IsMetadataVirtualBit);
+                }
+            }
+        }
+
         protected SymbolCompletionState state;
 
-        // The flags int is used to compact many different bits of information efficiently into a 32
-        // bit int.  The layout is currently:
-        //
-        // |   |s|r|q|z|y|xxxxxxxxxxxxxxxxxxxxx|wwwww|
-        // 
-        // w = method kind.  5 bits.
-        //
-        // x = modifiers.  21 bits.
-        //
-        // y = returnsVoid. 1 bit.
-        //
-        // z = isExtensionMethod. 1 bit.
-        //
-        // q = isMetadataVirtualIgnoringInterfaceChanges. 1 bit.
-        //
-        // r = isMetadataVirtual. 1 bit.  (At least as true as isMetadataVirtualIgnoringInterfaceChanges.)
-        //
-        // s = isMetadataVirtualLocked. 1 bit.
-        //
-        // 2 bits remain for future purposes.
-
-        private const int MethodKindOffset = 0;
-        private const int DeclarationModifiersOffset = 5;
-        private const int ReturnsVoidOffset = 26;
-        private const int IsExtensionMethodOffset = 27;
-        private const int IsMetadataVirtualIgnoringInterfaceChangesOffset = 28;
-        private const int IsMetadataVirtualOffset = 29;
-        private const int IsMetadataVirtualLockedOffset = 30;
-
-        private const int MethodKindMask = 0x1F << MethodKindOffset;
-        private const int DeclarationModifiersMask = 0x1FFFFF << DeclarationModifiersOffset;
-        private const int ReturnsVoidMask = 0x1 << ReturnsVoidOffset;
-        private const int IsExtensionMethodMask = 0x1 << IsExtensionMethodOffset;
-        private const int IsMetadataVirtualIgnoringInterfaceChangesMask = 0x1 << IsMetadataVirtualIgnoringInterfaceChangesOffset;
-        private const int IsMetadataVirtualMask = 0x1 << IsMetadataVirtualOffset;
-        private const int IsMetadataVirtualLockedMask = 0x1 << IsMetadataVirtualLockedOffset;
-
-        protected int flags;
+        protected Flags flags;
 
         private readonly NamedTypeSymbol containingType;
         private ParameterSymbol lazyThisParameter;
@@ -159,34 +241,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             diagnostics.Add(Locations[0], useSiteDiagnostics);
         }
 
-        private static bool ModifiersRequireMetadataVirtual(DeclarationModifiers modifiers)
-        {
-            return (modifiers & (DeclarationModifiers.Abstract | DeclarationModifiers.Virtual | DeclarationModifiers.Override)) != 0;
-        }
-
-        protected static int MakeFlags(
+        protected void MakeFlags(
             MethodKind methodKind,
             DeclarationModifiers declarationModifiers,
             bool returnsVoid,
             bool isExtensionMethod,
             bool isMetadataVirtualIgnoringModifiers = false)
         {
-            bool isMetadataVirtual = isMetadataVirtualIgnoringModifiers || ModifiersRequireMetadataVirtual(declarationModifiers);
-
-            int methodKindInt = ((int)methodKind << MethodKindOffset) & MethodKindMask;
-            int declarationModifiersInt = ((int)declarationModifiers << DeclarationModifiersOffset) & DeclarationModifiersMask;
-            int returnsVoidInt = returnsVoid ? ReturnsVoidMask : 0;
-            int isExtensionMethodInt = isExtensionMethod ? IsExtensionMethodMask : 0;
-            int isMetadataVirtualIgnoringInterfaceImplementationChangesInt = isMetadataVirtual ? IsMetadataVirtualIgnoringInterfaceChangesMask : 0;
-            int isMetadataVirtualInt = isMetadataVirtual ? IsMetadataVirtualMask : 0;
-            int isMetadataVirtualLockedInt = 0;
-
-            return methodKindInt | declarationModifiersInt | returnsVoidInt | isExtensionMethodInt | isMetadataVirtualIgnoringInterfaceImplementationChangesInt | isMetadataVirtualInt | isMetadataVirtualLockedInt;
+            this.flags = new Flags(methodKind, declarationModifiers, returnsVoid, isExtensionMethod, isMetadataVirtualIgnoringModifiers);
         }
 
-        protected static int MakeReturnsVoidFlags(bool returnsVoid)
+        protected void SetReturnsVoid(bool returnsVoid)
         {
-            return returnsVoid ? ReturnsVoidMask : 0;
+            this.flags.ReturnsVoid = returnsVoid;
         }
 
         /// <remarks>
@@ -297,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (this.flags & ReturnsVoidMask) != 0;
+                return this.flags.ReturnsVoid;
             }
         }
 
@@ -305,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (MethodKind)((this.flags & MethodKindMask) >> MethodKindOffset);
+                return this.flags.MethodKind;
             }
         }
 
@@ -313,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (this.flags & IsExtensionMethodMask) != 0;
+                return this.flags.IsExtensionMethod;
             }
         }
 
@@ -321,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (this.flags & IsMetadataVirtualLockedMask) != 0;
+                return this.flags.IsMetadataVirtualLocked;
             }
         }
 
@@ -340,32 +407,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // TODO (tomat): sealed?
         internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
         {
-            // This flag is immutable, so there's no reason to set a lock bit, as we do below.
-            if (ignoreInterfaceImplementationChanges)
-            {
-                return (this.flags & IsMetadataVirtualIgnoringInterfaceChangesMask) != 0;
-            }
-
-            if (!IsMetadataVirtualLocked)
-            {
-                ThreadSafeFlagOperations.Set(ref this.flags, IsMetadataVirtualLockedMask);
-            }
-
-            return (this.flags & IsMetadataVirtualMask) != 0;
+            return this.flags.IsMetadataVirtual(ignoreInterfaceImplementationChanges);
         }
 
         internal void EnsureMetadataVirtual()
         {
-            // ACASEY: This assert is here to check that we're not mutating the value of IsMetadataVirtual after
-            // someone has consumed it.  The best practice is to not access IsMetadataVirtual before ForceComplete
-            // has been called on all SourceNamedTypeSymbols.  If it is necessary to do so, then you can pass
-            // ignoreInterfaceImplementationChanges: true, but you must be conscious that seeing "false" may not
-            // reflect the final, emitted modifier.
-            Debug.Assert(!IsMetadataVirtualLocked);
-            if ((this.flags & IsMetadataVirtualMask) == 0)
-            {
-                ThreadSafeFlagOperations.Set(ref this.flags, IsMetadataVirtualMask);
-            }
+            this.flags.EnsureMetadataVirtual();
         }
 
         /// <summary>
@@ -383,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return (DeclarationModifiers)((this.flags & DeclarationModifiersMask) >> DeclarationModifiersOffset);
+                return this.flags.DeclarationModifiers;
             }
         }
 

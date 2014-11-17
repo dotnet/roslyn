@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             bool modifierErrors;
             var declarationModifiers = this.MakeModifiers(syntax.Modifiers, methodKind, location, diagnostics, out modifierErrors);
-            this.flags = MakeFlags(methodKind, declarationModifiers, returnsVoid: true, isExtensionMethod: false);
+            this.MakeFlags(methodKind, declarationModifiers, returnsVoid: true, isExtensionMethod: false);
 
             var bodyOpt = syntax.Body;
             if (bodyOpt != null)
