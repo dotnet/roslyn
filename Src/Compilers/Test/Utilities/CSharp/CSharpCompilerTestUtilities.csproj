@@ -12,7 +12,7 @@
     <OutDir>..\..\..\..\..\Binaries\$(Configuration)\</OutDir>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.Test.Utilities</RootNamespace>
-    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
+    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\..\</SolutionDir>
     <ProjectGuid>{4371944A-D3BA-4B5B-8285-82E5FFC6D1F9}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Compilers.CSharp.Test.Utilities</AssemblyName>
@@ -124,12 +124,4 @@
     <Import Project="..\..\..\..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets" Condition="Exists('..\..\..\..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets')" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('$(SolutionDir)\.nuget\NuGet.targets')" Text="$([System.String]::Format('$(ErrorText)', '$(SolutionDir)\.nuget\NuGet.targets'))" />
-    <Error Condition="!Exists('..\..\..\..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4101501-beta\build\Microsoft.Net.ToolsetCompilers.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\..\packages\Microsoft.Net.ToolsetCompilers.0.7.4101501-beta\build\Microsoft.Net.ToolsetCompilers.props'))" />
-    <Error Condition="!Exists('..\..\..\..\..\packages\Microsoft.Net.RoslynDiagnostics.0.7.4101501-beta\build\Microsoft.Net.RoslynDiagnostics.props')" Text="$([System.String]::Format('$(ErrorText)', '..\..\..\..\..\packages\Microsoft.Net.RoslynDiagnostics.0.7.4101501-beta\build\Microsoft.Net.RoslynDiagnostics.props'))" />
-  </Target>
 </Project>
