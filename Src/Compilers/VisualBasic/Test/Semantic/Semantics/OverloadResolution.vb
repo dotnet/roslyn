@@ -5375,5 +5375,105 @@ End Interface
             CompileAndVerify(compilation)
         End Sub
 
+        <Fact, WorkItem(1034429, "DevDiv")>
+        Sub Bug1034429()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Security.Permissions
+
+Public Class A
+    Inherits Attribute
+
+    Public Sub New(ByVal ParamArray p As SecurityAction)
+
+    End Sub
+End Class
+
+Public Class B
+    Inherits Attribute
+
+    Public Sub New(ByVal p1 As Integer, ByVal ParamArray p2 As SecurityAction)
+
+    End Sub
+End Class
+
+Public Class C
+    Inherits Attribute
+
+    Public Sub New(ByVal p1 As Integer, ByVal ParamArray p2 As SecurityAction, ByVal p3 As String)
+
+    End Sub
+End Class
+
+Module Module1
+
+    <A(SecurityAction.Assert)>
+    <B(p2:=SecurityAction.Assert, p1:=0)>
+    <C(p3:="again", p2:=SecurityAction.Assert, p1:=0)>
+    Sub Main()
+
+    End Sub
+
+End Module
+]]>
+
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation,
+<expected><![CDATA[
+BC30050: ParamArray parameter must be an array.
+    Public Sub New(ByVal ParamArray p As SecurityAction)
+                                    ~
+BC30050: ParamArray parameter must be an array.
+    Public Sub New(ByVal p1 As Integer, ByVal ParamArray p2 As SecurityAction)
+                                                         ~~
+BC30050: ParamArray parameter must be an array.
+    Public Sub New(ByVal p1 As Integer, ByVal ParamArray p2 As SecurityAction, ByVal p3 As String)
+                                                         ~~
+BC30192: End of parameter list expected. Cannot define parameters after a paramarray parameter.
+    Public Sub New(ByVal p1 As Integer, ByVal ParamArray p2 As SecurityAction, ByVal p3 As String)
+                                                                               ~~~~~~~~~~~~~~~~~~
+BC31092: ParamArray parameters must have an array type.
+    <A(SecurityAction.Assert)>
+     ~
+BC30455: Argument not specified for parameter 'p1' of 'Public Sub New(p1 As Integer, ParamArray p2 As SecurityAction)'.
+    <B(p2:=SecurityAction.Assert, p1:=0)>
+     ~
+BC31092: ParamArray parameters must have an array type.
+    <B(p2:=SecurityAction.Assert, p1:=0)>
+     ~
+BC30661: Field or property 'p2' is not found.
+    <B(p2:=SecurityAction.Assert, p1:=0)>
+       ~~
+BC30661: Field or property 'p1' is not found.
+    <B(p2:=SecurityAction.Assert, p1:=0)>
+                                  ~~
+BC30455: Argument not specified for parameter 'p1' of 'Public Sub New(p1 As Integer, ParamArray p2 As SecurityAction, p3 As String)'.
+    <C(p3:="again", p2:=SecurityAction.Assert, p1:=0)>
+     ~
+BC30455: Argument not specified for parameter 'p2' of 'Public Sub New(p1 As Integer, ParamArray p2 As SecurityAction, p3 As String)'.
+    <C(p3:="again", p2:=SecurityAction.Assert, p1:=0)>
+     ~
+BC30455: Argument not specified for parameter 'p3' of 'Public Sub New(p1 As Integer, ParamArray p2 As SecurityAction, p3 As String)'.
+    <C(p3:="again", p2:=SecurityAction.Assert, p1:=0)>
+     ~
+BC30661: Field or property 'p3' is not found.
+    <C(p3:="again", p2:=SecurityAction.Assert, p1:=0)>
+       ~~
+BC30661: Field or property 'p2' is not found.
+    <C(p3:="again", p2:=SecurityAction.Assert, p1:=0)>
+                    ~~
+BC30661: Field or property 'p1' is not found.
+    <C(p3:="again", p2:=SecurityAction.Assert, p1:=0)>
+                                               ~~
+]]></expected>)
+        End Sub
+
     End Class
 End Namespace

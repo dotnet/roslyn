@@ -1141,7 +1141,7 @@ class Test2
   {
     .param [3]
     .custom instance void [mscorlib]System.ParamArrayAttribute::.ctor() = {}
-    ret
+	ret
   } // end of method Derived::Method2
 
   //// Removes 'params' ////
@@ -6102,15 +6102,15 @@ class C
             var source = @"
 public class C
 {
-    public override T Override<T>(T t) 
-    { 
-        return t;
-    }
+	public override T Override<T>(T t) 
+	{ 
+		return t;
+	}
 
-    public void Test<T>(T t)
-    {
-        Override(t);
-    }
+	public void Test<T>(T t)
+	{
+		Override(t);
+	}
 }
 ";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
@@ -6192,19 +6192,19 @@ using System;
 
 public class C
 {
-    public static int F(int p1, char p2, ref dynamic p3) { return 2; }
-    public static int F(C p1, params dynamic[] p2) { return 3; }
+	public static int F(int p1, char p2, ref dynamic p3) { return 2; }
+	public static int F(C p1, params dynamic[] p2) { return 3; }
 
-    public static implicit operator int(C t) { return 1; }
-    public static implicit operator C(int t) { return new C(); }
+	public static implicit operator int(C t) { return 1; }
+	public static implicit operator C(int t) { return new C(); }
 
-    static void M()
-    {            
-        dynamic d1 = null;
-        C c = null;
+	static void M()
+	{            
+		dynamic d1 = null;
+		C c = null;
  
-        C.F(c, 'a', ref d1); //-C.F(int, char, ref dynamic)
-    }
+		C.F(c, 'a', ref d1); //-C.F(int, char, ref dynamic)
+	}
 }";
 
             TestOverloadResolutionWithDiff(source);
@@ -7496,6 +7496,90 @@ class CTest
             var compilation = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput: @"M1(int x)");
+        }
+
+        [Fact]
+        [WorkItem(1034429, "DevDiv")]
+        public void TestBug1034429()
+        {
+            string source =
+@"
+using System.Security.Permissions;
+
+class Program
+{
+    [A(SecurityAction.Assert)]
+    [B(p2: SecurityAction.Assert, p1: 0)]
+    [C(p3: ""again"", p2: SecurityAction.Assert, p1: 0)]
+    static void Main()
+    {
+    }
+}
+
+public class A : CodeAccessSecurityAttribute
+{
+    public A(params SecurityAction)
+    {
+    }
+}
+
+public class B : CodeAccessSecurityAttribute
+{
+    public B(int p1, params SecurityAction p2)
+    {
+    }
+}
+
+public class C : CodeAccessSecurityAttribute
+{
+    public C(int p1, params SecurityAction p2, string p3)
+    {
+    }
+}
+
+
+";
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (16,35): error CS1001: Identifier expected
+                //     public A(params SecurityAction)
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ")").WithLocation(16, 35),
+                // (30,22): error CS0231: A params parameter must be the last parameter in a formal parameter list
+                //     public C(int p1, params SecurityAction p2, string p3)
+                Diagnostic(ErrorCode.ERR_ParamsLast, "params SecurityAction p2").WithLocation(30, 22),
+                // (14,14): error CS0534: 'A' does not implement inherited abstract member 'SecurityAttribute.CreatePermission()'
+                // public class A : CodeAccessSecurityAttribute
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "A").WithArguments("A", "System.Security.Permissions.SecurityAttribute.CreatePermission()").WithLocation(14, 14),
+                // (28,14): error CS0534: 'C' does not implement inherited abstract member 'SecurityAttribute.CreatePermission()'
+                // public class C : CodeAccessSecurityAttribute
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "C").WithArguments("C", "System.Security.Permissions.SecurityAttribute.CreatePermission()").WithLocation(28, 14),
+                // (21,14): error CS0534: 'B' does not implement inherited abstract member 'SecurityAttribute.CreatePermission()'
+                // public class B : CodeAccessSecurityAttribute
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "System.Security.Permissions.SecurityAttribute.CreatePermission()").WithLocation(21, 14),
+                // (16,14): error CS0225: The params parameter must be a single dimensional array
+                //     public A(params SecurityAction)
+                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(16, 14),
+                // (23,22): error CS0225: The params parameter must be a single dimensional array
+                //     public B(int p1, params SecurityAction p2)
+                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(23, 22),
+                // (30,22): error CS0225: The params parameter must be a single dimensional array
+                //     public C(int p1, params SecurityAction p2, string p3)
+                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(30, 22),
+                // (7,6): error CS7048: First argument to a security attribute must be a valid SecurityAction
+                //     [B(p2: SecurityAction.Assert, p1: 0)]
+                Diagnostic(ErrorCode.ERR_SecurityAttributeMissingAction, "B").WithLocation(7, 6),
+                // (8,6): error CS7048: First argument to a security attribute must be a valid SecurityAction
+                //     [C(p3: "again", p2: SecurityAction.Assert, p1: 0)]
+                Diagnostic(ErrorCode.ERR_SecurityAttributeMissingAction, "C").WithLocation(8, 6),
+                // (16,12): error CS7036: There is no argument given that corresponds to the required formal parameter 'action' of 'CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(SecurityAction)'
+                //     public A(params SecurityAction)
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "A").WithArguments("action", "System.Security.Permissions.CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(System.Security.Permissions.SecurityAction)").WithLocation(16, 12),
+                // (23,12): error CS7036: There is no argument given that corresponds to the required formal parameter 'action' of 'CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(SecurityAction)'
+                //     public B(int p1, params SecurityAction p2)
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "B").WithArguments("action", "System.Security.Permissions.CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(System.Security.Permissions.SecurityAction)").WithLocation(23, 12),
+                // (30,12): error CS7036: There is no argument given that corresponds to the required formal parameter 'action' of 'CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(SecurityAction)'
+                //     public C(int p1, params SecurityAction p2, string p3)
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("action", "System.Security.Permissions.CodeAccessSecurityAttribute.CodeAccessSecurityAttribute(System.Security.Permissions.SecurityAction)").WithLocation(30, 12));
         }
     }
 }

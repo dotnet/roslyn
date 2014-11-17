@@ -1511,7 +1511,7 @@ public class MyClass
 
         #endregion
 
-        [Fact(Skip = "Bug 1034429")]
+        [Fact]
         [WorkItem(1034429)]
         public void CrashOnParamsInSecurityAttribute()
         {
