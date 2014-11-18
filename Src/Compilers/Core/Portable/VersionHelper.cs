@@ -8,54 +8,40 @@ namespace Microsoft.CodeAnalysis
 {
     internal static class VersionHelper
     {
-        internal static bool Validate(ref Version v)
+        /// <summary>
+        /// Parses a version string of the form "major [ '.' minor [ '.' build [ '.' revision ] ] ]".
+        /// </summary>
+        /// <param name="s">The version string to parse.</param>
+        /// <param name="version">If parsing succeeds, the parsed version. Null otherwise.</param>
+        /// <returns>True when parsing succeeds completely (i.e. every character in the string was consumed), false otherwise.</returns>
+        internal static bool TryParse(string s, out Version version)
         {
-            Debug.Assert(v != null);
-
-            if (v.Major >= UInt16.MaxValue ||
-                v.Minor >= UInt16.MaxValue ||
-                v.Build >= UInt16.MaxValue ||
-                v.Revision >= UInt16.MaxValue)
-            {
-                v = null;
-                return false;
-            }
-
-            return true;
+            return TryParse(s, allowWildcard: false, maxValue: ushort.MaxValue, version: out version);
         }
 
         /// <summary>
-        /// sets as many fields as it can.
+        /// Parses a version string of the form "major [ '.' minor [ '.' ( '*' | ( build [ '.' ( '*' | revision ) ] ) ) ] ]"
+        /// as accepted by System.Reflection.AssemblyVersionAttribute.
         /// </summary>
-        /// <param name="s"></param>
-        /// <param name="version"></param>
-        /// <returns>True when the input was entirely parsable.</returns>
-        internal static bool TryParse(string s, out Version version)
+        /// <param name="s">The version string to parse.</param>
+        /// <param name="allowWildcard">Indicates whether or not a wildcard is accepted as the terminal component.</param>
+        /// <param name="version">If parsing succeeded, the parsed version. Null otherwise.</param>
+        /// <returns>True when parsing succeeds completely (i.e. every character in the string was consumed), false otherwise.</returns>
+        internal static bool TryParseAssemblyVersion(string s, bool allowWildcard, out Version version)
         {
-            if (s == null)
-            {
-                version = new Version(0, 0, 0, 0);
-                return false;
-            }
-
-            string[] elements = s.Split('.');
-            ushort[] values = new ushort[4];
-            bool result = elements.Length <= 4;
-
-            for (int i = 0; i < elements.Length && i < 4; i++)
-            {
-                if (!UInt16.TryParse(elements[i], NumberStyles.None, CultureInfo.InvariantCulture, out values[i]))
-                {
-                    result = false;
-                    break;
-                }
-            }
-
-            version = new Version(values[0], values[1], values[2], values[3]);
-            return result;
+            return TryParse(s, allowWildcard: allowWildcard, maxValue: ushort.MaxValue - 1, version: out version);
         }
 
-        internal static bool TryParseWithWildcards(string s, out Version version)
+        /// <summary>
+        /// Parses a version string of the form "major [ '.' minor [ '.' ( '*' | ( build [ '.' ( '*' | revision ) ] ) ) ] ]"
+        /// as accepted by System.Reflection.AssemblyVersionAttribute.
+        /// </summary>
+        /// <param name="s">The version string to parse.</param>
+        /// <param name="allowWildcard">Indicates whether or not we're parsing an assembly version string. If so, wildcards are accepted and each component must be less than 65535.</param>
+        /// <param name="maxValue">The maximum value that a version component may have.</param>
+        /// <param name="version">If parsing succeeded, the parsed version. Null otherwise.</param>
+        /// <returns>True when parsing succeeds completely (i.e. every character in the string was consumed), false otherwise.</returns>
+        private static bool TryParse(string s, bool allowWildcard, ushort maxValue, out Version version)
         {
             if (s == null)
             {
@@ -63,67 +49,60 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            int indexOfSplat = s.LastIndexOf('*');
-            if (indexOfSplat == -1)
+            string[] elements = s.Split('.');
+
+            // If the wildcard is being used, the first two elements must be specified explicitly, and
+            // the last must be a exactly single asterisk without whitespace.
+            bool hasWildcard = allowWildcard && elements[elements.Length - 1] == "*";
+
+            if ((hasWildcard && elements.Length < 3) || elements.Length > 4)
             {
-                if (VersionHelper.TryParse(s, out version))
-                {
-                    return Validate(ref version);
-                }
-                else
+                version = null;
+                return false;
+            }
+
+            ushort[] values = new ushort[4];
+            int lastExplicitValue = hasWildcard ? elements.Length - 1 : elements.Length;
+            for (int i = 0; i < lastExplicitValue; i++)
+            {
+                if (!ushort.TryParse(elements[i], NumberStyles.None, CultureInfo.InvariantCulture, out values[i]) || values[i] > maxValue)
                 {
                     version = null;
                     return false;
                 }
             }
-            else
-            {
-                string[] elements = s.Split('.');
 
-                //to use the wildcard, the first two elements must be specified explicitly, and
-                //the last one has got to be a single asterisk w/o whitespace.
-                if (elements.Length < 3 ||
-                    elements.Length > 4 ||
-                    elements[elements.Length - 1] != "*")
+            if (hasWildcard)
+            {
+                int seconds = ((int)(DateTime.Now.TimeOfDay.TotalSeconds)) / 2;
+                if (seconds > (int)maxValue)
                 {
                     version = null;
                     return false;
                 }
+                values[3] = (ushort)seconds;
 
-                string beforeSplat = s.Substring(0, indexOfSplat - 1);  //take off the splat and the preceding dot
-
-                if (VersionHelper.TryParse(beforeSplat, out version))
+                if (elements.Length == 3)
                 {
-                    //the explicitly set portions were good
-                    int seconds = ((int)(DateTime.Now.TimeOfDay.TotalSeconds)) / 2;
-                    int build = version.Build;
+                    TimeSpan days = DateTime.Today - new DateTime(2000, 1, 1);
+                    int build = (int)days.TotalDays;
 
-                    if (elements.Length == 3)
+                    if (build < 0 || build > (int)maxValue)
                     {
-                        TimeSpan days = DateTime.Today - new DateTime(2000, 1, 1);
-                        build = (int)days.TotalDays;
+                        //alink would generate an error here saying "Cannot auto-generate build and 
+                        //revision version numbers for dates previous to January 1, 2000." Without
+                        //some refactoring here to relay the date problem, Roslyn
+                        //will generate an inaccurate error about the version string being of the wrong format.
 
-                        if (build < 0)
-                        {
-                            //alink would generate an error here saying "Cannot auto-generate build and 
-                            //revision version numbers for dates previous to January 1, 2000." Without
-                            //some refactoring here to relay the date problem, Roslyn
-                            //will generate an inaccurate error about the version string being of the wrong format.
-
-                            version = null;
-                            return false;
-                        }
+                        version = null;
+                        return false;
                     }
-
-                    version = new Version(version.Major, version.Minor, build, seconds);
-                    return Validate(ref version);
-                }
-                else
-                {
-                    version = null;
-                    return false;
+                    values[2] = (ushort)build;
                 }
             }
+
+            version = new Version(values[0], values[1], values[2], values[3]);
+            return true;
         }
     }
 }

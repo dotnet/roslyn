@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void ParseGood()
         {
             Version version;
-            Assert.True(VersionHelper.TryParseWithWildcards("1.234.56.7", out version));
-            Assert.True(VersionHelper.TryParseWithWildcards("3.2.*", out version));
+            Assert.True(VersionHelper.TryParseAssemblyVersion("1.234.56.7", allowWildcard: true, version: out version));
+            Assert.True(VersionHelper.TryParseAssemblyVersion("3.2.*", allowWildcard: true, version: out version));
             Assert.Equal(3, version.Major);
             Assert.Equal(2, version.Minor);
             //number of days since jan 1, 2000
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             //number of seconds since midnight divided by two
             int s = (int)DateTime.Now.TimeOfDay.TotalSeconds / 2;   
             Assert.InRange(version.Revision, s - 2, s + 2);
-            Assert.True(VersionHelper.TryParseWithWildcards("1.2.3.*", out version));
+            Assert.True(VersionHelper.TryParseAssemblyVersion("1.2.3.*", allowWildcard: true, version: out version));
             s = (int)DateTime.Now.TimeOfDay.TotalSeconds / 2;
             Assert.InRange(version.Revision, s - 2, s + 2);
         }
@@ -45,74 +45,76 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void ParseBad()
         {
             Version version;
-            Assert.False(VersionHelper.TryParseWithWildcards("1.234.56.7.*", out version));
+            Assert.False(VersionHelper.TryParseAssemblyVersion("1.234.56.7.*", allowWildcard: true, version: out version));
             Assert.Null(version);
-            Assert.False(VersionHelper.TryParseWithWildcards("*", out version));
+            Assert.False(VersionHelper.TryParseAssemblyVersion("*", allowWildcard: true, version: out version));
             Assert.Null(version);
-            Assert.False(VersionHelper.TryParseWithWildcards("1.2. *", out version));
+            Assert.False(VersionHelper.TryParseAssemblyVersion("1.2. *", allowWildcard: true, version: out version));
             Assert.Null(version);
-            Assert.False(VersionHelper.TryParseWithWildcards("1.2.* ", out version));
+            Assert.False(VersionHelper.TryParseAssemblyVersion("1.2.* ", allowWildcard: true, version: out version));
             Assert.Null(version);
-            Assert.False(VersionHelper.TryParseWithWildcards("1.*", out version));
+            Assert.False(VersionHelper.TryParseAssemblyVersion("1.*", allowWildcard: true, version: out version));
             Assert.Null(version);
-            Assert.False(VersionHelper.TryParseWithWildcards("1.1.*.*", out version));
+            Assert.False(VersionHelper.TryParseAssemblyVersion("1.1.*.*", allowWildcard: true, version: out version));
             Assert.Null(version);
-            Assert.False(VersionHelper.TryParseWithWildcards("", out version));
+            Assert.False(VersionHelper.TryParseAssemblyVersion("", allowWildcard: true, version: out version));
             Assert.Null(version);
-            Assert.False(VersionHelper.TryParseWithWildcards(null, out version));
+            Assert.False(VersionHelper.TryParseAssemblyVersion(null, allowWildcard: true, version: out version));
             Assert.Null(version);
-            Assert.False(VersionHelper.TryParseWithWildcards("a", out version));
+            Assert.False(VersionHelper.TryParseAssemblyVersion("a", allowWildcard: true, version: out version));
             Assert.Null(version);
-            Assert.False(VersionHelper.TryParseWithWildcards("********", out version));
+            Assert.False(VersionHelper.TryParseAssemblyVersion("********", allowWildcard: true, version: out version));
             Assert.Null(version);
-            Assert.False(VersionHelper.TryParseWithWildcards("...", out version));
+            Assert.False(VersionHelper.TryParseAssemblyVersion("...", allowWildcard: true, version: out version));
             Assert.Null(version);
-            Assert.False(VersionHelper.TryParseWithWildcards(".a.b.", out version));
+            Assert.False(VersionHelper.TryParseAssemblyVersion(".a.b.", allowWildcard: true, version: out version));
             Assert.Null(version);
-            Assert.False(VersionHelper.TryParseWithWildcards(".0.1.", out version));
+            Assert.False(VersionHelper.TryParseAssemblyVersion(".0.1.", allowWildcard: true, version: out version));
+            Assert.Null(version);
+            Assert.False(VersionHelper.TryParseAssemblyVersion("65535.65535.65535.65535", allowWildcard: true, version: out version));
+            Assert.Null(version);
+            Assert.False(VersionHelper.TryParseAssemblyVersion("65535.65535.65535.65535", allowWildcard: false, version: out version));
             Assert.Null(version);
 
             // U+FF11 FULLWIDTH DIGIT ONE 
-            Assert.False(VersionHelper.TryParseWithWildcards("\uFF11.\uFF10.\uFF10.\uFF10", out version));
+            Assert.False(VersionHelper.TryParseAssemblyVersion("\uFF11.\uFF10.\uFF10.\uFF10", allowWildcard: true, version: out version));
             Assert.Null(version);
         }
 
         [Fact]
         public void ParseBad2()
         {
-            Version nil = new Version(0, 0, 0, 0);
-
             Version version;
             Assert.False(VersionHelper.TryParse("", out version));
-            Assert.Equal(nil, version);
+            Assert.Null(version);
             Assert.False(VersionHelper.TryParse(null, out version));
-            Assert.Equal(nil, version);
+            Assert.Null(version);
             Assert.False(VersionHelper.TryParse("a", out version));
-            Assert.Equal(nil, version);
+            Assert.Null(version);
             Assert.False(VersionHelper.TryParse("********", out version));
-            Assert.Equal(nil, version);
+            Assert.Null(version);
             Assert.False(VersionHelper.TryParse("...", out version));
-            Assert.Equal(nil, version);
+            Assert.Null(version);
             Assert.False(VersionHelper.TryParse(".a.b.", out version));
-            Assert.Equal(nil, version);
+            Assert.Null(version);
             Assert.False(VersionHelper.TryParse(".1.2.", out version));
-            Assert.Equal(new Version(0, 0, 0, 0), version);
+            Assert.Null(version);
             Assert.False(VersionHelper.TryParse("1.234.56.7.8", out version));
-            Assert.Equal(new Version(1, 234, 56, 7), version);
+            Assert.Null(version);
             Assert.False(VersionHelper.TryParse("*", out version));
-            Assert.Equal(nil, version);
+            Assert.Null(version);
             Assert.False(VersionHelper.TryParse("1.2. 3", out version));
-            Assert.Equal(new Version(1, 2, 0, 0), version);
+            Assert.Null(version);
             Assert.False(VersionHelper.TryParse("1.2.3 ", out version));
-            Assert.Equal(new Version(1, 2, 0, 0), version);
+            Assert.Null(version);
             Assert.False(VersionHelper.TryParse("1.a", out version));
-            Assert.Equal(new Version(1, 0, 0, 0), version);
+            Assert.Null(version);
             Assert.False(VersionHelper.TryParse("1.2.a.b", out version));
-            Assert.Equal(new Version(1, 2, 0, 0), version);
+            Assert.Null(version);
 
             // U+FF11 FULLWIDTH DIGIT ONE 
             Assert.False(VersionHelper.TryParse("\uFF11.\uFF10.\uFF10.\uFF10", out version));
-            Assert.Equal(new Version(0, 0, 0, 0), version);
+            Assert.Null(version);
         }
     }
 }

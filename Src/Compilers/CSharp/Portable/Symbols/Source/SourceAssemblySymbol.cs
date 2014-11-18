@@ -2073,7 +2073,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 string verString = (string)attribute.CommonConstructorArguments[0].Value;
                 Version version;
-                if (!VersionHelper.TryParseWithWildcards(verString, out version))
+                if (!VersionHelper.TryParseAssemblyVersion(verString, allowWildcard: true, version: out version))
                 {
                     Location attributeArgumentSyntaxLocation = attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt);
                     arguments.Diagnostics.Add(ErrorCode.ERR_InvalidVersionFormat, attributeArgumentSyntaxLocation);
@@ -2085,8 +2085,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Version dummy;
                 string verString = (string)attribute.CommonConstructorArguments[0].Value;
-                //Validation here includes checking that the values are < 65535
-                if (!VersionHelper.TryParse(verString, out dummy) || !VersionHelper.Validate(ref dummy))
+                if (!VersionHelper.TryParseAssemblyVersion(verString, allowWildcard: false, version: out dummy))
                 {
                     Location attributeArgumentSyntaxLocation = attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt);
                     arguments.Diagnostics.Add(ErrorCode.WRN_InvalidVersionFormat, attributeArgumentSyntaxLocation);
@@ -2131,8 +2130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Version dummy;
                 string verString = (string)attribute.CommonConstructorArguments[0].Value;
 
-                //Validation here includes checking that the values are < 65535
-                if (!VersionHelper.TryParse(verString, out dummy) || !VersionHelper.Validate(ref dummy))
+                if (!VersionHelper.TryParseAssemblyVersion(verString, allowWildcard: false, version: out dummy))
                 {
                     Location attributeArgumentSyntaxLocation = attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt);
                     arguments.Diagnostics.Add(ErrorCode.ERR_InvalidVersionFormat2, attributeArgumentSyntaxLocation);

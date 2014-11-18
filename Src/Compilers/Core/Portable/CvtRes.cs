@@ -641,10 +641,16 @@ readonly
                 //There's nothing guaranteeing that these are n.n.n.n format.
                 //The documentation says that if they're not that format the behavior is undefined.
                 Version fileVersion;
-                VersionHelper.TryParse(this.fileVersionContents, out fileVersion);
+                if (!VersionHelper.TryParse(this.fileVersionContents, version: out fileVersion))
+                {
+                    fileVersion = new Version(0, 0, 0, 0);
+                }
 
                 Version productVersion;
-                VersionHelper.TryParse(this.productVersionContents, out productVersion);
+                if (!VersionHelper.TryParse(this.productVersionContents, version: out productVersion))
+                {
+                    productVersion = new Version(0, 0, 0, 0);
+                }
 
                 writer.Write((DWORD)0xFEEF04BD);
                 writer.Write((DWORD)0x00010000);
