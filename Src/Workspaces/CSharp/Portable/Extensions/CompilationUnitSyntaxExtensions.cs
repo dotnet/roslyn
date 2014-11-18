@@ -3,9 +3,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
@@ -19,6 +17,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         public static bool CanAddUsingDirectives(this SyntaxNode contextNode, CancellationToken cancellationToken)
         {
+            var usingDirectiveAncsestor = contextNode.GetAncestor<UsingDirectiveSyntax>();
+            if ((usingDirectiveAncsestor != null) && (usingDirectiveAncsestor.GetAncestor<NamespaceDeclarationSyntax>() == null))
+            {
+                // We are inside a top level using directive (i.e. one that's directly in the compilation unit).
+                return false;
+            }
+
             if (contextNode.SyntaxTree.HasHiddenRegions())
             {
                 var namespaceDeclaration = contextNode.GetInnermostNamespaceDeclarationWithUsings();
