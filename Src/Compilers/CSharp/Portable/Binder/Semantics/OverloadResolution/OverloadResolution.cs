@@ -1271,7 +1271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (m1.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm)
                 {
-                    if (m2ParameterCount != arguments.Count)
+                    if (m2.Result.Kind != MemberResolutionKind.ApplicableInExpandedForm && m2ParameterCount != arguments.Count)
                     {
                         // Optionals used
                         return BetterResult.Right;
@@ -1279,7 +1279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (m2.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm)
                 {
-                    if (m1ParameterCount != arguments.Count)
+                    if (m1.Result.Kind != MemberResolutionKind.ApplicableInExpandedForm && m1ParameterCount != arguments.Count)
                     {
                         // Optionals used
                         return BetterResult.Left;

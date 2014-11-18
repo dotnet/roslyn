@@ -7333,6 +7333,47 @@ namespace ConsoleApplication2
                 );
         }
 
+        [Fact, WorkItem(1080896, "Devdiv"), WorkItem(367, "Devdiv")]
+        public void Bug1080896_6()
+        {
+
+            string source1 = @"
+using System;
+namespace ConsoleApplication2
+{
+    class Program
+    {
+        public class Foo {
+            public static bool IsThing(Foo t) { return false; }
+        }
+        public class Bar<T, V> where T : class
+        {
+            public static Bar<T, V> Create(Func<T, bool> filter, params int[] extra)
+            {
+                return null;
+            }
+            public static Bar<T, V> Create(Func<T, V> propertyPrev, params int[] extra)
+            {
+                return null;
+            }
+        }
+        static void Main(string[] args)
+        {
+            var x = Bar<Foo, double>.Create(Foo.IsThing);
+        }
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugExe);
+
+            compilation.VerifyDiagnostics(
+    // (23,38): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Bar<T, V>.Create(Func<T, bool>, params int[])' and 'Program.Bar<T, V>.Create(Func<T, V>, params int[])'
+    //             var x = Bar<Foo, double>.Create(Foo.IsThing);
+    Diagnostic(ErrorCode.ERR_AmbigCall, "Create").WithArguments("ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, bool>, params int[])", "ConsoleApplication2.Program.Bar<T, V>.Create(System.Func<T, V>, params int[])").WithLocation(23, 38)
+                );
+        }
+
         [Fact, WorkItem(1081302, "Devdiv"), WorkItem(371, "Devdiv")]
         public void Bug1081302_0()
         {
