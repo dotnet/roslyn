@@ -1,4 +1,0 @@
-REM Run the node generator to create new syntax node definitions.
-REM You must run this in the directory containing SyntaxNodes.vb.
-tf checkout GeneratedNodes.vb GeneratedFactories.vb internalSyntax\GeneratedGreenNodes.vb internalSyntax\GeneratedGreenFactories.vb GeneratedSyntaxFacts.vb ..\..\Test\Syntax\Generated.vb
-..\..\..\..\..\Binaries\Debug\SyntaxNodeGenerator.exe /input:Syntax.xml /write-full-nodes:GeneratedNodes.vb /write-internal-nodes:internalSyntax\GeneratedGreenNodes.vb  /write-factories:GeneratedFactories.vb /write-internal-factories:internalSyntax\GeneratedGreenFactories.vb /write-syntax-facts:GeneratedSyntaxFacts.vb /write-tests:..\..\Test\Syntax\Generated.vb
