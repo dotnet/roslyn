@@ -293,5 +293,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         SymbolFinder_Project_Name_FindSourceDeclarationsAsync,
         SymbolFinder_Solution_Predicate_FindSourceDeclarationsAsync,
         SymbolFinder_Project_Predicate_FindSourceDeclarationsAsync,
+        Tagger_Diagnostics_RecomputeTags,
+        Tagger_Diagnostics_Updated,
     }
 }

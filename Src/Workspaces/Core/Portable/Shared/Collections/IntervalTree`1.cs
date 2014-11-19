@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
     /// </summary>
     internal partial class IntervalTree<T> : IEnumerable<T>
     {
+        public static readonly IntervalTree<T> Empty = new IntervalTree<T>();
+
         protected Node root;
 
         private delegate bool TestInterval(T value, int start, int length, IIntervalIntrospector<T> introspector, bool skipZeroLengthIntervals);

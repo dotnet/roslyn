@@ -42,6 +42,10 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 case FunctionId.Tagger_ReferenceHighlighting_TagProducer_ProduceTags:
                     return false;
 
+                case FunctionId.Tagger_Diagnostics_RecomputeTags:
+                case FunctionId.Tagger_Diagnostics_Updated:
+                    return false;
+
                 case FunctionId.Workspace_SourceText_GetChangeRanges:
                 case FunctionId.Workspace_Recoverable_RecoverRootAsync:
                 case FunctionId.Workspace_Recoverable_RecoverRoot:
