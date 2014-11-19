@@ -6443,5 +6443,1770 @@ public static class Program
                 return base.VisitCompoundAssignmentOperator(node);
             }
         }
+
+        [Fact, WorkItem(1036392, "DevDiv")]
+        public void Bug1036392_0()
+        {
+            string source = @"
+class Program
+{
+    static void Main()
+    {
+        E x = 0;
+        const int y = 0;
+        x -= y;
+    }
+}
+ 
+enum E : short { }
+";
+            CompileAndVerify(source: source);
+        }
+
+        [Fact, WorkItem(1036392, "DevDiv")]
+        public void Bug1036392_1()
+        {
+            string source = @"
+class Program
+{
+    static void Main()
+    {
+        E x = 0;
+        x -= new Test();
+    }
+}
+
+enum E : short { }
+
+class Test
+{
+    public static implicit operator short (Test x)
+    {
+        System.Console.WriteLine(""implicit operator short"");
+        return 0;
+    }
+
+    public static implicit operator E(Test x)
+    {
+        System.Console.WriteLine(""implicit operator E"");
+        return 0;
+    }
+}";
+            CompileAndVerify(source: source, expectedOutput: "implicit operator E");
+        }
+
+        [Fact, WorkItem(1036392, "DevDiv")]
+        public void Bug1036392_2()
+        {
+            string source = @"
+class Program
+{
+    static void Main()
+    {
+        E x = 0;
+        var y = new Test() - x;
+    }
+}
+
+enum E : short { }
+
+class Test
+{
+    public static implicit operator short (Test x)
+    {
+        System.Console.WriteLine(""implicit operator short"");
+        return 0;
+    }
+
+    public static implicit operator E(Test x)
+    {
+        System.Console.WriteLine(""implicit operator E"");
+        return 0;
+    }
+}";
+            CompileAndVerify(source: source, expectedOutput: "implicit operator E");
+        }
+
+        [Fact, WorkItem(1036392, "DevDiv")]
+        public void Bug1036392_3()
+        {
+            string source = @"
+class Program
+{
+    static void Main()
+    {
+        E x = 0;
+        const int y = 0;
+        Print(x - y);
+    }
+
+    static void Print<T>(T x)
+    {
+        System.Console.WriteLine(typeof(T));
+    }
+}
+
+enum E : short { }";
+            CompileAndVerify(source: source, expectedOutput: "System.Int16");
+        }
+
+        [Fact, WorkItem(1036392, "DevDiv")]
+        public void Bug1036392_4()
+        {
+            string source = @"
+class Program
+{
+    static void Main()
+    {
+        E? x = 0;
+        x -= new Test?(new Test());
+    }
+}
+
+enum E : short { }
+
+struct Test
+{
+    public static implicit operator short (Test x)
+    {
+        System.Console.WriteLine(""implicit operator short"");
+        return 0;
+    }
+
+    public static implicit operator E(Test x)
+    {
+        System.Console.WriteLine(""implicit operator E"");
+        return 0;
+    }
+}";
+            CompileAndVerify(source: source, expectedOutput: "implicit operator E");
+        }
+
+        [Fact, WorkItem(1036392, "DevDiv")]
+        public void Bug1036392_5()
+        {
+            string source = @"
+class Program
+{
+    static void Main()
+    {
+        E? x = 0;
+        var y = new Test?(new Test());
+        var z = y - x;
+    }
+}
+
+enum E : short { }
+
+struct Test
+{
+    public static implicit operator short (Test x)
+    {
+        System.Console.WriteLine(""implicit operator short"");
+        return 0;
+    }
+
+    public static implicit operator E(Test x)
+    {
+        System.Console.WriteLine(""implicit operator E"");
+        return 0;
+    }
+}";
+            CompileAndVerify(source: source, expectedOutput: "implicit operator E");
+        }
+
+        [Fact, WorkItem(1036392, "DevDiv")]
+        public void Bug1036392_6()
+        {
+            string source = @"
+class Program
+{
+    static void Main()
+    {
+        E? x = 0;
+        const int y = 0;
+        Print(x - y);
+    }
+
+    static void Print<T>(T x)
+    {
+        System.Console.WriteLine(typeof(T));
+    }
+}
+
+enum E : short { }";
+            CompileAndVerify(source: source, expectedOutput: "System.Nullable`1[System.Int16]");
+        }
+
+        [Fact, WorkItem(1036392, "DevDiv")]
+        public void Bug1036392_7()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Base64FormattingOptions? xn0 = Base64FormattingOptions.None;
+        Print(xn0 - 0);
+    }
+
+    static void Print<T>(T x)
+    {
+        System.Console.WriteLine(typeof(T));
+    }
+}";
+            CompileAndVerify(source: source, expectedOutput: "System.Nullable`1[System.Base64FormattingOptions]");
+        }
+
+        [Fact, WorkItem(1036392, "DevDiv")]
+        public void Bug1036392_8()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Base64FormattingOptions? xn0 = Base64FormattingOptions.None;
+        Print(0 - xn0);
+    }
+
+    static void Print<T>(T x)
+    {
+        System.Console.WriteLine(typeof(T));
+    }
+}";
+            CompileAndVerify(source: source, expectedOutput: "System.Nullable`1[System.Int32]");
+        }
+
+        [Fact, WorkItem(1036392, "DevDiv")]
+        public void Bug1036392_9()
+        {
+            string source = @"
+using System;
+
+enum MyEnum1 : short
+{
+    A, B
+}
+enum MyEnum2
+{
+    A, B
+}
+class Program
+{
+    static void M<T>(T t)
+    {
+        Console.WriteLine(typeof(T));
+    }
+    static void Main(string[] args)
+    {
+        MyEnum1 m1 = (long)0;
+        M((short)0 - m1);
+        M((int)0 - m1);
+        M((long)0 - m1);
+        MyEnum2 m2 = 0;
+        M((short)0 - m2);
+        M((int)0 - m2);
+        M((long)0 - m2);
+    }
+}";
+            CompileAndVerify(source: source, expectedOutput:
+@"System.Int16
+System.Int16
+System.Int16
+System.Int32
+System.Int32
+System.Int32");
+        }
+        
+        [Fact, WorkItem(1036392, "DevDiv")]
+        public void Bug1036392_10()
+        {
+            string source = @"
+enum TestEnum : short
+{
+    A, B
+}
+
+class Program
+{
+    static void Print<T>(T t)
+    {
+        System.Console.WriteLine(typeof(T));
+    }
+
+    static void Main(string[] args)
+    {
+        Test1();
+        Test2();
+        Test3();
+        Test4();
+        Test5();
+        Test6();
+        Test7();
+        Test8();
+        Test9();
+        Test10();
+    }
+
+    static void Test1()
+    {
+        TestEnum x = 0;
+        byte a = 1;
+        short b = 1;
+        byte e = 0;
+        short f = 0;
+
+        Print(x - a);
+        Print(x - b);
+        Print(x - e);
+        Print(x - f);
+        Print(a - x);
+        Print(b - x);
+        Print(e - x);
+        Print(f - x);
+    }
+
+    static void Test2()
+    {
+        TestEnum? x = 0;
+        byte a = 1;
+        short b = 1;
+        byte e = 0;
+        short f = 0;
+
+        Print(x - a);
+        Print(x - b);
+        Print(x - e);
+        Print(x - f);
+        Print(a - x);
+        Print(b - x);
+        Print(e - x);
+        Print(f - x);
+    }
+
+    static void Test3()
+    {
+        TestEnum x = 0;
+        byte? a = 1;
+        short? b = 1;
+        byte? e = 0;
+        short? f = 0;
+
+        Print(x - a);
+        Print(x - b);
+        Print(x - e);
+        Print(x - f);
+        Print(a - x);
+        Print(b - x);
+        Print(e - x);
+        Print(f - x);
+    }
+
+    static void Test4()
+    {
+        TestEnum? x = 0;
+        byte? a = 1;
+        short? b = 1;
+        byte? e = 0;
+        short? f = 0;
+
+        Print(x - a);
+        Print(x - b);
+        Print(x - e);
+        Print(x - f);
+        Print(a - x);
+        Print(b - x);
+        Print(e - x);
+        Print(f - x);
+    }
+
+    static void Test5()
+    {
+        TestEnum x = 0;
+        const byte a = 1;
+        const short b = 1;
+        const int c = 1;
+        const byte e = 0;
+        const short f = 0;
+        const int g = 0;
+        const long h = 0;
+
+        Print(x - a);
+        Print(x - b);
+        Print(x - c);
+        Print(x - e);
+        Print(x - f);
+        Print(x - g);
+        Print(x - h);
+        Print(a - x);
+        Print(b - x);
+        Print(c - x);
+        Print(e - x);
+        Print(f - x);
+        Print(g - x);
+        Print(h - x);
+    }
+
+    static void Test6()
+    {
+        TestEnum? x = 0;
+        const byte a = 1;
+        const short b = 1;
+        const int c = 1;
+        const byte e = 0;
+        const short f = 0;
+        const int g = 0;
+        const long h = 0;
+
+        Print(x - a);
+        Print(x - b);
+        Print(x - c);
+        Print(x - e);
+        Print(x - f);
+        Print(x - g);
+        Print(x - h);
+        Print(a - x);
+        Print(b - x);
+        Print(c - x);
+        Print(e - x);
+        Print(f - x);
+        Print(g - x);
+        Print(h - x);
+    }
+
+    static void Test7()
+    {
+        TestEnum x = 0;
+
+        Print(x - (byte)1);
+        Print(x - (short)1);
+        Print(x - (int)1);
+        Print(x - (byte)0);
+        Print(x - (short)0);
+        Print(x - (int)0);
+        Print(x - (long)0);
+        Print((byte)1 - x);
+        Print((short)1 - x);
+        Print((int)1 - x);
+        Print((byte)0 - x);
+        Print((short)0 - x);
+        Print((int)0 - x);
+        Print((long)0 - x);
+    }
+
+    static void Test8()
+    {
+        TestEnum? x = 0;
+
+        Print(x - (byte)1);
+        Print(x - (short)1);
+        Print(x - (int)1);
+        Print(x - (byte)0);
+        Print(x - (short)0);
+        Print(x - (int)0);
+        Print(x - (long)0);
+        Print((byte)1 - x);
+        Print((short)1 - x);
+        Print((int)1 - x);
+        Print((byte)0 - x);
+        Print((short)0 - x);
+        Print((int)0 - x);
+        Print((long)0 - x);
+    }
+
+    static void Test9()
+    {
+        TestEnum x = 0;
+
+        Print(x - 1);
+        Print(x - 0);
+        Print(1 - x);
+        Print(0 - x);
+    }
+
+    static void Test10()
+    {
+        TestEnum? x = 0;
+
+        Print(x - 1);
+        Print(x - 0);
+        Print(1 - x);
+        Print(0 - x);
+    }
+}";
+            CompileAndVerify(source: source, expectedOutput:
+@"TestEnum
+TestEnum
+TestEnum
+TestEnum
+TestEnum
+TestEnum
+TestEnum
+TestEnum
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+TestEnum
+TestEnum
+TestEnum
+System.Int16
+TestEnum
+System.Int16
+System.Int16
+TestEnum
+TestEnum
+TestEnum
+System.Int16
+System.Int16
+System.Int16
+System.Int16
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[System.Int16]
+System.Nullable`1[TestEnum]
+System.Nullable`1[System.Int16]
+System.Nullable`1[System.Int16]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[System.Int16]
+System.Nullable`1[System.Int16]
+System.Nullable`1[System.Int16]
+System.Nullable`1[System.Int16]
+TestEnum
+TestEnum
+TestEnum
+System.Int16
+TestEnum
+System.Int16
+System.Int16
+TestEnum
+TestEnum
+TestEnum
+System.Int16
+System.Int16
+System.Int16
+System.Int16
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[System.Int16]
+System.Nullable`1[TestEnum]
+System.Nullable`1[System.Int16]
+System.Nullable`1[System.Int16]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[System.Int16]
+System.Nullable`1[System.Int16]
+System.Nullable`1[System.Int16]
+System.Nullable`1[System.Int16]
+TestEnum
+System.Int16
+TestEnum
+System.Int16
+System.Nullable`1[TestEnum]
+System.Nullable`1[System.Int16]
+System.Nullable`1[TestEnum]
+System.Nullable`1[System.Int16]
+");
+        }
+
+        [Fact, WorkItem(1036392, "DevDiv")]
+        public void Bug1036392_11()
+        {
+            string source = @"
+enum TestEnum : short
+{
+    A, B
+}
+
+class Program
+{
+    static void Print<T>(T t)
+    {
+        System.Console.WriteLine(typeof(T));
+    }
+
+    static void Main(string[] args)
+    {
+    }
+
+    static void Test1()
+    {
+        TestEnum x = 0;
+        int c = 1;
+        long d = 1;
+        int g = 0;
+        long h = 0;
+
+        Print(x - c);
+        Print(x - d);
+        Print(x - g);
+        Print(x - h);
+        Print(c - x);
+        Print(d - x);
+        Print(g - x);
+        Print(h - x);
+    }
+
+    static void Test2()
+    {
+        TestEnum? x = 0;
+        int c = 1;
+        long d = 1;
+        int g = 0;
+        long h = 0;
+
+        Print(x - c);
+        Print(x - d);
+        Print(x - g);
+        Print(x - h);
+        Print(c - x);
+        Print(d - x);
+        Print(g - x);
+        Print(h - x);
+    }
+
+    static void Test3()
+    {
+        TestEnum x = 0;
+        int? c = 1;
+        long? d = 1;
+        int? g = 0;
+        long? h = 0;
+
+        Print(x - c);
+        Print(x - d);
+        Print(x - g);
+        Print(x - h);
+        Print(c - x);
+        Print(d - x);
+        Print(g - x);
+        Print(h - x);
+    }
+
+    static void Test4()
+    {
+        TestEnum? x = 0;
+        int? c = 1;
+        long? d = 1;
+        int? g = 0;
+        long? h = 0;
+
+        Print(x - c);
+        Print(x - d);
+        Print(x - g);
+        Print(x - h);
+        Print(c - x);
+        Print(d - x);
+        Print(g - x);
+        Print(h - x);
+    }
+
+    static void Test5()
+    {
+        TestEnum x = 0;
+        const long d = 1;
+
+        Print(x - d);
+        Print(d - x);
+    }
+
+    static void Test6()
+    {
+        TestEnum? x = 0;
+        const long d = 1;
+
+        Print(x - d);
+        Print(d - x);
+    }
+
+    static void Test7()
+    {
+        TestEnum x = 0;
+
+        Print(x - (long)1);
+        Print((long)1 - x);
+    }
+
+    static void Test8()
+    {
+        TestEnum? x = 0;
+
+        Print(x - (long)1);
+        Print((long)1 - x);
+    }
+}";
+
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+    // (26,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum' and 'int'
+    //         Print(x - c);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - c").WithArguments("-", "TestEnum", "int").WithLocation(26, 15),
+    // (27,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum' and 'long'
+    //         Print(x - d);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - d").WithArguments("-", "TestEnum", "long").WithLocation(27, 15),
+    // (28,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum' and 'int'
+    //         Print(x - g);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - g").WithArguments("-", "TestEnum", "int").WithLocation(28, 15),
+    // (29,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum' and 'long'
+    //         Print(x - h);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - h").WithArguments("-", "TestEnum", "long").WithLocation(29, 15),
+    // (30,15): error CS0019: Operator '-' cannot be applied to operands of type 'int' and 'TestEnum'
+    //         Print(c - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "c - x").WithArguments("-", "int", "TestEnum").WithLocation(30, 15),
+    // (31,15): error CS0019: Operator '-' cannot be applied to operands of type 'long' and 'TestEnum'
+    //         Print(d - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "d - x").WithArguments("-", "long", "TestEnum").WithLocation(31, 15),
+    // (32,15): error CS0019: Operator '-' cannot be applied to operands of type 'int' and 'TestEnum'
+    //         Print(g - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "g - x").WithArguments("-", "int", "TestEnum").WithLocation(32, 15),
+    // (33,15): error CS0019: Operator '-' cannot be applied to operands of type 'long' and 'TestEnum'
+    //         Print(h - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "h - x").WithArguments("-", "long", "TestEnum").WithLocation(33, 15),
+    // (44,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum?' and 'int'
+    //         Print(x - c);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - c").WithArguments("-", "TestEnum?", "int").WithLocation(44, 15),
+    // (45,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum?' and 'long'
+    //         Print(x - d);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - d").WithArguments("-", "TestEnum?", "long").WithLocation(45, 15),
+    // (46,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum?' and 'int'
+    //         Print(x - g);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - g").WithArguments("-", "TestEnum?", "int").WithLocation(46, 15),
+    // (47,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum?' and 'long'
+    //         Print(x - h);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - h").WithArguments("-", "TestEnum?", "long").WithLocation(47, 15),
+    // (48,15): error CS0019: Operator '-' cannot be applied to operands of type 'int' and 'TestEnum?'
+    //         Print(c - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "c - x").WithArguments("-", "int", "TestEnum?").WithLocation(48, 15),
+    // (49,15): error CS0019: Operator '-' cannot be applied to operands of type 'long' and 'TestEnum?'
+    //         Print(d - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "d - x").WithArguments("-", "long", "TestEnum?").WithLocation(49, 15),
+    // (50,15): error CS0019: Operator '-' cannot be applied to operands of type 'int' and 'TestEnum?'
+    //         Print(g - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "g - x").WithArguments("-", "int", "TestEnum?").WithLocation(50, 15),
+    // (51,15): error CS0019: Operator '-' cannot be applied to operands of type 'long' and 'TestEnum?'
+    //         Print(h - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "h - x").WithArguments("-", "long", "TestEnum?").WithLocation(51, 15),
+    // (62,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum' and 'int?'
+    //         Print(x - c);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - c").WithArguments("-", "TestEnum", "int?").WithLocation(62, 15),
+    // (63,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum' and 'long?'
+    //         Print(x - d);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - d").WithArguments("-", "TestEnum", "long?").WithLocation(63, 15),
+    // (64,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum' and 'int?'
+    //         Print(x - g);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - g").WithArguments("-", "TestEnum", "int?").WithLocation(64, 15),
+    // (65,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum' and 'long?'
+    //         Print(x - h);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - h").WithArguments("-", "TestEnum", "long?").WithLocation(65, 15),
+    // (66,15): error CS0019: Operator '-' cannot be applied to operands of type 'int?' and 'TestEnum'
+    //         Print(c - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "c - x").WithArguments("-", "int?", "TestEnum").WithLocation(66, 15),
+    // (67,15): error CS0019: Operator '-' cannot be applied to operands of type 'long?' and 'TestEnum'
+    //         Print(d - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "d - x").WithArguments("-", "long?", "TestEnum").WithLocation(67, 15),
+    // (68,15): error CS0019: Operator '-' cannot be applied to operands of type 'int?' and 'TestEnum'
+    //         Print(g - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "g - x").WithArguments("-", "int?", "TestEnum").WithLocation(68, 15),
+    // (69,15): error CS0019: Operator '-' cannot be applied to operands of type 'long?' and 'TestEnum'
+    //         Print(h - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "h - x").WithArguments("-", "long?", "TestEnum").WithLocation(69, 15),
+    // (80,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum?' and 'int?'
+    //         Print(x - c);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - c").WithArguments("-", "TestEnum?", "int?").WithLocation(80, 15),
+    // (81,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum?' and 'long?'
+    //         Print(x - d);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - d").WithArguments("-", "TestEnum?", "long?").WithLocation(81, 15),
+    // (82,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum?' and 'int?'
+    //         Print(x - g);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - g").WithArguments("-", "TestEnum?", "int?").WithLocation(82, 15),
+    // (83,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum?' and 'long?'
+    //         Print(x - h);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - h").WithArguments("-", "TestEnum?", "long?").WithLocation(83, 15),
+    // (84,15): error CS0019: Operator '-' cannot be applied to operands of type 'int?' and 'TestEnum?'
+    //         Print(c - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "c - x").WithArguments("-", "int?", "TestEnum?").WithLocation(84, 15),
+    // (85,15): error CS0019: Operator '-' cannot be applied to operands of type 'long?' and 'TestEnum?'
+    //         Print(d - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "d - x").WithArguments("-", "long?", "TestEnum?").WithLocation(85, 15),
+    // (86,15): error CS0019: Operator '-' cannot be applied to operands of type 'int?' and 'TestEnum?'
+    //         Print(g - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "g - x").WithArguments("-", "int?", "TestEnum?").WithLocation(86, 15),
+    // (87,15): error CS0019: Operator '-' cannot be applied to operands of type 'long?' and 'TestEnum?'
+    //         Print(h - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "h - x").WithArguments("-", "long?", "TestEnum?").WithLocation(87, 15),
+    // (95,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum' and 'long'
+    //         Print(x - d);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - d").WithArguments("-", "TestEnum", "long").WithLocation(95, 15),
+    // (96,15): error CS0019: Operator '-' cannot be applied to operands of type 'long' and 'TestEnum'
+    //         Print(d - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "d - x").WithArguments("-", "long", "TestEnum").WithLocation(96, 15),
+    // (104,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum?' and 'long'
+    //         Print(x - d);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - d").WithArguments("-", "TestEnum?", "long").WithLocation(104, 15),
+    // (105,15): error CS0019: Operator '-' cannot be applied to operands of type 'long' and 'TestEnum?'
+    //         Print(d - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "d - x").WithArguments("-", "long", "TestEnum?").WithLocation(105, 15),
+    // (112,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum' and 'long'
+    //         Print(x - (long)1);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - (long)1").WithArguments("-", "TestEnum", "long").WithLocation(112, 15),
+    // (113,15): error CS0019: Operator '-' cannot be applied to operands of type 'long' and 'TestEnum'
+    //         Print((long)1 - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "(long)1 - x").WithArguments("-", "long", "TestEnum").WithLocation(113, 15),
+    // (120,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum?' and 'long'
+    //         Print(x - (long)1);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - (long)1").WithArguments("-", "TestEnum?", "long").WithLocation(120, 15),
+    // (121,15): error CS0019: Operator '-' cannot be applied to operands of type 'long' and 'TestEnum?'
+    //         Print((long)1 - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "(long)1 - x").WithArguments("-", "long", "TestEnum?").WithLocation(121, 15)
+                );
+        }
+
+        [Fact, WorkItem(1036392, "DevDiv")]
+        public void Bug1036392_12()
+        {
+            string source = @"
+enum TestEnum : int
+{
+    A, B
+}
+
+class Program
+{
+    static void Print<T>(T t)
+    {
+        System.Console.WriteLine(typeof(T));
+    }
+
+    static void Main(string[] args)
+    {
+        Test1();
+        Test2();
+        Test3();
+        Test4();
+        Test5();
+        Test6();
+        Test7();
+        Test8();
+        Test9();
+        Test10();
+    }
+
+    static void Test1()
+    {
+        TestEnum x = 0;
+        short b = 1;
+        int c = 1;
+        short f = 0;
+        int g = 0;
+
+        Print(x - b);
+        Print(x - c);
+        Print(x - f);
+        Print(x - g);
+        Print(b - x);
+        Print(c - x);
+        Print(f - x);
+        Print(g - x);
+    }
+
+    static void Test2()
+    {
+        TestEnum? x = 0;
+        short b = 1;
+        int c = 1;
+        short f = 0;
+        int g = 0;
+
+        Print(x - b);
+        Print(x - c);
+        Print(x - f);
+        Print(x - g);
+        Print(b - x);
+        Print(c - x);
+        Print(f - x);
+        Print(g - x);
+    }
+
+    static void Test3()
+    {
+        TestEnum x = 0;
+        short? b = 1;
+        int? c = 1;
+        short? f = 0;
+        int? g = 0;
+
+        Print(x - b);
+        Print(x - c);
+        Print(x - f);
+        Print(x - g);
+        Print(b - x);
+        Print(c - x);
+        Print(f - x);
+        Print(g - x);
+    }
+
+    static void Test4()
+    {
+        TestEnum? x = 0;
+        short? b = 1;
+        int? c = 1;
+        short? f = 0;
+        int? g = 0;
+
+        Print(x - b);
+        Print(x - c);
+        Print(x - f);
+        Print(x - g);
+        Print(b - x);
+        Print(c - x);
+        Print(f - x);
+        Print(g - x);
+    }
+
+    static void Test5()
+    {
+        TestEnum x = 0;
+        const short b = 1;
+        const int c = 1;
+        const short f = 0;
+        const int g = 0;
+        const long h = 0;
+
+        Print(x - b);
+        Print(x - c);
+        Print(x - f);
+        Print(x - g);
+        Print(x - h);
+        Print(b - x);
+        Print(c - x);
+        Print(f - x);
+        Print(g - x);
+        Print(h - x);
+    }
+
+    static void Test6()
+    {
+        TestEnum? x = 0;
+        const short b = 1;
+        const int c = 1;
+        const short f = 0;
+        const int g = 0;
+        const long h = 0;
+
+        Print(x - b);
+        Print(x - c);
+        Print(x - f);
+        Print(x - g);
+        Print(x - h);
+        Print(b - x);
+        Print(c - x);
+        Print(f - x);
+        Print(g - x);
+        Print(h - x);
+    }
+
+    static void Test7()
+    {
+        TestEnum x = 0;
+
+        Print(x - (short)1);
+        Print(x - (int)1);
+        Print(x - (short)0);
+        Print(x - (int)0);
+        Print(x - (long)0);
+        Print((short)1 - x);
+        Print((int)1 - x);
+        Print((short)0 - x);
+        Print((int)0 - x);
+        Print((long)0 - x);
+    }
+
+    static void Test8()
+    {
+        TestEnum? x = 0;
+
+        Print(x - (short)1);
+        Print(x - (int)1);
+        Print(x - (short)0);
+        Print(x - (int)0);
+        Print(x - (long)0);
+        Print((short)1 - x);
+        Print((int)1 - x);
+        Print((short)0 - x);
+        Print((int)0 - x);
+        Print((long)0 - x);
+    }
+
+    static void Test9()
+    {
+        TestEnum x = 0;
+
+        Print(x - 1);
+        Print(x - 0);
+        Print(1 - x);
+        Print(0 - x);
+    }
+
+    static void Test10()
+    {
+        TestEnum? x = 0;
+
+        Print(x - 1);
+        Print(x - 0);
+        Print(1 - x);
+        Print(0 - x);
+    }
+}";
+            CompileAndVerify(source: source, expectedOutput:
+@"TestEnum
+TestEnum
+TestEnum
+TestEnum
+TestEnum
+TestEnum
+TestEnum
+TestEnum
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+TestEnum
+TestEnum
+System.Int32
+TestEnum
+System.Int32
+TestEnum
+TestEnum
+System.Int32
+System.Int32
+System.Int32
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[System.Int32]
+System.Nullable`1[TestEnum]
+System.Nullable`1[System.Int32]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[System.Int32]
+System.Nullable`1[System.Int32]
+System.Nullable`1[System.Int32]
+TestEnum
+TestEnum
+System.Int32
+TestEnum
+System.Int32
+TestEnum
+TestEnum
+System.Int32
+System.Int32
+System.Int32
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[System.Int32]
+System.Nullable`1[TestEnum]
+System.Nullable`1[System.Int32]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[System.Int32]
+System.Nullable`1[System.Int32]
+System.Nullable`1[System.Int32]
+TestEnum
+TestEnum
+TestEnum
+System.Int32
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[System.Int32]
+");
+        }
+
+        [Fact, WorkItem(1036392, "DevDiv")]
+        public void Bug1036392_13()
+        {
+            string source = @"
+enum TestEnum : int
+{
+    A, B
+}
+
+class Program
+{
+    static void Print<T>(T t)
+    {
+        System.Console.WriteLine(typeof(T));
+    }
+
+    static void Main(string[] args)
+    {
+    }
+
+    static void Test1()
+    {
+        TestEnum x = 0;
+        long d = 1;
+        long h = 0;
+
+        Print(x - d);
+        Print(x - h);
+        Print(d - x);
+        Print(h - x);
+    }
+
+    static void Test2()
+    {
+        TestEnum? x = 0;
+        long d = 1;
+        long h = 0;
+
+        Print(x - d);
+        Print(x - h);
+        Print(d - x);
+        Print(h - x);
+    }
+
+    static void Test3()
+    {
+        TestEnum x = 0;
+        long? d = 1;
+        long? h = 0;
+
+        Print(x - d);
+        Print(x - h);
+        Print(d - x);
+        Print(h - x);
+    }
+
+    static void Test4()
+    {
+        TestEnum? x = 0;
+        long? d = 1;
+        long? h = 0;
+
+        Print(x - d);
+        Print(x - h);
+        Print(d - x);
+        Print(h - x);
+    }
+
+    static void Test5()
+    {
+        TestEnum x = 0;
+        const long d = 1;
+
+        Print(x - d);
+        Print(d - x);
+    }
+
+    static void Test6()
+    {
+        TestEnum? x = 0;
+        const long d = 1;
+
+        Print(x - d);
+        Print(d - x);
+    }
+
+    static void Test7()
+    {
+        TestEnum x = 0;
+
+        Print(x - (long)1);
+        Print((long)1 - x);
+    }
+
+    static void Test8()
+    {
+        TestEnum? x = 0;
+
+        Print(x - (long)1);
+        Print((long)1 - x);
+    }
+}";
+
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+    // (24,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum' and 'long'
+    //         Print(x - d);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - d").WithArguments("-", "TestEnum", "long").WithLocation(24, 15),
+    // (25,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum' and 'long'
+    //         Print(x - h);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - h").WithArguments("-", "TestEnum", "long").WithLocation(25, 15),
+    // (26,15): error CS0019: Operator '-' cannot be applied to operands of type 'long' and 'TestEnum'
+    //         Print(d - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "d - x").WithArguments("-", "long", "TestEnum").WithLocation(26, 15),
+    // (27,15): error CS0019: Operator '-' cannot be applied to operands of type 'long' and 'TestEnum'
+    //         Print(h - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "h - x").WithArguments("-", "long", "TestEnum").WithLocation(27, 15),
+    // (36,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum?' and 'long'
+    //         Print(x - d);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - d").WithArguments("-", "TestEnum?", "long").WithLocation(36, 15),
+    // (37,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum?' and 'long'
+    //         Print(x - h);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - h").WithArguments("-", "TestEnum?", "long").WithLocation(37, 15),
+    // (38,15): error CS0019: Operator '-' cannot be applied to operands of type 'long' and 'TestEnum?'
+    //         Print(d - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "d - x").WithArguments("-", "long", "TestEnum?").WithLocation(38, 15),
+    // (39,15): error CS0019: Operator '-' cannot be applied to operands of type 'long' and 'TestEnum?'
+    //         Print(h - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "h - x").WithArguments("-", "long", "TestEnum?").WithLocation(39, 15),
+    // (48,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum' and 'long?'
+    //         Print(x - d);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - d").WithArguments("-", "TestEnum", "long?").WithLocation(48, 15),
+    // (49,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum' and 'long?'
+    //         Print(x - h);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - h").WithArguments("-", "TestEnum", "long?").WithLocation(49, 15),
+    // (50,15): error CS0019: Operator '-' cannot be applied to operands of type 'long?' and 'TestEnum'
+    //         Print(d - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "d - x").WithArguments("-", "long?", "TestEnum").WithLocation(50, 15),
+    // (51,15): error CS0019: Operator '-' cannot be applied to operands of type 'long?' and 'TestEnum'
+    //         Print(h - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "h - x").WithArguments("-", "long?", "TestEnum").WithLocation(51, 15),
+    // (60,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum?' and 'long?'
+    //         Print(x - d);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - d").WithArguments("-", "TestEnum?", "long?").WithLocation(60, 15),
+    // (61,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum?' and 'long?'
+    //         Print(x - h);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - h").WithArguments("-", "TestEnum?", "long?").WithLocation(61, 15),
+    // (62,15): error CS0019: Operator '-' cannot be applied to operands of type 'long?' and 'TestEnum?'
+    //         Print(d - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "d - x").WithArguments("-", "long?", "TestEnum?").WithLocation(62, 15),
+    // (63,15): error CS0019: Operator '-' cannot be applied to operands of type 'long?' and 'TestEnum?'
+    //         Print(h - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "h - x").WithArguments("-", "long?", "TestEnum?").WithLocation(63, 15),
+    // (71,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum' and 'long'
+    //         Print(x - d);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - d").WithArguments("-", "TestEnum", "long").WithLocation(71, 15),
+    // (72,15): error CS0019: Operator '-' cannot be applied to operands of type 'long' and 'TestEnum'
+    //         Print(d - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "d - x").WithArguments("-", "long", "TestEnum").WithLocation(72, 15),
+    // (80,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum?' and 'long'
+    //         Print(x - d);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - d").WithArguments("-", "TestEnum?", "long").WithLocation(80, 15),
+    // (81,15): error CS0019: Operator '-' cannot be applied to operands of type 'long' and 'TestEnum?'
+    //         Print(d - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "d - x").WithArguments("-", "long", "TestEnum?").WithLocation(81, 15),
+    // (88,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum' and 'long'
+    //         Print(x - (long)1);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - (long)1").WithArguments("-", "TestEnum", "long").WithLocation(88, 15),
+    // (89,15): error CS0019: Operator '-' cannot be applied to operands of type 'long' and 'TestEnum'
+    //         Print((long)1 - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "(long)1 - x").WithArguments("-", "long", "TestEnum").WithLocation(89, 15),
+    // (96,15): error CS0019: Operator '-' cannot be applied to operands of type 'TestEnum?' and 'long'
+    //         Print(x - (long)1);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "x - (long)1").WithArguments("-", "TestEnum?", "long").WithLocation(96, 15),
+    // (97,15): error CS0019: Operator '-' cannot be applied to operands of type 'long' and 'TestEnum?'
+    //         Print((long)1 - x);
+    Diagnostic(ErrorCode.ERR_BadBinaryOps, "(long)1 - x").WithArguments("-", "long", "TestEnum?").WithLocation(97, 15)
+                );
+        }
+
+        [Fact, WorkItem(1036392, "DevDiv")]
+        public void Bug1036392_14()
+        {
+            string source = @"
+enum TestEnum : long
+{
+    A, B
+}
+
+class Program
+{
+    static void Print<T>(T t)
+    {
+        System.Console.WriteLine(typeof(T));
+    }
+
+    static void Main(string[] args)
+    {
+        Test1();
+        Test2();
+        Test3();
+        Test4();
+        Test5();
+        Test6();
+        Test7();
+        Test8();
+        Test9();
+        Test10();
+    }
+
+    static void Test1()
+    {
+        TestEnum x = 0;
+        short b = 1;
+        int c = 1;
+        long d = 1;
+        short f = 0;
+        int g = 0;
+        long h = 0;
+
+        Print(x - b);
+        Print(x - c);
+        Print(x - d);
+        Print(x - f);
+        Print(x - g);
+        Print(x - h);
+        Print(b - x);
+        Print(c - x);
+        Print(d - x);
+        Print(f - x);
+        Print(g - x);
+        Print(h - x);
+    }
+
+    static void Test2()
+    {
+        TestEnum? x = 0;
+        short b = 1;
+        int c = 1;
+        long d = 1;
+        short f = 0;
+        int g = 0;
+        long h = 0;
+
+        Print(x - b);
+        Print(x - c);
+        Print(x - d);
+        Print(x - f);
+        Print(x - g);
+        Print(x - h);
+        Print(b - x);
+        Print(c - x);
+        Print(d - x);
+        Print(f - x);
+        Print(g - x);
+        Print(h - x);
+    }
+
+    static void Test3()
+    {
+        TestEnum x = 0;
+        short? b = 1;
+        int? c = 1;
+        long? d = 1;
+        short? f = 0;
+        int? g = 0;
+        long? h = 0;
+
+        Print(x - b);
+        Print(x - c);
+        Print(x - d);
+        Print(x - f);
+        Print(x - g);
+        Print(x - h);
+        Print(b - x);
+        Print(c - x);
+        Print(d - x);
+        Print(f - x);
+        Print(g - x);
+        Print(h - x);
+    }
+
+    static void Test4()
+    {
+        TestEnum? x = 0;
+        short? b = 1;
+        int? c = 1;
+        long? d = 1;
+        short? f = 0;
+        int? g = 0;
+        long? h = 0;
+
+        Print(x - b);
+        Print(x - c);
+        Print(x - d);
+        Print(x - f);
+        Print(x - g);
+        Print(x - h);
+        Print(b - x);
+        Print(c - x);
+        Print(d - x);
+        Print(f - x);
+        Print(g - x);
+        Print(h - x);
+    }
+
+    static void Test5()
+    {
+        TestEnum x = 0;
+        const short b = 1;
+        const int c = 1;
+        const long d = 1;
+        const short f = 0;
+        const int g = 0;
+        const long h = 0;
+
+        Print(x - b);
+        Print(x - c);
+        Print(x - d);
+        Print(x - f);
+        Print(x - g);
+        Print(x - h);
+        Print(b - x);
+        Print(c - x);
+        Print(d - x);
+        Print(f - x);
+        Print(g - x);
+        Print(h - x);
+    }
+
+    static void Test6()
+    {
+        TestEnum? x = 0;
+        const short b = 1;
+        const int c = 1;
+        const long d = 1;
+        const short f = 0;
+        const int g = 0;
+        const long h = 0;
+
+        Print(x - b);
+        Print(x - c);
+        Print(x - d);
+        Print(x - f);
+        Print(x - g);
+        Print(x - h);
+        Print(b - x);
+        Print(c - x);
+        Print(d - x);
+        Print(f - x);
+        Print(g - x);
+        Print(h - x);
+    }
+
+    static void Test7()
+    {
+        TestEnum x = 0;
+
+        Print(x - (short)1);
+        Print(x - (int)1);
+        Print(x - (long)1);
+        Print(x - (short)0);
+        Print(x - (int)0);
+        Print(x - (long)0);
+        Print((short)1 - x);
+        Print((int)1 - x);
+        Print((long)1 - x);
+        Print((short)0 - x);
+        Print((int)0 - x);
+        Print((long)0 - x);
+    }
+
+    static void Test8()
+    {
+        TestEnum? x = 0;
+
+        Print(x - (short)1);
+        Print(x - (int)1);
+        Print(x - (long)1);
+        Print(x - (short)0);
+        Print(x - (int)0);
+        Print(x - (long)0);
+        Print((short)1 - x);
+        Print((int)1 - x);
+        Print((long)1 - x);
+        Print((short)0 - x);
+        Print((int)0 - x);
+        Print((long)0 - x);
+    }
+
+    static void Test9()
+    {
+        TestEnum x = 0;
+
+        Print(x - 1);
+        Print(x - 0);
+        Print(1 - x);
+        Print(0 - x);
+    }
+
+    static void Test10()
+    {
+        TestEnum? x = 0;
+
+        Print(x - 1);
+        Print(x - 0);
+        Print(1 - x);
+        Print(0 - x);
+    }
+}";
+            CompileAndVerify(source: source, expectedOutput:
+@"TestEnum
+TestEnum
+TestEnum
+TestEnum
+TestEnum
+TestEnum
+TestEnum
+TestEnum
+TestEnum
+TestEnum
+TestEnum
+TestEnum
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+TestEnum
+TestEnum
+TestEnum
+System.Int64
+System.Int64
+TestEnum
+TestEnum
+TestEnum
+TestEnum
+System.Int64
+System.Int64
+System.Int64
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[System.Int64]
+System.Nullable`1[System.Int64]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[System.Int64]
+System.Nullable`1[System.Int64]
+System.Nullable`1[System.Int64]
+TestEnum
+TestEnum
+TestEnum
+System.Int64
+System.Int64
+TestEnum
+TestEnum
+TestEnum
+TestEnum
+System.Int64
+System.Int64
+System.Int64
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[System.Int64]
+System.Nullable`1[System.Int64]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[TestEnum]
+System.Nullable`1[System.Int64]
+System.Nullable`1[System.Int64]
+System.Nullable`1[System.Int64]
+TestEnum
+System.Int64
+TestEnum
+System.Int64
+System.Nullable`1[TestEnum]
+System.Nullable`1[System.Int64]
+System.Nullable`1[TestEnum]
+System.Nullable`1[System.Int64]
+");
+        }
+
+        [Fact, WorkItem(1036392, "DevDiv")]
+        public void Bug1036392_15()
+        {
+            string source = @"
+enum TestEnumShort : short
+{}
+
+enum TestEnumInt : int
+{ }
+
+enum TestEnumLong : long
+{ }
+
+class Program
+{
+    static void Print<T>(T t)
+    {
+        System.Console.WriteLine(typeof(T));
+    }
+
+    static void Main(string[] args)
+    {
+        Test1();
+        Test2();
+        Test3();
+    }
+
+    static void Test1()
+    {
+        TestEnumShort? x = 0;
+
+        Print(x - null);
+        Print(null - x);
+    }
+
+    static void Test2()
+    {
+        TestEnumInt? x = 0;
+
+        Print(x - null);
+        Print(null - x);
+    }
+
+    static void Test3()
+    {
+        TestEnumLong? x = 0;
+
+        Print(x - null);
+        Print(null - x);
+    }
+}";
+            CompileAndVerify(source: source, expectedOutput:
+@"System.Nullable`1[System.Int16]
+System.Nullable`1[System.Int16]
+System.Nullable`1[System.Int32]
+System.Nullable`1[System.Int32]
+System.Nullable`1[System.Int64]
+System.Nullable`1[System.Int64]
+");
+        }
+
+        [Fact, WorkItem(1036392, "DevDiv")]
+        public void Bug1036392_16()
+        {
+            string source = @"
+enum TestEnumShort : short
+{}
+
+enum TestEnumInt : int
+{ }
+
+enum TestEnumLong : long
+{ }
+
+class Program
+{
+    static void Print<T>(T t)
+    {
+        System.Console.WriteLine(typeof(T));
+    }
+
+    static void Main(string[] args)
+    {
+        Test1();
+        Test2();
+        Test3();
+    }
+
+    static void Test1()
+    {
+        TestEnumShort x = 0;
+
+        Print(x - null);
+        Print(null - x);
+    }
+
+    static void Test2()
+    {
+        TestEnumInt x = 0;
+
+        Print(x - null);
+        Print(null - x);
+    }
+
+    static void Test3()
+    {
+        TestEnumLong x = 0;
+
+        Print(x - null);
+        Print(null - x);
+    }
+}";
+            CompileAndVerify(source: source, expectedOutput:
+@"System.Nullable`1[System.Int16]
+System.Nullable`1[System.Int16]
+System.Nullable`1[System.Int32]
+System.Nullable`1[System.Int32]
+System.Nullable`1[System.Int64]
+System.Nullable`1[System.Int64]
+");
+        }
     }
 }

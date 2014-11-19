@@ -16,6 +16,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly MethodSymbol Method;
         public readonly BinaryOperatorKind Kind;
 
+        /// <summary>
+        /// To duplicate native compiler behavior for some scenarios we force a priority among
+        /// operators. If two operators are both applicable and both have a non-null Priority,
+        /// the one with the numerically lower Priority value is preferred.
+        /// </summary>
+        public int? Priority;
+
         public BinaryOperatorSignature(BinaryOperatorKind kind, TypeSymbol leftType, TypeSymbol rightType, TypeSymbol returnType, MethodSymbol method = null)
         {
             this.Kind = kind;
@@ -23,6 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.RightType = rightType;
             this.ReturnType = returnType;
             this.Method = method;
+            this.Priority = null;
         }
 
         public override string ToString()

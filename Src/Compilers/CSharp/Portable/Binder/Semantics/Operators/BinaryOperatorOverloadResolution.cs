@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddDelegateOperation(kind, delegateType, operators);
         }
 
-        private void GetEnumOperation(BinaryOperatorKind kind, TypeSymbol enumType, ArrayBuilder<BinaryOperatorSignature> operators)
+        private void GetEnumOperation(BinaryOperatorKind kind, TypeSymbol enumType, BoundExpression left, BoundExpression right, ArrayBuilder<BinaryOperatorSignature> operators)
         {
             Debug.Assert((object)enumType != null);
             AssertNotChecked(kind);
@@ -258,17 +258,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                     operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedUnderlyingAndEnumAddition, nullableUnderlying, nullableEnum, nullableEnum));
                     break;
                 case BinaryOperatorKind.Subtraction:
-                    operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.EnumSubtraction, enumType, enumType, underlying));
-                    operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.EnumAndUnderlyingSubtraction, enumType, underlying, enumType));
-                    operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumSubtraction, nullableEnum, nullableEnum, nullableUnderlying));
-                    operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumAndUnderlyingSubtraction, nullableEnum, nullableUnderlying, nullableEnum));
-
-                    if (!Strict)
+                    if (Strict)
+                    {
+                        operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.EnumSubtraction, enumType, enumType, underlying));
+                        operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.EnumAndUnderlyingSubtraction, enumType, underlying, enumType));
+                        operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumSubtraction, nullableEnum, nullableEnum, nullableUnderlying));
+                        operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumAndUnderlyingSubtraction, nullableEnum, nullableUnderlying, nullableEnum));
+                    }
+                    else
                     {
                         // SPEC VIOLATION:
-                        // Due to a bug, the native compiler allows "underlying - enum", so Roslyn does as well unless compiling in "strict" mode.
-                        operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.UnderlyingAndEnumSubtraction, underlying, enumType, enumType));
-                        operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedUnderlyingAndEnumSubtraction, nullableUnderlying, nullableEnum, nullableEnum));
+                        // The native compiler has bugs in overload resolution involving binary operator- for enums,
+                        // which we duplicate by hardcoding Priority values among the operators. When present on both
+                        // methods being compared during overload resolution, Priority values are used to decide between
+                        // two candidates (instead of the usual language-specified rules).
+                        bool isExactSubtraction = (object)right.Type != null && right.Type.StrippedType() == underlying;
+                        operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.EnumSubtraction, enumType, enumType, underlying)
+                            { Priority = 2 });
+                        operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.EnumAndUnderlyingSubtraction, enumType, underlying, enumType)
+                            { Priority = isExactSubtraction ? 1 : 3 });
+                        operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumSubtraction, nullableEnum, nullableEnum, nullableUnderlying)
+                            { Priority = 12 });
+                        operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedEnumAndUnderlyingSubtraction, nullableEnum, nullableUnderlying, nullableEnum)
+                            { Priority = isExactSubtraction ? 11 : 13 });
+
+                        // Due to a bug, the native compiler allows "underlying - enum", so Roslyn does as well.
+                        operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.UnderlyingAndEnumSubtraction, underlying, enumType, enumType)
+                            { Priority = 4 });
+                        operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.LiftedUnderlyingAndEnumSubtraction, nullableUnderlying, nullableEnum, nullableEnum)
+                            { Priority = 14 });
                     }
                     break;
                 case BinaryOperatorKind.Equal:
@@ -413,12 +431,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)leftType != null)
             {
-                GetEnumOperation(kind, leftType, results);
+                GetEnumOperation(kind, leftType, left, right, results);
             }
 
             if ((object)rightType != null && ((object)leftType == null || !(useIdentityConversion ? Conversions.HasIdentityConversion(rightType, leftType) : rightType.Equals(leftType))))
             {
-                GetEnumOperation(kind, rightType, results);
+                GetEnumOperation(kind, rightType, left, right, results);
             }
         }
 
@@ -834,6 +852,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BetterResult BetterOperator(BinaryOperatorSignature op1, BinaryOperatorSignature op2, BoundExpression left, BoundExpression right, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
+            Debug.Assert(op1.Priority.HasValue == op2.Priority.HasValue);
+
+            // We use Priority as a tie-breaker to help match native compiler bugs.
+            if (op1.Priority.HasValue && op2.Priority.HasValue && op1.Priority.GetValueOrDefault() != op2.Priority.GetValueOrDefault())
+            {
+                return (op1.Priority.GetValueOrDefault() < op2.Priority.GetValueOrDefault()) ? BetterResult.Left : BetterResult.Right;
+            }
+
             BetterResult leftBetter = BetterConversionFromExpression(left, op1.LeftType, op2.LeftType, ref useSiteDiagnostics);
             BetterResult rightBetter = BetterConversionFromExpression(right, op1.RightType, op2.RightType, ref useSiteDiagnostics);
 
