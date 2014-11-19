@@ -184,17 +184,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             Dim tokens As New List(Of SyntaxToken)
 
             Dim semanticModel = _newSolution.GetDocument(node.SyntaxTree).GetSemanticModelAsync(_cancellationToken).Result
-            Dim identifierToken = node.CatchStatement.IdentifierName.Identifier
-            Dim symbol = semanticModel.GetSymbolInfo(identifierToken).Symbol
+            Dim identifierToken = node.CatchStatement.IdentifierName?.Identifier
 
-            ' if it is a field we don't care
-            If symbol IsNot Nothing AndAlso symbol.IsKind(SymbolKind.Local) Then
-                Dim local = DirectCast(symbol, ILocalSymbol)
+            If identifierToken.HasValue Then
+                Dim symbol = semanticModel.GetSymbolInfo(identifierToken.Value).Symbol
 
-                ' is this local declared in the for or for each loop?
-                ' if not it was already added to the tracker before.
-                If local.IsCatch Then
-                    tokens.Add(identifierToken)
+                ' if it is a field we don't care
+                If symbol IsNot Nothing AndAlso symbol.IsKind(SymbolKind.Local) Then
+                    Dim local = DirectCast(symbol, ILocalSymbol)
+
+                    ' is this local declared in the for or for each loop?
+                    ' if not it was already added to the tracker before.
+                    If local.IsCatch Then
+                        tokens.Add(identifierToken.Value)
+                    End If
                 End If
             End If
 
