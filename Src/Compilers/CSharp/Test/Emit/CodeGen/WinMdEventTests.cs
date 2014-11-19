@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -613,7 +611,6 @@ namespace EventDeserialization
             }
         }
     }
-
 }
 ";
 
@@ -626,6 +623,48 @@ namespace EventDeserialization
 False
 null
 B");
+        }
+
+        [WorkItem(1079725)]
+        [Fact]
+        public void EventAssignmentExpression()
+        {
+            var source =
+@"class C
+{
+    static event System.Action E;
+    static void M()
+    {
+        var e = E;
+        var f = E = null;
+    }
+}";
+            var comp = CreateCompilation(source, WinRtRefs, TestOptions.ReleaseWinMD);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS0815: Cannot assign void to an implicitly-typed variable
+                //         var f = E = null;
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "f = E = null").WithArguments("void").WithLocation(7, 13));
+        }
+
+        [WorkItem(1079725)]
+        [Fact]
+        public void EventAssignmentExpression_SemanticModel()
+        {
+            var source =
+@"class C
+{
+    static event System.Action E;
+    static void M()
+    {
+        E = null;
+    }
+}";
+            var comp = CreateCompilation(source, WinRtRefs, TestOptions.ReleaseWinMD);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var syntax = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().Single();
+            var type = model.GetTypeInfo(syntax);
+            Assert.Equal(type.Type.SpecialType, SpecialType.System_Void);
         }
     }
 }

@@ -1535,7 +1535,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundAssignmentOperator(node, op1, op2, op1.Type, hasErrors: hasErrors);
+            TypeSymbol type;
+            if ((op1.Kind == BoundKind.EventAccess) &&
+                ((BoundEventAccess)op1).EventSymbol.IsWindowsRuntimeEvent)
+            {
+                // Event assignment is a call to void WindowsRuntimeMarshal.AddEventHandler<T>().
+                type = this.GetSpecialType(SpecialType.System_Void, diagnostics, node);
+            }
+            else
+            {
+                type = op1.Type;
+            }
+
+            return new BoundAssignmentOperator(node, op1, op2, type, hasErrors: hasErrors);
         }
 
         private static PropertySymbol GetPropertySymbol(BoundExpression expr, out BoundExpression receiver, out CSharpSyntaxNode propertySyntax)
