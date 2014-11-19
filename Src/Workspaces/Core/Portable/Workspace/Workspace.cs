@@ -815,8 +815,12 @@ namespace Microsoft.CodeAnalysis
         /// Apply changes made to a solution back to the workspace.
         /// 
         /// The specified solution must be one that originated from this workspace. If it is not, or the workspace
-        /// has been updated since the solution was obtained from the workspace, then this method returns false.
+        /// has been updated since the solution was obtained from the workspace, then this method returns false. This method
+        /// will still throw if the solution contains changes that are not supported according to the <see cref="CanApplyChange(ApplyChangesKind)"/>
+        /// method.
         /// </summary>
+        /// <exception cref="NotSupportedException">Thrown if the solution contains changes not supported according to the
+        /// <see cref="CanApplyChange(ApplyChangesKind)"/> method.</exception>
         public virtual bool TryApplyChanges(Solution newSolution)
         {
             using (Logger.LogBlock(FunctionId.Workspace_ApplyChanges, CancellationToken.None))
