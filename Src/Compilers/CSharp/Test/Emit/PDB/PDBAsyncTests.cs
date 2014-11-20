@@ -135,8 +135,8 @@ class Driver
       <customDebugInfo version=""4"" count=""3"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""TestCase"" methodName="".cctor"" parameterNames="""" />
         <hoistedLocalScopes version=""4"" kind=""StateMachineHoistedLocalScopes"" size=""28"" count=""2"">
-          <slot startOffset=""0xe"" endOffset=""0x100"" />
-          <slot startOffset=""0xe"" endOffset=""0x100"" />
+          <slot startOffset=""0xe"" endOffset=""0xff"" />
+          <slot startOffset=""0xe"" endOffset=""0xff"" />
         </hoistedLocalScopes>
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""20"">
           <slot kind=""27"" offset=""0"" />
@@ -331,11 +331,11 @@ namespace ConsoleApplication1
       <customDebugInfo version=""4"" count=""3"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""ConsoleApplication1.Program"" methodName="".cctor"" parameterNames="""" />
         <hoistedLocalScopes version=""4"" kind=""StateMachineHoistedLocalScopes"" size=""52"" count=""5"">
-          <slot startOffset=""0x11"" endOffset=""0x11f"" />
+          <slot startOffset=""0x11"" endOffset=""0x11e"" />
           <slot startOffset=""0x0"" endOffset=""0x0"" />
           <slot startOffset=""0x0"" endOffset=""0x0"" />
-          <slot startOffset=""0x41"" endOffset=""0xee"" />
-          <slot startOffset=""0x54"" endOffset=""0xee"" />
+          <slot startOffset=""0x41"" endOffset=""0xed"" />
+          <slot startOffset=""0x54"" endOffset=""0xed"" />
         </hoistedLocalScopes>
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
           <slot kind=""27"" offset=""0"" />
@@ -403,7 +403,7 @@ class TestCase
           <namespace usingCount=""0"" />
         </using>
         <hoistedLocalScopes version=""4"" kind=""StateMachineHoistedLocalScopes"" size=""20"" count=""1"">
-          <slot startOffset=""0x11"" endOffset=""0x233"" />
+          <slot startOffset=""0x11"" endOffset=""0x232"" />
         </hoistedLocalScopes>
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
           <slot kind=""27"" offset=""0"" />
@@ -569,7 +569,7 @@ class C
       <customDebugInfo version=""4"" count=""3"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""F"" parameterNames="""" />
         <hoistedLocalScopes version=""4"" kind=""StateMachineHoistedLocalScopes"" size=""20"" count=""1"">
-          <slot startOffset=""0x11"" endOffset=""0xe1"" />
+          <slot startOffset=""0x11"" endOffset=""0xe0"" />
         </hoistedLocalScopes>
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
           <slot kind=""27"" offset=""0"" />
@@ -663,7 +663,7 @@ class C
       <customDebugInfo version=""4"" count=""2"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""F"" parameterNames="""" />
         <hoistedLocalScopes version=""4"" kind=""StateMachineHoistedLocalScopes"" size=""20"" count=""1"">
-          <slot startOffset=""0xa"" endOffset=""0xc1"" />
+          <slot startOffset=""0xa"" endOffset=""0xc0"" />
         </hoistedLocalScopes>
       </customDebugInfo>
       <sequencepoints total=""12"">
@@ -749,7 +749,7 @@ class C
       <customDebugInfo version=""4"" count=""3"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""F"" parameterNames="""" />
         <hoistedLocalScopes version=""4"" kind=""StateMachineHoistedLocalScopes"" size=""20"" count=""1"">
-          <slot startOffset=""0x11"" endOffset=""0xd0"" />
+          <slot startOffset=""0x11"" endOffset=""0xcf"" />
         </hoistedLocalScopes>
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
           <slot kind=""27"" offset=""0"" />
@@ -839,7 +839,7 @@ class C
       <customDebugInfo version=""4"" count=""3"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""F"" parameterNames="""" />
         <hoistedLocalScopes version=""4"" kind=""StateMachineHoistedLocalScopes"" size=""20"" count=""1"">
-          <slot startOffset=""0xe"" endOffset=""0xdd"" />
+          <slot startOffset=""0xe"" endOffset=""0xdc"" />
         </hoistedLocalScopes>
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
           <slot kind=""27"" offset=""0"" />
@@ -1008,7 +1008,7 @@ class C
       <customDebugInfo version=""4"" count=""3"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""F"" parameterNames="""" />
         <hoistedLocalScopes version=""4"" kind=""StateMachineHoistedLocalScopes"" size=""20"" count=""1"">
-          <slot startOffset=""0x11"" endOffset=""0xdd"" />
+          <slot startOffset=""0x11"" endOffset=""0xdc"" />
         </hoistedLocalScopes>
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
           <slot kind=""27"" offset=""0"" />
@@ -1310,7 +1310,7 @@ class C
       <customDebugInfo version=""4"" count=""3"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""F"" parameterNames="""" />
         <hoistedLocalScopes version=""4"" kind=""StateMachineHoistedLocalScopes"" size=""20"" count=""1"">
-          <slot startOffset=""0xe"" endOffset=""0xee"" />
+          <slot startOffset=""0xe"" endOffset=""0xed"" />
         </hoistedLocalScopes>
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""20"">
           <slot kind=""27"" offset=""0"" />

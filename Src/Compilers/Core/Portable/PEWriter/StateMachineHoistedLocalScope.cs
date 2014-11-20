@@ -4,13 +4,13 @@ namespace Microsoft.Cci
 {
     internal struct StateMachineHoistedLocalScope
     {
-        public readonly uint Offset;
-        public readonly uint Length;
+        public readonly uint StartOffset;
+        public readonly uint EndOffset;
 
-        public StateMachineHoistedLocalScope(uint offset, uint length)
+        public StateMachineHoistedLocalScope(uint startOffset, uint endOffset)
         {
-            Offset = offset;
-            Length = length;
+            StartOffset = startOffset;
+            EndOffset = endOffset;
         }
     }
 }

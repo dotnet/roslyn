@@ -1240,7 +1240,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var stateMachineHoistedLocalScopes = default(ImmutableArray<Cci.StateMachineHoistedLocalScope>);
                 if (isStateMachineMoveNextMethod)
                 {
-                    stateMachineHoistedLocalScopes = builder.GetHoistedLocalScopes();
+                    // In C#, hoisted local scopes are edge-inclusive.
+                    stateMachineHoistedLocalScopes = builder.GetHoistedLocalScopes(edgeInclusive: true);
                 }
 
                 var stateMachineHoistedLocalSlots = default(ImmutableArray<EncHoistedLocalInfo>);

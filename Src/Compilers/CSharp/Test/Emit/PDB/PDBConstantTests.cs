@@ -174,7 +174,7 @@ class C
           <namespace usingCount=""1"" />
         </using>
         <hoistedLocalScopes version=""4"" kind=""StateMachineHoistedLocalScopes"" size=""20"" count=""1"">
-          <slot startOffset=""0x22"" endOffset=""0x6b"" />
+          <slot startOffset=""0x22"" endOffset=""0x6a"" />
         </hoistedLocalScopes>
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
           <slot kind=""27"" offset=""0"" />

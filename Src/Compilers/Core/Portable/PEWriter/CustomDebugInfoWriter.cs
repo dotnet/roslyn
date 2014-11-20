@@ -176,8 +176,8 @@ namespace Microsoft.Cci
             cmw.WriteUint(numberOfScopes);
             foreach (var scope in scopes)
             {
-                cmw.WriteUint(scope.Offset);
-                cmw.WriteUint(scope.Offset + scope.Length);
+                cmw.WriteUint(scope.StartOffset);
+                cmw.WriteUint(scope.EndOffset);
             }
 
             customDebugInfo.Add(customMetadata);

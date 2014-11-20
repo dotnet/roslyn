@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 {
                     uint endAdjusted = edgeInclusive ? end - 1 : end;
 
-                    var newScope = new Cci.StateMachineHoistedLocalScope(begin, endAdjusted - begin);
+                    var newScope = new Cci.StateMachineHoistedLocalScope(begin, endAdjusted);
 
                     foreach (var slotIndex in this.StateMachineUserHoistedLocalSlotIndices)
                     {
