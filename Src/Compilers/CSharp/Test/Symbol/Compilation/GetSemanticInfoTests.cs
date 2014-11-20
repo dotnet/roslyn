@@ -546,6 +546,34 @@ class MyClass
             Assert.Equal(impconv, conv);
         }
 
+        [Fact, WorkItem(1019372, "DevDiv")]
+        public void ClassifyConversionImplicitUserDef02()
+        {
+            var text = @"
+class C {
+    public static implicit operator int(C c) { return 0; }
+    public C() {
+        int? i = /*<bind0>*/this/*</bind0>*/;
+    }
+}";
+            var tree = Parse(text);
+            var comp = CreateCompilationWithMscorlib(tree);
+            var model = comp.GetSemanticModel(tree);
+            var exprs = GetBindingNodes<ExpressionSyntax>(comp);
+            var expr1 = exprs.First();
+            var info = model.GetTypeInfo(expr1);
+            Assert.NotNull(info);
+            Assert.NotNull(info.ConvertedType);
+            var impconv = model.GetConversion(expr1);
+            Assert.True(impconv.IsImplicit);
+            Assert.True(impconv.IsUserDefined);
+
+            Conversion conv = model.ClassifyConversion(expr1, (TypeSymbol)info.ConvertedType);
+            Assert.Equal(impconv, conv);
+            Assert.True(conv.IsImplicit);
+            Assert.True(conv.IsUserDefined);
+        }
+
         [Fact, WorkItem(544151, "DevDiv")]
         public void PublicViewOfPointerConversions()
         {

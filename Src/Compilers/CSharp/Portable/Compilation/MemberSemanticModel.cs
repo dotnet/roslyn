@@ -703,7 +703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, bound.Operation, bound.Operation, boundNodeForSyntacticParent: null, binderOpt: null);
         }
 
-        private static CSharpTypeInfo GetTypeInfoForQuery(BoundQueryClause bound)
+        private CSharpTypeInfo GetTypeInfoForQuery(BoundQueryClause bound)
         {
             return bound == null ?
                 CSharpTypeInfo.None :

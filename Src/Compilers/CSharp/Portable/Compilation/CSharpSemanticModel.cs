@@ -1768,7 +1768,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // lowestBoundNode: The lowest node in the bound tree associated with node
         // highestBoundNode: The highest node in the bound tree associated with node
         // boundNodeForSyntacticParent: The lowest node in the bound tree associated with node.Parent.
-        internal static CSharpTypeInfo GetTypeInfoForNode(
+        internal CSharpTypeInfo GetTypeInfoForNode(
             BoundNode lowestBoundNode,
             BoundNode highestBoundNode,
             BoundNode boundNodeForSyntacticParent)
@@ -1824,12 +1824,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (highestBoundExpr != null && highestBoundExpr != boundExpr && highestBoundExpr.HasExpressionType())
                 {
                     convertedType = highestBoundExpr.Type;
-                    conversion = highestBoundExpr.GetConversion();
-
-                    if (conversion.Kind == ConversionKind.AnonymousFunction)
+                    if (highestBoundExpr.Kind != BoundKind.Conversion)
                     {
-                        // See comment above: anonymous functions do not have a type
-                        type = null;
+                        conversion = Conversion.Identity;
+                    }
+                    else if (((BoundConversion)highestBoundExpr).Operand.Kind != BoundKind.Conversion)
+                    {
+                        conversion = highestBoundExpr.GetConversion();
+                        if (conversion.Kind == ConversionKind.AnonymousFunction)
+                        {
+                            // See comment above: anonymous functions do not have a type
+                            type = null;
+                        }
+                    }
+                    else
+                    {
+                        // There is a sequence of conversions; we use ClassifyConversionFromExpression to report the most pertinent.
+                        var binder = this.GetEnclosingBinder(boundExpr.Syntax.Span.Start);
+                        HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                        conversion = binder.Conversions.ClassifyConversionFromExpression(boundExpr, convertedType, ref useSiteDiagnostics);
                     }
                 }
                 else if ((boundNodeForSyntacticParent != null) && (boundNodeForSyntacticParent.Kind == BoundKind.DelegateCreationExpression))
@@ -1841,7 +1854,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BoundKind.MethodGroup:
                             {
-                                // TODO: how do we determine if it was an extension method?
                                 conversion = new Conversion(ConversionKind.MethodGroup, delegateCreation.MethodOpt, delegateCreation.IsExtensionMethod);
                                 break;
                             }
