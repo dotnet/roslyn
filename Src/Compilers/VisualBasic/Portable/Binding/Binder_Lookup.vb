@@ -1350,10 +1350,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Public ReadOnly InterfaceType As NamedTypeSymbol
                 Public ReadOnly InComInterfaceContext As Boolean
+                Public ReadOnly DescendantDefinitions As ImmutableHashSet(Of NamedTypeSymbol)
 
-                Public Sub New(interfaceType As NamedTypeSymbol, inComInterfaceContext As Boolean)
+                Public Sub New(interfaceType As NamedTypeSymbol, inComInterfaceContext As Boolean, Optional descendantDefinitions As ImmutableHashSet(Of NamedTypeSymbol) = Nothing)
                     Me.InterfaceType = interfaceType
                     Me.InComInterfaceContext = inComInterfaceContext
+                    Me.DescendantDefinitions = descendantDefinitions
                 End Sub
 
                 Public Overrides Function GetHashCode() As Integer
@@ -1802,12 +1804,30 @@ ExitForFor:
                 If Not interfaces.IsDefaultOrEmpty Then
                     Dim inComInterfaceContext As Boolean = currentInfo.InComInterfaceContext OrElse
                                                            currentInfo.InterfaceType.CoClassType IsNot Nothing
+
+                    Dim descendants As ImmutableHashSet(Of NamedTypeSymbol)
+
+                    If binder.BasesBeingResolved Is Nothing Then
+                        descendants = Nothing
+                    Else
+                        ' We need to watch out for cycles in inheritance chain since they are not broken while bases are being resolved.
+                        If currentInfo.DescendantDefinitions Is Nothing Then
+                            descendants = ImmutableHashSet.Create(currentInfo.InterfaceType.OriginalDefinition)
+                        Else
+                            descendants = currentInfo.DescendantDefinitions.Add(currentInfo.InterfaceType.OriginalDefinition)
+                        End If
+                    End If
+
                     For Each i In interfaces
+                        If descendants IsNot Nothing AndAlso descendants.Contains(i.OriginalDefinition) Then
+                            ' About to get in an inheritance cycle
+                            Continue For
+                        End If
+
                         i.OriginalDefinition.AddUseSiteDiagnostics(useSiteDiagnostics)
 
-                        Dim newInfo As New InterfaceInfo(i, inComInterfaceContext)
-                        If Not processed.Contains(newInfo) Then
-                            processed.Add(newInfo)
+                        Dim newInfo As New InterfaceInfo(i, inComInterfaceContext, descendants)
+                        If processed.Add(newInfo) Then
                             lookIn.Enqueue(newInfo)
                         End If
                     Next
@@ -1918,6 +1938,8 @@ ExitForFor:
                                                                 processed As HashSet(Of InterfaceInfo),
                                                                 options As LookupOptions,
                                                                 binder As Binder)
+                Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+
                 Do
                     Dim currentType As InterfaceInfo = lookIn.Dequeue
 
@@ -1926,19 +1948,7 @@ ExitForFor:
                     ' Go to base type, unless that would case infinite recursion or the options or the binder
                     ' disallows it.
                     If (options And LookupOptions.NoBaseClassLookup) = 0 AndAlso Not binder.IgnoreBaseClassesInLookup Then
-                        Dim interfaces As ImmutableArray(Of NamedTypeSymbol) = currentType.InterfaceType.GetDirectBaseInterfacesNoUseSiteDiagnostics(binder.BasesBeingResolved())
-
-                        If Not interfaces.IsDefaultOrEmpty Then
-                            Dim isComInterfaceContext As Boolean = currentType.InComInterfaceContext OrElse
-                                                                   currentType.InterfaceType.CoClassType IsNot Nothing
-                            For Each i In interfaces
-                                Dim newInfo As New InterfaceInfo(i, isComInterfaceContext)
-                                If Not processed.Contains(newInfo) Then
-                                    processed.Add(newInfo)
-                                    lookIn.Enqueue(newInfo)
-                                End If
-                            Next
-                        End If
+                        AddBaseInterfacesToTheSearch(binder, currentType, lookIn, processed, useSiteDiagnostics)
                     End If
 
                 Loop While lookIn.Count <> 0

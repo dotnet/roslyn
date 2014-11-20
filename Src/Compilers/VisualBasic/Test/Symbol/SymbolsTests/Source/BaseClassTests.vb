@@ -2404,8 +2404,8 @@ Interface B : Inherits C(Of Integer).NotFound
         End Sub
 
         <WorkItem(1036374)>
-        <Fact(Skip:="1036374")>
-        Public Sub InterfaceCircularInheritance()
+        <Fact()>
+        Public Sub InterfaceCircularInheritance_01()
             Dim source =
                 <compilation>
                     <file name="a.vb">
@@ -2418,11 +2418,52 @@ End Interface
     </file>
                 </compilation>
             Dim comp = CreateCompilationWithMscorlib(source)
+
+            Dim a = comp.GetTypeByMetadataName("A`1")
+            Dim interfaces = a.AllInterfaces
+
+            Assert.True(interfaces.Single.IsErrorType())
+
             comp.AssertTheseDiagnostics(<errors><![CDATA[
 BC30296: Interface 'A(Of T)' cannot inherit from itself: 
     'A(Of T)' inherits from 'A(Of T)'.
     Inherits A(Of A(Of T))
              ~~~~~~~~~~~~~
+]]></errors>)
+        End Sub
+
+        <WorkItem(1036374)>
+        <Fact()>
+        Public Sub InterfaceCircularInheritance_02()
+            Dim source =
+                <compilation>
+                    <file name="a.vb">
+Interface A(Of T)
+    Inherits C(Of T)
+    Interface B
+        Inherits A(Of B)
+    End Interface
+End Interface
+
+Interface C(Of T)
+    Inherits A(Of A(Of T))
+End Interface
+
+    </file>
+                </compilation>
+            Dim comp = CreateCompilationWithMscorlib(source)
+
+            Dim a = comp.GetTypeByMetadataName("A`1")
+            Dim interfaces = a.AllInterfaces
+
+            Assert.True(interfaces.Single.IsErrorType())
+
+            comp.AssertTheseDiagnostics(<errors><![CDATA[
+BC30296: Interface 'A(Of T)' cannot inherit from itself: 
+    'A(Of T)' inherits from 'C(Of T)'.
+    'C(Of T)' inherits from 'A(Of T)'.
+    Inherits C(Of T)
+             ~~~~~~~
 ]]></errors>)
         End Sub
 
