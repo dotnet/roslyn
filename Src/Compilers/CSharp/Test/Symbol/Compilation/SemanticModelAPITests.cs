@@ -3205,6 +3205,48 @@ class C
             Assert.Equal("lib", target.ContainingAssembly.Name);
         }
 
+        [WorkItem(1019366, "DevDiv")]
+        [WorkItem(273, "CodePlex")]
+        [Fact]
+        public void Bug1019366()
+        {
+            var source = @"
+using System;
+
+static class Program
+{
+    static void Main()
+    {
+        short case1 = unchecked((short)65535.17567);
+        Console.WriteLine(case1);
+        int? case2 = (int?)5.5;
+        Console.WriteLine(case2);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+            var init0 = method.Body.Statements[0].DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer.Value;
+            var value0 = model.GetConstantValue(init0);
+            Assert.True(value0.HasValue);
+            Assert.Equal(-1, (short)value0.Value);
+
+            // The CodePlex bug indicates this should return a constant value of 5.  While 'case2' should 
+            // have that value it is not constant because of the nullable cast
+            var init1 = method.Body.Statements[2].DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer.Value;
+            var value1 = model.GetConstantValue(init1);
+            Assert.False(value1.HasValue);
+
+            var output = @"
+-1
+5";
+            CompileAndVerify(compilation: comp, expectedOutput: output);
+        }
+
         [Fact]
         public void Regression01()
         {
