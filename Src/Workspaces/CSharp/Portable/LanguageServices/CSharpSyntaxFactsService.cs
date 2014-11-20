@@ -99,6 +99,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return csharpTree.IsInNonUserCode(position, cancellationToken);
         }
 
+        public bool IsEntirelyWithinStringOrCharLiteral(SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            var csharpTree = syntaxTree as SyntaxTree;
+            if (csharpTree == null)
+            {
+                return false;
+            }
+
+            return csharpTree.IsEntirelyWithinStringOrCharLiteral(position, cancellationToken);
+        }
+
         public bool IsDirective(SyntaxNode node)
         {
             return node is DirectiveTriviaSyntax;
