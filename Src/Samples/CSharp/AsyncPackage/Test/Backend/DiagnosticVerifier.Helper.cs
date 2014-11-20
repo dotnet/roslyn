@@ -66,7 +66,7 @@ namespace TestTemplate
             {
                 var compilation = project.GetCompilationAsync().GetAwaiter().GetResult();
 
-                var diags = compilation.GetDiagnosticsAsync(ImmutableArray.Create(analyzer)).GetAwaiter().GetResult();
+                var diags = compilation.GetAnalyzerDiagnosticsAsync(ImmutableArray.Create(analyzer)).GetAwaiter().GetResult();
                 foreach (var diag in diags)
                 {
                     if (diag.Location == Location.None || diag.Location.IsInMetadata)

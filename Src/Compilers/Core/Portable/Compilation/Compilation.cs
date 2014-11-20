@@ -867,9 +867,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="analyzers">The set of analyzers to include in the analysis</param>
         /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
-        public Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return GetDiagnosticsAsync(analyzers, null, cancellationToken);
+            return GetAnalyzerDiagnosticsAsync(analyzers, null, cancellationToken);
         }
 
         /// <summary>
@@ -878,7 +878,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="analyzers">The set of analyzers to include in the analysis</param>
         /// <param name="options">Options that are passed to analyzers</param>
         /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
-        public Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken = default(CancellationToken))
         {
             options = options ?? AnalyzerOptions.Empty;
             Compilation newCompilation = null;
