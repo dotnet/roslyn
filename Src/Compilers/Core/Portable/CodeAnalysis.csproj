@@ -322,6 +322,7 @@
     <Compile Include="PEWriter\ClrHeader.cs" />
     <Compile Include="PEWriter\Constants.cs" />
     <Compile Include="PEWriter\Core.cs" />
+    <Compile Include="PEWriter\CustomDebugInfoConstants.cs" />
     <Compile Include="PEWriter\CustomDebugInfoWriter.cs" />
     <Compile Include="PEWriter\DebugSourceDocument.cs" />
     <Compile Include="PEWriter\DirectoryEntry.cs" />
