@@ -179,7 +179,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        ' Determines is position is within the span of a node, or in the trailing trivia of a node 
+        ' Determines if position is before or within the span of a node, or in the trailing trivia of a node 
+        ' up to, but not including, a newline or colon trivia (which mark the end of a statement.)
+        Private Shared Function InOrBeforeSpanOrEffectiveTrailingOfNode(node As SyntaxNode, position As Integer) As Boolean
+            Return position < node.SpanStart OrElse InSpanOrEffectiveTrailingOfNode(node, position)
+        End Function
+
+        ' Determines if position is within the span of a node, or in the trailing trivia of a node 
         ' up to, but not including, a newline or colon trivia (which mark the end of a statement.)
         Friend Shared Function InSpanOrEffectiveTrailingOfNode(node As SyntaxNode, position As Integer) As Boolean
             Dim span = node.Span
@@ -274,7 +280,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If beginTerminator.VBKind <> SyntaxKind.None AndAlso beginTerminator.Width > 0 Then
                     afterBegin = position >= beginTerminator.SpanStart
                 Else
-                    afterBegin = position >= beginStatement.SpanStart AndAlso Not InSpanOrEffectiveTrailingOfNode(beginStatement, position)
+                    afterBegin = Not InOrBeforeSpanOrEffectiveTrailingOfNode(beginStatement, position)
                 End If
 
                 If endStatement Is Nothing Then
@@ -283,7 +289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' No expected end statement. These are "single" line blocks, check based on last statement in block instead.
                             If body.Count > 0 Then
                                 Dim lastStatement = body(body.Count - 1)
-                                beforeEnd = position < lastStatement.SpanStart OrElse InSpanOrEffectiveTrailingOfNode(lastStatement, position)
+                                beforeEnd = InOrBeforeSpanOrEffectiveTrailingOfNode(lastStatement, position)
                             End If
 
                         Case Else
@@ -297,7 +303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End Select
 
                 ElseIf endStatement.Width > 0 Then
-                    beforeEnd = position < endStatement.SpanStart
+                    beforeEnd = InOrBeforeSpanOrEffectiveTrailingOfNode(endStatement, position)
                 End If
 
                 Return afterBegin AndAlso beforeEnd

@@ -894,6 +894,40 @@ End Class
             Assert.Equal("z", parameterSymbol.Name)
         End Sub
 
+        <Fact, WorkItem(1084086)>
+        Public Sub TestGetSpeculativeSemanticModelForStatement_InEmptyMethodBody()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+<compilation name="BindAsExpressionVsBindAsType">
+    <file name="a.vb">
+Class C
+	Private Sub M(x As Integer)
+	End Sub
+End Class
+    </file>
+</compilation>)
+
+            Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "a.vb").Single()
+            Dim root = tree.GetCompilationUnitRoot()
+            Dim typeBlock = DirectCast(root.Members(0), TypeBlockSyntax)
+            Dim methodBlock = DirectCast(typeBlock.Members(0), MethodBlockSyntax)
+            Dim endStatement = methodBlock.End
+
+            Dim semanticModel = compilation.GetSemanticModel(tree)
+            Dim position1 = endStatement.SpanStart
+
+            Dim speculatedStatement = DirectCast(SyntaxFactory.ParseExecutableStatement("Dim y = 0"), LocalDeclarationStatementSyntax)
+
+            Dim speculativeModel As SemanticModel = Nothing
+            Dim success = semanticModel.TryGetSpeculativeSemanticModel(position1, speculatedStatement, speculativeModel)
+            Assert.True(success)
+            Assert.NotNull(speculativeModel)
+
+            Dim local = speculativeModel.GetDeclaredSymbol(speculatedStatement.Declarators.First().Names.First)
+            Assert.NotNull(local)
+            Assert.Equal("y", local.Name)
+            Assert.Equal(SymbolKind.Local, local.Kind)
+        End Sub
+
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForRangeArgument_InField()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(

@@ -1,14 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Linq
-Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.SpecialType
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.OverloadResolution
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -938,13 +931,13 @@ End Class
     </file>
 </compilation>)
 
-            Dim not_expected_in_lookupNames =
+            Dim expected_in_lookupNames =
                 {
                     "count",
                     "param1"
                 }
 
-            Dim not_expected_in_lookupSymbols =
+            Dim expected_in_lookupSymbols =
                 {
                     "count As System.Int32",
                     "param1 As System.Int32"
@@ -955,11 +948,11 @@ End Class
             Dim actual_lookupSymbols = GetLookupSymbols(compilation, "a.vb")
             Dim actual_lookupSymbols_as_string = actual_lookupSymbols.Select(Function(e) e.ToTestDisplayString())
 
-            Assert.DoesNotContain(not_expected_in_lookupNames(0), actual_lookupNames)
-            Assert.DoesNotContain(not_expected_in_lookupNames(1), actual_lookupNames)
+            Assert.Contains(expected_in_lookupNames(0), actual_lookupNames)
+            Assert.Contains(expected_in_lookupNames(1), actual_lookupNames)
 
-            Assert.DoesNotContain(not_expected_in_lookupSymbols(0), actual_lookupSymbols_as_string)
-            Assert.DoesNotContain(not_expected_in_lookupSymbols(1), actual_lookupSymbols_as_string)
+            Assert.Contains(expected_in_lookupSymbols(0), actual_lookupSymbols_as_string)
+            Assert.Contains(expected_in_lookupSymbols(1), actual_lookupSymbols_as_string)
         End Sub
 
         <WorkItem(539114, "DevDiv")>
@@ -1413,27 +1406,27 @@ End Namespace
             Dim expected_in_lookupNames =
                 {
                     "NS1",
-                    "NS3"
+                    "NS2",
+                    "NS3",
+                    "T2",
+                    "T3"
                 }
             Dim not_expected_in_lookupNames =
                 {
-                    "NS2",
-                    "T1",
-                    "T2",
-                    "T3"
+                    "T1"
                 }
 
             Dim expected_in_lookupSymbols =
                 {
                     "NS1",
-                    "NS3"
+                    "NS3",
+                    "NS1.NS2",
+                    "NS1.T2",
+                    "NS1.T3"
                 }
             Dim not_expected_in_lookupSymbols =
                 {
-                    "NS1.NS2",
-                    "NS1.NS2.T1",
-                    "NS1.T2",
-                    "NS1.T3"
+                    "NS1.NS2.T1"
                 }
 
             Dim actual_lookupNames = GetLookupNames(compilation, "a.vb")
@@ -1441,19 +1434,21 @@ End Namespace
             Dim actual_lookupSymbols = GetLookupSymbols(compilation, "a.vb")
             Dim actual_lookupSymbols_as_string = actual_lookupSymbols.Select(Function(e) e.ToTestDisplayString())
 
-            Assert.Contains(expected_in_lookupNames(0), actual_lookupNames)
-            Assert.Contains(expected_in_lookupNames(1), actual_lookupNames)
-            Assert.DoesNotContain(not_expected_in_lookupNames(0), actual_lookupNames)
-            Assert.DoesNotContain(not_expected_in_lookupNames(1), actual_lookupNames)
-            Assert.DoesNotContain(not_expected_in_lookupNames(2), actual_lookupNames)
-            Assert.DoesNotContain(not_expected_in_lookupNames(3), actual_lookupNames)
+            For Each expectedName In expected_in_lookupNames
+                Assert.Contains(expectedName, actual_lookupNames)
+            Next
 
-            Assert.Contains(expected_in_lookupSymbols(0), actual_lookupSymbols_as_string)
-            Assert.Contains(expected_in_lookupSymbols(1), actual_lookupSymbols_as_string)
-            Assert.DoesNotContain(not_expected_in_lookupSymbols(0), actual_lookupSymbols_as_string)
-            Assert.DoesNotContain(not_expected_in_lookupSymbols(1), actual_lookupSymbols_as_string)
-            Assert.DoesNotContain(not_expected_in_lookupSymbols(2), actual_lookupSymbols_as_string)
-            Assert.DoesNotContain(not_expected_in_lookupSymbols(3), actual_lookupSymbols_as_string)
+            For Each notExpectedName In not_expected_in_lookupNames
+                Assert.DoesNotContain(notExpectedName, actual_lookupNames)
+            Next
+
+            For Each expectedName In expected_in_lookupSymbols
+                Assert.Contains(expectedName, actual_lookupSymbols_as_string)
+            Next
+
+            For Each notExpectedName In not_expected_in_lookupSymbols
+                Assert.DoesNotContain(notExpectedName, actual_lookupSymbols_as_string)
+            Next
         End Sub
 
         <WorkItem(539185, "DevDiv")>

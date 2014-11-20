@@ -1,12 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Globalization
-Imports System.Text
 Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -101,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 End Namespace
 
                 'about to end Bar
-            </expected>)
+            End Namespace</expected>)
 
             CheckScopeOfSymbol(comp, "a.vb", "Bar",
 <expected>
@@ -120,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 End Namespace
 
                 'about to end Bar
-            </expected>)
+            End Namespace</expected>)
 
             CheckScopeOfSymbol(comp, "a.vb", "Delta",
 <expected>
@@ -128,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                     Delegate Sub Delta(Of TCharlie _
                               )(x As Integer)
                     ' after delta
-                </expected>)
+                End Namespace</expected>)
 
             CheckScopeOfSymbol(comp, "a.vb", "TCharlie",
 <expected>Delegate Sub Delta(Of TCharlie _
@@ -172,13 +166,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 <expected>
                         Dim red As String  'yyy
                         'before end sub
-                    </expected>)
+                    End Sub  ' xxx</expected>)
 
             CheckScopeOfSymbol(comp, "a.vb", "red",
 <expected>
                         Dim red As String  'yyy
                         'before end sub
-                    </expected>)
+                    End Sub  ' xxx</expected>)
 
         End Sub
 
@@ -208,7 +202,7 @@ End Class 'hello
              ' inside for 1
              Dim cheetos as String 'xxx
              ' inside for 2
-        </expected>)
+        Next color 'zzz</expected>)
 
             CheckScopeOfSymbol(comp, "a.vb", "freetos",
 <expected>Then Dim freetos As Integer : Dim chips As String </expected>)
@@ -285,7 +279,7 @@ End Class
             CheckScopeOfSymbol(comp, "c.vb", "val",
         <expected>
             _p = val
-        </expected>)
+        End Set</expected>)
 
             ' Property parameters should be in scope for individual accessors.
             ' Note: The parameter is represented as separate symbols in the property and
@@ -294,11 +288,11 @@ End Class
             CheckScopeOfSymbol(comp, "c.vb", "i",
         <expected>
             Return _q
-        </expected>)
+        End Get</expected>)
             CheckScopeOfSymbol(comp, "c.vb", "y",
         <expected>
             _r = Value
-        </expected>)
+        End Set</expected>)
 
         End Sub
 
