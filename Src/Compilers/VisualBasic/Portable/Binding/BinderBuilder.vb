@@ -301,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                     parameterSymbol As ParameterSymbol,
                                                                     node As VisualBasicSyntaxNode) As Binder
             Dim containingBinder As Binder
-            Dim containingSymbol = ParameterSymbol.ContainingSymbol
+            Dim containingSymbol = parameterSymbol.ContainingSymbol
             Dim methodSymbol = TryCast(containingSymbol, SourceMethodSymbol)
 
             If methodSymbol IsNot Nothing Then
@@ -389,6 +389,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ' If Option Explicit Off is in effect, an ImplicitVariableBinder
         ' is created also.
         Public Shared Function CreateBinderForMethodBody(methodSymbol As MethodSymbol, root As VisualBasicSyntaxNode, containingBinder As Binder) As Binder
+            Debug.Assert(TypeOf VBSemanticModel.StripSemanticModelBinder(containingBinder) Is NamedTypeBinder)
+
             Dim methodDeclBinder As Binder = CreateBinderForMethodDeclaration(methodSymbol, containingBinder)
 
             If methodDeclBinder.OptionExplicit = False Then

@@ -37,7 +37,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Create a speculative binder for the method body.
             Dim methodSymbol = DirectCast(Me.MemberSymbol, MethodSymbol)
-            Dim methodBodyBinder = BinderBuilder.CreateBinderForMethodBody(methodSymbol, method, SemanticModelBinder.Mark(StripSemanticModelBinder(Me.RootBinder).ContainingBinder))
+
+            Dim containingBinder As Binder = Me.RootBinder
+
+            ' Get up to the NamedTypeBinder
+            Dim namedTypeBinder As NamedTypeBinder
+
+            Do
+                namedTypeBinder = TryCast(containingBinder, NamedTypeBinder)
+
+                If namedTypeBinder IsNot Nothing Then
+                    Exit Do
+                End If
+
+                containingBinder = containingBinder.ContainingBinder
+            Loop
+
+            Dim methodBodyBinder = BinderBuilder.CreateBinderForMethodBody(methodSymbol, method, SemanticModelBinder.Mark(namedTypeBinder))
 
             ' Wrap this binder with a BlockBaseBinder to hold onto the locals declared within the statement.
             Dim binder = New StatementListBinder(methodBodyBinder, method.Statements)

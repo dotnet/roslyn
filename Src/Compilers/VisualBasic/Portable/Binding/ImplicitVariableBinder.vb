@@ -227,9 +227,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Sub AddLookupSymbolsInfoInSingleBinder(nameSet As LookupSymbolsInfo,
                                                                    options As LookupOptions,
                                                                    originalBinder As Binder)
-#If DEBUG Then
-            CheckVariableDeclarationOnSingleThread()
-#End If
+            Debug.Assert(_frozen)
+
             If _implicitLocals IsNot Nothing AndAlso
                (options And (LookupOptions.NamespacesOrTypesOnly Or LookupOptions.LabelsOnly)) = 0 Then
 

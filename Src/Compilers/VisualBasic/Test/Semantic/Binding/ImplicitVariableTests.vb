@@ -991,6 +991,91 @@ done
             expected:={"x"})
         End Sub
 
+        <WorkItem(1036381, "DevDiv")>
+        <Fact>
+        Public Sub Bug1036381_01()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Option Explicit Off
+ 
+Module Program
+    Sub Main(args As String())
+        x = 1
+        Console.WriteLine(x)
+    End Sub
+End Module
+    </file>
+</compilation>
+
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source)
+
+            Dim tree = compilation1.SyntaxTrees.Single()
+            Dim model = compilation1.GetSemanticModel(tree)
+            Dim main1 = tree.GetRoot().DescendantNodes().OfType(Of MethodBlockBaseSyntax)().Single()
+            Dim position = main1.Statements.First.SpanStart
+
+            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim main2 = compilation2.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType(Of MethodBlockBaseSyntax)().Single()
+
+            Dim speculative As SemanticModel = Nothing
+            Assert.True(model.TryGetSpeculativeSemanticModelForMethodBody(position, main2, speculative))
+
+            Dim l1 = speculative.LookupSymbols(position, name:="x").Single()
+
+            Assert.NotNull(l1)
+            Assert.Equal(SymbolKind.Local, l1.Kind)
+
+            Dim l2 = model.LookupSymbols(position, name:="x").Single()
+
+            Assert.NotNull(l2)
+            Assert.Equal(SymbolKind.Local, l2.Kind)
+            Assert.NotEqual(l1, l2)
+        End Sub
+
+        <WorkItem(1036381, "DevDiv")>
+        <Fact>
+        Public Sub Bug1036381_02()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Option Explicit Off
+ 
+Module Program
+    Sub Main(args As String())
+        x = 1
+        Console.WriteLine(x)
+    End Sub
+End Module
+    </file>
+</compilation>
+
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source)
+
+            Dim tree = compilation1.SyntaxTrees.Single()
+            Dim model = compilation1.GetSemanticModel(tree)
+            Dim main1 = tree.GetRoot().DescendantNodes().OfType(Of MethodBlockBaseSyntax)().Single()
+            Dim position = main1.Statements.First.SpanStart
+
+            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim main2 = compilation2.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType(Of MethodBlockBaseSyntax)().Single()
+
+            Dim speculative As SemanticModel = Nothing
+            Assert.True(model.TryGetSpeculativeSemanticModelForMethodBody(position, main2, speculative))
+
+            Dim l2 = model.LookupSymbols(position, name:="x").Single()
+
+            Assert.NotNull(l2)
+            Assert.Equal(SymbolKind.Local, l2.Kind)
+
+            Dim l1 = speculative.LookupSymbols(position, name:="x").Single()
+
+            Assert.NotNull(l1)
+            Assert.Equal(SymbolKind.Local, l1.Kind)
+
+            Assert.NotEqual(l1, l2)
+        End Sub
+
 #End Region
 
 #Region "Helpers"
