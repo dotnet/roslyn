@@ -816,7 +816,7 @@ namespace Microsoft.CodeAnalysis
         /// Gets the <see cref="DeclarationInfo"/> for all the declarations whose span overlaps with the given <paramref name="span"/>.
         /// </summary>
         /// <param name="span">Span to get declarations.</param>
-        /// <param name="getSymbol">Flag indicating whether <see cref="DeclarationInfo.DeclaredSymbol"/> should be computed for the returned declartion infos.
+        /// <param name="getSymbol">Flag indicating whether <see cref="DeclarationInfo.DeclaredSymbol"/> should be computed for the returned declaration infos.
         /// If false, then <see cref="DeclarationInfo.DeclaredSymbol"/> is always null.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         public abstract ImmutableArray<DeclarationInfo> GetDeclarationsInSpan(TextSpan span, bool getSymbol, CancellationToken cancellationToken);
