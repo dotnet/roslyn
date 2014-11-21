@@ -277,6 +277,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("blah,", id.CultureName);
             id = new AssemblyIdentity("Foo", new Version(1, 2, 3, 4), "*", ImmutableArray.Create<byte>(), hasPublicKey: false, isRetargetable: false, contentType: AssemblyContentType.Default, noThrow: true);
             Assert.Equal("*", id.CultureName);
+
+            // public key is default (mimics PEModule.CreateAssemblyIdentityOrThrow in case where "publicKey.IsNil")
+            id = new AssemblyIdentity("Foo", new Version(1, 2, 3, 4), null, default(ImmutableArray<byte>), hasPublicKey: true, isRetargetable: false, contentType: AssemblyContentType.Default, noThrow: true);
+            Assert.Equal(AssemblyNameFlags.None, id.Flags);
+            Assert.Equal("", id.CultureName);
+            Assert.Equal(false, id.HasPublicKey);
+            Assert.Equal(0, id.PublicKey.Length);
+            Assert.Equal(0, id.PublicKeyToken.Length);
+            Assert.Equal(AssemblyContentType.Default, id.ContentType);
         }
 
         [Fact]

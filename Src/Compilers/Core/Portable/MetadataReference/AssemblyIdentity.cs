@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis
 
             if (hasPublicKey)
             {
-                if (publicKeyOrToken.IsEmpty)
+                if (publicKeyOrToken.IsDefaultOrEmpty)
                 {
                     // PublicKey flag but no key specified => assume the flag is wrong:
                     hasPublicKey = false;
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis
             this.isRetargetable = isRetargetable && this.contentType != AssemblyContentType.WindowsRuntime;
         }
 
-        private void InitializeKey(ImmutableArray<byte> publicKeyOrToken, bool hasPublicKey,
+        static private void InitializeKey(ImmutableArray<byte> publicKeyOrToken, bool hasPublicKey,
             out ImmutableArray<byte> publicKey, out ImmutableArray<byte> publicKeyToken)
         {
             if (hasPublicKey)
