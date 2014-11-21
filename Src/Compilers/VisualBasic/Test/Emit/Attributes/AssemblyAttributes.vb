@@ -307,6 +307,26 @@ End Class
         VerifyAssemblyTable(comp, Sub(r) Assert.True(r.Culture.IsNil))
     End Sub
 
+    <Fact>
+    Public Sub CultureAttributeNul()
+        Dim comp As VisualBasicCompilation = CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports Microsoft.VisualBasic
+
+<Assembly: System.Reflection.AssemblyCulture(vbNullChar)>
+]]>
+    </file>
+</compilation>, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+
+        CompilationUtils.AssertTheseDiagnostics(comp,
+<error><![CDATA[
+BC36982: Assembly culture strings may not contain embedded NUL characters.
+<Assembly: System.Reflection.AssemblyCulture(vbNullChar)>
+                                             ~~~~~~~~~~
+]]></error>)
+    End Sub
+
     <Fact, WorkItem(545951, "DevDiv")>
     Public Sub CultureAttributeErr()
 

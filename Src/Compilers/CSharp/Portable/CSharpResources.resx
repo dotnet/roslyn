@@ -3990,4 +3990,7 @@
   <data name="NoNoneSearchCriteria" xml:space="preserve">
     <value>SearchCriteria is expected.</value>
   </data>
+  <data name="ERR_InvalidAssemblyCulture" xml:space="preserve">
+    <value>Assembly culture strings may not contain embedded NUL characters.</value>
+  </data>
 </root>

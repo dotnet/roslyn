@@ -1012,8 +1012,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyDescriptionAttributeSetting = DirectCast(attrData.CommonConstructorArguments(0).Value, String)
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.AssemblyCultureAttribute) Then
                 Dim cultureString = DirectCast(attrData.CommonConstructorArguments(0).Value, String)
-                If Me.DeclaringCompilation.Options.OutputKind.IsApplication() AndAlso Not String.IsNullOrEmpty(cultureString) Then
-                    arguments.Diagnostics.Add(ERRID.ERR_InvalidAssemblyCultureForExe, GetAssemblyAttributeFirstArgumentLocation(arguments.AttributeSyntaxOpt))
+                If Not String.IsNullOrEmpty(cultureString) Then
+                    If Me.DeclaringCompilation.Options.OutputKind.IsApplication() Then
+                        arguments.Diagnostics.Add(ERRID.ERR_InvalidAssemblyCultureForExe, GetAssemblyAttributeFirstArgumentLocation(arguments.AttributeSyntaxOpt))
+                    ElseIf Not AssemblyIdentity.IsValidCultureName(cultureString) Then
+                        arguments.Diagnostics.Add(ERRID.ERR_InvalidAssemblyCulture,  GetAssemblyAttributeFirstArgumentLocation(arguments.AttributeSyntaxOpt))
+                        cultureString = Nothing
+                    End If
                 End If
 
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyCultureAttributeSetting = cultureString
@@ -1597,8 +1602,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Return New AssemblyIdentity(m_AssemblySimpleName,
                                         Me.AssemblyVersionAttributeSetting,
-                                        cultureName:=Me.AssemblyCultureAttributeSetting,
-                                        publicKeyOrToken:=StrongNameKeys.PublicKey,
+                                        Me.AssemblyCultureAttributeSetting,
+                                        StrongNameKeys.PublicKey,
                                         hasPublicKey:=Not StrongNameKeys.PublicKey.IsDefault)
 
         End Function

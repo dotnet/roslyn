@@ -1861,8 +1861,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new AssemblyIdentity(
                 assemblySimpleName,
                 this.AssemblyVersionAttributeSetting,
-                cultureName: this.AssemblyCultureAttributeSetting,
-                publicKeyOrToken: StrongNameKeys.PublicKey,
+                this.AssemblyCultureAttributeSetting,
+                StrongNameKeys.PublicKey,
                 hasPublicKey: !StrongNameKeys.PublicKey.IsDefault);
         }
 
@@ -2104,10 +2104,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(this, AttributeDescription.AssemblyCultureAttribute))
             {
                 var cultureString = (string)attribute.CommonConstructorArguments[0].Value;
-                if (this.compilation.Options.OutputKind.IsApplication() && !String.IsNullOrEmpty(cultureString))
+                if (!string.IsNullOrEmpty(cultureString))
                 {
-                    Location attributeArgumentSyntaxLocation = attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt);
-                    arguments.Diagnostics.Add(ErrorCode.ERR_InvalidAssemblyCultureForExe, attributeArgumentSyntaxLocation);
+                    if (this.compilation.Options.OutputKind.IsApplication())
+                    {
+                        arguments.Diagnostics.Add(ErrorCode.ERR_InvalidAssemblyCultureForExe, attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt));
+                    }
+                    else if (!AssemblyIdentity.IsValidCultureName(cultureString))
+                    {
+                        arguments.Diagnostics.Add(ErrorCode.ERR_InvalidAssemblyCulture, attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt));
+                        cultureString = null;
+                    }
                 }
 
                 arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().AssemblyCultureAttributeSetting = cultureString;

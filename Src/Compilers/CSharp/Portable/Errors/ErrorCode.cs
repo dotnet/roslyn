@@ -1227,8 +1227,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EnCNoDynamicOperation = 7097,
         ERR_LinkedNetmoduleMetadataMustProvideFullPEImage = 7098,
         ERR_MetadataReferencesNotSupported = 7099,
+        ERR_InvalidAssemblyCulture = 7100,
 
-        // available 7100-8000
+        // available 7101-8000
 
         WRN_UnimplementedCommandLineSwitch = 8001,
         WRN_ReferencedAssemblyDoesNotHaveStrongName = 8002,

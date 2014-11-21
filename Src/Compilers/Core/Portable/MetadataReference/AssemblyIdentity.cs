@@ -124,6 +124,27 @@ namespace Microsoft.CodeAnalysis
             InitializeKey(publicKeyOrToken, hasPublicKey, out this.publicKey, out this.lazyPublicKeyToken);
         }
 
+        // asserting constructor used by SourceAssemblySymbol:
+        internal AssemblyIdentity(
+            string name,
+            Version version,
+            string cultureName,
+            ImmutableArray<byte> publicKeyOrToken,
+            bool hasPublicKey)
+        {
+            Debug.Assert(IsValidName(name));
+            Debug.Assert(IsValid(version));
+            Debug.Assert(IsValidCultureName(cultureName));
+            Debug.Assert((hasPublicKey && !publicKeyOrToken.IsDefaultOrEmpty) || (publicKeyOrToken.IsDefaultOrEmpty || publicKeyOrToken.Length == PublicKeyTokenSize));
+
+            this.name = name;
+            this.version = version ?? NullVersion;
+            this.cultureName = cultureName ?? string.Empty;
+            this.isRetargetable = false;
+            this.contentType = AssemblyContentType.Default;
+            InitializeKey(publicKeyOrToken, hasPublicKey, out this.publicKey, out this.lazyPublicKeyToken);
+        }
+
         // error-tolerant constructor used by metadata reader:
         internal AssemblyIdentity(
             string name,
@@ -158,8 +179,8 @@ namespace Microsoft.CodeAnalysis
             InitializeKey(publicKeyOrToken, hasPublicKey, out this.publicKey, out this.lazyPublicKeyToken);
 
             this.name = name;
-            this.version = version;
-            this.cultureName = cultureName != null ? cultureName : string.Empty;
+            this.version = version ?? NullVersion;
+            this.cultureName = cultureName ?? string.Empty;
             this.contentType = IsValid(contentType) ? contentType : AssemblyContentType.Default;
             this.isRetargetable = isRetargetable && this.contentType != AssemblyContentType.WindowsRuntime;
         }
@@ -179,8 +200,12 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static bool IsValidCultureName(string name)
+        internal static bool IsValidCultureName(string name)
         {
+            // NOTE: if these checks change, the error messages emitted by the compilers when
+            //       this case is detected will also need to change. They currently directly
+            //       name the presence of the NUL character as the reason that the culture
+            //       name is invalid.
             return name == null || name.IndexOf('\0') < 0;
         }
 
@@ -189,7 +214,7 @@ namespace Microsoft.CodeAnalysis
             return !string.IsNullOrEmpty(name) && name.IndexOf('\0') < 0;
         }
 
-        internal static readonly Version NullVersion = new Version(0, 0, 0, 0);
+        internal readonly static Version NullVersion = new Version(0, 0, 0, 0);
 
         private static bool IsValid(Version value)
         {

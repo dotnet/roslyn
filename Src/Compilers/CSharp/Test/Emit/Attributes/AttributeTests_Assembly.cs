@@ -209,12 +209,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.Emit(Stream.Null);
         }
 
-        [Fact(Skip = "Bug 1034455"), WorkItem(1034455)]
-        public void NullCharInAssemblyCultureAttribute()
+        [Fact, WorkItem(1034455)]
+        public void NulCharInAssemblyCultureAttribute()
         {
             string s = @"[assembly: System.Reflection.AssemblyCultureAttribute(""\0"")]";
             var comp = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll);
-            comp.GetDiagnostics();
+            comp.VerifyDiagnostics(
+                // (1,55): error CS7100: Assembly culture strings may not contain embedded NUL characters.
+                // [assembly: System.Reflection.AssemblyCultureAttribute("\0")]
+                Diagnostic(ErrorCode.ERR_InvalidAssemblyCulture, @"""\0""").WithLocation(1, 55));
         }
 
         [Fact]
