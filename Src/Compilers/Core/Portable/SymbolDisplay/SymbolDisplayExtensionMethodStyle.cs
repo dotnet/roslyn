@@ -9,15 +9,20 @@ namespace Microsoft.CodeAnalysis
     public enum SymbolDisplayExtensionMethodStyle
     {
         /// <summary>
-        /// Displays the extension method as a static method. 
-        /// For example, Enumerable.ElementAt&lt;TSource&gt;(this IEnumerable&lt;TSource&gt; source, int index).
+        /// Displays the extension method based on its <see cref="MethodKind"/>.
         /// </summary>
-        StaticMethod = 0,
+        Default = 0,
 
         /// <summary>
         /// Displays the extension method in the form of an instance method. 
         /// For example, IEnumerable&lt;TSource&gt;.ElementAt&lt;TSource&gt;(int index).
         /// </summary>
-        InstanceMethod = 1
+        InstanceMethod = 1,
+
+        /// <summary>
+        /// Displays the extension method as a static method. 
+        /// For example, Enumerable.ElementAt&lt;TSource&gt;(this IEnumerable&lt;TSource&gt; source, int index).
+        /// </summary>
+        StaticMethod = 2
     }
 }

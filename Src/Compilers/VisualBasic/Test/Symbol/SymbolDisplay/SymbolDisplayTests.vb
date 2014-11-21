@@ -554,7 +554,7 @@ end namespace
                 text,
                 findSymbol,
                 format,
-                "Public Function C1(Of TSource).M(Of TSource)(index As Integer) As TSource",
+                "Public Function C1(Of TSource).M(index As Integer) As TSource",
                 {SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Keyword,
@@ -565,6 +565,325 @@ end namespace
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.TypeParameterName,
                 SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName})
+        End Sub
+
+        <Fact>
+        Public Sub TestExtensionMethodAsDefault()
+            Dim text =
+<compilation>
+    <file name="a.vb">
+        class C1(Of T)
+        end class
+        module C2 
+            &lt;System.Runtime.CompilerServices.ExtensionAttribute()&gt;
+            public function M(Of TSource)(source As C1(Of TSource), index As Integer) As TSource
+            end function
+        end module
+    </file>
+</compilation>
+
+            Dim findSymbol As Func(Of NamespaceSymbol, Symbol) = Function(globalns) globalns.GetTypeMembers("C2", 0).Single().
+                                                                                        GetMember(Of MethodSymbol)("M")
+
+            Dim format = New SymbolDisplayFormat(
+                extensionMethodStyle:=SymbolDisplayExtensionMethodStyle.Default,
+                genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters Or SymbolDisplayGenericsOptions.IncludeVariance,
+                memberOptions:=SymbolDisplayMemberOptions.IncludeParameters Or SymbolDisplayMemberOptions.IncludeModifiers Or SymbolDisplayMemberOptions.IncludeAccessibility Or SymbolDisplayMemberOptions.IncludeType Or SymbolDisplayMemberOptions.IncludeContainingType,
+                kindOptions:=SymbolDisplayKindOptions.IncludeMemberKeyword,
+                parameterOptions:=SymbolDisplayParameterOptions.IncludeExtensionThis Or SymbolDisplayParameterOptions.IncludeType Or SymbolDisplayParameterOptions.IncludeName Or SymbolDisplayParameterOptions.IncludeDefaultValue,
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "Public Function C2.M(Of TSource)(source As C1(Of TSource), index As Integer) As TSource",
+                {SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ModuleName,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName})
+        End Sub
+
+        <Fact>
+        Public Sub TestIrreducibleExtensionMethodAsInstance()
+            Dim text =
+<compilation>
+    <file name="a.vb">
+        class C1(Of T)
+        end class
+        module C2 
+            &lt;System.Runtime.CompilerServices.ExtensionAttribute()&gt;
+            public function M(Of TSource As Structure)(source As C1(Of TSource), index As Integer) As TSource
+            end function
+        end module
+    </file>
+</compilation>
+
+            Dim findSymbol As Func(Of NamespaceSymbol, Symbol) = Function(globalns)
+                                                                     Dim c2Type = globalns.GetTypeMember("C2")
+                                                                     Dim method = c2Type.GetMember(Of MethodSymbol)("M")
+                                                                     Return method.Construct(c2Type)
+                                                                 End Function
+
+
+            Dim format = New SymbolDisplayFormat(
+                extensionMethodStyle:=SymbolDisplayExtensionMethodStyle.InstanceMethod,
+                genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters Or SymbolDisplayGenericsOptions.IncludeVariance,
+                memberOptions:=SymbolDisplayMemberOptions.IncludeParameters Or SymbolDisplayMemberOptions.IncludeModifiers Or SymbolDisplayMemberOptions.IncludeAccessibility Or SymbolDisplayMemberOptions.IncludeType Or SymbolDisplayMemberOptions.IncludeContainingType,
+                kindOptions:=SymbolDisplayKindOptions.IncludeMemberKeyword,
+                parameterOptions:=SymbolDisplayParameterOptions.IncludeExtensionThis Or SymbolDisplayParameterOptions.IncludeType Or SymbolDisplayParameterOptions.IncludeName Or SymbolDisplayParameterOptions.IncludeDefaultValue,
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "Public Function C2.M(Of C2)(source As C1(Of C2), index As Integer) As C2",
+                {SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ModuleName,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ModuleName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ModuleName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ModuleName})
+        End Sub
+
+        <Fact>
+        Public Sub TestReducedExtensionMethodAsStatic()
+            Dim text =
+<compilation>
+    <file name="a.vb">
+        class C1
+        end class
+        module C2 
+            &lt;System.Runtime.CompilerServices.ExtensionAttribute()&gt;
+            public function M(Of TSource)(source As C1, index As Integer) As TSource
+            end function
+        end module
+    </file>
+</compilation>
+
+            Dim findSymbol As Func(Of NamespaceSymbol, Symbol) = Function(globalns)
+                                                                     Dim type = globalns.GetTypeMember("C1")
+                                                                     Dim method = DirectCast(globalns.GetTypeMember("C2").GetMember("M"), MethodSymbol)
+                                                                     Return method.ReduceExtensionMethod(type)
+                                                                 End Function
+
+            Dim format = New SymbolDisplayFormat(
+                extensionMethodStyle:=SymbolDisplayExtensionMethodStyle.StaticMethod,
+                genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters Or SymbolDisplayGenericsOptions.IncludeVariance,
+                memberOptions:=SymbolDisplayMemberOptions.IncludeParameters Or SymbolDisplayMemberOptions.IncludeModifiers Or SymbolDisplayMemberOptions.IncludeAccessibility Or SymbolDisplayMemberOptions.IncludeType Or SymbolDisplayMemberOptions.IncludeContainingType,
+                kindOptions:=SymbolDisplayKindOptions.IncludeMemberKeyword,
+                parameterOptions:=SymbolDisplayParameterOptions.IncludeExtensionThis Or SymbolDisplayParameterOptions.IncludeType Or SymbolDisplayParameterOptions.IncludeName Or SymbolDisplayParameterOptions.IncludeDefaultValue,
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "Public Function C2.M(Of TSource)(source As C1, index As Integer) As TSource",
+                {SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ModuleName,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName})
+        End Sub
+
+        <Fact>
+        Public Sub TestReducedExtensionMethodAsInstance()
+            Dim text =
+<compilation>
+    <file name="a.vb">
+        class C1
+        end class
+        module C2 
+            &lt;System.Runtime.CompilerServices.ExtensionAttribute()&gt;
+            public function M(Of TSource)(source As C1, index As Integer) As TSource
+            end function
+        end module
+    </file>
+</compilation>
+
+            Dim findSymbol As Func(Of NamespaceSymbol, Symbol) = Function(globalns)
+                                                                     Dim type = globalns.GetTypeMember("C1")
+                                                                     Dim method = DirectCast(globalns.GetTypeMember("C2").GetMember("M"), MethodSymbol)
+                                                                     Return method.ReduceExtensionMethod(type)
+                                                                 End Function
+
+            Dim format = New SymbolDisplayFormat(
+                extensionMethodStyle:=SymbolDisplayExtensionMethodStyle.InstanceMethod,
+                genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters Or SymbolDisplayGenericsOptions.IncludeVariance,
+                memberOptions:=SymbolDisplayMemberOptions.IncludeParameters Or SymbolDisplayMemberOptions.IncludeModifiers Or SymbolDisplayMemberOptions.IncludeAccessibility Or SymbolDisplayMemberOptions.IncludeType Or SymbolDisplayMemberOptions.IncludeContainingType,
+                kindOptions:=SymbolDisplayKindOptions.IncludeMemberKeyword,
+                parameterOptions:=SymbolDisplayParameterOptions.IncludeExtensionThis Or SymbolDisplayParameterOptions.IncludeType Or SymbolDisplayParameterOptions.IncludeName Or SymbolDisplayParameterOptions.IncludeDefaultValue,
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "Public Function C1.M(Of TSource)(index As Integer) As TSource",
+                {SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Operator,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName})
+        End Sub
+
+        <Fact>
+        Public Sub TestReducedExtensionMethodAsDefault()
+            Dim text =
+<compilation>
+    <file name="a.vb">
+        class C1
+        end class
+        module C2 
+            &lt;System.Runtime.CompilerServices.ExtensionAttribute()&gt;
+            public function M(Of TSource)(source As C1, index As Integer) As TSource
+            end function
+        end module
+    </file>
+</compilation>
+
+            Dim findSymbol As Func(Of NamespaceSymbol, Symbol) = Function(globalns)
+                                                                     Dim type = globalns.GetTypeMember("C1")
+                                                                     Dim method = DirectCast(globalns.GetTypeMember("C2").GetMember("M"), MethodSymbol)
+                                                                     Return method.ReduceExtensionMethod(type)
+                                                                 End Function
+
+            Dim format = New SymbolDisplayFormat(
+                extensionMethodStyle:=SymbolDisplayExtensionMethodStyle.Default,
+                genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters Or SymbolDisplayGenericsOptions.IncludeVariance,
+                memberOptions:=SymbolDisplayMemberOptions.IncludeParameters Or SymbolDisplayMemberOptions.IncludeModifiers Or SymbolDisplayMemberOptions.IncludeAccessibility Or SymbolDisplayMemberOptions.IncludeType Or SymbolDisplayMemberOptions.IncludeContainingType,
+                kindOptions:=SymbolDisplayKindOptions.IncludeMemberKeyword,
+                parameterOptions:=SymbolDisplayParameterOptions.IncludeExtensionThis Or SymbolDisplayParameterOptions.IncludeType Or SymbolDisplayParameterOptions.IncludeName Or SymbolDisplayParameterOptions.IncludeDefaultValue,
+                miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "Public Function C1.M(Of TSource)(index As Integer) As TSource",
+                {SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
                 SymbolDisplayPartKind.Operator,
                 SymbolDisplayPartKind.MethodName,
                 SymbolDisplayPartKind.Punctuation,

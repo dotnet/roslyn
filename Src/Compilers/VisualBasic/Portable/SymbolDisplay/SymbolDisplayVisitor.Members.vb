@@ -166,6 +166,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return
             End If
 
+            If symbol.IsExtensionMethod AndAlso format.ExtensionMethodStyle <> SymbolDisplayExtensionMethodStyle.Default Then
+                If symbol.MethodKind = MethodKind.ReducedExtension AndAlso format.ExtensionMethodStyle = SymbolDisplayExtensionMethodStyle.StaticMethod Then
+                    symbol = symbol.GetConstructedReducedFrom()
+                ElseIf symbol.MethodKind <> MethodKind.ReducedExtension AndAlso format.ExtensionMethodStyle = SymbolDisplayExtensionMethodStyle.InstanceMethod Then
+                    ' If we cannot reduce this to an instance form then display in the static form
+                    symbol = If(symbol.ReduceExtensionMethod(symbol.Parameters.First().Type), symbol)
+                End If
+            End If
+
             AddAccessibilityIfRequired(symbol)
             AddMemberModifiersIfRequired(symbol)
             AddMethodKind(symbol)
@@ -280,11 +289,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If symbol.MethodKind = MethodKind.ReducedExtension Then
                     containingType = symbol.ReceiverType
                     Debug.Assert(containingType IsNot Nothing)
-                ElseIf format.ExtensionMethodStyle = SymbolDisplayExtensionMethodStyle.InstanceMethod AndAlso
-                    symbol.IsExtensionMethod Then
-
-                    Debug.Assert(symbol.Parameters.Length >= 1)
-                    containingType = symbol.Parameters(0).Type
                 Else
                     containingType = TryCast(symbol.ContainingSymbol, INamedTypeSymbol)
                 End If
@@ -362,7 +366,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 AddParametersIfRequired(isExtensionMethod:=method.IsExtensionMethod AndAlso method.MethodKind <> MethodKind.ReducedExtension,
                                         parameters:=method.Parameters)
                 AddPunctuation(SyntaxKind.CloseParenToken)
-            End If
+                End If
         End Sub
 
         Private Sub AddMethodReturnType(method As IMethodSymbol)
@@ -602,14 +606,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim first As Boolean = True
-            Dim skipFirstParameter = isExtensionMethod AndAlso format.ExtensionMethodStyle = SymbolDisplayExtensionMethodStyle.InstanceMethod
             For Each param In parameters
-                If skipFirstParameter Then
-                    ' skip first parameter completely for extension methods displayed as instance methods.
-                    skipFirstParameter = False
-                    Continue For
-                End If
-
                 If Not first Then
                     AddPunctuation(SyntaxKind.CommaToken)
                     AddSpace()

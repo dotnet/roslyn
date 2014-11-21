@@ -180,6 +180,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            if (symbol.IsExtensionMethod && format.ExtensionMethodStyle != SymbolDisplayExtensionMethodStyle.Default)
+            {
+                if (symbol.MethodKind == MethodKind.ReducedExtension && format.ExtensionMethodStyle == SymbolDisplayExtensionMethodStyle.StaticMethod)
+                {
+                    symbol = symbol.GetConstructedReducedFrom();
+                }
+                else if (symbol.MethodKind != MethodKind.ReducedExtension && format.ExtensionMethodStyle == SymbolDisplayExtensionMethodStyle.InstanceMethod)
+                {
+                    // If we cannot reduce this to an instance form then display in the static form
+                    symbol = symbol.ReduceExtensionMethod(symbol.Parameters.First().Type) ?? symbol;
+                }
+            }
+
             // Method members always have a type unless (1) this is a lambda method symbol, which we 
             // have dealt with already, or (2) this is an error method symbol. If we have an error method
             // symbol then we do not know its accessibility, modifiers, etc, all of which require knowing
@@ -255,18 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (includeType)
                     {
-                        if (format.ExtensionMethodStyle == SymbolDisplayExtensionMethodStyle.InstanceMethod &&
-                            symbol.IsExtensionMethod && symbol.MethodKind != MethodKind.ReducedExtension)
-                        {
-                            Debug.Assert(symbol.Parameters.Length >= 1);
-
-                            symbol.Parameters[0].Type.Accept(this.NotFirstVisitor);
-                        }
-                        else
-                        {
-                            containingType.Accept(this.NotFirstVisitor);
-                        }
-
+                        containingType.Accept(this.NotFirstVisitor);
                         AddPunctuation(SyntaxKind.DotToken);
                     }
                 }
@@ -594,8 +596,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var first = true;
-            var skipFirstParameter = hasThisParameter && format.ExtensionMethodStyle == SymbolDisplayExtensionMethodStyle.InstanceMethod;
-
+            
             // The display code is called by the debugger; if a developer is debugging Roslyn and attempts
             // to visualize a symbol *during its construction*, the parameters and return type might 
             // still be null. 
@@ -604,19 +605,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var param in parameters)
                 {
-                    if (skipFirstParameter)
-                    {
-                        // skip first parameter completely for extension methods displayed as instance methods.
-                        skipFirstParameter = false;
-                        continue;
-                    }
-
                     if (!first)
                     {
                         AddPunctuation(SyntaxKind.CommaToken);
                         AddSpace();
                     }
-                    else if (hasThisParameter && format.ExtensionMethodStyle != SymbolDisplayExtensionMethodStyle.InstanceMethod)
+                    else if (hasThisParameter)
                     {
                         if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeExtensionThis))
                         {

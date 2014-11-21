@@ -373,9 +373,7 @@ namespace N1 {
                 text,
                 findSymbol,
                 format,
-                "public static TSource C1<TSource>.M<TSource>(int index)",
-                SymbolDisplayPartKind.Keyword,
-                SymbolDisplayPartKind.Space,
+                "public TSource C1<TSource>.M<TSource>(int index)",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.TypeParameterName, //TSource
@@ -384,6 +382,248 @@ namespace N1 {
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.TypeParameterName, //TSource
                 SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.MethodName, //M
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.TypeParameterName, //TSource
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName, //index
+                SymbolDisplayPartKind.Punctuation);
+        }
+
+        [Fact]
+        public void TestExtensionMethodAsDefault()
+        {
+            var text = @"
+            class C1<T> { }
+            class C2 {
+                public static TSource M<TSource>(this C1<TSource> source, int index) {} }
+";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.GetTypeMembers("C2").Single().
+                GetMembers("M").Single();
+
+            var format = new SymbolDisplayFormat(
+                extensionMethodStyle: SymbolDisplayExtensionMethodStyle.Default,
+                genericsOptions:
+                    SymbolDisplayGenericsOptions.IncludeTypeParameters |
+                    SymbolDisplayGenericsOptions.IncludeVariance,
+                memberOptions:
+                    SymbolDisplayMemberOptions.IncludeParameters |
+                    SymbolDisplayMemberOptions.IncludeModifiers |
+                    SymbolDisplayMemberOptions.IncludeAccessibility |
+                    SymbolDisplayMemberOptions.IncludeType |
+                    SymbolDisplayMemberOptions.IncludeContainingType,
+                parameterOptions:
+                    SymbolDisplayParameterOptions.IncludeExtensionThis |
+                    SymbolDisplayParameterOptions.IncludeType |
+                    SymbolDisplayParameterOptions.IncludeName |
+                    SymbolDisplayParameterOptions.IncludeDefaultValue,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "public static TSource C2.M<TSource>(this C1<TSource> source, int index)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName, //TSource
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName, //C2
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.MethodName, //M
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.TypeParameterName, //TSource
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName, //C1
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.TypeParameterName, //TSource
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName, //source
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName, //index
+                SymbolDisplayPartKind.Punctuation);
+        }
+
+        [Fact]
+        public void TestReducedExtensionMethodAsStatic()
+        {
+            var text = @"
+            class C1 { }
+            class C2 {
+                public static TSource M<TSource>(this C1 source, int index) {} }
+";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+            {
+                var type = global.GetTypeMember("C1");
+                var method = (MethodSymbol)global.GetTypeMember("C2").GetMember("M");
+                return method.ReduceExtensionMethod(type);
+            };
+
+            var format = new SymbolDisplayFormat(
+                extensionMethodStyle: SymbolDisplayExtensionMethodStyle.StaticMethod,
+                genericsOptions:
+                    SymbolDisplayGenericsOptions.IncludeTypeParameters |
+                    SymbolDisplayGenericsOptions.IncludeVariance,
+                memberOptions:
+                    SymbolDisplayMemberOptions.IncludeParameters |
+                    SymbolDisplayMemberOptions.IncludeModifiers |
+                    SymbolDisplayMemberOptions.IncludeAccessibility |
+                    SymbolDisplayMemberOptions.IncludeType |
+                    SymbolDisplayMemberOptions.IncludeContainingType,
+                parameterOptions:
+                    SymbolDisplayParameterOptions.IncludeExtensionThis |
+                    SymbolDisplayParameterOptions.IncludeType |
+                    SymbolDisplayParameterOptions.IncludeName |
+                    SymbolDisplayParameterOptions.IncludeDefaultValue,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "public static TSource C2.M<TSource>(this C1 source, int index)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName, //TSource
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName, //C2
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.MethodName, //M
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.TypeParameterName, //TSource
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName, //C1
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName, //source
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName, //index
+                SymbolDisplayPartKind.Punctuation);
+        }
+
+        [Fact]
+        public void TestReducedExtensionMethodAsInstance()
+        {
+            var text = @"
+            class C1 { }
+            class C2 {
+                public static TSource M<TSource>(this C1 source, int index) {} }
+";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+            {
+                var type = global.GetTypeMember("C1");
+                var method = (MethodSymbol)global.GetTypeMember("C2").GetMember("M");
+                return method.ReduceExtensionMethod(type);
+            };
+
+            var format = new SymbolDisplayFormat(
+                extensionMethodStyle: SymbolDisplayExtensionMethodStyle.InstanceMethod,
+                genericsOptions:
+                    SymbolDisplayGenericsOptions.IncludeTypeParameters |
+                    SymbolDisplayGenericsOptions.IncludeVariance,
+                memberOptions:
+                    SymbolDisplayMemberOptions.IncludeParameters |
+                    SymbolDisplayMemberOptions.IncludeModifiers |
+                    SymbolDisplayMemberOptions.IncludeAccessibility |
+                    SymbolDisplayMemberOptions.IncludeType |
+                    SymbolDisplayMemberOptions.IncludeContainingType,
+                parameterOptions:
+                    SymbolDisplayParameterOptions.IncludeExtensionThis |
+                    SymbolDisplayParameterOptions.IncludeType |
+                    SymbolDisplayParameterOptions.IncludeName |
+                    SymbolDisplayParameterOptions.IncludeDefaultValue,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "public TSource C1.M<TSource>(int index)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName, //TSource
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName, //C1
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.MethodName, //M
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.TypeParameterName, //TSource
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ParameterName, //index
+                SymbolDisplayPartKind.Punctuation);
+        }
+
+        [Fact]
+        public void TestReducedExtensionMethodAsDefault()
+        {
+            var text = @"
+            class C1 { }
+            class C2 {
+                public static TSource M<TSource>(this C1 source, int index) {} }
+";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+            {
+                var type = global.GetTypeMember("C1");
+                var method = (MethodSymbol)global.GetTypeMember("C2").GetMember("M");
+                return method.ReduceExtensionMethod(type);
+            };
+
+            var format = new SymbolDisplayFormat(
+                extensionMethodStyle: SymbolDisplayExtensionMethodStyle.Default,
+                genericsOptions:
+                    SymbolDisplayGenericsOptions.IncludeTypeParameters |
+                    SymbolDisplayGenericsOptions.IncludeVariance,
+                memberOptions:
+                    SymbolDisplayMemberOptions.IncludeParameters |
+                    SymbolDisplayMemberOptions.IncludeModifiers |
+                    SymbolDisplayMemberOptions.IncludeAccessibility |
+                    SymbolDisplayMemberOptions.IncludeType |
+                    SymbolDisplayMemberOptions.IncludeContainingType,
+                parameterOptions:
+                    SymbolDisplayParameterOptions.IncludeExtensionThis |
+                    SymbolDisplayParameterOptions.IncludeType |
+                    SymbolDisplayParameterOptions.IncludeName |
+                    SymbolDisplayParameterOptions.IncludeDefaultValue,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "public TSource C1.M<TSource>(int index)",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName, //TSource
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName, //C1
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.MethodName, //M
                 SymbolDisplayPartKind.Punctuation,
