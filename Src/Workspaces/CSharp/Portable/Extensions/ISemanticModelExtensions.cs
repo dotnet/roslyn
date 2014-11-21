@@ -315,10 +315,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             TypeSyntax type,
             CancellationToken cancellationToken)
         {
-            if (type != null)
+            if (type == null)
             {
-                type = GetOutermostType(type);
+                return Accessibility.Private;
             }
+
+            type = GetOutermostType(type);
 
             // Interesting cases based on 3.5.4 Accessibility constraints in the language spec.
             // If any of the below hold, then we will override the default accessibility if the

@@ -222,11 +222,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Public Function DetermineAccessibilityConstraint(semanticModel As SemanticModel,
                                                          type As TypeSyntax,
                                                          cancellationToken As CancellationToken) As Accessibility
-            If type IsNot Nothing Then
-                If type.IsParentKind(SyntaxKind.InheritsStatement) Then
-                    Dim containingType = semanticModel.GetEnclosingNamedType(type.SpanStart, cancellationToken)
-                    Return containingType.DeclaredAccessibility
-                End If
+            If type Is Nothing Then
+                Return Accessibility.Private
+            End If
+
+            type = type.GetAncestorsOrThis(Of TypeSyntax)().Last()
+
+            If type.IsParentKind(SyntaxKind.InheritsStatement) Then
+                Dim containingType = semanticModel.GetEnclosingNamedType(type.SpanStart, cancellationToken)
+                Return containingType.DeclaredAccessibility
             End If
 
             If type.IsParentKind(SyntaxKind.SimpleAsClause) AndAlso
