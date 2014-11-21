@@ -1005,6 +1005,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 Return String.Format("Error {0}", code)
             End Function
 
+            Public Overrides Function GetDescription(code As Integer) As LocalizableString
+                Return String.Empty
+            End Function
+
+            Public Overrides Function GetTitle(code As Integer) As LocalizableString
+                Return String.Empty
+            End Function
+
+            Public Overrides Function GetMessageFormat(code As Integer) As LocalizableString
+                Return String.Empty
+            End Function
+
+            Public Overrides Function GetHelpLink(code As Integer) As String
+                Return String.Empty
+            End Function
+
             Public Overrides Function GetWarningLevel(code As Integer) As Integer
                 Return 0
             End Function

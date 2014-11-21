@@ -33,6 +33,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ErrorFactory.IdToString(DirectCast(code, ERRID), language)
         End Function
 
+        Public Overrides Function GetMessageFormat(code As Integer) As LocalizableString
+            Return ErrorFactory.GetMessageFormat(DirectCast(code, ERRID))
+        End Function
+
+        Public Overrides Function GetDescription(code As Integer) As LocalizableString
+            Return ErrorFactory.GetDescription(DirectCast(code, ERRID))
+        End Function
+
+        Public Overrides Function GetTitle(code As Integer) As LocalizableString
+            Return ErrorFactory.GetTitle(DirectCast(code, ERRID))
+        End Function
+
+        Public Overrides Function GetHelpLink(code As Integer) As String
+            Return ErrorFactory.GetHelpLink(DirectCast(code, ERRID))
+        End Function
+
         Public Overrides Function GetSeverity(code As Integer) As DiagnosticSeverity
             Dim errid = DirectCast(code, ERRID)
             If errid = ERRID.Void Then

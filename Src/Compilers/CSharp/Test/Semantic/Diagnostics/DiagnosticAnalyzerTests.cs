@@ -21,27 +21,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Serializable]
         class TestDiagnostic : Diagnostic, ISerializable
         {
-            private readonly string id;
             private readonly string kind;
             private readonly DiagnosticSeverity severity;
-            private readonly DiagnosticSeverity defaultSeverity;
             private readonly Location location;
             private readonly string message;
             private readonly object[] arguments;
+            private readonly DiagnosticDescriptor descriptor;
             private static readonly Location[] emptyLocations = new Location[0];
-            private static readonly string[] emptyCustomTags = new string[0];
-
+            
             public TestDiagnostic(string id, string kind, DiagnosticSeverity severity, Location location, string message, params object[] arguments)
-                : this(id, kind, severity, severity, location, message, arguments)
+                : this (new DiagnosticDescriptor(id, string.Empty, message, id, severity, isEnabledByDefault: true), kind, severity, location, message, arguments)
             {
-
             }
-            public TestDiagnostic(string id, string kind, DiagnosticSeverity severity, DiagnosticSeverity defaultSeverity, Location location, string message, params object[] arguments)
+
+            public TestDiagnostic(DiagnosticDescriptor descriptor, string kind, DiagnosticSeverity severity, Location location, string message, params object[] arguments)
             {
-                this.id = id;
+                this.descriptor = descriptor;
                 this.kind = kind;
                 this.severity = severity;
-                this.defaultSeverity = defaultSeverity;
                 this.location = location;
                 this.message = message;
                 this.arguments = arguments;
@@ -49,15 +46,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             public override IReadOnlyList<Location> AdditionalLocations { get { return emptyLocations; } }
 
-            public override IReadOnlyList<string> CustomTags { get { return emptyCustomTags; } }
+            public override string Id { get { return descriptor.Id; } }
 
-            public override string Id { get { return id; } }
-
-            public override string Category { get { return kind; } }
-
-            public override DiagnosticDescriptor Descriptor { get { return null; } }
-
-            public override string HelpLink { get { return string.Empty; } }
+            public override DiagnosticDescriptor Descriptor { get { return descriptor; } }
 
             public override Location Location { get { return location; } }
 
@@ -65,15 +56,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             public override DiagnosticSeverity Severity { get { return severity; } }
 
-            public override DiagnosticSeverity DefaultSeverity { get { return defaultSeverity; } }
-
-            public override bool IsEnabledByDefault { get { return true; } }
+            public override DiagnosticSeverity DefaultSeverity { get { return descriptor.DefaultSeverity; } }
 
             public override int WarningLevel { get { return 2; } }
 
             public override int GetHashCode()
             {
-                return Hash.Combine(this.id.GetHashCode(), this.kind.GetHashCode());
+                return Hash.Combine(this.descriptor.Id.GetHashCode(), this.kind.GetHashCode());
             }
 
             public override bool Equals(object obj)
@@ -90,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 if (other == null || this.GetType() != other.GetType()) return false;
                 return
-                    this.id == other.id &&
+                    this.descriptor.Id == other.descriptor.Id &&
                     this.kind == other.kind &&
                     this.location == other.location &&
                     this.message == other.message &&
@@ -109,23 +98,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             private TestDiagnostic(SerializationInfo info, StreamingContext context)
             {
-                this.id = info.GetString("id");
+                var id = info.GetString("id");
                 this.kind = info.GetString("kind");
                 this.message = info.GetString("message");
                 this.location = (Location)info.GetValue("location", typeof(Location));
                 this.severity = (DiagnosticSeverity)info.GetValue("severity", typeof(DiagnosticSeverity));
-                this.defaultSeverity = (DiagnosticSeverity)info.GetValue("defaultSeverity", typeof(DiagnosticSeverity));
+                var defaultSeverity = (DiagnosticSeverity)info.GetValue("defaultSeverity", typeof(DiagnosticSeverity));
                 this.arguments = (object[])info.GetValue("arguments", typeof(object[]));
+                this.descriptor = new DiagnosticDescriptor(id, string.Empty, message, id, defaultSeverity, isEnabledByDefault: true);
             }
 
             void ISerializable.GetObjectData(SerializationInfo info, StreamingContext context)
             {
-                info.AddValue("id", this.id);
+                info.AddValue("id", this.descriptor.Id);
                 info.AddValue("kind", this.kind);
                 info.AddValue("message", this.message);
                 info.AddValue("location", this.location, typeof(Location));
                 info.AddValue("severity", this.severity, typeof(DiagnosticSeverity));
-                info.AddValue("defaultSeverity", this.defaultSeverity, typeof(DiagnosticSeverity));
+                info.AddValue("defaultSeverity", this.descriptor.DefaultSeverity, typeof(DiagnosticSeverity));
                 info.AddValue("arguments", this.arguments, typeof(object[]));
             }
 
@@ -137,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             internal override Diagnostic WithSeverity(DiagnosticSeverity severity)
             {
-                return new TestDiagnostic(this.id, this.kind, severity, this.defaultSeverity, this.location, this.message, this.arguments);
+                return new TestDiagnostic(this.descriptor, this.kind, severity, this.location, this.message, this.arguments);
             }
         }
 

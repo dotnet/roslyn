@@ -18,14 +18,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             Inherits Diagnostic
             Implements ISerializable
 
-            Private ReadOnly m_id As String
             Private ReadOnly m_kind As String
             Private ReadOnly m_severity As DiagnosticSeverity
-            Private ReadOnly m_defaultSeverity As DiagnosticSeverity
             Private ReadOnly m_location As Location
             Private ReadOnly m_message As String
             Private ReadOnly m_isWarningAsError As Boolean
             Private ReadOnly m_arguments As Object()
+            Private ReadOnly m_descriptor As DiagnosticDescriptor
 
             Public Sub New(id As String,
                            kind As String,
@@ -33,33 +32,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                            location As Location,
                            message As String,
                            ParamArray arguments As Object())
-                Me.New(id, kind, severity, severity, location, message, arguments)
-            End Sub
-
-            Public Sub New(id As String,
-                           kind As String,
-                           severity As DiagnosticSeverity,
-                           defaultSeverity As DiagnosticSeverity,
-                           location As Location,
-                           message As String,
-                           ParamArray arguments As Object())
-                Me.m_id = id
-                Me.m_kind = kind
-                Me.m_severity = severity
-                Me.m_defaultSeverity = defaultSeverity
-                Me.m_location = location
-                Me.m_message = message
-                Me.m_arguments = arguments
+                Me.New(New DiagnosticDescriptor(id, String.Empty, message, id, severity, True), kind, severity, location, message, arguments)
             End Sub
 
             Private Sub New(info As SerializationInfo, context As StreamingContext)
-                Me.m_id = info.GetString("id")
+                Dim id = info.GetString("id")
                 Me.m_kind = info.GetString("kind")
                 Me.m_message = info.GetString("message")
                 Me.m_location = CType(info.GetValue("location", GetType(Location)), Location)
                 Me.m_severity = CType(info.GetValue("severity", GetType(DiagnosticSeverity)), DiagnosticSeverity)
-                Me.m_defaultSeverity = CType(info.GetValue("defaultSeverity", GetType(DiagnosticSeverity)), DiagnosticSeverity)
+                Dim defaultSeverity = CType(info.GetValue("defaultSeverity", GetType(DiagnosticSeverity)), DiagnosticSeverity)
                 Me.m_arguments = CType(info.GetValue("arguments", GetType(Object())), Object())
+                Me.m_descriptor = New DiagnosticDescriptor(id, String.Empty, m_message, id, defaultSeverity, True)
+            End Sub
+
+            Private Sub New(descriptor As DiagnosticDescriptor,
+                           kind As String,
+                           severity As DiagnosticSeverity,
+                           location As Location,
+                           message As String,
+                           ParamArray arguments As Object())
+                Me.m_descriptor = descriptor
+                Me.m_kind = kind
+                Me.m_severity = severity
+                Me.m_location = location
+                Me.m_message = message
+                Me.m_arguments = arguments
             End Sub
 
             Public Overrides ReadOnly Property AdditionalLocations As IReadOnlyList(Of Location)
@@ -69,35 +67,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                 End Get
             End Property
 
-            Public Overrides ReadOnly Property CustomTags As IReadOnlyList(Of String)
-                Get
-                    Dim tags As String() = New String(0) {}
-                    Return tags
-                End Get
-            End Property
-
             Public Overrides ReadOnly Property Id As String
                 Get
-                    Return m_id
-                End Get
-            End Property
-
-            Public Overrides ReadOnly Property Category As String
-                Get
-                    Return m_id
+                    Return m_descriptor.Id
                 End Get
             End Property
 
             Public Overrides ReadOnly Property Descriptor As DiagnosticDescriptor
                 Get
-                    ' TODO: Add support for Descriptor
-                    Return Nothing
-                End Get
-            End Property
-
-            Public Overrides ReadOnly Property HelpLink As String
-                Get
-                    Return String.Empty
+                    Return m_descriptor
                 End Get
             End Property
 
@@ -113,18 +91,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                 End Get
             End Property
 
-            Public Overrides ReadOnly Property DefaultSeverity As DiagnosticSeverity
-                Get
-                    Return m_defaultSeverity
-                End Get
-            End Property
-
-            Public Overrides ReadOnly Property IsEnabledByDefault As Boolean
-                Get
-                    Return True
-                End Get
-            End Property
-
             Public Overrides ReadOnly Property WarningLevel As Integer
                 Get
                     Return 2
@@ -132,12 +98,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             End Property
 
             Public Sub GetObjectData(info As SerializationInfo, context As StreamingContext) Implements ISerializable.GetObjectData
-                info.AddValue("id", Me.m_id)
+                info.AddValue("id", Me.m_descriptor.Id)
                 info.AddValue("kind", Me.m_kind)
                 info.AddValue("message", Me.m_message)
                 info.AddValue("location", Me.m_location, GetType(Location))
                 info.AddValue("severity", Me.m_severity, GetType(DiagnosticSeverity))
-                info.AddValue("defaultSeverity", Me.m_defaultSeverity, GetType(DiagnosticSeverity))
+                info.AddValue("defaultSeverity", Me.m_descriptor.DefaultSeverity, GetType(DiagnosticSeverity))
                 info.AddValue("arguments", Me.m_arguments, GetType(Object()))
             End Sub
 
@@ -150,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             End Function
 
             Public Overrides Function GetHashCode() As Integer
-                Return Hash.Combine(Me.m_id.GetHashCode(), Me.m_kind.GetHashCode())
+                Return Hash.Combine(Me.m_descriptor.GetHashCode(), Me.m_kind.GetHashCode())
             End Function
 
             Public Overloads Overrides Function Equals(obj As Object) As Boolean
@@ -163,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
             Public Overloads Function Equals(other As TestDiagnostic) As Boolean
                 If other Is Nothing OrElse Me.GetType() <> other.GetType() Then Return False
-                Return Me.m_id = other.m_id AndAlso
+                Return Me.m_descriptor.Id = other.m_descriptor.Id AndAlso
                     Me.m_kind = other.m_kind AndAlso
                     Me.m_location = other.m_location AndAlso
                     Me.m_message = other.m_message AndAlso
@@ -175,7 +141,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             End Function
 
             Friend Overrides Function WithSeverity(severity As DiagnosticSeverity) As Diagnostic
-                Return New TestDiagnostic(Me.m_id, Me.m_kind, severity, Me.m_defaultSeverity, Me.m_location, Me.m_message, Me.m_arguments)
+                Return New TestDiagnostic(Me.m_descriptor.Id, Me.m_kind, severity, Me.m_location, Me.m_message, Me.m_arguments)
             End Function
         End Class
 

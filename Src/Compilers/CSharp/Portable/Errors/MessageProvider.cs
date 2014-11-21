@@ -37,6 +37,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ErrorFacts.GetMessage((ErrorCode)code, language);
         }
 
+        public override LocalizableString GetMessageFormat(int code)
+        {
+            return ErrorFacts.GetMessageFormat((ErrorCode)code);
+        }
+
+        public override LocalizableString GetDescription(int code)
+        {
+            return ErrorFacts.GetDescription((ErrorCode)code);
+        }
+
+        public override LocalizableString GetTitle(int code)
+        {
+            return ErrorFacts.GetTitle((ErrorCode)code);
+        }
+
+        public override string GetHelpLink(int code)
+        {
+            return ErrorFacts.GetHelpLink((ErrorCode)code);
+        }
+
         public override string CodePrefix
         {
             get

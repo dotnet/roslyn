@@ -25,6 +25,22 @@ namespace Microsoft.CodeAnalysis
         public abstract string LoadMessage(int code, CultureInfo language);
 
         /// <summary>
+        /// </summary>
+        public abstract LocalizableString GetTitle(int code);
+
+        /// <summary>
+        /// </summary>
+        public abstract LocalizableString GetDescription(int code);
+
+        /// <summary>
+        /// </summary>
+        public abstract LocalizableString GetMessageFormat(int code);
+
+        /// <summary>
+        /// </summary>
+        public abstract string GetHelpLink(int code);
+
+        /// <summary>
         /// Get the text prefix (e.g., "CS" for C#) used on error messages.
         /// </summary>
         public abstract string CodePrefix { get; }

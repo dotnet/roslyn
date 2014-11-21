@@ -76,11 +76,6 @@ namespace Microsoft.CodeAnalysis
                 get { return this.descriptor.Id; }
             }
 
-            public override string Category
-            {
-                get { return this.descriptor.Category; }
-            }
-
             public override string GetMessage(IFormatProvider formatProvider = null)
             {
                 if (this.messageArgs.Length == 0)
@@ -97,29 +92,14 @@ namespace Microsoft.CodeAnalysis
                 get { return this.messageArgs; }
             }
 
-            public override string HelpLink
-            {
-                get { return this.descriptor.HelpLink; }
-            }
-
             public override DiagnosticSeverity Severity
             {
                 get { return this.severity; }
             }
 
-            public override bool IsEnabledByDefault
-            {
-                get { return this.descriptor.IsEnabledByDefault; }
-            }
-
             public override int WarningLevel
             {
                 get { return this.warningLevel; }
-            }
-
-            public override DiagnosticSeverity DefaultSeverity
-            {
-                get { return this.descriptor.DefaultSeverity; }
             }
 
             public override Location Location
@@ -130,11 +110,6 @@ namespace Microsoft.CodeAnalysis
             public override IReadOnlyList<Location> AdditionalLocations
             {
                 get { return this.additionalLocations; }
-            }
-
-            public override IReadOnlyList<string> CustomTags
-            {
-                get { return (IReadOnlyList<string>)this.descriptor.CustomTags; }
             }
 
             public override bool Equals(Diagnostic obj)

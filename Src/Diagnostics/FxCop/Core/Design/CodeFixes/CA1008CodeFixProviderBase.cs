@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 
         protected sealed override string GetCodeFixDescription(Diagnostic diagnostic)
         {
-            foreach (var customTag in diagnostic.CustomTags)
+            foreach (var customTag in diagnostic.Descriptor.CustomTags)
             {
                 switch (customTag)
                 {
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             ISymbol declaredSymbol = model.GetDeclaredSymbol(nodeToFix, cancellationToken);
             Contract.ThrowIfNull(declaredSymbol);
 
-            foreach (var customTag in diagnostic.CustomTags)
+            foreach (var customTag in diagnostic.Descriptor.CustomTags)
             {
                 switch (customTag)
                 {

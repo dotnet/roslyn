@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal class DiagnosticWithInfo : Diagnostic
     {
-        private static readonly IReadOnlyList<string> CompilerCustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Telemetry);
-
         private readonly DiagnosticInfo info;
         private readonly Location location;
 
@@ -39,11 +37,11 @@ namespace Microsoft.CodeAnalysis
             get { return this.Info.AdditionalLocations; }
         }
 
-        public override IReadOnlyList<string> CustomTags
+        internal override IReadOnlyList<string> CustomTags
         {
             get
             {
-                return CompilerCustomTags;
+                return this.Info.CustomTags;
             }
         }
 
@@ -51,8 +49,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                // TODO: Currently, compiler diagnostics have no descriptor. We need to add support for this.
-                return null;
+                return this.Info.Descriptor;
             }
         }
 
@@ -61,15 +58,11 @@ namespace Microsoft.CodeAnalysis
             get { return this.Info.MessageIdentifier; }
         }
 
-        public override string Category
+        internal override string Category
         {
             get { return CompilerDiagnosticCategory; }
         }
 
-        public override string HelpLink
-        {
-            get { return string.Empty; }
-        }
 
         internal sealed override int Code
         {
@@ -86,7 +79,7 @@ namespace Microsoft.CodeAnalysis
             get { return this.Info.DefaultSeverity; }
         }
 
-        public sealed override bool IsEnabledByDefault
+        internal sealed override bool IsEnabledByDefault
         {
             // All compiler errors and warnings are enabled by default.
             get { return true; }

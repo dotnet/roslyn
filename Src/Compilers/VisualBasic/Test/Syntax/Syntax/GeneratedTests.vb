@@ -61,6 +61,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Return String.Empty
         End Function
 
+        Public Overrides Function GetDescription(code As Integer) As LocalizableString
+            Return String.Empty
+        End Function
+
+        Public Overrides Function GetMessageFormat(code As Integer) As LocalizableString
+            Return String.Empty
+        End Function
+
+        Public Overrides Function GetTitle(code As Integer) As LocalizableString
+            Return String.Empty
+        End Function
+
+        Public Overrides Function GetHelpLink(code As Integer) As String
+            Return String.Empty
+        End Function
+
         Public Overrides Function ConvertSymbolToString(errorCode As Integer, symbol As ISymbol) As String
             Return MessageProvider.Instance.ConvertSymbolToString(errorCode, symbol)
         End Function
