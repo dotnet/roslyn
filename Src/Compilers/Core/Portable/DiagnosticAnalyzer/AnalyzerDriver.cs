@@ -90,6 +90,44 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
+        /// Returns all diagnostics computed by the analyzers for the compilation.
+        /// </summary>
+        /// <param name="compilation">The compilation to run analysis against</param>
+        /// <param name="analyzers">The set of analyzers to include in the analysis</param>
+        /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
+        public static Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsAsync(
+            Compilation compilation, 
+            ImmutableArray<DiagnosticAnalyzer> analyzers, 
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return GetAnalyzerDiagnosticsAsync(compilation, analyzers, null, cancellationToken);
+        }
+
+        /// <summary>
+        /// Returns all diagnostics computed by the analyzers for the compilation.
+        /// </summary>
+        /// <param name="compilation">The compilation to run analysis against</param>
+        /// <param name="analyzers">The set of analyzers to include in the analysis</param>
+        /// <param name="options">Options that are passed to analyzers</param>
+        /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
+        public static Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsAsync(
+            Compilation compilation, 
+            ImmutableArray<DiagnosticAnalyzer> analyzers, 
+            AnalyzerOptions options, 
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            options = options ?? AnalyzerOptions.Empty;
+            Compilation newCompilation = null;
+            var analyzerDriver = AnalyzerDriver.Create(compilation, analyzers, options, out newCompilation, cancellationToken);
+
+            // We need to generate compiler events in order for the event queue to be populated and the analyzer driver to return diagnostics.
+            // So we'll call GetDiagnostics which will generate all events except for those on emit.
+            newCompilation.GetDiagnostics(cancellationToken);
+
+            return analyzerDriver.GetDiagnosticsAsync();
+        }
+
+        /// <summary>
         /// Create an analyzer driver.
         /// </summary>
         /// <param name="analyzers">The set of analyzers to include in the analysis</param>

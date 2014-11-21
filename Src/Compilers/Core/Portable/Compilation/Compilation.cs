@@ -862,35 +862,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract ImmutableArray<Diagnostic> GetDiagnostics(CancellationToken cancellationToken = default(CancellationToken));
 
-        /// <summary>
-        /// Returns all diagnostics computed by the analyzers for the compilation.
-        /// </summary>
-        /// <param name="analyzers">The set of analyzers to include in the analysis</param>
-        /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
-        public Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return GetAnalyzerDiagnosticsAsync(analyzers, null, cancellationToken);
-        }
-
-        /// <summary>
-        /// Returns all diagnostics computed by the analyzers for the compilation.
-        /// </summary>
-        /// <param name="analyzers">The set of analyzers to include in the analysis</param>
-        /// <param name="options">Options that are passed to analyzers</param>
-        /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
-        public Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            options = options ?? AnalyzerOptions.Empty;
-            Compilation newCompilation = null;
-            var analyzerDriver = AnalyzerDriver.Create(this, analyzers, options, out newCompilation, cancellationToken);
-
-            // We need to generate compiler events in order for the event queue to be populated and the analyzer driver to return diagnostics.
-            // So we'll call GetDiagnostics which will generate all events except for those on emit.
-            newCompilation.GetDiagnostics(cancellationToken);
-
-            return analyzerDriver.GetDiagnosticsAsync();
-        }
-
         internal abstract CommonMessageProvider MessageProvider { get; }
 
         /// <param name="accumulator">Bag to which filtered diagnostics will be added.</param>
