@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // which we duplicate by hardcoding Priority values among the operators. When present on both
                         // methods being compared during overload resolution, Priority values are used to decide between
                         // two candidates (instead of the usual language-specified rules).
-                        bool isExactSubtraction = (object)right.Type != null && right.Type.StrippedType() == underlying;
+                        bool isExactSubtraction = right.Type?.StrippedType() == underlying;
                         operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.EnumSubtraction, enumType, enumType, underlying)
                             { Priority = 2 });
                         operators.Add(new BinaryOperatorSignature(BinaryOperatorKind.EnumAndUnderlyingSubtraction, enumType, underlying, enumType)
@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var operators = ArrayBuilder<BinaryOperatorAnalysisResult>.GetInstance();
             TypeSymbol leftType = left.Type;
-            TypeSymbol strippedLeftType = ((object)leftType == null) ? null : leftType.StrippedType();
+            TypeSymbol strippedLeftType = leftType?.StrippedType();
 
             bool hadApplicableCandidate = false;
 
@@ -585,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             TypeSymbol rightType = right.Type;
-            TypeSymbol strippedRightType = ((object)rightType == null) ? null : rightType.StrippedType();
+            TypeSymbol strippedRightType = rightType?.StrippedType();
             if ((object)strippedRightType != null && !strippedRightType.Equals(strippedLeftType) &&
                 !OperatorFacts.DefinitelyHasNoUserDefinedOperators(strippedRightType))
             {
