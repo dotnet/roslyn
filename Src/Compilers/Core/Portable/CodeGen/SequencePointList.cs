@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// </summary>
     internal class SequencePointList
     {
+        internal const int HiddenSequencePointLine = 0xFEEFEE;
+
         private readonly SyntaxTree tree;
         private readonly OffsetAndSpan[] points;
         private SequencePointList next;  // Linked list of all points.
@@ -156,9 +158,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
                             result.Add(new Cci.SequencePoint(
                                 lastDebugDocument,
                                 offset: offsetAndSpan.Offset,
-                                startLine: 0xFEEFEE,
+                                startLine: HiddenSequencePointLine,
                                 startColumn: 0,
-                                endLine: 0xFEEFEE,
+                                endLine: HiddenSequencePointLine,
                                 endColumn: 0));
                         }
                     }
