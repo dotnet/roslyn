@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             AddSynthesizedAttribute(attributes,
-                                    DeclaringCompilation.SynthesizeAttribute(WellKnownMember.System_STAThreadAttribute__ctor))
+                                    DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.System_STAThreadAttribute__ctor))
         End Sub
 
         Friend Overrides ReadOnly Property GenerateDebugInfoImpl As Boolean

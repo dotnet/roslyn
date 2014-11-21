@@ -1435,7 +1435,7 @@ lReportErrorOnTwoTokens:
                 If Not Me.HasSTAThreadOrMTAThreadAttribute Then
                     ' UNDONE: UV Support: Do not emit if using the starlite libraries.
 
-                    AddSynthesizedAttribute(attributes, compilation.SynthesizeAttribute(
+                    AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
                         WellKnownMember.System_STAThreadAttribute__ctor))
                 End If
             End If

@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             ' Attribute: System.Runtime.CompilerServices.CompilerGeneratedAttribute()
-            AddSynthesizedAttribute(attributes, sourceType.DeclaringCompilation.SynthesizeAttribute(
+            AddSynthesizedAttribute(attributes, sourceType.DeclaringCompilation.TrySynthesizeAttribute(
                     WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
         End Sub
 

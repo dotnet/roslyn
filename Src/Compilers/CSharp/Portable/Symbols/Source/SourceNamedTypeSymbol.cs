@@ -1048,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // No need to check if [Extension] attribute was explicitly set since
                 // we'll issue CS1112 error in those cases and won't generate IL.
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor));
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor));
             }
 
             if (this.Indexers.Any())
@@ -1056,7 +1056,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 string defaultMemberName = this.Indexers.First().MetadataName; // UNDONE: IndexerNameAttribute
                 var defaultMemberNameConstant = new TypedConstant(compilation.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, defaultMemberName);
 
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeAttribute(
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
                     WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor,
                     ImmutableArray.Create(defaultMemberNameConstant)));
             }

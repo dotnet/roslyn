@@ -975,7 +975,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // we'll issue CS1112 error in those cases and won't generate IL.
                 var compilation = this.DeclaringCompilation;
 
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeAttribute(
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
                     WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor));
             }
         }

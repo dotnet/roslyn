@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 AnonymousTypeManager manager = ((AnonymousTypeTemplateSymbol)this.ContainingSymbol).Manager;
 
-                AddSynthesizedAttribute(ref attributes, manager.Compilation.SynthesizeAttribute(
+                AddSynthesizedAttribute(ref attributes, manager.Compilation.TrySynthesizeAttribute(
                     WellKnownMember.System_Diagnostics_DebuggerBrowsableAttribute__ctor,
                     ImmutableArray.Create(
                         new TypedConstant(manager.System_Diagnostics_DebuggerBrowsableState, TypedConstantKind.Enum, DebuggerBrowsableState.Never))));

@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (debuggerHidden)
             {
                 var compilation = this.DeclaringCompilation;
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor));
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor));
             }
 
             if (this.ReturnType.ContainsDynamic())

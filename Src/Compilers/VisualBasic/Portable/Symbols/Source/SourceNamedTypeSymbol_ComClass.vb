@@ -964,14 +964,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Dim id As String = If(m_IsEventInterface, m_ComClass.m_comClassData.EventId, m_ComClass.m_comClassData.InterfaceId)
 
                     If id IsNot Nothing Then
-                        AddSynthesizedAttribute(attributes, compilation.SynthesizeAttribute(
+                        AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
                             WellKnownMember.System_Runtime_InteropServices_GuidAttribute__ctor,
                             ImmutableArray.Create(
                                 New TypedConstant(m_ComClass.GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, id))))
                     End If
 
                     If m_IsEventInterface Then
-                        AddSynthesizedAttribute(attributes, compilation.SynthesizeAttribute(
+                        AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
                             WellKnownMember.System_Runtime_InteropServices_InterfaceTypeAttribute__ctorInt16,
                             ImmutableArray.Create(
                                 New TypedConstant(m_ComClass.GetSpecialType(SpecialType.System_Int16),
@@ -979,14 +979,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                         CShort(ComInterfaceType.InterfaceIsIDispatch)))))
                     End If
 
-                    AddSynthesizedAttribute(attributes, compilation.SynthesizeAttribute(
+                    AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
                         WellKnownMember.System_Runtime_InteropServices_ComVisibleAttribute__ctor,
                         ImmutableArray.Create(New TypedConstant(m_ComClass.GetSpecialType(SpecialType.System_Boolean),
                                                                         TypedConstantKind.Primitive,
                                                                         value:=True))))
 
                     If m_DefaultMemberName IsNot Nothing Then
-                        AddSynthesizedAttribute(attributes, compilation.SynthesizeAttribute(
+                        AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
                             WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor,
                             ImmutableArray.Create(New TypedConstant(m_ComClass.GetSpecialType(SpecialType.System_String),
                                                                             TypedConstantKind.Primitive,
@@ -1297,7 +1297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Return
                     End If
 
-                    AddSynthesizedAttribute(attributes, m_Interface.ComClass.DeclaringCompilation.SynthesizeAttribute(
+                    AddSynthesizedAttribute(attributes, m_Interface.ComClass.DeclaringCompilation.TrySynthesizeAttribute(
                         WellKnownMember.System_Runtime_InteropServices_DispIdAttribute__ctor,
                         ImmutableArray.Create(New TypedConstant(m_Interface.ComClass.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32),
                                                                         TypedConstantKind.Primitive,
@@ -1787,7 +1787,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Return
                     End If
 
-                    AddSynthesizedAttribute(attributes, m_Interface.ComClass.DeclaringCompilation.SynthesizeAttribute(
+                    AddSynthesizedAttribute(attributes, m_Interface.ComClass.DeclaringCompilation.TrySynthesizeAttribute(
                         WellKnownMember.System_Runtime_InteropServices_DispIdAttribute__ctor,
                         ImmutableArray.Create(New TypedConstant(m_Interface.ComClass.GetSpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32),
                                                                         TypedConstantKind.Primitive,

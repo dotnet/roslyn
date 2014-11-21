@@ -1401,7 +1401,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim emitEmbeddedAttribute As Boolean = Me.DeclaringCompilation.EmbeddedSymbolManager.IsAnySymbolReferenced
 
             If emitEmbeddedAttribute Then
-                AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeAttribute(WellKnownMember.Microsoft_VisualBasic_Embedded__ctor))
+                AddSynthesizedAttribute(attributes, DeclaringCompilation.TrySynthesizeAttribute(WellKnownMember.Microsoft_VisualBasic_Embedded__ctor))
             End If
 
             ' Synthesize CompilationRelaxationsAttribute only if all the following requirements are met:
@@ -1422,7 +1422,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Debug.Assert(int32Type.GetUseSiteErrorInfo() Is Nothing, "Use site errors should have been checked ahead of time (type int).")
                     Dim typedConstantNoStringInterning = New TypedConstant(int32Type, TypedConstantKind.Primitive, Cci.Constants.CompilationRelaxations_NoStringInterning)
 
-                    AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeAttribute(
+                    AddSynthesizedAttribute(attributes, DeclaringCompilation.TrySynthesizeAttribute(
                         WellKnownMember.System_Runtime_CompilerServices_CompilationRelaxationsAttribute__ctorInt32,
                         ImmutableArray.Create(typedConstantNoStringInterning)))
                 End If
@@ -1440,10 +1440,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Debug.Assert(boolType.GetUseSiteErrorInfo() Is Nothing, "Use site errors should have been checked ahead of time (type bool).")
                     Dim typedConstantTrue = New TypedConstant(boolType, TypedConstantKind.Primitive, True)
 
-                    AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeAttribute(
+                    AddSynthesizedAttribute(attributes, DeclaringCompilation.TrySynthesizeAttribute(
                         WellKnownMember.System_Runtime_CompilerServices_RuntimeCompatibilityAttribute__ctor,
                         ImmutableArray(Of TypedConstant).Empty,
-                        ImmutableArray.Create(New KeyValuePair(Of String, TypedConstant)("WrapNonExceptionThrows", typedConstantTrue))))
+                        ImmutableArray.Create(New KeyValuePair(Of WellKnownMember, TypedConstant)(
+                            WellKnownMember.System_Runtime_CompilerServices_RuntimeCompatibilityAttribute__WrapNonExceptionThrows, typedConstantTrue))))
                 End If
             End If
 
@@ -1477,7 +1478,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     Dim typedConstantDebugMode = New TypedConstant(int32Type, TypedConstantKind.Enum, CInt(debuggingMode))
 
-                    AddSynthesizedAttribute(attributes, DeclaringCompilation.SynthesizeAttribute(
+                    AddSynthesizedAttribute(attributes, DeclaringCompilation.TrySynthesizeAttribute(
                         WellKnownMember.System_Diagnostics_DebuggableAttribute__ctorDebuggingModes,
                         ImmutableArray.Create(typedConstantDebugMode)))
                 End If
@@ -1493,7 +1494,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Debug.Assert(stringType.GetUseSiteErrorInfo Is Nothing, "Use site errors should have been checked ahead of time (type string).")
 
                     Dim typedConstant = New TypedConstant(stringType, TypedConstantKind.Primitive, m_Compilation.Options.CryptoKeyContainer)
-                    AddSynthesizedAttribute(attributes, m_Compilation.SynthesizeAttribute(WellKnownMember.System_Reflection_AssemblyKeyNameAttribute__ctor, ImmutableArray.Create(typedConstant)))
+                    AddSynthesizedAttribute(attributes, m_Compilation.TrySynthesizeAttribute(WellKnownMember.System_Reflection_AssemblyKeyNameAttribute__ctor, ImmutableArray.Create(typedConstant)))
                 End If
 
                 If Not String.IsNullOrEmpty(m_Compilation.Options.CryptoKeyFile) AndAlso
@@ -1502,7 +1503,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Debug.Assert(stringType.GetUseSiteErrorInfo Is Nothing, "Use site errors should have been checked ahead of time (type string).")
 
                     Dim typedConstant = New TypedConstant(stringType, TypedConstantKind.Primitive, m_Compilation.Options.CryptoKeyFile)
-                    AddSynthesizedAttribute(attributes, m_Compilation.SynthesizeAttribute(WellKnownMember.System_Reflection_AssemblyKeyFileAttribute__ctor, ImmutableArray.Create(typedConstant)))
+                    AddSynthesizedAttribute(attributes, m_Compilation.TrySynthesizeAttribute(WellKnownMember.System_Reflection_AssemblyKeyFileAttribute__ctor, ImmutableArray.Create(typedConstant)))
                 End If
             End If
         End Sub

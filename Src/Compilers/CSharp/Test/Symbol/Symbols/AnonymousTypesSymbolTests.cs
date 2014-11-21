@@ -1736,5 +1736,48 @@ class Program
                 // error CS0656: Missing compiler required member 'System.String.Format'
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember).WithArguments("System.String", "Format"));
         }
+
+        [Fact]
+        [WorkItem(1024401)]
+        public void DebuggerDisplayAttributeWithNoTypeMember()
+        {
+            var src = @"
+class Program
+{
+    static void Main()
+    {
+        var v1 = new { Test1 = 1 };
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(src,
+                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Debug));
+
+            // Expect both attributes when using a standard corlib
+            Action<ModuleSymbol> validator = m =>
+            {
+                var anonType = m.GlobalNamespace.GetMembers().Where(
+                    sym => sym.Name.Contains("AnonymousType")).Single();
+
+                AssertEx.SetEqual(
+                    anonType.GetAttributes().Select(attr => attr.AttributeClass),
+                    comp.GetWellKnownType(WellKnownType.System_Diagnostics_DebuggerDisplayAttribute),
+                    comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_CompilerGeneratedAttribute));
+            };
+            CompileAndVerify(comp, symbolValidator: validator);
+
+            // Expect no DebuggerDisplay when the member is missing
+            comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__Type);
+
+            validator = m =>
+            {
+                var anonType = m.GlobalNamespace.GetMembers().Where(
+                    sym => sym.Name.Contains("AnonymousType")).Single();
+
+                Assert.True(anonType.GetAttributes().Single().IsTargetAttribute(
+                    "System.Runtime.CompilerServices",
+                    "CompilerGeneratedAttribute"));
+            };
+            CompileAndVerify(comp, symbolValidator: validator);
+        }
     }
 }

@@ -262,7 +262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                             Dim compilation = Me.DeclaringCompilation
 
-                            AddSynthesizedAttribute(attributes, compilation.SynthesizeAttribute(
+                            AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
                             WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor,
                             ImmutableArray.Create(
                                 New TypedConstant(specialTypeInt64, TypedConstantKind.Primitive, attributeValue.Ticks))))

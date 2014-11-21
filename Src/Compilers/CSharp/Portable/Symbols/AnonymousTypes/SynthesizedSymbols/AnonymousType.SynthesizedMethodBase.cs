@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 base.AddSynthesizedAttributes(compilationState, ref attributes);
 
-                AddSynthesizedAttribute(ref attributes, Manager.Compilation.SynthesizeAttribute(
+                AddSynthesizedAttribute(ref attributes, Manager.Compilation.TrySynthesizeAttribute(
                     WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor));
             }
 

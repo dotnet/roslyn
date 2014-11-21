@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
         Protected Overrides Function CreateCompilerGeneratedAttribute() As VisualBasicAttributeData
             Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
             Dim compilation = TypeManager.ModuleBeingBuilt.Compilation
-            Return compilation.SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor)
+            Return compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor)
         End Function
 
         Protected Overrides Function CreateTypeIdentifierAttribute(hasGuid As Boolean, syntaxNodeOpt As VisualBasicSyntaxNode, diagnostics As DiagnosticBag) As VisualBasicAttributeData

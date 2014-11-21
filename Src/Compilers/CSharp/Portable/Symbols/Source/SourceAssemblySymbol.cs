@@ -1542,10 +1542,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         var typedConstantTrue = new TypedConstant(boolType, TypedConstantKind.Primitive, value: true);
 
-                        var attribute = compilation.SynthesizeAttribute(
+                        var attribute = compilation.TrySynthesizeAttribute(
                             WellKnownMember.System_Security_Permissions_SecurityPermissionAttribute__ctor,
                             ImmutableArray.Create(typedConstantRequestMinimum),
-                            ImmutableArray.Create(new KeyValuePair<string, TypedConstant>("SkipVerification", typedConstantTrue)));
+                            ImmutableArray.Create(new KeyValuePair<WellKnownMember, TypedConstant>(
+                                WellKnownMember.System_Security_Permissions_SecurityPermissionAttribute__SkipVerification,
+                                typedConstantTrue)));
 
                         if (attribute != null)
                         {
@@ -1639,7 +1641,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // No need to check if [Extension] attribute was explicitly set since
                 // we'll issue CS1112 error in those cases and won't generate IL.
-                AddSynthesizedAttribute(ref attributes, compilation.SynthesizeAttribute(
+                AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
                     WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor));
             }
 
@@ -1663,7 +1665,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     var typedConstantNoStringInterning = new TypedConstant(int32Type, TypedConstantKind.Primitive, Cci.Constants.CompilationRelaxations_NoStringInterning);
 
-                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeAttribute(
+                    AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
                         WellKnownMember.System_Runtime_CompilerServices_CompilationRelaxationsAttribute__ctorInt32,
                         ImmutableArray.Create(typedConstantNoStringInterning)));
                 }
@@ -1682,10 +1684,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     var typedConstantTrue = new TypedConstant(boolType, TypedConstantKind.Primitive, value: true);
 
-                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeAttribute(
+                    AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
                         WellKnownMember.System_Runtime_CompilerServices_RuntimeCompatibilityAttribute__ctor,
                         ImmutableArray<TypedConstant>.Empty,
-                        ImmutableArray.Create(new KeyValuePair<string, TypedConstant>("WrapNonExceptionThrows", typedConstantTrue))));
+                        ImmutableArray.Create(new KeyValuePair<WellKnownMember, TypedConstant>(
+                            WellKnownMember.System_Runtime_CompilerServices_RuntimeCompatibilityAttribute__WrapNonExceptionThrows,
+                            typedConstantTrue))));
                 }
             }
 
@@ -1713,7 +1717,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Debug.Assert(!stringType.HasUseSiteError, "Use site errors should have been checked ahead of time (type string).");
 
                     var typedConstant = new TypedConstant(stringType, TypedConstantKind.Primitive, compilation.Options.CryptoKeyContainer);
-                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeAttribute(WellKnownMember.System_Reflection_AssemblyKeyNameAttribute__ctor, ImmutableArray.Create(typedConstant)));
+                    AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Reflection_AssemblyKeyNameAttribute__ctor, ImmutableArray.Create(typedConstant)));
                 }
 
                 if (!String.IsNullOrEmpty(compilation.Options.CryptoKeyFile) &&
@@ -1723,7 +1727,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     Debug.Assert(!stringType.HasUseSiteError, "Use site errors should have been checked ahead of time (type string).");
 
                     var typedConstant = new TypedConstant(stringType, TypedConstantKind.Primitive, compilation.Options.CryptoKeyFile);
-                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeAttribute(WellKnownMember.System_Reflection_AssemblyKeyFileAttribute__ctor, ImmutableArray.Create(typedConstant)));
+                    AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Reflection_AssemblyKeyFileAttribute__ctor, ImmutableArray.Create(typedConstant)));
                 }
             }
         }

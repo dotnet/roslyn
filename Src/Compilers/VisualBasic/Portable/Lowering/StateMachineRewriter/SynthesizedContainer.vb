@@ -304,7 +304,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 WellKnownMembers.IsSynthesizedAttributeOptional(
                     WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
             AddSynthesizedAttribute(attributes,
-                                    compilation.SynthesizeAttribute(
+                                    compilation.TrySynthesizeAttribute(
                                         WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
         End Sub
 

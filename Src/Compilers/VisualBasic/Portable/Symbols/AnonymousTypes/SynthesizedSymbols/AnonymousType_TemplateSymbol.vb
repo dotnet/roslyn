@@ -144,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
                 ' Attribute: System.Runtime.CompilerServices.CompilerGeneratedAttribute()
-                AddSynthesizedAttribute(attributes, Manager.Compilation.SynthesizeAttribute(
+                AddSynthesizedAttribute(attributes, Manager.Compilation.TrySynthesizeAttribute(
                     WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
 
                 ' VB emits this attribute regardless of /debug settings (unlike C#, which only emits it for /debug:full)
@@ -176,7 +176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     sb.Append(", ...")
                 End If
 
-                Return Manager.Compilation.SynthesizeAttribute(
+                Return Manager.Compilation.TrySynthesizeAttribute(
                     WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__ctor,
                     ImmutableArray.Create(New TypedConstant(Manager.System_String, TypedConstantKind.Primitive, builder.ToStringAndFree())))
             End Function

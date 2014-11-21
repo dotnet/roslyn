@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base.AddSynthesizedAttributes(compilationState, ref attributes);
 
             var compilation = this.DeclaringCompilation;
-            AddSynthesizedAttribute(ref attributes, compilation.SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+            AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
         }
 
         protected override object MethodChecksLockObject

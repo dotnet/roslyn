@@ -438,16 +438,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 base.AddSynthesizedAttributes(compilationState, ref attributes);
 
-                AddSynthesizedAttribute(ref attributes, Manager.Compilation.SynthesizeAttribute(
+                AddSynthesizedAttribute(ref attributes, Manager.Compilation.TrySynthesizeAttribute(
                     WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
 
                 if (Manager.Compilation.Options.OptimizationLevel == OptimizationLevel.Debug)
                 {
-                    AddSynthesizedAttribute(ref attributes, SynthesizeDebuggerDisplayAttribute());
+                    AddSynthesizedAttribute(ref attributes, TrySynthesizeDebuggerDisplayAttribute());
                 }
             }
 
-            private SynthesizedAttributeData SynthesizeDebuggerDisplayAttribute()
+            /// <summary>
+            /// Returns a synthesized debugger display attribute or null if one
+            /// could not be synthesized.
+            /// </summary>
+            private SynthesizedAttributeData TrySynthesizeDebuggerDisplayAttribute()
             {
                 string displayString;
                 if (this.Properties.Length == 0)
@@ -486,11 +490,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     displayString = builder.ToStringAndFree();
                 }
 
-                return Manager.Compilation.SynthesizeAttribute(
+                return Manager.Compilation.TrySynthesizeAttribute(
                     WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__ctor,
                     arguments: ImmutableArray.Create(new TypedConstant(Manager.System_String, TypedConstantKind.Primitive, displayString)),
-                    namedArguments: ImmutableArray.Create(new KeyValuePair<string, TypedConstant>(
-                                        "Type", new TypedConstant(Manager.System_String, TypedConstantKind.Primitive, "<Anonymous Type>"))));
+                    namedArguments: ImmutableArray.Create(new KeyValuePair<WellKnownMember, TypedConstant>(
+                                        WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__Type,
+                                        new TypedConstant(Manager.System_String, TypedConstantKind.Primitive, "<Anonymous Type>"))));
             }
         }
     }

@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     WellKnownMembers.IsSynthesizedAttributeOptional(
                         WellKnownMember.System_Diagnostics_DebuggerNonUserCodeAttribute__ctor))
 
-                AddSynthesizedAttribute(attributes, compilation.SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
+                AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
             End If
 
             If (Me._debugAttributes And DebugAttributes.DebuggerHiddenAttribute) <> 0 Then

@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // if this happens for whatever reason, we do not need "CompilerGenerated" anyways
             Debug.Assert(compilation != null, "SynthesizedClass is not contained in a source module?");
 
-            AddSynthesizedAttribute(ref attributes, compilation.SynthesizeAttribute(
+            AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
                 WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
         }
 

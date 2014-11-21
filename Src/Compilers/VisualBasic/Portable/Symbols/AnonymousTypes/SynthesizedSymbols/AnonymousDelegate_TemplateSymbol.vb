@@ -174,15 +174,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
                 ' Attribute: System.Runtime.CompilerServices.CompilerGeneratedAttribute()
-                AddSynthesizedAttribute(attributes, Manager.Compilation.SynthesizeAttribute(
+                AddSynthesizedAttribute(attributes, Manager.Compilation.TrySynthesizeAttribute(
                     WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
 
                 ' Attribute: System.Diagnostics.DebuggerDisplayAttribute("<generated method>",Type := "<generated method>")
                 Dim value As New TypedConstant(Manager.System_String, TypedConstantKind.Primitive, "<generated method>")
-                AddSynthesizedAttribute(attributes, Manager.Compilation.SynthesizeAttribute(
+                AddSynthesizedAttribute(attributes, Manager.Compilation.TrySynthesizeAttribute(
                     WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__ctor,
                     ImmutableArray.Create(value),
-                    ImmutableArray.Create(New KeyValuePair(Of String, TypedConstant)("Type", value))))
+                    ImmutableArray.Create(New KeyValuePair(Of WellKnownMember, TypedConstant)(
+                        WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__Type, value))))
             End Sub
         End Class
 

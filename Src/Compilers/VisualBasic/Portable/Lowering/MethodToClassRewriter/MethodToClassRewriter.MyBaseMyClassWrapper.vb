@@ -219,7 +219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim compilation = Me.DeclaringCompilation
 
-                AddSynthesizedAttribute(attributes, compilation.SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
+                AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
 
                 ' Dev11 emits DebuggerNonUserCode. We emit DebuggerHidden to hide the method even if JustMyCode is off.
                 AddSynthesizedAttribute(attributes, compilation.SynthesizeDebuggerHiddenAttribute())

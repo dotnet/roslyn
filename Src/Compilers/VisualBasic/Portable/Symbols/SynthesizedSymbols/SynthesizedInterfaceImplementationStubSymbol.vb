@@ -182,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim compilation = Me.DeclaringCompilation
 
-            AddSynthesizedAttribute(attributes, compilation.SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
+            AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
             AddSynthesizedAttribute(attributes, compilation.SynthesizeDebuggerHiddenAttribute())
         End Sub
 

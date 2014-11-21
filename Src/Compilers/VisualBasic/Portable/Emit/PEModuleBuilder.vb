@@ -125,7 +125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Sub
 
         Friend NotOverridable Overrides Function SynthesizeAttribute(attributeConstructor As WellKnownMember) As Cci.ICustomAttribute
-            Return Me.Compilation.SynthesizeAttribute(attributeConstructor)
+            Return Me.Compilation.TrySynthesizeAttribute(attributeConstructor)
         End Function
 
         Friend NotOverridable Overrides Function GetSourceAssemblyAttributes() As IEnumerable(Of Cci.ICustomAttribute)

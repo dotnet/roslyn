@@ -61,12 +61,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Debug.Assert(Not Me.ContainingType.IsImplicitlyDeclared)
 
-            AddSynthesizedAttribute(attributes, compilation.SynthesizeAttribute(
+            AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
                 WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
 
             AddSynthesizedAttribute(attributes, compilation.SynthesizeDebuggerBrowsableNeverAttribute())
 
-            AddSynthesizedAttribute(attributes, compilation.SynthesizeAttribute(
+            AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
                WellKnownMember.System_Runtime_CompilerServices_AccessedThroughPropertyAttribute__ctor,
                ImmutableArray.Create(New TypedConstant(compilation.GetSpecialType(SpecialType.System_String),
                                                                TypedConstantKind.Primitive,

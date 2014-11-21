@@ -2402,7 +2402,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' NOTE: used from emit, so shouldn't have gotten here if there were errors
                 Debug.Assert(stringType.GetUseSiteErrorInfo() Is Nothing)
 
-                AddSynthesizedAttribute(attributes, compilation.SynthesizeAttribute(
+                AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
                     WellKnownMember.System_Reflection_DefaultMemberAttribute__ctor,
                     ImmutableArray.Create(
                         New TypedConstant(stringType, TypedConstantKind.Primitive, DefaultPropertyName))))
@@ -2411,19 +2411,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If Me.TypeKind = TypeKind.Module Then
                 'TODO check that there's not a user supplied instance already. This attribute is AllowMultiple:=False.
 
-                AddSynthesizedAttribute(attributes, compilation.SynthesizeAttribute(
+                AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
                     WellKnownMember.Microsoft_VisualBasic_CompilerServices_StandardModuleAttribute__ctor))
             End If
 
             If m_comClassData IsNot Nothing Then
                 If m_comClassData.ClassId IsNot Nothing Then
-                    AddSynthesizedAttribute(attributes, compilation.SynthesizeAttribute(
+                    AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
                         WellKnownMember.System_Runtime_InteropServices_GuidAttribute__ctor,
                         ImmutableArray.Create(
                             New TypedConstant(GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, m_comClassData.ClassId))))
                 End If
 
-                AddSynthesizedAttribute(attributes, compilation.SynthesizeAttribute(
+                AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
                     WellKnownMember.System_Runtime_InteropServices_ClassInterfaceAttribute__ctorClassInterfaceType,
                     ImmutableArray.Create(
                         New TypedConstant(GetSpecialType(SpecialType.System_Int32), TypedConstantKind.Enum, CInt(ClassInterfaceType.None)))))
@@ -2444,7 +2444,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     eventInterfaceName = container1.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat) & "+" & eventInterfaceName
 
-                    AddSynthesizedAttribute(attributes, compilation.SynthesizeAttribute(
+                    AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
                         WellKnownMember.System_Runtime_InteropServices_ComSourceInterfacesAttribute__ctorString,
                         ImmutableArray.Create(
                             New TypedConstant(GetSpecialType(SpecialType.System_String), TypedConstantKind.Primitive, eventInterfaceName))))

@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         internal sealed override Cci.ICustomAttribute SynthesizeAttribute(WellKnownMember attributeConstructor)
         {
-            return Compilation.SynthesizeAttribute(attributeConstructor);
+            return Compilation.TrySynthesizeAttribute(attributeConstructor);
         }
 
         internal sealed override IEnumerable<Cci.ICustomAttribute> GetSourceAssemblyAttributes()

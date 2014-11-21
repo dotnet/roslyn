@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Create the ParamArrayAttribute
             If IsParamArray AndAlso Not HasParamArrayAttribute Then
                 Dim compilation = Me.DeclaringCompilation
-                AddSynthesizedAttribute(attributes, compilation.SynthesizeAttribute(
+                AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
                     WellKnownMember.System_ParamArrayAttribute__ctor))
             End If
 
@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Select Case defaultValue.SpecialType
                     Case SpecialType.System_DateTime
-                        AddSynthesizedAttribute(attributes, compilation.SynthesizeAttribute(
+                        AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
                             WellKnownMember.System_Runtime_CompilerServices_DateTimeConstantAttribute__ctor,
                             ImmutableArray.Create(New TypedConstant(compilation.GetSpecialType(SpecialType.System_Int64),
                                                                             TypedConstantKind.Primitive,

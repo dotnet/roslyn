@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
             var compilation = TypeManager.ModuleBeingBuilt.Compilation;
-            return compilation.SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor);
+            return compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor);
         }
 
         protected override CSharpAttributeData CreateTypeIdentifierAttribute(bool hasGuid, CSharpSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)

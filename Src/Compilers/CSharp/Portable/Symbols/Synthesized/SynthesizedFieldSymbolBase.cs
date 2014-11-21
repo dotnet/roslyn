@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpCompilation compilation = this.DeclaringCompilation;
 
             // Assume that someone checked earlier that the attribute ctor is available and has no use-site errors.
-            AddSynthesizedAttribute(ref attributes, compilation.SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
+            AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
 
             // TODO (tomat): do we need to emit dynamic attribute on any synthesized field?
             if (this.Type.ContainsDynamic())

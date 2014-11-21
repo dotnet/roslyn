@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var intType = compilation.GetSpecialType(SpecialType.System_Int32);
             var item1 = new TypedConstant(systemType, TypedConstantKind.Type, ((PointerTypeSymbol)this.Type).PointedAtType);
             var item2 = new TypedConstant(intType, TypedConstantKind.Primitive, this.FixedSize);
-            AddSynthesizedAttribute(ref attributes, compilation.SynthesizeAttribute(
+            AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(
                 WellKnownMember.System_Runtime_CompilerServices_FixedBufferAttribute__ctor,
                 ImmutableArray.Create<TypedConstant>(item1, item2)));
         }
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(compilationState, ref attributes);
             var compilation = ContainingSymbol.DeclaringCompilation;
-            AddSynthesizedAttribute(ref attributes, compilation.SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_UnsafeValueTypeAttribute__ctor));
+            AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_UnsafeValueTypeAttribute__ctor));
         }
 
         public override IEnumerable<string> MemberNames

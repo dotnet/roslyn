@@ -124,16 +124,60 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return DirectCast(m_LazyExtensionAttributeConstructor, MethodSymbol)
         End Function
 
-        ''' <summary> 
-        ''' Synthesizes a custom attribute.  
-        ''' Returns null if the <paramref name="constructor"/>  symbol is missing and the attribute is synthesized only if present.
-        '''  </summary>
-        Friend Function SynthesizeAttribute(constructor As WellKnownMember,
-                                            Optional arguments As ImmutableArray(Of TypedConstant) = Nothing,
-                                            Optional namedArguments As ImmutableArray(Of KeyValuePair(Of String, TypedConstant)) = Nothing) As SynthesizedAttributeData
+        ''' <summary>
+        ''' Synthesizes a custom attribute. 
+        ''' Returns null if the <paramref name="constructor"/> symbol is missing,
+        ''' or any of the members in <paramref name="namedArguments" /> are missing.
+        ''' The attribute is synthesized only if present.
+        ''' </summary>
+        ''' <param name="namedArguments">
+        ''' Takes a list of pairs of well-known members and constants. The constants
+        ''' will be passed to the field/property referenced by the well-known member.
+        ''' If the well-known member does Not exist in the compilation then no attribute
+        ''' will be synthesized.
+        ''' </param>
+        Friend Function TrySynthesizeAttribute(
+            constructor As WellKnownMember,
+            Optional arguments As ImmutableArray(Of TypedConstant) = Nothing,
+            Optional namedArguments As ImmutableArray(Of KeyValuePair(Of WellKnownMember, TypedConstant)) = Nothing) As SynthesizedAttributeData
 
-            Dim memberSymbol = TryCast(GetWellKnownTypeMember(constructor), MethodSymbol)
-            Return SynthesizedAttributeData.Create(memberSymbol, constructor, arguments, namedArguments)
+            Dim constructorSymbol = TryCast(GetWellKnownTypeMember(constructor), MethodSymbol)
+            If constructorSymbol Is Nothing OrElse
+               Binder.GetUseSiteErrorForWellKnownTypeMember(constructorSymbol, constructor, False) IsNot Nothing Then
+                Return ReturnNothingOrThrowIfAttributeNonOptional(constructor)
+            End If
+
+            If arguments.IsDefault Then
+                arguments = ImmutableArray(Of TypedConstant).Empty
+            End If
+
+            Dim namedStringArguments As ImmutableArray(Of KeyValuePair(Of String, TypedConstant))
+            If namedArguments.IsDefault Then
+                namedStringArguments = ImmutableArray(Of KeyValuePair(Of String, TypedConstant)).Empty
+            Else
+                Dim builder = New ArrayBuilder(Of KeyValuePair(Of String, TypedConstant))(namedArguments.Length)
+                For Each arg In namedArguments
+                    Dim wellKnownMember = GetWellKnownTypeMember(arg.Key)
+                    If wellKnownMember Is Nothing OrElse
+                       TypeOf wellKnownMember Is ErrorTypeSymbol OrElse
+                       Binder.GetUseSiteErrorForWellKnownTypeMember(wellKnownMember, arg.Key, False) IsNot Nothing Then
+                        Return ReturnNothingOrThrowIfAttributeNonOptional(constructor)
+                    Else
+                        builder.Add(New KeyValuePair(Of String, TypedConstant)(wellKnownMember.Name, arg.Value))
+                    End If
+                Next
+                namedStringArguments = builder.ToImmutableAndFree()
+            End If
+
+            Return New SynthesizedAttributeData(constructorSymbol, arguments, namedStringArguments)
+        End Function
+
+        Private Function ReturnNothingOrThrowIfAttributeNonOptional(constructor As WellKnownMember) As SynthesizedAttributeData
+            If WellKnownMembers.IsSynthesizedAttributeOptional(constructor) Then
+                Return Nothing
+            Else
+                Throw ExceptionUtilities.Unreachable
+            End If
         End Function
 
         Friend Function SynthesizeExtensionAttribute() As SynthesizedAttributeData
@@ -162,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                             TypedConstantKind.Type,
                                             If(stateMachineType.IsGenericType, stateMachineType.ConstructUnboundGenericType(), stateMachineType))
 
-                Return SynthesizeAttribute(ctor, ImmutableArray.Create(arg))
+                Return TrySynthesizeAttribute(ctor, ImmutableArray.Create(arg))
             End If
 
             Return Nothing
@@ -177,7 +221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim specialTypeUInt32 = GetSpecialType(SpecialType.System_UInt32)
             Debug.Assert(specialTypeUInt32.GetUseSiteErrorInfo() Is Nothing)
 
-            Return SynthesizeAttribute(
+            Return TrySynthesizeAttribute(
                 WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor,
                 ImmutableArray.Create(
                     New TypedConstant(specialTypeByte, TypedConstantKind.Primitive, decimalData.scale),
@@ -193,7 +237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-            Return SynthesizeAttribute(
+            Return TrySynthesizeAttribute(
                 WellKnownMember.System_Diagnostics_DebuggerBrowsableAttribute__ctor,
                 ImmutableArray.Create(New TypedConstant(GetWellKnownType(WellKnownType.System_Diagnostics_DebuggerBrowsableState),
                                                                 TypedConstantKind.Enum,
@@ -205,11 +249,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-            Return SynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor)
+            Return TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor)
         End Function
 
         Friend Function SynthesizeEditorBrowsableNeverAttribute() As SynthesizedAttributeData
-            Return SynthesizeAttribute(
+            Return TrySynthesizeAttribute(
                 WellKnownMember.System_ComponentModel_EditorBrowsableAttribute__ctor,
                 ImmutableArray.Create(New TypedConstant(GetWellKnownType(WellKnownType.System_ComponentModel_EditorBrowsableState),
                                                              TypedConstantKind.Enum,
@@ -221,7 +265,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-            Return SynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerNonUserCodeAttribute__ctor)
+            Return TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerNonUserCodeAttribute__ctor)
         End Function
 
         Friend Function SynthesizeOptionalDebuggerStepThroughAttribute() As SynthesizedAttributeData
@@ -233,7 +277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     WellKnownMembers.IsSynthesizedAttributeOptional(
                         WellKnownMember.System_Diagnostics_DebuggerStepThroughAttribute__ctor))
 
-            Return SynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerStepThroughAttribute__ctor)
+            Return TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerStepThroughAttribute__ctor)
         End Function
 
 #End Region

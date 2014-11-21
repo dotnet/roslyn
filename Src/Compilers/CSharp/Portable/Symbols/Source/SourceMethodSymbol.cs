@@ -1526,7 +1526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     var arg = new TypedConstant(compilation.GetWellKnownType(WellKnownType.System_Type), TypedConstantKind.Type, stateMachineType.GetUnboundGenericTypeOrSelf());
 
-                    AddSynthesizedAttribute(ref attributes, compilation.SynthesizeAttribute(ctor, ImmutableArray.Create(arg)));
+                    AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(ctor, ImmutableArray.Create(arg)));
                 }
             }
         }

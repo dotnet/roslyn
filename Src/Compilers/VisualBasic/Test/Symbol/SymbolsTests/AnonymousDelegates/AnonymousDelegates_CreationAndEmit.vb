@@ -15,6 +15,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.AnonymousDelegates
     Public Class CreationAndEmit : Inherits BasicTestBase
 
         <Fact>
+        <WorkItem(1024401)>
+        Public Sub DebuggerDisplayAttributeWithNoTypeMember()
+            Dim src = "
+Module Test
+    Sub Main()
+        Dim x = Function(y) y + 1
+    End Sub
+End Module"
+            Dim comp = CreateVisualBasicCompilation(src)
+            ' Expect both attributes with a normal corlib
+            Dim validator As Action(Of ModuleSymbol) =
+                Sub(m As ModuleSymbol)
+                    Dim anonDelegate = (From sym In m.GlobalNamespace.GetMembers()
+                                        Where sym.Name.Contains("AnonymousDelegate")).Single()
+
+                    Dim expected =
+                    {comp.GetWellKnownType(WellKnownType.System_Diagnostics_DebuggerDisplayAttribute),
+                     comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_CompilerGeneratedAttribute)}
+
+                    Dim actual = From attribute In anonDelegate.GetAttributes()
+                                 Select attribute.AttributeClass
+                    AssertEx.SetEqual(actual, expected)
+                End Sub
+
+            CompileAndVerify(comp, symbolValidator:=validator)
+
+            ' Expect no DebuggerDisplay with the type missing
+            comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__Type)
+
+            validator =
+                Sub(m As ModuleSymbol)
+                    Dim anonDelegate = (From sym In m.GlobalNamespace.GetMembers()
+                                        Where sym.Name.Contains("AnonymousDelegate")).Single()
+
+                    Assert.True(anonDelegate.GetAttributes().Single().IsTargetAttribute(
+                                "System.Runtime.CompilerServices",
+                                "CompilerGeneratedAttribute"))
+                End Sub
+
+            CompileAndVerify(comp, symbolValidator:=validator)
+        End Sub
+
+        <Fact>
         Public Sub InferenceMergeEmit1()
             Dim compilationDef =
 <compilation name="InferenceMergeEmit1">

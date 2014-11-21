@@ -272,12 +272,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Synthesizes a custom attribute. 
-        /// Returns null if the <paramref name="constructor"/> symbol is missing and the attribute is synthesized only if present.
+        /// Returns null if the <paramref name="constructor"/> symbol is missing,
+        /// or any of the members in <paramref name="namedArguments" /> are missing.
+        /// The attribute is synthesized only if present.
         /// </summary>
-        internal SynthesizedAttributeData SynthesizeAttribute(
+        /// <param name="constructor">
+        /// Constructor of the attribute. If it doesn't exist, the attribute is not created.
+        /// </param>
+        /// <param name="arguments">Arguments to the attribute constructor.</param>
+        /// <param name="namedArguments">
+        /// Takes a list of pairs of well-known members and constants. The constants
+        /// will be passed to the field/property referenced by the well-known member.
+        /// If the well-known member does not exist in the compilation then no attribute
+        /// will be synthesized.
+        /// </param>
+        internal SynthesizedAttributeData TrySynthesizeAttribute(
             WellKnownMember constructor,
             ImmutableArray<TypedConstant> arguments = default(ImmutableArray<TypedConstant>),
-            ImmutableArray<KeyValuePair<string, TypedConstant>> namedArguments = default(ImmutableArray<KeyValuePair<string, TypedConstant>>))
+            ImmutableArray<KeyValuePair<WellKnownMember, TypedConstant>> namedArguments = default(ImmutableArray<KeyValuePair<WellKnownMember, TypedConstant>>))
         {
             var ctorSymbol = (MethodSymbol)GetWellKnownTypeMember(constructor);
             if ((object)ctorSymbol == null)
@@ -292,12 +304,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments = ImmutableArray<TypedConstant>.Empty;
             }
 
+            ImmutableArray<KeyValuePair<string, TypedConstant>> namedStringArguments;
             if (namedArguments.IsDefault)
             {
-                namedArguments = ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty;
+                namedStringArguments = ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty;
+            }
+            else
+            {
+                var builder = new ArrayBuilder<KeyValuePair<string, TypedConstant>>(namedArguments.Length);
+                foreach (var arg in namedArguments)
+                {
+                    var wellKnownMember = GetWellKnownTypeMember(arg.Key);
+                    if (wellKnownMember == null || wellKnownMember is ErrorTypeSymbol)
+                    {
+                        // if this assert fails, UseSiteErrors for "member" have not been checked before emitting ...
+                        Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(constructor));
+                        return null;
+                    }
+                    else
+                    {
+                        builder.Add(new KeyValuePair<string, TypedConstant>(
+                            wellKnownMember.Name, arg.Value));
+                    }
+                }
+                namedStringArguments = builder.ToImmutableAndFree();
             }
 
-            return new SynthesizedAttributeData(ctorSymbol, arguments, namedArguments);
+            return new SynthesizedAttributeData(ctorSymbol, arguments, namedStringArguments);
         }
 
         internal SynthesizedAttributeData SynthesizeDecimalConstantAttribute(decimal value)
@@ -309,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var systemUnit32 = GetSpecialType(SpecialType.System_UInt32);
             Debug.Assert(!systemUnit32.HasUseSiteError);
 
-            return SynthesizeAttribute(
+            return TrySynthesizeAttribute(
                 WellKnownMember.System_Runtime_CompilerServices_DecimalConstantAttribute__ctor,
                 ImmutableArray.Create(
                     new TypedConstant(systemByte, TypedConstantKind.Primitive, decimalBits.Scale),
@@ -327,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            return SynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerBrowsableAttribute__ctor,
+            return TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerBrowsableAttribute__ctor,
                    ImmutableArray.Create(new TypedConstant(
                        GetWellKnownType(WellKnownType.System_Diagnostics_DebuggerBrowsableState),
                        TypedConstantKind.Enum,
@@ -401,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var typedConstantDebugMode = new TypedConstant(debuggingModesType, TypedConstantKind.Enum, constantVal);
 
-            return SynthesizeAttribute(
+            return TrySynthesizeAttribute(
                 WellKnownMember.System_Diagnostics_DebuggableAttribute__ctorDebuggingModes,
                 ImmutableArray.Create(typedConstantDebugMode));
         }
@@ -418,7 +451,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (type.IsDynamic() && refKindOpt == RefKind.None && customModifiersCount == 0)
             {
-                return SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctor);
+                return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctor);
             }
             else
             {
@@ -427,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var transformFlags = DynamicTransformsEncoder.Encode(type, booleanType, customModifiersCount, refKindOpt);
                 var boolArray = new ArrayTypeSymbol(booleanType.ContainingAssembly, booleanType, customModifiers: ImmutableArray<CustomModifier>.Empty);
                 var arguments = ImmutableArray.Create<TypedConstant>(new TypedConstant(boolArray, transformFlags));
-                return SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags, arguments);
+                return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags, arguments);
             }
         }
 

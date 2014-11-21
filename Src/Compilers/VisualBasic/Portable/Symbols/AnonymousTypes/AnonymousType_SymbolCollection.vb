@@ -34,10 +34,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ReportErrorOnSymbol(System_IAsyncResult, diagnostics, hasErrors)
                 ReportErrorOnSymbol(System_AsyncCallback, diagnostics, hasErrors)
                 ReportErrorOnSymbol(System_MulticastDelegate, diagnostics, hasErrors)
-
-                ReportErrorOnWellKnownMember(System_Diagnostics_DebuggerDisplayAttribute__Type,
-                                             WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__Type,
-                                             diagnostics, hasErrors, vbEmbedRuntime)
             End If
 
             If hasClass Then

@@ -496,7 +496,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim compilation = DeclaringCompilation
 
                 AddSynthesizedAttribute(attributes,
-                                        compilation.SynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
+                                        compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
 
                 ' Dev11 adds DebuggerNonUserCode; there is no reason to do so since:
                 ' - we emit no debug info for the body

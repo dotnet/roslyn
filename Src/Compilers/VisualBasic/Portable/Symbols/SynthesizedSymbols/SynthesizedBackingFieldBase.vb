@@ -126,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Dev11 only synthesizes these attributes for backing field of auto-property, not for Events or WithEvents.
 
             If Not Me.ContainingType.IsImplicitlyDeclared Then
-                AddSynthesizedAttribute(attributes, compilation.SynthesizeAttribute(
+                AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
                     WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor))
             End If
 
