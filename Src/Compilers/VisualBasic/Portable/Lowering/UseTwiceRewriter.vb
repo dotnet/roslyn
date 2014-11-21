@@ -290,7 +290,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 receiver = New Result(Nothing, Nothing)
             ElseIf node.PropertySymbol.IsShared Then
                 receiver = New Result(receiverOpt, Nothing)
-            ElseIf receiverOpt.IsLValue AndAlso receiverOpt.Type.IsReferenceType Then
+            ElseIf receiverOpt.IsLValue AndAlso receiverOpt.Type.IsReferenceType AndAlso
+                   Not receiverOpt.Type.IsTypeParameter() Then ' Skip type parameters to enforce Dev12 behavior
                 Dim boundTemp As BoundLocal = Nothing
                 receiver = New Result(CaptureInATemp(containingMember, receiverOpt.MakeRValue(), arg, boundTemp), boundTemp)
             ElseIf Not receiverOpt.IsLValue AndAlso Not receiverOpt.Type.IsReferenceType AndAlso Not receiverOpt.Type.IsValueType Then

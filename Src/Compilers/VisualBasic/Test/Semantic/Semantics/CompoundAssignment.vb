@@ -1093,6 +1093,1619 @@ End Class
 ]]>)
         End Sub
 
+        <Fact(), WorkItem(1021941, "DevDiv")>
+        Public Sub Bug1021941_01()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Interface IMoveable
+    Property Position As Integer
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item = New Item With {.Name = "Foo"}
+        Shift(item)
+    End Sub
+
+    Shared Sub Shift(Of T As {Class, IMoveable})(item As T)
+        item.Position += GetOffset(item)
+    End Sub
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        item = DirectCast(DirectCast(New Item With {.Name = "Bar"}, IMoveable), T)
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Foo'
+]]>)
+
+            ' Verify presence of constrained calls in order to enforce compatibility with Dev12
+            verifier.VerifyIL("Program.Shift",
+            <![CDATA[
+{
+  // Code size       35 (0x23)
+  .maxstack  3
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldarga.s   V_0
+  IL_0004:  constrained. "T"
+  IL_000a:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_000f:  ldarga.s   V_0
+  IL_0011:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0016:  add.ovf
+  IL_0017:  constrained. "T"
+  IL_001d:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_0022:  ret
+}
+]]>)
+
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+
+            verifier = CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Bar'
+]]>)
+
+            ' Verify presence of constrained calls in order to enforce compatibility with Dev12
+            verifier.VerifyIL("Program.Shift",
+            <![CDATA[
+{
+  // Code size       37 (0x25)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  ldarga.s   V_0
+  IL_0003:  ldarga.s   V_0
+  IL_0005:  constrained. "T"
+  IL_000b:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_0010:  ldarga.s   V_0
+  IL_0012:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0017:  add.ovf
+  IL_0018:  constrained. "T"
+  IL_001e:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_0023:  nop
+  IL_0024:  ret
+}
+]]>)
+        End Sub
+
+        <Fact(), WorkItem(1021941, "DevDiv")>
+        Public Sub Bug1021941_02()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Interface IMoveable
+    Property Position As Integer
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item = New Item With {.Name = "Foo"}
+        Shift(item)
+    End Sub
+
+    Shared Sub Shift(Of T As {Class, IMoveable})(ByRef item As T)
+        item.Position += GetOffset(item)
+    End Sub
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        item = DirectCast(DirectCast(New Item With {.Name = "Bar"}, IMoveable), T)
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Foo'
+]]>)
+
+            ' Verify presence of constrained calls in order to enforce compatibility with Dev12
+            verifier.VerifyIL("Program.Shift",
+            <![CDATA[
+{
+  // Code size       32 (0x20)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldarg.0
+  IL_0002:  constrained. "T"
+  IL_0008:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_000d:  ldarg.0
+  IL_000e:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0013:  add.ovf
+  IL_0014:  constrained. "T"
+  IL_001a:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_001f:  ret
+}
+]]>)
+
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+
+            verifier = CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Bar'
+]]>)
+
+            ' Verify presence of constrained calls in order to enforce compatibility with Dev12
+            verifier.VerifyIL("Program.Shift",
+            <![CDATA[
+{
+  // Code size       34 (0x22)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldarg.0
+  IL_0003:  constrained. "T"
+  IL_0009:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_000e:  ldarg.0
+  IL_000f:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0014:  add.ovf
+  IL_0015:  constrained. "T"
+  IL_001b:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_0020:  nop
+  IL_0021:  ret
+}
+]]>)
+        End Sub
+
+        <Fact(), WorkItem(1021941, "DevDiv")>
+        Public Sub Bug1021941_03()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Interface IMoveable
+    Property Position As Integer
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item = New Item With {.Name = "Foo"}
+        Shift(item)
+    End Sub
+
+    Shared Sub Shift(Of T As {Class, IMoveable})(item As T)
+        Dim lItem = item
+        lItem.Position += GetOffset(lItem)
+    End Sub
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        item = DirectCast(DirectCast(New Item With {.Name = "Bar"}, IMoveable), T)
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Foo'
+]]>)
+
+            ' Verify presence of constrained calls in order to enforce compatibility with Dev12
+            verifier.VerifyIL("Program.Shift",
+            <![CDATA[
+{
+  // Code size       37 (0x25)
+  .maxstack  3
+  .locals init (T V_0) //lItem
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  ldloca.s   V_0
+  IL_0006:  constrained. "T"
+  IL_000c:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0018:  add.ovf
+  IL_0019:  constrained. "T"
+  IL_001f:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_0024:  ret
+}
+]]>)
+
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+
+            verifier = CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Bar'
+]]>)
+
+            ' Verify presence of constrained calls in order to enforce compatibility with Dev12
+            verifier.VerifyIL("Program.Shift",
+            <![CDATA[
+{
+  // Code size       39 (0x27)
+  .maxstack  3
+  .locals init (T V_0) //lItem
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  ldloca.s   V_0
+  IL_0007:  constrained. "T"
+  IL_000d:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0019:  add.ovf
+  IL_001a:  constrained. "T"
+  IL_0020:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_0025:  nop
+  IL_0026:  ret
+}
+]]>)
+        End Sub
+
+        <Fact(), WorkItem(1021941, "DevDiv")>
+        Public Sub Bug1021941_04()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Interface IMoveable
+    Property Position As Integer
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item = { New Item With {.Name = "Foo"} }
+        Shift(item)
+    End Sub
+
+    Shared Sub Shift(Of T As {Class, IMoveable})(item As T())
+        item(0).Position += GetOffset(item(0))
+    End Sub
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        item = DirectCast(DirectCast(New Item With {.Name = "Bar"}, IMoveable), T)
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Foo'
+]]>)
+
+            ' Verify presence of constrained calls in order to enforce compatibility with Dev12
+            verifier.VerifyIL("Program.Shift",
+            <![CDATA[
+{
+  // Code size       46 (0x2e)
+  .maxstack  4
+  .locals init (T& V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    "T"
+  IL_0007:  dup
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  constrained. "T"
+  IL_0010:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_0015:  ldarg.0
+  IL_0016:  ldc.i4.0
+  IL_0017:  ldelema    "T"
+  IL_001c:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0021:  add.ovf
+  IL_0022:  constrained. "T"
+  IL_0028:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_002d:  ret
+}
+]]>)
+
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+
+            verifier = CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Bar'
+]]>)
+
+            ' Verify presence of constrained calls in order to enforce compatibility with Dev12
+            verifier.VerifyIL("Program.Shift",
+            <![CDATA[
+{
+  // Code size       48 (0x30)
+  .maxstack  4
+  .locals init (T& V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldelema    "T"
+  IL_0008:  dup
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  constrained. "T"
+  IL_0011:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_0016:  ldarg.0
+  IL_0017:  ldc.i4.0
+  IL_0018:  ldelema    "T"
+  IL_001d:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0022:  add.ovf
+  IL_0023:  constrained. "T"
+  IL_0029:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_002e:  nop
+  IL_002f:  ret
+}
+]]>)
+        End Sub
+
+        <Fact(), WorkItem(1021941, "DevDiv")>
+        Public Sub Bug1021941_05()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Interface IMoveable
+    Property Position As Integer
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Class
+
+Structure Test(Of T)
+    Public F As T
+End Structure
+
+Class Program
+    Shared Sub Main()
+        Dim item = New Test(Of Item) With { .F = New Item With {.Name = "Foo"} } 
+        Shift(item)
+    End Sub
+
+    Shared Sub Shift(Of T As {Class, IMoveable})(item As Test(Of T))
+        item.F.Position += GetOffset(item.F)
+    End Sub
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        item = DirectCast(DirectCast(New Item With {.Name = "Bar"}, IMoveable), T)
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Foo'
+]]>)
+
+            ' Verify presence of constrained calls in order to enforce compatibility with Dev12
+            verifier.VerifyIL("Program.Shift",
+            <![CDATA[
+{
+  // Code size       46 (0x2e)
+  .maxstack  3
+  .locals init (T& V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldflda     "Test(Of T).F As T"
+  IL_0007:  dup
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  constrained. "T"
+  IL_0010:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_0015:  ldarga.s   V_0
+  IL_0017:  ldflda     "Test(Of T).F As T"
+  IL_001c:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0021:  add.ovf
+  IL_0022:  constrained. "T"
+  IL_0028:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_002d:  ret
+}
+]]>)
+
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+
+            verifier = CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Bar'
+]]>)
+
+            ' Verify presence of constrained calls in order to enforce compatibility with Dev12
+            verifier.VerifyIL("Program.Shift",
+            <![CDATA[
+{
+  // Code size       48 (0x30)
+  .maxstack  3
+  .locals init (T& V_0)
+  IL_0000:  nop
+  IL_0001:  ldarga.s   V_0
+  IL_0003:  ldflda     "Test(Of T).F As T"
+  IL_0008:  dup
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  constrained. "T"
+  IL_0011:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_0016:  ldarga.s   V_0
+  IL_0018:  ldflda     "Test(Of T).F As T"
+  IL_001d:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0022:  add.ovf
+  IL_0023:  constrained. "T"
+  IL_0029:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_002e:  nop
+  IL_002f:  ret
+}
+]]>)
+        End Sub
+
+        <Fact(), WorkItem(1021941, "DevDiv")>
+        Public Sub Bug1021941_06()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Interface IMoveable
+    Property Position As Integer
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item = New Item With {.Name = "Foo"}
+        Shift(item)
+    End Sub
+
+    Shared Sub Shift(Of T As {Class, IMoveable})(item As T)
+        With item
+            .Position += GetOffset(item)
+        End With
+    End Sub
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        item = DirectCast(DirectCast(New Item With {.Name = "Bar"}, IMoveable), T)
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Foo'
+]]>)
+
+            ' Verify presence of constrained calls in order to enforce compatibility with Dev12
+            verifier.VerifyIL("Program.Shift",
+            <![CDATA[
+{
+  // Code size       35 (0x23)
+  .maxstack  3
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldarga.s   V_0
+  IL_0004:  constrained. "T"
+  IL_000a:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_000f:  ldarga.s   V_0
+  IL_0011:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0016:  add.ovf
+  IL_0017:  constrained. "T"
+  IL_001d:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_0022:  ret
+}
+]]>)
+
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+
+            verifier = CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Bar'
+]]>)
+
+            ' Verify presence of constrained calls in order to enforce compatibility with Dev12
+            verifier.VerifyIL("Program.Shift",
+            <![CDATA[
+{
+  // Code size       39 (0x27)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ldarga.s   V_0
+  IL_0004:  ldarga.s   V_0
+  IL_0006:  constrained. "T"
+  IL_000c:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_0011:  ldarga.s   V_0
+  IL_0013:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0018:  add.ovf
+  IL_0019:  constrained. "T"
+  IL_001f:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_0024:  nop
+  IL_0025:  nop
+  IL_0026:  ret
+}
+]]>)
+        End Sub
+
+        <Fact(), WorkItem(1021941, "DevDiv")>
+        Public Sub Bug1021941_07()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Interface IMoveable
+    Property Position As Integer
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item = New Item With {.Name = "Foo"}
+        Shift(item)
+    End Sub
+
+    Shared Sub Shift(Of T As {IMoveable})(item As T)
+        item.Position += GetOffset(item)
+    End Sub
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        item = DirectCast(DirectCast(New Item With {.Name = "Bar"}, IMoveable), T)
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Foo'
+]]>)
+
+            ' Verify presence of constrained calls in order to enforce compatibility with Dev12
+            verifier.VerifyIL("Program.Shift",
+            <![CDATA[
+{
+  // Code size       34 (0x22)
+  .maxstack  3
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  dup
+  IL_0003:  constrained. "T"
+  IL_0009:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_000e:  ldarga.s   V_0
+  IL_0010:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0015:  add.ovf
+  IL_0016:  constrained. "T"
+  IL_001c:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_0021:  ret
+}
+]]>)
+
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+
+            verifier = CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Bar'
+]]>)
+
+            ' Verify presence of constrained calls in order to enforce compatibility with Dev12
+            verifier.VerifyIL("Program.Shift",
+            <![CDATA[
+{
+  // Code size       37 (0x25)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  ldarga.s   V_0
+  IL_0003:  ldarga.s   V_0
+  IL_0005:  constrained. "T"
+  IL_000b:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_0010:  ldarga.s   V_0
+  IL_0012:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0017:  add.ovf
+  IL_0018:  constrained. "T"
+  IL_001e:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_0023:  nop
+  IL_0024:  ret
+}
+]]>)
+        End Sub
+
+        <Fact(), WorkItem(1021941, "DevDiv")>
+        Public Sub Bug1021941_08()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Interface IMoveable
+    Property Position As Integer
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item = New Item With {.Name = "Foo"}
+        Shift(item)
+    End Sub
+
+    Shared Sub Shift(Of T As {IMoveable})(ByRef item As T)
+        item.Position += GetOffset(item)
+    End Sub
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        item = DirectCast(DirectCast(New Item With {.Name = "Bar"}, IMoveable), T)
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Foo'
+]]>)
+
+            ' Verify presence of constrained calls in order to enforce compatibility with Dev12
+            verifier.VerifyIL("Program.Shift",
+            <![CDATA[
+{
+  // Code size       32 (0x20)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  dup
+  IL_0002:  constrained. "T"
+  IL_0008:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_000d:  ldarg.0
+  IL_000e:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0013:  add.ovf
+  IL_0014:  constrained. "T"
+  IL_001a:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_001f:  ret
+}
+]]>)
+
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+
+            verifier = CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Bar'
+]]>)
+
+            ' Verify presence of constrained calls in order to enforce compatibility with Dev12
+            verifier.VerifyIL("Program.Shift",
+            <![CDATA[
+{
+  // Code size       34 (0x22)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldarg.0
+  IL_0003:  constrained. "T"
+  IL_0009:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_000e:  ldarg.0
+  IL_000f:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0014:  add.ovf
+  IL_0015:  constrained. "T"
+  IL_001b:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_0020:  nop
+  IL_0021:  ret
+}
+]]>)
+        End Sub
+
+        <Fact(), WorkItem(1021941, "DevDiv")>
+        Public Sub Bug1021941_09()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Interface IMoveable
+    Property Position As Integer
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item = New Item With {.Name = "Foo"}
+        Shift(item)
+    End Sub
+
+    Shared Sub Shift(Of T As {IMoveable})(item As T)
+        Dim lItem = item
+        lItem.Position += GetOffset(lItem)
+    End Sub
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        item = DirectCast(DirectCast(New Item With {.Name = "Bar"}, IMoveable), T)
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Foo'
+]]>)
+
+            ' Verify presence of constrained calls in order to enforce compatibility with Dev12
+            verifier.VerifyIL("Program.Shift",
+            <![CDATA[
+{
+  // Code size       36 (0x24)
+  .maxstack  3
+  .locals init (T V_0) //lItem
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  dup
+  IL_0005:  constrained. "T"
+  IL_000b:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0017:  add.ovf
+  IL_0018:  constrained. "T"
+  IL_001e:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_0023:  ret
+}
+]]>)
+
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+
+            verifier = CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Bar'
+]]>)
+
+            ' Verify presence of constrained calls in order to enforce compatibility with Dev12
+            verifier.VerifyIL("Program.Shift",
+            <![CDATA[
+{
+  // Code size       39 (0x27)
+  .maxstack  3
+  .locals init (T V_0) //lItem
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.0
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  ldloca.s   V_0
+  IL_0007:  constrained. "T"
+  IL_000d:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_0012:  ldloca.s   V_0
+  IL_0014:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0019:  add.ovf
+  IL_001a:  constrained. "T"
+  IL_0020:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_0025:  nop
+  IL_0026:  ret
+}
+]]>)
+        End Sub
+
+        <Fact(), WorkItem(1021941, "DevDiv")>
+        Public Sub Bug1021941_10()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Interface IMoveable
+    Property Position As Integer
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item = { New Item With {.Name = "Foo"} }
+        Shift(item)
+    End Sub
+
+    Shared Sub Shift(Of T As {IMoveable})(item As T())
+        item(0).Position += GetOffset(item(0))
+    End Sub
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        item = DirectCast(DirectCast(New Item With {.Name = "Bar"}, IMoveable), T)
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Foo'
+]]>)
+
+            ' Verify presence of constrained calls in order to enforce compatibility with Dev12
+            verifier.VerifyIL("Program.Shift",
+            <![CDATA[
+{
+  // Code size       46 (0x2e)
+  .maxstack  4
+  .locals init (T& V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldc.i4.0
+  IL_0002:  ldelema    "T"
+  IL_0007:  dup
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  constrained. "T"
+  IL_0010:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_0015:  ldarg.0
+  IL_0016:  ldc.i4.0
+  IL_0017:  ldelema    "T"
+  IL_001c:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0021:  add.ovf
+  IL_0022:  constrained. "T"
+  IL_0028:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_002d:  ret
+}
+]]>)
+
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+
+            verifier = CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Bar'
+]]>)
+
+            ' Verify presence of constrained calls in order to enforce compatibility with Dev12
+            verifier.VerifyIL("Program.Shift",
+            <![CDATA[
+{
+  // Code size       48 (0x30)
+  .maxstack  4
+  .locals init (T& V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  ldelema    "T"
+  IL_0008:  dup
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  constrained. "T"
+  IL_0011:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_0016:  ldarg.0
+  IL_0017:  ldc.i4.0
+  IL_0018:  ldelema    "T"
+  IL_001d:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0022:  add.ovf
+  IL_0023:  constrained. "T"
+  IL_0029:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_002e:  nop
+  IL_002f:  ret
+}
+]]>)
+        End Sub
+
+        <Fact(), WorkItem(1021941, "DevDiv")>
+        Public Sub Bug1021941_11()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Interface IMoveable
+    Property Position As Integer
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Class
+
+Structure Test(Of T)
+    Public F As T
+End Structure
+
+Class Program
+    Shared Sub Main()
+        Dim item = New Test(Of Item) With { .F = New Item With {.Name = "Foo"} } 
+        Shift(item)
+    End Sub
+
+    Shared Sub Shift(Of T As {IMoveable})(item As Test(Of T))
+        item.F.Position += GetOffset(item.F)
+    End Sub
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        item = DirectCast(DirectCast(New Item With {.Name = "Bar"}, IMoveable), T)
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Foo'
+]]>)
+
+            ' Verify presence of constrained calls in order to enforce compatibility with Dev12
+            verifier.VerifyIL("Program.Shift",
+            <![CDATA[
+{
+  // Code size       46 (0x2e)
+  .maxstack  3
+  .locals init (T& V_0)
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  ldflda     "Test(Of T).F As T"
+  IL_0007:  dup
+  IL_0008:  stloc.0
+  IL_0009:  ldloc.0
+  IL_000a:  constrained. "T"
+  IL_0010:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_0015:  ldarga.s   V_0
+  IL_0017:  ldflda     "Test(Of T).F As T"
+  IL_001c:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0021:  add.ovf
+  IL_0022:  constrained. "T"
+  IL_0028:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_002d:  ret
+}
+]]>)
+
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+
+            verifier = CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Bar'
+]]>)
+
+            ' Verify presence of constrained calls in order to enforce compatibility with Dev12
+            verifier.VerifyIL("Program.Shift",
+            <![CDATA[
+{
+  // Code size       48 (0x30)
+  .maxstack  3
+  .locals init (T& V_0)
+  IL_0000:  nop
+  IL_0001:  ldarga.s   V_0
+  IL_0003:  ldflda     "Test(Of T).F As T"
+  IL_0008:  dup
+  IL_0009:  stloc.0
+  IL_000a:  ldloc.0
+  IL_000b:  constrained. "T"
+  IL_0011:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_0016:  ldarga.s   V_0
+  IL_0018:  ldflda     "Test(Of T).F As T"
+  IL_001d:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0022:  add.ovf
+  IL_0023:  constrained. "T"
+  IL_0029:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_002e:  nop
+  IL_002f:  ret
+}
+]]>)
+        End Sub
+
+        <Fact(), WorkItem(1021941, "DevDiv")>
+        Public Sub Bug1021941_12()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Interface IMoveable
+    Property Position As Integer
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item = New Item With {.Name = "Foo"}
+        Shift(item)
+    End Sub
+
+    Shared Sub Shift(Of T As {IMoveable})(item As T)
+        With item
+            .Position += GetOffset(item)
+        End With
+    End Sub
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        item = DirectCast(DirectCast(New Item With {.Name = "Bar"}, IMoveable), T)
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Foo'
+]]>)
+
+            ' Verify presence of constrained calls in order to enforce compatibility with Dev12
+            verifier.VerifyIL("Program.Shift",
+            <![CDATA[
+{
+  // Code size       34 (0x22)
+  .maxstack  3
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  dup
+  IL_0003:  constrained. "T"
+  IL_0009:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_000e:  ldarga.s   V_0
+  IL_0010:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0015:  add.ovf
+  IL_0016:  constrained. "T"
+  IL_001c:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_0021:  ret
+}
+]]>)
+
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+
+            verifier = CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Bar'
+]]>)
+
+            ' Verify presence of constrained calls in order to enforce compatibility with Dev12
+            verifier.VerifyIL("Program.Shift",
+            <![CDATA[
+{
+  // Code size       39 (0x27)
+  .maxstack  3
+  IL_0000:  nop
+  IL_0001:  nop
+  IL_0002:  ldarga.s   V_0
+  IL_0004:  ldarga.s   V_0
+  IL_0006:  constrained. "T"
+  IL_000c:  callvirt   "Function IMoveable.get_Position() As Integer"
+  IL_0011:  ldarga.s   V_0
+  IL_0013:  call       "Function Program.GetOffset(Of T)(ByRef T) As Integer"
+  IL_0018:  add.ovf
+  IL_0019:  constrained. "T"
+  IL_001f:  callvirt   "Sub IMoveable.set_Position(Integer)"
+  IL_0024:  nop
+  IL_0025:  nop
+  IL_0026:  ret
+}
+]]>)
+        End Sub
+
+        <Fact(), WorkItem(1021941, "DevDiv")>
+        Public Sub Bug1021941_13()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Interface IMoveable
+    Property Position(x as Integer) As Integer
+    Property Position(x as String) As Integer
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x as Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+
+    Public Property Position(x as String) As Integer Implements IMoveable.Position
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item = New Item With {.Name = "Foo"}
+        Shift(item, 0)
+    End Sub
+
+    Shared Sub Shift(Of T As {Class, IMoveable})(item As T, index as Object)
+        item.Position(index) += GetOffset(item)
+    End Sub
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        item = DirectCast(DirectCast(New Item With {.Name = "Bar"}, IMoveable), T)
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Foo'
+]]>)
+
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+
+            CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Foo'
+]]>)
+        End Sub
+
+        <Fact(), WorkItem(1021941, "DevDiv")>
+        Public Sub Bug1021941_14()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Interface IMoveable
+    Property Position(x as Integer) As Integer
+    Property Position(x as String) As Integer
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Property Position(x as Integer) As Integer Implements IMoveable.Position
+        Get
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+
+    Public Property Position(x as String) As Integer Implements IMoveable.Position
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item = New Item With {.Name = "Foo"}
+        Shift(item, 0)
+    End Sub
+
+    Shared Sub Shift(Of T As {IMoveable})(item As T, index as Object)
+        item.Position(index) += GetOffset(item)
+    End Sub
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        item = DirectCast(DirectCast(New Item With {.Name = "Bar"}, IMoveable), T)
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Foo'
+]]>)
+
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+
+            CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Foo'
+]]>)
+        End Sub
+
+        <Fact(), WorkItem(1021941, "DevDiv")>
+        Public Sub Bug1021941_15()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Interface IMoveable
+    Property Position As Integer
+End Interface
+
+Structure Item
+    Implements IMoveable
+
+    Public Property Name As String
+    Public B1 As Boolean
+    Public B2 As Boolean
+
+    Public Property Position As Integer Implements IMoveable.Position
+        Get
+            B1 = True
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            B2 = True
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+End Structure
+
+Class Program
+    Shared Sub Main()
+        Dim item = New Item With {.Name = "Foo"}
+        Shift(item)
+        Console.WriteLine(item.B1)
+        Console.WriteLine(item.B2)
+    End Sub
+
+    Shared Sub Shift(Of T As {IMoveable})(ByRef item As T)
+        item.Position += GetOffset(item)
+    End Sub
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        item = DirectCast(DirectCast(New Item With {.Name = "Bar"}, IMoveable), T)
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Bar'
+False
+True
+]]>)
+
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+
+            CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Bar'
+False
+True
+]]>)
+        End Sub
+
+        <Fact(), WorkItem(1021941, "DevDiv")>
+        Public Sub Bug1021941_16()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Interface IMoveable
+    Property Position(x As Integer) As Integer
+    Property Position(x As String) As Integer
+End Interface
+
+Structure Item
+    Implements IMoveable
+
+    Public Property Name As String
+    Public B1 As Boolean
+    Public B2 As Boolean
+
+    Public Property Position(x As Integer) As Integer Implements IMoveable.Position
+        Get
+            B1 = True
+            Console.WriteLine("Position get for item '{0}'", Me.Name)
+            Return 0
+        End Get
+        Set
+            B2 = True
+            Console.WriteLine("Position set for item '{0}'", Me.Name)
+        End Set
+    End Property
+
+    Public Property Position(x As String) As Integer Implements IMoveable.Position
+        Get
+            Return 0
+        End Get
+        Set
+        End Set
+    End Property
+End Structure
+
+Class Program
+    Shared Sub Main()
+        Dim item = New Item With {.Name = "Foo"}
+        Shift(item, 0)
+        Console.WriteLine(item.B1)
+        Console.WriteLine(item.B2)
+    End Sub
+
+    Shared Sub Shift(Of T As {IMoveable})(item As T, index As Object)
+        item.Position(index) += GetOffset(item)
+    End Sub
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        item = DirectCast(DirectCast(New Item With {.Name = "Bar"}, IMoveable), T)
+        Return 0
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Foo'
+False
+False
+]]>)
+
+            compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.DebugExe)
+
+            CompileAndVerify(compilation,
+            <![CDATA[
+Position get for item 'Foo'
+Position set for item 'Foo'
+False
+False
+]]>)
+        End Sub
+
     End Class
 
 End Namespace

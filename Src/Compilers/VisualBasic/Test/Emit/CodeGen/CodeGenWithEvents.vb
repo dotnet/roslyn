@@ -962,7 +962,7 @@ End Interface
 </compilation>, expectedOutput:=<![CDATA[inside EventHandler2
 ]]>).VerifyIL("C1(Of T).set_o(T)", <![CDATA[
 {
-  // Code size       75 (0x4b)
+  // Code size       79 (0x4f)
   .maxstack  2
   .locals init (iTest.Event2EventHandler V_0,
                 T V_1)
@@ -975,25 +975,25 @@ End Interface
   IL_0013:  stloc.1
   IL_0014:  ldloc.1
   IL_0015:  box        "T"
-  IL_001a:  brfalse.s  IL_0028
-  IL_001c:  ldloc.1
-  IL_001d:  box        "T"
-  IL_0022:  ldloc.0
-  IL_0023:  callvirt   "Sub iTest.remove_Event2(iTest.Event2EventHandler)"
-  IL_0028:  ldarg.0
-  IL_0029:  ldarg.1
-  IL_002a:  stfld      "C1(Of T)._o As T"
-  IL_002f:  ldarg.0
-  IL_0030:  ldfld      "C1(Of T)._o As T"
-  IL_0035:  stloc.1
-  IL_0036:  ldloc.1
-  IL_0037:  box        "T"
-  IL_003c:  brfalse.s  IL_004a
-  IL_003e:  ldloc.1
-  IL_003f:  box        "T"
-  IL_0044:  ldloc.0
-  IL_0045:  callvirt   "Sub iTest.add_Event2(iTest.Event2EventHandler)"
-  IL_004a:  ret
+  IL_001a:  brfalse.s  IL_002a
+  IL_001c:  ldloca.s   V_1
+  IL_001e:  ldloc.0
+  IL_001f:  constrained. "T"
+  IL_0025:  callvirt   "Sub iTest.remove_Event2(iTest.Event2EventHandler)"
+  IL_002a:  ldarg.0
+  IL_002b:  ldarg.1
+  IL_002c:  stfld      "C1(Of T)._o As T"
+  IL_0031:  ldarg.0
+  IL_0032:  ldfld      "C1(Of T)._o As T"
+  IL_0037:  stloc.1
+  IL_0038:  ldloc.1
+  IL_0039:  box        "T"
+  IL_003e:  brfalse.s  IL_004e
+  IL_0040:  ldloca.s   V_1
+  IL_0042:  ldloc.0
+  IL_0043:  constrained. "T"
+  IL_0049:  callvirt   "Sub iTest.add_Event2(iTest.Event2EventHandler)"
+  IL_004e:  ret
 }
 ]]>).Compilation
 
@@ -1049,7 +1049,7 @@ End Interface
 
             c.VerifyIL("C1(Of T).set_o(T)", <![CDATA[
 {
-  // Code size       75 (0x4b)
+  // Code size       79 (0x4f)
   .maxstack  2
   .locals init (iTest.Event2EventHandler V_0,
                 T V_1)
@@ -1062,25 +1062,25 @@ End Interface
   IL_0013:  stloc.1
   IL_0014:  ldloc.1
   IL_0015:  box        "T"
-  IL_001a:  brfalse.s  IL_0028
-  IL_001c:  ldloc.1
-  IL_001d:  box        "T"
-  IL_0022:  ldloc.0
-  IL_0023:  callvirt   "Sub iTest.remove_Event2(iTest.Event2EventHandler)"
-  IL_0028:  ldarg.0
-  IL_0029:  ldarg.1
-  IL_002a:  stfld      "C1(Of T)._o As T"
-  IL_002f:  ldarg.0
-  IL_0030:  ldfld      "C1(Of T)._o As T"
-  IL_0035:  stloc.1
-  IL_0036:  ldloc.1
-  IL_0037:  box        "T"
-  IL_003c:  brfalse.s  IL_004a
-  IL_003e:  ldloc.1
-  IL_003f:  box        "T"
-  IL_0044:  ldloc.0
-  IL_0045:  callvirt   "Sub iTest.add_Event2(iTest.Event2EventHandler)"
-  IL_004a:  ret
+  IL_001a:  brfalse.s  IL_002a
+  IL_001c:  ldloca.s   V_1
+  IL_001e:  ldloc.0
+  IL_001f:  constrained. "T"
+  IL_0025:  callvirt   "Sub iTest.remove_Event2(iTest.Event2EventHandler)"
+  IL_002a:  ldarg.0
+  IL_002b:  ldarg.1
+  IL_002c:  stfld      "C1(Of T)._o As T"
+  IL_0031:  ldarg.0
+  IL_0032:  ldfld      "C1(Of T)._o As T"
+  IL_0037:  stloc.1
+  IL_0038:  ldloc.1
+  IL_0039:  box        "T"
+  IL_003e:  brfalse.s  IL_004e
+  IL_0040:  ldloca.s   V_1
+  IL_0042:  ldloc.0
+  IL_0043:  constrained. "T"
+  IL_0049:  callvirt   "Sub iTest.add_Event2(iTest.Event2EventHandler)"
+  IL_004e:  ret
 }
 ]]>)
 

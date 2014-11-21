@@ -2765,47 +2765,47 @@ End Class
             Dim verifier = CompileAndVerify(source, expectedOutput:="pass")
             verifier.VerifyIL("Program._Closure$__1(Of $CLS0)._Lambda$__2", <![CDATA[
 {
-  // Code size       84 (0x54)
+  // Code size       86 (0x56)
   .maxstack  3
   .locals init ($CLS0 V_0) //e
   .try
-{
-  IL_0000:  ldstr      "xxx"
-  IL_0005:  newobj     "Sub System.IO.IOException..ctor(String)"
-  IL_000a:  throw
-}
+  {
+    IL_0000:  ldstr      "xxx"
+    IL_0005:  newobj     "Sub System.IO.IOException..ctor(String)"
+    IL_000a:  throw
+  }
   filter
-{
-  IL_000b:  isinst     "$CLS0"
-  IL_0010:  dup
-  IL_0011:  brtrue.s   IL_0017
-  IL_0013:  pop
-  IL_0014:  ldc.i4.0
-  IL_0015:  br.s       IL_003f
-  IL_0017:  dup
-  IL_0018:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_001d:  unbox.any  "$CLS0"
-  IL_0022:  stloc.0
-  IL_0023:  ldloc.0
-  IL_0024:  box        "$CLS0"
-  IL_0029:  callvirt   "Function System.Exception.get_Message() As String"
-  IL_002e:  ldstr      "xxx"
-  IL_0033:  ldc.i4.0
-  IL_0034:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.CompareString(String, String, Boolean) As Integer"
-  IL_0039:  ldc.i4.0
-  IL_003a:  ceq
-  IL_003c:  ldc.i4.0
-  IL_003d:  cgt.un
-  IL_003f:  endfilter
-}  // end filter
-{  // handler
-  IL_0041:  pop
-  IL_0042:  ldstr      "pass"
-  IL_0047:  call       "Sub System.Console.Write(String)"
-  IL_004c:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0051:  leave.s    IL_0053
-}
-  IL_0053:  ret
+  {
+    IL_000b:  isinst     "$CLS0"
+    IL_0010:  dup
+    IL_0011:  brtrue.s   IL_0017
+    IL_0013:  pop
+    IL_0014:  ldc.i4.0
+    IL_0015:  br.s       IL_0041
+    IL_0017:  dup
+    IL_0018:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_001d:  unbox.any  "$CLS0"
+    IL_0022:  stloc.0
+    IL_0023:  ldloca.s   V_0
+    IL_0025:  constrained. "$CLS0"
+    IL_002b:  callvirt   "Function System.Exception.get_Message() As String"
+    IL_0030:  ldstr      "xxx"
+    IL_0035:  ldc.i4.0
+    IL_0036:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.CompareString(String, String, Boolean) As Integer"
+    IL_003b:  ldc.i4.0
+    IL_003c:  ceq
+    IL_003e:  ldc.i4.0
+    IL_003f:  cgt.un
+    IL_0041:  endfilter
+  }  // end filter
+  {  // handler
+    IL_0043:  pop
+    IL_0044:  ldstr      "pass"
+    IL_0049:  call       "Sub System.Console.Write(String)"
+    IL_004e:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0053:  leave.s    IL_0055
+  }
+  IL_0055:  ret
 }
 ]]>)
         End Sub

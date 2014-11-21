@@ -2966,7 +2966,7 @@ End Module
 </compilation>, additionalRefs:=XmlReferences)
             compilation.VerifyIL("M.M(Of T)", <![CDATA[
 {
-  // Code size      164 (0xa4)
+  // Code size      166 (0xa6)
   .maxstack  3
   IL_0000:  ldstr      "x"
   IL_0005:  ldstr      ""
@@ -2990,34 +2990,34 @@ End Module
   IL_004f:  ldarg.1
   IL_0050:  callvirt   "Function System.Xml.Linq.XElement.get_Value() As String"
   IL_0055:  pop
-  IL_0056:  ldarg.2
-  IL_0057:  box        "T"
-  IL_005c:  callvirt   "Function System.Xml.Linq.XElement.get_Value() As String"
-  IL_0061:  pop
-  IL_0062:  ldarg.3
-  IL_0063:  call       "Function My.InternalXmlHelper.get_Value(System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)) As String"
-  IL_0068:  pop
-  IL_0069:  ldarg.s    V_4
-  IL_006b:  call       "Function My.InternalXmlHelper.get_Value(System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)) As String"
-  IL_0070:  pop
-  IL_0071:  ldarg.s    V_5
-  IL_0073:  call       "Function My.InternalXmlHelper.get_Value(System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)) As String"
-  IL_0078:  pop
-  IL_0079:  ldarg.s    V_6
-  IL_007b:  call       "Function My.InternalXmlHelper.get_Value(System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)) As String"
-  IL_0080:  pop
-  IL_0081:  ldarg.s    V_7
-  IL_0083:  call       "Function My.InternalXmlHelper.get_Value(System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)) As String"
-  IL_0088:  pop
-  IL_0089:  ldarg.s    V_8
-  IL_008b:  call       "Function My.InternalXmlHelper.get_Value(System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)) As String"
-  IL_0090:  pop
-  IL_0091:  ldarg.s    V_9
-  IL_0093:  box        "S"
-  IL_0098:  castclass  "System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)"
-  IL_009d:  call       "Function My.InternalXmlHelper.get_Value(System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)) As String"
-  IL_00a2:  pop
-  IL_00a3:  ret
+  IL_0056:  ldarga.s   V_2
+  IL_0058:  constrained. "T"
+  IL_005e:  callvirt   "Function System.Xml.Linq.XElement.get_Value() As String"
+  IL_0063:  pop
+  IL_0064:  ldarg.3
+  IL_0065:  call       "Function My.InternalXmlHelper.get_Value(System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)) As String"
+  IL_006a:  pop
+  IL_006b:  ldarg.s    V_4
+  IL_006d:  call       "Function My.InternalXmlHelper.get_Value(System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)) As String"
+  IL_0072:  pop
+  IL_0073:  ldarg.s    V_5
+  IL_0075:  call       "Function My.InternalXmlHelper.get_Value(System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)) As String"
+  IL_007a:  pop
+  IL_007b:  ldarg.s    V_6
+  IL_007d:  call       "Function My.InternalXmlHelper.get_Value(System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)) As String"
+  IL_0082:  pop
+  IL_0083:  ldarg.s    V_7
+  IL_0085:  call       "Function My.InternalXmlHelper.get_Value(System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)) As String"
+  IL_008a:  pop
+  IL_008b:  ldarg.s    V_8
+  IL_008d:  call       "Function My.InternalXmlHelper.get_Value(System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)) As String"
+  IL_0092:  pop
+  IL_0093:  ldarg.s    V_9
+  IL_0095:  box        "S"
+  IL_009a:  castclass  "System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)"
+  IL_009f:  call       "Function My.InternalXmlHelper.get_Value(System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)) As String"
+  IL_00a4:  pop
+  IL_00a5:  ret
 }
 ]]>)
         End Sub
@@ -4309,16 +4309,16 @@ End Class
             VerifyIL("scen1(Of T).foo(T)",
             <![CDATA[
 {
-  // Code size       28 (0x1c)
+  // Code size       30 (0x1e)
   .maxstack  3
-  IL_0000:  ldarg.1
-  IL_0001:  box        "T"
-  IL_0006:  ldstr      "moo"
-  IL_000b:  ldstr      ""
-  IL_0010:  call       "Function System.Xml.Linq.XName.Get(String, String) As System.Xml.Linq.XName"
-  IL_0015:  callvirt   "Function System.Xml.Linq.XContainer.Elements(System.Xml.Linq.XName) As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)"
-  IL_001a:  pop
-  IL_001b:  ret
+  IL_0000:  ldarga.s   V_1
+  IL_0002:  ldstr      "moo"
+  IL_0007:  ldstr      ""
+  IL_000c:  call       "Function System.Xml.Linq.XName.Get(String, String) As System.Xml.Linq.XName"
+  IL_0011:  constrained. "T"
+  IL_0017:  callvirt   "Function System.Xml.Linq.XContainer.Elements(System.Xml.Linq.XName) As System.Collections.Generic.IEnumerable(Of System.Xml.Linq.XElement)"
+  IL_001c:  pop
+  IL_001d:  ret
 }
 ]]>)
         End Sub

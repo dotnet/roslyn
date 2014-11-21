@@ -2218,12 +2218,12 @@ End Module
             Dim actualIL = verifier.VisualizeIL("M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6).MoveNext()")
             Dim calls = actualIL.Split({vbCr, vbLf}, StringSplitOptions.RemoveEmptyEntries).Where(Function(s) s.Contains("OnCompleted")).ToArray()
             Assert.Equal(calls.Length, 6)
-            Assert.Equal(calls(0), <![CDATA[    IL_0056:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitOnCompleted(Of SM$T1, M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))(ByRef SM$T1, ByRef M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))"]]>.Value)
-            Assert.Equal(calls(1), <![CDATA[    IL_00c1:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted(Of SM$T2, M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))(ByRef SM$T2, ByRef M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))"]]>.Value)
-            Assert.Equal(calls(2), <![CDATA[    IL_012c:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted(Of SM$T3, M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))(ByRef SM$T3, ByRef M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))"]]>.Value)
-            Assert.Equal(calls(3), <![CDATA[    IL_019a:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitOnCompleted(Of SM$T4, M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))(ByRef SM$T4, ByRef M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))"]]>.Value)
-            Assert.Equal(calls(4), <![CDATA[    IL_020a:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted(Of SM$T5, M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))(ByRef SM$T5, ByRef M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))"]]>.Value)
-            Assert.Equal(calls(5), <![CDATA[    IL_027a:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted(Of SM$T6, M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))(ByRef SM$T6, ByRef M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))"]]>.Value)
+            Assert.Equal(calls(0), <![CDATA[    IL_0058:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitOnCompleted(Of SM$T1, M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))(ByRef SM$T1, ByRef M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))"]]>.Value)
+            Assert.Equal(calls(1), <![CDATA[    IL_00c7:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted(Of SM$T2, M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))(ByRef SM$T2, ByRef M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))"]]>.Value)
+            Assert.Equal(calls(2), <![CDATA[    IL_0136:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted(Of SM$T3, M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))(ByRef SM$T3, ByRef M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))"]]>.Value)
+            Assert.Equal(calls(3), <![CDATA[    IL_01a7:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitOnCompleted(Of SM$T4, M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))(ByRef SM$T4, ByRef M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))"]]>.Value)
+            Assert.Equal(calls(4), <![CDATA[    IL_0219:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted(Of SM$T5, M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))(ByRef SM$T5, ByRef M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))"]]>.Value)
+            Assert.Equal(calls(5), <![CDATA[    IL_028b:  call       "Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted(Of SM$T6, M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))(ByRef SM$T6, ByRef M.VB$StateMachine_1_F(Of SM$T1, SM$T2, SM$T3, SM$T4, SM$T5, SM$T6))"]]>.Value)
         End Sub
 
         <Fact()>
@@ -5596,6 +5596,68 @@ BC35000: Requested operation is not available because the runtime library functi
     Async Sub F()
     ~~~~~~~~~~~~~~
 </expected>)
+        End Sub
+
+        <Fact(), WorkItem(1021941, "DevDiv")>
+        Public Sub Bug1021941()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+Imports System.Threading.Tasks
+
+Interface IMoveable
+    Sub M1(x As Integer, y As Integer, z As Integer)
+    Function M2() As Integer
+End Interface
+
+Class Item
+    Implements IMoveable
+
+    Public Property Name As String
+
+    Public Sub M1(x As Integer, y As Integer, z As Integer) Implements IMoveable.M1
+        Console.WriteLine("M1 is called for item '{0}'", Me.Name)
+    End Sub
+
+    Public Function M2() As Integer Implements IMoveable.M2
+        Console.WriteLine("M2 is called for item '{0}'", Me.Name)
+        Return 0
+    End Function
+End Class
+
+Class Program
+    Shared Sub Main()
+        Dim item = New Item With {.Name = "Foo"}
+        Task.WaitAll(Shift(item))
+    End Sub
+
+    Shared Async Function Shift(Of T As {Class, IMoveable})(item As T) As Task(Of Integer)
+        item.M1(item.M2(), Await DummyAsync(), GetOffset(item))
+        Return 0
+    End Function
+
+    Shared Async Function DummyAsync() As Task(Of Integer)
+        Return 0
+    End Function
+
+    Shared Function GetOffset(Of T)(ByRef item As T) As Integer
+        item = DirectCast(DirectCast(New Item With {.Name = "Bar"}, IMoveable), T)
+        Return 0
+    End Function
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef_v4_0_30319_17929}, TestOptions.DebugExe)
+
+            CompileAndVerify(compilation,
+            <![CDATA[
+M2 is called for item 'Foo'
+M1 is called for item 'Bar'
+]]>)
         End Sub
 
     End Class

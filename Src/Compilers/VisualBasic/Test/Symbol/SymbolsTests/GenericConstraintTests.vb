@@ -767,7 +767,7 @@ B.M]]>)
             compilationVerifier.VerifyIL("C(Of T1, T2).M(Of U1, U2)(T1, T2, U1, U2)",
             <![CDATA[
 {
-  // Code size      165 (0xa5)
+  // Code size      177 (0xb1)
   .maxstack  2
   IL_0000:  ldarga.s   V_0
   IL_0002:  ldarga.s   V_0
@@ -779,37 +779,37 @@ B.M]]>)
   IL_001f:  ldarga.s   V_0
   IL_0021:  constrained. "T1"
   IL_0027:  callvirt   "Sub I.M()"
-  IL_002c:  ldarg.1
-  IL_002d:  box        "T2"
-  IL_0032:  ldarg.1
-  IL_0033:  box        "T2"
-  IL_0038:  callvirt   "Function A.get_P() As Object"
-  IL_003d:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
-  IL_0042:  callvirt   "Sub A.set_P(Object)"
-  IL_0047:  ldarg.1
-  IL_0048:  box        "T2"
-  IL_004d:  callvirt   "Sub A.M()"
-  IL_0052:  ldarga.s   V_2
-  IL_0054:  ldarga.s   V_2
-  IL_0056:  constrained. "U1"
-  IL_005c:  callvirt   "Function I.get_P() As Object"
-  IL_0061:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
-  IL_0066:  constrained. "U1"
-  IL_006c:  callvirt   "Sub I.set_P(Object)"
-  IL_0071:  ldarga.s   V_2
-  IL_0073:  constrained. "U1"
-  IL_0079:  callvirt   "Sub I.M()"
-  IL_007e:  ldarg.3
-  IL_007f:  box        "U2"
-  IL_0084:  ldarg.3
-  IL_0085:  box        "U2"
-  IL_008a:  callvirt   "Function A.get_P() As Object"
-  IL_008f:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
-  IL_0094:  callvirt   "Sub A.set_P(Object)"
-  IL_0099:  ldarg.3
-  IL_009a:  box        "U2"
-  IL_009f:  callvirt   "Sub A.M()"
-  IL_00a4:  ret
+  IL_002c:  ldarga.s   V_1
+  IL_002e:  ldarga.s   V_1
+  IL_0030:  constrained. "T2"
+  IL_0036:  callvirt   "Function A.get_P() As Object"
+  IL_003b:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
+  IL_0040:  constrained. "T2"
+  IL_0046:  callvirt   "Sub A.set_P(Object)"
+  IL_004b:  ldarga.s   V_1
+  IL_004d:  constrained. "T2"
+  IL_0053:  callvirt   "Sub A.M()"
+  IL_0058:  ldarga.s   V_2
+  IL_005a:  ldarga.s   V_2
+  IL_005c:  constrained. "U1"
+  IL_0062:  callvirt   "Function I.get_P() As Object"
+  IL_0067:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
+  IL_006c:  constrained. "U1"
+  IL_0072:  callvirt   "Sub I.set_P(Object)"
+  IL_0077:  ldarga.s   V_2
+  IL_0079:  constrained. "U1"
+  IL_007f:  callvirt   "Sub I.M()"
+  IL_0084:  ldarga.s   V_3
+  IL_0086:  ldarga.s   V_3
+  IL_0088:  constrained. "U2"
+  IL_008e:  callvirt   "Function A.get_P() As Object"
+  IL_0093:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
+  IL_0098:  constrained. "U2"
+  IL_009e:  callvirt   "Sub A.set_P(Object)"
+  IL_00a3:  ldarga.s   V_3
+  IL_00a5:  constrained. "U2"
+  IL_00ab:  callvirt   "Sub A.M()"
+  IL_00b0:  ret
 }
 ]]>)
         End Sub

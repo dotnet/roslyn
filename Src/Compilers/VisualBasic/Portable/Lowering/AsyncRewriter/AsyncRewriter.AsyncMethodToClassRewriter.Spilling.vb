@@ -248,7 +248,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(expr IsNot Nothing)
                 Debug.Assert(isReceiver OrElse expr.IsLValue)
 
-                If isReceiver AndAlso expr.Type.IsReferenceType Then
+                If isReceiver AndAlso expr.Type.IsReferenceType AndAlso
+                   Not expr.Type.IsTypeParameter() Then ' Skip type parameters to enforce Dev12 behavior
                     Return SpillRValue(expr.MakeRValue(), builder)
                 End If
 
