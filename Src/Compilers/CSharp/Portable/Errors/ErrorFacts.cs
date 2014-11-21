@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal static partial class ErrorFacts
     {
-        private static readonly string TitlePrefix = "Title_";
-        private static readonly string DescriptionPrefix = "Description_";
+        private static readonly string TitleSuffix = "_Title";
+        private static readonly string DescriptionSuffix = "_Description";
         private static readonly Lazy<ImmutableDictionary<ErrorCode, string>> helpLinksMap = new Lazy<ImmutableDictionary<ErrorCode, string>>(CreateHelpLinks);
 
         private static ImmutableDictionary<ErrorCode, string> CreateHelpLinks()
@@ -76,12 +76,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static LocalizableResourceString GetTitle(ErrorCode code)
         {
-            return new LocalizableResourceString(TitlePrefix + code.ToString(), ResourceManager, typeof(ErrorFacts));
+            return new LocalizableResourceString(code.ToString() + TitleSuffix, ResourceManager, typeof(ErrorFacts));
         }
 
         public static LocalizableResourceString GetDescription(ErrorCode code)
         {
-            return new LocalizableResourceString(DescriptionPrefix + code.ToString(), ResourceManager, typeof(ErrorFacts));
+            return new LocalizableResourceString(code.ToString() + DescriptionSuffix, ResourceManager, typeof(ErrorFacts));
         }
 
         public static string GetHelpLink(ErrorCode code)

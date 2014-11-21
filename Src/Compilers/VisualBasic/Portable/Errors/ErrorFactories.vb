@@ -10,8 +10,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Friend Class ErrorFactory
 
-        Private Const TitlePrefix As String = "Title_"
-        Private Const DescriptionPrefix As String = "Description_"
+        Private Const TitleSuffix As String = "_Title"
+        Private Const DescriptionSuffix As String = "_Description"
         Private Shared ReadOnly HelpLinksMap As Lazy(Of ImmutableDictionary(Of ERRID, String)) = New Lazy(Of ImmutableDictionary(Of ERRID, String))(AddressOf CreateHelpLinks)
 
         Private Shared Function CreateHelpLinks() As ImmutableDictionary(Of ERRID, String)
@@ -103,11 +103,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shared Function GetTitle(id As ERRID) As LocalizableResourceString
-            Return New LocalizableResourceString(TitlePrefix + id.ToString(), ResourceManager, GetType(ErrorFactory))
+            Return New LocalizableResourceString(id.ToString() + TitleSuffix, ResourceManager, GetType(ErrorFactory))
         End Function
 
         Public Shared Function GetDescription(id As ERRID) As LocalizableResourceString
-            Return New LocalizableResourceString(DescriptionPrefix + id.ToString(), ResourceManager, GetType(ErrorFactory))
+            Return New LocalizableResourceString(id.ToString() + DescriptionSuffix, ResourceManager, GetType(ErrorFactory))
         End Function
 
         Public Shared Function GetHelpLink(id As ERRID) As String
