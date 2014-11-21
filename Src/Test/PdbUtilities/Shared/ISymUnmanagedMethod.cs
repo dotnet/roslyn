@@ -22,13 +22,15 @@ namespace Roslyn.Utilities.Pdb
         void __GetParameters(/*int cParams, out int pcParams, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] ISymUnmanagedVariable[] parms*/);
         void __GetNamespace(/*[MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedNamespace retVal*/);
         void __GetSourceStartEnd(/*ISymUnmanagedDocument[] docs, [In, Out, MarshalAs(UnmanagedType.LPArray)] int[] lines, [In, Out, MarshalAs(UnmanagedType.LPArray)] int[] columns, out Boolean retVal*/);
-        void __GetSequencePoints(/*int cPoints,
-                                  out int pcPoints,
-                                  [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[] offsets,
-                                  [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] ISymUnmanagedDocument[] documents,
-                                  [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[] lines,
-                                  [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[] columns,
-                                  [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[] endLines,
-                                  [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[] endColumns*/);
+
+        void GetSequencePoints(
+            int cPoints,
+            out int pcPoints,
+            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[] offsets,
+            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] ISymUnmanagedDocument[] documents,
+            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[] lines,
+            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[] columns,
+            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[] endLines,
+            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[] endColumns);
     }
 }
