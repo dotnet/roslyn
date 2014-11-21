@@ -829,6 +829,7 @@
     <Compile Include="Workspace\Host\HostWorkspaceServices.cs" />
     <Compile Include="Workspace\Host\TextFactory\TextFactoryServiceFactory.cs" />
     <Compile Include="Workspace\Host\TextFactory\TextFactoryServiceFactory.TextFactoryService.cs" />
+    <Compile Include="Workspace\PrimaryWorkspace.cs" />
     <Compile Include="Workspace\Solution\AbstractLinkedFileMergeConflictCommentAdditionService.cs" />
     <Compile Include="Workspace\Solution\AdditionalDocumentStream.cs" />
     <Compile Include="Workspace\Solution\MetadataReferenceManager.cs" />
