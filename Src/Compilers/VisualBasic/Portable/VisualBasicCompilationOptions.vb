@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 generalDiagnosticOption,
                 specificDiagnosticOptions,
                 concurrentBuild,
-                extendedCustomDebugInformation:=True,
+                extendedCustomDebugInformation:=False,
                 xmlReferenceResolver:=xmlReferenceResolver,
                 sourceReferenceResolver:=sourceReferenceResolver,
                 metadataReferenceResolver:=metadataReferenceResolver,
