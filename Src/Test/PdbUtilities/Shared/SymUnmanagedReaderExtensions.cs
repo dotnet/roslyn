@@ -16,8 +16,9 @@ namespace Roslyn.Utilities.Pdb
 
         /// <summary>
         /// Get the blob of binary custom debug info for a given method.
+        /// TODO: consume <paramref name="methodVersion"/> (DevDiv #1068138).
         /// </summary>
-        internal static byte[] GetCustomDebugInfo(this ISymUnmanagedReader symReader, int methodToken)
+        internal static byte[] GetCustomDebugInfo(this ISymUnmanagedReader symReader, int methodToken, int methodVersion)
         {
             int bytesAvailable;
             symReader.GetSymAttribute(methodToken, CdiAttributeName, 0, out bytesAvailable, buffer: null);

@@ -201,7 +201,7 @@ namespace Roslyn.Test.PdbUtilities
             int token = metadataReader.GetToken(methodHandle);
             var symbolToken = new SymbolToken(token);
 
-            byte[] bytes = pdbReader.RawSymbolReader.GetCustomDebugInfo(token);
+            byte[] bytes = pdbReader.RawSymbolReader.GetCustomDebugInfo(token, methodVersion: 0);
             ISymbolMethod methodSymbol = pdbReader.SymbolReader.GetMethod(symbolToken);
             if (bytes == null && methodSymbol == null)
             {

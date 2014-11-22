@@ -312,7 +312,7 @@ namespace Roslyn.Utilities.Pdb
             bool seenForward = false;
 
             RETRY:
-            var bytes = reader.GetCustomDebugInfo(methodToken);
+            var bytes = reader.GetCustomDebugInfo(methodToken, methodVersion);
             if (bytes == null)
             {
                 return default(ImmutableArray<ImmutableArray<string>>);
@@ -492,6 +492,64 @@ namespace Roslyn.Utilities.Pdb
             }
 
             return importStrings;
+        }
+
+        public static ImmutableSortedSet<int> GetCSharpInScopeHoistedLocalIndices(ISymUnmanagedReader reader, int methodToken, int methodVersion, int ilOffset)
+        {
+            byte[] bytes = reader.GetCustomDebugInfo(methodToken, methodVersion);
+            if (bytes == null)
+            {
+                return ImmutableSortedSet<int>.Empty;
+            }
+
+            int offset = 0;
+
+            byte globalVersion;
+            byte unusedGlobalCount;
+            ReadGlobalHeader(bytes, ref offset, out globalVersion, out unusedGlobalCount);
+            CheckVersion(globalVersion, methodToken);
+
+            ImmutableArray<StateMachineHoistedLocalScope> scopes = default(ImmutableArray<StateMachineHoistedLocalScope>);
+
+            while (offset < bytes.Length)
+            {
+                byte version;
+                CustomDebugInfoKind kind;
+                int size;
+                ReadRecordHeader(bytes, ref offset, out version, out kind, out size);
+                CheckVersion(version, methodToken);
+
+                if (kind == CustomDebugInfoKind.StateMachineHoistedLocalScopes)
+                {
+                    ReadStateMachineHoistedLocalScopesRecord(bytes, ref offset, size, out scopes);
+                    break;
+                }
+                else
+                {
+                    SkipRecord(bytes, ref offset, size);
+                }
+            }
+
+            if (scopes.IsDefault)
+            {
+                return ImmutableSortedSet<int>.Empty;
+            }
+
+            ArrayBuilder<int> builder = ArrayBuilder<int>.GetInstance();
+            for (int i = 0; i < scopes.Length; i++)
+            {
+                StateMachineHoistedLocalScope scope = scopes[i];
+
+                // NB: scopes are end-inclusive.
+                if (ilOffset >= scope.StartOffset && ilOffset <= scope.EndOffset)
+                {
+                    builder.Add(i);
+                }
+            }
+
+            ImmutableSortedSet<int> result = builder.ToImmutableSortedSet();
+            builder.Free();
+            return result;
         }
 
         private static void CheckVersion(byte globalVersion, int methodToken)
