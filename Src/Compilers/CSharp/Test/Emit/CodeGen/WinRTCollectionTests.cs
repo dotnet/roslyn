@@ -6,6 +6,8 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary;
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -7424,6 +7426,41 @@ namespace Test2
   IL_000a:  pop
   IL_000b:  ret
 }");
+        }
+
+        [Fact, WorkItem(1034461, "DevDiv")]
+        public void Bug1034461()
+        {
+            var source = @"
+using Windows.Data.Json;
+
+public class Class1
+{
+    void Test()
+    {
+        var jsonObj = new JsonObject();
+        jsonObj.Add(""firstEntry"", null);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib45(source, references: WinRtRefs);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var add = tree.GetRoot().DescendantNodes().Where(n => n.CSharpKind() == SyntaxKind.IdentifierName && ((IdentifierNameSyntax)n).Identifier.ValueText == "Add").Single();
+            var addMethod = model.GetSymbolInfo(add).Symbol;
+            Assert.Equal("void System.Collections.Generic.IDictionary<System.String, Windows.Data.Json.IJsonValue>.Add(System.String key, Windows.Data.Json.IJsonValue value)", addMethod.ToTestDisplayString());
+
+            var jsonObj = ((MemberAccessExpressionSyntax)add.Parent).Expression;
+
+            var jsonObjType = model.GetTypeInfo(jsonObj).Type;
+            Assert.Equal("Windows.Data.Json.JsonObject", jsonObjType.ToTestDisplayString());
+
+            Assert.True(model.LookupNames(add.SpanStart, jsonObjType).Contains("Add"));
+            Assert.True(model.LookupSymbols(add.SpanStart, jsonObjType, "Add").Contains(addMethod));
+            Assert.True(model.LookupSymbols(add.SpanStart, jsonObjType).Contains(addMethod));
         }
 
     }

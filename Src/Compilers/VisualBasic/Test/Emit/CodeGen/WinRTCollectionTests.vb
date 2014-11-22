@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests
 Imports Roslyn.Test.Utilities
 Imports ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprietary
@@ -6363,5 +6364,42 @@ End Namespace
         Private Shared Sub AssertNoErrorsOrWarnings(verifier As CompilationVerifier)
             verifier.Diagnostics.AsEnumerable().Where(Function(d) d.Severity > DiagnosticSeverity.Info).Verify()
         End Sub
+
+        <Fact, WorkItem(1034461, "DevDiv")>
+        Public Sub Bug1034461()
+            Dim source =
+            <compilation>
+                <file name="a.vb"><![CDATA[
+Imports Windows.Data.Json
+
+Public Class Class1
+
+    Sub Test()
+        Dim jsonObj = New JsonObject()
+        jsonObj.Add("firstEntry", Nothing)
+    End Sub
+End Class
+]]></file>
+            </compilation>
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndReferences(source, WinRtRefs)
+            comp.AssertNoDiagnostics()
+
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+
+            Dim add = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.IdentifierName AndAlso DirectCast(n, IdentifierNameSyntax).Identifier.ValueText = "Add").Single()
+            Dim addMethod = model.GetSymbolInfo(add).Symbol
+            Assert.Equal("Sub System.Collections.Generic.IDictionary(Of System.String, Windows.Data.Json.IJsonValue).Add(key As System.String, value As Windows.Data.Json.IJsonValue)", addMethod.ToTestDisplayString())
+
+            Dim jsonObj = DirectCast(add.Parent, MemberAccessExpressionSyntax).Expression
+
+            Dim jsonObjType = model.GetTypeInfo(jsonObj).Type
+            Assert.Equal("Windows.Data.Json.JsonObject", jsonObjType.ToTestDisplayString())
+
+            Assert.True(model.LookupNames(add.SpanStart, jsonObjType).Contains("Add"))
+            Assert.True(model.LookupSymbols(add.SpanStart, jsonObjType, "Add").Contains(addMethod))
+            Assert.True(model.LookupSymbols(add.SpanStart, jsonObjType).Contains(addMethod))
+        End Sub
+
     End Class
 End Namespace

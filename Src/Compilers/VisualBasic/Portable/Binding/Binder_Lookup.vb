@@ -1863,6 +1863,13 @@ ExitForFor:
                 Do
                     AddLookupSymbolsInfoWithoutInheritance(nameSet, currentType, options, container, binder)
 
+                    ' If the type is from a winmd file and implements any of the special WinRT collection
+                    ' projections, then we may need to add projected interface members
+                    Dim namedType = TryCast(currentType, NamedTypeSymbol)
+                    If namedType IsNot Nothing AndAlso namedType.ShouldAddWinRTMembers Then
+                        AddWinRTMembersLookupSymbolsInfo(nameSet, namedType, options, container, binder)
+                    End If
+
                     ' Go to base type, unless that would case infinite recursion or the options or the binder
                     ' disallows it.
                     If (options And LookupOptions.NoBaseClassLookup) <> 0 OrElse binder.IgnoreBaseClassesInLookup Then
@@ -2058,6 +2065,21 @@ ExitForFor:
                         End If
                     Next
                 End If
+            End Sub
+
+            Private Shared Sub AddWinRTMembersLookupSymbolsInfo(
+                nameSet As LookupSymbolsInfo,
+                type As NamedTypeSymbol,
+                options As LookupOptions,
+                accessThroughType As TypeSymbol,
+                binder As Binder
+            )
+                ' Dev11 searches all declared and undeclared base interfaces
+                For Each iface In type.AllInterfacesNoUseSiteDiagnostics
+                    If IsWinRTProjectedInterface(iface, binder.Compilation) Then
+                        AddLookupSymbolsInfoWithoutInheritance(nameSet, iface, options, accessThroughType, binder)
+                    End If
+                Next
             End Sub
 
             Private Shared Function GetTypeParameterBaseType(typeParameter As TypeParameterSymbol) As NamedTypeSymbol
