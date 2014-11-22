@@ -3,8 +3,6 @@
 Imports System.Collections.Immutable
 Imports System.Collections.ObjectModel
 Imports System.Globalization
-Imports System.IO
-Imports System.Runtime.Serialization.Formatters.Binary
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Roslyn.Test.Utilities
 
@@ -75,6 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 New Dictionary(Of String, ReportDiagnostic) From {{"VB0001", ReportDiagnostic.Error}}.ToImmutableDictionary())
 
             TestProperty(Function(old, value) old.WithConcurrentBuild(value), Function(opt) opt.ConcurrentBuild, False)
+            TestProperty(Function(old, value) old.WithExtendedCustomDebugInformation(value), Function(opt) opt.ExtendedCustomDebugInformation, False)
 
             TestProperty(Function(old, value) old.WithXmlReferenceResolver(value), Function(opt) opt.XmlReferenceResolver, New XmlFileResolver(Nothing))
             TestProperty(Function(old, value) old.WithSourceReferenceResolver(value), Function(opt) opt.SourceReferenceResolver, New SourceFileResolver(ImmutableArray(Of String).Empty, Nothing))
@@ -537,13 +536,7 @@ BC2042: The options /vbruntime* and /target:module cannot be combined.
                 embedVbCoreRuntime:=True,
                 parseOptions:=parseOptions)
 
-            Dim stream = New MemoryStream()
-            Dim formatter = New BinaryFormatter()
-
-            formatter.Serialize(stream, New VisualBasicSerializableCompilationOptions(compilationOptions))
-            stream.Position = 0
-
-            Dim deserializedCompilationOptions = DirectCast(formatter.Deserialize(stream), VisualBasicSerializableCompilationOptions).Options
+            Dim deserializedCompilationOptions = VerifySerializability(New VisualBasicSerializableCompilationOptions(compilationOptions)).Options
 
             Assert.Equal(compilationOptions.GlobalImports.First().Name,
                          deserializedCompilationOptions.GlobalImports.First().Name)
@@ -559,6 +552,8 @@ BC2042: The options /vbruntime* and /target:module cannot be combined.
                          deserializedCompilationOptions.OptionCompareText)
             Assert.Equal(compilationOptions.EmbedVbCoreRuntime,
                          deserializedCompilationOptions.EmbedVbCoreRuntime)
+            Assert.Equal(compilationOptions.ExtendedCustomDebugInformation,
+                         deserializedCompilationOptions.ExtendedCustomDebugInformation)
         End Sub
 
     End Class

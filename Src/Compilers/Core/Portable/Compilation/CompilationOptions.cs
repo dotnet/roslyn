@@ -94,6 +94,14 @@ namespace Microsoft.CodeAnalysis
         public bool ConcurrentBuild { get; protected set; }
 
         /// <summary>
+        /// Emit extended custom debug information to the PDB file.
+        /// </summary>
+        internal bool ExtendedCustomDebugInformation { get; private set; }
+
+        // TODO: change visibility of the ExtendedCustomDebugInformation setter to internal & protected
+        internal bool ExtendedCustomDebugInformation_internal_protected_set { set { ExtendedCustomDebugInformation = value; } }
+
+        /// <summary>
         /// Import internal/private members from all references regardless of "internals-visible-to" relationship.
         /// </summary>
         internal MetadataImportOptions MetadataImportOptions { get; private set; }
@@ -159,6 +167,7 @@ namespace Microsoft.CodeAnalysis
             int warningLevel,
             ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions,
             bool concurrentBuild,
+            bool extendedCustomDebugInformation,
             XmlReferenceResolver xmlReferenceResolver,
             SourceReferenceResolver sourceReferenceResolver,
             MetadataReferenceResolver metadataReferenceResolver,
@@ -181,6 +190,7 @@ namespace Microsoft.CodeAnalysis
             this.SpecificDiagnosticOptions = specificDiagnosticOptions;
             this.OptimizationLevel = optimizationLevel;
             this.ConcurrentBuild = concurrentBuild;
+            this.ExtendedCustomDebugInformation = extendedCustomDebugInformation;
             this.XmlReferenceResolver = xmlReferenceResolver;
             this.SourceReferenceResolver = sourceReferenceResolver;
             this.MetadataReferenceResolver = metadataReferenceResolver;
@@ -352,6 +362,7 @@ namespace Microsoft.CodeAnalysis
             bool equal =
                    this.CheckOverflow == other.CheckOverflow &&
                    this.ConcurrentBuild == other.ConcurrentBuild &&
+                   this.ExtendedCustomDebugInformation == other.ExtendedCustomDebugInformation &&
                    string.Equals(this.CryptoKeyContainer, other.CryptoKeyContainer, StringComparison.Ordinal) &&
                    string.Equals(this.CryptoKeyFile, other.CryptoKeyFile, StringComparison.Ordinal) &&
                    this.DelaySign == other.DelaySign &&
@@ -381,6 +392,7 @@ namespace Microsoft.CodeAnalysis
         {
             return Hash.Combine(this.CheckOverflow,
                    Hash.Combine(this.ConcurrentBuild,
+                   Hash.Combine(this.ExtendedCustomDebugInformation,
                    Hash.Combine(this.CryptoKeyContainer != null ? StringComparer.Ordinal.GetHashCode(this.CryptoKeyContainer) : 0,
                    Hash.Combine(this.CryptoKeyFile != null ? StringComparer.Ordinal.GetHashCode(this.CryptoKeyFile) : 0,
                    Hash.Combine(this.DelaySign.HasValue ? this.DelaySign.Value : false,
@@ -399,7 +411,7 @@ namespace Microsoft.CodeAnalysis
                    Hash.Combine(this.SourceReferenceResolver,
                    Hash.Combine(this.StrongNameProvider,
                    Hash.Combine(this.AssemblyIdentityComparer,
-                   Hash.Combine(Hash.CombineValues(this.Features, StringComparer.Ordinal), 0)))))))))))))))))))));
+                   Hash.Combine(Hash.CombineValues(this.Features, StringComparer.Ordinal), 0))))))))))))))))))))));
         }
 
         public static bool operator ==(CompilationOptions left, CompilationOptions right)

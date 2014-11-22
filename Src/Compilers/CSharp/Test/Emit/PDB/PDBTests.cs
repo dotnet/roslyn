@@ -4151,6 +4151,107 @@ public class C
             }
         }
 
+        [Fact]
+        public void ExtendedCustomDebugInformation()
+        {
+            var source =
+@"class C
+{
+    static void M()
+    {
+        dynamic o = 1;
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll.WithExtendedCustomDebugInformation(extendedCustomDebugInformation: true));
+            comp.VerifyPdb(
+@"<symbols>
+  <methods>
+    <method containingType=""C"" name=""M"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""3"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""0"" />
+        </using>
+        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""212"" bucketCount=""1"">
+          <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""o"" />
+        </dynamicLocals>
+        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
+          <slot kind=""0"" offset=""19"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencepoints total=""3"">
+        <entry il_offset=""0x0"" start_row=""4"" start_column=""5"" end_row=""4"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""5"" start_column=""9"" end_row=""5"" end_column=""23"" file_ref=""0"" />
+        <entry il_offset=""0x8"" start_row=""6"" start_column=""5"" end_row=""6"" end_column=""6"" file_ref=""0"" />
+      </sequencepoints>
+      <locals>
+        <local name=""o"" il_index=""0"" il_start=""0x0"" il_end=""0x9"" attributes=""0"" />
+      </locals>
+      <scope startOffset=""0x0"" endOffset=""0x9"">
+        <local name=""o"" il_index=""0"" il_start=""0x0"" il_end=""0x9"" attributes=""0"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+            comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll.WithExtendedCustomDebugInformation(extendedCustomDebugInformation: false));
+            comp.VerifyPdb(
+@"<symbols>
+  <methods>
+    <method containingType=""C"" name=""M"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""3"">
+        <entry il_offset=""0x0"" start_row=""4"" start_column=""5"" end_row=""4"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""5"" start_column=""9"" end_row=""5"" end_column=""23"" file_ref=""0"" />
+        <entry il_offset=""0x8"" start_row=""6"" start_column=""5"" end_row=""6"" end_column=""6"" file_ref=""0"" />
+      </sequencepoints>
+      <locals>
+        <local name=""o"" il_index=""0"" il_start=""0x0"" il_end=""0x9"" attributes=""0"" />
+      </locals>
+      <scope startOffset=""0x0"" endOffset=""0x9"">
+        <local name=""o"" il_index=""0"" il_start=""0x0"" il_end=""0x9"" attributes=""0"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+            comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithExtendedCustomDebugInformation(extendedCustomDebugInformation: true));
+            comp.VerifyPdb(
+@"<symbols>
+  <methods>
+    <method containingType=""C"" name=""M"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""1"">
+        <entry il_offset=""0x0"" start_row=""6"" start_column=""5"" end_row=""6"" end_column=""6"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+    </method>
+  </methods>
+</symbols>");
+            comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithExtendedCustomDebugInformation(extendedCustomDebugInformation: false));
+            comp.VerifyPdb(
+@"<symbols>
+  <methods>
+    <method containingType=""C"" name=""M"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""1"">
+        <entry il_offset=""0x0"" start_row=""6"" start_column=""5"" end_row=""6"" end_column=""6"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+    </method>
+  </methods>
+</symbols>");
+        }
+
         [Fact, WorkItem(1067635)]
         public void SuppressDynamicAndEncCDIForWinRT()
         {

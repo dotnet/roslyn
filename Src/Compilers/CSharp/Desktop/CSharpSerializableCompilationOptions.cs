@@ -45,6 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 warningLevel: info.GetInt32(WarningLevelString),
                 specificDiagnosticOptions: ((Dictionary<string, ReportDiagnostic>)info.GetValue(SpecificDiagnosticOptionsString, typeof(Dictionary<string, ReportDiagnostic>))).ToImmutableDictionary(),
                 concurrentBuild: info.GetBoolean(ConcurrentBuildString),
+                extendedCustomDebugInformation: info.GetBoolean(ExtendedCustomDebugInformationString),
                 xmlReferenceResolver: XmlFileResolver.Default,
                 sourceReferenceResolver: SourceFileResolver.Default,
                 metadataReferenceResolver: new AssemblyReferenceResolver(MetadataFileReferenceResolver.Default, MetadataFileReferenceProvider.Default),

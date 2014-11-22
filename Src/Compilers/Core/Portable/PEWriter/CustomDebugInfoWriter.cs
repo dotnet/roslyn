@@ -94,21 +94,21 @@ namespace Microsoft.Cci
 
             if (!suppressNewCustomDebugInfo)
             {
-            SerializeDynamicLocalInfo(methodBody, customDebugInfo);
+                SerializeDynamicLocalInfo(methodBody, customDebugInfo);
 
-            // delta doesn't need this information - we use information recorded by previous generation emit
-            if (!isEncDelta)
-            {
-                var encSlotInfo = methodBody.StateMachineHoistedLocalSlots;
+                // delta doesn't need this information - we use information recorded by previous generation emit
+                if (!isEncDelta)
+                {
+                    var encSlotInfo = methodBody.StateMachineHoistedLocalSlots;
 
-                // Kickoff method of a state machine (async/iterator method) doens't have any interesting locals,
-                // so we use its EnC method debug info to store information about locals hoisted to the state machine.
-                var encDebugInfo = encSlotInfo.IsDefault ? 
-                    GetEncDebugInfoForLocals(methodBody.LocalVariables) :
-                    GetEncDebugInfoForLocals(encSlotInfo);
+                    // Kickoff method of a state machine (async/iterator method) doens't have any interesting locals,
+                    // so we use its EnC method debug info to store information about locals hoisted to the state machine.
+                    var encDebugInfo = encSlotInfo.IsDefault ?
+                        GetEncDebugInfoForLocals(methodBody.LocalVariables) :
+                        GetEncDebugInfoForLocals(encSlotInfo);
 
-                encDebugInfo.SerializeCustomDebugInformation(customDebugInfo);
-            }
+                    encDebugInfo.SerializeCustomDebugInformation(customDebugInfo);
+                }
             }
 
             byte[] result = SerializeCustomDebugMetadata(customDebugInfo);
@@ -348,7 +348,7 @@ namespace Microsoft.Cci
 
         private bool ShouldForwardToPreviousMethodWithUsingInfo(IMethodBody methodBody)
         {
-            if (this.previousMethodBodyWithUsingInfo ==  null || ReferenceEquals(this.previousMethodBodyWithUsingInfo, methodBody))
+            if (this.previousMethodBodyWithUsingInfo == null || ReferenceEquals(this.previousMethodBodyWithUsingInfo, methodBody))
             {
                 return false;
             }

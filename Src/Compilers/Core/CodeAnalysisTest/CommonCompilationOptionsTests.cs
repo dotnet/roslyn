@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "DelaySign",
                 "EnableEditAndContinue",
                 "Errors",
+                "ExtendedCustomDebugInformation",
                 "Features",
                 "GeneralDiagnosticOption",
                 "MainTypeName",

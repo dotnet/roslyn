@@ -781,7 +781,7 @@ namespace Roslyn.Test.Utilities
 
         #region Serialization
 
-        public static void VerifySerializability<T>(T obj)
+        public static T VerifySerializability<T>(T obj)
         {
             Assert.True(obj is ISerializable);
 
@@ -791,8 +791,7 @@ namespace Roslyn.Test.Utilities
                 formatter.Serialize(stream, obj);
 
                 stream.Seek(0, SeekOrigin.Begin);
-                var deserialized = (T)formatter.Deserialize(stream);
-                stream.Seek(0, SeekOrigin.Begin);
+                return (T)formatter.Deserialize(stream);
             }
         }
 

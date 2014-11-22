@@ -3,9 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -79,6 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 new Dictionary<string, ReportDiagnostic> { { "CS0001", ReportDiagnostic.Error } }.ToImmutableDictionary());
 
             TestProperty((old, value) => old.WithConcurrentBuild(value), opt => opt.ConcurrentBuild, false);
+            TestProperty((old, value) => old.WithExtendedCustomDebugInformation(value), opt => opt.ExtendedCustomDebugInformation, false);
 
             TestProperty((old, value) => old.WithXmlReferenceResolver(value), opt => opt.XmlReferenceResolver, new XmlFileResolver(null));
             TestProperty((old, value) => old.WithMetadataReferenceResolver(value), opt => opt.MetadataReferenceResolver, new AssemblyReferenceResolver(new MetadataFileReferenceResolver(new string[0], null), new MetadataFileReferenceProvider()));
@@ -334,7 +333,7 @@ Parameter name: ModuleName")
             Assert.Equal(CreateCSharpCompilationOptions(), CreateCSharpCompilationOptions());
         }
 
-        public CSharpCompilationOptions CreateCSharpCompilationOptions()
+        private static CSharpCompilationOptions CreateCSharpCompilationOptions()
         {
             string moduleName = null;
             string mainTypeName = null;
@@ -351,6 +350,7 @@ Parameter name: ModuleName")
             int warningLevel = 0;
             IEnumerable<KeyValuePair<string, ReportDiagnostic>> specificDiagnosticOptions = null;
             bool concurrentBuild = false;
+            bool extendedCustomDebugInformation = true;
             XmlReferenceResolver xmlReferenceResolver = new XmlFileResolver(null);
             SourceReferenceResolver sourceReferenceResolver = new SourceFileResolver(ImmutableArray<string>.Empty, null);
             MetadataReferenceResolver metadataReferenceResolver = new AssemblyReferenceResolver(new MetadataFileReferenceResolver(ImmutableArray<string>.Empty, null), MetadataFileReferenceProvider.Default);
@@ -361,18 +361,38 @@ Parameter name: ModuleName")
             return new CSharpCompilationOptions(OutputKind.ConsoleApplication, moduleName, mainTypeName, scriptClassName, usings,
                 optimizationLevel, checkOverflow, allowUnsafe, cryptoKeyContainer, cryptoKeyFile, delaySign, 
                 platform, generalDiagnosticOption, warningLevel, specificDiagnosticOptions,  
-                concurrentBuild, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
+                concurrentBuild, extendedCustomDebugInformation, xmlReferenceResolver, sourceReferenceResolver, metadataReferenceResolver,
                 assemblyIdentityComparer, strongNameProvider, metadataImportOptions, features);
         }
 
         [Fact]
-        public void Serializability()
+        public void Serializability1()
         {
             VerifySerializability(new CSharpSerializableCompilationOptions(new CSharpCompilationOptions(
                 outputKind: OutputKind.WindowsApplication,
                 usings: new[] { "F", "G" },
                 generalDiagnosticOption: ReportDiagnostic.Hidden,
                 specificDiagnosticOptions: new[] { KeyValuePair.Create("CS0001", ReportDiagnostic.Suppress) })));
+        }
+
+        [Fact]
+        public void Serializability2()
+        {
+            var parseOptions = new CSharpParseOptions(LanguageVersion.CSharp3, DocumentationMode.Diagnose, SourceCodeKind.Interactive);
+            var compilationOptions = new CSharpCompilationOptions(
+                OutputKind.DynamicallyLinkedLibrary,
+                moduleName: "M",
+                optimizationLevel: OptimizationLevel.Release);
+            compilationOptions = compilationOptions.
+                WithConcurrentBuild(!compilationOptions.ConcurrentBuild).
+                WithExtendedCustomDebugInformation(!compilationOptions.ExtendedCustomDebugInformation);
+            var deserializedCompilationOptions = VerifySerializability(new CSharpSerializableCompilationOptions(compilationOptions)).Options;
+
+            Assert.Equal(compilationOptions.OutputKind, deserializedCompilationOptions.OutputKind);
+            Assert.Equal(compilationOptions.ModuleName, deserializedCompilationOptions.ModuleName);
+            Assert.Equal(compilationOptions.OptimizationLevel, deserializedCompilationOptions.OptimizationLevel);
+            Assert.Equal(compilationOptions.ConcurrentBuild, deserializedCompilationOptions.ConcurrentBuild);
+            Assert.Equal(compilationOptions.ExtendedCustomDebugInformation, deserializedCompilationOptions.ExtendedCustomDebugInformation);
         }
     }
 }

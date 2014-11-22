@@ -45,6 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 generalDiagnosticOption:=DirectCast(info.GetInt32(GeneralDiagnosticOptionString), ReportDiagnostic),
                 specificDiagnosticOptions:=DirectCast(info.GetValue(SpecificDiagnosticOptionsString, GetType(Dictionary(Of String, ReportDiagnostic))), Dictionary(Of String, ReportDiagnostic)).ToImmutableDictionary(),
                 concurrentBuild:=info.GetBoolean(ConcurrentBuildString),
+                extendedCustomDebugInformation:=info.GetBoolean(ExtendedCustomDebugInformationString),
                 xmlReferenceResolver:=XmlFileResolver.Default,
                 sourceReferenceResolver:=SourceFileResolver.Default,
                 metadataReferenceResolver:=New AssemblyReferenceResolver(MetadataFileReferenceResolver.Default, MetadataFileReferenceProvider.Default),

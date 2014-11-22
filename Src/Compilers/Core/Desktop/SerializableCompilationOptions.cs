@@ -28,6 +28,7 @@ namespace Microsoft.CodeAnalysis
         protected const string DebugInformationKindString = "DebugInformationKind";
         protected const string OptimizeString = "Optimize";
         protected const string ConcurrentBuildString = "ConcurrentBuild";
+        internal const string ExtendedCustomDebugInformationString = "ExtendedCustomDebugInformation";
         protected const string MetadataImportOptionsString = "MetadataImportOptions";
         protected const string FeaturesString = "Features";
 
@@ -51,6 +52,7 @@ namespace Microsoft.CodeAnalysis
             info.AddValue(SpecificDiagnosticOptionsString, new Dictionary<string, ReportDiagnostic>(options.SpecificDiagnosticOptions));
             info.AddValue(OptimizeString, (int)options.OptimizationLevel);
             info.AddValue(ConcurrentBuildString, options.ConcurrentBuild);
+            info.AddValue(ExtendedCustomDebugInformationString, options.ExtendedCustomDebugInformation);
             info.AddValue(MetadataImportOptionsString, (byte)options.MetadataImportOptions);
             info.AddValue(FeaturesString, options.Features.ToArray());
         }

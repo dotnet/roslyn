@@ -147,11 +147,14 @@ namespace Microsoft.Cci
                     asyncDebugInfo.ResumeOffsets);
             }
 
-            var module = metadataWriter.Context.Module;
+            var context = metadataWriter.Context;
+            var module = context.Module;
+            var compilationOptions = context.ModuleBuilder.CommonCompilation.Options;
 
             // We need to avoid emitting CDI DynamicLocals = 5 and EditAndContinueLocalSlotMap = 6 for files processed by WinMDExp until 
             // bug #1067635 is fixed and available in SDK.
-            bool suppressNewCustomDebugInfo = metadataWriter.Context.ModuleBuilder.CommonCompilation.Options.OutputKind == OutputKind.WindowsRuntimeMetadata;
+            bool suppressNewCustomDebugInfo = !compilationOptions.ExtendedCustomDebugInformation ||
+                (compilationOptions.OutputKind == OutputKind.WindowsRuntimeMetadata);
 
             bool emitExternNamespaces;
             byte[] blob = customDebugInfoWriter.SerializeMethodDebugInfo(module, methodBody, methodToken, !this.metadataWriter.IsFullMetadata, suppressNewCustomDebugInfo, out emitExternNamespaces);
