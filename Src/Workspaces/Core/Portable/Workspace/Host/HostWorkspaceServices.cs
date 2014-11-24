@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// </summary>
         public virtual HostLanguageServices GetLanguageServices(string languageName)
         {
-            throw new NotSupportedException(WorkspacesResources.UnsupportedLanguage);
+            throw new NotSupportedException(string.Format(WorkspacesResources.UnsupportedLanguage, languageName));
         }
 
         public delegate bool MetadataFilter(IReadOnlyDictionary<string, object> metadata);
