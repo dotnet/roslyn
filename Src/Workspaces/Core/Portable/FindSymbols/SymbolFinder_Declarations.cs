@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -27,12 +28,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             if (project == null)
             {
-                throw new ArgumentNullException("project");
+                throw new ArgumentNullException(nameof(project));
             }
 
             if (name == null)
             {
-                throw new ArgumentNullException("name");
+                throw new ArgumentNullException(nameof(name));
             }
 
             if (string.IsNullOrWhiteSpace(name))
@@ -65,7 +66,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var assemblyProject = project.Solution.GetProject(assembly, cancellationToken);
                     if (assemblyProject != null)
                     {
-                        await AddDeclarationsAsync(assemblyProject, name, ignoreCase, criteria, list, cancellationToken).ConfigureAwait(false);
+                        await AddDeclarationsAsync(assemblyProject, compilation, assembly, name, ignoreCase, criteria, list, cancellationToken).ConfigureAwait(false);
                     }
                     else
                     {
@@ -119,6 +120,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static async Task AddDeclarationsAsync(Project project, string name, bool ignoreCase, SymbolFilter filter, List<ISymbol> list, CancellationToken cancellationToken)
         {
+            await AddDeclarationsAsync(project, null, null, name, ignoreCase, filter, list, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task AddDeclarationsAsync(Project project, Compilation startingCompilation, IAssemblySymbol startingAssembly, string name, bool ignoreCase, SymbolFilter filter, List<ISymbol> list, CancellationToken cancellationToken)
+        {
             Func<string, bool> predicate = n => ignoreCase ? CaseInsensitiveComparison.Comparer.Equals(name, n) : StringComparer.Ordinal.Equals(name, n);
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_Project_AddDeclarationsAsync, cancellationToken))
@@ -130,8 +136,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
 
                 var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-                list.AddRange(FilterByCriteria(compilation.GetSymbolsWithName(predicate, filter, cancellationToken), filter));
+                if ((startingCompilation != null) && (startingAssembly != null) && (compilation.Assembly != startingAssembly))
+                {
+                    // Return symbols from skeleton assembly in this case so that symbols have the same language as startingCompilation.
+                    list.AddRange(
+                        FilterByCriteria(compilation.GetSymbolsWithName(predicate, filter, cancellationToken), filter)
+                            .Select(s => s.GetSymbolKey().Resolve(startingCompilation).Symbol).WhereNotNull());
+                }
+                else
+                {
+                    list.AddRange(FilterByCriteria(compilation.GetSymbolsWithName(predicate, filter, cancellationToken), filter));
+                }
             }
         }
 
@@ -163,12 +178,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             if (solution == null)
             {
-                throw new ArgumentNullException("solution");
+                throw new ArgumentNullException(nameof(solution));
             }
 
             if (name == null)
             {
-                throw new ArgumentNullException("name");
+                throw new ArgumentNullException(nameof(name));
             }
 
             if (string.IsNullOrWhiteSpace(name))
@@ -211,12 +226,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             if (project == null)
             {
-                throw new ArgumentNullException("project");
+                throw new ArgumentNullException(nameof(project));
             }
 
             if (name == null)
             {
-                throw new ArgumentNullException("name");
+                throw new ArgumentNullException(nameof(name));
             }
 
             if (string.IsNullOrWhiteSpace(name))
@@ -254,12 +269,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             if (solution == null)
             {
-                throw new ArgumentNullException("solution");
+                throw new ArgumentNullException(nameof(solution));
             }
 
             if (predicate == null)
             {
-                throw new ArgumentNullException("predicate");
+                throw new ArgumentNullException(nameof(predicate));
             }
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_Solution_Predicate_FindSourceDeclarationsAsync, cancellationToken))
@@ -291,12 +306,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             if (project == null)
             {
-                throw new ArgumentNullException("project");
+                throw new ArgumentNullException(nameof(project));
             }
 
             if (predicate == null)
             {
-                throw new ArgumentNullException("predicate");
+                throw new ArgumentNullException(nameof(predicate));
             }
 
             using (Logger.LogBlock(FunctionId.SymbolFinder_Project_Predicate_FindSourceDeclarationsAsync, cancellationToken))
