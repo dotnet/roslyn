@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis
 
         internal override string Category
         {
-            get { return CompilerDiagnosticCategory; }
+            get { return this.Info.Category; }
         }
 
 

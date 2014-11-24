@@ -57,6 +57,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ErrorFacts.GetHelpLink((ErrorCode)code);
         }
 
+        public override string GetCategory(int code)
+        {
+            return ErrorFacts.GetCategory((ErrorCode)code);
+        }
+
         public override string CodePrefix
         {
             get

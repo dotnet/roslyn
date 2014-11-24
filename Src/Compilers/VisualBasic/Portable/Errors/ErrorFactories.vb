@@ -13,10 +13,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Const TitleSuffix As String = "_Title"
         Private Const DescriptionSuffix As String = "_Description"
         Private Shared ReadOnly HelpLinksMap As Lazy(Of ImmutableDictionary(Of ERRID, String)) = New Lazy(Of ImmutableDictionary(Of ERRID, String))(AddressOf CreateHelpLinks)
+        Private Shared ReadOnly CategoriesMap As Lazy(Of ImmutableDictionary(Of ERRID, String)) = New Lazy(Of ImmutableDictionary(Of ERRID, String))(AddressOf CreateCategoriesMap)
 
         Private Shared Function CreateHelpLinks() As ImmutableDictionary(Of ERRID, String)
             Dim map = New Dictionary(Of ERRID, String) From
                 {   '  { ERROR_CODE,    HELP_LINK }
+                }
+
+            Return map.ToImmutableDictionary
+        End Function
+
+        Private Shared Function CreateCategoriesMap() As ImmutableDictionary(Of ERRID, String)
+            Dim map = New Dictionary(Of ERRID, String) From
+                {   '  { ERROR_CODE,    CATEGORY }
                 }
 
             Return map.ToImmutableDictionary
@@ -117,6 +126,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return String.Empty
+        End Function
+
+        Public Shared Function GetCategory(id As ERRID) As String
+            Dim category As String = Nothing
+            If CategoriesMap.Value.TryGetValue(id, category) Then
+                Return category
+            End If
+
+            Return Diagnostic.CompilerDiagnosticCategory
         End Function
     End Class
 

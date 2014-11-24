@@ -25,20 +25,30 @@ namespace Microsoft.CodeAnalysis
         public abstract string LoadMessage(int code, CultureInfo language);
 
         /// <summary>
+        /// Get an optional localizable title for the given diagnostic code.
         /// </summary>
         public abstract LocalizableString GetTitle(int code);
 
         /// <summary>
+        /// Get an optional localizable description for the given diagnostic code.
         /// </summary>
         public abstract LocalizableString GetDescription(int code);
 
         /// <summary>
+        /// Get a localizable message format string for the given diagnostic code.
         /// </summary>
         public abstract LocalizableString GetMessageFormat(int code);
 
         /// <summary>
+        /// Get an optional help link for the given diagnostic code.
         /// </summary>
         public abstract string GetHelpLink(int code);
+
+        /// <summary>
+        /// Get the diagnostic category for the given diagnostic code.
+        /// Default category is <see cref="Diagnostic.CompilerDiagnosticCategory"/>.
+        /// </summary>
+        public abstract string GetCategory(int code);
 
         /// <summary>
         /// Get the text prefix (e.g., "CS" for C#) used on error messages.

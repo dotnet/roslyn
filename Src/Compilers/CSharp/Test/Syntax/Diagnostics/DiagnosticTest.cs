@@ -2117,6 +2117,11 @@ public class Test
                 return string.Empty;
             }
 
+            public override string GetCategory(int code)
+            {
+                return string.Empty;
+            }
+
             public override string CodePrefix
             {
                 get { return "MOCK"; }

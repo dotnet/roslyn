@@ -49,6 +49,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ErrorFactory.GetHelpLink(DirectCast(code, ERRID))
         End Function
 
+        Public Overrides Function GetCategory(code As Integer) As String
+            Return ErrorFactory.GetCategory(DirectCast(code, ERRID))
+        End Function
+
         Public Overrides Function GetSeverity(code As Integer) As DiagnosticSeverity
             Dim errid = DirectCast(code, ERRID)
             If errid = ERRID.Void Then

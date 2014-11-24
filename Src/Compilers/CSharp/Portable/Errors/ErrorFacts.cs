@@ -14,12 +14,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static readonly string TitleSuffix = "_Title";
         private static readonly string DescriptionSuffix = "_Description";
         private static readonly Lazy<ImmutableDictionary<ErrorCode, string>> helpLinksMap = new Lazy<ImmutableDictionary<ErrorCode, string>>(CreateHelpLinks);
+        private static readonly Lazy<ImmutableDictionary<ErrorCode, string>> categoriesMap = new Lazy<ImmutableDictionary<ErrorCode, string>>(CreateCategoriesMap);
 
         private static ImmutableDictionary<ErrorCode, string> CreateHelpLinks()
         {
             var map = new Dictionary<ErrorCode, string>()
             {
                 // { ERROR_CODE,    HELP_LINK }
+            };
+
+            return map.ToImmutableDictionary();
+        }
+
+        private static ImmutableDictionary<ErrorCode, string> CreateCategoriesMap()
+        {
+            var map = new Dictionary<ErrorCode, string>()
+            {
+                // { ERROR_CODE,    CATEGORY }
             };
 
             return map.ToImmutableDictionary();
@@ -93,6 +104,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return string.Empty;
+        }
+
+        public static string GetCategory(ErrorCode code)
+        {
+            string category;
+            if (categoriesMap.Value.TryGetValue(code, out category))
+            {
+                return category;
+            }
+
+            return Diagnostic.CompilerDiagnosticCategory;
         }
 
         /// <remarks>Don't call this during a parse--it loads resources</remarks>

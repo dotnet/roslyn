@@ -70,7 +70,8 @@ namespace Microsoft.CodeAnalysis
             var description = messageProvider.GetDescription(errorCode);
             var messageFormat = messageProvider.GetMessageFormat(errorCode);
             var helpLink = messageProvider.GetHelpLink(errorCode);
-            return new DiagnosticDescriptor(id, title, messageFormat, Diagnostic.CompilerDiagnosticCategory,
+            var category = messageProvider.GetCategory(errorCode);
+            return new DiagnosticDescriptor(id, title, messageFormat, category,
                 defaultSeverity, isEnabledByDefault: true, description: description, helpLink: helpLink, customTags: CompilerCustomTags);
         }
 
@@ -247,6 +248,18 @@ namespace Microsoft.CodeAnalysis
             {
                 return this.DefaultSeverity == DiagnosticSeverity.Warning &&
                     this.Severity == DiagnosticSeverity.Error;
+            }
+        }
+
+        /// <summary>
+        /// Get the diagnostic category for the given diagnostic code.
+        /// Default category is <see cref="Diagnostic.CompilerDiagnosticCategory"/>.
+        /// </summary>
+        public string Category
+        {
+            get
+            {
+                return this.messageProvider.GetCategory(this.errorCode) ;
             }
         }
 

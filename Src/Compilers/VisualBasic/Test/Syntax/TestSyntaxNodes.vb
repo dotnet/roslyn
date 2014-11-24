@@ -1021,6 +1021,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 Return String.Empty
             End Function
 
+            Public Overrides Function GetCategory(code As Integer) As String
+                Return String.Empty
+            End Function
+
             Public Overrides Function GetWarningLevel(code As Integer) As Integer
                 Return 0
             End Function

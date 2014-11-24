@@ -77,6 +77,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Return String.Empty
         End Function
 
+        Public Overrides Function GetCategory(code As Integer) As String
+            Return String.Empty
+        End Function
+
         Public Overrides Function ConvertSymbolToString(errorCode As Integer, symbol As ISymbol) As String
             Return MessageProvider.Instance.ConvertSymbolToString(errorCode, symbol)
         End Function
