@@ -16,10 +16,12 @@ namespace Microsoft.CodeAnalysis.Host
 
         private int refCounter;
 
-        protected AbstractPersistentStorage(IOptionService optionService, string solutionFilePath, Action<AbstractPersistentStorage> disposer)
+        protected AbstractPersistentStorage(
+            IOptionService optionService, string workingFolderPath, string solutionFilePath, Action<AbstractPersistentStorage> disposer)
         {
             Contract.ThrowIfNull(disposer);
 
+            this.WorkingFolderPath = workingFolderPath;
             this.SolutionFilePath = solutionFilePath;
 
             this.refCounter = 0;
@@ -27,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Host
             this.disposer = disposer;
         }
 
+        public string WorkingFolderPath { get; private set; }
         public string SolutionFilePath { get; private set; }
 
         protected bool PersistenceEnabled
