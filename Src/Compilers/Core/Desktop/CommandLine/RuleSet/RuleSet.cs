@@ -208,7 +208,11 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                ruleSet.GetEffectiveIncludesCore(arrayBuilder);
+                // If this file has already been included don't recurse into it.
+                if (!arrayBuilder.Contains(ruleSet.FilePath, StringComparer.InvariantCultureIgnoreCase))
+                {
+                    ruleSet.GetEffectiveIncludesCore(arrayBuilder);
+                }
             }
         }
 
