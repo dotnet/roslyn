@@ -729,6 +729,7 @@ namespace Roslyn.Utilities.Pdb
         ///  "XOldLib" -> <extern alias="OldLib" />
         ///  "ZOldLib assembly" -> <externinfo name="OldLib" assembly="assembly" />
         ///  "ESystem alias" -> <namespace qualifier="alias" name="System" />
+        ///  "TSystem.Math" -> <type name="System.Math" />
         /// ]]>
         /// </remarks>
         public static bool TryParseCSharpImportString(string import, out string alias, out string externAlias, out string target, out ImportTargetKind kind)
@@ -745,14 +746,14 @@ namespace Roslyn.Utilities.Pdb
 
             switch (import[0])
             {
-                case 'U': // C# using
+                case 'U': // C# (namespace) using
                     alias = null;
                     externAlias = null;
                     target = import.Substring(1);
                     kind = ImportTargetKind.Namespace;
                     return true;
 
-                case 'E': // C# using
+                case 'E': // C# (namespace) using
                     // NOTE: Dev12 has related cases "I" and "O" in EMITTER::ComputeDebugNamespace,
                     // but they were probably implementation details that do not affect roslyn.
                     if (!TrySplit(import, 1, ' ', out target, out externAlias))
@@ -762,6 +763,13 @@ namespace Roslyn.Utilities.Pdb
 
                     alias = null;
                     kind = ImportTargetKind.Namespace;
+                    return true;
+
+                case 'T': // C# (type) using
+                    alias = null;
+                    externAlias = null;
+                    target = import.Substring(1);
+                    kind = ImportTargetKind.Type;
                     return true;
 
                 case 'A': // C# type or namespace alias

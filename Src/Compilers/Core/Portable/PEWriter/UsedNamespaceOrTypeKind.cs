@@ -7,6 +7,7 @@ namespace Microsoft.Cci
         CSNamespace, // e.g. using System;
         CSNamespaceAlias, // e.g. using S = System;
         CSExternNamespace, //e.g. extern alias CorLib;
+        CSType, // e.g. using System.Math;        
         CSTypeAlias, // e.g. using IntList = System.Collections.Generic.List<int>;        
         VBNamespace, // e.g. Imports System.Collection
         VBType, // e.g. Imports System.Collection.ArrayList

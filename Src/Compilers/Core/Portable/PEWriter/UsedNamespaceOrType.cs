@@ -49,6 +49,15 @@ namespace Microsoft.Cci
         /// <remarks>
         /// <paramref name="name"/> is an assembly-qualified name so the extern alias, if any, can be dropped.
         /// </remarks>
+        internal static UsedNamespaceOrType CreateCSharpType(string name)
+        {
+            Debug.Assert(name != null);
+            return new UsedNamespaceOrType(UsedNamespaceOrTypeKind.CSType, name, alias: null, externAlias: null);
+        }
+
+        /// <remarks>
+        /// <paramref name="name"/> is an assembly-qualified name so the extern alias, if any, can be dropped.
+        /// </remarks>
         internal static UsedNamespaceOrType CreateCSharpTypeAlias(string name, string alias)
         {
             Debug.Assert(name != null);
@@ -155,6 +164,10 @@ namespace Microsoft.Cci
 
                 case UsedNamespaceOrTypeKind.CSExternNamespace:
                     return "X" + this.externAlias;
+
+                case UsedNamespaceOrTypeKind.CSType:
+                    Debug.Assert(this.externAlias == null);
+                    return "T" + this.name;
 
                 case UsedNamespaceOrTypeKind.CSTypeAlias:
                     Debug.Assert(this.externAlias == null);

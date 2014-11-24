@@ -202,8 +202,8 @@ Imports typefile1 = System.String
 Imports ignoredAliasFile1 = System.Collections.Generic.Dictionary(Of String, String) ' ignored 
 Imports System.Collections.Generic.List(Of String) ' ignored
 
-Imports TheDefaultNamespace.NS1.NS2.C1.C2
-Imports C3ALIAS=TheDefaultNamespace.NS1.NS2.C1.C2.C3
+Imports DefaultNamespace.NS1.NS2.C1.C2
+Imports C3ALIAS=DefaultNamespace.NS1.NS2.C1.C2.C3
 
 Namespace Boo
 
@@ -272,19 +272,19 @@ End Namespace
                                                                      "typeproj1=System.Int64",
                                                                      "prjlevelIgnored=System.Collections.Generic.List(Of String)",
                                                                      "System.Collections.Generic.List(Of String)",
-                                                                     "System.Collections.ArrayList"})).WithRootNamespace("TheDefaultNamespace"))
+                                                                     "System.Collections.ArrayList"})).WithRootNamespace("DefaultNamespace"))
 
             Dim actual = PDBTests.GetPdbXml(compilation)
 
             Dim expected =
                 <symbols>
                     <files>
-                        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum=" 9, 9F, 83, 68, F5, 54, 6F, 3F, BF, 21, 5D, BD, C9, 6A, 3B, FE, DB, 23,  B,  D, "/>
+                        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="93, 20, A5, 3E, 2C, 50, B2,  E, 7C, D6, 29, 3F, E9, 9E, 33, 72, A6, 21, FD, 3F, "/>
                         <file id="2" name="b.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="94, 7A, FB,  B, 3B, B0, EF, 63, B9, ED, E8, A9, D0, 58, BA, D0, 21,  7, C2, CE, "/>
                     </files>
-                    <entryPoint declaringType="TheDefaultNamespace.Boo.C1" methodName="Main" parameterNames=""/>
+                    <entryPoint declaringType="DefaultNamespace.Boo.C1" methodName="Main" parameterNames=""/>
                     <methods>
-                        <method containingType="TheDefaultNamespace.Boo.C1" name=".ctor" parameterNames="">
+                        <method containingType="DefaultNamespace.Boo.C1" name=".ctor" parameterNames="">
                             <sequencepoints total="3">
                                 <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
                                 <entry il_offset="0x6" start_row="22" start_column="12" end_row="22" end_column="43" file_ref="1"/>
@@ -296,21 +296,21 @@ End Namespace
                                 <xmlnamespace prefix="" name="http://stuff/fromFile1" importlevel="file"/>
                                 <alias name="file1" target="System.Collections" kind="namespace" importlevel="file"/>
                                 <alias name="typefile1" target="System.String" kind="namespace" importlevel="file"/>
-                                <alias name="C3ALIAS" target="TheDefaultNamespace.NS1.NS2.C1.C2.C3" kind="namespace" importlevel="file"/>
+                                <alias name="C3ALIAS" target="DefaultNamespace.NS1.NS2.C1.C2.C3" kind="namespace" importlevel="file"/>
                                 <namespace name="System" importlevel="file"/>
                                 <namespace name="System.Collections.Generic" importlevel="file"/>
-                                <type name="TheDefaultNamespace.NS1.NS2.C1.C2" importlevel="file"/>
-                                <defaultnamespace name="TheDefaultNamespace"/>
+                                <type name="DefaultNamespace.NS1.NS2.C1.C2" importlevel="file"/>
+                                <defaultnamespace name="DefaultNamespace"/>
                                 <xmlnamespace prefix="prjlevel1" name="http://NewNamespace" importlevel="project"/>
                                 <xmlnamespace prefix="" name="http://NewNamespace/prjlevel" importlevel="project"/>
                                 <alias name="prjlevel" target="System.Collections.Generic" kind="namespace" importlevel="project"/>
                                 <alias name="typeproj1" target="System.Int64" kind="namespace" importlevel="project"/>
                                 <namespace name="System.Threading" importlevel="project"/>
                                 <type name="System.Collections.ArrayList" importlevel="project"/>
-                                <currentnamespace name="TheDefaultNamespace.Boo"/>
+                                <currentnamespace name="DefaultNamespace.Boo"/>
                             </scope>
                         </method>
-                        <method containingType="TheDefaultNamespace.Boo.C1" name="Main" parameterNames="">
+                        <method containingType="DefaultNamespace.Boo.C1" name="Main" parameterNames="">
                             <sequencepoints total="3">
                                 <entry il_offset="0x0" start_row="24" start_column="5" end_row="24" end_column="29" file_ref="1"/>
                                 <entry il_offset="0x1" start_row="25" start_column="9" end_row="25" end_column="42" file_ref="1"/>
@@ -318,10 +318,10 @@ End Namespace
                             </sequencepoints>
                             <locals/>
                             <scope startOffset="0x0" endOffset="0xd">
-                                <importsforward declaringType="TheDefaultNamespace.Boo.C1" methodName=".ctor" parameterNames=""/>
+                                <importsforward declaringType="DefaultNamespace.Boo.C1" methodName=".ctor" parameterNames=""/>
                             </scope>
                         </method>
-                        <method containingType="TheDefaultNamespace.Boo.C1" name="DoStuff" parameterNames="">
+                        <method containingType="DefaultNamespace.Boo.C1" name="DoStuff" parameterNames="">
                             <sequencepoints total="3">
                                 <entry il_offset="0x0" start_row="28" start_column="5" end_row="28" end_column="32" file_ref="1"/>
                                 <entry il_offset="0x1" start_row="29" start_column="9" end_row="29" end_column="48" file_ref="1"/>
@@ -329,10 +329,10 @@ End Namespace
                             </sequencepoints>
                             <locals/>
                             <scope startOffset="0x0" endOffset="0xd">
-                                <importsforward declaringType="TheDefaultNamespace.Boo.C1" methodName=".ctor" parameterNames=""/>
+                                <importsforward declaringType="DefaultNamespace.Boo.C1" methodName=".ctor" parameterNames=""/>
                             </scope>
                         </method>
-                        <method containingType="TheDefaultNamespace.C2" name="DoStuff2" parameterNames="">
+                        <method containingType="DefaultNamespace.C2" name="DoStuff2" parameterNames="">
                             <sequencepoints total="3">
                                 <entry il_offset="0x0" start_row="23" start_column="5" end_row="23" end_column="33" file_ref="2"/>
                                 <entry il_offset="0x1" start_row="24" start_column="9" end_row="24" end_column="65" file_ref="2"/>
@@ -346,14 +346,14 @@ End Namespace
                                 <alias name="typefile2" target="System.Int32" kind="namespace" importlevel="file"/>
                                 <namespace name="System.Diagnostics" importlevel="file"/>
                                 <type name="System.Collections.ArrayList" importlevel="file"/>
-                                <defaultnamespace name="TheDefaultNamespace"/>
+                                <defaultnamespace name="DefaultNamespace"/>
                                 <xmlnamespace prefix="prjlevel1" name="http://NewNamespace" importlevel="project"/>
                                 <xmlnamespace prefix="" name="http://NewNamespace/prjlevel" importlevel="project"/>
                                 <alias name="prjlevel" target="System.Collections.Generic" kind="namespace" importlevel="project"/>
                                 <alias name="typeproj1" target="System.Int64" kind="namespace" importlevel="project"/>
                                 <namespace name="System.Threading" importlevel="project"/>
                                 <type name="System.Collections.ArrayList" importlevel="project"/>
-                                <currentnamespace name="TheDefaultNamespace"/>
+                                <currentnamespace name="DefaultNamespace"/>
                             </scope>
                         </method>
                     </methods>

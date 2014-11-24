@@ -646,6 +646,7 @@ namespace Roslyn.Test.PdbUtilities
                         case 'X':
                         case 'Z':
                         case 'E':
+                        case 'T':
                             scope = ImportScope.Unspecified;
                             if (!CDI.TryParseCSharpImportString(rawName, out alias, out externAlias, out target, out kind))
                             {

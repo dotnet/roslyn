@@ -1988,5 +1988,46 @@ namespace foo
             result.Diagnostics.Verify(
                 Diagnostic(ErrorCode.WRN_DebugFullNameTooLong, "Main").WithArguments("AACT TSystem.Action`7[[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"));
         }
+
+        [WorkItem(1084059, "DevDiv")]
+        [Fact]
+        public void StaticType()
+        {
+            var source = @"
+using System.Math;
+
+class D
+{
+    static void Main() 
+    {
+        Max(1, 2);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source);
+
+            var expectedXml = @"
+<symbols>
+    <methods>
+        <method containingType=""D"" name=""Main"" parameterNames="""">
+            <customDebugInfo version=""4"" count=""1"">
+                <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+                    <namespace usingCount=""1""/>
+                </using>
+            </customDebugInfo>
+            <sequencepoints total=""2"">
+                <entry il_offset=""0x0"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""19"" file_ref=""0""/>
+                <entry il_offset=""0x8"" start_row=""9"" start_column=""5"" end_row=""9"" end_column=""6"" file_ref=""0""/>
+            </sequencepoints>
+            <locals/>
+            <scope startOffset=""0x0"" endOffset=""0x9"">
+                <type name=""System.Math, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089""/>
+            </scope>
+        </method>
+    </methods>
+</symbols>";
+
+            AssertXmlEqual(expectedXml, GetPdbXml(comp, "D.Main"));
+        }
     }
 }

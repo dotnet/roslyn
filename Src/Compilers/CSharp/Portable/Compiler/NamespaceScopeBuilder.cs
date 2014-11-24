@@ -93,22 +93,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (var nsOrType in usings)
                     {
                         NamespaceOrTypeSymbol namespaceOrType = nsOrType.NamespaceOrType;
+                        string namespaceOrTypeString = GetNamespaceOrTypeString(namespaceOrType);
                         if (namespaceOrType.IsNamespace)
                         {
-                            NamespaceSymbol @namespace = (NamespaceSymbol)namespaceOrType;
-                            string namespaceString = GetNamespaceOrTypeString(@namespace);
-
-                            string externAlias = GuessExternAlias(@namespace, validExternAliases);
-
-                            usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateCSharpNamespace(namespaceString, externAlias));
+                            string externAlias = GuessExternAlias((NamespaceSymbol)namespaceOrType, validExternAliases);
+                            usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateCSharpNamespace(namespaceOrTypeString, externAlias));
                         }
                         else
                         {
-                            // This is possible in C# scripts, but the EE doesn't support the meaning intended by script files.
-                            // Specifically, when a script includes "using System.Console;" the intended meaning is that the
-                            // static methods of System.Console are available but System.Console itself is not.  Even if we output
-                            // "TSystem.Console" - which the EE may or may not support - we would only see System.Console become 
-                            // available.
+                            Debug.Assert(namespaceOrType is TypeSymbol);
+                            Debug.Assert(namespaceOrType.IsStatic);
+                            usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateCSharpType(namespaceOrTypeString));
                         }
                     }
                 }
