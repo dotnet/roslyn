@@ -53,7 +53,7 @@
     <DebugType>full</DebugType>
     <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.xml</DocumentationFile>
     <NoWarn>42014</NoWarn>
-    <CodeAnalysisRuleSet>DiagnosticRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>..\BasicCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <DefineTrace>true</DefineTrace>
@@ -965,7 +965,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="DiagnosticRules.ruleset">
+    <None Include="..\BasicCodeAnalysisRules.ruleset">
       <SubType>Designer</SubType>
     </None>
     <None Include="packages.config" />
