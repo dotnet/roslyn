@@ -4007,6 +4007,58 @@ End Module
             End Using
         End Sub
 
+        <WorkItem(1003274)>
+        <Fact>
+        Public Sub ConditionalAttribute()
+            Const source0 = "
+Imports System.Diagnostics
+
+Class C
+    Sub M()
+        ' Body
+    End Sub
+            
+    <Conditional(""Defined"")>
+    Sub N1()
+    End Sub
+
+    <Conditional(""Undefined"")>
+    Sub N2()
+    End Sub
+End Class
+"
+            Dim parseOptions As New VisualBasicParseOptions(preprocessorSymbols:={New KeyValuePair(Of String, Object)("Defined", True)})
+            Dim tree0 = VisualBasicSyntaxTree.ParseText(source0, parseOptions)
+            Dim tree1 = VisualBasicSyntaxTree.ParseText(source0.Replace("' Body", "N1(): N2()"), parseOptions)
+            Dim compilation0 = CreateCompilationWithMscorlib({tree0}, compOptions:=TestOptions.DebugDll)
+            Dim compilation1 = CreateCompilationWithMscorlib({tree1}, compOptions:=TestOptions.DebugDll)
+
+            Dim bytes0 = compilation0.EmitToArray()
+            Using md0 = ModuleMetadata.CreateFromImage(bytes0)
+                Dim reader0 = md0.MetadataReader
+
+                Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.M")
+                Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
+                Dim diff1 = compilation1.EmitDifference(
+                    generation0,
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
+                diff1.EmitResult.Diagnostics.AssertNoErrors()
+
+                diff1.VerifyIL("C.M", "
+{
+  // Code size        9 (0x9)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""Sub C.N1()""
+  IL_0007:  nop
+  IL_0008:  ret
+}
+")
+            End Using
+        End Sub
+
 #Region "Helpers"
         Private Shared ReadOnly EmptyLocalsProvider As Func(Of MethodDefinitionHandle, EditAndContinueMethodDebugInformation) = Function(token) Nothing
 

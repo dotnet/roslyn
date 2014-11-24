@@ -775,6 +775,40 @@ End Module
         End Sub
 #End Region
 
+        <WorkItem(1003274)>
+        <Fact>
+        Public Sub ConditionalAttributeInNetModule()
+            Const source = "
+Imports System.Diagnostics
+
+Class C
+    Sub M()
+        N1()
+        N2()
+    End Sub
+
+    <Conditional(""Defined"")>
+    Sub N1()
+    End Sub
+
+    <Conditional(""Undefined"")>
+    Sub N2()
+    End Sub
+End Class
+"
+            Dim parseOptions As New VisualBasicParseOptions(preprocessorSymbols:={New KeyValuePair(Of String, Object)("Defined", True)})
+            Dim comp = CreateCompilationWithMscorlib({VisualBasicSyntaxTree.ParseText(source, parseOptions)}, compOptions:=TestOptions.ReleaseModule)
+            CompileAndVerify(comp, verify:=False).VerifyIL("C.M", "
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""Sub C.N1()""
+  IL_0006:  ret
+}
+")
+        End Sub
+
 #End Region
 
     End Class
