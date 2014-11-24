@@ -16,6 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             diagnostics As DiagnosticBag,
             <Out> ByRef statemachineTypeOpt As StateMachineTypeSymbol,
             <Out> ByRef variableSlotAllocatorOpt As VariableSlotAllocator,
+            allowOmissionOfConditionalCalls As Boolean,
             isBodySynthesized As Boolean) As BoundBlock
 
             Debug.Assert(Not body.HasErrors)
@@ -24,17 +25,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim sawLambdas As Boolean
             Dim symbolsCapturedWithoutCopyCtor As ISet(Of Symbol) = Nothing
             Dim rewrittenNodes As HashSet(Of BoundNode) = Nothing
+            Dim flags = If(allowOmissionOfConditionalCalls, LocalRewriter.RewritingFlags.AllowOmissionOfConditionalCalls, LocalRewriter.RewritingFlags.Default)
 
             Dim loweredBody = LocalRewriter.Rewrite(body,
-                                                         method,
-                                                         compilationState,
-                                                         previousSubmissionFields,
-                                                         diagnostics:=diagnostics,
-                                                         rewrittenNodes:=rewrittenNodes,
-                                                         hasLambdas:=sawLambdas,
-                                                         symbolsCapturedWithoutCopyCtor:=symbolsCapturedWithoutCopyCtor,
-                                                         flags:=LocalRewriter.RewritingFlags.Default,
-                                                         currentMethod:=Nothing)
+                                                    method,
+                                                    compilationState,
+                                                    previousSubmissionFields,
+                                                    diagnostics,
+                                                    rewrittenNodes,
+                                                    sawLambdas,
+                                                    symbolsCapturedWithoutCopyCtor,
+                                                    flags,
+                                                    currentMethod:=Nothing)
 
             If loweredBody.HasErrors Then
                 Return loweredBody

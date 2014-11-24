@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly CSharpCompilation compilation;
         private readonly SyntheticBoundNodeFactory factory;
         private readonly SynthesizedSubmissionFields previousSubmissionFields;
-        private readonly bool includeConditionalCalls;
+        private readonly bool allowOmissionOfConditionalCalls;
         private readonly LoweredDynamicOperationFactory dynamicFactory;
         private bool sawLambdas;
         private bool inExpressionLambda;
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol containingType,
             SyntheticBoundNodeFactory factory,
             SynthesizedSubmissionFields previousSubmissionFields,
-            bool includeConditionalCalls,
+            bool allowOmissionOfConditionalCalls,
             DiagnosticBag diagnostics)
         {
             this.compilation = compilation;
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(factory.CurrentClass == (containingType ?? containingMethod.ContainingType));
             this.dynamicFactory = new LoweredDynamicOperationFactory(factory);
             this.previousSubmissionFields = previousSubmissionFields;
-            this.includeConditionalCalls = includeConditionalCalls;
+            this.allowOmissionOfConditionalCalls = allowOmissionOfConditionalCalls;
             this.diagnostics = diagnostics;
         }
 
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement statement,
             TypeCompilationState compilationState,
             SynthesizedSubmissionFields previousSubmissionFields,
-            bool includeConditionalCalls,
+            bool allowOmissionOfConditionalCalls,
             DiagnosticBag diagnostics,
             out bool sawLambdas,
             out bool sawDynamicOperations,
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 var factory = new SyntheticBoundNodeFactory(containingSymbol, statement.Syntax, compilationState, diagnostics);
-                var localRewriter = new LocalRewriter(compilation, containingSymbol, containingType, factory, previousSubmissionFields, includeConditionalCalls, diagnostics);
+                var localRewriter = new LocalRewriter(compilation, containingSymbol, containingType, factory, previousSubmissionFields, allowOmissionOfConditionalCalls, diagnostics);
                 var loweredStatement = (BoundStatement)localRewriter.Visit(statement);
                 sawLambdas = localRewriter.sawLambdas;
                 sawAwaitInExceptionHandler = localRewriter.sawAwaitInExceptionHandler;

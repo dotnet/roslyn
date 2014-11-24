@@ -1099,7 +1099,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 body,
                 compilationState,
                 previousSubmissionFields: previousSubmissionFields,
-                includeConditionalCalls: false,
+                allowOmissionOfConditionalCalls: true,
                 diagnostics: diagnostics,
                 sawLambdas: out sawLambdas,
                 sawDynamicOperations: out sawDynamicOperations,

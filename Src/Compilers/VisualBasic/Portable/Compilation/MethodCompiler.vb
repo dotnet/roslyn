@@ -353,7 +353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 For index = 0 To builder.Count - 1
-                    Dim symbol As symbol = builder(index)
+                    Dim symbol As Symbol = builder(index)
                     processedSymbols.Add(symbol)
 
 #If DEBUG Then
@@ -816,6 +816,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             diagnostics:=diagnosticsThisMethod,
                             statemachineTypeOpt:=statemachineTypeOpt,
                             variableSlotAllocatorOpt:=variableSlotAllocatorOpt,
+                            allowOmissionOfConditionalCalls:=_moduleBeingBuiltOpt.AllowOmissionOfConditionalCalls,
                             isBodySynthesized:=True)
 
                         If Not diagnosticsThisMethod.HasAnyErrors Then
@@ -1162,6 +1163,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                               diagsForCurrentMethod As DiagnosticBag,
                                                               previousSubmissionFields As SynthesizedSubmissionFields)
 
+            Debug.Assert(_moduleBeingBuiltOpt Is Nothing OrElse _moduleBeingBuiltOpt.AllowOmissionOfConditionalCalls)
+
             For Each handledEvent In handledEvents
                 If handledEvent.HandlesKind = HandledEventKind.WithEvents Then
                     Dim prop = TryCast(handledEvent.hookupMethod.AssociatedSymbol, SynthesizedOverridingWithEventsProperty)
@@ -1187,6 +1190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                    diagsForCurrentMethod,
                                                                    statemachineTypeOpt:=Nothing,
                                                                    variableSlotAllocatorOpt:=Nothing,
+                                                                   allowOmissionOfConditionalCalls:=True,
                                                                    isBodySynthesized:=True)
 
                             compilationState.AddMethodWrapper(accessor, accessor, body)
@@ -1267,7 +1271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim variableSlotAllocatorOpt As VariableSlotAllocator = Nothing
             Dim stateMachineTypeOpt As StateMachineTypeSymbol = Nothing
-
+            Dim allowOmissionOfConditionalCalls = _moduleBeingBuiltOpt Is Nothing OrElse _moduleBeingBuiltOpt.AllowOmissionOfConditionalCalls
             body = Rewriter.LowerBodyOrInitializer(method,
                                                    body,
                                                    previousSubmissionFields,
@@ -1275,6 +1279,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                    diagnostics,
                                                    stateMachineTypeOpt,
                                                    variableSlotAllocatorOpt,
+                                                   allowOmissionOfConditionalCalls,
                                                    isBodySynthesized:=False)
 
             ' The submission initializer has to be constructed after the body is rewritten (all previous submission references are visited):

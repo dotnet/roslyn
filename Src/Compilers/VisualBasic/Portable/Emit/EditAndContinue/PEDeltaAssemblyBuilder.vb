@@ -205,5 +205,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Next
             End If
         End Sub
+
+        Friend Overrides ReadOnly Property AllowOmissionOfConditionalCalls As Boolean
+            Get
+                Return True
+            End Get
+        End Property
     End Class
 End Namespace

@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var syntax = initializer.Syntax;
             MethodSymbol addMethod = initializer.AddMethod;
 
-            if (!this.includeConditionalCalls)
+            if (this.allowOmissionOfConditionalCalls)
             {
                 // NOTE: Calls cannot be omitted within an expression tree (CS0765); this should already
                 // have been checked.

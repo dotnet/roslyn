@@ -20,6 +20,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Protected Overrides Sub AddEmbeddedResourcesFromAddedModules(builder As ArrayBuilder(Of Cci.ManagedResource), diagnostics As DiagnosticBag)
             Throw ExceptionUtilities.Unreachable
         End Sub
+
+        Friend Overrides ReadOnly Property AllowOmissionOfConditionalCalls As Boolean
+            Get
+                Return True
+            End Get
+        End Property
     End Class
 
 End Namespace

@@ -6,11 +6,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits BoundTreeRewriter
 
         <Flags>
-        Friend Enum RewritingFlags
+        Friend Enum RewritingFlags As Byte
             [Default] = 0
             AllowSequencePoints = 1
             AllowEndOfMethodReturnWithExpression = 2
             AllowCatchWithErrorLineNumberReference = 4
+            AllowOmissionOfConditionalCalls = 8
         End Enum
 
         Private ReadOnly Flags As RewritingFlags

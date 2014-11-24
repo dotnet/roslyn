@@ -56,6 +56,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
         End Sub
 
+        ''' <summary>
+        ''' True if conditional calls may be omitted when the required preprocessor symbols are not defined.
+        ''' </summary>
+        ''' <remarks>
+        ''' Only false in debugger scenarios (where calls should never be omitted).
+        ''' </remarks>
+        Friend MustOverride ReadOnly Property AllowOmissionOfConditionalCalls As Boolean
+
         Friend Overrides ReadOnly Property Name As String
             Get
                 Return m_MetadataName

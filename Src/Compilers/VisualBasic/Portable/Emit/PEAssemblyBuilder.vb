@@ -193,6 +193,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, additionalTypes)
         End Sub
+
+        Friend Overrides ReadOnly Property AllowOmissionOfConditionalCalls As Boolean
+            Get
+                Return True
+            End Get
+        End Property
     End Class
 
 End Namespace
