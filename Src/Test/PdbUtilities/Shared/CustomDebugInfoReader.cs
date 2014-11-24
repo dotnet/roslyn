@@ -494,7 +494,7 @@ namespace Roslyn.Utilities.Pdb
             return importStrings;
         }
 
-        public static ImmutableSortedSet<int> GetCSharpInScopeHoistedLocalIndices(ISymUnmanagedReader reader, int methodToken, int methodVersion, int ilOffset)
+        public static ImmutableSortedSet<int> GetCSharpInScopeHoistedLocalIndices(this ISymUnmanagedReader reader, int methodToken, int methodVersion, int ilOffset)
         {
             byte[] bytes = reader.GetCustomDebugInfo(methodToken, methodVersion);
             if (bytes == null)
@@ -550,6 +550,97 @@ namespace Roslyn.Utilities.Pdb
             ImmutableSortedSet<int> result = builder.ToImmutableSortedSet();
             builder.Free();
             return result;
+        }
+
+        public static void GetCSharpDynamicLocalInfo(
+            this ISymUnmanagedReader reader,
+            int methodToken,
+            int methodVersion,
+            string firstLocalName,
+            out ImmutableDictionary<int, ImmutableArray<bool>> dynamicLocalMap,
+            out ImmutableDictionary<string, ImmutableArray<bool>> dynamicLocalConstantMap)
+        {
+            dynamicLocalMap = ImmutableDictionary<int, ImmutableArray<bool>>.Empty;
+            dynamicLocalConstantMap = ImmutableDictionary<string, ImmutableArray<bool>>.Empty;
+
+            byte[] bytes = reader.GetCustomDebugInfo(methodToken, methodVersion);
+            if (bytes == null)
+            {
+                return;
+            }
+
+            int offset = 0;
+
+            byte globalVersion;
+            byte unusedGlobalCount;
+            ReadGlobalHeader(bytes, ref offset, out globalVersion, out unusedGlobalCount);
+            CheckVersion(globalVersion, methodToken);
+
+            ImmutableArray<DynamicLocalBucket> buckets = default(ImmutableArray<DynamicLocalBucket>);
+
+            while (offset < bytes.Length)
+            {
+                byte version;
+                CustomDebugInfoKind kind;
+                int size;
+                ReadRecordHeader(bytes, ref offset, out version, out kind, out size);
+                CheckVersion(version, methodToken);
+
+                if (kind == CustomDebugInfoKind.DynamicLocals)
+                {
+                    ReadDynamicLocalsRecord(bytes, ref offset, size, out buckets);
+                    break;
+                }
+                else
+                {
+                    SkipRecord(bytes, ref offset, size);
+                }
+            }
+
+            if (buckets.IsDefault)
+            {
+                return;
+            }
+
+            ImmutableDictionary<int, ImmutableArray<bool>>.Builder localBuilder = null;
+            ImmutableDictionary<string, ImmutableArray<bool>>.Builder constantBuilder = null;
+
+            foreach (DynamicLocalBucket bucket in buckets)
+            {
+                int flagCount = bucket.FlagCount;
+                ulong flags = bucket.Flags;
+                ArrayBuilder<bool> dynamicBuilder = ArrayBuilder<bool>.GetInstance(flagCount);
+                for (int i = 0; i < flagCount; i++)
+                {
+                    dynamicBuilder.Add((flags & (1u << i)) != 0);
+                }
+
+                var slot = bucket.SlotId;
+                var name = bucket.Name;
+
+                // All constants have slot 0, but none of them can have the same name
+                // as the local that is actually in slot 0 (if there is one).
+                if (slot == 0 && (firstLocalName == null || firstLocalName != name))
+                {
+                    constantBuilder = constantBuilder ?? ImmutableDictionary.CreateBuilder<string, ImmutableArray<bool>>();
+                    constantBuilder.Add(name, dynamicBuilder.ToImmutableAndFree());
+                }
+                else
+                {
+                    localBuilder = localBuilder ?? ImmutableDictionary.CreateBuilder<int, ImmutableArray<bool>>();
+                    localBuilder.Add(slot, dynamicBuilder.ToImmutableAndFree());
+                }
+            }
+
+            if (localBuilder != null)
+            {
+                dynamicLocalMap = localBuilder.ToImmutable();
+            }
+
+            if (constantBuilder != null)
+            {
+                dynamicLocalConstantMap = constantBuilder.ToImmutable();
+            }
         }
 
         private static void CheckVersion(byte globalVersion, int methodToken)
