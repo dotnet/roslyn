@@ -192,4 +192,13 @@
   <data name="DoNotCallToImmutableArrayMessage" xml:space="preserve">
     <value>Do not call ToImmutableArray on an ImmutableArray&lt;T&gt; value.</value>
   </data>
+  <data name="DiagnosticDescriptorAccessMessage" xml:space="preserve">
+    <value>Do not invoke property '{0}' on type '{1}', instead directly access the required member{2} on '{1}'</value>
+  </data>
+  <data name="DiagnosticDescriptorAccessTitle" xml:space="preserve">
+    <value>Do not invoke Diagnostic.Descriptor</value>
+  </data>
+  <data name="DiagnosticDescriptorAccessDescription" xml:space="preserve">
+    <value>Accessing the Descriptor property of Diagnostic in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the Descriptor of the compiler diagnostics here. Instead you should directly access these properties off the Diagnostic type.</value>
+  </data>
 </root>

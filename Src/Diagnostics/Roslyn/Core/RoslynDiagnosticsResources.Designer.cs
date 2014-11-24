@@ -79,6 +79,33 @@ namespace Roslyn.Diagnostics.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Accessing the Descriptor property of Diagnostic in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the Descriptor of the compiler diagnostics here. Instead you should directly access these properties off the Diagnostic type..
+        /// </summary>
+        internal static string DiagnosticDescriptorAccessDescription {
+            get {
+                return ResourceManager.GetString("DiagnosticDescriptorAccessDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do not invoke property &apos;{0}&apos; on type &apos;{1}&apos;, instead directly access the required member{2} on &apos;{1}&apos;.
+        /// </summary>
+        internal static string DiagnosticDescriptorAccessMessage {
+            get {
+                return ResourceManager.GetString("DiagnosticDescriptorAccessMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do not invoke Diagnostic.Descriptor.
+        /// </summary>
+        internal static string DiagnosticDescriptorAccessTitle {
+            get {
+                return ResourceManager.GetString("DiagnosticDescriptorAccessTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Do not directly await a Task.
         /// </summary>
         internal static string DirectlyAwaitingTaskDescription {
@@ -93,6 +120,15 @@ namespace Roslyn.Diagnostics.Analyzers {
         internal static string DirectlyAwaitingTaskMessage {
             get {
                 return ResourceManager.GetString("DirectlyAwaitingTaskMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do not call ToImmutableArray on an ImmutableArray&lt;T&gt; value..
+        /// </summary>
+        internal static string DoNotCallToImmutableArrayMessage {
+            get {
+                return ResourceManager.GetString("DoNotCallToImmutableArrayMessage", resourceCulture);
             }
         }
         
@@ -273,15 +309,6 @@ namespace Roslyn.Diagnostics.Analyzers {
         internal static string UseSiteDiagnosticsCheckerMessage {
             get {
                 return ResourceManager.GetString("UseSiteDiagnosticsCheckerMessage", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   Looks up a localized string similar to Do not call ToImmutableArray on ImmutableArray
-        /// </summary>
-        internal static string DoNotCallToImmutableArrayMessage {
-            get {
-                return ResourceManager.GetString("DoNotCallToImmutableArrayMessage", resourceCulture);
             }
         }
     }

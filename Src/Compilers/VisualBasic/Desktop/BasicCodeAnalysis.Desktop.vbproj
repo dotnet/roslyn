@@ -42,6 +42,7 @@
     <DebugType>full</DebugType>
     <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.Desktop.xml</DocumentationFile>
     <NoWarn>42014</NoWarn>
+    <CodeAnalysisRuleSet>..\BasicCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <DefineTrace>true</DefineTrace>
@@ -98,6 +99,9 @@
     <Folder Include="My Project\" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\BasicCodeAnalysisRules.ruleset">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ImportGroup Label="Targets">

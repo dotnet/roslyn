@@ -1,6 +1,0 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<RuleSet Name="Diagnostic rules for the BasicCodeAnalysis (Portable) project" Description="Enables rules specific to this project." ToolsVersion="14.0">
-  <Rules AnalyzerId="Roslyn.Diagnostics.Analyzers.VisualBasic" RuleNamespace="Roslyn.Diagnostics.Analyzers.VisualBasic">
-    <Rule Id="RS0004" Action="Error" />
-  </Rules>
-</RuleSet>

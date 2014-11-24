@@ -89,7 +89,8 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>RoslynDiagnosticsResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="AbstractCodeBlockAnalyzerFactory.cs" />
+    <Compile Include="AbstractSyntaxNodeAnalyzer.cs" />
+    <Compile Include="Performance\DiagnosticDescriptorAccessAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="RoslynDiagnosticsResources.resx">

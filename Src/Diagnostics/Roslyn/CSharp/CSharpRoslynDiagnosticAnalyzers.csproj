@@ -73,6 +73,7 @@
   <ItemGroup>
     <Compile Include="ApiDesign\CancellationTokenMustBeLastCodeFixProvider.cs" />
     <Compile Include="Documentation\CSharpDoNotUseVerbatimCrefsAnalyzer.cs" />
+    <Compile Include="Performance\CSharpDiagnosticDescriptorAccessAnalyzer.cs" />
     <Compile Include="Performance\CSharpCodeActionCreateAnalyzer.cs" />
     <Compile Include="Performance\CSharpEmptyArrayDiagnosticAnalyzer.cs" />
     <Compile Include="Performance\CSharpEmptyArrayCodeFixProvider.cs" />
