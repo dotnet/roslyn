@@ -1339,6 +1339,11 @@ class C
     public static bool operator true(C c) { return false; }
     public static bool operator false(C c) { return false; }
 }
+class D : C
+{
+    public static D operator&(D d1, D d2) { return d1; }
+    public static D operator|(D d1, D d2) { return d1; }
+}
 class Program : TestBase
 {
     public event Action InstanceEvent;
@@ -1380,6 +1385,12 @@ class Program : TestBase
         Check<C, C, C>(
             (l, r) => l || r,
             ""OrElse(Parameter(l Type:C) Parameter(r Type:C) Method:[C op_BitwiseOr(C, C)] Type:C)"");
+        Check<D, D, D>(
+            (l, r) => l && r,
+            ""AndAlso(Parameter(l Type:D) Parameter(r Type:D) Method:[D op_BitwiseAnd(D, D)] Type:D)"");
+        Check<D, D, D>(
+            (l, r) => l || r,
+            ""OrElse(Parameter(l Type:D) Parameter(r Type:D) Method:[D op_BitwiseOr(D, D)] Type:D)"");
         Check<int[]>(
             () => new int[] { 1, 2, 3 },
             ""NewArrayInit([Constant(1 Type:System.Int32) Constant(2 Type:System.Int32) Constant(3 Type:System.Int32)] Type:System.Int32[])"");

@@ -1694,7 +1694,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             VisitRvalue(node.Expression);
             foreach (var i in node.Indices)
+            {
                 VisitRvalue(i);
+            }
 
             if (trackExceptions && node.HasExpressionSymbols()) NotePossibleException(node);
             return null;
@@ -1702,49 +1704,65 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
         {
-            switch (node.OperatorKind)
+            if (node.OperatorKind.IsLogical())
             {
-                case BinaryOperatorKind.DynamicLogicalAnd:
-                case BinaryOperatorKind.LogicalUserDefinedAnd:
-                case BinaryOperatorKind.LogicalBoolAnd:
-                    {
-                        VisitCondition(node.Left);
-                        var leftTrue = StateWhenTrue;
-                        var leftFalse = StateWhenFalse;
-                        SetState(leftTrue);
-                        VisitCondition(node.Right);
-                        if (node.OperatorKind != BinaryOperatorKind.LogicalBoolAnd) { Unsplit(); Split(); }
-                        var resultTrue = StateWhenTrue;
-                        var resultFalse = leftFalse;
-                        IntersectWith(ref resultFalse, ref StateWhenFalse);
-                        SetConditionalState(resultTrue, resultFalse);
-                        if (node.OperatorKind != BinaryOperatorKind.LogicalBoolAnd) Unsplit();
-                        break;
-                    }
-                case BinaryOperatorKind.DynamicLogicalOr:
-                case BinaryOperatorKind.LogicalUserDefinedOr:
-                case BinaryOperatorKind.LogicalBoolOr:
-                    {
-                        VisitCondition(node.Left);
-                        var leftTrue = this.StateWhenTrue;
-                        var leftFalse = this.StateWhenFalse;
-                        SetState(leftFalse);
-                        VisitCondition(node.Right);
-                        if (node.OperatorKind != BinaryOperatorKind.LogicalBoolOr) { Unsplit(); Split(); }
-                        var resultTrue = this.StateWhenTrue;
-                        IntersectWith(ref resultTrue, ref leftTrue);
-                        var resultFalse = this.StateWhenFalse;
-                        SetConditionalState(resultTrue, resultFalse);
-                        if (node.OperatorKind != BinaryOperatorKind.LogicalBoolOr) Unsplit();
-                        break;
-                    }
-                default:
-                    VisitBinaryOperatorChildren(node);
-                    break;
+                Debug.Assert(!node.OperatorKind.IsUserDefined());
+
+                VisitBinaryLogicalOperatorChildren(node.OperatorKind, node.Left, node.Right);
+            }
+            else
+            {
+                VisitBinaryOperatorChildren(node);
             }
 
             if (trackExceptions && node.HasExpressionSymbols()) NotePossibleException(node);
             return null;
+        }
+
+        public override BoundNode VisitUserDefinedConditionalLogicalOperator(BoundUserDefinedConditionalLogicalOperator node)
+        {
+            VisitBinaryLogicalOperatorChildren(node.OperatorKind, node.Left, node.Right);
+
+            if (trackExceptions && node.HasExpressionSymbols()) NotePossibleException(node);
+            return null;
+        }
+
+        private void VisitBinaryLogicalOperatorChildren(BinaryOperatorKind kind, BoundExpression left, BoundExpression right)
+        {
+            var op = kind.Operator();
+            var isAnd = op == BinaryOperatorKind.And;
+            var isBool = kind.OperandTypes() == BinaryOperatorKind.Bool;
+
+            Debug.Assert(isAnd || op == BinaryOperatorKind.Or);
+
+            VisitCondition(left);
+            var leftTrue = this.StateWhenTrue;
+            var leftFalse = this.StateWhenFalse;
+            SetState(isAnd ? leftTrue : leftFalse);
+
+            VisitCondition(right);
+            if (!isBool)
+            {
+                this.Unsplit();
+                this.Split();
+            }
+
+            var resultTrue = this.StateWhenTrue;
+            var resultFalse = this.StateWhenFalse;
+            if (isAnd)
+            {
+                IntersectWith(ref resultFalse, ref leftFalse);
+            }
+            else
+            {
+                IntersectWith(ref resultTrue, ref leftTrue);
+            }
+            SetConditionalState(resultTrue, resultFalse);
+
+            if (!isBool)
+            {
+                this.Unsplit();
+            }
         }
 
         private void VisitBinaryOperatorChildren(BoundBinaryOperator node)
@@ -1761,13 +1779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundExpression current = stack.Pop();
                 BoundBinaryOperator binOp = current as BoundBinaryOperator;
-                if (binOp == null ||
-                    binOp.OperatorKind == BinaryOperatorKind.LogicalBoolAnd ||
-                    binOp.OperatorKind == BinaryOperatorKind.LogicalBoolOr ||
-                    binOp.OperatorKind == BinaryOperatorKind.DynamicLogicalAnd ||
-                    binOp.OperatorKind == BinaryOperatorKind.DynamicLogicalOr ||
-                    binOp.OperatorKind == BinaryOperatorKind.LogicalUserDefinedAnd ||
-                    binOp.OperatorKind == BinaryOperatorKind.LogicalUserDefinedOr)
+                if (binOp == null || binOp.OperatorKind.IsLogical())
                 {
                     VisitRvalue(current);
                 }

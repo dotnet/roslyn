@@ -2934,6 +2934,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     GetSymbolsAndResultKind((BoundUnaryOperator)boundNode, out isDynamic, ref resultKind, ref symbols);
                     break;
 
+                case BoundKind.UserDefinedConditionalLogicalOperator:
+                    var @operator = (BoundUserDefinedConditionalLogicalOperator)boundNode;
+                    isDynamic = false;
+                    GetSymbolsAndResultKind(@operator, @operator.LogicalOperator, @operator.OriginalUserDefinedOperatorsOpt, out symbols, out resultKind);
+                    break;
+
                 case BoundKind.CompoundAssignmentOperator:
                     GetSymbolsAndResultKind((BoundCompoundAssignmentOperator)boundNode, out isDynamic, ref resultKind, ref symbols);
                     break;

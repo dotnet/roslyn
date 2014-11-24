@@ -166,7 +166,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.BaseReference:
                     return VisitBaseReference((BoundBaseReference)node);
                 case BoundKind.BinaryOperator:
-                    return VisitBinaryOperator((BoundBinaryOperator)node);
+                    var binOp = (BoundBinaryOperator)node;
+                    return VisitBinaryOperator(binOp.OperatorKind, binOp.MethodOpt, binOp.Type, binOp.Left, binOp.Right);
+                case BoundKind.UserDefinedConditionalLogicalOperator:
+                    var userDefCondLogOp = (BoundUserDefinedConditionalLogicalOperator)node;
+                    return VisitBinaryOperator(userDefCondLogOp.OperatorKind, userDefCondLogOp.LogicalOperator, userDefCondLogOp.Type, userDefCondLogOp.Left, userDefCondLogOp.Right);
                 case BoundKind.Call:
                     return VisitCall((BoundCall)node);
                 case BoundKind.ConditionalOperator:
@@ -300,74 +304,84 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBadExpression(node.Syntax, 0, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(node), ExpressionType);
         }
 
-        private BoundExpression VisitBinaryOperator(BoundBinaryOperator node)
+        private string GetBinaryOperatorName(BinaryOperatorKind opKind, out bool isChecked, out bool isLifted, out bool requiresLifted)
         {
-            var opKind = node.OperatorKind;
-            var op = opKind & BinaryOperatorKind.OpMask;
-            var isChecked = (opKind & BinaryOperatorKind.Checked) != 0;
-            var isLogical = (opKind & BinaryOperatorKind.Logical) != 0;
-            var isLifted = (opKind & BinaryOperatorKind.Lifted) != 0;
-            bool requiresLifted = false;
+            isChecked = opKind.IsChecked();
+            isLifted = opKind.IsLifted();
+            requiresLifted = opKind.IsComparison();
 
-            string opname;
-            switch (op)
+            switch (opKind.Operator())
             {
-                case BinaryOperatorKind.Addition: opname = isChecked ? "AddChecked" : "Add"; break;
-                case BinaryOperatorKind.Multiplication: opname = isChecked ? "MultiplyChecked" : "Multiply"; break;
-                case BinaryOperatorKind.Subtraction: opname = isChecked ? "SubtractChecked" : "Subtract"; break;
-                case BinaryOperatorKind.Division: opname = "Divide"; break;
-                case BinaryOperatorKind.Remainder: opname = "Modulo"; break;
-                case BinaryOperatorKind.And: opname = isLogical ? "AndAlso" : "And"; break;
-                case BinaryOperatorKind.Xor: opname = "ExclusiveOr"; break;
-                case BinaryOperatorKind.Or: opname = isLogical ? "OrElse" : "Or"; break;
-                case BinaryOperatorKind.LeftShift: opname = "LeftShift"; break;
-                case BinaryOperatorKind.RightShift: opname = "RightShift"; break;
-                case BinaryOperatorKind.Equal: opname = "Equal"; requiresLifted = true; break;
-                case BinaryOperatorKind.NotEqual: opname = "NotEqual"; requiresLifted = true; break;
-                case BinaryOperatorKind.LessThan: opname = "LessThan"; requiresLifted = true; break;
-                case BinaryOperatorKind.LessThanOrEqual: opname = "LessThanOrEqual"; requiresLifted = true; break;
-                case BinaryOperatorKind.GreaterThan: opname = "GreaterThan"; requiresLifted = true; break;
-                case BinaryOperatorKind.GreaterThanOrEqual: opname = "GreaterThanOrEqual"; requiresLifted = true; break;
+                case BinaryOperatorKind.Addition: return isChecked ? "AddChecked" : "Add"; 
+                case BinaryOperatorKind.Multiplication: return isChecked ? "MultiplyChecked" : "Multiply"; 
+                case BinaryOperatorKind.Subtraction: return isChecked ? "SubtractChecked" : "Subtract"; 
+                case BinaryOperatorKind.Division: return "Divide"; 
+                case BinaryOperatorKind.Remainder: return "Modulo"; 
+                case BinaryOperatorKind.And: return opKind.IsLogical() ? "AndAlso" : "And"; 
+                case BinaryOperatorKind.Xor: return "ExclusiveOr"; 
+                case BinaryOperatorKind.Or: return opKind.IsLogical() ? "OrElse" : "Or"; 
+                case BinaryOperatorKind.LeftShift: return "LeftShift"; 
+                case BinaryOperatorKind.RightShift: return "RightShift"; 
+                case BinaryOperatorKind.Equal: return "Equal";
+                case BinaryOperatorKind.NotEqual: return "NotEqual";
+                case BinaryOperatorKind.LessThan: return "LessThan";
+                case BinaryOperatorKind.LessThanOrEqual: return "LessThanOrEqual";
+                case BinaryOperatorKind.GreaterThan: return "GreaterThan";
+                case BinaryOperatorKind.GreaterThanOrEqual: return "GreaterThanOrEqual";
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(op);
+                    throw ExceptionUtilities.UnexpectedValue(opKind.Operator());
             }
+        }
 
-            BoundExpression left = node.Left;
-            BoundExpression right = node.Right;
+        private BoundExpression VisitBinaryOperator(BinaryOperatorKind opKind, MethodSymbol methodOpt, TypeSymbol type, BoundExpression left, BoundExpression right)
+        {
+            bool isChecked, isLifted, requiresLifted;
+            string opName = GetBinaryOperatorName(opKind, out isChecked, out isLifted, out requiresLifted);
 
             // Fix up the null value for a nullable comparison vs null
-            if ((object)left.Type == null && left.IsLiteralNull()) left = Bound.Default(right.Type);
-            if ((object)right.Type == null && right.IsLiteralNull()) right = Bound.Default(left.Type);
+            if ((object)left.Type == null && left.IsLiteralNull())
+            {
+                left = Bound.Default(right.Type);
+            }
+            if ((object)right.Type == null && right.IsLiteralNull())
+            {
+                right = Bound.Default(left.Type);
+            }
 
             var loweredLeft = Visit(left);
             var loweredRight = Visit(right);
 
             // Enums are handled as per their promoted underlying type
-            switch (node.OperatorKind.OperandTypes())
+            switch (opKind.OperandTypes())
             {
                 case BinaryOperatorKind.Enum:
                 case BinaryOperatorKind.EnumAndUnderlying:
                 case BinaryOperatorKind.UnderlyingAndEnum:
                     {
-                        var enumOperand = (node.OperatorKind.OperandTypes() == BinaryOperatorKind.UnderlyingAndEnum) ? right : left;
+                        var enumOperand = (opKind.OperandTypes() == BinaryOperatorKind.UnderlyingAndEnum) ? right : left;
                         var promotedType = PromotedType(enumOperand.Type.StrippedType().GetEnumUnderlyingType());
-                        if (isLifted) promotedType = NullableType.Construct(promotedType);
+                        if (opKind.IsLifted())
+                        {
+                            promotedType = NullableType.Construct(promotedType);
+                        }
+
                         loweredLeft = Convert(loweredLeft, left.Type, promotedType, isChecked, false);
                         loweredRight = Convert(loweredRight, right.Type, promotedType, isChecked, false);
-                        var result = MakeBinary(node, isLifted, requiresLifted, opname, loweredLeft, loweredRight);
-                        return Demote(result, node.Type, isChecked);
+
+                        var result = MakeBinary(methodOpt, type, isLifted, requiresLifted, opName, loweredLeft, loweredRight);
+                        return Demote(result, type, isChecked);
                     }
                 default:
-                    return MakeBinary(node, isLifted, requiresLifted, opname, loweredLeft, loweredRight);
+                    return MakeBinary(methodOpt, type, isLifted, requiresLifted, opName, loweredLeft, loweredRight);
             }
         }
 
-        private BoundExpression MakeBinary(BoundBinaryOperator node, bool isLifted, bool requiresLifted, string opname, BoundExpression loweredLeft, BoundExpression loweredRight)
+        private BoundExpression MakeBinary(MethodSymbol methodOpt, TypeSymbol type, bool isLifted, bool requiresLifted, string opName, BoundExpression loweredLeft, BoundExpression loweredRight)
         {
             return
-                ((object)node.MethodOpt == null) ? ExprFactory(opname, loweredLeft, loweredRight) :
-                requiresLifted ? ExprFactory(opname, loweredLeft, loweredRight, Bound.Literal(isLifted && node.MethodOpt.ReturnType != node.Type), Bound.MethodInfo(node.MethodOpt)) :
-                ExprFactory(opname, loweredLeft, loweredRight, Bound.MethodInfo(node.MethodOpt));
+                ((object)methodOpt == null) ? ExprFactory(opName, loweredLeft, loweredRight) :
+                requiresLifted ? ExprFactory(opName, loweredLeft, loweredRight, Bound.Literal(isLifted && methodOpt.ReturnType != type), Bound.MethodInfo(methodOpt)) :
+                ExprFactory(opName, loweredLeft, loweredRight, Bound.MethodInfo(methodOpt));
         }
 
         private TypeSymbol PromotedType(TypeSymbol underlying)

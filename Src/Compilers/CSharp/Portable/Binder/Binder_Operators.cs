@@ -333,13 +333,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasError = true;
             }
 
-            if (kind.IsLogical())
+            MethodSymbol userDefinedOperator = null;
+
+            if (kind.IsLogical() && leftValidOperand)
             {
                 // We need to make sure left is either implicitly convertible to Boolean or has user defined truth operator.
                 //   left && right is lowered to {op_False|op_Implicit}(left) ? left : And(left, right) 
-                //   left || right is lowered to {op_True|!op_Implicit}(left) ? left : Or(left, right) 
+                //   left || right is lowered to {op_True|!op_Implicit}(left) ? left : Or(left, right)
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                if (leftValidOperand && !IsValidDynamicCondition(left, isNegative: kind == BinaryOperatorKind.LogicalAnd, useSiteDiagnostics: ref useSiteDiagnostics))
+                if (!IsValidDynamicCondition(left, isNegative: kind == BinaryOperatorKind.LogicalAnd, useSiteDiagnostics: ref useSiteDiagnostics, userDefinedOperator: out userDefinedOperator))
                 {
                     // Dev11 reports ERR_MustHaveOpTF. The error was shared between this case and user-defined binary Boolean operators.
                     // We report two distinct more specific error messages.
@@ -347,7 +349,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     hasError = true;
                 }
-
                 diagnostics.Add(node, useSiteDiagnostics);
             }
 
@@ -357,7 +358,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 left: left,
                 right: right,
                 constantValueOpt: ConstantValue.NotAvailable,
-                methodOpt: null,
+                methodOpt: userDefinedOperator,
                 resultKind: LookupResultKind.Viable,
                 type: Compilation.DynamicType,
                 hasErrors: hasError);
@@ -684,13 +685,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool bothBool = signature.LeftType.SpecialType == SpecialType.System_Boolean &&
                         signature.RightType.SpecialType == SpecialType.System_Boolean;
 
-                if (!bothBool &&
-                    signature.Kind.OperandTypes() != BinaryOperatorKind.UserDefined)
+                MethodSymbol trueOperator = null, falseOperator = null;
+
+                if (!bothBool && !signature.Kind.IsUserDefined())
                 {
                     ReportBinaryOperatorError(node, diagnostics, node.OperatorToken, left, right, lookupResult);
                 }
-                else if (bothBool ||
-                    IsValidUserDefinedConditionalLogicalOperator(node, signature, diagnostics))
+                else if (bothBool || IsValidUserDefinedConditionalLogicalOperator(node, signature, diagnostics, out trueOperator, out falseOperator))
                 {
                     var resultLeft = CreateConversion(left, best.LeftConversion, signature.LeftType, diagnostics);
                     var resultRight = CreateConversion(right, best.RightConversion, signature.RightType, diagnostics);
@@ -700,16 +701,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                         resultKind |= BinaryOperatorKind.Lifted;
                     }
 
-                    return new BoundBinaryOperator(
-                        node,
-                        resultKind,
-                        resultLeft,
-                        resultRight,
-                        ConstantValue.NotAvailable,
-                        signature.Method,
-                        lookupResult,
-                        originalUserDefinedOperators,
-                        signature.ReturnType);
+                    if (resultKind.IsUserDefined())
+                    {
+                        Debug.Assert(trueOperator != null && falseOperator != null);
+
+                        return new BoundUserDefinedConditionalLogicalOperator(
+                            node,
+                            resultKind,
+                            resultLeft,
+                            resultRight,
+                            signature.Method,
+                            trueOperator,
+                            falseOperator,
+                            lookupResult,
+                            originalUserDefinedOperators,
+                            signature.ReturnType);
+                    }
+                    else
+                    {
+                        Debug.Assert(bothBool);
+
+                        return new BoundBinaryOperator(
+                            node,
+                            resultKind,
+                            resultLeft,
+                            resultRight,
+                            ConstantValue.NotAvailable,
+                            signature.Method,
+                            lookupResult,
+                            originalUserDefinedOperators,
+                            signature.ReturnType);
+                    }
                 }
             }
 
@@ -717,8 +739,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBinaryOperator(node, kind, left, right, ConstantValue.NotAvailable, null, lookupResult, originalUserDefinedOperators, CreateErrorType(), true);
         }
 
-        private bool IsValidDynamicCondition(BoundExpression left, bool isNegative, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private bool IsValidDynamicCondition(BoundExpression left, bool isNegative, ref HashSet<DiagnosticInfo> useSiteDiagnostics, out MethodSymbol userDefinedOperator)
         {
+            userDefinedOperator = null;
+
             var type = left.Type;
             if ((object)type == null)
             {
@@ -742,13 +766,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var namedType = type as NamedTypeSymbol;
-            return HasApplicableBooleanOperator(namedType, isNegative ? WellKnownMemberNames.FalseOperatorName : WellKnownMemberNames.TrueOperatorName, type, ref useSiteDiagnostics);
+            return HasApplicableBooleanOperator(namedType, isNegative ? WellKnownMemberNames.FalseOperatorName : WellKnownMemberNames.TrueOperatorName, type, ref useSiteDiagnostics, out userDefinedOperator);
         }
 
         private bool IsValidUserDefinedConditionalLogicalOperator(
             CSharpSyntaxNode syntax,
             BinaryOperatorSignature signature,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            out MethodSymbol trueOperator,
+            out MethodSymbol falseOperator)
         {
             Debug.Assert(signature.Kind.OperandTypes() == BinaryOperatorKind.UserDefined);
 
@@ -811,6 +837,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // operator ('{0}') must have the same return type and parameter types
 
                 Error(diagnostics, ErrorCode.ERR_BadBoolOp, syntax, signature.Method);
+
+                trueOperator = null;
+                falseOperator = null;
                 return false;
             }
 
@@ -820,8 +849,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to know that the first operand can be passed to it. 
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            if (!HasApplicableBooleanOperator(t, WellKnownMemberNames.TrueOperatorName, signature.LeftType, ref useSiteDiagnostics) ||
-                !HasApplicableBooleanOperator(t, WellKnownMemberNames.FalseOperatorName, signature.LeftType, ref useSiteDiagnostics))
+            if (!HasApplicableBooleanOperator(t, WellKnownMemberNames.TrueOperatorName, signature.LeftType, ref useSiteDiagnostics, out trueOperator) ||
+                !HasApplicableBooleanOperator(t, WellKnownMemberNames.FalseOperatorName, signature.LeftType, ref useSiteDiagnostics, out falseOperator))
             {
                 // I have changed the wording of this error message. The original wording was:
 
@@ -834,6 +863,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Error(diagnostics, ErrorCode.ERR_MustHaveOpTF, syntax, signature.Method, t);
                 diagnostics.Add(syntax, useSiteDiagnostics);
+
+                trueOperator = null;
+                falseOperator = null;
                 return false;
             }
 
@@ -902,20 +934,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private bool HasApplicableBooleanOperator(NamedTypeSymbol containingType, string name, TypeSymbol argumentType,
-                                                  ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private bool HasApplicableBooleanOperator(NamedTypeSymbol containingType, string name, TypeSymbol argumentType, ref HashSet<DiagnosticInfo> useSiteDiagnostics, out MethodSymbol @operator)
         {
-            foreach (var op in containingType.GetOperators(name))
+            for (var type = containingType; type != null; type = type.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
             {
-                if (op.ParameterCount == 1)
+                var operators = type.GetOperators(name);
+                for (var i = 0; i < operators.Length; i++)
                 {
-                    var conversion = Conversions.ClassifyConversion(argumentType, op.ParameterTypes[0], ref useSiteDiagnostics);
-                    if (conversion.IsImplicit)
+                    var op = operators[i];
+                    if (op.ParameterCount == 1 && op.DeclaredAccessibility == Accessibility.Public)
                     {
-                        return true;
+                        var conversion = this.Conversions.ClassifyConversion(argumentType, op.ParameterTypes[0], ref useSiteDiagnostics);
+                        if (conversion.IsImplicit)
+                        {
+                            @operator = op;
+                            return true;
+                        }
                     }
                 }
             }
+
+            @operator = null;
             return false;
         }
 

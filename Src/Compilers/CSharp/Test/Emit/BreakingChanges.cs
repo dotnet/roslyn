@@ -1559,8 +1559,7 @@ class Test
             }
         }
 
-        [Fact]
-        [WorkItem(770424, "DevDiv")]
+        [Fact, WorkItem(770424, "DevDiv"), WorkItem(1079034, "DevDiv")]
         public void UserDefinedShortCircuitingOperators()
         {
             var source = @"
@@ -1568,35 +1567,36 @@ public class Base
 {
     public static bool operator true(Base x)
     {
-        return true;
+        System.Console.Write(""Base.op_True"");
+        return x != null;
     }
     public static bool operator false(Base x)
     {
-        return true;
+        System.Console.Write(""Base.op_False"");
+        return x == null;
     }
 }
 
 public class Derived : Base
 {
-    public static Derived operator &(Derived x, Derived y)
+    public static Derived operator&(Derived x, Derived y)
     {
-        return null;
+        return x;
+    }
+
+    public static Derived operator|(Derived x, Derived y)
+    {
+        return y;
     }
 
     static void Main()
     {
         Derived d = new Derived();
-        System.Console.WriteLine(d && d);
+        var b = (d && d) || d;
     }
 }
 ";
-            // The spec clearly says that the type declaring & or | "must contain declarations of operator true and operator false" (7.12.2).  
-            // However, the dev11 implementation is more generous: it only requires that binding of true(arg) and false(arg) both succeed.
-            // Bonus: When the base types are in IL, op_true and op_false can come from different types.
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
-                // (24,34): error CS0218: In order for 'Derived.operator &(Derived, Derived)' to be applicable as a short circuit operator, its declaring type 'Derived' must define operator true and operator false
-                //         System.Console.WriteLine(d && d);
-                Diagnostic(ErrorCode.ERR_MustHaveOpTF, "d && d").WithArguments("Derived.operator &(Derived, Derived)", "Derived"));
+            CompileAndVerify(source, expectedOutput: "Base.op_FalseBase.op_True");
         }
     }
 }

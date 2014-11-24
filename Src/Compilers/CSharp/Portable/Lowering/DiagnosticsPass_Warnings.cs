@@ -771,6 +771,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private void CheckLiftedUserDefinedConditionalLogicalOperator(BoundUserDefinedConditionalLogicalOperator node)
+        {
+            // CS0458: The result of the expression is always 'null' of type '{0}'
+            if (node.Right.NullableNeverHasValue() || node.Left.NullableNeverHasValue())
+            {
+                Error(ErrorCode.WRN_AlwaysNull, node, node.Type);
+            }
+        }
+
         private static TypeSymbol GetTypeForLiftedComparisonWarning(BoundExpression node)
         {
             // If we have something like "10 < new sbyte?()" we bind that as 

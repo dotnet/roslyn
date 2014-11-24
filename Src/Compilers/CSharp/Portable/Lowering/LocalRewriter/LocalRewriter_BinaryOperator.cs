@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return VisitBinaryOperator(node);
+            return VisitBinaryOperator(node, null);
         }
 
         private BoundExpression TryFoldWithConditionalAccess(BoundBinaryOperator node)
@@ -88,7 +88,96 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public BoundExpression VisitBinaryOperator(BoundBinaryOperator node, BoundUnaryOperator applyParentUnaryOperator = null)
+        public override BoundNode VisitUserDefinedConditionalLogicalOperator(BoundUserDefinedConditionalLogicalOperator node)
+        {
+            // Yes, we could have a lifted, logical, user-defined operator:
+            //
+            // struct C { 
+            //   public static C operator &(C x, C y) {...}
+            //   public static bool operator true(C? c) { ... }
+            //   public static bool operator false(C? c) { ... }
+            // }
+            //
+            // If we have C? q, r and we say q && r then this gets bound as 
+            // C? tempQ = q ;
+            // C.false(tempQ) ? 
+            //     tempQ : 
+            //     ( 
+            //         C? tempR = r ; 
+            //         tempQ.HasValue & tempR.HasValue ? 
+            //           new C?(C.&(tempQ.GetValueOrDefault(), tempR.GetValueOrDefault())) :
+            //           default C?()
+            //     )
+            //
+            // Note that the native compiler does not allow q && r. However, the native compiler
+            // *does* allow q && r if C is defined as:
+            //
+            // struct C { 
+            //   public static C? operator &(C? x, C? y) {...}
+            //   public static bool operator true(C? c) { ... }
+            //   public static bool operator false(C? c) { ... }
+            // }
+            //
+            // It seems unusual and wrong that an & operator should be allowed to become
+            // a && operator if there is a "manually lifted" operator in source, but not
+            // if there is a "synthesized" lifted operator.  Roslyn fixes this bug.
+            //
+            // Anyway, in this case we must lower this to its non-logical form, and then
+            // lower the interior of that to its non-lifted form.
+
+            // See comments in method IsValidUserDefinedConditionalLogicalOperator for information
+            // on some subtle aspects of this lowering.
+
+            // We generate one of:
+            //
+            // x || y --> temp = x; T.true(temp)  ? temp : T.|(temp, y);
+            // x && y --> temp = x; T.false(temp) ? temp : T.&(temp, y);
+            //
+            // For the ease of naming locals, we'll assume we're doing an &&.
+
+            // TODO: We generate every one of these as "temp = x; T.false(temp) ? temp : T.&(temp, y)" even
+            // TODO: when x has no side effects. We can optimize away the temporary if there are no side effects.
+
+            var syntax = node.Syntax;
+            var operatorKind = node.OperatorKind;
+            var type = node.Type;
+
+            BoundExpression loweredLeft = VisitExpression(node.Left);
+            BoundExpression loweredRight = VisitExpression(node.Right);
+
+            if (inExpressionLambda)
+            {
+                return node.Update(operatorKind, loweredLeft, loweredRight, node.LogicalOperator, node.TrueOperator, node.FalseOperator, node.ResultKind, type);
+            }
+
+            BoundAssignmentOperator tempAssignment;
+            var boundTemp = factory.StoreToTemp(loweredLeft, out tempAssignment);
+
+            // T.false(temp)
+            var falseOperatorCall = BoundCall.Synthesized(syntax, null, operatorKind.Operator() == BinaryOperatorKind.And ? node.FalseOperator : node.TrueOperator, boundTemp);
+
+            // T.&(temp, y)
+            var andOperatorCall = LowerUserDefinedBinaryOperator(syntax, operatorKind & ~BinaryOperatorKind.Logical, boundTemp, loweredRight, type, node.LogicalOperator);
+
+            // T.false(temp) ? temp : T.&(temp, y)
+            BoundExpression conditionalExpression = RewriteConditionalOperator(
+                syntax: syntax,
+                rewrittenCondition: falseOperatorCall,
+                rewrittenConsequence: boundTemp,
+                rewrittenAlternative: andOperatorCall,
+                constantValueOpt: null,
+                rewrittenType: type);
+
+            // temp = x; T.false(temp) ? temp : T.&(temp, y)
+            return new BoundSequence(
+                syntax: syntax,
+                locals: ImmutableArray.Create(boundTemp.LocalSymbol),
+                sideEffects: ImmutableArray.Create<BoundExpression>(tempAssignment),
+                value: conditionalExpression,
+                type: type);
+        }
+
+        public BoundExpression VisitBinaryOperator(BoundBinaryOperator node, BoundUnaryOperator applyParentUnaryOperator)
         {
             // In machine-generated code we frequently end up with binary operator trees that are deep on the left,
             // such as a + b + c + d ...
@@ -163,15 +252,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (operatorKind.IsDynamic())
             {
-                Debug.Assert((object)method == null);
                 Debug.Assert(!isPointerElementAccess);
 
                 if (operatorKind.IsLogical())
                 {
-                    return MakeDynamicLogicalBinaryOperator(syntax, operatorKind, loweredLeft, loweredRight, type, isCompoundAssignment, applyParentUnaryOperator);
+                    return MakeDynamicLogicalBinaryOperator(syntax, operatorKind, loweredLeft, loweredRight, method, type, isCompoundAssignment, applyParentUnaryOperator);
                 }
                 else
                 {
+                    Debug.Assert((object)method == null);
                     return dynamicFactory.MakeDynamicBinaryOperator(operatorKind, loweredLeft, loweredRight, isCompoundAssignment, type).ToExpression();
                 }
             }
@@ -401,6 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BinaryOperatorKind operatorKind,
             BoundExpression loweredLeft,
             BoundExpression loweredRight,
+            MethodSymbol leftTruthOperator,
             TypeSymbol type,
             bool isCompoundAssignment,
             BoundUnaryOperator applyParentUnaryOperator)
@@ -428,6 +518,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (testOperator == UnaryOperatorKind.DynamicFalse && constantLeft == ConstantValue.False ||
                 testOperator == UnaryOperatorKind.DynamicTrue && constantLeft == ConstantValue.True)
             {
+                Debug.Assert(leftTruthOperator == null);
+
                 if (applyParentUnaryOperator != null)
                 {
                     // IsFalse(false && right) -> true
@@ -477,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 result = dynamicFactory.MakeDynamicUnaryOperator(testOperator, op, boolean).ToExpression();
                 if (!leftTestIsConstantFalse)
                 {
-                    BoundExpression leftTest = MakeTruthTestForDynamicLogicalOperator(syntax, loweredLeft, boolean, negative: isAnd);
+                    BoundExpression leftTest = MakeTruthTestForDynamicLogicalOperator(syntax, loweredLeft, boolean, leftTruthOperator, negative: isAnd);
                     result = factory.Binary(BinaryOperatorKind.LogicalOr, boolean, leftTest, result);
                 }
             }
@@ -493,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     // We might need to box.
-                    BoundExpression leftTest = MakeTruthTestForDynamicLogicalOperator(syntax, loweredLeft, boolean, negative: isAnd);
+                    BoundExpression leftTest = MakeTruthTestForDynamicLogicalOperator(syntax, loweredLeft, boolean, leftTruthOperator, negative: isAnd);
                     var convertedLeft = MakeConversion(loweredLeft, type, @checked: false);
                     result = factory.Conditional(leftTest, convertedLeft, op, type);
                 }
@@ -522,10 +614,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        private BoundExpression MakeTruthTestForDynamicLogicalOperator(CSharpSyntaxNode syntax, BoundExpression loweredLeft, TypeSymbol boolean, bool negative)
+        private BoundExpression MakeTruthTestForDynamicLogicalOperator(CSharpSyntaxNode syntax, BoundExpression loweredLeft, TypeSymbol boolean, MethodSymbol leftTruthOperator, bool negative)
         {
             if (loweredLeft.HasDynamicType())
             {
+                Debug.Assert(leftTruthOperator == null);
                 return dynamicFactory.MakeDynamicUnaryOperator(negative ? UnaryOperatorKind.DynamicFalse : UnaryOperatorKind.DynamicTrue, loweredLeft, boolean).ToExpression();
             }
 
@@ -538,6 +631,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(loweredLeft.Syntax, useSiteDiagnostics);
             if (conversion.IsImplicit)
             {
+                Debug.Assert(leftTruthOperator == null);
+
                 var converted = MakeConversion(loweredLeft, boolean, @checked: false);
                 if (negative)
                 {
@@ -552,7 +647,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return BoundCall.Synthesized(syntax, null, GetTruthOperator(loweredLeft.Type, negative), loweredLeft);
+            Debug.Assert(leftTruthOperator != null);
+            return BoundCall.Synthesized(syntax, null, leftTruthOperator, loweredLeft);
         }
 
         private BoundExpression LowerUserDefinedBinaryOperator(
@@ -563,46 +659,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type,
             MethodSymbol method)
         {
-            if (operatorKind.IsLogical())
-            {
-                // Yes, we could have a lifted, logical, user-defined operator:
-                //
-                // struct C { 
-                //   public static C operator &(C x, C y) {...}
-                //   public static bool operator true(C? c) { ... }
-                //   public static bool operator false(C? c) { ... }
-                // }
-                //
-                // If we have C? q, r and we say q && r then this gets bound as 
-                // C? tempQ = q ;
-                // C.false(tempQ) ? 
-                //     tempQ : 
-                //     ( 
-                //         C? tempR = r ; 
-                //         tempQ.HasValue & tempR.HasValue ? 
-                //           new C?(C.&(tempQ.GetValueOrDefault(), tempR.GetValueOrDefault())) :
-                //           default C?()
-                //     )
-                //
-                // Note that the native compiler does not allow q && r. However, the native compiler
-                // *does* allow q && r if C is defined as:
-                //
-                // struct C { 
-                //   public static C? operator &(C? x, C? y) {...}
-                //   public static bool operator true(C? c) { ... }
-                //   public static bool operator false(C? c) { ... }
-                // }
-                //
-                // It seems unusual and wrong that an & operator should be allowed to become
-                // a && operator if there is a "manually lifted" operator in source, but not
-                // if there is a "synthesized" lifted operator.  Roslyn fixes this bug.
-                //
-                // Anyway, in this case we must lower this to its non-logical form, and then
-                // lower the interior of that to its non-lifted form.
+            Debug.Assert(!operatorKind.IsLogical());
 
-                return LowerUserDefinedLogicalOperator(syntax, operatorKind, loweredLeft, loweredRight, type, method);
-            }
-            else if (operatorKind.IsLifted())
+            if (operatorKind.IsLifted())
             {
                 if (operatorKind.IsComparison())
                 {
@@ -1668,57 +1727,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(false, "How did we bind a user-defined logical operator or dynamic logical Boolean operator without operator false or operator true?");
             return null;
-        }
-
-        private BoundExpression LowerUserDefinedLogicalOperator(
-            CSharpSyntaxNode syntax,
-            BinaryOperatorKind operatorKind,
-            BoundExpression loweredLeft,
-            BoundExpression loweredRight,
-            TypeSymbol type,
-            MethodSymbol method)
-        {
-            Debug.Assert((object)method != null);
-
-            // See comments in method IsValidUserDefinedConditionalLogicalOperator for information
-            // on some subtle aspects of this lowering.
-
-            // We generate one of:
-            //
-            // x || y --> temp = x; T.true(temp)  ? temp : T.|(temp, y);
-            // x && y --> temp = x; T.false(temp) ? temp : T.&(temp, y);
-            //
-            // For the ease of naming locals, we'll assume we're doing an &&.
-
-            // TODO: We generate every one of these as "temp = x; T.false(temp) ? temp : T.&(temp, y)" even
-            // TODO: when x has no side effects. We can optimize away the temporary if there are no side effects.
-
-            BoundAssignmentOperator tempAssignment;
-            var boundTemp = factory.StoreToTemp(loweredLeft, out tempAssignment);
-
-            // T.false(temp)
-            var falseOperatorCall = BoundCall.Synthesized(syntax, null, GetTruthOperator(type, negative: operatorKind.Operator() == BinaryOperatorKind.And), boundTemp);
-
-            // T.&(temp, y)
-
-            var andOperatorCall = LowerUserDefinedBinaryOperator(syntax, operatorKind & ~BinaryOperatorKind.Logical, boundTemp, loweredRight, type, method);
-
-            // T.false(temp) ? temp : T.&(temp, y)
-            BoundExpression conditionalExpression = RewriteConditionalOperator(
-                syntax: syntax,
-                rewrittenCondition: falseOperatorCall,
-                rewrittenConsequence: boundTemp,
-                rewrittenAlternative: andOperatorCall,
-                constantValueOpt: null,
-                rewrittenType: type);
-
-            // temp = x; T.false(temp) ? temp : T.&(temp, y)
-            return new BoundSequence(
-                syntax: syntax,
-                locals: ImmutableArray.Create(boundTemp.LocalSymbol),
-                sideEffects: ImmutableArray.Create<BoundExpression>(tempAssignment),
-                value: conditionalExpression,
-                type: type);
         }
 
         private BoundExpression RewriteStringEquality(BoundBinaryOperator oldNode, CSharpSyntaxNode syntax, BinaryOperatorKind operatorKind, BoundExpression loweredLeft, BoundExpression loweredRight, TypeSymbol type, SpecialMember member)

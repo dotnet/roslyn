@@ -1211,6 +1211,106 @@ BC30516: Overload resolution failed because no accessible '+' accepts this numbe
 ]]></expected>)
         End Sub
 
+        ''' <summary>
+        ''' Operators AndAlso and OrElse require that operators
+        ''' And, Or, IsTrue, and IsFalse are defined on the same type.
+        ''' </summary>
+        <Fact()>
+        Public Sub UserDefinedShortCircuitingOperators_IsTrueAndIsFalseOnBaseType()
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class A(Of T)
+    Public Shared Operator IsTrue(o As A(Of T)) As Boolean
+        Return True
+    End Operator
+    Public Shared Operator IsFalse(o As A(Of T)) As Boolean
+        Return False
+    End Operator
+End Class
+Class B
+    Inherits A(Of Object)
+    Public Shared Operator And(x As B, y As B) As B
+        Return x
+    End Operator
+End Class
+Class C
+    Inherits B
+    Public Shared Operator Or(x As C, y As C) As C
+        Return x
+    End Operator
+End Class
+Module M
+    Sub M(x As C, y As C)
+        If x AndAlso y Then
+        End If
+        If x OrElse y Then
+        End If
+    End Sub
+End Module
+    ]]></file>
+</compilation>)
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC30452: Operator 'AndAlso' is not defined for types 'C' and 'C'.
+        If x AndAlso y Then
+           ~~~~~~~~~~~
+BC30452: Operator 'OrElse' is not defined for types 'C' and 'C'.
+        If x OrElse y Then
+           ~~~~~~~~~~
+]]></expected>)
+        End Sub
+
+        ''' <summary>
+        ''' Operators AndAlso and OrElse require that operators
+        ''' And, Or, IsTrue, and IsFalse are defined on the same type.
+        ''' </summary>
+        <Fact()>
+        Public Sub UserDefinedShortCircuitingOperators_IsTrueAndIsFalseOnDerivedType()
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb"><![CDATA[
+Class A(Of T)
+    Public Shared Operator Or(x As A(Of T), y As A(Of T)) As A(Of T)
+        Return x
+    End Operator
+End Class
+Class B
+    Inherits A(Of Object)
+    Public Shared Operator And(x As B, y As B) As B
+        Return x
+    End Operator
+End Class
+Class C
+    Inherits B
+    Public Shared Operator IsTrue(o As C) As Boolean
+        Return True
+    End Operator
+    Public Shared Operator IsFalse(o As C) As Boolean
+        Return False
+    End Operator
+End Class
+Module M
+    Sub M(x As C, y As C)
+        If x AndAlso y Then
+        End If
+        If x OrElse y Then
+        End If
+    End Sub
+End Module
+    ]]></file>
+</compilation>)
+            comp.AssertTheseDiagnostics(
+<expected><![CDATA[
+BC33035: Type 'B' must define operator 'IsFalse' to be used in a 'AndAlso' expression.
+        If x AndAlso y Then
+           ~~~~~~~~~~~
+BC33035: Type 'A(Of Object)' must define operator 'IsTrue' to be used in a 'OrElse' expression.
+        If x OrElse y Then
+           ~~~~~~~~~~
+]]></expected>)
+        End Sub
+
     End Class
 
 End Namespace

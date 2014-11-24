@@ -64,6 +64,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         // (Note that this property is not automatically generated; we typically
         // will not be visiting or rewriting this error-recovery information.)
+        //
+        // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
         public ImmutableArray<MethodSymbol> OriginalMethodsOpt { get; private set; }
     }
 
@@ -143,6 +145,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         // (Note that this property is not automatically generated; we typically
         // will not be visiting or rewriting this error-recovery information.)
+        //
+        // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
         public ImmutableArray<PropertySymbol> OriginalIndexersOpt { get; private set; }
 
         public override LookupResultKind ResultKind
@@ -205,6 +209,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         // (Note that this property is not automatically generated; we typically
         // will not be visiting or rewriting this error-recovery information.)
+        //
+        // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
+        public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; private set; }
+    }
+
+    partial class BoundUserDefinedConditionalLogicalOperator
+    {
+        public override Symbol ExpressionSymbol
+        {
+            get { return this.LogicalOperator; }
+        }
+
+        /// <summary>
+        /// The set of method symbols from which this operator's method was chosen. 
+        /// Only kept in the tree if the operator was an error and overload resolution
+        /// was unable to choose a best method.
+        /// </summary>
+        // (Note that this property is not automatically generated; we typically
+        // will not be visiting or rewriting this error-recovery information.)
+        //
+        // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
         public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; private set; }
     }
 
@@ -227,6 +252,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         // (Note that this property is not automatically generated; we typically
         // will not be visiting or rewriting this error-recovery information.)
+        //
+        // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
         public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; private set; }
     }
 
@@ -244,6 +271,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         // (Note that this property is not automatically generated; we typically
         // will not be visiting or rewriting this error-recovery information.)
+        //
+        // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
         public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; private set; }
     }
 
@@ -261,6 +290,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         // (Note that this property is not automatically generated; we typically
         // will not be visiting or rewriting this error-recovery information.)
+        //
+        // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
         public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; private set; }
     }
 
@@ -291,6 +322,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         // (Note that this property is not automatically generated; we typically
         // will not be visiting or rewriting this error-recovery information.)
+        //
+        // DevDiv 1087283 tracks deciding whether or not to refactor this into BoundNodes.xml.
         public ImmutableArray<MethodSymbol> OriginalUserDefinedConversionsOpt { get; private set; }
 
         public override bool SuppressVirtualCalls

@@ -399,6 +399,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitUserDefinedConditionalLogicalOperator(BoundUserDefinedConditionalLogicalOperator node)
+        {
+            CheckLiftedUserDefinedConditionalLogicalOperator(node);
+            return base.VisitUserDefinedConditionalLogicalOperator(node);
+        }
+
         private void CheckDynamic(BoundUnaryOperator node)
         {
             if (inExpressionLambda && node.OperatorKind.IsDynamic())

@@ -6426,6 +6426,122 @@ public static class Program
                 );
         }
 
+        /// <summary>
+        /// Operators &amp;&amp; and || are supported when operators
+        /// &amp; and | are defined on the same type or a derived type
+        /// from operators true and false only. This matches Dev12.
+        /// </summary>
+        [WorkItem(1079034)]
+        [Fact]
+        public void UserDefinedShortCircuitingOperators_TrueAndFalseOnBaseType()
+        {
+            var source =
+@"class A<T>
+{
+    public static bool operator true(A<T> o) { return true; }
+    public static bool operator false(A<T> o) { return false; }
+}
+class B : A<object>
+{
+    public static B operator &(B x, B y) { return x; }
+}
+class C : B
+{
+    public static C operator |(C x, C y) { return x; }
+}
+class P
+{
+    static void M(C x, C y)
+    {
+        if (x && y)
+        {
+        }
+        if (x || y)
+        {
+        }
+    }
+}";
+            var verifier = CompileAndVerify(source);
+            verifier.Compilation.VerifyDiagnostics();
+            verifier.VerifyIL("P.M",
+@"
+{
+  // Code size       53 (0x35)
+  .maxstack  2
+  .locals init (B V_0,
+                C V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  call       ""bool A<object>.op_False(A<object>)""
+  IL_0008:  brtrue.s   IL_0013
+  IL_000a:  ldloc.0
+  IL_000b:  ldarg.1
+  IL_000c:  call       ""B B.op_BitwiseAnd(B, B)""
+  IL_0011:  br.s       IL_0014
+  IL_0013:  ldloc.0
+  IL_0014:  call       ""bool A<object>.op_True(A<object>)""
+  IL_0019:  pop
+  IL_001a:  ldarg.0
+  IL_001b:  stloc.1
+  IL_001c:  ldloc.1
+  IL_001d:  call       ""bool A<object>.op_True(A<object>)""
+  IL_0022:  brtrue.s   IL_002d
+  IL_0024:  ldloc.1
+  IL_0025:  ldarg.1
+  IL_0026:  call       ""C C.op_BitwiseOr(C, C)""
+  IL_002b:  br.s       IL_002e
+  IL_002d:  ldloc.1
+  IL_002e:  call       ""bool A<object>.op_True(A<object>)""
+  IL_0033:  pop
+  IL_0034:  ret
+}");
+        }
+
+        /// <summary>
+        /// Operators &amp;&amp; and || are supported when operators
+        /// &amp; and | are defined on the same type or a derived type
+        /// from operators true and false only. This matches Dev12.
+        /// </summary>
+        [Fact]
+        public void UserDefinedShortCircuitingOperators_TrueAndFalseOnDerivedType()
+        {
+            var source =
+@"class A<T>
+{
+    public static A<T> operator |(A<T> x, A<T> y) { return x; }
+}
+class B : A<object>
+{
+    public static B operator &(B x, B y) { return x; }
+}
+class C : B
+{
+    public static bool operator true(C o) { return true; }
+    public static bool operator false(C o) { return false; }
+}
+class P
+{
+    static void M(C x, C y)
+    {
+        if (x && y)
+        {
+        }
+        if (x || y)
+        {
+        }
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(source);
+            compilation.VerifyDiagnostics(
+                // (18,13): error CS0218: In order for 'B.operator &(B, B)' to be applicable as a short circuit operator, its declaring type 'B' must define operator true and operator false
+                //         if (x && y)
+                Diagnostic(ErrorCode.ERR_MustHaveOpTF, "x && y").WithArguments("B.operator &(B, B)", "B").WithLocation(18, 13),
+                // (21,13): error CS0218: In order for 'A<object>.operator |(A<object>, A<object>)' to be applicable as a short circuit operator, its declaring type 'A<object>' must define operator true and operator false
+                //         if (x || y)
+                Diagnostic(ErrorCode.ERR_MustHaveOpTF, "x || y").WithArguments("A<object>.operator |(A<object>, A<object>)", "A<object>").WithLocation(21, 13));
+        }
+
         private sealed class EmptyRewriter : BoundTreeRewriter
         {
         }

@@ -268,6 +268,19 @@
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
   </Node>
 
+  <Node Name="BoundUserDefinedConditionalLogicalOperator" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+
+    <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
+    <Field Name="Left" Type="BoundExpression"/>
+    <Field Name="Right" Type="BoundExpression"/>
+    <Field Name="LogicalOperator" Type="MethodSymbol"/>
+    <Field Name="TrueOperator" Type="MethodSymbol"/>
+    <Field Name="FalseOperator" Type="MethodSymbol"/>
+    <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+  </Node>
+
   <Node Name="BoundCompoundAssignmentOperator" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>

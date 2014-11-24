@@ -681,6 +681,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node;
         }
 
+        public override BoundNode VisitUserDefinedConditionalLogicalOperator(BoundUserDefinedConditionalLogicalOperator node)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
         public override BoundNode VisitBinaryOperator(BoundBinaryOperator node)
         {
             BoundSpillSequenceBuilder builder = null;
