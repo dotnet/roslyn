@@ -53,9 +53,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private static XmlSchema CreateRuleSetSchema()
         {
-            using (Stream xsdStream = typeof(RuleSetProcessor).Assembly.GetManifestResourceStream(XsdResourceName))
+            using (XmlReader reader = XmlReader.Create(typeof(RuleSetProcessor).Assembly.GetManifestResourceStream(XsdResourceName)))
             {
-                return XmlSchema.Read(xsdStream, null);
+                return XmlSchema.Read(reader, validationEventHandler: null);
             }
         }
 
