@@ -57,7 +57,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             ElseIf context.SyntaxTree.IsQueryIntoClauseContext(context.Position, context.TargetToken, cancellationToken) Then
                 Return GetUnqualifiedSymbolsForQueryIntoContext(context, cancellationToken)
             ElseIf context.IsAnyExpressionContext OrElse
-                   context.IsSingleLineStatementContext Then
+                   context.IsSingleLineStatementContext OrElse
+                   context.IsNameOfContext Then
                 Return GetUnqualifiedSymbolsForExpressionOrStatementContext(context, filterOutOfScopeLocals, cancellationToken)
             ElseIf context.IsTypeContext OrElse context.IsNamespaceContext Then
                 Return GetUnqualifiedSymbolsForType(context, cancellationToken)
@@ -123,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             End If
 
             Dim symbols As IEnumerable(Of ISymbol) = If(
-                context.TargetToken.Parent.IsInStaticContext(),
+                Not context.IsNameOfContext AndAlso context.TargetToken.Parent.IsInStaticContext(),
                 context.SemanticModel.LookupStaticMembers(lookupPosition),
                 context.SemanticModel.LookupSymbols(lookupPosition))
 
@@ -209,6 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             Dim excludeInstance = False
             Dim excludeShared = True ' do not show shared members by default
             Dim useBaseReferenceAccessibility = False
+            Dim inNameOfExpression = node.IsParentKind(SyntaxKind.NameOfExpression)
 
             Dim container = DirectCast(leftHandTypeInfo.Type, INamespaceOrTypeSymbol)
             If leftHandTypeInfo.Type.IsErrorType AndAlso leftHandBinding.Symbol IsNot Nothing Then
@@ -248,6 +250,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                         End If
                 End Select
 
+                If inNameOfExpression Then
+                    excludeInstance = False
+                End If
+
                 If container Is Nothing OrElse container.IsType AndAlso DirectCast(container, ITypeSymbol).TypeKind = TypeKind.Enum Then
                     excludeShared = False ' need to allow shared members for enums
                 End If
@@ -260,7 +266,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                 Return SpecializedCollections.EmptyEnumerable(Of ISymbol)()
             End If
 
-            Debug.Assert(Not excludeInstance OrElse Not excludeShared)
+            Debug.Assert((Not excludeInstance OrElse Not excludeShared) OrElse
+                         (inNameOfExpression AndAlso Not excludeInstance AndAlso Not excludeShared))
+
             Debug.Assert(Not excludeInstance OrElse Not useBaseReferenceAccessibility)
 
             If context.TargetToken.GetPreviousToken().IsKind(SyntaxKind.QuestionToken) Then

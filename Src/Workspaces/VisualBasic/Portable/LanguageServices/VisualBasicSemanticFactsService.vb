@@ -247,8 +247,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsNameOfContext(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsNameOfContext
-            Dim token = semanticModel.SyntaxTree.GetTargetToken(position, cancellationToken)
-            Return semanticModel.SyntaxTree.IsNameOfContext(position, token, cancellationToken)
+            Return semanticModel.SyntaxTree.IsNameOfContext(position, cancellationToken)
         End Function
     End Class
 End Namespace

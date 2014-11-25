@@ -4001,5 +4001,22 @@ End Module
 
             AssertFormat(text.Value, expected.Value, experimental:=True)
         End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        Public Sub NameOfFormatting()
+            Dim text = <Code>
+Module M
+    Dim s = NameOf ( M )
+End Module
+</Code>
+
+            Dim expected = <Code>
+Module M
+    Dim s = NameOf(M)
+End Module
+</Code>
+
+            AssertFormatLf2CrLf(text.Value, expected.Value)
+        End Sub
     End Class
 End Namespace

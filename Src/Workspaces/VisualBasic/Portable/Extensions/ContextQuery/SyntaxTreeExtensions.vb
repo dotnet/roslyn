@@ -448,7 +448,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         End Function
 
         <Extension()>
-        Public Function IsNameOfContext(syntaxTree As SyntaxTree, position As Integer, token As SyntaxToken, Optional cancellationToken As CancellationToken = Nothing) As Boolean
+        Public Function IsNameOfContext(syntaxTree As SyntaxTree, position As Integer, Optional cancellationToken As CancellationToken = Nothing) As Boolean
             ' first do quick exit check
             If syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken) OrElse
                syntaxTree.IsInInactiveRegion(position, cancellationToken) OrElse
@@ -458,13 +458,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 Return False
             End If
 
-            Contract.Requires(token = syntaxTree.GetTargetToken(position, cancellationToken))
-
-            If token.IsChildToken(Of NameOfExpressionSyntax)(Function(importAliasClause) importAliasClause.OpenParenToken) Then
-                Return True
-            End If
-
-            Return False
+            Return syntaxTree _
+                .GetTargetToken(position, cancellationToken) _
+                .IsChildToken(Of NameOfExpressionSyntax)(Function(nameOfExpression) nameOfExpression.OpenParenToken)
         End Function
 
         <Extension()>

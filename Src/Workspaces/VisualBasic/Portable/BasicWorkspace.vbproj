@@ -256,6 +256,7 @@
     <Compile Include="Utilities\IntrinsicOperators\GetTypeExpressionDocumentation.vb" />
     <Compile Include="Utilities\IntrinsicOperators\GetXmlNamespaceExpressionDocumentation.vb" />
     <Compile Include="Utilities\IntrinsicOperators\MidAssignmentDocumentation.vb" />
+    <Compile Include="Utilities\IntrinsicOperators\NameOfExpressionDocumentation.vb" />
     <Compile Include="Utilities\IntrinsicOperators\PredefinedCastExpressionDocumentation.vb" />
     <Compile Include="Utilities\IntrinsicOperators\RemoveHandlerStatementDocumentation.vb" />
     <Compile Include="Utilities\IntrinsicOperators\TernaryConditionalExpressionDocumentation.vb" />

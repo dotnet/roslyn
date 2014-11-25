@@ -1,6 +1,4 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<!-- Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
-
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -256,5 +254,14 @@
   </data>
   <data name="TriviaIsNotAssociatedWithToken" xml:space="preserve">
     <value>Trivia is not associated with token</value>
+  </data>
+  <data name="TypeOrMember" xml:space="preserve">
+    <value>&lt;typeOrMember&gt;</value>
+  </data>
+  <data name="TypeOrMemberNameToReturn" xml:space="preserve">
+    <value>The type of member to return the name of.</value>
+  </data>
+  <data name="NameOfDocumentation" xml:space="preserve">
+    <value>Produces a string for the name of the specified type or member.</value>
   </data>
 </root>

@@ -152,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     Case SyntaxKind.NewKeyword, SyntaxKind.FunctionKeyword, SyntaxKind.SubKeyword, SyntaxKind.SetKeyword,
                          SyntaxKind.AddHandlerKeyword, SyntaxKind.RemoveHandlerKeyword, SyntaxKind.RaiseEventKeyword,
                          SyntaxKind.GetTypeKeyword, SyntaxKind.CTypeKeyword, SyntaxKind.TryCastKeyword,
-                         SyntaxKind.DirectCastKeyword, SyntaxKind.GetXmlNamespaceKeyword
+                         SyntaxKind.DirectCastKeyword, SyntaxKind.GetXmlNamespaceKeyword, SyntaxKind.NameOfKeyword
                         Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
                 End Select
 

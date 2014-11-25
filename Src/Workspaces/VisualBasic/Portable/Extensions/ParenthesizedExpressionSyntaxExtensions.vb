@@ -98,10 +98,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             '   (New With {.Foo = ""})
             '   (If(True, 1, 2))
             '   (If(Nothing, 1))
+            '   (NameOf(Foo))
             If expression.IsKind(SyntaxKind.AddressOfExpression) OrElse
                expression.IsKind(SyntaxKind.AnonymousObjectCreationExpression) OrElse
                expression.IsKind(SyntaxKind.TernaryConditionalExpression) OrElse
-               expression.IsKind(SyntaxKind.BinaryConditionalExpression) Then
+               expression.IsKind(SyntaxKind.BinaryConditionalExpression) OrElse
+               expression.IsKind(SyntaxKind.NameOfExpression) Then
 
                 Return True
             End If

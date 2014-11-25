@@ -1,10 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeCleanup.Providers;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -2767,6 +2764,27 @@ Class Test
         Caller(Foo)
     End Sub
 End Class";
+
+            Verify(code, expected);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
+        public void TestNoParenthesesForNameOf()
+        {
+            var code = @"[|
+Module M
+    Sub Main()
+        Dim s = NameOf(Main)
+    End Sub
+End Module|]";
+
+            var expected = @"
+Module M
+    Sub Main()
+        Dim s = NameOf(Main)
+    End Sub
+End Module";
 
             Verify(code, expected);
         }

@@ -138,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 isExpressionContext:=syntaxTree.IsExpressionContext(position, targetToken, cancellationToken, semanticModel),
                 isAttributeNameContext:=syntaxTree.IsAttributeNameContext(position, targetToken, cancellationToken),
                 isEnumTypeMemberAccessContext:=syntaxTree.IsEnumTypeMemberAccessContext(position, targetToken, semanticModel, cancellationToken),
-                isNameOfContext:=False,
+                isNameOfContext:=syntaxTree.IsNameOfContext(position, cancellationToken),
                 isInLambda:=leftToken.GetAncestor(Of LambdaExpressionSyntax)() IsNot Nothing,
                 isInQuery:=leftToken.GetAncestor(Of QueryExpressionSyntax)() IsNot Nothing,
                 isInImportsDirective:=leftToken.GetAncestor(Of ImportsStatementSyntax)() IsNot Nothing,
