@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 #endif
                 var ifStatement = factory.IfStatement(
                     factory.LogicalNotExpression(
-                        factory.IsExpression(
+                        factory.IsTypeExpression(
                             objNameExpression,
                             containingType)),
                     new[] { factory.ReturnStatement(factory.FalseLiteralExpression()) });
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 #if false
                 var myType = obj as MyType;
 #endif
-                var localDeclaration = factory.LocalDeclarationStatement(localName, factory.AsExpression(objNameExpression, containingType));
+                var localDeclaration = factory.LocalDeclarationStatement(localName, factory.TryCastExpression(objNameExpression, containingType));
 
                 statements.Add(localDeclaration);
 

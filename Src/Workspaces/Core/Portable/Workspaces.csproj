@@ -326,6 +326,7 @@
     <Compile Include="CodeGeneration\CodeGenerationOptions.cs" />
     <Compile Include="CodeGeneration\CodeGenerationSymbolFactory.cs" />
     <Compile Include="CodeGeneration\CodeGenerator.cs" />
+    <Compile Include="CodeGeneration\DeclarationKind.cs" />
     <Compile Include="CodeGeneration\ICodeGenerationService.cs" />
     <Compile Include="CodeGeneration\INamedTypeSymbolExtensions.cs" />
     <Compile Include="CodeGeneration\LiteralSpecialValues.cs" />

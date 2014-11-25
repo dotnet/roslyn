@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
-    public struct DeclarationModifiers
+    public struct DeclarationModifiers : IEquatable<DeclarationModifiers>
     {
         private readonly Modifiers modifiers;
 
@@ -236,6 +236,36 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public static DeclarationModifiers operator -(DeclarationModifiers left, DeclarationModifiers right)
         {
             return new DeclarationModifiers(left.modifiers & ~right.modifiers);
+        }
+
+        public bool Equals(DeclarationModifiers modifiers)
+        {
+            return this.modifiers == modifiers.modifiers;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is DeclarationModifiers && Equals((DeclarationModifiers)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return (int)this.modifiers;
+        }
+
+        public static bool operator ==(DeclarationModifiers left, DeclarationModifiers right)
+        {
+            return left.modifiers == right.modifiers;
+        }
+
+        public static bool operator !=(DeclarationModifiers left, DeclarationModifiers right)
+        {
+            return left.modifiers != right.modifiers;
+        }
+
+        public override string ToString()
+        {
+            return this.modifiers.ToString();
         }
     }
 }

@@ -50,13 +50,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 initializer);
         }
 
-        protected static DeclarationModifiers fieldModifiers = DeclarationModifiers.Const | DeclarationModifiers.ReadOnly | DeclarationModifiers.Static;
-        protected static DeclarationModifiers methodModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.Async | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual;
-        protected static DeclarationModifiers constructorModifers = DeclarationModifiers.Static;
-        protected static DeclarationModifiers propertyModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual;
-        protected static DeclarationModifiers indexerModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.New | DeclarationModifiers.Override | DeclarationModifiers.ReadOnly | DeclarationModifiers.Sealed | DeclarationModifiers.Static | DeclarationModifiers.Virtual;
-        protected static DeclarationModifiers typeModifiers = DeclarationModifiers.Abstract | DeclarationModifiers.Partial | DeclarationModifiers.Sealed | DeclarationModifiers.Static;
-
         /// <summary>
         /// Creates a method declaration.
         /// </summary>
@@ -119,21 +112,24 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             SyntaxNode type,
             Accessibility accessibility = Accessibility.NotApplicable,
             DeclarationModifiers modifiers = default(DeclarationModifiers),
-            IEnumerable<SyntaxNode> getterStatements = null,
-            IEnumerable<SyntaxNode> setterStatements = null);
+            IEnumerable<SyntaxNode> getAccessorStatements = null,
+            IEnumerable<SyntaxNode> setAccessorStatements = null);
 
         /// <summary>
         /// Creates a property declaration using an existing property symbol as a signature.
         /// </summary>
-        public SyntaxNode PropertyDeclaration(IPropertySymbol property, IEnumerable<SyntaxNode> getterStatements = null, IEnumerable<SyntaxNode> setterStatements = null)
+        public SyntaxNode PropertyDeclaration(
+            IPropertySymbol property, 
+            IEnumerable<SyntaxNode> getAccessorStatements = null, 
+            IEnumerable<SyntaxNode> setAccessorStatements = null)
         {
             return PropertyDeclaration(
                     property.Name,
                     TypeExpression(property.Type),
                     property.DeclaredAccessibility,
                     DeclarationModifiers.From(property),
-                    getterStatements,
-                    setterStatements);
+                    getAccessorStatements,
+                    setAccessorStatements);
         }
 
         /// <summary>
@@ -144,21 +140,78 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             SyntaxNode type,
             Accessibility accessibility = Accessibility.NotApplicable,
             DeclarationModifiers modifiers = default(DeclarationModifiers),
-            IEnumerable<SyntaxNode> getterStatements = null,
-            IEnumerable<SyntaxNode> setterStatements = null);
+            IEnumerable<SyntaxNode> getAccessorStatements = null,
+            IEnumerable<SyntaxNode> setAccessorStatements = null);
 
         /// <summary>
         /// Creates an indexer declaration matching an existing indexer symbol.
         /// </summary>
-        public SyntaxNode IndexerDeclaration(IPropertySymbol indexer, IEnumerable<SyntaxNode> getterStatements = null, IEnumerable<SyntaxNode> setterStatements = null)
+        public SyntaxNode IndexerDeclaration(
+            IPropertySymbol indexer, 
+            IEnumerable<SyntaxNode> getAccessorStatements = null, 
+            IEnumerable<SyntaxNode> setAccessorStatements = null)
         {
             return IndexerDeclaration(
                 indexer.Parameters.Select(p => this.ParameterDeclaration(p)),
                 TypeExpression(indexer.Type),
                 indexer.DeclaredAccessibility,
                 DeclarationModifiers.From(indexer),
-                getterStatements,
-                setterStatements);
+                getAccessorStatements,
+                setAccessorStatements);
+        }
+
+        /// <summary>
+        /// Creates an event declaration.
+        /// </summary>
+        public abstract SyntaxNode EventDeclaration(
+            string name,
+            SyntaxNode type,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers));
+
+        /// <summary>
+        /// Creates an event declaration from an existing event symbol
+        /// </summary>
+        public SyntaxNode EventDeclaration(IEventSymbol symbol)
+        {
+            return EventDeclaration(
+                symbol.Name,
+                TypeExpression(symbol.Type),
+                symbol.DeclaredAccessibility,
+                DeclarationModifiers.From(symbol));
+        }
+
+        /// <summary>
+        /// Creates a custom event declaration.
+        /// </summary>
+        public abstract SyntaxNode CustomEventDeclaration(
+            string name,
+            SyntaxNode type,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            IEnumerable<SyntaxNode> parameters = null,
+            IEnumerable<SyntaxNode> addAccessorStatements = null,
+            IEnumerable<SyntaxNode> removeAccessorStatements = null);
+
+        /// <summary>
+        /// Creates a custom event declaration from an existing event symbol.
+        /// </summary>
+        public SyntaxNode CustomEventDeclaration(
+            IEventSymbol symbol,
+            IEnumerable<SyntaxNode> addAccessorStatements = null,
+            IEnumerable<SyntaxNode> removeAccessorStatements = null)
+        {
+            var invoke = symbol.Type.GetMembers("Invoke").FirstOrDefault(m => m.Kind == SymbolKind.Method) as IMethodSymbol;
+            var parameters = invoke != null ? invoke.Parameters.Select(p => this.ParameterDeclaration(p)) : null;
+
+            return CustomEventDeclaration(
+                symbol.Name,
+                TypeExpression(symbol.Type),
+                symbol.DeclaredAccessibility,
+                DeclarationModifiers.From(symbol),
+                parameters: parameters,
+                addAccessorStatements: addAccessorStatements,
+                removeAccessorStatements: removeAccessorStatements);
         }
 
         /// <summary>
@@ -240,12 +293,24 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract SyntaxNode EnumDeclaration(
             string name,
             Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers),
             IEnumerable<SyntaxNode> members = null);
 
         /// <summary>
         /// Creates an enum member
         /// </summary>
         public abstract SyntaxNode EnumMember(string name, SyntaxNode expression = null);
+
+        /// <summary>
+        /// Creates a delegate declaration.
+        /// </summary>
+        public abstract SyntaxNode DelegateDeclaration(
+            string name,
+            IEnumerable<SyntaxNode> parameters = null,
+            IEnumerable<string> typeParameters = null,
+            SyntaxNode returnType = null,
+            Accessibility accessibility = Accessibility.NotApplicable,
+            DeclarationModifiers modifiers = default(DeclarationModifiers));
 
         /// <summary>
         /// Creates a declaration matching an existing symbol.
@@ -266,6 +331,17 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                     else
                     {
                         return PropertyDeclaration(property);
+                    }
+
+                case SymbolKind.Event:
+                    var ev = (IEventSymbol)symbol;
+                    if (ev.IsAbstract || ev.IsVirtual || ev.AddMethod != null || ev.RemoveMethod != null)
+                    {
+                        return CustomEventDeclaration(ev);
+                    }
+                    else
+                    {
+                        return EventDeclaration(ev);
                     }
 
                 case SymbolKind.Method:
@@ -321,6 +397,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                                 accessibility: type.DeclaredAccessibility,
                                 members: type.GetMembers().Select(m => Declaration(m)));
                             break;
+                        case TypeKind.Delegate:
+                            var invoke = type.GetMembers("Invoke").First() as IMethodSymbol;
+
+                            declaration = DelegateDeclaration(
+                                type.Name,
+                                parameters: invoke.Parameters.Select(p => ParameterDeclaration(p)),
+                                returnType: TypeExpression(invoke.ReturnType),
+                                accessibility: type.DeclaredAccessibility,
+                                modifiers: DeclarationModifiers.From(type));
+                            break;
                     }
 
                     if (declaration != null)
@@ -359,14 +445,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <summary>
         /// Converts a declaration (method, class, etc) into a declaration with type parameters.
         /// </summary>
-        public abstract SyntaxNode WithTypeParameters(SyntaxNode declaration, IEnumerable<string> typeParameterNames);
+        public abstract SyntaxNode WithTypeParameters(SyntaxNode declaration, IEnumerable<string> typeParameters);
 
         /// <summary>
         /// Converts a declaration (method, class, etc) into a declaration with type parameters.
         /// </summary>
-        public SyntaxNode WithTypeParameters(SyntaxNode declaration, params string[] typeParameterNames)
+        public SyntaxNode WithTypeParameters(SyntaxNode declaration, params string[] typeParameters)
         {
-            return WithTypeParameters(declaration, (IEnumerable<string>)typeParameterNames);
+            return WithTypeParameters(declaration, (IEnumerable<string>)typeParameters);
         }
 
         /// <summary>
@@ -497,20 +583,34 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         /// <summary>
-        /// Creates a new instance of a declaration node with the specified attributes added.
+        /// Gets the attributes of a declaration.
+        /// </summary>
+        public abstract IEnumerable<SyntaxNode> GetAttributes(SyntaxNode declaration);
+
+        /// <summary>
+        /// Removes all attributes from the declaration, including return attributes.
+        /// </summary>
+        public abstract SyntaxNode RemoveAttributes(SyntaxNode declaration);
+
+        /// <summary>
+        /// Creates a new instance of a declaration with the specified attributes added.
         /// </summary>
         public abstract SyntaxNode AddAttributes(SyntaxNode declaration, IEnumerable<SyntaxNode> attributes);
 
         /// <summary>
-        /// Creates a new instance of a declaration node with the specified attributes added.
+        /// Creates a new instance of a declaration with the specified attributes added.
         /// </summary>
         public SyntaxNode AddAttributes(SyntaxNode declaration, params SyntaxNode[] attributes)
         {
             return AddAttributes(declaration, (IEnumerable<SyntaxNode>)attributes);
         }
 
+        public abstract IEnumerable<SyntaxNode> GetReturnAttributes(SyntaxNode declaration);
+
+        public abstract SyntaxNode WithReturnAttributes(SyntaxNode declaration, IEnumerable<SyntaxNode> attributes);
+
         /// <summary>
-        /// Creates a new instance of a method declaration node with return attributes added.
+        /// Creates a new instance of a method declaration with return attributes added.
         /// </summary>
         public abstract SyntaxNode AddReturnAttributes(SyntaxNode methodDeclaration, IEnumerable<SyntaxNode> attributes);
 
@@ -520,6 +620,167 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public SyntaxNode AddReturnAttributes(SyntaxNode methodDeclaration, params SyntaxNode[] attributes)
         {
             return AddReturnAttributes(methodDeclaration, (IEnumerable<SyntaxNode>)attributes);
+        }
+
+        /// <summary>
+        /// Gets the current members of the declaration.
+        /// </summary>
+        public abstract IReadOnlyList<SyntaxNode> GetMembers(SyntaxNode declaration);
+
+        /// <summary>
+        /// Creates a new instance of the declaration with the members specified.
+        /// </summary>
+        public abstract SyntaxNode WithMembers(SyntaxNode declaration, IEnumerable<SyntaxNode> members);
+
+        /// <summary>
+        /// Creates a new instance of the declaration with the members added to the end.
+        /// </summary>
+        public abstract SyntaxNode AddMembers(SyntaxNode declaration, IEnumerable<SyntaxNode> members);
+
+        /// <summary>
+        /// Gets the accessibility of the declaration.
+        /// </summary>
+        public abstract Accessibility GetAccessibility(SyntaxNode declaration);
+
+        /// <summary>
+        /// Changes the accessibility of the declaration.
+        /// </summary>
+        public abstract SyntaxNode WithAccessibility(SyntaxNode declaration, Accessibility accessibility);
+
+        /// <summary>
+        /// Gets the <see cref="DeclarationModifiers"/> for the declaration.
+        /// </summary>
+        public abstract DeclarationModifiers GetModifiers(SyntaxNode declaration);
+
+        /// <summary>
+        /// Changes the <see cref="DeclarationModifiers"/> for the declaration.
+        /// </summary>
+        public abstract SyntaxNode WithModifiers(SyntaxNode declaration, DeclarationModifiers modifiers);
+
+        /// <summary>
+        /// Gets the <see cref="DeclarationKind"/> for the declaration.
+        /// </summary>
+        public abstract DeclarationKind GetDeclarationKind(SyntaxNode declaration);
+
+        /// <summary>
+        /// Gets the name of the declaration.
+        /// </summary>
+        public abstract string GetName(SyntaxNode declaration);
+
+        /// <summary>
+        /// Changes the name of the declaration.
+        /// </summary>
+        public abstract SyntaxNode WithName(SyntaxNode declaration, string name);
+
+        /// <summary>
+        /// Gets the type of the declaration.
+        /// </summary>
+        public abstract SyntaxNode GetType(SyntaxNode declaration);
+
+        /// <summary>
+        /// Changes the type of the declaration.
+        /// </summary>
+        public abstract SyntaxNode WithType(SyntaxNode declaration, SyntaxNode type);
+
+        /// <summary>
+        /// Gets the list of parameters for the declaration.
+        /// </summary>
+        public abstract IReadOnlyList<SyntaxNode> GetParameters(SyntaxNode declaration);
+
+        /// <summary>
+        /// Changes the list of parameters for the declaration.
+        /// </summary>
+        public abstract SyntaxNode WithParameters(SyntaxNode declaration, IEnumerable<SyntaxNode> parameters);
+
+        /// <summary>
+        /// Gets the initializer expression for the declaration.
+        /// </summary>
+        public abstract SyntaxNode GetInitializer(SyntaxNode declaration);
+
+        /// <summary>
+        /// Changes the intializer expression for the declaration.
+        /// </summary>
+        public abstract SyntaxNode WithInitializer(SyntaxNode declaration, SyntaxNode initializer);
+
+        /// <summary>
+        /// Gets the statements for the body of the declaration.
+        /// </summary>
+        public abstract IReadOnlyList<SyntaxNode> GetStatements(SyntaxNode declaration);
+
+        /// <summary>
+        /// Changes the statements for the body of the declaration.
+        /// </summary>
+        public abstract SyntaxNode WithStatements(SyntaxNode declaration, IEnumerable<SyntaxNode> statements);
+
+        /// <summary>
+        /// Gets the statements for the body of the get-accessor of the declaration.
+        /// </summary>
+        public abstract IReadOnlyList<SyntaxNode> GetGetAccessorStatements(SyntaxNode declaration);
+
+        /// <summary>
+        /// Changes the statements for the body of the get-accessor of the declaration.
+        /// </summary>
+        public abstract SyntaxNode WithGetAccessorStatements(SyntaxNode declaration, IEnumerable<SyntaxNode> statements);
+
+        /// <summary>
+        /// Gets the statements for the body of the set-accessor of the declaration.
+        /// </summary>
+        public abstract IReadOnlyList<SyntaxNode> GetSetAccessorStatements(SyntaxNode declaration);
+
+        /// <summary>
+        /// Changes the statements for the body of the set-accessor of the declaration.
+        /// </summary>
+        public abstract SyntaxNode WithSetAccessorStatements(SyntaxNode declaration, IEnumerable<SyntaxNode> statements);
+
+        #endregion
+
+        #region Utility
+
+        protected static TNode WithoutTrivia<TNode>(TNode node) where TNode : SyntaxNode
+        {
+            return node.WithoutLeadingTrivia().WithoutTrailingTrivia();
+        }
+
+        protected static SyntaxNode PreserveTrivia<TNode>(TNode node, Func<TNode, SyntaxNode> nodeChanger) where TNode : SyntaxNode
+        {
+            var nodeWithoutTrivia = WithoutTrivia(node);
+
+            var changedNode = nodeChanger(nodeWithoutTrivia);
+
+            if (changedNode == nodeWithoutTrivia)
+            {
+                return node;
+            }
+            else
+            {
+                return changedNode
+                    .WithLeadingTrivia(node.GetLeadingTrivia().Concat(changedNode.GetLeadingTrivia()))
+                    .WithTrailingTrivia(changedNode.GetTrailingTrivia().Concat(node.GetTrailingTrivia()));
+            }
+        }
+
+        protected static SyntaxNode ReplaceWithTrivia(SyntaxNode root, SyntaxNode original, SyntaxNode replacement)
+        {
+            var combinedTriviaReplacement =
+                replacement.WithLeadingTrivia(original.GetLeadingTrivia().AddRange(replacement.GetLeadingTrivia()))
+                           .WithTrailingTrivia(replacement.GetTrailingTrivia().AddRange(original.GetTrailingTrivia()));
+
+            return root.ReplaceNode(original, combinedTriviaReplacement);
+        }
+
+        protected static SyntaxNode ReplaceWithTrivia<TNode>(SyntaxNode root, TNode original, Func<TNode, SyntaxNode> replacer)
+            where TNode : SyntaxNode
+        {
+            return ReplaceWithTrivia(root, original, replacer(original));
+        }
+
+        protected static SyntaxNode ReplaceWithTrivia(SyntaxNode root, SyntaxToken original, SyntaxToken replacement)
+        {
+            var combinedTriviaReplacement =
+                replacement.WithLeadingTrivia(original.LeadingTrivia.AddRange(replacement.LeadingTrivia))
+                           .WithTrailingTrivia(replacement.TrailingTrivia.AddRange(original.TrailingTrivia));
+
+            return root.ReplaceToken(original, combinedTriviaReplacement);
         }
 
         #endregion
@@ -566,31 +827,31 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         /// <summary>
-        /// Creates a if-then-else statement or equivalent 
+        /// Creates an if-statement
         /// </summary>
-        /// <param name="condition">The if-condition.</param>
+        /// <param name="condition">A condition expression.</param>
         /// <param name="trueStatements">The statements that are executed if the condition is true.</param>
         /// <param name="falseStatements">The statements that are executed if the condition is false.</param>
         public abstract SyntaxNode IfStatement(SyntaxNode condition, IEnumerable<SyntaxNode> trueStatements, IEnumerable<SyntaxNode> falseStatements = null);
 
         /// <summary>
-        /// Creates a if-then-else statement or equivalent 
+        /// Creates an if statement
         /// </summary>
-        /// <param name="condition">The if-condition.</param>
+        /// <param name="condition">A condition expression.</param>
         /// <param name="trueStatements">The statements that are executed if the condition is true.</param>
-        /// <param name="falseStatement">A single statement that is executed if the condition is false. Typically this anther if-then-else statement.</param>
+        /// <param name="falseStatement">A single statement that is executed if the condition is false.</param>
         public SyntaxNode IfStatement(SyntaxNode condition, IEnumerable<SyntaxNode> trueStatements, SyntaxNode falseStatement)
         {
             return IfStatement(condition, trueStatements, new[] { falseStatement });
         }
 
         /// <summary>
-        /// Creates a switch statement that branches to a sections based on the value of the specified expression.
+        /// Creates a switch statement that branches to individual sections based on the value of the specified expression.
         /// </summary>
         public abstract SyntaxNode SwitchStatement(SyntaxNode expression, IEnumerable<SyntaxNode> sections);
 
         /// <summary>
-        /// Creates a switch statement that branches to a section based on the value of the specified expression.
+        /// Creates a switch statement that branches to individual sections based on the value of the specified expression.
         /// </summary>
         public SyntaxNode SwitchStatement(SyntaxNode expression, params SyntaxNode[] sections)
         {
@@ -688,12 +949,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract SyntaxNode DefaultExpression(ITypeSymbol type);
 
         /// <summary>
-        /// Creates an expression that denotes the containing methods this-parameter.
+        /// Creates an expression that denotes the containing method's this-parameter.
         /// </summary>
         public abstract SyntaxNode ThisExpression();
 
         /// <summary>
-        /// Creates an expression that denotes the containing methods base-parameter.
+        /// Creates an expression that denotes the containing method's base-parameter.
         /// </summary>
         public abstract SyntaxNode BaseExpression();
 
@@ -952,14 +1213,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <summary>
         /// Creates a member access expression.
         /// </summary>
-        public abstract SyntaxNode MemberAccessExpression(SyntaxNode expression, SyntaxNode simpleName);
+        public abstract SyntaxNode MemberAccessExpression(SyntaxNode expression, SyntaxNode memberName);
 
         /// <summary>
         /// Creates a member access expression.
         /// </summary>
-        public SyntaxNode MemberAccessExpression(SyntaxNode expression, string identifer)
+        public SyntaxNode MemberAccessExpression(SyntaxNode expression, string memberName)
         {
-            return MemberAccessExpression(expression, IdentifierName(identifer));
+            return MemberAccessExpression(expression, IdentifierName(memberName));
         }
 
         /// <summary>
@@ -1041,36 +1302,36 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <summary>
         /// Creates an expression that denotes an is-type-check operation.
         /// </summary>
-        public abstract SyntaxNode IsExpression(SyntaxNode expression, SyntaxNode type);
+        public abstract SyntaxNode IsTypeExpression(SyntaxNode expression, SyntaxNode type);
 
         /// <summary>
         /// Creates an expression that denotes an is-type-check operation.
         /// </summary>
-        public SyntaxNode IsExpression(SyntaxNode expression, ITypeSymbol type)
+        public SyntaxNode IsTypeExpression(SyntaxNode expression, ITypeSymbol type)
         {
-            return IsExpression(expression, TypeExpression(type));
+            return IsTypeExpression(expression, TypeExpression(type));
         }
 
         /// <summary>
-        /// Creates an expression that denotes an as-type operation.
+        /// Creates an expression that denotes an try-cast operation.
         /// </summary>
-        public abstract SyntaxNode AsExpression(SyntaxNode expression, SyntaxNode type);
+        public abstract SyntaxNode TryCastExpression(SyntaxNode expression, SyntaxNode type);
 
         /// <summary>
-        /// Creates an expression that denotes an as-type operation.
+        /// Creates an expression that denotes an try-cast operation.
         /// </summary>
-        public SyntaxNode AsExpression(SyntaxNode expression, ITypeSymbol type)
+        public SyntaxNode TryCastExpression(SyntaxNode expression, ITypeSymbol type)
         {
-            return AsExpression(expression, TypeExpression(type));
+            return TryCastExpression(expression, TypeExpression(type));
         }
 
         /// <summary>
-        /// Creates an expression that denotes a runtime cast operation.
+        /// Creates an expression that denotes a type cast operation.
         /// </summary>
         public abstract SyntaxNode CastExpression(SyntaxNode type, SyntaxNode expression);
 
         /// <summary>
-        /// Creates an expression that denotes a runtime cast operation.
+        /// Creates an expression that denotes a type cast operation.
         /// </summary>
         public SyntaxNode CastExpression(ITypeSymbol type, SyntaxNode expression)
         {
@@ -1078,12 +1339,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         /// <summary>
-        /// Creates an expression that denotes a numerical conversion operation.
+        /// Creates an expression that denotes a type conversion operation.
         /// </summary>
         public abstract SyntaxNode ConvertExpression(SyntaxNode type, SyntaxNode expression);
 
         /// <summary>
-        /// Creates an expression that denotes a numerical conversion operation.
+        /// Creates an expression that denotes a type conversion operation.
         /// </summary>
         public SyntaxNode ConvertExpression(ITypeSymbol type, SyntaxNode expression)
         {
@@ -1140,6 +1401,38 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public SyntaxNode VoidReturningLambdaExpression(string parameterName, IEnumerable<SyntaxNode> statements)
         {
             return VoidReturningLambdaExpression(new[] { LambdaParameter(parameterName) }, statements);
+        }
+
+        /// <summary>
+        /// Creates an expression that declares a zero parameter value returning lambda expression.
+        /// </summary>
+        public SyntaxNode ValueReturningLambdaExpression(SyntaxNode expression)
+        {
+            return ValueReturningLambdaExpression((IEnumerable<SyntaxNode>)null, expression);
+        }
+
+        /// <summary>
+        /// Creates an expression that declares a zero parameter void returning lambda expression.
+        /// </summary>
+        public SyntaxNode VoidReturningLambdaExpression(SyntaxNode expression)
+        {
+            return VoidReturningLambdaExpression((IEnumerable<SyntaxNode>)null, expression);
+        }
+
+        /// <summary>
+        /// Creates an expression that declares a zero parameter value returning lambda expression.
+        /// </summary>
+        public SyntaxNode ValueReturningLambdaExpression(IEnumerable<SyntaxNode> statements)
+        {
+            return ValueReturningLambdaExpression((IEnumerable<SyntaxNode>)null, statements);
+        }
+
+        /// <summary>
+        /// Creates an expression that declares a zero parameter void returning lambda expression.
+        /// </summary>
+        public SyntaxNode VoidReturningLambdaExpression(IEnumerable<SyntaxNode> statements)
+        {
+            return VoidReturningLambdaExpression((IEnumerable<SyntaxNode>)null, statements);
         }
 
         /// <summary>
