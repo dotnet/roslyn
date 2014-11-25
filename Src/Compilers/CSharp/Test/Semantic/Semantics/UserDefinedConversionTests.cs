@@ -1550,5 +1550,59 @@ public struct start
             CreateCompilationWithMscorlib(source).VerifyDiagnostics();
         }
 
+        [Fact, WorkItem(1063555, "DevDiv")]
+        public void UserDefinedImplicitConversionsOnBuiltinTypes()
+        {
+            string source = @"
+namespace System
+{
+   	public class Object { }
+    public class ValueType { }
+    public struct Void { }
+
+    public struct Byte { public static implicit operator MyClass(Byte v) { return null; } }
+    public struct Int16 { public static implicit operator MyClass(Int16 v) { return null; } }
+    public struct Int32 { public static implicit operator MyClass(Int32 v) { return null; } }
+    public struct Int64 { public static implicit operator MyClass(Int64 v) { return null; } }
+    public struct Single { public static implicit operator MyClass(Single v) { return null; } }
+    public struct Double { public static implicit operator MyClass(Double v) { return null; } }
+    public struct Char { public static implicit operator MyClass(Char v) { return null; } }
+    public struct Boolean { public static implicit operator MyClass(Boolean v) { return null; } }
+    public struct SByte { public static implicit operator MyClass(SByte v) { return null; } }
+    public struct UInt16 { public static implicit operator MyClass(UInt16 v) { return null; } }
+    public struct UInt32 { public static implicit operator MyClass(UInt32 v) { return null; } }
+    public struct UInt64 { public static implicit operator MyClass(UInt64 v) { return null; } }
+    public struct IntPtr { public static implicit operator MyClass(IntPtr v) { return null; } }
+    public struct UIntPtr { public static implicit operator MyClass(UIntPtr v) { return null; } }
+    public struct Decimal { public static implicit operator MyClass(Decimal v) { return null; } }
+    public class String { public static implicit operator MyClass(String v) { return null; } }
+
+    public class MyClass
+    {
+        static void Test(MyClass v) { }
+
+        static void Main()
+        {
+            Test(new Byte());
+            Test(new Int16());
+            Test(new Int32());
+            Test(new Int64());
+            Test(new Single());
+            Test(new Double());
+            Test(new Char());
+            Test(new Boolean());
+            Test(new SByte());
+            Test(new UInt16());
+            Test(new UInt32());
+            Test(new UInt64());
+            Test(new IntPtr());
+            Test(new String());
+            
+        }
+    }
+}
+";
+            CreateCompilation(source).VerifyDiagnostics();
+        }
     }
 }

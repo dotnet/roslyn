@@ -47,11 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // optimization:
             bool excludeExisting = result.Count > 0;
 
-            // The decimal type does not contribute its user-defined conversions to the mix; though its 
-            // conversions are actually implemented via user-defined operators, we logically treat it as 
-            // though those conversions were built-in.  
-
-            if (type.IsClassType() || type.IsStructType() && type.SpecialType != SpecialType.System_Decimal)
+            if (type.IsClassType() || type.IsStructType())
             {
                 var namedType = (NamedTypeSymbol)type;
                 if (!excludeExisting || !HasIdentityConversionToAny(namedType, result))

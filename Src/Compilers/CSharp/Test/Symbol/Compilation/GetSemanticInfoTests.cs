@@ -277,6 +277,73 @@ public class Test
             ConversionTestHelper(model, v9right, ConversionKind.Identity, ConversionKind.Identity);
         }
 
+        private void TestClassifyConversionBuiltInNumeric(string from, string to, ConversionKind ck)
+        {
+            const string template = @"
+class C
+{{
+    static void Foo({1} v) {{ }}
+
+    static void Main() {{ {0} v = default({0}); Foo({2}v); }}
+}}
+";
+
+            var isExplicitConversion = ck == ConversionKind.ExplicitNumeric;
+            var source = string.Format(template, from, to, isExplicitConversion ? "(" + to + ")" : "");
+            var tree = Parse(source);
+            var comp = CreateCompilationWithMscorlib(tree);
+            comp.VerifyDiagnostics();
+
+            var model = comp.GetSemanticModel(tree);
+            var c = (TypeDeclarationSyntax)tree.GetCompilationUnitRoot().Members[0];
+            var main = (MethodDeclarationSyntax)c.Members[1];
+            var call = (InvocationExpressionSyntax)((ExpressionStatementSyntax)main.Body.Statements[1]).Expression;
+            var arg = call.ArgumentList.Arguments[0].Expression;
+
+            if (isExplicitConversion)
+            {
+                ConversionTestHelper(model, ((CastExpressionSyntax)arg).Expression, model.GetTypeInfo(arg).ConvertedType, ck);
+            }
+            else
+            {
+                ConversionTestHelper(model, arg, ck, ck);
+            }
+        }
+
+        [Fact]
+        public void ClassifyConversionBuiltInNumeric()
+        {
+            const ConversionKind ID = ConversionKind.Identity;
+            const ConversionKind IN = ConversionKind.ImplicitNumeric;
+            const ConversionKind XN = ConversionKind.ExplicitNumeric;
+
+            var types = new[] { "sbyte", "byte", "short", "ushort", "int", "uint", "long", "ulong", "char", "float", "double", "decimal" };
+            var conversions = new ConversionKind[,] {
+                // to     sb  b  s  us i ui  l ul  c  f  d  m
+                // from
+                /* sb */ { ID, XN, IN, XN, IN, XN, IN, XN, XN, IN, IN, IN },
+                /*  b */ { XN, ID, IN, IN, IN, IN, IN, IN, XN, IN, IN, IN },
+                /*  s */ { XN, XN, ID, XN, IN, XN, IN, XN, XN, IN, IN, IN },
+                /* us */ { XN, XN, XN, ID, IN, IN, IN, IN, XN, IN, IN, IN },
+                /*  i */ { XN, XN, XN, XN, ID, XN, IN, XN, XN, IN, IN, IN },
+                /* ui */ { XN, XN, XN, XN, XN, ID, IN, IN, XN, IN, IN, IN },
+                /*  l */ { XN, XN, XN, XN, XN, XN, ID, XN, XN, IN, IN, IN },
+                /* ul */ { XN, XN, XN, XN, XN, XN, XN, ID, XN, IN, IN, IN },
+                /*  c */ { XN, XN, XN, IN, IN, IN, IN, IN, ID, IN, IN, IN },
+                /*  f */ { XN, XN, XN, XN, XN, XN, XN, XN, XN, ID, IN, XN },
+                /*  d */ { XN, XN, XN, XN, XN, XN, XN, XN, XN, XN, ID, XN },
+                /*  m */ { XN, XN, XN, XN, XN, XN, XN, XN, XN, XN, XN, ID }
+            };
+
+            for (var from = 0; from < types.Length; from++)
+            {
+                for (var to = 0; to < types.Length; to++)
+                {
+                    TestClassifyConversionBuiltInNumeric(types[from], types[to], conversions[from, to]);
+                }
+            }
+        }
+
         [WorkItem(527486, "DevDiv")]
         [Fact]
         public void ClassifyConversionExplicit()
