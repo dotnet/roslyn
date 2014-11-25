@@ -204,6 +204,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 ";
             var ruleSet = ParseRuleSet(source, new string[] { "" });
             Assert.Equal(ReportDiagnostic.Default, ruleSet.GeneralDiagnosticOption);
+            Assert.Equal(1, RuleSet.GetEffectiveIncludesFromFile(ruleSet.FilePath).Count());
         }
 
         [Fact]
@@ -228,6 +229,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 ";
             var ruleSet = ParseRuleSet(source, source1);
             Assert.Equal(ReportDiagnostic.Default, ruleSet.GeneralDiagnosticOption);
+            Assert.Equal(2, RuleSet.GetEffectiveIncludesFromFile(ruleSet.FilePath).Count());
         }
 
         [Fact]
@@ -262,6 +264,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 ";
             var ruleSet = ParseRuleSet(source, source1, source2);
             Assert.Equal(ReportDiagnostic.Default, ruleSet.GeneralDiagnosticOption);
+            Assert.Equal(3, RuleSet.GetEffectiveIncludesFromFile(ruleSet.FilePath).Count());
         }
 
         [Fact]
