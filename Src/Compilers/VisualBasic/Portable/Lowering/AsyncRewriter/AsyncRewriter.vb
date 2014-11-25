@@ -107,8 +107,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                sourceMethod)
             End If
 
-            ' For all other symbols we assume that it should be a synchesized method 
-            ' placed inside source named type of in one of it's nested types
+            ' For all other symbols we assume that it should be a synthesized method 
+            ' placed inside source named type or in one of its nested types
             Debug.Assert(TypeOf method Is SynthesizedLambdaMethod)
             Dim containingType As NamedTypeSymbol = method.ContainingType
             While containingType IsNot Nothing
@@ -172,9 +172,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     "System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine",
                     DebugAttributes.DebuggerNonUserCodeAttribute, Accessibility.Private, False)
 
-            ' SetStateMachine Is used to initialize the underlying AsyncMethodBuilder's reference to the boxed copy of the state machine.
-            ' If the state machine Is a class there Is no copy made And thus the initialization Is Not necessary. 
-            ' In fact it Is an error to reinitialize the builder since it already Is initialized.
+            ' SetStateMachine is used to initialize the underlying AsyncMethodBuilder's reference to the boxed copy of the state machine.
+            ' If the state machine is a class there is no copy made and thus the initialization is not necessary. 
+            ' In fact it is an error to reinitialize the builder since it already is initialized.
             If Me.F.CurrentType.TypeKind = TypeKind.Class Then
                 Me.F.CloseMethod(F.Return())
             Else
@@ -328,7 +328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Specifies a kind of an Async method
         ''' 
-        ''' None is returned for non-Asyn methods or methods with wrong return type
+        ''' None is returned for non-Async methods or methods with wrong return type
         ''' </summary>
         Friend Enum AsyncMethodKind
             None
