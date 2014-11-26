@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         /// <summary>
         /// Creates a TextSpan instance beginning with the position Start and having the Length
-        /// specified with length.
+        /// specified with <paramref name="length" />.
         /// </summary>
         public TextSpan(int start, int length)
         {
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Creates a new <see cref="TextSpan"/> from <param name="start" /> and <param
+        /// Creates a new <see cref="TextSpan"/> from <paramref name="start" /> and <paramref
         /// name="end"/> positions as opposed to a position and length.
         /// </summary>
         public static TextSpan FromBounds(int start, int end)
