@@ -3,7 +3,11 @@
 using System;
 using System.Diagnostics;
 
+#if COMPILERCORE
 namespace Microsoft.CodeAnalysis
+#else
+namespace Microsoft.CodeAnalysis.ErrorReporting
+#endif
 {
     internal static class FatalError
     {
@@ -70,7 +74,6 @@ namespace Microsoft.CodeAnalysis
         /// Calls <see cref="Handler"/> and passes the exception thru (the method returns false).
         /// </summary>
         /// <returns>False to avoid catching the exception.</returns>
-        [DebuggerHidden]
         public static bool Report(Exception exception)
         {
             // hold onto last exception to make investigation easier
