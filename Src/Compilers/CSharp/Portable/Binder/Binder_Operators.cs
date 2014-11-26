@@ -1907,23 +1907,31 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol operandType = operand.Type;
             Debug.Assert((object)operandType != null || hasErrors, "BindValue should have caught a null operand type");
-            if (!hasErrors && operandType.IsManagedType)
-            {
-                hasErrors = true;
-                Error(diagnostics, ErrorCode.ERR_ManagedAddr, node, operandType);
-            }
 
-            if (!hasErrors)
+            bool isManagedType = operandType.IsManagedType;
+            bool allowManagedAddressOf = Flags.Includes(BinderFlags.AllowManagedAddressOf);
+            if (!allowManagedAddressOf)
             {
-                Symbol accessedLocalOrParameterOpt;
-                if (IsNonMoveableVariable(operand, out accessedLocalOrParameterOpt) == isFixedStatementAddressOfExpression)
+                if (!hasErrors && isManagedType)
                 {
-                    Error(diagnostics, isFixedStatementAddressOfExpression ? ErrorCode.ERR_FixedNotNeeded : ErrorCode.ERR_FixedNeeded, node);
                     hasErrors = true;
+                    Error(diagnostics, ErrorCode.ERR_ManagedAddr, node, operandType);
+                }
+
+                if (!hasErrors)
+                {
+                    Symbol accessedLocalOrParameterOpt;
+                    if (IsNonMoveableVariable(operand, out accessedLocalOrParameterOpt) == isFixedStatementAddressOfExpression)
+                    {
+                        Error(diagnostics, isFixedStatementAddressOfExpression ? ErrorCode.ERR_FixedNotNeeded : ErrorCode.ERR_FixedNeeded, node);
+                        hasErrors = true;
+                    }
                 }
             }
 
-            TypeSymbol pointerType = new PointerTypeSymbol(operandType ?? CreateErrorType());
+            TypeSymbol pointerType = new PointerTypeSymbol(isManagedType && allowManagedAddressOf
+                ? GetSpecialType(SpecialType.System_IntPtr, diagnostics, node)
+                : operandType ?? CreateErrorType());
             return new BoundAddressOfOperator(node, operand, isFixedStatementAddressOfExpression, pointerType, hasErrors);
         }
 

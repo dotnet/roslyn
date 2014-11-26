@@ -66,6 +66,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ParameterDefaultValue = 1 << 22,
 
+        /// <summary>
+        /// In the debugger, one can take the address of a managed object.
+        /// </summary>
+        AllowManagedAddressOf = 1 << 23,
+
         // Groups
 
         AllClearedAtExecutableCodeBoundary = InLockBody | InCatchBlock | InCatchFilter | InFinallyBlock | InTryBlockOfTryCatch,
