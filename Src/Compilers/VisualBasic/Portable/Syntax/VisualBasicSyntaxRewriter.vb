@@ -49,10 +49,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim [structure] = DirectCast(trivia.GetStructure(), VisualBasicSyntaxNode)
                 Dim newStructure = DirectCast(Me.Visit([structure]), StructuredTriviaSyntax)
                 If newStructure IsNot [structure] Then
-                    Return SyntaxFactory.Trivia(newStructure)
+                    If newStructure IsNot Nothing Then
+                        Return SyntaxFactory.Trivia(newStructure)
+                    Else
+                        Return Nothing
+                    End If
                 End If
             End If
-
             Return trivia
         End Function
 

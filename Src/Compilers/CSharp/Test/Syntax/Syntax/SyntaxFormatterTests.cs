@@ -389,6 +389,59 @@ int i = 1;
 }");
         }
 
+        [WorkItem(1079042, "DevDiv")]
+        [Fact]
+        public void TestFormatDocumentationComments()
+        {
+            var code =
+@"class c1
+{
+    ///<summary>
+    /// A documenation comment
+    ///</summary>
+    void foo()
+    {
+    }
+}";
+            var tree = SyntaxFactory.ParseSyntaxTree(code);
+            TestFormat(tree.GetCompilationUnitRoot(),
+@"class c1
+{
+  ///<summary>
+  /// A documenation comment
+  ///</summary>
+  void foo()
+  {
+  }
+}");
+        }
+
+        [Fact]
+        public void TestFormatDocumentationComments2()
+        {
+            var code =
+@"class c1
+{
+    ///  <summary>
+    ///  A documenation comment
+    ///  </summary>
+    void foo()
+    {
+    }
+}";
+            var tree = SyntaxFactory.ParseSyntaxTree(code);
+            TestFormat(tree.GetCompilationUnitRoot(),
+@"class c1
+{
+  ///  <summary>
+  ///  A documenation comment
+  ///  </summary>
+  void foo()
+  {
+  }
+}");
+        }
+
         private void TestFormatTrivia(string text, string expected)
         {
             var list = SyntaxFactory.ParseLeadingTrivia(text);

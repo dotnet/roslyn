@@ -293,9 +293,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             if (next.CSharpKind() == SyntaxKind.EndOfDirectiveToken)
             {
-                // In a region directive, there's no token between the region keyword and 
+                // In a directive, there's often no token between the directive keyword and 
                 // the end-of-directive, so we may need a separator.
-                return token.CSharpKind() == SyntaxKind.RegionKeyword && next.LeadingWidth > 0;
+                return IsKeyword(token.CSharpKind()) && next.LeadingWidth > 0;
             }
 
             if ((token.Parent is AssignmentExpressionSyntax && AssignmentTokenNeedsSeparator(token.CSharpKind())) ||
@@ -449,8 +449,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 foreach (var trivia in triviaList)
                 {
-                    if (trivia.CSharpKind() == SyntaxKind.WhitespaceTrivia ||
-                        trivia.CSharpKind() == SyntaxKind.EndOfLineTrivia ||
+                    if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) ||
+                        trivia.IsKind(SyntaxKind.EndOfLineTrivia) ||
                         trivia.FullWidth == 0)
                     {
                         continue;
@@ -487,6 +487,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     {
                         var tr = this.VisitStructuredTrivia(trivia);
                         currentTriviaList.Add(tr);
+                    }
+                    else if (trivia.IsKind(SyntaxKind.DocumentationCommentExteriorTrivia))
+                    {
+                        // recreate exterior to remove any leading whitespace
+                        currentTriviaList.Add(trimmedDocCommentExtertior);
                     }
                     else
                     {
@@ -545,6 +550,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 currentTriviaList.Free();
             }
         }
+
+        private static SyntaxTrivia trimmedDocCommentExtertior = SyntaxFactory.DocumentationCommentExterior("///");
 
         private SyntaxTrivia GetSpace()
         {

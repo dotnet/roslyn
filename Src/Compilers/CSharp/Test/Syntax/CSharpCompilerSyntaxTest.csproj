@@ -159,6 +159,7 @@
     <Compile Include="Syntax\SyntaxTests.cs" />
     <Compile Include="Syntax\SyntaxTokenListTests.cs" />
     <Compile Include="Syntax\SyntaxTriviaListTests.cs" />
+    <Compile Include="Syntax\TrackNodeTests.cs" />
     <Compile Include="TextExtensions.cs" />
   </ItemGroup>
   <ItemGroup>

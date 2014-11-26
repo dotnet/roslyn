@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using Roslyn.Utilities;
@@ -37,6 +38,12 @@ namespace Microsoft.CodeAnalysis
             // create an id for each node
             foreach (var node in nodes)
             {
+                var nodeRoot = GetRoot(node);
+                if (nodeRoot != root)
+                {
+                    throw new ArgumentException("Node to track is not a descendant of the root.".NeedsLocalization());
+                }
+
                 nodeToIdMap.GetValue(node, n => new SyntaxAnnotation(IdAnnotationKind));
             }
 
@@ -71,10 +78,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException("originalNode");
             }
 
-            foreach (var newNode in GetCurrentNodeFromTrueRoots(GetRoot(root), node).OfType<TNode>())
-            {
-                yield return newNode;
-            }
+            return GetCurrentNodeFromTrueRoots(GetRoot(root), node).OfType<TNode>();
         }
 
         /// <summary>
@@ -157,7 +161,7 @@ namespace Microsoft.CodeAnalysis
 
         private class CurrentNodes
         {
-            private readonly Dictionary<SyntaxAnnotation, List<SyntaxNode>> idToNodeMap;
+            private readonly Dictionary<SyntaxAnnotation, IReadOnlyList<SyntaxNode>> idToNodeMap;
 
             public CurrentNodes(SyntaxNode root)
             {
@@ -180,14 +184,20 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                this.idToNodeMap = map;
+                this.idToNodeMap = map.ToDictionary(kv => kv.Key, kv => (IReadOnlyList<SyntaxNode>)ImmutableArray.CreateRange(kv.Value));
             }
 
-            public List<SyntaxNode> GetNodes(SyntaxAnnotation id)
+            public IReadOnlyList<SyntaxNode> GetNodes(SyntaxAnnotation id)
             {
-                List<SyntaxNode> node;
-                this.idToNodeMap.TryGetValue(id, out node);
-                return node;
+                IReadOnlyList<SyntaxNode> nodes;
+                if (this.idToNodeMap.TryGetValue(id, out nodes))
+                {
+                    return nodes;
+                }
+                else
+                {
+                    return SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
+                }
             }
         }
     }

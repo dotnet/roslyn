@@ -98,7 +98,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var newStructure = (StructuredTriviaSyntax)this.Visit(structure);
                 if (newStructure != structure)
                 {
-                    return SyntaxFactory.Trivia(newStructure);
+                    if (newStructure != null)
+                    {
+                        return SyntaxFactory.Trivia(newStructure);
+                    }
+                    else
+                    {
+                        return default(SyntaxTrivia);
+                    }
                 }
             }
 

@@ -475,6 +475,37 @@ class C { }
             Assert.Equal(expectedNewSource, newRoot.ToFullString());
         }
 
+        [WorkItem(991474, "DevDiv")]
+        [Fact]
+        public void ReturnNullFromStructuredTriviaRoot_Succeeds()
+        {
+            var text = 
+@"#region
+class C { }
+#endregion";
+
+            var expectedText =
+@"class C { }
+#endregion";
+
+            var root = SyntaxFactory.ParseCompilationUnit(text);
+            var newRoot = new RemoveRegionRewriter().Visit(root);
+
+            Assert.Equal(expectedText, newRoot.ToFullString());
+        }
+
+        private class RemoveRegionRewriter : CSharpSyntaxRewriter
+        {
+            public RemoveRegionRewriter()
+                : base(visitIntoStructuredTrivia: true)
+            {
+            }
+
+            public override SyntaxNode VisitRegionDirectiveTrivia(RegionDirectiveTriviaSyntax node)
+            {
+                return null;
+            }
+        }
 
         #endregion Misc
 
