@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis
         public override string ToString(IFormatProvider formatProvider)
         {
             var culture = formatProvider as CultureInfo ?? CultureInfo.CurrentUICulture;
-            return this.resourceManager.GetString(this.nameOfLocalizableResource, culture);
+            return this.resourceManager.GetString(this.nameOfLocalizableResource, culture) ?? string.Empty;
         }
     }
 }

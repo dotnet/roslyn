@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
         public const string Telemetry = "Telemetry";
 
         /// <summary>
-        /// Indicates that the diagnostic is not configurable in the ruleset editor.
+        /// Indicates that the diagnostic is not configurable, i.e. it cannot be suppressed or filtered or have its severity changed.
         /// </summary>
         public const string NotConfigurable = "NotConfigurable";
 

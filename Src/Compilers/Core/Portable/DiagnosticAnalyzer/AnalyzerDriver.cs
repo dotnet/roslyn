@@ -953,6 +953,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
             CancellationToken cancellationToken)
         {
+            if (analyzer is CompilerDiagnosticAnalyzer)
+            {
+                // Compiler analyzer must always be executed for compiler errors, which cannot be suppressed or filtered.
+                return false;
+            }
+
             var supportedDiagnostics = ImmutableArray<DiagnosticDescriptor>.Empty;
 
             // Catch Exception from analyzer.SupportedDiagnostics
@@ -962,6 +968,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var diag in supportedDiagnostics)
             {
+                if (diag.IsNotConfigurable())
+                {
+                    // If diagnostic descriptor is not configurable, then diagnostics created through it cannot be suppressed.
+                    return false;
+                }
+
                 // Is this diagnostic suppressed by default (as written by the rule author)
                 var isSuppressed = !diag.IsEnabledByDefault;
 

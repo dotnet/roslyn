@@ -986,7 +986,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 End Select
 
                                 If namespaceToLookInForImplicitType IsNot Nothing Then
-                                    Dim implicitType = DirectCast(namespaceToLookInForImplicitType.GetMembers(TypeSymbol.ImplicitTypeName).Single(), NamedTypeSymbol)
+                                    Dim implicitType = DirectCast(namespaceToLookInForImplicitType.GetMembers(TypeSymbol.ImplicitTypeName).SingleOrDefault(), NamedTypeSymbol)
 
                                     If implicitType IsNot Nothing Then
                                         Return SourceMethodSymbol.FindSymbolFromSyntax(declarationSyntax, _syntaxTree, implicitType)

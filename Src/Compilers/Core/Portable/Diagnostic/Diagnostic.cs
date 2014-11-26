@@ -350,5 +350,14 @@ namespace Microsoft.CodeAnalysis
                     return HighestValidWarningLevel;
             }
         }
+
+        /// <summary>
+        /// Returns true if a diagnostic is not configurable, i.e. cannot be suppressed or filtered or have its severity changed.
+        /// For example, compiler errors are always non-configurable.
+        /// </summary>
+        internal virtual bool IsNotConfigurable()
+        {
+            return DiagnosticDescriptor.IsNotConfigurable(this.CustomTags);
+        }
     }
 }

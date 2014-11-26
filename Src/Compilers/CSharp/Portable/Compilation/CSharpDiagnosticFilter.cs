@@ -28,23 +28,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>A diagnostic updated to reflect the options, or null if it has been filtered out</returns>
         public static Diagnostic Filter(Diagnostic d, int warningLevelOption, ReportDiagnostic generalDiagnosticOption, IDictionary<string, ReportDiagnostic> specificDiagnosticOptions)
         {
-            if (d == null) return d;
-            switch (d.Severity)
+            // If diagnostic is not configurable, keep it as it is.
+            if (d == null || d.IsNotConfigurable())
             {
-                case DiagnosticSeverity.Error:
-                    // If it is a compiler error, keep it as it is.
-                    // TODO: We currently use .Category to detect whether the diagnostic is a compiler diagnostic.
-                    // Perhaps there should be a stronger way of checking this that avoids the possibility of an
-                    // inadvertent clash for some custom diagnostic that happens to use the same category string.
-                    if (d.Category == Diagnostic.CompilerDiagnosticCategory)
-                    {
-                        return d;
-                    }
-                    break;
-                case InternalDiagnosticSeverity.Void:
-                    return null;
-                default:
-                    break;
+                return d;
+            }
+            else if (d.Severity == InternalDiagnosticSeverity.Void)
+            {
+                return null;
             }
 
             //In the native compiler, all warnings originating from alink.dll were issued
@@ -81,28 +72,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         // based on both command line options and pragmas
         private static ReportDiagnostic GetDiagnosticReport(DiagnosticSeverity severity, bool isEnabledByDefault, string id, int diagnosticWarningLevel, Location location, string category, int warningLevelOption, ReportDiagnostic generalDiagnosticOption, IDictionary<string, ReportDiagnostic> specificDiagnosticOptions)
         {
-            switch (severity)
-            {
-                case InternalDiagnosticSeverity.Void:
-                    // If this is a deleted diagnostic, suppress it.
-                    return ReportDiagnostic.Suppress;
-                case DiagnosticSeverity.Hidden:
-                case DiagnosticSeverity.Info:
-                case DiagnosticSeverity.Warning:
-                    // Process warnings below.
-                    break;
-                case DiagnosticSeverity.Error:
-                    if (category == Diagnostic.CompilerDiagnosticCategory)
-                    {
-                        // Compiler errors should have been handled in the Filter() method above.
-                        // Severity of compiler errors can never be changed.
-                        throw ExceptionUtilities.UnexpectedValue(category);
-                    }
-                    break;
-                default:
-                    throw ExceptionUtilities.UnexpectedValue(severity);
-            }
-
             // Read options (e.g., /nowarn or /warnaserror)
             ReportDiagnostic report = ReportDiagnostic.Default;
             var isSpecified = specificDiagnosticOptions.TryGetValue(id, out report);

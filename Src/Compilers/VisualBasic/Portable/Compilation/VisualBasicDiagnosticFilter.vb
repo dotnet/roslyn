@@ -33,11 +33,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-            ' If it is a compiler error, keep it as it is.
-            ' TODO: We currently use .Category to detect whether the diagnostic is a compiler diagnostic.
-            ' Perhaps there should be a stronger way of checking this that avoids the possibility of an
-            ' inadvertent clash for some custom diagnostic that happens to use the same category string.
-            If (diagnostic.Severity = DiagnosticSeverity.Error) AndAlso (diagnostic.Category = Diagnostic.CompilerDiagnosticCategory) Then
+            ' If diagnostic is not configurable, keep it as it is.
+            If diagnostic.IsNotConfigurable Then
                 Return diagnostic
             End If
 
@@ -69,21 +66,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Shared Function GetDiagnosticReport(severity As DiagnosticSeverity, isEnabledByDefault As Boolean, id As String, location As Location, category As String, generalDiagnosticOption As ReportDiagnostic, caseInsensitiveSpecificDiagnosticOptions As IDictionary(Of String, ReportDiagnostic)) As ReportDiagnostic
-            Select Case (severity)
-                Case InternalDiagnosticSeverity.Void
-                    Return ReportDiagnostic.Suppress
-                Case DiagnosticSeverity.Hidden, DiagnosticSeverity.Info, DiagnosticSeverity.Warning
-                ' Leave Select
-                Case DiagnosticSeverity.Error
-                    ' Compiler errors should have been handled in the Filter() method above.
-                    ' Severity of compiler errors can never be changed.
-                    If category = Diagnostic.CompilerDiagnosticCategory Then
-                        Throw ExceptionUtilities.UnexpectedValue(category)
-                    End If
-                Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(severity)
-            End Select
-
             ' Read options (e.g., /nowarn or /warnaserror)
             Dim report As ReportDiagnostic = ReportDiagnostic.Default
             Dim isSpecified = caseInsensitiveSpecificDiagnosticOptions.TryGetValue(id, report)

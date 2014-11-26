@@ -1,0 +1,44 @@
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.CSharp;
+
+namespace Microsoft.CodeAnalysis.Diagnostics.CSharp
+{
+    /// <summary>
+    /// DiagnosticAnalyzer for C# compiler's syntax/semantic/compilation diagnostics.
+    /// </summary>
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    internal sealed class CSharpCompilerDiagnosticAnalyzer : CompilerDiagnosticAnalyzer
+    {
+        internal override CommonMessageProvider MessageProvider
+        {
+            get
+            {
+                return CodeAnalysis.CSharp.MessageProvider.Instance;
+            }
+        }
+
+        internal override ImmutableArray<int> GetSupportedErrorCodes()
+        {
+            var errorCodes = Enum.GetValues(typeof(ErrorCode));
+            var builder = ImmutableArray.CreateBuilder<int>(errorCodes.Length);
+            foreach (int errorCode in errorCodes)
+            {
+                switch (errorCode)
+                {
+                    case InternalErrorCode.Void:
+                    case InternalErrorCode.Unknown:
+                        continue;
+
+                    default:
+                        builder.Add(errorCode);
+                        break;
+                }
+            }
+
+            return builder.ToImmutable();
+        }
+    }
+}

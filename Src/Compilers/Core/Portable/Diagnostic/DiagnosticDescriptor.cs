@@ -163,5 +163,27 @@ namespace Microsoft.CodeAnalysis
                 Hash.Combine(this.MessageFormat.GetHashCode(),
                     this.Title.GetHashCode())))))));
         }
+
+        /// <summary>
+        /// Returns true if diagnostic descriptor is not configurable, i.e. cannot be suppressed or filtered or have its severity changed.
+        /// For example, compiler errors are always non-configurable.
+        /// </summary>
+        internal bool IsNotConfigurable()
+        {
+            return IsNotConfigurable(this.CustomTags);
+        }
+
+        internal static bool IsNotConfigurable(IEnumerable<string> customTags)
+        {
+            foreach (var customTag in customTags)
+            {
+                if (customTag == WellKnownDiagnosticTags.NotConfigurable)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }

@@ -252,5 +252,34 @@ namespace Microsoft.CodeAnalysis
         {
             return str.Aggregate(new StringBuilder(), (sb, s) => sb.AppendLine(s), sb => sb.ToString());
         }
+
+        public static DiagnosticAnalyzer GetCompilerDiagnosticAnalyzer(string languageName)
+        {
+            return languageName == LanguageNames.CSharp ?
+                (DiagnosticAnalyzer)new Diagnostics.CSharp.CSharpCompilerDiagnosticAnalyzer() :
+                new Diagnostics.VisualBasic.VisualBasicCompilerDiagnosticAnalyzer();
+        }
+
+        public static ImmutableDictionary<string, ImmutableArray<DiagnosticAnalyzer>> GetCompilerDiagnosticAnalyzersMap()
+        {
+            var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<DiagnosticAnalyzer>>();
+            builder.Add(LanguageNames.CSharp, ImmutableArray.Create(GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp)));
+            builder.Add(LanguageNames.VisualBasic, ImmutableArray.Create(GetCompilerDiagnosticAnalyzer(LanguageNames.VisualBasic)));
+            return builder.ToImmutable();
+        }
+
+        public static AnalyzerReference GetCompilerDiagnosticAnalyzerReference(string languageName)
+        {
+            var analyzer = GetCompilerDiagnosticAnalyzer(languageName);
+            return new AnalyzerImageReference(ImmutableArray.Create(analyzer), display: analyzer.GetType().FullName);
+        }
+
+        public static ImmutableDictionary<string, ImmutableArray<AnalyzerReference>> GetCompilerDiagnosticAnalyzerReferencesMap()
+        {
+            var builder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<AnalyzerReference>>();
+            builder.Add(LanguageNames.CSharp, ImmutableArray.Create(GetCompilerDiagnosticAnalyzerReference(LanguageNames.CSharp)));
+            builder.Add(LanguageNames.VisualBasic, ImmutableArray.Create(GetCompilerDiagnosticAnalyzerReference(LanguageNames.VisualBasic)));
+            return builder.ToImmutable();
+        }
     }
 }

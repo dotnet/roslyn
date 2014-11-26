@@ -328,6 +328,7 @@
     <Compile Include="Compilation\SynthesizedMetadataCompiler.vb" />
     <Compile Include="Compilation\VisualBasicCompilation.vb" />
     <Compile Include="Compilation\VisualBasicCompilationReference.vb" />
+    <Compile Include="Compilation\VisualBasicCompilerDiagnosticAnalyzer.vb" />
     <Compile Include="Compilation\VisualBasicDiagnosticFilter.vb" />
     <Compile Include="Declarations\Declaration.vb" />
     <Compile Include="Declarations\DeclarationKind.vb" />
@@ -947,6 +948,7 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.VisualBasic.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.VisualBasic.ExpressionCompiler.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.ExpressionCompiler.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Scripting.Common.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Scripting.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />

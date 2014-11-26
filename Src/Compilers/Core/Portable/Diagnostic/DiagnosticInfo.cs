@@ -28,8 +28,11 @@ namespace Microsoft.CodeAnalysis
         private readonly object[] arguments;
 
         private static ImmutableDictionary<int, DiagnosticDescriptor> errorCodeToDescriptorMap = ImmutableDictionary<int, DiagnosticDescriptor>.Empty;
-        private static readonly ImmutableArray<string> CompilerCustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Telemetry);
 
+        // Mark compiler errors as non-configurable to ensure they can never be suppressed or filtered.
+        private static readonly ImmutableArray<string> CompilerErrorCustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable);
+        private static readonly ImmutableArray<string> CompilerNonErrorCustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Telemetry);
+        
         // Only the compiler creates instances.
         internal DiagnosticInfo(CommonMessageProvider messageProvider, int errorCode)
         {
@@ -58,6 +61,12 @@ namespace Microsoft.CodeAnalysis
             this.effectiveSeverity = overridenSeverity;
         }
 
+        internal static DiagnosticDescriptor GetDescriptor(int errorCode, CommonMessageProvider messageProvider)
+        {
+            var defaultSeverity = messageProvider.GetSeverity(errorCode);
+            return GetOrCreateDescriptor(errorCode, defaultSeverity, messageProvider);
+        }
+
         private static DiagnosticDescriptor GetOrCreateDescriptor(int errorCode, DiagnosticSeverity defaultSeverity, CommonMessageProvider messageProvider)
         {
             return ImmutableInterlocked.GetOrAdd(ref errorCodeToDescriptorMap, errorCode, code => CreateDescriptor(code, defaultSeverity, messageProvider));
@@ -71,8 +80,9 @@ namespace Microsoft.CodeAnalysis
             var messageFormat = messageProvider.GetMessageFormat(errorCode);
             var helpLink = messageProvider.GetHelpLink(errorCode);
             var category = messageProvider.GetCategory(errorCode);
-            return new DiagnosticDescriptor(id, title, messageFormat, category,
-                defaultSeverity, isEnabledByDefault: true, description: description, helpLink: helpLink, customTags: CompilerCustomTags);
+            var customTags = GetCustomTags(defaultSeverity);
+            return new DiagnosticDescriptor(id, title, messageFormat, category, defaultSeverity,
+                isEnabledByDefault: true, description: description, helpLink: helpLink, customTags: customTags);
         }
 
         [Conditional("DEBUG")]
@@ -267,8 +277,21 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return CompilerCustomTags;
+                return GetCustomTags(this.defaultSeverity);
             }
+        }
+
+        private static ImmutableArray<string> GetCustomTags(DiagnosticSeverity defaultSeverity)
+        {
+            return defaultSeverity == DiagnosticSeverity.Error ?
+                CompilerErrorCustomTags :
+                CompilerNonErrorCustomTags;
+        }
+
+        internal bool IsNotConfigurable()
+        {
+            // Only compiler errors are non-configurable.
+            return this.defaultSeverity == DiagnosticSeverity.Error;
         }
 
         /// <summary>
