@@ -1063,6 +1063,266 @@ class Program
             var compVerifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
         }
 
+        [Fact, WorkItem(1073330)]
+        public void NestedIndexerInitializerArray()
+        {
+            var source = @"
+class C
+{
+    int[] a = new int[2];
+
+    static void Main()
+    {
+        var a = new C { a = { [0] = 1, [1] = 2 } };
+        System.Console.Write(""{0} {1}"", a.a[0], a.a[1]);
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput: "1 2").VerifyIL("C.Main", @"
+{
+  // Code size       61 (0x3d)
+  .maxstack  4
+  .locals init (C V_0) //a
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldfld      ""int[] C.a""
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  stelem.i4
+  IL_000e:  dup
+  IL_000f:  ldfld      ""int[] C.a""
+  IL_0014:  ldc.i4.1
+  IL_0015:  ldc.i4.2
+  IL_0016:  stelem.i4
+  IL_0017:  stloc.0
+  IL_0018:  ldstr      ""{0} {1}""
+  IL_001d:  ldloc.0
+  IL_001e:  ldfld      ""int[] C.a""
+  IL_0023:  ldc.i4.0
+  IL_0024:  ldelem.i4
+  IL_0025:  box        ""int""
+  IL_002a:  ldloc.0
+  IL_002b:  ldfld      ""int[] C.a""
+  IL_0030:  ldc.i4.1
+  IL_0031:  ldelem.i4
+  IL_0032:  box        ""int""
+  IL_0037:  call       ""void System.Console.Write(string, object, object)""
+  IL_003c:  ret
+}");
+        }
+
+        [Fact, WorkItem(1073330)]
+        public void NestedIndexerInitializerMDArray()
+        {
+            var source = @"
+class C
+{
+    int[,] a = new int[2,2];
+
+    static void Main()
+    {
+        var a = new C { a = { [0, 0] = 1, [0, 1] = 2, [1, 0] = 3, [1, 1] = 4} };
+        System.Console.Write(""{0} {1} {2} {3}"", a.a[0, 0], a.a[0, 1], a.a[1, 0], a.a[1, 1]);
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput: "1 2 3 4").VerifyIL("C.Main", @"
+{
+  // Code size      163 (0xa3)
+  .maxstack  7
+  .locals init (C V_0) //a
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldfld      ""int[,] C.a""
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ldc.i4.1
+  IL_000e:  call       ""int[*,*].Set""
+  IL_0013:  dup
+  IL_0014:  ldfld      ""int[,] C.a""
+  IL_0019:  ldc.i4.0
+  IL_001a:  ldc.i4.1
+  IL_001b:  ldc.i4.2
+  IL_001c:  call       ""int[*,*].Set""
+  IL_0021:  dup
+  IL_0022:  ldfld      ""int[,] C.a""
+  IL_0027:  ldc.i4.1
+  IL_0028:  ldc.i4.0
+  IL_0029:  ldc.i4.3
+  IL_002a:  call       ""int[*,*].Set""
+  IL_002f:  dup
+  IL_0030:  ldfld      ""int[,] C.a""
+  IL_0035:  ldc.i4.1
+  IL_0036:  ldc.i4.1
+  IL_0037:  ldc.i4.4
+  IL_0038:  call       ""int[*,*].Set""
+  IL_003d:  stloc.0
+  IL_003e:  ldstr      ""{0} {1} {2} {3}""
+  IL_0043:  ldc.i4.4
+  IL_0044:  newarr     ""object""
+  IL_0049:  dup
+  IL_004a:  ldc.i4.0
+  IL_004b:  ldloc.0
+  IL_004c:  ldfld      ""int[,] C.a""
+  IL_0051:  ldc.i4.0
+  IL_0052:  ldc.i4.0
+  IL_0053:  call       ""int[*,*].Get""
+  IL_0058:  box        ""int""
+  IL_005d:  stelem.ref
+  IL_005e:  dup
+  IL_005f:  ldc.i4.1
+  IL_0060:  ldloc.0
+  IL_0061:  ldfld      ""int[,] C.a""
+  IL_0066:  ldc.i4.0
+  IL_0067:  ldc.i4.1
+  IL_0068:  call       ""int[*,*].Get""
+  IL_006d:  box        ""int""
+  IL_0072:  stelem.ref
+  IL_0073:  dup
+  IL_0074:  ldc.i4.2
+  IL_0075:  ldloc.0
+  IL_0076:  ldfld      ""int[,] C.a""
+  IL_007b:  ldc.i4.1
+  IL_007c:  ldc.i4.0
+  IL_007d:  call       ""int[*,*].Get""
+  IL_0082:  box        ""int""
+  IL_0087:  stelem.ref
+  IL_0088:  dup
+  IL_0089:  ldc.i4.3
+  IL_008a:  ldloc.0
+  IL_008b:  ldfld      ""int[,] C.a""
+  IL_0090:  ldc.i4.1
+  IL_0091:  ldc.i4.1
+  IL_0092:  call       ""int[*,*].Get""
+  IL_0097:  box        ""int""
+  IL_009c:  stelem.ref
+  IL_009d:  call       ""void System.Console.Write(string, params object[])""
+  IL_00a2:  ret
+}");
+        }
+
+
+        [Fact, WorkItem(1073330)]
+        public void NestedIndexerInitializerJaggedArrayNestedInitializer()
+        {
+            var source = @"
+class C
+{
+    int[][] a = new int[1][] { new int[2] };
+
+    static void Main()
+    {
+        var a = new C { a = { [0] = { [0] = 1, [1] = 2 } } };
+        System.Console.Write(""{0} {1}"", a.a[0][0], a.a[0][1]);
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput: "1 2").VerifyIL("C.Main", @"
+{
+  // Code size       69 (0x45)
+  .maxstack  4
+  .locals init (C V_0) //a
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldfld      ""int[][] C.a""
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldelem.ref
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldc.i4.1
+  IL_000f:  stelem.i4
+  IL_0010:  dup
+  IL_0011:  ldfld      ""int[][] C.a""
+  IL_0016:  ldc.i4.0
+  IL_0017:  ldelem.ref
+  IL_0018:  ldc.i4.1
+  IL_0019:  ldc.i4.2
+  IL_001a:  stelem.i4
+  IL_001b:  stloc.0
+  IL_001c:  ldstr      ""{0} {1}""
+  IL_0021:  ldloc.0
+  IL_0022:  ldfld      ""int[][] C.a""
+  IL_0027:  ldc.i4.0
+  IL_0028:  ldelem.ref
+  IL_0029:  ldc.i4.0
+  IL_002a:  ldelem.i4
+  IL_002b:  box        ""int""
+  IL_0030:  ldloc.0
+  IL_0031:  ldfld      ""int[][] C.a""
+  IL_0036:  ldc.i4.0
+  IL_0037:  ldelem.ref
+  IL_0038:  ldc.i4.1
+  IL_0039:  ldelem.i4
+  IL_003a:  box        ""int""
+  IL_003f:  call       ""void System.Console.Write(string, object, object)""
+  IL_0044:  ret
+}");
+        }
+
+        [Fact, WorkItem(1073330)]
+        public void NestedIndexerInitializerArrayNestedObjectInitializer()
+        {
+            var source = @"
+class C
+{
+    C[] a;
+    int b;
+
+    C() { }
+
+    C(bool unused)
+    {
+        this.a = new C[2] { new C(), new C() };
+    }
+
+    static void Main()
+    {
+        var a = new C(true) { a = { [0] = { b = 1 }, [1] = { b = 2 } } };
+        System.Console.Write(""{0} {1}"", a.a[0].b, a.a[1].b);
+    }
+}
+";
+
+            CompileAndVerify(source, expectedOutput: "1 2").VerifyIL("C.Main", @"
+{
+  // Code size       82 (0x52)
+  .maxstack  4
+  .locals init (C V_0) //a
+  IL_0000:  ldc.i4.1
+  IL_0001:  newobj     ""C..ctor(bool)""
+  IL_0006:  dup
+  IL_0007:  ldfld      ""C[] C.a""
+  IL_000c:  ldc.i4.0
+  IL_000d:  ldelem.ref
+  IL_000e:  ldc.i4.1
+  IL_000f:  stfld      ""int C.b""
+  IL_0014:  dup
+  IL_0015:  ldfld      ""C[] C.a""
+  IL_001a:  ldc.i4.1
+  IL_001b:  ldelem.ref
+  IL_001c:  ldc.i4.2
+  IL_001d:  stfld      ""int C.b""
+  IL_0022:  stloc.0
+  IL_0023:  ldstr      ""{0} {1}""
+  IL_0028:  ldloc.0
+  IL_0029:  ldfld      ""C[] C.a""
+  IL_002e:  ldc.i4.0
+  IL_002f:  ldelem.ref
+  IL_0030:  ldfld      ""int C.b""
+  IL_0035:  box        ""int""
+  IL_003a:  ldloc.0
+  IL_003b:  ldfld      ""C[] C.a""
+  IL_0040:  ldc.i4.1
+  IL_0041:  ldelem.ref
+  IL_0042:  ldfld      ""int C.b""
+  IL_0047:  box        ""int""
+  IL_004c:  call       ""void System.Console.Write(string, object, object)""
+  IL_0051:  ret
+}");
+        }
+
         #endregion
 
         #region "Collection Initializer Tests"

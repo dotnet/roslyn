@@ -3098,6 +3098,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isRhsNestedInitializer = rhsKind == SyntaxKind.ObjectInitializerExpression || rhsKind == SyntaxKind.CollectionInitializerExpression;
             BindValueKind valueKind = isRhsNestedInitializer ? BindValueKind.RValue : BindValueKind.Assignment;
 
+            ImmutableArray<BoundExpression> arguments = ImmutableArray<BoundExpression>.Empty;
             switch (boundMemberKind)
             {
                 case BoundKind.FieldAccess:
@@ -3114,43 +3115,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             resultKind = LookupResultKind.NotAValue;
                         }
-
                         break;
                     }
-
-                case BoundKind.PropertyAccess:
-                case BoundKind.IndexerAccess:
-                    {
-                        var propertySymbol = (boundMemberKind == BoundKind.PropertyAccess) ?
-                            ((BoundPropertyAccess)boundMember).PropertySymbol :
-                            ((BoundIndexerAccess)boundMember).Indexer;
-
-                        if (isRhsNestedInitializer && propertySymbol.Type.IsValueType)
-                        {
-                            if (!hasErrors)
-                            {
-                                // TODO: distinct error code for collection initializers?  (Dev11 doesn't have one.)
-                                Error(diagnostics, ErrorCode.ERR_ValueTypePropertyInObjectInitializer, namedAssignment.Left, propertySymbol, propertySymbol.Type);
-                                hasErrors = true;
-                            }
-
-                            resultKind = LookupResultKind.NotAValue;
-                        }
-
-                        // UNDONE:  For BoundKind.PropertyAccess:
-                        // UNDONE:  If we have a NoPIA object, we need to populate the local type with the 
-                        // UNDONE:  property we bound, and bind to the local property instead.
-                        //      PropWithType pwt = (PropWithType)swt;
-                        //      ConsumePropertyWithNoPIA(GetSymbolLoader(), object, pwt);                
-
-                        break;
-                    }
-
-                case BoundKind.DynamicIndexerAccess:
-                    break;
 
                 case BoundKind.EventAccess:
                     break;
+
+                case BoundKind.PropertyAccess:
+                    hasErrors |= isRhsNestedInitializer && !CheckNestedObjectInitializerPropertySymbol(((BoundPropertyAccess)boundMember).PropertySymbol, namedAssignment.Left, diagnostics, hasErrors, ref resultKind);
+                    break;
+
+                case BoundKind.IndexerAccess:
+                    hasErrors |= isRhsNestedInitializer && !CheckNestedObjectInitializerPropertySymbol(((BoundIndexerAccess)boundMember).Indexer, namedAssignment.Left, diagnostics, hasErrors, ref resultKind);
+                    arguments = ((BoundIndexerAccess)boundMember).Arguments;
+                    break;
+
+                case BoundKind.DynamicIndexerAccess:
+                    arguments = ((BoundDynamicIndexerAccess)boundMember).Arguments;
+                    break;
+
+                case BoundKind.ArrayAccess:
+                    return boundMember;
 
                 default:
                     return BadObjectInitializerMemberAccess(boundMember, implicitReceiver, namedAssignment.Left, diagnostics, valueKind, hasErrors);
@@ -3170,23 +3155,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            ImmutableArray<BoundExpression> arguments;
-            if (boundMember.Kind == BoundKind.IndexerAccess)
-            {
-                arguments = ((BoundIndexerAccess)boundMember).Arguments;
-            }
-            else if (boundMember.Kind == BoundKind.DynamicIndexerAccess)
-            {
-                arguments = ((BoundDynamicIndexerAccess)boundMember).Arguments;
-            }
-            else
-            {
-                arguments = ImmutableArray<BoundExpression>.Empty;
-            }
-
             return new BoundObjectInitializerMember(namedAssignment.Left, boundMember.ExpressionSymbol, arguments, resultKind, boundMember.Type, hasErrors);
         }
 
+        private bool CheckNestedObjectInitializerPropertySymbol(
+            PropertySymbol propertySymbol,
+            ExpressionSyntax memberNameSyntax,
+            DiagnosticBag diagnostics,
+            bool suppressErrors,
+            ref LookupResultKind resultKind)
+        {
+            bool hasErrors = false;
+            if (propertySymbol.Type.IsValueType)
+            {
+                if (!suppressErrors)
+                {
+                    // TODO: distinct error code for collection initializers?  (Dev11 doesn't have one.)
+                    Error(diagnostics, ErrorCode.ERR_ValueTypePropertyInObjectInitializer, memberNameSyntax, propertySymbol, propertySymbol.Type);
+                    hasErrors = true;
+                }
+
+                resultKind = LookupResultKind.NotAValue;
+            }
+
+            return !hasErrors;
+        }
 
         private BoundExpression BadObjectInitializerMemberAccess(
             BoundExpression boundMember,

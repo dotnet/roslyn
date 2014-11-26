@@ -202,74 +202,98 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isRhsNestedInitializer = rhsKind == BoundKind.ObjectInitializerExpression || rhsKind == BoundKind.CollectionInitializerExpression;
 
             BoundExpression rewrittenAccess;
-            if (rewrittenLeft.Kind == BoundKind.ObjectInitializerMember)
+            switch (rewrittenLeft.Kind)
             {
-                var memberInit = (BoundObjectInitializerMember)rewrittenLeft;
-                if (memberInit.MemberSymbol == null && memberInit.Type.IsDynamic())
-                {
-                    if (dynamicSiteInitializers == null)
+                case BoundKind.ObjectInitializerMember:
                     {
-                        dynamicSiteInitializers = ArrayBuilder<BoundExpression>.GetInstance();
+                        var memberInit = (BoundObjectInitializerMember)rewrittenLeft;
+                        if (memberInit.MemberSymbol == null && memberInit.Type.IsDynamic())
+                        {
+                            if (dynamicSiteInitializers == null)
+                            {
+                                dynamicSiteInitializers = ArrayBuilder<BoundExpression>.GetInstance();
+                            }
+
+                            if (!isRhsNestedInitializer)
+                            {
+                                var rewrittenRight = VisitExpression(assignment.Right);
+                                var setMember = dynamicFactory.MakeDynamicSetIndex(
+                                    rewrittenReceiver,
+                                    memberInit.Arguments,
+                                    default(ImmutableArray<string>),
+                                    default(ImmutableArray<RefKind>),
+                                    rewrittenRight);
+
+                                dynamicSiteInitializers.Add(setMember.SiteInitialization);
+                                result.Add(setMember.SiteInvocation);
+                                return;
+                            }
+
+                            var getMember = dynamicFactory.MakeDynamicGetIndex(
+                                rewrittenReceiver,
+                                memberInit.Arguments,
+                                default(ImmutableArray<string>),
+                                default(ImmutableArray<RefKind>));
+
+                            dynamicSiteInitializers.Add(getMember.SiteInitialization);
+                            rewrittenAccess = getMember.SiteInvocation;
+                        }
+                        else
+                        {
+                            rewrittenAccess = MakeObjectInitializerMemberAccess(rewrittenReceiver, memberInit, isRhsNestedInitializer);
+                            if (!isRhsNestedInitializer)
+                            {
+                                // Rewrite simple assignment to field/property.
+                                var rewrittenRight = VisitExpression(assignment.Right);
+                                result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, assignment.Type, used: false));
+                                return;
+                            }
+                        }
+                        break;
                     }
 
-                    if (!isRhsNestedInitializer)
+                case BoundKind.DynamicObjectInitializerMember:
                     {
-                        var rewrittenRight = VisitExpression(assignment.Right);
-                        var setMember = dynamicFactory.MakeDynamicSetIndex(
-                            rewrittenReceiver,
-                            memberInit.Arguments,
-                            default(ImmutableArray<string>),
-                            default(ImmutableArray<RefKind>),
-                            rewrittenRight);
+                        if (dynamicSiteInitializers == null)
+                        {
+                            dynamicSiteInitializers = ArrayBuilder<BoundExpression>.GetInstance();
+                        }
 
-                        dynamicSiteInitializers.Add(setMember.SiteInitialization);
-                        result.Add(setMember.SiteInvocation);
-                        return;
+                        var initializerMember = (BoundDynamicObjectInitializerMember)rewrittenLeft;
+
+                        if (!isRhsNestedInitializer)
+                        {
+                            var rewrittenRight = VisitExpression(assignment.Right);
+                            var setMember = dynamicFactory.MakeDynamicSetMember(rewrittenReceiver, initializerMember.MemberName, rewrittenRight);
+                            dynamicSiteInitializers.Add(setMember.SiteInitialization);
+                            result.Add(setMember.SiteInvocation);
+                            return;
+                        }
+
+                        var getMember = dynamicFactory.MakeDynamicGetMember(rewrittenReceiver, initializerMember.MemberName, resultIndexed: false);
+                        dynamicSiteInitializers.Add(getMember.SiteInitialization);
+                        rewrittenAccess = getMember.SiteInvocation;
+                        break;
                     }
 
-                    var getMember = dynamicFactory.MakeDynamicGetIndex(
-                        rewrittenReceiver,
-                        memberInit.Arguments,
-                        default(ImmutableArray<string>),
-                        default(ImmutableArray<RefKind>));
-
-                    dynamicSiteInitializers.Add(getMember.SiteInitialization);
-                    rewrittenAccess = getMember.SiteInvocation;
-                }
-                else
-                {
-                    rewrittenAccess = MakeObjectInitializerMemberAccess(rewrittenReceiver, memberInit, isRhsNestedInitializer);
-                    if (!isRhsNestedInitializer)
+                case BoundKind.ArrayAccess:
                     {
-                        // Rewrite simple assignment to field/property.
-                        var rewrittenRight = VisitExpression(assignment.Right);
-                        result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, assignment.Type, used: false));
-                        return;
+                        var arrayAccess = (BoundArrayAccess)rewrittenLeft;
+
+                        rewrittenAccess = arrayAccess.Update(rewrittenReceiver, arrayAccess.Indices, arrayAccess.Type);
+                        if (!isRhsNestedInitializer)
+                        {
+                            // Rewrite simple assignment to field/property.
+                            var rewrittenRight = VisitExpression(assignment.Right);
+                            result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, assignment.Type, used: false));
+                            return;
+                        }
+                        
+                        break;
                     }
-                }
-            }
-            else
-            {
-                if (dynamicSiteInitializers == null)
-                {
-                    dynamicSiteInitializers = ArrayBuilder<BoundExpression>.GetInstance();
-                }
 
-                Debug.Assert(rewrittenLeft.Kind == BoundKind.DynamicObjectInitializerMember);
-                var initializerMember = (BoundDynamicObjectInitializerMember)rewrittenLeft;
-
-                if (!isRhsNestedInitializer)
-                {
-                    var rewrittenRight = VisitExpression(assignment.Right);
-                    var setMember = dynamicFactory.MakeDynamicSetMember(rewrittenReceiver, initializerMember.MemberName, rewrittenRight);
-                    dynamicSiteInitializers.Add(setMember.SiteInitialization);
-                    result.Add(setMember.SiteInvocation);
-                    return;
-                }
-
-                var getMember = dynamicFactory.MakeDynamicGetMember(rewrittenReceiver, initializerMember.MemberName, resultIndexed: false);
-                dynamicSiteInitializers.Add(getMember.SiteInitialization);
-                rewrittenAccess = getMember.SiteInvocation;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(rewrittenLeft.Kind);
             }
 
             AddObjectOrCollectionInitializers(ref dynamicSiteInitializers, result, rewrittenAccess, assignment.Right);
@@ -279,8 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var memberSymbol = rewrittenLeft.MemberSymbol;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            Debug.Assert(memberSymbol == null ||
-                this.compilation.Conversions.ClassifyConversion(rewrittenReceiver.Type, memberSymbol.ContainingType, ref useSiteDiagnostics).IsImplicit);
+            Debug.Assert(memberSymbol != null && this.compilation.Conversions.ClassifyConversion(rewrittenReceiver.Type, memberSymbol.ContainingType, ref useSiteDiagnostics).IsImplicit);
             // It is possible there are use site diagnostics from the above, but none that we need report as we aren't generating code for the conversion
 
             switch (memberSymbol.Kind)

@@ -2079,5 +2079,80 @@ class X : List<int>
             }
         }
 
+        [Fact, WorkItem(1073330)]
+        public void NestedIndexerInitializerArray()
+        {
+            var source = @"
+class C
+{
+    int[] a;
+
+    static void Main()
+    {
+        var a = new C { a = { [0] = 1, [1] = 2 } };
+    }
+}
+";
+
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (4,11): warning CS0414: The field 'C.a' is assigned but its value is never used
+                //     int[] a;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("C.a").WithLocation(4, 11));
+        }
+
+        [Fact, WorkItem(1073330)]
+        public void NestedIndexerInitializerMDArray()
+        {
+            var source = @"
+class C
+{
+    int[,] a;
+
+    static void Main()
+    {
+        var a = new C { a = { [0, 0] = 1, [0, 1] = 2, [1, 0] = 3, [1, 1] = 4} };
+    }
+}
+";
+
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (4,12): warning CS0414: The field 'C.a' is assigned but its value is never used
+                //     int[,] a;
+                Diagnostic(ErrorCode.WRN_UnreferencedFieldAssg, "a").WithArguments("C.a").WithLocation(4, 12));
+        }
+
+        [Fact, WorkItem(1073330)]
+        public void NestedIndexerInitializerArraySemanticInfo()
+        {
+            var source = @"
+class C
+{
+    int[] a;
+
+    static void Main()
+    {
+        var a = new C { a = { [0] = 1, [1] = 2 } };
+    }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+
+            var nodes = tree.GetRoot().DescendantNodes().OfType<InitializerExpressionSyntax>().Skip(1).Single().Expressions;
+
+            SymbolInfo symbolInfo;
+
+            for (int i = 0; i < 2; i++)
+            {
+                symbolInfo = semanticModel.GetSymbolInfo(((AssignmentExpressionSyntax)nodes[i]).Left);
+
+                Assert.Null(symbolInfo.Symbol);
+                Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+                Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
+            }
+        }
     }
 }
