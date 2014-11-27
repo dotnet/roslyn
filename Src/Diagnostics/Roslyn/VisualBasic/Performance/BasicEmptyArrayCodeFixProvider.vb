@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
+Imports System.Globalization
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
@@ -22,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Performance
 
         Protected Overrides Function GetCodeFixDescription(ruleId As String) As String
             Debug.Assert(ruleId = EmptyArrayDiagnosticAnalyzer.UseArrayEmptyDescriptor.Id)
-            Return EmptyArrayDiagnosticAnalyzer.UseArrayEmptyDescriptor.Description
+            Return EmptyArrayDiagnosticAnalyzer.UseArrayEmptyDescriptor.Description.ToString(CultureInfo.CurrentUICulture)
         End Function
 
         Public Overrides Function GetFixAllProvider() As FixAllProvider

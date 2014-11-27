@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract string ToString(IFormatProvider formatProvider);
 
-        public static implicit operator string(LocalizableString localizableResource)
+        public static explicit operator string(LocalizableString localizableResource)
         {
             return localizableResource.ToString(null);
         }

@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 Id = rule.Id,
                 Severity = rule.DefaultSeverity,
-                Message = rule.MessageFormat
+                Message = rule.MessageFormat.ToString()
             };
         }
 
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Locations = new[] { location },
                 Id = rule.Id,
                 Severity = rule.DefaultSeverity,
-                Message = string.Format(rule.MessageFormat, messageArguments)
+                Message = string.Format(rule.MessageFormat.ToString(), messageArguments)
             };
         }
 

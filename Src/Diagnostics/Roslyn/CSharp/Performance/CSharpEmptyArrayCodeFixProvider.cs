@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Performance
         protected sealed override string GetCodeFixDescription(string ruleId)
         {
             Debug.Assert(ruleId == EmptyArrayDiagnosticAnalyzer.UseArrayEmptyDescriptor.Id);
-            return EmptyArrayDiagnosticAnalyzer.UseArrayEmptyDescriptor.Description;
+            return EmptyArrayDiagnosticAnalyzer.UseArrayEmptyDescriptor.Description.ToString(CultureInfo.CurrentUICulture);
         }
 
         internal override Task<Document> GetUpdatedDocumentAsync(

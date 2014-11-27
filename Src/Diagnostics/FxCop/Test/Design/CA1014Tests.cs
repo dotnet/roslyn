@@ -191,14 +191,14 @@ class Program
         {
             Id = AssemblyAttributesDiagnosticAnalyzer.CA1014RuleName,
             Severity = DiagnosticSeverity.Warning,
-            Message = AssemblyAttributesDiagnosticAnalyzer.CA1014Rule.MessageFormat
+            Message = AssemblyAttributesDiagnosticAnalyzer.CA1014Rule.MessageFormat.ToString()
         };
 
         private static DiagnosticResult diagnosticCA1016 = new DiagnosticResult
         {
             Id = AssemblyAttributesDiagnosticAnalyzer.CA1016RuleName,
             Severity = DiagnosticSeverity.Warning,
-            Message = AssemblyAttributesDiagnosticAnalyzer.CA1016Rule.MessageFormat
+            Message = AssemblyAttributesDiagnosticAnalyzer.CA1016Rule.MessageFormat.ToString()
         };
     }
 }

@@ -61,9 +61,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 isEnabledByDefault: true,
                 description: localizableDescription);
 
-            Assert.Equal<string>(fixedTitle, descriptor.Title);
-            Assert.Equal<string>(fixedMessageFormat, descriptor.MessageFormat);
-            Assert.Equal<string>(fixedDescription, descriptor.Description);
+            Assert.Equal<string>(fixedTitle, descriptor.Title.ToString());
+            Assert.Equal<string>(fixedMessageFormat, descriptor.MessageFormat.ToString());
+            Assert.Equal<string>(fixedDescription, descriptor.Description.ToString());
 
             Assert.Equal(localizedTitle, descriptor.Title.ToString(arCulture));
             Assert.Equal(localizedMessageFormat, descriptor.MessageFormat.ToString(arCulture));
