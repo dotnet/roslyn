@@ -932,7 +932,9 @@ a.vb
             Assert.Equal(False, parsedArgs.DisplayHelp)
             Assert.Equal(True, parsedArgs.SourceFiles.Any())
             parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"\\"}, _baseDirectory)
-            Assert.Equal(False, parsedArgs.Errors.Any())
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(".exe"))
+
             Assert.Equal(False, parsedArgs.DisplayHelp)
             Assert.Equal(True, parsedArgs.SourceFiles.Any())
             parsedArgs = VisualBasicCommandLineParser.Interactive.Parse({"c.vbx", "/r:d.dll", "/define:DEGUG"}, _baseDirectory)
@@ -2423,6 +2425,68 @@ a.vb
 
             parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/out-:", "a.vb"}, baseDirectory)
             parsedArgs.Errors.Verify(Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/out-:")) ' TODO: Dev11 reports ERR_ArgumentRequired
+
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/out:.exe", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(".exe"))
+
+            Assert.Null(parsedArgs.OutputFileName)
+            Assert.Null(parsedArgs.CompilationName)
+            Assert.Null(parsedArgs.CompilationOptions.ModuleName)
+
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/t:exe", "/out:.exe", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(".exe"))
+
+            Assert.Null(parsedArgs.OutputFileName)
+            Assert.Null(parsedArgs.CompilationName)
+            Assert.Null(parsedArgs.CompilationOptions.ModuleName)
+
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/t:library", "/out:.dll", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(".dll"))
+
+            Assert.Null(parsedArgs.OutputFileName)
+            Assert.Null(parsedArgs.CompilationName)
+            Assert.Null(parsedArgs.CompilationOptions.ModuleName)
+
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/t:module", "/out:.netmodule", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+
+            Assert.Equal(".netmodule", parsedArgs.OutputFileName)
+            Assert.Null(parsedArgs.CompilationName)
+            Assert.Equal(".netmodule", parsedArgs.CompilationOptions.ModuleName)
+
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({".vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(".exe"))
+
+            Assert.Null(parsedArgs.OutputFileName)
+            Assert.Null(parsedArgs.CompilationName)
+            Assert.Null(parsedArgs.CompilationOptions.ModuleName)
+
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/t:exe", ".vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(".exe"))
+
+            Assert.Null(parsedArgs.OutputFileName)
+            Assert.Null(parsedArgs.CompilationName)
+            Assert.Null(parsedArgs.CompilationOptions.ModuleName)
+
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/t:library", ".vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.FTL_InputFileNameTooLong).WithArguments(".dll"))
+
+            Assert.Null(parsedArgs.OutputFileName)
+            Assert.Null(parsedArgs.CompilationName)
+            Assert.Null(parsedArgs.CompilationOptions.ModuleName)
+
+            parsedArgs = VisualBasicCommandLineParser.Default.Parse({"/t:module", ".vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+
+            Assert.Equal(".netmodule", parsedArgs.OutputFileName)
+            Assert.Null(parsedArgs.CompilationName)
+            Assert.Equal(".netmodule", parsedArgs.CompilationOptions.ModuleName)
         End Sub
 
         <Fact>

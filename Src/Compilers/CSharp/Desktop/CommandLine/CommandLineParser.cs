@@ -1176,6 +1176,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     simpleName = PathUtilities.RemoveExtension(PathUtilities.GetFileName(sourceFiles.FirstOrDefault().Path));
                     outputFileName = simpleName + outputKind.GetDefaultExtension();
+
+                    if (simpleName.Length == 0 && !outputKind.IsNetModule())
+                    {
+                        AddDiagnostic(diagnostics, ErrorCode.FTL_InputFileNameTooLong, outputFileName);
+                        outputFileName = simpleName = null;
+                    }
                 }
             }
             else

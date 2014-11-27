@@ -1955,6 +1955,12 @@ lVbRuntimePlus:
                 If first.Path IsNot Nothing Then
                     simpleName = PathUtilities.RemoveExtension(PathUtilities.GetFileName(first.Path))
                     outputFileName = simpleName & kind.GetDefaultExtension()
+
+                    If simpleName.Length = 0 AndAlso Not kind.IsNetModule() Then
+                        AddDiagnostic(diagnostics, ERRID.FTL_InputFileNameTooLong, outputFileName)
+                        simpleName = Nothing
+                        outputFileName = Nothing
+                    End If
                 End If
             Else
                 Dim ext As String = PathUtilities.GetExtension(outputFileName)

@@ -2029,6 +2029,77 @@ C:\*.cs(100,7): error CS0103: The name 'Foo' does not exist in the current conte
             Assert.Null(parsedArgs.OutputFileName);
             Assert.Null(parsedArgs.CompilationName);
             Assert.Null(parsedArgs.CompilationOptions.ModuleName);
+
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/out:.exe", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2021: File name '.exe' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
+                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(".exe")
+                );
+
+            Assert.Null(parsedArgs.OutputFileName);
+            Assert.Null(parsedArgs.CompilationName);
+            Assert.Null(parsedArgs.CompilationOptions.ModuleName);
+
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/t:exe", @"/out:.exe", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2021: File name '.exe' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
+                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(".exe")
+                );
+
+            Assert.Null(parsedArgs.OutputFileName);
+            Assert.Null(parsedArgs.CompilationName);
+            Assert.Null(parsedArgs.CompilationOptions.ModuleName);
+
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/t:library", @"/out:.dll", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2021: File name '.dll' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
+                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(".dll")
+                );
+
+            Assert.Null(parsedArgs.OutputFileName);
+            Assert.Null(parsedArgs.CompilationName);
+            Assert.Null(parsedArgs.CompilationOptions.ModuleName);
+
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/t:module", @"/out:.netmodule", "a.cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2021: File name '.netmodule' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
+                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(".netmodule")
+                );
+
+            Assert.Null(parsedArgs.OutputFileName);
+            Assert.Null(parsedArgs.CompilationName);
+            Assert.Null(parsedArgs.CompilationOptions.ModuleName);
+
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { ".cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+
+            Assert.Null(parsedArgs.OutputFileName);
+            Assert.Null(parsedArgs.CompilationName);
+            Assert.Null(parsedArgs.CompilationOptions.ModuleName);
+
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/t:exe", ".cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+
+            Assert.Null(parsedArgs.OutputFileName);
+            Assert.Null(parsedArgs.CompilationName);
+            Assert.Null(parsedArgs.CompilationOptions.ModuleName);
+
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/t:library", ".cs" }, baseDirectory);
+            parsedArgs.Errors.Verify(
+                // error CS2021: File name '.dll' is empty, contains invalid characters, has a drive specification without an absolute path, or is too long
+                Diagnostic(ErrorCode.FTL_InputFileNameTooLong).WithArguments(".dll")
+                );
+
+            Assert.Null(parsedArgs.OutputFileName);
+            Assert.Null(parsedArgs.CompilationName);
+            Assert.Null(parsedArgs.CompilationOptions.ModuleName);
+
+            parsedArgs = CSharpCommandLineParser.Default.Parse(new[] { @"/t:module", ".cs" }, baseDirectory);
+            parsedArgs.Errors.Verify();
+
+            Assert.Equal(".netmodule", parsedArgs.OutputFileName);
+            Assert.Null(parsedArgs.CompilationName);
+            Assert.Equal(".netmodule", parsedArgs.CompilationOptions.ModuleName);
         }
 
         [WorkItem(546012, "DevDiv")]
