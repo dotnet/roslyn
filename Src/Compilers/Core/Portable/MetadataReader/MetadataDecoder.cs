@@ -2130,8 +2130,7 @@ namespace Microsoft.CodeAnalysis
                 return GetUnsupportedMetadataTypeSymbol();
             }
 
-            var decoder = new MetadataHelpers.SerializedTypeDecoder();
-            MetadataHelpers.AssemblyQualifiedTypeName fullName = decoder.DecodeTypeName(s);
+            MetadataHelpers.AssemblyQualifiedTypeName fullName = MetadataHelpers.DecodeTypeName(s);
             bool refersToNoPiaLocalType;
             return GetTypeSymbol(fullName, out refersToNoPiaLocalType);
         }
@@ -2177,11 +2176,9 @@ namespace Microsoft.CodeAnalysis
                 referencedAssemblyIndex = -1;
             }
 
-            MetadataTypeName mdName;
-
             // Find the top level type
             Debug.Assert(MetadataHelpers.IsValidMetadataIdentifier(fullName.TopLevelType));
-            mdName = MetadataTypeName.FromFullName(fullName.TopLevelType);
+            var mdName = MetadataTypeName.FromFullName(fullName.TopLevelType);
             TypeSymbol container = LookupTopLevelTypeDefSymbol(ref mdName, referencedAssemblyIndex, out refersToNoPiaLocalType);
 
             // Process any nested types

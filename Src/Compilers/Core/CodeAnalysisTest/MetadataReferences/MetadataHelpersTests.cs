@@ -227,7 +227,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         private static void DecodeTypeNameAndVerify(
-            MetadataHelpers.SerializedTypeDecoder decoder,
             string nameToDecode,
             string expectedTopLevelType,
             string expectedAssemblyName = null,
@@ -235,18 +234,18 @@ namespace Microsoft.CodeAnalysis.UnitTests
             MetadataHelpers.AssemblyQualifiedTypeName[] expectedTypeArguments = null,
             int[] expectedArrayRanks = null)
         {
-            MetadataHelpers.AssemblyQualifiedTypeName decodedName = decoder.DecodeTypeName(nameToDecode);
+            MetadataHelpers.AssemblyQualifiedTypeName decodedName = MetadataHelpers.DecodeTypeName(nameToDecode);
             VerifyDecodedTypeName(decodedName, expectedTopLevelType, expectedAssemblyName, expectedNestedTypes, expectedTypeArguments, expectedArrayRanks);
         }
 
-        private static void DecodeTypeNamesAndVerify(MetadataHelpers.SerializedTypeDecoder decoder, string[] namesToDecode, MetadataHelpers.AssemblyQualifiedTypeName[] expectedDecodedNames)
+        private static void DecodeTypeNamesAndVerify(string[] namesToDecode, MetadataHelpers.AssemblyQualifiedTypeName[] expectedDecodedNames)
         {
             Assert.Equal(namesToDecode.Length, expectedDecodedNames.Length);
 
             for (int i = 0; i < namesToDecode.Length; i++)
             {
                 var expectedDecodedName = expectedDecodedNames[i];
-                DecodeTypeNameAndVerify(decoder, namesToDecode[i], expectedDecodedName.TopLevelType, expectedDecodedName.AssemblyName,
+                DecodeTypeNameAndVerify(namesToDecode[i], expectedDecodedName.TopLevelType, expectedDecodedName.AssemblyName,
                     expectedDecodedName.NestedTypes, expectedDecodedName.TypeArguments, expectedDecodedName.ArrayRanks);
             }
         }
@@ -255,19 +254,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestDecodeTypeNameMatrix()
         {
-            var decoder = new MetadataHelpers.SerializedTypeDecoder();
             TypeNameConfig[] configsToTest = GenerateTypeNameConfigs(0);
             MetadataHelpers.AssemblyQualifiedTypeName[] expectedDecodedNames;
             string[] namesToDecode = GenerateTypeNamesToDecode(configsToTest, out expectedDecodedNames);
-            DecodeTypeNamesAndVerify(decoder, namesToDecode, expectedDecodedNames);
+            DecodeTypeNamesAndVerify(namesToDecode, expectedDecodedNames);
         }
 
         [WorkItem(546277, "DevDiv")]
         [Fact]
         public void TestDecodeArrayTypeName_Bug15478()
         {
-            var decoder = new MetadataHelpers.SerializedTypeDecoder();
-            DecodeTypeNameAndVerify(decoder, "System.Int32[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+            DecodeTypeNameAndVerify("System.Int32[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
                 expectedTopLevelType: "System.Int32",
                 expectedAssemblyName: "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
                 expectedArrayRanks: new[] { 1 });
@@ -277,31 +274,29 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestDecodeArrayTypeName_Valid()
         {
-            var decoder = new MetadataHelpers.SerializedTypeDecoder();
-
             // Single-D Array
-            DecodeTypeNameAndVerify(decoder, "W[]",
+            DecodeTypeNameAndVerify("W[]",
                 expectedTopLevelType: "W",
                 expectedArrayRanks: new[] { 1 });
 
             // Multi-D Array
-            DecodeTypeNameAndVerify(decoder, "W[,]",
+            DecodeTypeNameAndVerify("W[,]",
                 expectedTopLevelType: "W",
                 expectedArrayRanks: new[] { 2 });
 
             // Jagged Array
-            DecodeTypeNameAndVerify(decoder, "W[][,]",
+            DecodeTypeNameAndVerify("W[][,]",
                 expectedTopLevelType: "W",
                 expectedArrayRanks: new[] { 1, 2 });
 
             // Generic Type Jagged Array
-            DecodeTypeNameAndVerify(decoder, "Y`1[W][][,]",
+            DecodeTypeNameAndVerify("Y`1[W][][,]",
                 expectedTopLevelType: "Y`1",
                 expectedTypeArguments: new[] { new MetadataHelpers.AssemblyQualifiedTypeName("W", null, null, null, null) },
                 expectedArrayRanks: new[] { 1, 2 });
 
             // Nested Generic Type Jagged Array with Array type argument
-            DecodeTypeNameAndVerify(decoder, "Y`1+F[[System.Int32[], mscorlib]][,,][][,]",
+            DecodeTypeNameAndVerify("Y`1+F[[System.Int32[], mscorlib]][,,][][,]",
                 expectedTopLevelType: "Y`1",
                 expectedNestedTypes: new[] { "F" },
                 expectedTypeArguments: new[] { new MetadataHelpers.AssemblyQualifiedTypeName(
@@ -313,7 +308,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 expectedArrayRanks: new[] { 3, 1, 2 });
 
             // Nested Generic Type Jagged Array with type arguments from nested type and outer type
-            DecodeTypeNameAndVerify(decoder, "Y`1+Z`1[[System.Int32[], mscorlib], W][][,]",
+            DecodeTypeNameAndVerify("Y`1+Z`1[[System.Int32[], mscorlib], W][][,]",
                 expectedTopLevelType: "Y`1",
                 expectedNestedTypes: new[] { "Z`1" },
                 expectedTypeArguments: new[] { new MetadataHelpers.AssemblyQualifiedTypeName(
@@ -330,33 +325,31 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestDecodeArrayTypeName_Invalid()
         {
-            var decoder = new MetadataHelpers.SerializedTypeDecoder();
-            
             // Error case, array shape before nested type
-            DecodeTypeNameAndVerify(decoder, "X[]+Y",
+            DecodeTypeNameAndVerify("X[]+Y",
                 expectedTopLevelType: "X+Y",
                 expectedNestedTypes: null,
                 expectedArrayRanks: new [] { 1 });
 
             // Error case, array shape before generic type arguments
-            DecodeTypeNameAndVerify(decoder, "X[]`1[T]",
+            DecodeTypeNameAndVerify("X[]`1[T]",
                 expectedTopLevelType: "X`1[T]",
                 expectedTypeArguments: null,
                 expectedArrayRanks: new[] { 1 });
 
             // Error case, invalid array shape
-            DecodeTypeNameAndVerify(decoder, "X[T]",
+            DecodeTypeNameAndVerify("X[T]",
                 expectedTopLevelType: "X[T]",
                 expectedTypeArguments: null,
                 expectedArrayRanks: null);
 
-            DecodeTypeNameAndVerify(decoder, "X[,",
+            DecodeTypeNameAndVerify("X[,",
                 expectedTopLevelType: "X[,",
                 expectedTypeArguments: null,
                 expectedArrayRanks: null);
 
             // Incomplete type argument assembly name
-            DecodeTypeNameAndVerify(decoder, "X`1[[T, Assembly",
+            DecodeTypeNameAndVerify("X`1[[T, Assembly",
                 expectedTopLevelType: "X`1",
                 expectedAssemblyName: null,
                 expectedTypeArguments: new [] { new MetadataHelpers.AssemblyQualifiedTypeName("T", null, null, null, "Assembly") },

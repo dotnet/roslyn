@@ -50,17 +50,29 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal static AssemblyQualifiedTypeName DecodeTypeName(string s)
+        {
+            var decoder = new SerializedTypeDecoder(s);
+            return decoder.DecodeTypeName();
+        }
+
         /// <summary>
         /// Decodes a serialized type name in its canonical form. The canonical name is its full type name, followed
         /// optionally by the assembly where it is defined, its version, culture and public key token.  If the assembly
         /// name is omitted, the type name is in the current assembly otherwise it is in the referenced assembly. The
         /// full type name is the fully qualified metadata type name. 
         /// </summary>
-        internal struct SerializedTypeDecoder
+        private struct SerializedTypeDecoder
         {
             private static readonly char[] TypeNameDelimiters = new char[] { '+', ',', '[', ']' };
-            private string input;
+            private readonly string input;
             private int offset;
+
+            internal SerializedTypeDecoder(string s)
+            {
+                input = s;
+                offset = 0;
+            }
 
             void Advance()
             {
@@ -102,20 +114,12 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-
-            internal AssemblyQualifiedTypeName DecodeTypeName(string s)
-            {
-                input = s;
-                offset = 0;
-                return DecodeTypeName();
-            }
-
             /// <summary>
             /// Decodes a type name.  A type name is a string which is terminated by the end of the string or one of the
             /// delimiters '+', ',', '[', ']'. '+' separates nested classes. '[' and ']'
             /// enclosed generic type arguments.  ',' separates types.
             /// </summary>
-            private AssemblyQualifiedTypeName DecodeTypeName(bool isTypeArgument = false, bool isTypeArgumentWithAssemblyName = false)
+            internal AssemblyQualifiedTypeName DecodeTypeName(bool isTypeArgument = false, bool isTypeArgumentWithAssemblyName = false)
             {
                 Debug.Assert(!isTypeArgumentWithAssemblyName || isTypeArgument);
 
