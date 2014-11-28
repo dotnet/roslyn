@@ -212,7 +212,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                             If member.IsMustOverride AndAlso currType IsNot container Then
                                 If Not overriddenMembers.Contains(member) Then
-                                    unimplementedMembers.Add(member)
+                                    If member.Kind = SymbolKind.Event Then
+                                        diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_MustInheritEventNotOverridden,
+                                                                   member,
+                                                                   CustomSymbolDisplayFormatter.QualifiedName(currType),
+                                                                   CustomSymbolDisplayFormatter.ShortErrorName(container)),
+                                                       container.Locations(0)))
+                                    Else
+                                        unimplementedMembers.Add(member)
+                                    End If
                                 End If
                             End If
 

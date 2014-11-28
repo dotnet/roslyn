@@ -1283,6 +1283,9 @@
   <data name="ERR_BaseOnlyClassesMustBeExplicit2" xml:space="preserve">
     <value>Class '{0}' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): {1}.</value>
   </data>
+  <data name="ERR_MustInheritEventNotOverridden" xml:space="preserve">
+    <value>'{0}' is a MustOverride event in the base class '{1}'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class '{2}' MustInherit.</value>
+  </data>
   <data name="ERR_NegativeArraySize" xml:space="preserve">
     <value>Array dimensions cannot have a negative size.</value>
   </data>

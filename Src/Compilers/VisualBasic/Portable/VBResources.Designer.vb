@@ -5577,6 +5577,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Assembly culture strings may not contain embedded NUL characters..
+        '''</summary>
+        Friend ReadOnly Property ERR_InvalidAssemblyCulture() As String
+            Get
+                Return ResourceManager.GetString("ERR_InvalidAssemblyCulture", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Executables cannot be satellite assemblies; culture should always be empty.
         '''</summary>
         Friend ReadOnly Property ERR_InvalidAssemblyCultureForExe() As String
@@ -7203,6 +7212,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_MustBeOverloads2() As String
             Get
                 Return ResourceManager.GetString("ERR_MustBeOverloads2", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to &apos;{0}&apos; is a MustOverride event in the base class &apos;{1}&apos;. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class &apos;{2}&apos; MustInherit..
+        '''</summary>
+        Friend ReadOnly Property ERR_MustInheritEventNotOverridden() As String
+            Get
+                Return ResourceManager.GetString("ERR_MustInheritEventNotOverridden", resourceCulture)
             End Get
         End Property
         

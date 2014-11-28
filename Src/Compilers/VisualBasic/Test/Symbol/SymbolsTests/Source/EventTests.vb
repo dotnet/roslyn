@@ -992,15 +992,18 @@ End Class
 
             Dim comp = CompilationUtils.CreateCompilationWithCustomILSource(vbSource, ilSource)
 
-            'Error BC30243 'Overrides' is not valid on an event declaration.
-            'warning BC40004: event 'E' conflicts with event 'E' in the base class 'AbsEvent' and should be declared 'Shadows'.
-            'error BC30610: Class 'B' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
-            '    AbsEvent: Public MustOverride Event E As System.Action.
-            comp.VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_BadEventFlags1, "Overrides").WithArguments("Overrides"),
-                Diagnostic(ERRID.WRN_OverrideType5, "E").WithArguments("event", "E", "event", "class", "AbsEvent"),
-                Diagnostic(ERRID.ERR_BaseOnlyClassesMustBeExplicit2, "B").WithArguments("B", "error BC0000: " & vbNewLine & "    AbsEvent: Public MustOverride Event E As Action")
-                )
+            AssertTheseDiagnostics(comp,
+<expected>
+BC31499: 'Public MustOverride Event E As Action' is a MustOverride event in the base class 'AbsEvent'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'B' MustInherit.
+Class B
+      ~
+BC30243: 'Overrides' is not valid on an event declaration.
+    Overrides Public Event E As System.Action
+    ~~~~~~~~~
+BC40004: event 'E' conflicts with event 'E' in the base class 'AbsEvent' and should be declared 'Shadows'.
+    Overrides Public Event E As System.Action
+                           ~
+</expected>)
         End Sub
 
         <Fact()>

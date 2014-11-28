@@ -988,7 +988,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         '// AVAILABLE                             31451 - 31497
         'ERR_ContantStringTooLong = 31498
-        'ERR_MustInheritEventNotOverridden = 31499  unused in Roslyn.
+        ERR_MustInheritEventNotOverridden = 31499
         ERR_BadAttributeSharedProperty1 = 31500
         ERR_BadAttributeReadOnlyProperty1 = 31501
         ERR_DuplicateResourceName1 = 31502
