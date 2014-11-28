@@ -5492,7 +5492,7 @@ BC30375: 'New' cannot be used on an interface.
 
         End Sub
 
-        <Fact()>
+        <Fact(), WorkItem(999399, "DevDiv")>
         Public Sub BC30387ERR_NoConstructorOnBase2()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="NoConstructorOnBase2">
@@ -5508,12 +5508,17 @@ BC30375: 'New' cannot be used on an interface.
         End Module
     </file>
 </compilation>)
-            CompilationUtils.AssertTheseDiagnostics(compilation,
+
+            Dim expected =
 <expected>
 BC30387: Class 'M1.c1' must declare a 'Sub New' because its base class 'M1.Base' does not have an accessible 'Sub New' that can be called with no arguments.
             Class c1
                   ~~
-</expected>)
+</expected>
+
+            CompilationUtils.AssertTheseDiagnostics(compilation, expected)
+
+            CompilationUtils.AssertTheseDiagnostics(compilation.GetDiagnosticsForTree(CompilationStage.Compile, compilation.SyntaxTrees.Single(), Nothing, True), expected)
         End Sub
 
         <Fact()>

@@ -120,6 +120,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
+            If symbol.Kind = SymbolKind.Method AndAlso symbol.IsImplicitlyDeclared AndAlso
+               DirectCast(symbol, MethodSymbol).MethodKind = MethodKind.Constructor Then
+                ' Include implicitly declared constructor if containing type is included
+                Return IsDefinedOrImplementedInSourceTree(symbol.ContainingType, tree, span)
+            End If
+
             Return False
         End Function
 

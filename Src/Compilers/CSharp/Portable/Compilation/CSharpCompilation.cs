@@ -2034,6 +2034,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            if (symbol.Kind == SymbolKind.Method && symbol.IsImplicitlyDeclared && ((MethodSymbol)symbol).MethodKind == MethodKind.Constructor)
+            {
+                // Include implicitly declared constructor if containing type is included
+                return IsDefinedOrImplementedInSourceTree(symbol.ContainingType, tree, span);
+            }
+
             return false;
         }
 

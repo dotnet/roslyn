@@ -14856,7 +14856,7 @@ class Test
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(999399, "DevDiv")]
         public void CS1729ERR_BadCtorArgCount()
         {
             var text = @"
@@ -14888,7 +14888,9 @@ public class Child2 : Parent
     {
     }
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib(text);
+
+            DiagnosticDescription[] expected = {
                 // (21,14): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'Parent.Parent(int, int)'
                 // public class Child : Parent { } // CS1729
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Child").WithArguments("i", "Parent.Parent(int, int)").WithLocation(21, 14),
@@ -14900,7 +14902,12 @@ public class Child2 : Parent
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "Test").WithArguments("Test", "1").WithLocation(7, 26),
                 // (9,37): error CS7036: There is no argument given that corresponds to the required formal parameter 'j' of 'Parent.Parent(int, int)'
                 //         Parent exampleParent1 = new Parent(10); // CS1729
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Parent").WithArguments("j", "Parent.Parent(int, int)").WithLocation(9, 37));
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Parent").WithArguments("j", "Parent.Parent(int, int)").WithLocation(9, 37)
+            };
+
+            compilation.VerifyDiagnostics(expected);
+
+            compilation.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, compilation.SyntaxTrees.Single(), null, true).Verify(expected);
         }
 
         [WorkItem(539631, "DevDiv")]
