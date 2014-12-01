@@ -35,9 +35,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             get { return this.errors != null; }
         }
 
-        protected SyntaxDiagnosticInfo[] Errors
+        protected SyntaxDiagnosticInfo[] GetErrors(int leadingTriviaWidth)
         {
-            get { return this.errors == null ? null : this.errors.ToArray(); }
+            if (this.errors != null)
+            {
+                if (leadingTriviaWidth > 0)
+                {
+                    var array = new SyntaxDiagnosticInfo[this.errors.Count];
+                    for (int i = 0; i < this.errors.Count; i++)
+                    {
+                        // fixup error positioning to account for leading trivia
+                        array[i] = this.errors[i].WithOffset(this.errors[i].Offset + leadingTriviaWidth);
+                    }
+
+                    return array;
+                }
+                else
+                {
+                    return this.errors.ToArray();
+                }
+            }
+            else
+            {
+                return null;
+            }
         }
 
         protected void AddError(int position, int width, ErrorCode code)

@@ -34,6 +34,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
+        public SyntaxDiagnosticInfo WithOffset(int offset)
+        {
+            return new SyntaxDiagnosticInfo(offset, this.Width, (ErrorCode)this.Code, this.Arguments);
+        }
+
         #region Serialization
 
         protected override void WriteTo(ObjectWriter writer)

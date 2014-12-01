@@ -123,9 +123,9 @@ class Program {
                 // (5,60): error CS8076: Missing close delimiter '}' for interpolated expression started with \{.
                 //         Console.WriteLine("Jenny don\'t change your number \{ ");
                 Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, @"\{").WithLocation(5, 60),
-                // (5,62): error CS1010: Newline in constant
+                // (5,63): error CS1010: Newline in constant
                 //         Console.WriteLine("Jenny don\'t change your number \{ ");
-                Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(5, 62),
+                Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(5, 63),
                 // (5,66): error CS1026: ) expected
                 //         Console.WriteLine("Jenny don\'t change your number \{ ");
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(5, 66),

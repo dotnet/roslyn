@@ -384,6 +384,32 @@ Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l"),
 Diagnostic(ErrorCode.WRN_LowercaseEllSuffix, "l"));
         }
 
+        [Fact, WorkItem(530118, "DevDiv")]
+        public void TestEndIfExpectedOnEOF()
+        {
+            var test = @"
+#if false
+int 1 = 0;";
+
+            ParserErrorMessageTests.ParseAndValidate(test,
+Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "").WithLocation(3, 11));
+        }
+
+        [Fact, WorkItem(530118, "DevDiv")]
+        public void TestEndIfExpectedOnEndRegion()
+        {
+            var test = @"
+#region xyz
+#if false
+int 1 = 0;
+#endregion
+";
+
+            ParserErrorMessageTests.ParseAndValidate(test,
+Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "#endregion").WithLocation(5, 1),
+Diagnostic(ErrorCode.ERR_EndifDirectiveExpected, "").WithLocation(6, 1));
+        }
+
         #endregion
     }
 }
