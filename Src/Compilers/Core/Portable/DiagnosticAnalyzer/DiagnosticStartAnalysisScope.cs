@@ -16,13 +16,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract void RegisterCompilationEndAction(Action<CompilationEndAnalysisContext> action);
 
         public abstract void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext> action);
-        public abstract void RegisterSymbolAction(Action<SymbolAnalysisContext> action, params SymbolKind[] symbolKinds);
+        public abstract void RegisterSymbolAction(Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> symbolKinds);
 
         public abstract void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) where TLanguageKindEnum : struct;
         public abstract void RegisterCodeBlockEndAction<TLanguageKindEnum>(Action<CodeBlockEndAnalysisContext> action) where TLanguageKindEnum : struct;
 
         public abstract void RegisterSyntaxTreeAction(Action<SyntaxTreeAnalysisContext> action);
-        public abstract void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds) where TLanguageKindEnum : struct;
+        public abstract void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds) where TLanguageKindEnum : struct;
     }
 
     /// <summary>
@@ -33,13 +33,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract void RegisterCompilationEndAction(Action<CompilationEndAnalysisContext> action);
 
         public abstract void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext> action);
-        public abstract void RegisterSymbolAction(Action<SymbolAnalysisContext> action, params SymbolKind[] symbolKinds);
+        public abstract void RegisterSymbolAction(Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> symbolKinds);
 
         public abstract void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) where TLanguageKindEnum : struct;
         public abstract void RegisterCodeBlockEndAction<TLanguageKindEnum>(Action<CodeBlockEndAnalysisContext> action) where TLanguageKindEnum : struct;
 
         public abstract void RegisterSyntaxTreeAction(Action<SyntaxTreeAnalysisContext> action);
-        public abstract void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds) where TLanguageKindEnum : struct;
+        public abstract void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds) where TLanguageKindEnum : struct;
     }
 
     /// <summary>
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         public abstract void RegisterCodeBlockEndAction(Action<CodeBlockEndAnalysisContext> action);
 
-        public abstract void RegisterSyntaxNodeAction(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds);
+        public abstract void RegisterSyntaxNodeAction(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds);
     }
 
     /// <summary>
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.scope.RegisterSemanticModelAction(this.analyzer, action);
         }
 
-        public override void RegisterSymbolAction(Action<SymbolAnalysisContext> action, params SymbolKind[] symbolKinds)
+        public override void RegisterSymbolAction(Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> symbolKinds)
         {
             this.scope.RegisterSymbolAction(this.analyzer, action, symbolKinds);
         }
@@ -101,9 +101,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.scope.RegisterCodeBlockEndAction<TLanguageKindEnum>(this.analyzer, action);
         }
 
-        public override void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds)
+        public override void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds)
         {
-            this.scope.RegisterSyntaxNodeAction<TLanguageKindEnum>(this.analyzer, action, syntaxKinds);
+            this.scope.RegisterSyntaxNodeAction(this.analyzer, action, syntaxKinds);
         }
     }
 
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.scope.RegisterSemanticModelAction(this.analyzer, action);
         }
 
-        public override void RegisterSymbolAction(Action<SymbolAnalysisContext> action, params SymbolKind[] symbolKinds)
+        public override void RegisterSymbolAction(Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> symbolKinds)
         {
             this.scope.RegisterSymbolAction(this.analyzer, action, symbolKinds);
         }
@@ -151,9 +151,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.scope.RegisterCodeBlockEndAction<TLanguageKindEnum>(this.analyzer, action);
         }
 
-        public override void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds)
+        public override void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds)
         {
-            this.scope.RegisterSyntaxNodeAction<TLanguageKindEnum>(this.analyzer, action, syntaxKinds);
+            this.scope.RegisterSyntaxNodeAction(this.analyzer, action, syntaxKinds);
         }
     }
 
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.scope.RegisterCodeBlockEndAction(this.analyzer, action);
         }
 
-        public override void RegisterSyntaxNodeAction(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds)
+        public override void RegisterSyntaxNodeAction(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds)
         {
             this.scope.RegisterSyntaxNodeAction(this.analyzer, action, syntaxKinds);
         }
@@ -309,9 +309,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.codeBlockEndActions = this.codeBlockEndActions.Add(new CodeBlockEndAnalyzerAction<TLanguageKindEnum>(action, analyzer));
         }
 
-        public void RegisterSyntaxNodeAction(DiagnosticAnalyzer analyzer, Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds)
+        public void RegisterSyntaxNodeAction(DiagnosticAnalyzer analyzer, Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds)
         {
-            this.syntaxNodeActions = this.syntaxNodeActions.Add(new SyntaxNodeAnalyzerAction<TLanguageKindEnum>(action, ImmutableArray.Create<TLanguageKindEnum>(syntaxKinds), analyzer));
+            this.syntaxNodeActions = this.syntaxNodeActions.Add(new SyntaxNodeAnalyzerAction<TLanguageKindEnum>(action, syntaxKinds, analyzer));
         }
     }
 
@@ -399,9 +399,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.syntaxTreeActions = this.syntaxTreeActions.Add(analyzerAction);
         }
 
-        public void RegisterSymbolAction(DiagnosticAnalyzer analyzer, Action<SymbolAnalysisContext> action, params SymbolKind[] symbolKinds)
+        public void RegisterSymbolAction(DiagnosticAnalyzer analyzer, Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> symbolKinds)
         {
-            SymbolAnalyzerAction analyzerAction = new SymbolAnalyzerAction(action, ImmutableArray.Create<SymbolKind>(symbolKinds), analyzer);
+            SymbolAnalyzerAction analyzerAction = new SymbolAnalyzerAction(action, symbolKinds, analyzer);
             this.GetOrCreateAnalyzerActions(analyzer).AddSymbolAction(analyzerAction);
             this.symbolActions = this.symbolActions.Add(analyzerAction);
         }
@@ -420,9 +420,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             this.codeBlockEndActions = this.codeBlockEndActions.Add(analyzerAction);
         }
 
-        public void RegisterSyntaxNodeAction<TLanguageKindEnum>(DiagnosticAnalyzer analyzer, Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds) where TLanguageKindEnum : struct
+        public void RegisterSyntaxNodeAction<TLanguageKindEnum>(DiagnosticAnalyzer analyzer, Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds) where TLanguageKindEnum : struct
         {
-            SyntaxNodeAnalyzerAction<TLanguageKindEnum> analyzerAction = new SyntaxNodeAnalyzerAction<TLanguageKindEnum>(action, ImmutableArray.Create<TLanguageKindEnum>(syntaxKinds), analyzer);
+            SyntaxNodeAnalyzerAction<TLanguageKindEnum> analyzerAction = new SyntaxNodeAnalyzerAction<TLanguageKindEnum>(action, syntaxKinds, analyzer);
             this.GetOrCreateAnalyzerActions(analyzer).AddSyntaxNodeAction(analyzerAction);
             this.syntaxNodeActions = this.syntaxNodeActions.Add(analyzerAction);
         }

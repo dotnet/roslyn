@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal AnalysisContext(SessionStartAnalysisScope scope)
         {
             this.scope = scope;
-        }
+        }        
 
         /// <summary>
         /// Register an action to be executed at compilation start.
@@ -52,11 +53,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at compilation start.</param>
         public void RegisterCompilationStartAction(Action<CompilationStartAnalysisContext> action)
         {
-            if (action == null)
-            {
-                throw new ArgumentNullException(nameof(action));
-            }
-
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
             this.scope.RegisterCompilationStartAction(action);
         }
 
@@ -67,11 +64,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at compilation end.</param>
         public void RegisterCompilationEndAction(Action<CompilationEndAnalysisContext> action)
         {
-            if (action == null)
-            {
-                throw new ArgumentNullException(nameof(action));
-            }
-
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
             this.scope.RegisterCompilationEndAction(action);
         }
 
@@ -83,11 +76,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed for a document's <see cref="SemanticModel"/>.</param>
         public void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext> action)
         {
-            if (action == null)
-            {
-                throw new ArgumentNullException(nameof(action));
-            }
-
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
             this.scope.RegisterSemanticModelAction(action);
         }
 
@@ -99,21 +88,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="symbolKinds">Action will be executed only if an <see cref="ISymbol"/>'s Kind matches one of the <see cref="SymbolKind"/> values.</param>
         public void RegisterSymbolAction(Action<SymbolAnalysisContext> action, params SymbolKind[] symbolKinds)
         {
-            if (action == null)
-            {
-                throw new ArgumentNullException(nameof(action));
-            }
+            this.RegisterSymbolAction(action, symbolKinds.AsImmutableOrNull());
+        }
 
-            if (symbolKinds == null)
-            {
-                throw new ArgumentNullException(nameof(symbolKinds));
-            }
-
-            if (symbolKinds.Length == 0)
-            {
-                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(symbolKinds));
-            }
-
+        /// <summary>
+        /// Register an action to be executed at completion of semantic analysis of an <see cref="ISymbol"/> with an appropriate Kind.>
+        /// A symbol action reports <see cref="Diagnostic"/>s about <see cref="ISymbol"/>s.
+        /// </summary>
+        /// <param name="action">Action to be executed for an <see cref="ISymbol"/>.</param>
+        /// <param name="symbolKinds">Action will be executed only if an <see cref="ISymbol"/>'s Kind matches one of the <see cref="SymbolKind"/> values.</param>
+        public void RegisterSymbolAction(Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> symbolKinds)
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action, symbolKinds);
             this.scope.RegisterSymbolAction(action, symbolKinds);
         }
 
@@ -126,11 +112,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at the start of semantic analysis of a code block.</param>
         public void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) where TLanguageKindEnum : struct
         {
-            if (action == null)
-            {
-                throw new ArgumentNullException(nameof(action));
-            }
-
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
             this.scope.RegisterCodeBlockStartAction(action);
         }
 
@@ -142,11 +124,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at the end of semantic analysis of a code block.</param>
         public void RegisterCodeBlockEndAction<TLanguageKindEnum>(Action<CodeBlockEndAnalysisContext> action) where TLanguageKindEnum : struct
         {
-            if (action == null)
-            {
-                throw new ArgumentNullException(nameof(action));
-            }
-
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
             this.scope.RegisterCodeBlockEndAction<TLanguageKindEnum>(action);
         }
 
@@ -157,11 +135,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at completion of parsing of a document.</param>
         public void RegisterSyntaxTreeAction(Action<SyntaxTreeAnalysisContext> action)
         {
-            if (action == null)
-            {
-                throw new ArgumentNullException(nameof(action));
-            }
-
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
             this.scope.RegisterSyntaxTreeAction(action);
         }
 
@@ -175,21 +149,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
         public void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds) where TLanguageKindEnum : struct
         {
-            if (action == null)
-            {
-                throw new ArgumentNullException(nameof(action));
-            }
+            this.RegisterSyntaxNodeAction(action, syntaxKinds.AsImmutableOrNull());
+        }
 
-            if (syntaxKinds == null)
-            {
-                throw new ArgumentNullException(nameof(syntaxKinds));
-            }
-
-            if (syntaxKinds.Length == 0)
-            {
-                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(syntaxKinds));
-            }
-
+        /// <summary>
+        /// Register an action to be executed at completion of semantic analysis of a <see cref="SyntaxNode"/> with an appropriate Kind.
+        /// A syntax node action can report <see cref="Diagnostic"/>s about <see cref="SyntaxNode"/>s, and can also collect
+        /// state information to be used by other syntax node actions or code block end actions.
+        /// </summary>
+        /// <typeparam name="TLanguageKindEnum">Enum type giving the syntax node kinds of the source language for which the action applies.</typeparam>
+        /// <param name="action">Action to be executed at completion of semantic analysis of a <see cref="SyntaxNode"/>.</param>
+        /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
+        public void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds) where TLanguageKindEnum : struct
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action, syntaxKinds);
             this.scope.RegisterSyntaxNodeAction(action, syntaxKinds);
         }
     }
@@ -258,11 +231,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at compilation end.</param>
         public void RegisterCompilationEndAction(Action<CompilationEndAnalysisContext> action)
         {
-            if (action == null)
-            {
-                throw new ArgumentNullException(nameof(action));
-            }
-
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
             this.scope.RegisterCompilationEndAction(action);
         }
 
@@ -274,11 +243,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed for a document's <see cref="SemanticModel"/>.</param>
         public void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext> action)
         {
-            if (action == null)
-            {
-                throw new ArgumentNullException(nameof(action));
-            }
-
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
             this.scope.RegisterSemanticModelAction(action);
         }
 
@@ -290,21 +255,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="symbolKinds">Action will be executed only if an <see cref="ISymbol"/>'s Kind matches one of the <see cref="SymbolKind"/> values.</param>
         public void RegisterSymbolAction(Action<SymbolAnalysisContext> action, params SymbolKind[] symbolKinds)
         {
-            if (action == null)
-            {
-                throw new ArgumentNullException(nameof(action));
-            }
+            this.RegisterSymbolAction(action, symbolKinds.AsImmutableOrNull());
+        }
 
-            if (symbolKinds == null)
-            {
-                throw new ArgumentNullException(nameof(symbolKinds));
-            }
-
-            if (symbolKinds.Length == 0)
-            {
-                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(symbolKinds));
-            }
-
+        /// <summary>
+        /// Register an action to be executed at completion of semantic analysis of an <see cref="ISymbol"/> with an appropriate Kind.>
+        /// A symbol action reports <see cref="Diagnostic"/>s about <see cref="ISymbol"/>s.
+        /// </summary>
+        /// <param name="action">Action to be executed for an <see cref="ISymbol"/>.</param>
+        /// <param name="symbolKinds">Action will be executed only if an <see cref="ISymbol"/>'s Kind matches one of the <see cref="SymbolKind"/> values.</param>
+        public void RegisterSymbolAction(Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> symbolKinds)
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action, symbolKinds);
             this.scope.RegisterSymbolAction(action, symbolKinds);
         }
 
@@ -317,11 +279,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at the start of semantic analysis of a code block.</param>
         public void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) where TLanguageKindEnum : struct
         {
-            if (action == null)
-            {
-                throw new ArgumentNullException(nameof(action));
-            }
-
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
             this.scope.RegisterCodeBlockStartAction(action);
         }
 
@@ -333,11 +291,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at the end of semantic analysis of a code block.</param>
         public void RegisterCodeBlockEndAction<TLanguageKindEnum>(Action<CodeBlockEndAnalysisContext> action) where TLanguageKindEnum : struct
         {
-            if (action == null)
-            {
-                throw new ArgumentNullException(nameof(action));
-            }
-
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
             this.scope.RegisterCodeBlockEndAction<TLanguageKindEnum>(action);
         }
 
@@ -348,11 +302,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at completion of parsing of a document.</param>
         public void RegisterSyntaxTreeAction(Action<SyntaxTreeAnalysisContext> action)
         {
-            if (action == null)
-            {
-                throw new ArgumentNullException(nameof(action));
-            }
-
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
             this.scope.RegisterSyntaxTreeAction(action);
         }
 
@@ -366,21 +316,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
         public void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds) where TLanguageKindEnum : struct
         {
-            if (action == null)
-            {
-                throw new ArgumentNullException(nameof(action));
-            }
+            this.RegisterSyntaxNodeAction(action, syntaxKinds.AsImmutableOrNull());
+        }
 
-            if (syntaxKinds == null)
-            {
-                throw new ArgumentNullException(nameof(syntaxKinds));
-            }
-
-            if (syntaxKinds.Length == 0)
-            {
-                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(syntaxKinds));
-            }
-
+        /// <summary>
+        /// Register an action to be executed at completion of semantic analysis of a <see cref="SyntaxNode"/> with an appropriate Kind.
+        /// A syntax node action can report <see cref="Diagnostic"/>s about <see cref="SyntaxNode"/>s, and can also collect
+        /// state information to be used by other syntax node actions or code block end actions.
+        /// </summary>
+        /// <typeparam name="TLanguageKindEnum">Enum type giving the syntax node kinds of the source language for which the action applies.</typeparam>
+        /// <param name="action">Action to be executed at completion of semantic analysis of a <see cref="SyntaxNode"/>.</param>
+        /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
+        public void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds) where TLanguageKindEnum : struct
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action, syntaxKinds);
             this.scope.RegisterSyntaxNodeAction(action, syntaxKinds);
         }
     }
@@ -425,11 +374,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            if (diagnostic == null)
-            {
-                throw new ArgumentNullException(nameof(diagnostic));
-            }
-
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic);
             lock (this.reportDiagnostic)
             {
                 this.reportDiagnostic(diagnostic);
@@ -477,11 +422,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            if (diagnostic == null)
-            {
-                throw new ArgumentNullException(nameof(diagnostic));
-            }
-
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic);
             lock (this.reportDiagnostic)
             {
                 this.reportDiagnostic(diagnostic);
@@ -536,11 +477,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            if (diagnostic == null)
-            {
-                throw new ArgumentNullException(nameof(diagnostic));
-            }
-
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic);
             lock (this.reportDiagnostic)
             {
                 this.reportDiagnostic(diagnostic);
@@ -612,6 +549,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="action">Action to be executed at the end of semantic analysis of a code block.</param>
         public void RegisterCodeBlockEndAction(Action<CodeBlockEndAnalysisContext> action)
         {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
             this.scope.RegisterCodeBlockEndAction(action);
         }
 
@@ -624,6 +562,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
         public void RegisterSyntaxNodeAction(Action<SyntaxNodeAnalysisContext> action, params TLanguageKindEnum[] syntaxKinds)
         {
+            this.RegisterSyntaxNodeAction(action, syntaxKinds.AsImmutableOrNull());
+        }
+
+        /// <summary>
+        /// Register an action to be executed at completion of semantic analysis of a <see cref="SyntaxNode"/> with an appropriate Kind.
+        /// A syntax node action can report <see cref="Diagnostic"/>s about <see cref="SyntaxNode"/>s, and can also collect
+        /// state information to be used by other syntax node actions or code block end actions.
+        /// </summary>
+        /// <param name="action">Action to be executed at completion of semantic analysis of a <see cref="SyntaxNode"/>.</param>
+        /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
+        public void RegisterSyntaxNodeAction(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds)
+        {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action, syntaxKinds);
             this.scope.RegisterSyntaxNodeAction(action, syntaxKinds);
         }
     }
@@ -682,11 +633,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            if (diagnostic == null)
-            {
-                throw new ArgumentNullException(nameof(diagnostic));
-            }
-
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic);
             lock (this.reportDiagnostic)
             {
                 this.reportDiagnostic(diagnostic);
@@ -734,11 +681,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            if (diagnostic == null)
-            {
-                throw new ArgumentNullException(nameof(diagnostic));
-            }
-
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic);
             lock (this.reportDiagnostic)
             {
                 this.reportDiagnostic(diagnostic);
@@ -793,11 +736,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="diagnostic"><see cref="Diagnostic"/> to be reported.</param>
         public void ReportDiagnostic(Diagnostic diagnostic)
         {
-            if (diagnostic == null)
-            {
-                throw new ArgumentNullException(nameof(diagnostic));
-            }
-
+            DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic);
             lock (this.reportDiagnostic)
             {
                 this.reportDiagnostic(diagnostic);

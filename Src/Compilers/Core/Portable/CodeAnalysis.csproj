@@ -96,6 +96,7 @@
     <Compile Include="Compilation\SymbolFilter.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilerDiagnosticAnalyzer.CompilationAnalyzer.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilerDiagnosticAnalyzer.cs" />
+    <Compile Include="DiagnosticAnalyzer\DiagnosticAnalysisContextHelpers.cs" />
     <Compile Include="Diagnostic\LocalizableResourceString.cs" />
     <Compile Include="Diagnostic\LocalizableString.cs" />
     <Compile Include="Emit\DebugInformationFormat.cs" />
