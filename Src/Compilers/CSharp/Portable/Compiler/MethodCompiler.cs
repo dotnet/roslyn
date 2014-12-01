@@ -1069,7 +1069,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     containingType));
         }
 
-
         // internal for testing
         internal static BoundStatement LowerBodyOrInitializer(
             MethodSymbol method,

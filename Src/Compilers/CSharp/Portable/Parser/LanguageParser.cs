@@ -9311,12 +9311,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private bool IsAnonymousTypeMemberExpression(ExpressionSyntax expr)
         {
-            if (expr.Kind == SyntaxKind.QualifiedName)
+            while (true)
             {
-                return IsAnonymousTypeMemberExpression(((QualifiedNameSyntax)expr).Right);
-            }
+                switch (expr.Kind)
+                {
+                    case SyntaxKind.QualifiedName:
+                        expr = ((QualifiedNameSyntax)expr).Right;
+                        continue;
+                    case SyntaxKind.ConditionalAccessExpression:
+                        expr = ((ConditionalAccessExpressionSyntax)expr).WhenNotNull;
+                        if (expr.Kind == SyntaxKind.MemberBindingExpression)
+                        {
+                            return true;
+                        }
 
-            return expr.Kind == SyntaxKind.IdentifierName || expr.Kind == SyntaxKind.SimpleMemberAccessExpression;
+                        continue;
+                    case SyntaxKind.IdentifierName:
+                    case SyntaxKind.SimpleMemberAccessExpression:
+                        return true;
+                    default:
+                        return false;
+                }
+            }
         }
 
         private bool IsInitializerMember()

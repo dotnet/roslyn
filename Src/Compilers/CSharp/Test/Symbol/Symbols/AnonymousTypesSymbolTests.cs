@@ -529,18 +529,18 @@ class Query
     }
 }
 ";
-            for(int i = 0; i < 100; i++)
+            for (int i = 0; i < 100; i++)
             {
                 var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
 
                 var tasks = new Task[10];
-                for(int jj = 0; jj < tasks.Length; jj++)
+                for (int j = 0; j < tasks.Length; j++)
                 {
-                    var j = jj;
+                    var metadataOnly = j % 2 == 0;
                     tasks[j] = Task.Run(() =>
                     {
                         var stream = new MemoryStream();
-                        var result = compilation.Emit(stream, options: new EmitOptions(metadataOnly: j % 2 == 0));
+                        var result = compilation.Emit(stream, options: new EmitOptions(metadataOnly: metadataOnly));
                         result.Diagnostics.Verify();
                     });
                 }
@@ -1181,7 +1181,7 @@ class Query
             System.Threading.Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("en-US");
             try
             {
-            var source = @"
+                var source = @"
 using System;
 
 class Query
@@ -1192,12 +1192,12 @@ class Query
     }
 }
 ";
-            CompileAndVerify(
-                source,
-                expectedOutput: "{ a = 1, b = text, c = 123.456 }");
+                CompileAndVerify(
+                    source,
+                    expectedOutput: "{ a = 1, b = text, c = 123.456 }");
             }
             finally
-            { 
+            {
                 System.Threading.Thread.CurrentThread.CurrentCulture = currCulture;
             }
         }
@@ -1384,7 +1384,7 @@ class Class3
                         Assert.Equal("<>f__AnonymousType2", types[2]);
                         Assert.Equal("<>f__AnonymousType3<<b>j__TPar, <a>j__TPar>", types[3]);
                     },
-                    verify:false
+                    verify: false
                 );
 
                 // do some speculative semantic query
@@ -1396,7 +1396,7 @@ class Class3
             }
         }
 
-        [WorkItem (543134)]
+        [WorkItem(543134)]
         [Fact()]
         public void AnonymousTypeSymbol_Simple_1()
         {
@@ -1432,7 +1432,7 @@ class Test
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput:"1221");
+            CompileAndVerify(source, expectedOutput: "1221");
         }
 
         [WorkItem(543693, "DevDiv")]
@@ -1532,7 +1532,7 @@ class Program
     }
 }
 ";
-            CompileAndVerify(source, expectedOutput:"True");
+            CompileAndVerify(source, expectedOutput: "True");
         }
 
         [Fact(), WorkItem(544323, "DevDiv")]
@@ -1738,46 +1738,75 @@ class Program
         }
 
         [Fact]
-        [WorkItem(1024401)]
-        public void DebuggerDisplayAttributeWithNoTypeMember()
+        public void ConditionalAccessErrors()
         {
-            var src = @"
-class Program
+            var source = @"
+
+class C
 {
-    static void Main()
+    int M() { return 0; }
+
+    void Test()
     {
-        var v1 = new { Test1 = 1 };
+        C local = null;
+        C[] array = null;
+
+        var x1 = new { local?.M() };
+        var x2 = new { array?[0] };
     }
-}";
-            var comp = CreateCompilationWithMscorlib(src,
-                options: new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Debug));
+}
+";
 
-            // Expect both attributes when using a standard corlib
-            Action<ModuleSymbol> validator = m =>
-            {
-                var anonType = m.GlobalNamespace.GetMembers().Where(
-                    sym => sym.Name.Contains("AnonymousType")).Single();
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "local?.M()").WithLocation(12, 24),
+                // error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
+                Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "array?[0]").WithLocation(13, 24));
+        }
 
-                AssertEx.SetEqual(
-                    anonType.GetAttributes().Select(attr => attr.AttributeClass),
-                    comp.GetWellKnownType(WellKnownType.System_Diagnostics_DebuggerDisplayAttribute),
-                    comp.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_CompilerGeneratedAttribute));
-            };
-            CompileAndVerify(comp, symbolValidator: validator);
+        [Fact]
+        [WorkItem(991505, "DevDiv")]
+        [WorkItem(199, "CodePlex")]
+        public void Bug991505()
+        {
+            var source = @"
+class C 
+{
+    C P { get { return null; } }
+    int L { get { return 0; } } 
+    int M { get { return 0; } } 
+    int N { get { return 0; } } 
 
-            // Expect no DebuggerDisplay when the member is missing
-            comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_DebuggerDisplayAttribute__Type);
+    void Test()
+    {
+        C local = null;
+        C[] array = null;
 
-            validator = m =>
-            {
-                var anonType = m.GlobalNamespace.GetMembers().Where(
-                    sym => sym.Name.Contains("AnonymousType")).Single();
+        var x1 = new { local };
+        var x2_1 = new { local.P };
+        var x2_2 = new { local?.P };
+        var x3_1 = new { local.L };
+        var x3_2 = new { local?.L };
+        var x4_1 = new { local.P.M };
+        var x4_2 = new { local?.P.M };
+        var x4_3 = new { local?.P?.M };
+        var x5_1 = new { array[0].N };
+        var x5_2 = new { array?[0].N };
+    }
+}
+";
 
-                Assert.True(anonType.GetAttributes().Single().IsTargetAttribute(
-                    "System.Runtime.CompilerServices",
-                    "CompilerGeneratedAttribute"));
-            };
-            CompileAndVerify(comp, symbolValidator: validator);
+            CompileAndVerify(
+                source,
+                symbolValidator: module =>
+                    TestAnonymousTypeSymbols(
+                        module,
+                        new TypeDescr() { FieldNames = new[] { "local" } },
+                        new TypeDescr() { FieldNames = new[] { "P" } },
+                        new TypeDescr() { FieldNames = new[] { "L" } },
+                        new TypeDescr() { FieldNames = new[] { "M" } },
+                        new TypeDescr() { FieldNames = new[] { "N" } }));
         }
     }
 }
