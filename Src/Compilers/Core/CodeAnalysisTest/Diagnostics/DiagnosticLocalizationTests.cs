@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             var nameOfResource1 = @"Resource1";
             var nameOfResource2 = @"Resource2";
             var nameOfResource3 = @"Resource3";
-
+            
             var fixedTitle = enResourceSet.GetString(nameOfResource1);
             var fixedMessageFormat = enResourceSet.GetString(nameOfResource2);
             var fixedDescription = enResourceSet.GetString(nameOfResource3);
@@ -81,6 +81,21 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             Assert.Equal(localizedTitle, localizableDiagnostic.Descriptor.Title.ToString(arCulture));
             Assert.Equal(localizedMessageFormat, localizableDiagnostic.GetMessage(arCulture));
             Assert.Equal(localizedDescription, localizableDiagnostic.Descriptor.Description.ToString(arCulture));
+
+            // Test argument formatting for localized string
+            var nameOfResourceWithArguments = @"ResourceWithArguments";
+            var argument = "formatted";
+            var localizableResource = new LocalizableResourceString(nameOfResourceWithArguments, resourceManager, typeof(CustomResourceManager), argument);
+
+            // Verify without culture
+            var enuLocalizedStringWithArguments = enResourceSet.GetString(nameOfResourceWithArguments);
+            var expected = string.Format(enuLocalizedStringWithArguments, argument);
+            Assert.Equal(expected, localizableResource.ToString());
+
+            // Verify with loc culture
+            var arLocalizedStringWithArguments = arResourceSet.GetString(nameOfResourceWithArguments);
+            expected = string.Format(arLocalizedStringWithArguments, argument);
+            Assert.Equal(expected, localizableResource.ToString(arCulture));
         }
 
         private static CustomResourceManager GetTestResourceManagerInstance()
@@ -89,14 +104,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 {
                     { "Resource1", "My Resource 1 ENU string" },
                     { "Resource2", "My Resource 2 ENU string" },
-                    { "Resource3", "My Resource 3 ENU string" }
+                    { "Resource3", "My Resource 3 ENU string" },
+                    { "ResourceWithArguments", "My Resource ENU string {0}" }
                 };
 
             var arResources = new Dictionary<string, string>()
                 {
                     { "Resource1", "ARABIC string for My Resource 1" },
                     { "Resource2", "ARABIC string for My Resource 2" },
-                    { "Resource3", "ARABIC string for My Resource 3" }
+                    { "Resource3", "ARABIC string for My Resource 3" },
+                    { "ResourceWithArguments", "{0} ARABIC string for My Resource" }
                 };
 
             var resourceSetMap = new Dictionary<string, Dictionary<string, string>>()
