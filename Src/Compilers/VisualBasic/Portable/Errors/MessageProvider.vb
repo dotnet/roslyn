@@ -131,6 +131,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If(severity = DiagnosticSeverity.Error OrElse isWarningAsError, "error", "warning"), id)
         End Function
 
+        Public Overrides Function GetDiagnosticReport(diagnosticInfo As DiagnosticInfo, options As CompilationOptions) As ReportDiagnostic
+            Return VisualBasicDiagnosticFilter.GetDiagnosticReport(diagnosticInfo.Severity,
+                                                                   True,
+                                                                   diagnosticInfo.MessageIdentifier,
+                                                                   Location.None,
+                                                                   diagnosticInfo.Category,
+                                                                   options.GeneralDiagnosticOption,
+                                                                   options.SpecificDiagnosticOptions)
+        End Function
+
+
         Public Overrides ReadOnly Property ERR_FailedToCreateTempFile As Integer
             Get
                 Return ERRID.ERR_UnableToCreateTempFile

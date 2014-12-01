@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return diagnostic.WithReportDiagnostic(report)
         End Function
 
-        Private Shared Function GetDiagnosticReport(severity As DiagnosticSeverity, isEnabledByDefault As Boolean, id As String, location As Location, category As String, generalDiagnosticOption As ReportDiagnostic, caseInsensitiveSpecificDiagnosticOptions As IDictionary(Of String, ReportDiagnostic)) As ReportDiagnostic
+        Friend Shared Function GetDiagnosticReport(severity As DiagnosticSeverity, isEnabledByDefault As Boolean, id As String, location As Location, category As String, generalDiagnosticOption As ReportDiagnostic, caseInsensitiveSpecificDiagnosticOptions As IDictionary(Of String, ReportDiagnostic)) As ReportDiagnostic
             ' Read options (e.g., /nowarn or /warnaserror)
             Dim report As ReportDiagnostic = ReportDiagnostic.Default
             Dim isSpecified = caseInsensitiveSpecificDiagnosticOptions.TryGetValue(id, report)

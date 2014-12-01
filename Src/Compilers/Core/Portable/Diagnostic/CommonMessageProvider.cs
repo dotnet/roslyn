@@ -98,6 +98,40 @@ namespace Microsoft.CodeAnalysis
             return CodePrefix + errorCode.ToString("0000");
         }
 
+        /// <summary>
+        /// Produces the filtering action for the diagnostic based on the options passed in.
+        /// </summary>
+        /// <returns>
+        /// A new <see cref="DiagnosticInfo"/> with new effective severity based on the options or null if the
+        /// diagnostic has been suppressed.
+        /// </returns>
+        public abstract ReportDiagnostic GetDiagnosticReport(DiagnosticInfo diagnosticInfo, CompilationOptions options);
+
+        /// <summary>
+        /// Filter a <see cref="DiagnosticInfo"/> based on the compilation options so that /nowarn and /warnaserror etc. take effect.options
+        /// </summary>
+        /// <returns>A <see cref="DiagnosticInfo"/> with effective severity based on option or null if suppressed.</returns>
+        public DiagnosticInfo FilterDiagnosticInfo(DiagnosticInfo diagnosticInfo, CompilationOptions options)
+        {
+            var report = this.GetDiagnosticReport(diagnosticInfo, options);
+            switch (report)
+            {
+                case ReportDiagnostic.Error:
+                    return diagnosticInfo.GetInstanceWithSeverity(DiagnosticSeverity.Error);
+                case ReportDiagnostic.Warn:
+                    return diagnosticInfo.GetInstanceWithSeverity(DiagnosticSeverity.Warning);
+                case ReportDiagnostic.Info:
+                    return diagnosticInfo.GetInstanceWithSeverity(DiagnosticSeverity.Info);
+                case ReportDiagnostic.Hidden:
+                    return diagnosticInfo.GetInstanceWithSeverity(DiagnosticSeverity.Hidden);
+                case ReportDiagnostic.Suppress:
+                    return null;
+                case ReportDiagnostic.Default:
+                default:
+                    return diagnosticInfo;
+            }
+        }
+
         // Common error messages 
 
         public abstract int ERR_FailedToCreateTempFile { get; }

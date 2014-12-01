@@ -106,6 +106,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SymbolDisplay.ToDisplayString(symbol, SymbolDisplayFormat.CSharpShortErrorMessageFormat);
         }
 
+        public override ReportDiagnostic GetDiagnosticReport(DiagnosticInfo diagnosticInfo, CompilationOptions options)
+        {
+            return CSharpDiagnosticFilter.GetDiagnosticReport(diagnosticInfo.Severity, 
+                                                              true, 
+                                                              diagnosticInfo.MessageIdentifier, 
+                                                              diagnosticInfo.WarningLevel, 
+                                                              Location.None, 
+                                                              diagnosticInfo.Category,
+                                                              options.WarningLevel,
+                                                              options.GeneralDiagnosticOption,
+                                                              options.SpecificDiagnosticOptions);
+        }
+
         public override int ERR_FailedToCreateTempFile { get { return (int)ErrorCode.ERR_CantMakeTempFile; } }
 
 
