@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -17,6 +18,11 @@ namespace Roslyn.Utilities
             return Empty<T>.Default;
         }
 
+        public static Task<ImmutableArray<T>> EmptyImmutableArray<T>()
+        {
+            return Empty<T>.EmptyImmutableArray;
+        }
+
         public static Task<IEnumerable<T>> EmptyEnumerable<T>()
         {
             return Empty<T>.EmptyEnumerable;
@@ -31,6 +37,7 @@ namespace Roslyn.Utilities
         {
             public static readonly Task<T> Default = Task.FromResult<T>(default(T));
             public static readonly Task<IEnumerable<T>> EmptyEnumerable = Task.FromResult<IEnumerable<T>>(SpecializedCollections.EmptyEnumerable<T>());
+            public static readonly Task<ImmutableArray<T>> EmptyImmutableArray = Task.FromResult(ImmutableArray<T>.Empty);
         }
 
         private static class FromResultCache<T> where T : class
