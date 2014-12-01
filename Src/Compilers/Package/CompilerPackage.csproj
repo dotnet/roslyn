@@ -24,7 +24,6 @@
     <DeployExtension>False</DeployExtension>
     <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
     <ImportVSSDKTargets>true</ImportVSSDKTargets>
-    <StyleCopEnabled>false</StyleCopEnabled>
     <GeneratePkgDefFile>False</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>false</IncludeAssemblyInVSIXContainer>
     <TargetVsixContainerName>CompilerPackage.vsix</TargetVsixContainerName>

@@ -12,7 +12,6 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{DCC1F13B-F51C-445B-BDAE-92135BD58364}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <StyleCopEnabled>true</StyleCopEnabled>
     <RootNamespace>Roslyn.Diagnostics.Analyzers</RootNamespace>
     <AssemblyName>Roslyn.Diagnostics.Analyzers</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>

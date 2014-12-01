@@ -17,7 +17,6 @@
     <FileUpgradeFlags></FileUpgradeFlags>
     <UpgradeBackupLocation></UpgradeBackupLocation>
     <OldToolsVersion>4.0</OldToolsVersion>
-    <StyleCopEnabled>true</StyleCopEnabled>
     <RootNamespace>Microsoft.CodeAnalysis.FxCopAnalyzers</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.FxCopAnalyzers</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>

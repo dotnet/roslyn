@@ -13,7 +13,6 @@
     <ProjectGuid>{3BA13187-2A3B-4B08-9199-C11FDA1D5AD0}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <StyleCopEnabled>true</StyleCopEnabled>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
