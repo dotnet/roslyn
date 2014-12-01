@@ -153,9 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool IsTypeInContextWhichNeedsDynamicAttribute(this IdentifierNameSyntax typeNode)
         {
             Debug.Assert(typeNode != null);
-            Debug.Assert(SyntaxFacts.IsInTypeOnlyContext(typeNode));
-
-            return IsInContextWhichNeedsDynamicAttribute(typeNode);
+            return SyntaxFacts.IsInTypeOnlyContext(typeNode) && IsInContextWhichNeedsDynamicAttribute(typeNode);
         }
 
         internal static CSharpSyntaxNode SkipParens(this CSharpSyntaxNode expression)

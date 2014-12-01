@@ -5774,7 +5774,7 @@ namespace ConsoleApplication1
         }
 
         [WorkItem(1076661, "DevDiv")]
-        [Fact(Skip = "Bug 1076661")]
+        [Fact]
         public void Bug1076661()
         {
             const string source = @"
