@@ -926,6 +926,7 @@ namespace Roslyn.Test.MetadataUtilities
                 "Name",
                 "Seq#",
                 "Attributes",
+                "Parent",
                 "TypeConstraints"
             );
 
@@ -937,6 +938,7 @@ namespace Roslyn.Test.MetadataUtilities
                     Literal(entry.Name),
                     entry.Index.ToString(),
                     EnumValue<int>(entry.Attributes),
+                    Token(entry.Parent),
                     TokenRange(entry.GetConstraints(), h => h)
                 );
             }
