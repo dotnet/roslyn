@@ -210,6 +210,26 @@ Delta: Gamma: Beta: Test B
             Assert.Equal(expected: "Foo.txt", actual: reference.Display);
         }
 
+        [Fact]
+        [WorkItem(1032909)]
+        public void TestFailedLoadDoesntCauseNoAnalyzersWarning()
+        {
+            var directory = Temp.CreateDirectory();
+            var analyzerDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AnalyzerTests.AnalyzerTests.FaultyAnalyzer);
+            AnalyzerFileReference reference = new AnalyzerFileReference(analyzerDll.Path);
+
+            List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
+            EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) => errors.Add(e);
+            reference.AnalyzerLoadFailed += errorHandler;
+            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
+            reference.AddAnalyzers(builder);
+            var analyzers = builder.ToImmutable();
+            reference.AnalyzerLoadFailed -= errorHandler;
+
+            Assert.Equal(1, errors.Count);
+            Assert.Equal(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, errors.First().ErrorCode);
+        }
+
         [DiagnosticAnalyzer]
         public class TestAnalyzer : DiagnosticAnalyzer
         {

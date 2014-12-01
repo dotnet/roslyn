@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private ImmutableArray<DiagnosticAnalyzer> GetLanguageAgnosticAnalyzers(ImmutableDictionary<string, ImmutableHashSet<string>> analyzerTypeNameMap, Assembly analyzerAssembly)
+        private ImmutableArray<DiagnosticAnalyzer> GetLanguageAgnosticAnalyzers(ImmutableDictionary<string, ImmutableHashSet<string>> analyzerTypeNameMap, Assembly analyzerAssembly, ref bool reportedError)
         {
             if (this.lazyLanguageAgnosticAnalyzers.IsDefault)
             {
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
                 else
                 {
-                    analyzers = GetAnalyzersForTypeNames(analyzerAssembly, analyzerTypeNames).ToImmutableArrayOrEmpty();
+                    analyzers = GetAnalyzersForTypeNames(analyzerAssembly, analyzerTypeNames, ref reportedError).ToImmutableArrayOrEmpty();
                 }
 
                 ImmutableInterlocked.InterlockedInitialize(ref this.lazyLanguageAgnosticAnalyzers, analyzers);
@@ -206,18 +206,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             var initialCount = builder.Count;
-
+            var reportedError = false;
             // Add language agnostic analyzers.
-            var languageAgnosticAnalyzers = this.GetLanguageAgnosticAnalyzers(analyzerTypeNameMap, analyzerAssembly);
+            var languageAgnosticAnalyzers = this.GetLanguageAgnosticAnalyzers(analyzerTypeNameMap, analyzerAssembly, ref reportedError);
             builder.AddRange(languageAgnosticAnalyzers);
 
             // Add language specific analyzers.
             var languageSpecificAnalyzerTypeNames = GetLanguageSpecificAnalyzerTypeNames(analyzerTypeNameMap, languageOpt);
-            var languageSpecificAnalyzers = this.GetAnalyzersForTypeNames(analyzerAssembly, languageSpecificAnalyzerTypeNames);
+            var languageSpecificAnalyzers = this.GetAnalyzersForTypeNames(analyzerAssembly, languageSpecificAnalyzerTypeNames, ref reportedError);
             builder.AddRange(languageSpecificAnalyzers);
 
             // If there were types with the attribute but weren't an analyzer, generate a diagnostic.
-            if (builder.Count == initialCount)
+            // If we've reported errors already while trying to instantiate types, don't complain that there are no analyzers.
+            if (builder.Count == initialCount && !reportedError)
             {
                 this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.NoAnalyzers, null, null));
             }
@@ -243,8 +244,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return languageSpecificAnalyzerTypeNames;
         }
 
-        private IEnumerable<DiagnosticAnalyzer> GetAnalyzersForTypeNames(Assembly analyzerAssembly, IEnumerable<string> analyzerTypeNames)
+        private IEnumerable<DiagnosticAnalyzer> GetAnalyzersForTypeNames(Assembly analyzerAssembly, IEnumerable<string> analyzerTypeNames, ref bool reportedError)
         {
+            var analyzers = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
+
             // Given the type names, get the actual System.Type and try to create an instance of the type through reflection.
             foreach (var typeName in analyzerTypeNames)
             {
@@ -262,13 +265,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, e, typeName));
                     analyzer = null;
+                    reportedError = true;
                 }
 
                 if (analyzer != null)
                 {
-                    yield return analyzer;
+                    analyzers.Add(analyzer);
                 }
             }
+
+            return analyzers.ToImmutable();
         }
 
         internal ImmutableDictionary<string, ImmutableHashSet<string>> GetAnalyzerTypeNameMap()
