@@ -8,5 +8,5 @@
 int Run(RequestLanguage language);
 
 void ParseAndValidateClientArguments(
-	_Inout_ list<wstring>& arguments,
-	_Out_ wstring& keepAliveValue);
+    _Inout_ list<wstring>& arguments,
+    _Out_ wstring& keepAliveValue);

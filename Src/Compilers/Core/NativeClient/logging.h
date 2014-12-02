@@ -10,10 +10,10 @@ const wchar_t * const LOGGING_ENV_VAR = L"RoslynCommandLineLogFile";
 class FatalError : public std::exception
 {
 public:
-	std::wstring message;
+    std::wstring message;
 
-	FatalError(std::wstring&& message)
-	: message(message) {}
+    FatalError(std::wstring&& message)
+    : message(message) {}
 };
 
 bool HaveLogFile();

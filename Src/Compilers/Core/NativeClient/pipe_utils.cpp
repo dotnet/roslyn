@@ -17,12 +17,12 @@ bool RealPipe::Write(_In_ LPCVOID data, unsigned toWrite)
     if (!success)
     {
         LogWin32Error(IDS_WriteFileOnPipeFailed);
-		return false;
+        return false;
     }
     else if (written != toWrite)
     {
         LogFormatted(IDS_WriteFileOnPipeIncomplete, toWrite, written);
-		return false;
+        return false;
     }
     return true;
 }
@@ -38,12 +38,12 @@ bool RealPipe::Read(_Out_ LPVOID data, unsigned toRead)
     if (!success)
     {
         LogWin32Error(IDS_ReadFileOnPipeFailed);
-		return false;
+        return false;
     }
     else if (read != toRead)
     {
         LogFormatted(IDS_ReadFileOnPipeIncomplete, toRead, read);
-		return false;
+        return false;
     }
     return true;
 }

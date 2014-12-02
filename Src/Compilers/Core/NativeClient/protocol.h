@@ -17,28 +17,31 @@ const int PROTOCOL_VERSION = 1;
 
 // The id numbers below are just random. It's useful to use id numbers
 // that won't occur accidentally for debugging.
-enum RequestLanguage {
-	// csc -- compile C#
-	CSHARPCOMPILE = 0x44532521,
-	// vbc -- compiler VB
-	VBCOMPILE = 0x44532522,
+enum RequestLanguage 
+{
+    // csc -- compile C#
+    CSHARPCOMPILE = 0x44532521,
+    // vbc -- compiler VB
+    VBCOMPILE = 0x44532522,
 };
 
 // Possible arguments to the server or the compilation
-enum ArgumentId {
-	// The current directory of the client
-	CURRENTDIRECTORY = 0x51147221,
-	// A comment line argument. The argument index indicates which one (0 .. N)
-	COMMANDLINEARGUMENT,
-	// The "LIB" environment variable of the client
-	LIBENVVARIABLE,
-	// How long to extend compiler server lifetime
-	KEEPALIVE
+enum ArgumentId 
+{
+    // The current directory of the client
+    CURRENTDIRECTORY = 0x51147221,
+    // A comment line argument. The argument index indicates which one (0 .. N)
+    COMMANDLINEARGUMENT,
+    // The "LIB" environment variable of the client
+    LIBENVVARIABLE,
+    // How long to extend compiler server lifetime
+    KEEPALIVE
 };
 
-enum KeepAlive {
-	DEFAULT = -2,
-	FOREVER = -1,
+enum KeepAlive 
+{
+    DEFAULT = -2,
+    FOREVER = -1,
 };
 
 // Class representing a compilation request to be sent to the server.
@@ -60,47 +63,47 @@ enum KeepAlive {
 class Request
 {
 public:
-	int ProtocolVersion;
-	RequestLanguage Language;
+    int ProtocolVersion;
+    RequestLanguage Language;
 
-	struct Argument {
-		ArgumentId id;
-		int index;
-		wstring value;
+    struct Argument {
+        ArgumentId id;
+        int index;
+        wstring value;
 
-		Argument(ArgumentId id, int index, const wstring&& value)
-			: id(id), index(index), value(value)
-		{}
+        Argument(ArgumentId id, int index, const wstring&& value)
+            : id(id), index(index), value(value)
+        {}
 
-		bool operator==(const Request::Argument& right) const
-		{
-			return this->id == right.id
-				&& this->index == right.index
-				&& this->value == right.value;
-		}
-	};
+        bool operator==(const Request::Argument& right) const
+        {
+            return this->id == right.id
+                && this->index == right.index
+                && this->value == right.value;
+        }
+    };
 
-	Request(Request&& other);
-	Request(int version,
-		    RequestLanguage language,
-			vector<Argument>&& arguments);
-	Request(RequestLanguage,
-			const wstring&& currentDirectory);
+    Request(Request&& other);
+    Request(int version,
+            RequestLanguage language,
+            vector<Argument>&& arguments);
+    Request(RequestLanguage,
+            const wstring&& currentDirectory);
 
-	Request& operator=(Request&& other);
+    Request& operator=(Request&& other);
 
-	vector<Argument>& Arguments();
+    vector<Argument>& Arguments();
 
-	void AddCommandLineArguments(_In_ const list<wstring>& commandLineArgs);
-	void AddLibEnvVariable(wstring&& value);
-	void AddKeepAlive(wstring&& keepAlive);
+    void AddCommandLineArguments(_In_ const list<wstring>& commandLineArgs);
+    void AddLibEnvVariable(wstring&& value);
+    void AddKeepAlive(wstring&& keepAlive);
 
-	// Write the request buffer to the pipe, prefixed by its length.
+    // Write the request buffer to the pipe, prefixed by its length.
     // This procedure either succeeds or logs an error and exits the process.
-	bool WriteToPipe(IPipe&);
+    bool WriteToPipe(IPipe&);
 
 private:
-	vector<Argument> arguments;
+    vector<Argument> arguments;
 };
 
 // Base class for all possible responses to a request.
@@ -116,30 +119,30 @@ private:
 class Response
 {
 public:
-	const enum ResponseType
-	{
+    const enum ResponseType
+    {
         MISMATCHED_VERSION,
         COMPLETED
-	};
+    };
 
-	virtual ResponseType GetResponseType() = 0;
+    virtual ResponseType GetResponseType() = 0;
 };
 
 // Holds the response from the server
 class CompletedResponse : public Response
 {
 public:
-	int ExitCode;
-	bool Utf8Output;
-	wstring Output;
-	wstring ErrorOutput;
+    int ExitCode;
+    bool Utf8Output;
+    wstring Output;
+    wstring ErrorOutput;
 
-	virtual ResponseType GetResponseType() { return COMPLETED; }
-	CompletedResponse() = default;
-	CompletedResponse(CompletedResponse&& other);
-	CompletedResponse(int, bool, wstring&&, wstring&&);
+    virtual ResponseType GetResponseType() { return COMPLETED; }
+    CompletedResponse() = default;
+    CompletedResponse(CompletedResponse&& other);
+    CompletedResponse(int, bool, wstring&&, wstring&&);
 
-	CompletedResponse& operator=(CompletedResponse&& other);
+    CompletedResponse& operator=(CompletedResponse&& other);
 };
 
 bool ReadResponse(IPipe&, CompletedResponse&);

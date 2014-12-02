@@ -16,7 +16,7 @@ static FILE * logFile = nullptr;
 
 bool HaveLogFile()
 {
-	return logFile != nullptr;
+    return logFile != nullptr;
 }
 
 wstring GetResourceString(UINT loadResource)
@@ -36,50 +36,50 @@ wstring GetResourceString(UINT loadResource)
 
 bool GetEnvVar(_In_z_ LPCWSTR name, _Out_ wstring &value)
 {
-	value.clear();
-	auto sizeNeeded = GetEnvironmentVariableW(name, nullptr, 0);
-	if (sizeNeeded != 0)
-	{
-		value.resize(sizeNeeded);
+    value.clear();
+    auto sizeNeeded = GetEnvironmentVariableW(name, nullptr, 0);
+    if (sizeNeeded != 0)
+    {
+        value.resize(sizeNeeded);
 
-		auto written = GetEnvironmentVariableW(name, &value[0], sizeNeeded);
-		if (written != 0 && written <= sizeNeeded)
-		{
-			value.resize(written);
-			return true;
-		}
-	}
+        auto written = GetEnvironmentVariableW(name, &value[0], sizeNeeded);
+        if (written != 0 && written <= sizeNeeded)
+        {
+            value.resize(written);
+            return true;
+        }
+    }
 
-	return false;
+    return false;
 }
 
 void InitializeLogging()
 {
-	wstring loggingFileName;
-	if (GetEnvVar(LOGGING_ENV_VAR, loggingFileName))
-	{
-		// If the environment variable contains the path of a currently existing directory,
-		// then use a process-specific name for the log file and put it in that directory.
-		// Otherwise, assume that the environment variable specifies the name of the log file.
-		DWORD attributes = GetFileAttributesW(loggingFileName.c_str());
-		if (attributes != INVALID_FILE_ATTRIBUTES &&
-			((attributes & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY))
-		{
-			loggingFileName += L"\\client.";
-			loggingFileName += to_wstring((int)GetCurrentProcessId());
-			loggingFileName += L".";
+    wstring loggingFileName;
+    if (GetEnvVar(LOGGING_ENV_VAR, loggingFileName))
+    {
+        // If the environment variable contains the path of a currently existing directory,
+        // then use a process-specific name for the log file and put it in that directory.
+        // Otherwise, assume that the environment variable specifies the name of the log file.
+        DWORD attributes = GetFileAttributesW(loggingFileName.c_str());
+        if (attributes != INVALID_FILE_ATTRIBUTES &&
+            ((attributes & FILE_ATTRIBUTE_DIRECTORY) == FILE_ATTRIBUTE_DIRECTORY))
+        {
+            loggingFileName += L"\\client.";
+            loggingFileName += to_wstring((int)GetCurrentProcessId());
+            loggingFileName += L".";
 #pragma warning(suppress: 28159)
-			loggingFileName += to_wstring(GetTickCount());
-			loggingFileName += L".log";
-		}
-		logFile = _wfsopen(loggingFileName.c_str(), L"at", _SH_DENYNO);
-	}
+            loggingFileName += to_wstring(GetTickCount());
+            loggingFileName += L".log";
+        }
+        logFile = _wfsopen(loggingFileName.c_str(), L"at", _SH_DENYNO);
+    }
 }
 
 static void LogPrefix()
 {
 #pragma warning(suppress: 28159)
-	fprintf(logFile, "CLI PID=%u TID=%u Ticks=%u: ", GetCurrentProcessId(), GetCurrentThreadId(), GetTickCount());
+    fprintf(logFile, "CLI PID=%u TID=%u Ticks=%u: ", GetCurrentProcessId(), GetCurrentThreadId(), GetTickCount());
 }
 
 void Log(UINT loadResource)
@@ -89,24 +89,24 @@ void Log(UINT loadResource)
 
 void Log(_In_z_ LPCWSTR message)
 {
-	if (logFile != nullptr) 
-	{
-		LogPrefix();
-		fwprintf(logFile, message);
-		fwprintf(logFile, L"\r\n");
-		fflush(logFile);
-	}
+    if (logFile != nullptr) 
+    {
+        LogPrefix();
+        fwprintf(logFile, message);
+        fwprintf(logFile, L"\r\n");
+        fflush(logFile);
+    }
 }
  
 static void vLogFormatted(_In_z_ LPCWSTR message, va_list varargs)
 {
-	if (logFile != nullptr)
-	{
-		LogPrefix();
-		vfwprintf(logFile, message, varargs);
-		fprintf(logFile, "\r\n");
-		fflush(logFile);
-	}
+    if (logFile != nullptr)
+    {
+        LogPrefix();
+        vfwprintf(logFile, message, varargs);
+        fprintf(logFile, "\r\n");
+        fflush(logFile);
+    }
 }
 
 void LogFormatted(UINT loadResource, ...)
@@ -119,14 +119,14 @@ void LogFormatted(UINT loadResource, ...)
 
 void LogFormatted(_In_z_ LPCWSTR message, ...)
 {
-	if (logFile != nullptr) 
-	{
-		va_list varargs;
-		va_start(varargs, message);
+    if (logFile != nullptr) 
+    {
+        va_list varargs;
+        va_start(varargs, message);
 
-		vLogFormatted(message, varargs);
-		va_end(varargs);
-	}
+        vLogFormatted(message, varargs);
+        va_end(varargs);
+    }
 }
 
 void LogTime()

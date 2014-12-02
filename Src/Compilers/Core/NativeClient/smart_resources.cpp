@@ -4,11 +4,11 @@
 
 void SmartHandle::close(HANDLE handle)
 {
-	if (handle != nullptr && handle != INVALID_HANDLE_VALUE
-		&& !CloseHandle(handle))
-	{
+    if (handle != nullptr && handle != INVALID_HANDLE_VALUE
+        && !CloseHandle(handle))
+    {
         FailWithGetLastError(L"CloseHandle");
-	}
+    }
 }
 
 SmartHandle::SmartHandle(HANDLE handle)
@@ -35,7 +35,7 @@ bool SmartHandle::operator!=(const nullptr_t) const
 
 HANDLE SmartHandle::get()
 {
-	return handle;
+    return handle;
 }
 
 SmartHandle::~SmartHandle()
@@ -45,9 +45,9 @@ SmartHandle::~SmartHandle()
 
 SmartMutex::SmartMutex(_In_z_ LPCWSTR mutexName)
 {
-	this->handle = CreateMutexW(nullptr,
-		                        TRUE, /* initially owned */
-								mutexName);
+    this->handle = CreateMutexW(nullptr,
+                                TRUE, /* initially owned */
+                                mutexName);
 
     // If we fail to create the mutex this spells bad news for everything mutex
     // related. We can only log the error and continue without it.
@@ -56,19 +56,19 @@ SmartMutex::SmartMutex(_In_z_ LPCWSTR mutexName)
         LogWin32Error(IDS_CreateMutexFailed);
     }
 
-	this->holdsMutex = this->handle != nullptr && GetLastError() == ERROR_SUCCESS;
+    this->holdsMutex = this->handle != nullptr && GetLastError() == ERROR_SUCCESS;
 }
 
 bool SmartMutex::HoldsMutex()
 {
-	return this->holdsMutex;
+    return this->holdsMutex;
 }
 
 bool SmartMutex::Wait(const int waitTime)
 {
     Log(IDS_WaitingForMutex);
-	auto mutexError = WaitForSingleObject(this->handle, waitTime);
-	this->holdsMutex = false;
+    auto mutexError = WaitForSingleObject(this->handle, waitTime);
+    this->holdsMutex = false;
     switch (mutexError)
     {
     case WAIT_ABANDONED:
@@ -89,12 +89,12 @@ bool SmartMutex::Wait(const int waitTime)
         LogFormatted(IDS_WaitingMutexUnknownFailure, mutexError);
         break;
     }
-	return this->holdsMutex;
+    return this->holdsMutex;
 }
 
 HANDLE SmartMutex::get()
 {
-	return handle;
+    return handle;
 }
 
 void SmartMutex::release()
