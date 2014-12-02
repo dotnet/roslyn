@@ -1917,7 +1917,7 @@ class Driver
             CompileAndVerify(source, "0");
         }
 
-        [Fact]
+        [Fact(Skip = "1089468")]
         public void Return07_2()
         {
             var source = @"
