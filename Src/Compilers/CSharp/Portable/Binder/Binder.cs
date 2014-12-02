@@ -41,6 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(next != null);
             // Mutually exclusive.
             Debug.Assert(!flags.Includes(BinderFlags.UncheckedRegion | BinderFlags.CheckedRegion));
+            // Implied.
+            Debug.Assert(!flags.Includes(BinderFlags.InNestedFinallyBlock) || flags.Includes(BinderFlags.InFinallyBlock | BinderFlags.InCatchBlock));
             this.next = next;
             this.Flags = flags;
             this.Compilation = next.Compilation;

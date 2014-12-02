@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly CatchClauseSyntax syntax;
 
         public CatchClauseBinder(Binder enclosing, CatchClauseSyntax syntax)
-            : base(enclosing, enclosing.Flags | BinderFlags.InCatchBlock)
+            : base(enclosing, (enclosing.Flags | BinderFlags.InCatchBlock) & ~BinderFlags.InNestedFinallyBlock)
         {
             Debug.Assert(syntax != null);
             this.syntax = syntax;

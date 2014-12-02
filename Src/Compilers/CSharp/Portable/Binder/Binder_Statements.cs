@@ -315,38 +315,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.ERR_BadEmptyThrow, node.ThrowKeyword.GetLocation());
                 hasErrors = true;
             }
-            else if (this.Flags.Includes(BinderFlags.InFinallyBlock))
+            else if (this.Flags.Includes(BinderFlags.InNestedFinallyBlock))
             {
                 // There's a special error code for a rethrow in a finally clause in a catch clause.
                 // Best guess interpretation: if an exception occurs within the nested try block
                 // (i.e. the one in the catch clause, to which the finally clause is attached),
                 // then it's not clear whether the runtime will try to rethrow the "inner" exception
-                // or the "outer" exception.  For this reason, the case is disallowed.
+                // or the "outer" exception. For this reason, the case is disallowed.
 
-                // At this point, we know that we're within both a catch block and a finally block,
-                // but we don't know which is nested within the other.  We can't walk up the syntax
-                // tree because we might be binding speculatively.  Instead, we'll walk up the binder
-                // chain and see which flag gets dropped first.
-
-                Binder curr = this;
-                while (curr.Flags.Includes(BinderFlags.InFinallyBlock | BinderFlags.InCatchBlock))
-                {
-                    curr = curr.Next;
-                }
-
-                if (curr.Flags.Includes(BinderFlags.InCatchBlock))
-                {
-                    // The finally block is below the catch block in the binder chain, so it 
-                    // must be nested within the catch block syntactically.
-
-                    diagnostics.Add(ErrorCode.ERR_BadEmptyThrowInFinally, node.ThrowKeyword.GetLocation());
-                    hasErrors = true;
-                }
-                else
-                {
-                    // Can't have added both flags in the same binder.
-                    Debug.Assert(curr.Flags.Includes(BinderFlags.InFinallyBlock));
-                }
+                diagnostics.Add(ErrorCode.ERR_BadEmptyThrowInFinally, node.ThrowKeyword.GetLocation());
+                hasErrors = true;
             }
 
             return new BoundThrowStatement(node, boundExpr, hasErrors);

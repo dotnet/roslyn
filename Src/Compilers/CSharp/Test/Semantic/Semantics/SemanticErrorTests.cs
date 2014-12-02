@@ -4484,6 +4484,19 @@ class C
             finally
             {
                 if (b) throw; //CS0724
+
+                try
+                {
+                    if (b) throw; //CS0724
+                }
+                catch
+                {
+                    if (b) throw; //fine
+                }
+                finally
+                {
+                    if (b) throw; //CS0724
+                }
             }
         }
         finally
@@ -4514,6 +4527,10 @@ class C
                 // (20,17): error CS0156: A throw statement with no arguments is not allowed outside of a catch clause
                 Diagnostic(ErrorCode.ERR_BadEmptyThrow, "throw"),
                 // (36,17): error CS0724: A throw statement with no arguments is not allowed in a finally clause that is nested inside the nearest enclosing catch clause
+                Diagnostic(ErrorCode.ERR_BadEmptyThrowInFinally, "throw"),
+                // (36,17): error CS0724: A throw statement with no arguments is not allowed in a finally clause that is nested inside the nearest enclosing catch clause
+                Diagnostic(ErrorCode.ERR_BadEmptyThrowInFinally, "throw"),
+                    // (36,17): error CS0724: A throw statement with no arguments is not allowed in a finally clause that is nested inside the nearest enclosing catch clause
                 Diagnostic(ErrorCode.ERR_BadEmptyThrowInFinally, "throw"),
                 // (41,13): error CS0156: A throw statement with no arguments is not allowed outside of a catch clause
                 Diagnostic(ErrorCode.ERR_BadEmptyThrow, "throw"),
@@ -10714,6 +10731,58 @@ class X
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (19,17): error CS0724: A throw statement with no arguments is not allowed in a finally clause that is nested inside the nearest enclosing catch clause
                 Diagnostic(ErrorCode.ERR_BadEmptyThrowInFinally, "throw").WithLocation(19, 17));
+        }
+
+        [Fact, WorkItem(1040213, "DevDiv")]
+        public void CS0724ERR_BadEmptyThrowInFinally_Nesting()
+        {
+            var text = @"
+using System;
+
+class X
+{
+    static void Test(bool b)
+    {
+        try
+        {
+            throw new Exception();
+        }
+        catch
+        {
+            try
+            {
+            }
+            finally
+            {
+                if (b) throw; // CS0724
+
+                try
+                {
+                    throw; // CS0724
+                }
+                catch
+                {
+                    throw; // OK
+                }
+                finally
+                {
+                    throw; // CS0724
+                }
+            }
+        }
+    }
+
+    static void Main()
+    {
+    }
+}";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (19,17): error CS0724: A throw statement with no arguments is not allowed in a finally clause that is nested inside the nearest enclosing catch clause
+                Diagnostic(ErrorCode.ERR_BadEmptyThrowInFinally, "throw"),
+                // (19,17): error CS0724: A throw statement with no arguments is not allowed in a finally clause that is nested inside the nearest enclosing catch clause
+                Diagnostic(ErrorCode.ERR_BadEmptyThrowInFinally, "throw"),
+                // (19,17): error CS0724: A throw statement with no arguments is not allowed in a finally clause that is nested inside the nearest enclosing catch clause
+                Diagnostic(ErrorCode.ERR_BadEmptyThrowInFinally, "throw"));
         }
 
         [Fact]

@@ -62,17 +62,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         InTryBlockOfTryCatch = 1 << 19, // try block must have at least one catch clause
         InCatchFilter = 1 << 20,
 
-        SuppressAccessChecks = 1 << 21,
+        // Indicates that this binder is inside of a finally block that is nested inside
+        // of a catch block. This flag resets at every catch clause in the binder chain.
+        // This flag is only used to support CS0724. Implies that InFinallyBlock and
+        // InCatchBlock are also set.
+        InNestedFinallyBlock = 1 << 21,
 
-        ParameterDefaultValue = 1 << 22,
+        SuppressAccessChecks = 1 << 22,
+
+        ParameterDefaultValue = 1 << 23,
 
         /// <summary>
         /// In the debugger, one can take the address of a managed object.
         /// </summary>
-        AllowManagedAddressOf = 1 << 23,
+        AllowManagedAddressOf = 1 << 24,
 
         // Groups
 
-        AllClearedAtExecutableCodeBoundary = InLockBody | InCatchBlock | InCatchFilter | InFinallyBlock | InTryBlockOfTryCatch,
+        AllClearedAtExecutableCodeBoundary = InLockBody | InCatchBlock | InCatchFilter | InFinallyBlock | InTryBlockOfTryCatch | InNestedFinallyBlock,
     }
 }

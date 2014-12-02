@@ -320,7 +320,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to get a map entry, so we don't need to worry about the WithAdditionalFlags
             // binder being dropped.  That is, there's no point in adding the WithAdditionalFlags
             // binder to the map ourselves and having VisitBlock unconditionally overwrite it.
-            Visit(node.Block, enclosing.WithAdditionalFlags(BinderFlags.InFinallyBlock));
+
+            // If this finally block is nested inside a catch block, we need to use a distinct
+            // binder flag so that we can detect the nesting order for error CS074: A throw
+            // statement with no arguments is not allowed in a finally clause that is nested inside
+            // the nearest enclosing catch clause.
+
+            var additionalFlags = BinderFlags.InFinallyBlock;
+            if (enclosing.Flags.Includes(BinderFlags.InCatchBlock))
+            {
+                additionalFlags |= BinderFlags.InNestedFinallyBlock;
+            }
+                
+            Visit(node.Block, enclosing.WithAdditionalFlags(additionalFlags));
 
             Binder finallyBinder;
             Debug.Assert(this.map.TryGetValue(node.Block, out finallyBinder) && finallyBinder.Flags.Includes(BinderFlags.InFinallyBlock));

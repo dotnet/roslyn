@@ -10,7 +10,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     /// <summary>
-    /// Tests related to binding (but not lowering) lock statements.
+    /// Tests related to binding (but not lowering) try/catch statements.
     /// </summary>
     public class TryCatchTests : CompilingTestBase
     {
