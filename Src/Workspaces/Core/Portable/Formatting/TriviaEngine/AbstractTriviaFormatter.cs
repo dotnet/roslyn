@@ -656,7 +656,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             // can't find any line, put blank line right after any trivia that has lines in them
             for (int i = changes.Count - 1; i >= 0; i--)
             {
-                if (changes[i].ToFullString().GetNumberOfLineBreaks() > 0)
+                if (changes[i].ToFullString().ContainsLineBreak())
                 {
                     return i + 1;
                 }

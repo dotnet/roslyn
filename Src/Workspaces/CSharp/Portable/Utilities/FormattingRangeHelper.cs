@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return line1 == line2;
             }
 
-            return CommonFormattingHelpers.GetTextBetween(token1, token2).GetNumberOfLineBreaks() == 0;
+            return CommonFormattingHelpers.GetTextBetween(token1, token2).ContainsLineBreak();
         }
 
         private static SyntaxToken GetAppropriatePreviousToken(SyntaxToken startToken, bool canTokenBeFirstInABlock = false)

@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 // an end-of-line at all. We need to trim the end before we check the
                 // number of line breaks in the text.
                 var textWithoutFinalNewLine = text.TrimEnd(null);
-                if (textWithoutFinalNewLine.GetNumberOfLineBreaks() == 0)
+                if (!textWithoutFinalNewLine.ContainsLineBreak())
                 {
                     return trivia;
                 }

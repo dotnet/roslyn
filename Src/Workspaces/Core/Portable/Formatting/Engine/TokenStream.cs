@@ -319,11 +319,6 @@ namespace Microsoft.CodeAnalysis.Formatting
         {
             // at the beginning of a file.
             var previousToken = tokenData.GetPreviousTokenData();
-            if (previousToken.Token.RawKind == 0)
-            {
-                // use space of the trivia data since it means indentation in this case
-                return triviaDataGetter(previousToken, tokenData).Spaces;
-            }
 
             var spaces = 0;
             for (; previousToken.Token.RawKind != 0; previousToken = previousToken.GetPreviousTokenData())
@@ -363,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             var text = token.ToString();
 
             // multiple lines
-            if (text.GetNumberOfLineBreaks() > 0)
+            if (text.ContainsLineBreak())
             {
                 // get indentation from last line of the text
                 onMultipleLines = true;

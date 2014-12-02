@@ -108,6 +108,19 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return text.Substring(lineBreak + 1);
         }
 
+        public static bool ContainsLineBreak(this string text)
+        {
+            foreach (char ch in text)
+            {
+                if (ch == '\n' || ch == '\r')
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         public static int GetNumberOfLineBreaks(this string text)
         {
             int lineBreaks = 0;
@@ -131,9 +144,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool ContainsTab(this string text)
         {
-            for (int i = 0; i < text.Length; i++)
+            // PERF: Tried replacing this with "text.IndexOf('\t')>=0", but that was actually slightly slower
+            foreach (char ch in text)
             {
-                if (text[i] == '\t')
+                if (ch == '\t')
                 {
                     return true;
                 }

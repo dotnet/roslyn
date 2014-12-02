@@ -269,7 +269,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             ' an end-of-line at all. We need to trim the end before we check the
             ' number of line breaks in the text.
             Dim textWithoutFinalNewLine = text.TrimEnd(Nothing)
-            If textWithoutFinalNewLine.GetNumberOfLineBreaks() = 0 Then
+            If Not textWithoutFinalNewLine.ContainsLineBreak() Then
                 Return trivia
             End If
 
