@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis
             Func<SyntaxToken, bool> predicate,
             Func<SyntaxTrivia, bool> stepInto)
         {
-            if (node.Parent != null)
+            while (node.Parent != null)
             {
                 // walk forward in parent's child list until we find ourselves and then return the
                 // next token
@@ -373,8 +373,8 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                // didn't find the next token in my parent's children, look recursive up the tree
-                return GetNextToken(node.Parent, predicate, stepInto);
+                // didn't find the next token in my parent's children, look up the tree
+                node = node.Parent;
             }
 
             if (node.IsStructuredTrivia)
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis
             Func<SyntaxToken, bool> predicate,
             Func<SyntaxTrivia, bool> stepInto)
         {
-            if (node.Parent != null)
+            while (node.Parent != null)
             {
                 // walk forward in parent's child list until we find ourselves and then return the
                 // previous token
@@ -422,9 +422,8 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                // didn't find the previous token in my parent's children, look recursive up the
-                // tree
-                return GetPreviousToken(node.Parent, predicate, stepInto);
+                // didn't find the previous token in my parent's children, look up the tree
+                node = node.Parent;
             }
 
             if (node.IsStructuredTrivia)
