@@ -95,22 +95,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return New Conversion(Nothing)  ' NoConversion
             End If
 
-            If boundExpression.Kind = BoundKind.Lambda Then
-                ' Switch back to the unbound lambda node since bound lambda represents a lambda already
-                ' converted to whatever target type was provided by the context within the statement.
-                ' NOTE: Using the UnboundLambda in this way might result in new entries in its trial-binding
-                ' cache, but that won't affect future semantic model queries because it will already have 
-                ' been bound (possibly for error recovery) on insertion into the syntax-to-bound-node map
-                ' and the result of that binding is also cached.  That is, even though the list of trial-bindings
-                ' may change, it will never again be consumed for error recovery (only as a cache), so there
-                ' should be no problems.
-                Dim unbound As UnboundLambda = DirectCast(boundExpression, BoundLambda).LambdaSymbol.UnboundLambdaOpt
-                Debug.Assert(unbound IsNot Nothing)
+            Select Case boundExpression.Kind
+                Case BoundKind.Lambda
+                    ' Switch back to the unbound lambda node since bound lambda represents a lambda already
+                    ' converted to whatever target type was provided by the context within the statement.
+                    ' NOTE: Using the UnboundLambda in this way might result in new entries in its trial-binding
+                    ' cache, but that won't affect future semantic model queries because it will already have 
+                    ' been bound (possibly for error recovery) on insertion into the syntax-to-bound-node map
+                    ' and the result of that binding is also cached.  That is, even though the list of trial-bindings
+                    ' may change, it will never again be consumed for error recovery (only as a cache), so there
+                    ' should be no problems.
+                    Dim unbound As UnboundLambda = DirectCast(boundExpression, BoundLambda).LambdaSymbol.UnboundLambdaOpt
+                    Debug.Assert(unbound IsNot Nothing)
 
-                If unbound IsNot Nothing Then
-                    boundExpression = unbound
-                End If
-            End If
+                    If unbound IsNot Nothing Then
+                        boundExpression = unbound
+                    End If
+
+                Case BoundKind.ArrayCreation
+                    ' Switch back to the array literal node when we have it 
+                    Dim arrayLiteral = DirectCast(boundExpression, BoundArrayCreation).ArrayLiteralOpt
+
+                    If arrayLiteral IsNot Nothing Then
+                        boundExpression = arrayLiteral
+                    End If
+            End Select
 
             Return New Conversion(Conversions.ClassifyConversion(boundExpression, vbdestination, GetEnclosingBinder(boundExpression.Syntax), Nothing))
         End Function

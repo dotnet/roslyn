@@ -645,11 +645,11 @@ End Module
 
             '1
             Dim semanticInfos = GetSemanticInfos(compilation1, 1)
-            SemanticInfoTypeTest(semanticInfos, "Boolean", "?", "Integer()")
+            SemanticInfoTypeTest(semanticInfos, "Boolean", "?", Nothing)
             SemanticInfoConvertedTypeTest(semanticInfos, "Boolean", "Integer()", "Integer()")
             Assert.Equal(ConversionKind.Identity, semanticInfos(0).ImplicitConversion.Kind)
-            Assert.Equal(ConversionKind.DelegateRelaxationLevelNone, semanticInfos(1).ImplicitConversion.Kind)
-            Assert.Equal(ConversionKind.Identity, semanticInfos(2).ImplicitConversion.Kind)
+            Assert.Equal(Nothing, semanticInfos(1).ImplicitConversion.Kind)
+            Assert.Equal(ConversionKind.Widening, semanticInfos(2).ImplicitConversion.Kind)
             ClassifyConversionTest(compilation1)
             AnalyzeRegionDataFlowTestForeach(compilation1, ReadInsideSymbol:="", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="", WrittenOutsideSymbol:="args, testResult",
@@ -774,11 +774,11 @@ End Module
 
             '1
             Dim semanticInfos = GetSemanticInfos(compilation1, 1)
-            SemanticInfoTypeTest(semanticInfos, "Boolean", "Integer()", "Integer()")
+            SemanticInfoTypeTest(semanticInfos, "Boolean", Nothing, Nothing)
             SemanticInfoConvertedTypeTest(semanticInfos, "Boolean", "Integer()", "Integer()")
             Assert.Equal(ConversionKind.Identity, semanticInfos(0).ImplicitConversion.Kind)
-            Assert.Equal(ConversionKind.Identity, semanticInfos(1).ImplicitConversion.Kind)
-            Assert.Equal(ConversionKind.Identity, semanticInfos(2).ImplicitConversion.Kind)
+            Assert.Equal(ConversionKind.Widening, semanticInfos(1).ImplicitConversion.Kind)
+            Assert.Equal(ConversionKind.Widening, semanticInfos(2).ImplicitConversion.Kind)
             ClassifyConversionTest(compilation1)
             AnalyzeRegionDataFlowTestForeach(compilation1, ReadInsideSymbol:="", ReadOutsideSymbol:="",
                                              WrittenInsideSymbol:="", WrittenOutsideSymbol:="a, args",

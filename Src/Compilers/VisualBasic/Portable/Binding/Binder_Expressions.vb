@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' It would have been nice to put this reclassification in ReclassifyAsValue, however, that is called in too many situations.  We only
                         ' want to reclassify the array literal this early when it is within parentheses. 
                         Dim arrayLiteral = DirectCast(operand, BoundArrayLiteral)
-                        Dim reclassified = ReclassifyArrayLiteralExpression(SyntaxKind.CTypeKeyword, arrayLiteral.Syntax, ConversionKind.Identity, False, arrayLiteral, arrayLiteral.InferredType, diagnostics)
+                        Dim reclassified = ReclassifyArrayLiteralExpression(SyntaxKind.CTypeKeyword, arrayLiteral.Syntax, ConversionKind.Widening, False, arrayLiteral, arrayLiteral.InferredType, diagnostics)
                         Return New BoundParenthesized(node, reclassified, reclassified.Type)
                     Else
                         Return New BoundParenthesized(node, operand, operand.Type)
@@ -1166,7 +1166,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Mark as compiler generated so that semantic model does not select the array initialization bound node.
             ' The array initialization node is not a real expression and lacks a type.
             arrayInitialization.SetWasCompilerGenerated()
-            Dim arrayCreation = New BoundArrayCreation(arrayLiteral.Syntax, bounds, arrayInitialization, sourceType)
+            Debug.Assert(Not Conversions.IsIdentityConversion(conv))
+            Dim arrayCreation = New BoundArrayCreation(arrayLiteral.Syntax, bounds, arrayInitialization, arrayLiteral, conv, sourceType)
 
             If conversionSemantics = SyntaxKind.CTypeKeyword Then
                 Return ApplyConversion(tree, destination, arrayCreation, isExplicit, diagnostics)

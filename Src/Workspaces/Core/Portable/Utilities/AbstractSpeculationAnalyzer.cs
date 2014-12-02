@@ -785,7 +785,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
 
             var newReceiver = GetReceiver(newInvocationExpression);
             ITypeSymbol newReceiverType = newReceiver != null ?
-                speculativeSemanticModel.GetTypeInfo(newReceiver).Type :
+                speculativeSemanticModel.GetTypeInfo(newReceiver).ConvertedType :
                 newSymbolContainingType;
 
             if (newReceiverType == null)

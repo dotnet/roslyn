@@ -115,27 +115,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             '   ({1}) -to- {1}
             If expression.IsKind(SyntaxKind.CollectionInitializer) Then
                 If Not node.IsParentKind(SyntaxKind.CollectionInitializer) Then
+                    ' Standalone parenthesized array literal.
+                    ' Parentheses are insignificant.
+                    ' Ex. x = ({1})
                     Return True
                 End If
 
-                Dim expressionTypeInfo = semanticModel.GetTypeInfo(expression, cancellationToken)
-                If expressionTypeInfo.Type Is Nothing Then
-                    Return True
-                End If
-
-                Dim parentTypeInfo = semanticModel.GetTypeInfo(DirectCast(node.Parent, CollectionInitializerSyntax), cancellationToken)
-                If parentTypeInfo.Type Is Nothing AndAlso
-                   Not node.Parent.IsParentKind(SyntaxKind.ObjectCollectionInitializer) Then
-
-                    Return True
-                End If
-
-                Dim conversion = semanticModel.GetConversion(expression, cancellationToken)
-                If conversion.IsIdentity Then
+                If node.Parent.IsParentKind(SyntaxKind.ObjectCollectionInitializer) AndAlso
+                   DirectCast(node.Parent.Parent, ObjectCollectionInitializerSyntax).Initializer Is node.Parent Then
+                    ' This is a parenthesized array literal as a collection item within ObjectCollectionInitializer.
+                    ' Parentheses are significant in this case and should not be removed.
+                    ' Ex. List(Of Integer()) From {({1})}
                     Return False
                 End If
 
-                Return True
+                If node.Parent.IsParentKind(SyntaxKind.CollectionInitializer) AndAlso
+                   node.Parent.Parent.IsParentKind(SyntaxKind.ObjectCollectionInitializer) AndAlso
+                   DirectCast(node.Parent.Parent.Parent, ObjectCollectionInitializerSyntax).Initializer Is node.Parent.Parent Then
+                    ' This is a parenthesized array literal within first level sub-collection initializer within ObjectCollectionInitializer.
+                    ' Parentheses are insignificant in this case.
+                    ' Ex. List(Of Integer()) From {{({1})}}
+                    Return True
+                End If
+
+                ' This is a parenthesized array literal as an item expression within another array literal.
+                ' Parentheses are significant in this case and should not be removed.
+                Return False
             End If
 
             Dim firstToken = expression.GetFirstToken()

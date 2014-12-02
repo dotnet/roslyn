@@ -2744,7 +2744,7 @@ End Module
         End Sub
 
         <WorkItem(799045, "DevDiv")>
-        <Fact(Skip:="799045")>
+        <Fact()>
         Public Sub ClassifyConversionForArrayLiteral()
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
@@ -2768,11 +2768,16 @@ End Class
             Dim castType = DirectCast(model.GetTypeInfo(castNode.Type).Type, TypeSymbol)
             Assert.Equal("System.Int32()", castType.ToTestDisplayString())
 
+            Dim typeInfo = model.GetTypeInfo(expr)
+
+            Assert.Equal("System.Int32()", typeInfo.ConvertedType.ToTestDisplayString())
+            Assert.Null(typeInfo.Type)
+
             Dim conv1 = model.ClassifyConversion(expr, castType)
-            Assert.Equal(ConversionKind.Identity, conv1.Kind) ' This works fine.
+            Assert.Equal(ConversionKind.Widening, conv1.Kind)
 
             Dim conv2 = model.ClassifyConversion(castNode.Span.Start, expr, castType)
-            Assert.Equal(ConversionKind.Identity, conv2.Kind) ' This fails, how is this Widening?
+            Assert.Equal(ConversionKind.Widening, conv2.Kind)
         End Sub
 
 #End Region

@@ -793,6 +793,11 @@
         <Field Name="IsParamArrayArgument" Type="Boolean"/>
         <Field Name="Bounds" Type="ImmutableArray(Of BoundExpression)"/>
         <Field Name="InitializerOpt" Type="BoundArrayInitialization" Null="allow"/>
+
+        <!-- NOTE: ArrayLiteralOpt is being used solely for providing semantic information, it is discarded in the rewriter -->
+        <Field Name="ArrayLiteralOpt" Type="BoundArrayLiteral" Null="allow" SkipInVisitor="true" />
+        <!-- NOTE: ArrayLiteralConversion is being used solely for providing semantic information -->
+        <Field Name="ArrayLiteralConversion" Type="ConversionKind" />
     </Node>
   
     <Node Name="BoundArrayLiteral" Base="BoundExpression">

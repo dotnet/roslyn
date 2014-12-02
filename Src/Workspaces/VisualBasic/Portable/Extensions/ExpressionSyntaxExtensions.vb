@@ -803,16 +803,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
 
                 Dim initializerType As ITypeSymbol = Nothing
-                Dim isAnyCollectionElementTypeSameAsDeclaredElementTypeResult = True
 
                 If declaredSymbolType.IsArrayType() AndAlso variableDeclarator.Initializer.Value.VBKind() = SyntaxKind.CollectionInitializer Then
-                    Dim elementType = DirectCast(declaredSymbolType, IArrayTypeSymbol).ElementType
-                    isAnyCollectionElementTypeSameAsDeclaredElementTypeResult = IsAnyCollectionElementTypeSameAsDeclaredElementType(elementType, variableDeclarator.Initializer.Value, semanticModel, cancellationToken)
+                    ' Get type of the array literal in context without the target type
+                    initializerType = semanticModel.GetSpeculativeTypeInfo(variableDeclarator.Initializer.Value.SpanStart, variableDeclarator.Initializer.Value, SpeculativeBindingOption.BindAsExpression).ConvertedType
+                Else
+                    initializerType = semanticModel.GetTypeInfo(variableDeclarator.Initializer.Value).Type
                 End If
 
-                initializerType = semanticModel.GetTypeInfo(variableDeclarator.Initializer.Value).Type
-
-                If Not isAnyCollectionElementTypeSameAsDeclaredElementTypeResult OrElse Not declaredSymbolType.Equals(initializerType) Then
+                If Not declaredSymbolType.Equals(initializerType) Then
                     Return False
                 End If
 
@@ -853,23 +852,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             Return False
-        End Function
-
-        Private Function IsAnyCollectionElementTypeSameAsDeclaredElementType(
-            elementType As ITypeSymbol, value As ExpressionSyntax, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
-
-            If value.VBKind() = SyntaxKind.CollectionInitializer Then
-                For Each element In DirectCast(value, CollectionInitializerSyntax).Initializers
-                    If IsAnyCollectionElementTypeSameAsDeclaredElementType(elementType, element, semanticModel, cancellationToken) Then
-                        Return True
-                    End If
-                Next
-
-                Return False
-            Else
-                Dim type = semanticModel.GetTypeInfo(value, cancellationToken).Type
-                Return type IsNot Nothing AndAlso type.Equals(elementType)
-            End If
         End Function
 
         Private Function HasValidDeclaredTypeSymbol(

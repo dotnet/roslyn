@@ -1535,10 +1535,10 @@ End Module
 
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of CollectionInitializerSyntax)(compilation, "a.vb")
 
-            Assert.Equal("System.Int64()", semanticSummary.Type.ToTestDisplayString())
+            Assert.Null(semanticSummary.Type)
             Assert.Equal("System.Int64()", semanticSummary.ConvertedType.ToTestDisplayString())
             Assert.Equal(TypeKind.Array, semanticSummary.ConvertedType.TypeKind)
-            Assert.Equal(ConversionKind.Identity, semanticSummary.ImplicitConversion.Kind)
+            Assert.Equal(ConversionKind.Widening, semanticSummary.ImplicitConversion.Kind)
 
             Assert.Null(semanticSummary.Symbol)
             Assert.Equal(CandidateReason.None, semanticSummary.CandidateReason)
@@ -1591,8 +1591,7 @@ End Module
 
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of CollectionInitializerSyntax)(compilation, "a.vb")
 
-            Assert.Equal("System.Int32()", semanticSummary.Type.ToTestDisplayString())
-            Assert.Equal(TypeKind.Array, semanticSummary.Type.TypeKind)
+            Assert.Null(semanticSummary.Type)
             Assert.Equal("m.C", semanticSummary.ConvertedType.ToTestDisplayString())
             Assert.Equal(TypeKind.Class, semanticSummary.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.Widening Or ConversionKind.UserDefined, semanticSummary.ImplicitConversion.Kind)
@@ -1626,8 +1625,7 @@ End Module
 
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of CollectionInitializerSyntax)(compilation, "a.vb")
 
-            Assert.Equal("System.Char()", semanticSummary.Type.ToTestDisplayString())
-            Assert.Equal(TypeKind.Array, semanticSummary.Type.TypeKind)
+            Assert.Null(semanticSummary.Type)
             Assert.Equal("System.String", semanticSummary.ConvertedType.ToTestDisplayString())
             Assert.Equal(TypeKind.Class, semanticSummary.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.WideningString, semanticSummary.ImplicitConversion.Kind)
@@ -1957,9 +1955,42 @@ End Module
 
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of CollectionInitializerSyntax)(compilation, "a.vb")
 
-            Assert.Equal("System.Int32()", semanticSummary.Type.ToTestDisplayString())
+            Assert.Null(semanticSummary.Type)
             Assert.Equal("System.Int32()", semanticSummary.ConvertedType.ToTestDisplayString())
-            Assert.Equal(ConversionKind.Identity, semanticSummary.ImplicitConversion.Kind)
+            Assert.Equal(ConversionKind.Widening, semanticSummary.ImplicitConversion.Kind)
+
+            Assert.Null(semanticSummary.Symbol)
+            Assert.Equal(CandidateReason.None, semanticSummary.CandidateReason)
+            Assert.Equal(0, semanticSummary.CandidateSymbols.Length)
+
+            Assert.Null(semanticSummary.Alias)
+
+            Assert.Equal(0, semanticSummary.MemberGroup.Length)
+
+            Assert.False(semanticSummary.ConstantValue.HasValue)
+        End Sub
+
+        <WorkItem(799045)>
+        <Fact()>
+        Public Sub TestArrayLiteralSemanticModelImplicitConversionParenthesized()
+            Dim compilation = CreateCompilationWithMscorlib(
+ <compilation>
+     <file name="a.vb"><![CDATA[
+Imports System
+
+Module Program
+    Sub Main(args As String())
+        Dim x As Integer() = ({1, 2, 3}) 'BIND:"{1, 2, 3}"
+    End Sub
+End Module
+    ]]></file>
+ </compilation>)
+
+            Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of CollectionInitializerSyntax)(compilation, "a.vb")
+
+            Assert.Null(semanticSummary.Type)
+            Assert.Equal("System.Int32()", semanticSummary.ConvertedType.ToTestDisplayString())
+            Assert.Equal(ConversionKind.Widening, semanticSummary.ImplicitConversion.Kind)
 
             Assert.Null(semanticSummary.Symbol)
             Assert.Equal(CandidateReason.None, semanticSummary.CandidateReason)

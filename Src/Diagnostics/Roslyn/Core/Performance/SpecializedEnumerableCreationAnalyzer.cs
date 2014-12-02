@@ -109,7 +109,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
         protected abstract class AbstractSyntaxAnalyzer
         {
-            private INamedTypeSymbol genericEnumerableSymbol;
+            protected INamedTypeSymbol genericEnumerableSymbol;
             private IMethodSymbol genericEmptyEnumerableSymbol;
 
             public AbstractSyntaxAnalyzer(INamedTypeSymbol genericEnumerableSymbol, IMethodSymbol genericEmptyEnumerableSymbol)

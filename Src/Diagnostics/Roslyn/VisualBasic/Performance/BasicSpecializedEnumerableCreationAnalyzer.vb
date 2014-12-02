@@ -52,9 +52,25 @@ Namespace Roslyn.Diagnostics.Analyzers.VisualBasic
 
             Private Function ShouldAnalyzeExpression(expression As SyntaxNode, semanticModel As SemanticModel) As Boolean
                 Select Case expression.VBKind()
-                    Case SyntaxKind.ArrayCreationExpression,
-                         SyntaxKind.CollectionInitializer
+                    Case SyntaxKind.ArrayCreationExpression
                         Return ShouldAnalyzeArrayCreationExpression(expression, semanticModel)
+
+                    Case SyntaxKind.CollectionInitializer
+                        Dim typeInfo = semanticModel.GetTypeInfo(expression)
+
+                        If typeInfo.Type IsNot Nothing Then
+                            Return ShouldAnalyzeArrayCreationExpression(expression, semanticModel)
+                        End If
+
+                        ' Get TypeInfo of the array literal in context without the target type
+                        Dim speculativeTypeInfo = semanticModel.GetSpeculativeTypeInfo(expression.SpanStart, expression, SpeculativeBindingOption.BindAsExpression)
+                        Dim arrayType = TryCast(speculativeTypeInfo.ConvertedType, IArrayTypeSymbol)
+
+                        Return arrayType IsNot Nothing AndAlso
+                               arrayType.Rank = 1 AndAlso
+                               typeInfo.ConvertedType IsNot Nothing AndAlso
+                               typeInfo.ConvertedType.OriginalDefinition.Equals(Me.genericEnumerableSymbol)
+
                     Case SyntaxKind.SimpleMemberAccessExpression
                         Return True
                 End Select

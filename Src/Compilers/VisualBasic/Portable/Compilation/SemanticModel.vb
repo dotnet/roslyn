@@ -953,7 +953,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing
             End If
 
-            Dim type As TypeSymbol = lowestExpr.Type
+            Dim type As TypeSymbol
+
+            ' Similar to a lambda expression, array literal doesn't have a type.
+            ' However, during binding we create BoundArrayCreation node that has type the literal got converted to.
+            ' Let's account for that.
+            If lowestExpr.Kind = BoundKind.ArrayCreation AndAlso DirectCast(lowestExpr, BoundArrayCreation).ArrayLiteralOpt IsNot Nothing Then
+                type = Nothing
+                conversion = New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(DirectCast(lowestExpr, BoundArrayCreation).ArrayLiteralConversion, Nothing))
+            Else
+                type = lowestExpr.Type
+            End If
+
             Dim useOfLocalBeforeDeclaration As Boolean = False
 
             ' Use of local befor declaration requires some additional fixup.

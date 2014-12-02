@@ -2627,7 +2627,7 @@ ProduceBoundNode:
                                     (New BoundExpression() {New BoundLiteral(node,
                                         ConstantValue.Create(items.Count),
                                         GetSpecialType(SpecialType.System_Int32, node, diagnostics)).MakeCompilerGenerated()}).AsImmutableOrNull(),
-                                    New BoundArrayInitialization(node, items.ToImmutableAndFree(), targetType).MakeCompilerGenerated(), targetType).MakeCompilerGenerated()
+                                    New BoundArrayInitialization(node, items.ToImmutableAndFree(), targetType).MakeCompilerGenerated(), Nothing, Nothing, targetType).MakeCompilerGenerated()
                 Else
                     Dim argIndex As Integer
                     argIndex = parameterToArgumentMap(paramIndex)

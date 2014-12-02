@@ -461,6 +461,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(Not boundArray.IsLValue)
             Debug.Assert(boundArray.InitializerOpt IsNot Nothing)
+            Debug.Assert(boundArray.ArrayLiteralOpt Is Nothing)
 
             Dim initializer As BoundArrayInitialization = boundArray.InitializerOpt
             Dim initializerSize As Integer = initializer.Initializers.Length
@@ -478,9 +479,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Finally, duplicate array creation expression with updated initializers
             first = boundArray.Update(boundArray.IsParamArrayArgument, boundArray.Bounds,
-                                      initializer.Update(firstArgsArray.AsImmutableOrNull(), initializer.Type), boundArray.Type)
+                                      initializer.Update(firstArgsArray.AsImmutableOrNull(), initializer.Type), Nothing, Nothing, boundArray.Type)
             second = boundArray.Update(boundArray.IsParamArrayArgument, boundArray.Bounds,
-                                       initializer.Update(secondArgsArray.AsImmutableOrNull(), initializer.Type), boundArray.Type)
+                                       initializer.Update(secondArgsArray.AsImmutableOrNull(), initializer.Type), Nothing, Nothing, boundArray.Type)
         End Sub
 
 #If DONT_USE_BYREF_LOCALS_FOR_USE_TWICE Then

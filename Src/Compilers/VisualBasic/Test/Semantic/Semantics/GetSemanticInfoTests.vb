@@ -2172,10 +2172,10 @@ End Module
 
             Dim semanticSummary = CompilationUtils.GetSemanticInfoSummary(Of CollectionInitializerSyntax)(compilation, "a.vb")
 
-            Assert.Equal("System.Int32()", semanticSummary.Type.ToTestDisplayString())
+            Assert.Null(semanticSummary.Type)
             Assert.Equal("System.Int32()", semanticSummary.ConvertedType.ToTestDisplayString())
             Assert.Equal(TypeKind.Array, semanticSummary.ConvertedType.TypeKind)
-            Assert.Equal(ConversionKind.Identity, semanticSummary.ImplicitConversion.Kind)
+            Assert.Equal(ConversionKind.Widening, semanticSummary.ImplicitConversion.Kind)
 
             Assert.Null(semanticSummary.Symbol)
             Assert.Equal(CandidateReason.None, semanticSummary.CandidateReason)
@@ -3651,11 +3651,11 @@ End Module
 
             Dim expr = SyntaxFactory.ParseExpression("{1, 2, 3}")
             Dim speculativeTypeInfo = semanticModel.GetSpeculativeTypeInfo(position, expr, SpeculativeBindingOption.BindAsExpression)
-            Assert.Equal("Integer()", speculativeTypeInfo.Type.ToDisplayString())
+            Assert.Null(speculativeTypeInfo.Type)
             Assert.Equal("Integer()", speculativeTypeInfo.ConvertedType.ToDisplayString())
 
             Dim specualtiveConversion = semanticModel.GetSpeculativeConversion(position, expr, SpeculativeBindingOption.BindAsExpression)
-            Assert.Equal(ConversionKind.Identity, specualtiveConversion.Kind)
+            Assert.Equal(ConversionKind.Widening, specualtiveConversion.Kind)
         End Sub
 
         <WorkItem(545346, "DevDiv")>

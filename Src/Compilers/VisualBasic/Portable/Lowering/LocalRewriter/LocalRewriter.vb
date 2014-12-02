@@ -893,5 +893,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return result
         End Function
+
+        Public Overrides Function VisitArrayCreation(node As BoundArrayCreation) As BoundNode
+            ' Drop ArrayLiteralOpt
+            Return MyBase.VisitArrayCreation(node.Update(node.IsParamArrayArgument,
+                                                         node.Bounds,
+                                                         node.InitializerOpt,
+                                                         Nothing,
+                                                         Nothing,
+                                                         node.Type))
+        End Function
+
     End Class
 End Namespace

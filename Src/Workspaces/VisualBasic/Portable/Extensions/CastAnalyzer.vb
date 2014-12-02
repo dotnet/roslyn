@@ -189,8 +189,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return False
             End If
 
-            Dim castExpressionTypeInfo = _semanticModel.GetTypeInfo(_castExpressionNode, _cancellationToken)
-            Dim castExpressionType = castExpressionTypeInfo.Type
+            Dim castExpressionType As ITypeSymbol
+
+            If _castExpressionNode.VBKind = SyntaxKind.CollectionInitializer Then
+                ' Get type of the array literal in context without the target type
+                castExpressionType = _semanticModel.GetSpeculativeTypeInfo(_castExpressionNode.SpanStart, _castExpressionNode, SpeculativeBindingOption.BindAsExpression).ConvertedType
+            Else
+                castExpressionType = _semanticModel.GetTypeInfo(_castExpressionNode, _cancellationToken).Type
+            End If
 
             If castExpressionType IsNot Nothing AndAlso castExpressionType.IsErrorType() Then
                 Return False
@@ -248,7 +254,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Return False
                 End If
 
-                If expressionToOuterType.IsIdentity AndAlso
+                If (expressionToOuterType.IsIdentity OrElse
+                      (_castExpressionNode.VBKind = SyntaxKind.CollectionInitializer AndAlso expressionToOuterType.IsWidening AndAlso speculatedExpressionOuterType.IsArrayType())) AndAlso
                    expressionToCastType.IsWidening Then
                     Return True
                 End If

@@ -11,7 +11,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Inherits BoundExpression
 
         Public Sub New(syntax As VisualBasicSyntaxNode, bounds As ImmutableArray(Of BoundExpression), initializerOpt As BoundArrayInitialization, type As TypeSymbol, Optional hasErrors As Boolean = False)
-            Me.New(syntax, False, bounds, initializerOpt, type, hasErrors)
+            Me.New(syntax, False, bounds, initializerOpt, Nothing, Nothing, type, hasErrors)
+        End Sub
+
+        Public Sub New(syntax As VisualBasicSyntaxNode, bounds As ImmutableArray(Of BoundExpression), initializerOpt As BoundArrayInitialization, arrayLiteralOpt As BoundArrayLiteral, arrayLiteralConversion As ConversionKind, type As TypeSymbol, Optional hasErrors As Boolean = False)
+            Me.New(syntax, False, bounds, initializerOpt, arrayLiteralOpt, arrayLiteralConversion, type, hasErrors)
         End Sub
 
 #If DEBUG Then

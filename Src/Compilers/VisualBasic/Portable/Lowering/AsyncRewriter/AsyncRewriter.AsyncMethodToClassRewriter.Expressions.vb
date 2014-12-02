@@ -641,6 +641,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Overrides Function VisitArrayCreation(node As BoundArrayCreation) As BoundNode
+                Debug.Assert(node.ArrayLiteralOpt Is Nothing)
+
                 Dim bounds As ImmutableArray(Of BoundExpression) = Me.VisitList(node.Bounds)
                 Dim rewrittenInitializer As BoundArrayInitialization = DirectCast(Me.Visit(node.InitializerOpt), BoundArrayInitialization)
                 Dim rewrittenType As TypeSymbol = Me.VisitType(node.Type)
@@ -653,6 +655,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return node.Update(node.IsParamArrayArgument,
                                        bounds,
                                        DirectCast(rewrittenInitializer, BoundArrayInitialization),
+                                       Nothing,
+                                       Nothing,
                                        rewrittenType)
                 End If
 
@@ -669,6 +673,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                     node.Update(node.IsParamArrayArgument,
                                                                 bounds,
                                                                 DirectCast(rewrittenInitializer, BoundArrayInitialization),
+                                                                Nothing,
+                                                                Nothing,
                                                                 rewrittenType))
 
 
