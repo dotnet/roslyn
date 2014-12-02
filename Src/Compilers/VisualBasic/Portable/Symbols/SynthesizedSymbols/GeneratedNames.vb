@@ -214,6 +214,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     index += 1
                     Return StringConstants.SynthesizedLocalKindWith & index
 
+                Case SynthesizedLocalKind.SelectCaseValue
+                    Return StringConstants.SynthesizedLocalKindSelectCaseValue
                 Case SynthesizedLocalKind.Lock
                     Return StringConstants.SynthesizedLocalKindLock
                 Case SynthesizedLocalKind.Using

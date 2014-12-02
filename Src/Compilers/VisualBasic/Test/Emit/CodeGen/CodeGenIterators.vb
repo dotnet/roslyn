@@ -11,6 +11,147 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         <Fact>
+        <WorkItem(1081584)>
+        Public Sub TestYieldInSelectCase()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+Imports System.Collections.Generic
+
+Module A
+    Public Sub Main()
+        For Each s In YieldString()
+            Console.WriteLine(s)
+        Next
+    End Sub
+
+    Public Iterator Function YieldString() As IEnumerable(Of String)
+      For Each b In { True, False }
+          Select Case True
+            Case b
+              Yield "True"
+            Case Not b
+              Yield "False"
+          End Select
+      Next
+    End Function
+End Module
+    </file>
+</compilation>, expectedOutput:="True
+False").VerifyIL("A.VB$StateMachine_1_YieldString.MoveNext", "
+{
+  // Code size      220 (0xdc)
+  .maxstack  5
+  .locals init (Integer V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""A.VB$StateMachine_1_YieldString.$State As Integer""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  switch    (
+        IL_001b,
+        IL_007e,
+        IL_00b0)
+  IL_0019:  ldc.i4.0
+  IL_001a:  ret
+  IL_001b:  ldarg.0
+  IL_001c:  ldc.i4.m1
+  IL_001d:  dup
+  IL_001e:  stloc.0
+  IL_001f:  stfld      ""A.VB$StateMachine_1_YieldString.$State As Integer""
+  IL_0024:  ldarg.0
+  IL_0025:  ldc.i4.2
+  IL_0026:  newarr     ""Boolean""
+  IL_002b:  dup
+  IL_002c:  ldc.i4.0
+  IL_002d:  ldc.i4.1
+  IL_002e:  stelem.i1
+  IL_002f:  stfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_VB$ForEachArray$1 As Boolean()""
+  IL_0034:  ldarg.0
+  IL_0035:  ldc.i4.0
+  IL_0036:  stfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_VB$ForEachArrayIndex$2 As Integer""
+  IL_003b:  br         IL_00c7
+  IL_0040:  ldarg.0
+  IL_0041:  ldarg.0
+  IL_0042:  ldfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_VB$ForEachArray$1 As Boolean()""
+  IL_0047:  ldarg.0
+  IL_0048:  ldfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_VB$ForEachArrayIndex$2 As Integer""
+  IL_004d:  ldelem.u1
+  IL_004e:  stfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_b$1 As Boolean""
+  IL_0053:  ldarg.0
+  IL_0054:  ldc.i4.1
+  IL_0055:  stfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_VB$SelectCaseValue$3 As Boolean""
+  IL_005a:  ldarg.0
+  IL_005b:  ldfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_VB$SelectCaseValue$3 As Boolean""
+  IL_0060:  ldarg.0
+  IL_0061:  ldfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_b$1 As Boolean""
+  IL_0066:  bne.un.s   IL_0089
+  IL_0068:  ldarg.0
+  IL_0069:  ldstr      ""True""
+  IL_006e:  stfld      ""A.VB$StateMachine_1_YieldString.$Current As String""
+  IL_0073:  ldarg.0
+  IL_0074:  ldc.i4.1
+  IL_0075:  dup
+  IL_0076:  stloc.0
+  IL_0077:  stfld      ""A.VB$StateMachine_1_YieldString.$State As Integer""
+  IL_007c:  ldc.i4.1
+  IL_007d:  ret
+  IL_007e:  ldarg.0
+  IL_007f:  ldc.i4.m1
+  IL_0080:  dup
+  IL_0081:  stloc.0
+  IL_0082:  stfld      ""A.VB$StateMachine_1_YieldString.$State As Integer""
+  IL_0087:  br.s       IL_00b9
+  IL_0089:  ldarg.0
+  IL_008a:  ldfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_VB$SelectCaseValue$3 As Boolean""
+  IL_008f:  ldarg.0
+  IL_0090:  ldfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_b$1 As Boolean""
+  IL_0095:  ldc.i4.0
+  IL_0096:  ceq
+  IL_0098:  bne.un.s   IL_00b9
+  IL_009a:  ldarg.0
+  IL_009b:  ldstr      ""False""
+  IL_00a0:  stfld      ""A.VB$StateMachine_1_YieldString.$Current As String""
+  IL_00a5:  ldarg.0
+  IL_00a6:  ldc.i4.2
+  IL_00a7:  dup
+  IL_00a8:  stloc.0
+  IL_00a9:  stfld      ""A.VB$StateMachine_1_YieldString.$State As Integer""
+  IL_00ae:  ldc.i4.1
+  IL_00af:  ret
+  IL_00b0:  ldarg.0
+  IL_00b1:  ldc.i4.m1
+  IL_00b2:  dup
+  IL_00b3:  stloc.0
+  IL_00b4:  stfld      ""A.VB$StateMachine_1_YieldString.$State As Integer""
+  IL_00b9:  ldarg.0
+  IL_00ba:  ldarg.0
+  IL_00bb:  ldfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_VB$ForEachArrayIndex$2 As Integer""
+  IL_00c0:  ldc.i4.1
+  IL_00c1:  add.ovf
+  IL_00c2:  stfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_VB$ForEachArrayIndex$2 As Integer""
+  IL_00c7:  ldarg.0
+  IL_00c8:  ldfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_VB$ForEachArrayIndex$2 As Integer""
+  IL_00cd:  ldarg.0
+  IL_00ce:  ldfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_VB$ForEachArray$1 As Boolean()""
+  IL_00d3:  ldlen
+  IL_00d4:  conv.i4
+  IL_00d5:  blt        IL_0040
+  IL_00da:  ldc.i4.0
+  IL_00db:  ret
+}").VerifyIL("A.VB$StateMachine_1_YieldString.IEnumerable.GetEnumerator", "
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""Function A.VB$StateMachine_1_YieldString.GetEnumerator() As System.Collections.Generic.IEnumerator(Of String)""
+  IL_0006:  ret
+}")
+        End Sub
+
+        <Fact>
         Sub SingletonIterator()
             Dim source =
 <compilation>

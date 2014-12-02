@@ -60,6 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Const OnErrorCurrentLine As String = "VB$CurrentLine"
         Friend Const StateMachineCachedState As String = "VB$cachedState"
 
+        Friend Const SynthesizedLocalKindSelectCaseValue As String = "VB$SelectCaseValue"
         Friend Const SynthesizedLocalKindLock As String = "VB$Lock"
         Friend Const SynthesizedLocalKindUsing As String = "VB$Using"
         Friend Const SynthesizedLocalKindForEachEnumerator As String = "VB$ForEachEnumerator"
