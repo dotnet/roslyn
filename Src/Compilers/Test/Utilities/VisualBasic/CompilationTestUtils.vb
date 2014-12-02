@@ -215,6 +215,20 @@ Friend Module CompilationUtils
         Return CreateCompilationWithReferences(sources, DirectCast({}, IEnumerable(Of MetadataReference)), options, spans, parseOptions)
     End Function
 
+    Public Function CreateCompilation(
+            identity As AssemblyIdentity,
+            sources() As String,
+            references() As MetadataReference,
+            Optional options As VisualBasicCompilationOptions = Nothing) As VisualBasicCompilation
+
+        Dim trees = If(sources Is Nothing, Nothing, sources.Select(AddressOf VisualBasicSyntaxTree.ParseText).ToArray())
+        Dim c = VisualBasicCompilation.Create(identity.Name, trees, references, options)
+        Assert.NotNull(c.Assembly) ' force creation of SourceAssemblySymbol
+
+        DirectCast(c.Assembly, SourceAssemblySymbol).m_lazyIdentity = identity
+        Return c
+    End Function
+
     ''' <summary>
     ''' 
     ''' </summary>

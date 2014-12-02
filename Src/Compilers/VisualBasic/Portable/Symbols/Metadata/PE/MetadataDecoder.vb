@@ -219,6 +219,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return m_ModuleSymbol.LookupTopLevelMetadataType(emittedName, isNoPiaLocalType)
         End Function
 
+        Protected Overrides Function GetIndexOfReferencedAssembly(identity As AssemblyIdentity) As Integer
+            Dim assemblies = m_ModuleSymbol.GetReferencedAssemblySymbols()
+            For i = 0 To assemblies.Length - 1
+                If identity.Equals(assemblies(i).Identity) Then
+                    Return i
+                End If
+            Next
+            Return -1
+        End Function
+
         Protected Overrides Function MakePointerTypeSymbol(type As TypeSymbol, customModifiers As ImmutableArray(Of ModifierInfo)) As TypeSymbol
             Return GetUnsupportedMetadataTypeSymbol()
         End Function

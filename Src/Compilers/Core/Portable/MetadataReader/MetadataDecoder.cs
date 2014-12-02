@@ -1910,6 +1910,7 @@ namespace Microsoft.CodeAnalysis
         protected abstract TypeSymbol LookupTopLevelTypeDefSymbol(int referencedAssemblyIndex, ref MetadataTypeName emittedName);
         protected abstract TypeSymbol LookupTopLevelTypeDefSymbol(string moduleName, ref MetadataTypeName emittedName, out bool isNoPiaLocalType);
         protected abstract TypeSymbol LookupNestedTypeDefSymbol(TypeSymbol container, ref MetadataTypeName emittedName);
+        protected abstract int GetIndexOfReferencedAssembly(AssemblyIdentity identity);
         protected abstract TypeSymbol GetUnsupportedMetadataTypeSymbol(BadImageFormatException mrEx = null);
         protected abstract TypeSymbol GetByRefReturnTypeSymbol(TypeSymbol referencedType);
 
@@ -2125,7 +2126,7 @@ namespace Microsoft.CodeAnalysis
 
         internal TypeSymbol GetTypeSymbolForSerializedType(string s)
         {
-            if (s == null || s.IsEmpty())
+            if (string.IsNullOrEmpty(s))
             {
                 return GetUnsupportedMetadataTypeSymbol();
             }
@@ -2158,7 +2159,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // the assembly name has to be a full name:
-                referencedAssemblyIndex = Module.IndexOfReferencedAssembly(identity);
+                referencedAssemblyIndex = GetIndexOfReferencedAssembly(identity);
                 if (referencedAssemblyIndex == -1)
                 {
                     // In rare cases (e.g. assemblies emitted by Reflection.Emit) the identity 

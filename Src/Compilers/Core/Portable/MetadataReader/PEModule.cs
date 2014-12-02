@@ -400,19 +400,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal int IndexOfReferencedAssembly(AssemblyIdentity identity)
-        {
-            var assemblyRefs = ReferencedAssemblies;
-            for (int i = 0; i < assemblyRefs.Length; i++)
-            {
-                if (identity.Equals(assemblyRefs[i]))
-                {
-                    return i;
-                }
-            }
-            return -1;
-        }
-
         #endregion
 
         #region PE Header helpers

@@ -243,6 +243,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return moduleSymbol.LookupTopLevelMetadataType(ref emittedName, out isNoPiaLocalType);
         }
 
+        protected override int GetIndexOfReferencedAssembly(AssemblyIdentity identity)
+        {
+            var assemblies = this.moduleSymbol.GetReferencedAssemblySymbols();
+            for (int i = 0; i < assemblies.Length; i++)
+            {
+                if (identity.Equals(assemblies[i].Identity))
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
         protected override TypeSymbol MakePointerTypeSymbol(TypeSymbol type, ImmutableArray<ModifierInfo> customModifiers)
         {
             if (type is UnsupportedMetadataTypeSymbol)

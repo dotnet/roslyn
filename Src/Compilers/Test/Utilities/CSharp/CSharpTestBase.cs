@@ -539,26 +539,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static CSharpCompilation CreateCompilation(
             AssemblyIdentity identity,
             string[] sources,
-            MetadataReference[] refs)
+            MetadataReference[] references,
+            CSharpCompilationOptions options = null)
         {
-            SyntaxTree[] trees = null;
+            var trees = (sources == null) ? null : sources.Select(s => Parse(s)).ToArray();
+            var c = CSharpCompilation.Create(identity.Name, options: options ?? TestOptions.ReleaseDll, references: references, syntaxTrees: trees);
+            Assert.NotNull(c.Assembly); // force creation of SourceAssemblySymbol
 
-            if (sources != null)
-            {
-                trees = new SyntaxTree[sources.Length];
-
-                for (int i = 0; i < sources.Length; i++)
-                {
-                    trees[i] = Parse(sources[i]);
-                }
-            }
-
-            var tc1 = CSharpCompilation.Create(identity.Name, options: TestOptions.ReleaseDll, references: refs, syntaxTrees: trees);
-            Assert.NotNull(tc1.Assembly); // force creation of SourceAssemblySymbol
-
-            ((SourceAssemblySymbol)tc1.Assembly).lazyAssemblyIdentity = identity;
-
-            return tc1;
+            ((SourceAssemblySymbol)c.Assembly).lazyAssemblyIdentity = identity;
+            return c;
         }
 
         public CompilationVerifier CompileWithCustomILSource(string cSharpSource, string ilSource, Action<CSharpCompilation> compilationVerifier = null, bool importInternals = true, TestEmitters emitOptions = TestEmitters.All, string expectedOutput = null)

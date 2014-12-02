@@ -630,34 +630,6 @@ End Namespace
             Assert.Same(retval22, asm7(2).GlobalNamespace.GetMembers("Class5").Single())
         End Sub
 
-        Private Function CreateCompilation(
-            identity As AssemblyIdentity,
-            sources() As String,
-            refs() As MetadataReference
-        ) As VisualBasicCompilation
-            If identity.Name Is Nothing OrElse identity.Name.Length = 0 Then
-                identity = New AssemblyIdentity("Dummy")
-            End If
-
-            Dim trees As SyntaxTree() = Nothing
-
-            If sources IsNot Nothing Then
-                trees = New VisualBasicSyntaxTree(sources.Length - 1) {}
-
-                For i As Integer = 0 To sources.Length - 1 Step 1
-                    trees(i) = VisualBasicSyntaxTree.ParseText(sources(i))
-                Next
-            End If
-
-            Dim tc1 = VisualBasicCompilation.Create(identity.Name, trees, refs)
-            Assert.NotNull(tc1.Assembly) ' force creation of SourceAssemblySymbol
-
-            DirectCast(tc1.Assembly, SourceAssemblySymbol).m_lazyIdentity = identity
-
-            Return tc1
-        End Function
-
-
 #If Retargeting Then
         <Fact(skip:=SkipReason.AlreadyTestingRetargeting)>
         Public Sub MultiTargeting2()
