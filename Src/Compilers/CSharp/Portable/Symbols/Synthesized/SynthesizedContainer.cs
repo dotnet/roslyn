@@ -202,9 +202,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics
+        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
         {
-            get { return ImmutableArray<NamedTypeSymbol>.Empty; }
+            return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfacesToEmit()
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<Symbol> basesBeingResolved)
         {
-            return InterfacesNoUseSiteDiagnostics;
+            return InterfacesNoUseSiteDiagnostics(basesBeingResolved);
         }
 
         public override bool MightContainExtensionMethods

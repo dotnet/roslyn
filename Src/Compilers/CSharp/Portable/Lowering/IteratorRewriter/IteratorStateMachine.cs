@@ -4,6 +4,7 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -47,9 +48,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return constructor; }
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics
+        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
         {
-            get { return interfaces; }
+            return interfaces;
         }
 
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics

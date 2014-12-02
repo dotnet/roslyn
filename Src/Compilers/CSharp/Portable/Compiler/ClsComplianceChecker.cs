@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (symbol.IsInterface)
             {
-                foreach (NamedTypeSymbol interfaceType in symbol.InterfacesNoUseSiteDiagnostics)
+                foreach (NamedTypeSymbol interfaceType in symbol.InterfacesNoUseSiteDiagnostics())
                 {
                     if (!IsCompliantType(interfaceType, symbol))
                     {

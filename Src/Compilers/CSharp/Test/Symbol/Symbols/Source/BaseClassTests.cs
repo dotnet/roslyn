@@ -1818,5 +1818,39 @@ struct S : C.I
                 // class C : C.I
                 Diagnostic(ErrorCode.ERR_DottedTypeNameNotFoundInAgg, "I").WithArguments("I", "C").WithLocation(1, 13));
         }
+        
+        [Fact, WorkItem(1085632, "DevDiv")]
+        public void BaseLookupRecursionWithStaticImport01()
+        {
+            var source =
+@"using A<int>.B;
+using D;
+
+class A<T> : C
+{
+    public static class B { }
+}
+
+class D
+{
+    public class C { }
+}";
+            var compilation = CreateCompilationWithMscorlib(source);
+            // Once we allow static import of nonstatic classes, this should not be an error.
+            compilation.VerifyDiagnostics(
+                // (4,14): error CS0246: The type or namespace name 'C' could not be found (are you missing a using directive or an assembly reference?)
+                // class A<T> : C
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C").WithArguments("C").WithLocation(4, 14),
+                // (2,7): error CS7007: A using directive can only be applied to static classes or namespaces; the type 'D' is not a static class
+                // using D;
+                Diagnostic(ErrorCode.ERR_BadUsingType, "D").WithArguments("D").WithLocation(2, 7),
+                // (2,1): hidden CS8019: Unnecessary using directive.
+                // using D;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using D;").WithLocation(2, 1),
+                // (1,1): hidden CS8019: Unnecessary using directive.
+                // using A<int>.B;
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using A<int>.B;").WithLocation(1, 1)
+                );
+        }
     }
 }

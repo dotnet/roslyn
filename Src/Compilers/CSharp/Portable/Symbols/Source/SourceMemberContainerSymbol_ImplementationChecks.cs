@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             HashSet<DiagnosticInfo> unuseddiagnostics = null;
 
             NamedTypeSymbol directInterface = null;
-            foreach (var iface in this.InterfacesNoUseSiteDiagnostics)
+            foreach (var iface in this.InterfacesNoUseSiteDiagnostics())
             {
                 if (iface == implementedInterface)
                 {

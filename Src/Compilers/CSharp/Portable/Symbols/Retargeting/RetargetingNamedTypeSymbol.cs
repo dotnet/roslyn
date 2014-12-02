@@ -437,27 +437,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics
+        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
         {
-            get
+            if (lazyInterfaces.IsDefault)
             {
-                if (lazyInterfaces.IsDefault)
+                var declaredInterfaces = GetDeclaredInterfaces(basesBeingResolved);
+                if (!IsInterface)
                 {
-                    var declaredInterfaces = GetDeclaredInterfaces(null);
-                    if (!IsInterface)
-                    {
-                        // only interfaces needs to check for inheritance cycles via interfaces.
-                        return declaredInterfaces;
-                    }
-
-                    ImmutableArray<NamedTypeSymbol> result = declaredInterfaces
-                        .SelectAsArray(t => BaseTypeAnalysis.InterfaceDependsOn(t, this) ? CyclicInheritanceError(this, t) : t);
-
-                    ImmutableInterlocked.InterlockedCompareExchange(ref lazyInterfaces, result, default(ImmutableArray<NamedTypeSymbol>));
+                    // only interfaces needs to check for inheritance cycles via interfaces.
+                    return declaredInterfaces;
                 }
 
-                return lazyInterfaces;
+                ImmutableArray<NamedTypeSymbol> result = declaredInterfaces
+                    .SelectAsArray(t => BaseTypeAnalysis.InterfaceDependsOn(t, this) ? CyclicInheritanceError(this, t) : t);
+
+                ImmutableInterlocked.InterlockedCompareExchange(ref lazyInterfaces, result, default(ImmutableArray<NamedTypeSymbol>));
             }
+
+            return lazyInterfaces;
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfacesToEmit()

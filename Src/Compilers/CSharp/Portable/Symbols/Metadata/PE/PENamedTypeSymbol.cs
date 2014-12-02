@@ -384,22 +384,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics
+        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved = null)
         {
-            get
+            if (lazyInterfaces.IsDefault)
             {
-                if (lazyInterfaces.IsDefault)
-                {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref lazyInterfaces, MakeAcyclicInterfaces(), default(ImmutableArray<NamedTypeSymbol>));
-                }
-
-                return lazyInterfaces;
+                ImmutableInterlocked.InterlockedCompareExchange(ref lazyInterfaces, MakeAcyclicInterfaces(), default(ImmutableArray<NamedTypeSymbol>));
             }
+
+            return lazyInterfaces;
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfacesToEmit()
         {
-            return InterfacesNoUseSiteDiagnostics;
+            return InterfacesNoUseSiteDiagnostics();
         }
 
         internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert((object)interfaceType != null && interfaceType.IsInterface);
 
-            foreach (NamedTypeSymbol baseInterface in interfaceType.InterfacesNoUseSiteDiagnostics)
+            foreach (NamedTypeSymbol baseInterface in interfaceType.InterfacesNoUseSiteDiagnostics())
             {
                 IsVarianceUnsafe(
                     baseInterface,

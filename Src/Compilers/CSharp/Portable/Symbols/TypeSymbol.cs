@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (var baseType = this; !ReferenceEquals(baseType, null); baseType = baseType.BaseTypeNoUseSiteDiagnostics)
             {
-                var interfaces = (baseType.TypeKind == TypeKind.TypeParameter) ? ((TypeParameterSymbol)baseType).EffectiveInterfacesNoUseSiteDiagnostics : baseType.InterfacesNoUseSiteDiagnostics;
+                var interfaces = (baseType.TypeKind == TypeKind.TypeParameter) ? ((TypeParameterSymbol)baseType).EffectiveInterfacesNoUseSiteDiagnostics : baseType.InterfacesNoUseSiteDiagnostics();
                 if (!interfaces.IsEmpty)
                 {
                     // it looks like we or one of our bases implements something.
@@ -171,11 +171,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return InterfacesNoUseSiteDiagnostics;
+                return InterfacesNoUseSiteDiagnostics();
             }
         }
 
-        internal abstract ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics { get; }
+        internal abstract ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved = null);
 
         /// <summary>
         /// The list of all interfaces of which this type is a declared subtype, excluding this type
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (var baseType = this; !ReferenceEquals(baseType, null); baseType = baseType.BaseTypeNoUseSiteDiagnostics)
             {
-                var interfaces = (baseType.TypeKind == TypeKind.TypeParameter) ? ((TypeParameterSymbol)baseType).EffectiveInterfacesNoUseSiteDiagnostics : baseType.InterfacesNoUseSiteDiagnostics;
+                var interfaces = (baseType.TypeKind == TypeKind.TypeParameter) ? ((TypeParameterSymbol)baseType).EffectiveInterfacesNoUseSiteDiagnostics : baseType.InterfacesNoUseSiteDiagnostics();
                 for (int i = interfaces.Length - 1; i >= 0; i--)
                 {
                     var @interface = interfaces[i];
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (visited.Add(@interface))
             {
-                ImmutableArray<NamedTypeSymbol> baseInterfaces = @interface.InterfacesNoUseSiteDiagnostics;
+                ImmutableArray<NamedTypeSymbol> baseInterfaces = @interface.InterfacesNoUseSiteDiagnostics();
                 for (int i = baseInterfaces.Length - 1; i >= 0; i--)
                 {
                     var baseInterface = baseInterfaces[i];
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (info.interfacesAndTheirBaseInterfaces == null)
                 {
-                    Interlocked.CompareExchange(ref info.interfacesAndTheirBaseInterfaces, MakeInterfacesAndTheirBaseInterfaces(this.InterfacesNoUseSiteDiagnostics), null);
+                    Interlocked.CompareExchange(ref info.interfacesAndTheirBaseInterfaces, MakeInterfacesAndTheirBaseInterfaces(this.InterfacesNoUseSiteDiagnostics()), null);
                 }
 
                 return info.interfacesAndTheirBaseInterfaces;
@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return StaticCast<INamedTypeSymbol>.From(this.InterfacesNoUseSiteDiagnostics);
+                return StaticCast<INamedTypeSymbol>.From(this.InterfacesNoUseSiteDiagnostics());
             }
         }
 

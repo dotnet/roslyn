@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // It's not clear how important the order of these interfaces is, but Dev10
             // maintains pre-order depth-first/declaration order, so we probably should as well.
             // That's why we're not using InterfacesAndTheirBaseInterfaces - it's an unordered set.
-            foreach (NamedTypeSymbol @interface in namedType.InterfacesNoUseSiteDiagnostics)
+            foreach (NamedTypeSymbol @interface in namedType.InterfacesNoUseSiteDiagnostics())
             {
                 if (seen == null)
                 {

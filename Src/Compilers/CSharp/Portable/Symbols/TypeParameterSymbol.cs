@@ -260,12 +260,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics
+        internal sealed override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
         {
-            get
-            {
-                return ImmutableArray<NamedTypeSymbol>.Empty;
-            }
+            return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
         protected override ImmutableArray<NamedTypeSymbol> GetAllInterfaces()

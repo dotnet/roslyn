@@ -394,6 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpSyntaxNode typeSyntax,
             SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax,
             Compilation currentCompilation,
+            ConsList<Symbol> basesBeingResolved,
             DiagnosticBag diagnostics)
         {
             Debug.Assert(typeArgumentsSyntax.Count == type.Arity);
@@ -420,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             diagnosticsBuilder.Free();
 
-            if (!InterfacesAreDistinct(type))
+            if (!InterfacesAreDistinct(type, basesBeingResolved))
             {
                 result = false;
                 diagnostics.Add(ErrorCode.ERR_BogusType, typeSyntax.Location, type);
@@ -460,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // we only check for distinct interfaces when the type is not from source, as we
             // trust that types that are from source have already been checked by the compiler
             // to prevent this from happening in the first place.
-            if (!(currentCompilation != null && type.IsFromCompilation(currentCompilation)) && !InterfacesAreDistinct(type))
+            if (!(currentCompilation != null && type.IsFromCompilation(currentCompilation)) && !InterfacesAreDistinct(type, null))
             {
                 result = false;
                 diagnostics.Add(ErrorCode.ERR_BogusType, location, type);
@@ -472,9 +473,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // C# does not let you declare a type in which it would be possible for distinct base interfaces
         // to unify under some instantiations.  But such ill-formed classes can come in through
         // metadata and be instantiated in C#.  We check to see if that's happened.
-        private static bool InterfacesAreDistinct(NamedTypeSymbol type)
+        private static bool InterfacesAreDistinct(NamedTypeSymbol type, ConsList<Symbol> basesBeingResolved)
         {
-            return !type.InterfacesNoUseSiteDiagnostics.HasDuplicates(TypeSymbol.EqualsIgnoringDynamicComparer);
+            return !type.InterfacesNoUseSiteDiagnostics(basesBeingResolved).HasDuplicates(TypeSymbol.EqualsIgnoringDynamicComparer);
         }
 
         public static bool CheckConstraints(

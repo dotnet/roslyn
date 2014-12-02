@@ -56,23 +56,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Gets the set of interfaces that this type directly implements. This set does not include
         /// interfaces that are base interfaces of directly implemented interfaces.
         /// </summary>
-        internal sealed override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics
+        internal sealed override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
         {
-            get
+            if (lazyInterfaces.IsDefault)
             {
-                if (lazyInterfaces.IsDefault)
+                if (basesBeingResolved != null && basesBeingResolved.ContainsReference(this.OriginalDefinition))
                 {
-                    var diagnostics = DiagnosticBag.GetInstance();
-                    var acyclicInterfaces = MakeAcyclicInterfaces(diagnostics);
-                    if (ImmutableInterlocked.InterlockedCompareExchange(ref lazyInterfaces, acyclicInterfaces, default(ImmutableArray<NamedTypeSymbol>)).IsDefault)
-                    {
-                        AddSemanticDiagnostics(diagnostics);
-                    }
-                    diagnostics.Free();
+                    return ImmutableArray<NamedTypeSymbol>.Empty;
                 }
 
-                return lazyInterfaces;
+                var diagnostics = DiagnosticBag.GetInstance();
+                var acyclicInterfaces = MakeAcyclicInterfaces(basesBeingResolved, diagnostics);
+                if (ImmutableInterlocked.InterlockedCompareExchange(ref lazyInterfaces, acyclicInterfaces, default(ImmutableArray<NamedTypeSymbol>)).IsDefault)
+                {
+                    AddSemanticDiagnostics(diagnostics);
+                }
+                diagnostics.Free();
             }
+
+            return lazyInterfaces;
         }
 
         protected override void CheckBase(DiagnosticBag diagnostics)
@@ -218,6 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var reportedPartialConflict = false;
+            Debug.Assert(basesBeingResolved == null || !basesBeingResolved.ContainsReference(this.OriginalDefinition));
             var newBasesBeingResolved = basesBeingResolved.Prepend(this.OriginalDefinition);
             var baseInterfaces = ArrayBuilder<NamedTypeSymbol>.GetInstance();
 
@@ -502,7 +505,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private ImmutableArray<NamedTypeSymbol> MakeAcyclicInterfaces(DiagnosticBag diagnostics)
+        private ImmutableArray<NamedTypeSymbol> MakeAcyclicInterfaces(ConsList<Symbol> basesBeingResolved, DiagnosticBag diagnostics)
         {
             var typeKind = this.TypeKind;
 
@@ -512,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return ImmutableArray<NamedTypeSymbol>.Empty;
             }
 
-            var declaredInterfaces = GetDeclaredInterfaces(basesBeingResolved: null);
+            var declaredInterfaces = GetDeclaredInterfaces(basesBeingResolved: basesBeingResolved);
             bool isClass = (typeKind == TypeKind.Class);
 
             ArrayBuilder<NamedTypeSymbol> result = isClass ? null : ArrayBuilder<NamedTypeSymbol>.GetInstance();

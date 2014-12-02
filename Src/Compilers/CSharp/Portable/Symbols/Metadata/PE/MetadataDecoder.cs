@@ -707,7 +707,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         protected override void EnqueueTypeSymbolInterfacesAndBaseTypes(Queue<TypeDefinitionHandle> typeDefsToSearch, Queue<TypeSymbol> typeSymbolsToSearch, TypeSymbol typeSymbol)
         {
-            foreach (NamedTypeSymbol @interface in typeSymbol.InterfacesNoUseSiteDiagnostics)
+            foreach (NamedTypeSymbol @interface in typeSymbol.InterfacesNoUseSiteDiagnostics())
             {
                 EnqueueTypeSymbol(typeDefsToSearch, typeSymbolsToSearch, @interface);
             }

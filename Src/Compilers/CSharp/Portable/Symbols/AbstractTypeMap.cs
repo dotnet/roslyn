@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return t;
             }
 
-            ImmutableArray<NamedTypeSymbol> interfaces = t.InterfacesNoUseSiteDiagnostics;
+            ImmutableArray<NamedTypeSymbol> interfaces = t.InterfacesNoUseSiteDiagnostics();
             Debug.Assert(0 <= interfaces.Length && interfaces.Length <= 2);
 
             if (interfaces.Length == 1)

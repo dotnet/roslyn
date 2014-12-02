@@ -98,13 +98,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics
+        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
         {
-            get
-            {
-                // Pointers do not support boxing, so they really have no interfaces
-                return ImmutableArray<NamedTypeSymbol>.Empty;
-            }
+            // Pointers do not support boxing, so they really have no interfaces
+            return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
         public override bool IsReferenceType

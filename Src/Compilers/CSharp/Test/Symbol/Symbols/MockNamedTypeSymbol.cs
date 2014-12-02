@@ -210,9 +210,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             get { throw new NotImplementedException(); }
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics
+        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
         {
-            get { throw new NotImplementedException(); }
+            throw new NotImplementedException();
         }
 
         internal override ImmutableArray<NamedTypeSymbol> GetInterfacesToEmit()

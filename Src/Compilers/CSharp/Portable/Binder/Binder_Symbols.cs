@@ -725,6 +725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node,
                     typeArguments,
                     BindTypeArguments(typeArguments, diagnostics, basesBeingResolved),
+                    basesBeingResolved,
                     diagnostics);
             }
 
@@ -867,7 +868,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return ConstructNamedType(type, typeSyntax, typeArgumentsSyntax, typeArguments, diagnostics);
+                // we pass an empty basesBeingResolved here because this invocation is not on any possible path of
+                // infinite recursion in binding base clauses.
+                return ConstructNamedType(type, typeSyntax, typeArgumentsSyntax, typeArguments, basesBeingResolved: null, diagnostics: diagnostics);
             }
         }
 
@@ -925,14 +928,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static Func<Symbol, MethodSymbol> ToMethodSymbolFunc = s => (MethodSymbol)s;
         private static Func<Symbol, PropertySymbol> ToPropertySymbolFunc = s => (PropertySymbol)s;
 
-        private NamedTypeSymbol ConstructNamedType(NamedTypeSymbol type, CSharpSyntaxNode typeSyntax, SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax, ImmutableArray<TypeSymbol> typeArguments, DiagnosticBag diagnostics)
+        private NamedTypeSymbol ConstructNamedType(
+            NamedTypeSymbol type,
+            CSharpSyntaxNode typeSyntax,
+            SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax,
+            ImmutableArray<TypeSymbol> typeArguments,
+            ConsList<Symbol> basesBeingResolved,
+            DiagnosticBag diagnostics)
         {
             Debug.Assert(!typeArguments.IsEmpty);
             type = type.Construct(typeArguments);
 
             if (ShouldCheckConstraints)
             {
-                type.CheckConstraints(this.Conversions, typeSyntax, typeArgumentsSyntax, this.Compilation, diagnostics);
+                type.CheckConstraints(this.Conversions, typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics);
             }
 
             return type;
