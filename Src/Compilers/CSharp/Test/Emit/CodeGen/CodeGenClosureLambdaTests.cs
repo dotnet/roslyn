@@ -4198,7 +4198,7 @@ class Test
   // Code size       28 (0x1c)
   .maxstack  2
   IL_0000:  ldsfld     ""Test.<>c__DisplayClass0 Test.<>c__DisplayClass0.CS$<>9__inst""
-  IL_0005:  ldftn      ""int Test.<>c__DisplayClass0.<_cctor>b__1()""
+  IL_0005:  ldftn      ""int Test.<>c__DisplayClass0.<_cctor>b__3()""
   IL_000b:  newobj     ""D..ctor(object, System.IntPtr)""
   IL_0010:  stsfld     ""D Test.field""
   IL_0015:  ldc.i4.m1

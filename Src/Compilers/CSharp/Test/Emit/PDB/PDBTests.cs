@@ -1181,12 +1181,13 @@ class Program
 ";
             // we just want this to compile without crashing/asserting
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb("Program.Main", @"
-<symbols>
+            c.VerifyPdb("Program.Main", @"<symbols>
   <methods>
     <method containingType=""Program"" name=""Main"" parameterNames=""args"">
       <customDebugInfo version=""4"" count=""2"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Program"" methodName="".cctor"" parameterNames="""" />
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""3"" />
+        </using>
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""20"">
           <slot kind=""5"" offset=""15"" />
           <slot kind=""0"" offset=""15"" />
@@ -1218,13 +1219,17 @@ class Program
         <local name=""i"" il_index=""1"" il_start=""0x14"" il_end=""0x3d"" attributes=""0"" />
       </locals>
       <scope startOffset=""0x0"" endOffset=""0x53"">
+        <namespace name=""System"" />
+        <namespace name=""System.Collections.Generic"" />
+        <namespace name=""System.Linq"" />
         <scope startOffset=""0x14"" endOffset=""0x3d"">
           <local name=""i"" il_index=""1"" il_start=""0x14"" il_end=""0x3d"" attributes=""0"" />
         </scope>
       </scope>
     </method>
   </methods>
-</symbols>");
+</symbols>"
+);
         }
 
         #endregion

@@ -238,29 +238,14 @@ namespace ConsoleApplication1
     }
 }";
             var compilation = CreateCompilationWithMscorlib45(text, options: TestOptions.DebugDll).VerifyDiagnostics();
-            compilation.VerifyPdb(@"
-<symbols>
+            compilation.VerifyPdb(@"<symbols>
   <methods>
-    <method containingType=""ConsoleApplication1.Program"" name="".cctor"" parameterNames="""">
+    <method containingType=""ConsoleApplication1.Program"" name=""Main"" parameterNames=""args"">
       <customDebugInfo version=""4"" count=""1"">
         <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
           <namespace usingCount=""0"" />
           <namespace usingCount=""3"" />
         </using>
-      </customDebugInfo>
-      <sequencepoints total=""1"">
-        <entry il_offset=""0x0"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""53"" file_ref=""0"" />
-      </sequencepoints>
-      <locals />
-      <scope startOffset=""0x0"" endOffset=""0xb"">
-        <namespace name=""System"" />
-        <namespace name=""System.Collections.Generic"" />
-        <namespace name=""System.Threading.Tasks"" />
-      </scope>
-    </method>
-    <method containingType=""ConsoleApplication1.Program"" name=""Main"" parameterNames=""args"">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""ConsoleApplication1.Program"" methodName="".cctor"" parameterNames="""" />
       </customDebugInfo>
       <sequencepoints total=""3"">
         <entry il_offset=""0x0"" start_row=""12"" start_column=""9"" end_row=""12"" end_column=""10"" file_ref=""0"" />
@@ -268,6 +253,11 @@ namespace ConsoleApplication1
         <entry il_offset=""0xc"" start_row=""14"" start_column=""9"" end_row=""14"" end_column=""10"" file_ref=""0"" />
       </sequencepoints>
       <locals />
+      <scope startOffset=""0x0"" endOffset=""0xd"">
+        <namespace name=""System"" />
+        <namespace name=""System.Collections.Generic"" />
+        <namespace name=""System.Threading.Tasks"" />
+      </scope>
     </method>
     <method containingType=""ConsoleApplication1.Program"" name=""QBar"" parameterNames="""">
       <customDebugInfo version=""4"" count=""1"">
@@ -293,7 +283,7 @@ namespace ConsoleApplication1
     </method>
     <method containingType=""ConsoleApplication1.Program"" name=""GetNextInt"" parameterNames=""random"">
       <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""ConsoleApplication1.Program"" methodName="".cctor"" parameterNames="""" />
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""ConsoleApplication1.Program"" methodName=""Main"" parameterNames=""args"" />
       </customDebugInfo>
       <sequencepoints total=""3"">
         <entry il_offset=""0x0"" start_row=""30"" start_column=""9"" end_row=""30"" end_column=""10"" file_ref=""0"" />
@@ -302,9 +292,18 @@ namespace ConsoleApplication1
       </sequencepoints>
       <locals />
     </method>
+    <method containingType=""ConsoleApplication1.Program"" name="".cctor"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""ConsoleApplication1.Program"" methodName=""Main"" parameterNames=""args"" />
+      </customDebugInfo>
+      <sequencepoints total=""1"">
+        <entry il_offset=""0x0"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""53"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+    </method>
     <method containingType=""ConsoleApplication1.Program+&lt;QBar&gt;d__1"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""2"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""ConsoleApplication1.Program"" methodName="".cctor"" parameterNames="""" />
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""ConsoleApplication1.Program"" methodName=""Main"" parameterNames=""args"" />
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
           <slot kind=""27"" offset=""0"" />
           <slot kind=""temp"" />
@@ -329,7 +328,7 @@ namespace ConsoleApplication1
     </method>
     <method containingType=""ConsoleApplication1.Program+&lt;ZBar&gt;d__1"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""3"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""ConsoleApplication1.Program"" methodName="".cctor"" parameterNames="""" />
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""ConsoleApplication1.Program"" methodName=""Main"" parameterNames=""args"" />
         <hoistedLocalScopes version=""4"" kind=""StateMachineHoistedLocalScopes"" size=""52"" count=""5"">
           <slot startOffset=""0x11"" endOffset=""0x11e"" />
           <slot startOffset=""0x0"" endOffset=""0x0"" />
