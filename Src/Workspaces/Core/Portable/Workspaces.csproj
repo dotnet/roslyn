@@ -383,7 +383,7 @@
     <Compile Include="Workspace\CustomWorkspace.cs" />
     <Compile Include="Workspace\Host\Caching\ICachedObjectOwner.cs" />
     <Compile Include="Workspace\Host\Caching\CacheOptions.cs" />
-    <Compile Include="Workspace\Host\Caching\CacheServiceFactory.cs" />
+    <Compile Include="Workspace\Host\Caching\ProjectCacheServiceFactory.cs" />
     <Compile Include="Workspace\Host\Caching\IProjectCacheService.cs" />
     <Compile Include="Differencing\Edit.cs" />
     <Compile Include="Differencing\EditKind.cs" />
@@ -529,6 +529,7 @@
     <Compile Include="IOrderableMetadata.cs" />
     <Compile Include="Utilities\ImmutableArrayExtensions.cs" />
     <Compile Include="Utilities\ObjectPools\PooledObject.cs" />
+    <Compile Include="Workspace\Host\Caching\IWorkspaceCacheService.cs" />
     <Compile Include="Workspace\Host\Mef\ILanguagesMetadata.cs" />
     <Compile Include="Workspace\Host\Mef\CodeFixProviderMetadata.cs" />
     <Compile Include="Workspace\Host\Mef\IMefHostExportProvider.cs" />
