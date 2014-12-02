@@ -424,11 +424,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
 
                     Return result
 
-                Case SyntaxKind.DictionaryAccessExpression
+                Case Else
                     Return Nothing
             End Select
-
-            Throw ExceptionUtilities.UnexpectedValue(expression.VBKind)
         End Function
 
         Protected Overrides Function IsNamedArgument(argument As ArgumentSyntax) As Boolean
@@ -454,10 +452,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                     Return DirectCast(expression, InvocationExpressionSyntax).ArgumentList
                 Case SyntaxKind.ObjectCreationExpression
                     Return DirectCast(expression, ObjectCreationExpressionSyntax).ArgumentList
-                Case SyntaxKind.SimpleMemberAccessExpression
-                    Return Nothing
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(expression)
+                    Return Nothing
             End Select
         End Function
 

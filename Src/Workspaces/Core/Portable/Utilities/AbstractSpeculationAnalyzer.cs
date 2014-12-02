@@ -900,10 +900,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         {
             if (originalSymbol.IsKind(SymbolKind.Method) || originalSymbol.IsIndexer())
             {
-                var symbolParameters = originalSymbol.GetParameters();
-                var newSymbolParameters = newSymbol.GetParameters();
                 var specifiedArguments = GetArguments(originalInvocation);
-                return AreCompatibleParameterLists(specifiedArguments, symbolParameters, newSymbolParameters);
+                if (specifiedArguments != null)
+                {
+                    var symbolParameters = originalSymbol.GetParameters();
+                    var newSymbolParameters = newSymbol.GetParameters();
+                    return AreCompatibleParameterLists(specifiedArguments, symbolParameters, newSymbolParameters);
+                }
             }
 
             return true;

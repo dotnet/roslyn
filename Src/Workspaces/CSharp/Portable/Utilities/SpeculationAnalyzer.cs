@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     return ((ElementAccessExpressionSyntax)expression).ArgumentList;
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(expression.CSharpKind());
+                    return null;
             }
         }
 
@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                     }
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(expression.CSharpKind());
+                    return null;
             }
         }
 
