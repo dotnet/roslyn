@@ -592,6 +592,15 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new document in a new instance of this project.
         /// </summary>
+        public Document AddDocument(string name, SyntaxNode syntaxRoot, IEnumerable<string> folders = null)
+        {
+            var id = DocumentId.CreateNewId(this.Id);
+            return this.Solution.AddDocument(id, name, syntaxRoot, folders).GetDocument(id);
+        }
+
+        /// <summary>
+        /// Creates a new document in a new instance of this project.
+        /// </summary>
         public Document AddDocument(string name, SourceText text, IEnumerable<string> folders = null)
         {
             var id = DocumentId.CreateNewId(this.Id);

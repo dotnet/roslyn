@@ -782,6 +782,27 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestGetSyntaxTreeFromAddedTree()
+        {
+            var pid = ProjectId.CreateNewId();
+            var did = DocumentId.CreateNewId(pid);
+
+            var tree = CSharp.SyntaxFactory.ParseSyntaxTree("public class C {}").GetRoot(CancellationToken.None);
+            tree = tree.WithAdditionalAnnotations(new SyntaxAnnotation("test"));
+
+            var sol = CreateSolution()
+                        .AddProject(pid, "foo", "foo.dll", LanguageNames.CSharp)
+                        .AddDocument(did, "x", tree);
+
+            var doc = sol.GetDocument(did);
+            var docTree = doc.GetSyntaxRootAsync().Result;
+
+            Assert.NotNull(docTree);
+            Assert.True(tree.IsEquivalentTo(docTree));
+            Assert.NotNull(docTree.GetAnnotatedNodes("test").Single());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestGetSyntaxRootAsync()
         {
             var pid = ProjectId.CreateNewId();
