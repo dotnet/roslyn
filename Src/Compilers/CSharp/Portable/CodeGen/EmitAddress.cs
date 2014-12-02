@@ -261,6 +261,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// </summary>
         private bool HasHome(BoundFieldAccess fieldAccess)
         {
+            // Some field accesses must be values; values do not have homes.
+            if (fieldAccess.IsByValue)
+            {
+                return false;
+            }
+
             FieldSymbol field = fieldAccess.FieldSymbol;
 
             // const fields are literal values with no homes

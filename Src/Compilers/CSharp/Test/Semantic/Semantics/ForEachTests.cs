@@ -949,41 +949,6 @@ class C
                 Diagnostic(ErrorCode.ERR_ForEachMissingMember, "i").WithArguments("int", "GetEnumerator"));
         }
 
-        [Fact(Skip = "Bug 1077204")]
-        [WorkItem(1077204)]
-        public void TestIterationVariableIsReadOnly()
-        {
-            const string source = @"
-using System;
-
-struct A
-{
-    public B B;
-
-    static void Main()
-    {
-        A[] array = { default(A) };
-
-        foreach (A a in array)
-        {
-            a.B.SetField(5);
-            Console.Write(a.B.Field);
-        }
-    }
-}
-
-struct B
-{
-    public int Field;
-
-    public void SetField(int value)
-    {
-        this.Field = value;
-    }
-}";
-            CompileAndVerify(source, expectedOutput: "0");
-        }
-
         [Fact]
         public void TestErrorModifyIterationVariable()
         {

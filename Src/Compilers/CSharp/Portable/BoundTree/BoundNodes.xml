@@ -1190,6 +1190,7 @@
     <Field Name="FieldSymbol" Type="FieldSymbol"/>
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    <Field Name="IsByValue" Type="bool"/>
   </Node>
   
   <!--

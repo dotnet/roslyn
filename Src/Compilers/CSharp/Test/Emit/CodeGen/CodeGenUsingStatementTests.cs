@@ -2748,5 +2748,104 @@ Catch").VerifyIL("Program.Main", @"
   IL_0031:  ret
 }");
         }
+
+        [Fact]
+        public void TestValueTypeUsingVariableCanBeMutatedByInstanceMethods()
+        {
+            const string source = @"
+struct A : System.IDisposable
+{
+    int field;
+
+    void Set(A a)
+    {
+        this = a;
+    }
+
+    public void Dispose() { }
+
+    static void Main()
+    {
+        using (var a = new A())
+        {
+            a.Set(new A { field = 5 });
+            System.Console.Write(a.field);
+        }
+    }  
+}";
+
+            CompileAndVerify(source, expectedOutput: "5");
+        }
+
+        [Fact, WorkItem(1077204)]
+        public void TestValueTypeUsingVariableFieldsAreReadonly()
+        {
+            const string source = @"
+struct B
+{
+    public int field;
+
+    public void SetField(int value)
+    {
+        field = value;
+    }
+}
+
+struct A : System.IDisposable
+{
+    B b;
+
+    public void Dispose() { }
+
+    static void Main()
+    {
+        using (var a = new A())
+        {
+            a.b.SetField(5);
+            System.Console.Write(a.b.field);
+        }
+    }
+}";
+
+            CompileAndVerify(source, expectedOutput: "0");
+        }
+
+        [Fact, WorkItem(1077204)]
+        public void TestValueTypeUsingVariableFieldsAreReadonly2()
+        {
+            const string source = @"
+struct C
+{
+    public int field;
+
+    public void SetField(int value)
+    {
+        field = value;
+    }
+}
+
+struct B
+{
+    public C c;
+}
+
+struct A : System.IDisposable
+{
+    B b;
+
+    public void Dispose() { }
+
+    static void Main()
+    {
+        using (var a = new A())
+        {
+            a.b.c.SetField(5);
+            System.Console.Write(a.b.c.field);
+        }
+    }
+}";
+
+            CompileAndVerify(source, expectedOutput: "0");
+        }
     }
 }

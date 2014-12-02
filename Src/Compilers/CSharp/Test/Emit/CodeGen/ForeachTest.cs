@@ -947,5 +947,103 @@ public class Gen<T> where T : new()
 0";
             CompileAndVerify(text, expectedOutput: expectedOutput);
         }
+
+        [Fact]
+        public void TestValueTypeIterationVariableCanBeMutatedByInstanceMethods()
+        {
+            const string source = @"
+struct A
+{
+    int field;
+
+    void Set(A a)
+    {
+        this = a;
+    }
+
+    static void Main()
+    {
+        foreach (var a in new A[1])
+        {
+            a.Set(new A { field = 5 });
+            System.Console.Write(a.field);
+        }
+    }  
+}";
+
+            CompileAndVerify(source, expectedOutput: "5");
+        }
+
+
+        [Fact, WorkItem(1077204)]
+        public void TestValueTypeIterationVariableFieldsAreReadonly()
+        {
+            const string source = @"
+using System;
+
+struct A
+{
+    public B B;
+
+    static void Main()
+    {
+        A[] array = { default(A) };
+
+        foreach (A a in array)
+        {
+            a.B.SetField(5);
+            Console.Write(a.B.Field);
+        }
+    }
+}
+
+struct B
+{
+    public int Field;
+
+    public void SetField(int value)
+    {
+        this.Field = value;
+    }
+}";
+
+            CompileAndVerify(source, expectedOutput: "0");
+        }
+
+        [Fact]
+        public void TestValueTypeIterationVariableFieldsAreReadonly2()
+        {
+            const string source = @"
+struct C
+{
+    public int field;
+
+    public void SetField(int value)
+    {
+        field = value;
+    }
+}
+
+struct B
+{
+    public C c;
+}
+
+struct A
+{
+    B b;
+
+    static void Main()
+    {
+        foreach (var a in new A[1])
+        {
+            a.b.c.SetField(5);
+            System.Console.Write(a.b.c.field);
+        }
+    }
+}";
+
+            CompileAndVerify(source, expectedOutput: "0");
+        }
     }
 }
