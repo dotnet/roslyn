@@ -179,6 +179,50 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
   IL_0019:  ret
 }]]>)
         End Sub
+
+        <Fact, WorkItem(910884)>
+        Public Sub StopStatement_In_DebugMode()
+            Dim Source = <compilation>
+                             <file name="a.vb">
+                Imports System
+                Imports  Microsoft.VisualBasic
+
+                Public Module Module1
+                    Public Sub Main()
+                        Stop
+                        Console.Writeline("Hello")
+                    End Sub
+                End Module
+                    </file>
+                         </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(Source, TestOptions.ReleaseExe)
+            Dim compilationVerifier = CompileAndVerify(compilation).VerifyIL("Module1.Main",
+            <![CDATA[{
+  // Code size       16 (0x10)
+  .maxstack  1
+  IL_0000:  call       "Sub System.Diagnostics.Debugger.Break()"
+  IL_0005:  ldstr      "Hello"
+  IL_000a:  call       "Sub System.Console.WriteLine(String)"
+  IL_000f:  ret
+}]]>)
+
+            ' We are looking for a nop after a call to System.Diagnostics.Debugger.Break():
+            compilation = CreateCompilationWithMscorlibAndVBRuntime(Source, TestOptions.DebugExe)
+            compilationVerifier = CompileAndVerify(compilation).VerifyIL("Module1.Main",
+            <![CDATA[{
+  // Code size       19 (0x13)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  call       "Sub System.Diagnostics.Debugger.Break()"
+  IL_0006:  nop
+  IL_0007:  ldstr      "Hello"
+  IL_000c:  call       "Sub System.Console.WriteLine(String)"
+  IL_0011:  nop
+  IL_0012:  ret
+}]]>)
+
+        End Sub
     End Class
 
 End Namespace
