@@ -133,6 +133,24 @@ namespace Roslyn.Diagnostics.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This collection is directly indexable.  Going through LINQ here causes unnecessary allocations and CPU work..
+        /// </summary>
+        internal static string DoNotUseLinqOnIndexableCollectionDescription {
+            get {
+                return ResourceManager.GetString("DoNotUseLinqOnIndexableCollectionDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do not use Enumerable methods on indexable collections.  Instead use the collection directly..
+        /// </summary>
+        internal static string DoNotUseLinqOnIndexableCollectionMessage {
+            get {
+                return ResourceManager.GetString("DoNotUseLinqOnIndexableCollectionMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Do not use generic CodeAction.Create to create CodeAction.
         /// </summary>
         internal static string DontUseCodeActionCreateDescription {

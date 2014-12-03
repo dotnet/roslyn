@@ -24,8 +24,8 @@ namespace Roslyn.Diagnostics.Analyzers
             analysisContext.RegisterCompilationStartAction(
                 (context) =>
                 {
-                    if (context.Compilation.AssemblyName.Contains("FxCopAnalyzer") ||
-                        context.Compilation.AssemblyName.Contains("FxCopDiagnosticFixers"))
+                    if (context.Compilation.AssemblyName != null && 
+                        (context.Compilation.AssemblyName.Contains("FxCopAnalyzer") || context.Compilation.AssemblyName.Contains("FxCopDiagnosticFixers")))
                     {
                         return;
                     }

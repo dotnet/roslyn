@@ -18,5 +18,6 @@ namespace Roslyn.Diagnostics.Analyzers
         public const string CancellationTokenMustBeLastRuleId = "RS0011";
         public const string DoNotCallToImmutableArrayRuleId = "RS0012";
         public const string DoNotAccessDiagnosticDescriptorRuleId = "RS0013";
+        public const string DoNotCallLinqOnIndexable = "RS0014";
     }
 }

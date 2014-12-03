@@ -201,4 +201,10 @@
   <data name="DiagnosticDescriptorAccessDescription" xml:space="preserve">
     <value>Accessing the Descriptor property of Diagnostic in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the Descriptor of the compiler diagnostics here. Instead you should directly access these properties off the Diagnostic type.</value>
   </data>
+  <data name="DoNotUseLinqOnIndexableCollectionMessage" xml:space="preserve">
+    <value>Do not use Enumerable methods on indexable collections.  Instead use the collection directly.</value>
+  </data>
+  <data name="DoNotUseLinqOnIndexableCollectionDescription" xml:space="preserve">
+    <value>This collection is directly indexable.  Going through LINQ here causes unnecessary allocations and CPU work.</value>
+  </data>
 </root>
