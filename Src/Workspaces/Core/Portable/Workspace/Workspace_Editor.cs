@@ -438,8 +438,6 @@ namespace Microsoft.CodeAnalysis
                 var oldDocument = oldSolution.GetAdditionalDocument(documentId);
                 var oldText = oldDocument.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
 
-                AddToOpenDocumentMap(documentId);
-
                 // keep open document text alive by using PreserveIdentity
                 var newText = textContainer.CurrentText;
                 var currentSolution = oldSolution;
@@ -522,7 +520,6 @@ namespace Microsoft.CodeAnalysis
         protected internal void OnAdditionalDocumentClosed(DocumentId documentId, TextLoader reloader)
         {
             this.CheckAdditionalDocumentIsInCurrentSolution(documentId);
-            this.CheckDocumentIsOpen(documentId);
 
             using (this.serializationLock.DisposableWait())
             {
