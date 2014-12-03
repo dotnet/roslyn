@@ -617,11 +617,37 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new additional document in a new instance of this project.
+        /// </summary>
+        public TextDocument AddAdditionalDocument(string name, SourceText text, IEnumerable<string> folders = null)
+        {
+            var id = DocumentId.CreateNewId(this.Id);
+            return this.Solution.AddAdditionalDocument(id, name, text, folders).GetAdditionalDocument(id);
+        }
+
+        /// <summary>
+        /// Creates a new additional document in a new instance of this project.
+        /// </summary>
+        public TextDocument AddAdditionalDocument(string name, string text, IEnumerable<string> folders = null)
+        {
+            var id = DocumentId.CreateNewId(this.Id);
+            return this.Solution.AddAdditionalDocument(id, name, text, folders).GetAdditionalDocument(id);
+        }
+
+        /// <summary>
         /// Creates a new instance of this project updated to no longer include the specified document.
         /// </summary>
         public Project RemoveDocument(DocumentId documentId)
         {
             return this.Solution.RemoveDocument(documentId).GetProject(this.Id);
+        }
+
+        /// <summary>
+        /// Creates a new instance of this project updated to no longer include the specified additional document.
+        /// </summary>
+        public Project RemoveAdditionalDocument(DocumentId documentId)
+        {
+            return this.Solution.RemoveAdditionalDocument(documentId).GetProject(this.Id);
         }
 
         private string GetDebuggerDisplay()

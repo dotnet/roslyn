@@ -1275,6 +1275,15 @@ namespace Microsoft.CodeAnalysis
         /// Creates a new solution instance with the corresponding project updated to include a new
         /// additional document instance defined by its name and text.
         /// </summary>
+        public Solution AddAdditionalDocument(DocumentId documentId, string name, string text, IEnumerable<string> folders = null, string filePath = null)
+        {
+            return this.AddAdditionalDocument(documentId, name, SourceText.From(text), folders, filePath);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the corresponding project updated to include a new
+        /// additional document instance defined by its name and text.
+        /// </summary>
         public Solution AddAdditionalDocument(DocumentId documentId, string name, SourceText text, IEnumerable<string> folders = null, string filePath = null)
         {
             if (documentId == null)
