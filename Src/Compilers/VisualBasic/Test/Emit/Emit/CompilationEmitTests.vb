@@ -2750,7 +2750,7 @@ End interface
 </expected>)
         End Sub
 
-        <Fact(Skip:="1001945"), WorkItem(769741, "DevDiv"), WorkItem(1001945)>
+        <Fact, WorkItem(769741, "DevDiv"), WorkItem(1001945)>
         Public Sub Bug769741()
             Dim source =
 <compilation>
@@ -2761,6 +2761,8 @@ End interface
             Dim compilation = CreateCompilationWithReferences(source, {TestReferences.SymbolsTests.netModule.x64COFF}, TestOptions.DebugDll)
 
             CompileAndVerify(compilation, emitOptions:=TestEmitters.RefEmitBug, verify:=False)
+            Assert.NotSame(compilation.Assembly.CorLibrary, compilation.Assembly)
+            compilation.GetSpecialType(SpecialType.System_Int32)
         End Sub
 
         <Fact>

@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis
 
             // If we have assembly being built and no references, 
             // assume the assembly we are building is the COR library.
-            if (assemblies.Length == 1)
+            if (assemblies.Length == 1 && assemblies[0].AssemblyReferences.Length == 0)
             {
                 return 0;
             }

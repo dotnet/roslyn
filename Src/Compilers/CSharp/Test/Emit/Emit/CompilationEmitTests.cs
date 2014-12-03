@@ -2580,8 +2580,11 @@ public interface IUsePlatform
         [Fact, WorkItem(769741, "DevDiv")]
         public void Bug769741()
         {
+            var comp = CreateCompilation("", new[] { TestReferences.SymbolsTests.netModule.x64COFF }, options: TestOptions.DebugDll);
             // modules not supported in ref emit
-            CompileAndVerify("", new[] { TestReferences.SymbolsTests.netModule.x64COFF }, emitOptions: TestEmitters.RefEmitBug, verify: false);
+            CompileAndVerify(comp, emitOptions: TestEmitters.RefEmitBug, verify: false);
+            Assert.NotSame(comp.Assembly.CorLibrary, comp.Assembly);
+            comp.GetSpecialType(SpecialType.System_Int32);
         }
 
         [Fact]
