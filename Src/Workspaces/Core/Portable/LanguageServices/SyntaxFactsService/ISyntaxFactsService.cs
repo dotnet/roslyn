@@ -53,7 +53,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsSkippedTokensTrivia(SyntaxNode node);
 
         SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode node);
+        SyntaxNode GetExpressionOfConditionalMemberAccessExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfArgument(SyntaxNode node);
+        bool IsConditionalMemberAccessExpression(SyntaxNode node);
         SyntaxNode GetNameOfAttribute(SyntaxNode node);
         SyntaxToken GetIdentifierOfGenericName(SyntaxNode node);
         RefKind GetRefKindOfArgument(SyntaxNode node);

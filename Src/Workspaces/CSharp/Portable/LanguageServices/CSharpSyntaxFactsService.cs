@@ -269,40 +269,40 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch ((SyntaxKind)token.RawKind)
             {
-                case SyntaxKind.BoolKeyword:
-                    return PredefinedType.Boolean;
-                case SyntaxKind.ByteKeyword:
-                    return PredefinedType.Byte;
-                case SyntaxKind.SByteKeyword:
-                    return PredefinedType.SByte;
-                case SyntaxKind.IntKeyword:
-                    return PredefinedType.Int32;
-                case SyntaxKind.UIntKeyword:
-                    return PredefinedType.UInt32;
-                case SyntaxKind.ShortKeyword:
-                    return PredefinedType.Int16;
-                case SyntaxKind.UShortKeyword:
-                    return PredefinedType.UInt16;
-                case SyntaxKind.LongKeyword:
-                    return PredefinedType.Int64;
-                case SyntaxKind.ULongKeyword:
-                    return PredefinedType.UInt64;
-                case SyntaxKind.FloatKeyword:
-                    return PredefinedType.Single;
-                case SyntaxKind.DoubleKeyword:
-                    return PredefinedType.Double;
-                case SyntaxKind.DecimalKeyword:
-                    return PredefinedType.Decimal;
-                case SyntaxKind.StringKeyword:
-                    return PredefinedType.String;
-                case SyntaxKind.CharKeyword:
-                    return PredefinedType.Char;
-                case SyntaxKind.ObjectKeyword:
-                    return PredefinedType.Object;
-                case SyntaxKind.VoidKeyword:
-                    return PredefinedType.Void;
-                default:
-                    return PredefinedType.None;
+            case SyntaxKind.BoolKeyword:
+                return PredefinedType.Boolean;
+            case SyntaxKind.ByteKeyword:
+                return PredefinedType.Byte;
+            case SyntaxKind.SByteKeyword:
+                return PredefinedType.SByte;
+            case SyntaxKind.IntKeyword:
+                return PredefinedType.Int32;
+            case SyntaxKind.UIntKeyword:
+                return PredefinedType.UInt32;
+            case SyntaxKind.ShortKeyword:
+                return PredefinedType.Int16;
+            case SyntaxKind.UShortKeyword:
+                return PredefinedType.UInt16;
+            case SyntaxKind.LongKeyword:
+                return PredefinedType.Int64;
+            case SyntaxKind.ULongKeyword:
+                return PredefinedType.UInt64;
+            case SyntaxKind.FloatKeyword:
+                return PredefinedType.Single;
+            case SyntaxKind.DoubleKeyword:
+                return PredefinedType.Double;
+            case SyntaxKind.DecimalKeyword:
+                return PredefinedType.Decimal;
+            case SyntaxKind.StringKeyword:
+                return PredefinedType.String;
+            case SyntaxKind.CharKeyword:
+                return PredefinedType.Char;
+            case SyntaxKind.ObjectKeyword:
+                return PredefinedType.Object;
+            case SyntaxKind.VoidKeyword:
+                return PredefinedType.Void;
+            default:
+                return PredefinedType.None;
             }
         }
 
@@ -328,70 +328,70 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch ((SyntaxKind)token.RawKind)
             {
-                case SyntaxKind.PlusToken:
-                case SyntaxKind.PlusEqualsToken:
-                    return PredefinedOperator.Addition;
+            case SyntaxKind.PlusToken:
+            case SyntaxKind.PlusEqualsToken:
+                return PredefinedOperator.Addition;
 
-                case SyntaxKind.MinusToken:
-                case SyntaxKind.MinusEqualsToken:
-                    return PredefinedOperator.Subtraction;
+            case SyntaxKind.MinusToken:
+            case SyntaxKind.MinusEqualsToken:
+                return PredefinedOperator.Subtraction;
 
-                case SyntaxKind.AmpersandToken:
-                case SyntaxKind.AmpersandEqualsToken:
-                    return PredefinedOperator.BitwiseAnd;
+            case SyntaxKind.AmpersandToken:
+            case SyntaxKind.AmpersandEqualsToken:
+                return PredefinedOperator.BitwiseAnd;
 
-                case SyntaxKind.BarToken:
-                case SyntaxKind.BarEqualsToken:
-                    return PredefinedOperator.BitwiseOr;
+            case SyntaxKind.BarToken:
+            case SyntaxKind.BarEqualsToken:
+                return PredefinedOperator.BitwiseOr;
 
-                case SyntaxKind.MinusMinusToken:
-                    return PredefinedOperator.Decrement;
+            case SyntaxKind.MinusMinusToken:
+                return PredefinedOperator.Decrement;
 
-                case SyntaxKind.PlusPlusToken:
-                    return PredefinedOperator.Increment;
+            case SyntaxKind.PlusPlusToken:
+                return PredefinedOperator.Increment;
 
-                case SyntaxKind.SlashToken:
-                case SyntaxKind.SlashEqualsToken:
-                    return PredefinedOperator.Division;
+            case SyntaxKind.SlashToken:
+            case SyntaxKind.SlashEqualsToken:
+                return PredefinedOperator.Division;
 
-                case SyntaxKind.EqualsEqualsToken:
-                    return PredefinedOperator.Equality;
+            case SyntaxKind.EqualsEqualsToken:
+                return PredefinedOperator.Equality;
 
-                case SyntaxKind.CaretToken:
-                case SyntaxKind.CaretEqualsToken:
-                    return PredefinedOperator.ExclusiveOr;
+            case SyntaxKind.CaretToken:
+            case SyntaxKind.CaretEqualsToken:
+                return PredefinedOperator.ExclusiveOr;
 
-                case SyntaxKind.GreaterThanToken:
-                    return PredefinedOperator.GreaterThan;
+            case SyntaxKind.GreaterThanToken:
+                return PredefinedOperator.GreaterThan;
 
-                case SyntaxKind.GreaterThanEqualsToken:
-                    return PredefinedOperator.GreaterThanOrEqual;
+            case SyntaxKind.GreaterThanEqualsToken:
+                return PredefinedOperator.GreaterThanOrEqual;
 
-                case SyntaxKind.ExclamationEqualsToken:
-                    return PredefinedOperator.Inequality;
+            case SyntaxKind.ExclamationEqualsToken:
+                return PredefinedOperator.Inequality;
 
-                case SyntaxKind.LessThanLessThanToken:
-                case SyntaxKind.LessThanLessThanEqualsToken:
-                    return PredefinedOperator.LeftShift;
+            case SyntaxKind.LessThanLessThanToken:
+            case SyntaxKind.LessThanLessThanEqualsToken:
+                return PredefinedOperator.LeftShift;
 
-                case SyntaxKind.LessThanEqualsToken:
-                    return PredefinedOperator.LessThanOrEqual;
+            case SyntaxKind.LessThanEqualsToken:
+                return PredefinedOperator.LessThanOrEqual;
 
-                case SyntaxKind.AsteriskToken:
-                case SyntaxKind.AsteriskEqualsToken:
-                    return PredefinedOperator.Multiplication;
+            case SyntaxKind.AsteriskToken:
+            case SyntaxKind.AsteriskEqualsToken:
+                return PredefinedOperator.Multiplication;
 
-                case SyntaxKind.PercentToken:
-                case SyntaxKind.PercentEqualsToken:
-                    return PredefinedOperator.Modulus;
+            case SyntaxKind.PercentToken:
+            case SyntaxKind.PercentEqualsToken:
+                return PredefinedOperator.Modulus;
 
-                case SyntaxKind.ExclamationToken:
-                case SyntaxKind.TildeToken:
-                    return PredefinedOperator.Complement;
+            case SyntaxKind.ExclamationToken:
+            case SyntaxKind.TildeToken:
+                return PredefinedOperator.Complement;
 
-                case SyntaxKind.GreaterThanGreaterThanToken:
-                case SyntaxKind.GreaterThanGreaterThanEqualsToken:
-                    return PredefinedOperator.RightShift;
+            case SyntaxKind.GreaterThanGreaterThanToken:
+            case SyntaxKind.GreaterThanGreaterThanEqualsToken:
+                return PredefinedOperator.RightShift;
             }
 
             return PredefinedOperator.None;
@@ -443,13 +443,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (token.CSharpKind())
             {
-                case SyntaxKind.NumericLiteralToken:
-                case SyntaxKind.CharacterLiteralToken:
-                case SyntaxKind.StringLiteralToken:
-                case SyntaxKind.NullKeyword:
-                case SyntaxKind.TrueKeyword:
-                case SyntaxKind.FalseKeyword:
-                    return true;
+            case SyntaxKind.NumericLiteralToken:
+            case SyntaxKind.CharacterLiteralToken:
+            case SyntaxKind.StringLiteralToken:
+            case SyntaxKind.NullKeyword:
+            case SyntaxKind.TrueKeyword:
+            case SyntaxKind.FalseKeyword:
+                return true;
             }
 
             return false;
@@ -506,9 +506,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 switch ((SyntaxKind)token.RawKind)
                 {
-                    case SyntaxKind.DelegateKeyword:
-                    case SyntaxKind.VoidKeyword:
-                        return false;
+                case SyntaxKind.DelegateKeyword:
+                case SyntaxKind.VoidKeyword:
+                    return false;
                 }
 
                 return true;
@@ -521,6 +521,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return node is MemberAccessExpressionSyntax &&
                 ((MemberAccessExpressionSyntax)node).CSharpKind() == SyntaxKind.SimpleMemberAccessExpression;
+        }
+
+        public bool IsConditionalMemberAccessExpression(SyntaxNode node)
+        {
+            return node is ConditionalAccessExpressionSyntax;
         }
 
         public bool IsPointerMemberAccessExpression(SyntaxNode node)
@@ -544,7 +549,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode node)
         {
-            return ((MemberAccessExpressionSyntax)node).Expression;
+            if (node.IsKind(SyntaxKind.MemberBindingExpression))
+            {
+                if (node.IsParentKind(SyntaxKind.ConditionalAccessExpression))
+                {
+                    return GetExpressionOfConditionalMemberAccessExpression(node.Parent);
+                }
+                if (node.IsParentKind(SyntaxKind.InvocationExpression) && 
+                    node.Parent.IsParentKind(SyntaxKind.ConditionalAccessExpression))
+                {
+                    return GetExpressionOfConditionalMemberAccessExpression(node.Parent.Parent);
+                }
+            }
+
+            return (node as MemberAccessExpressionSyntax)?.Expression;
+        }
+
+        public SyntaxNode GetExpressionOfConditionalMemberAccessExpression(SyntaxNode node)
+        {
+            return (node as ConditionalAccessExpressionSyntax)?.Expression;
         }
 
         public bool IsInStaticContext(SyntaxNode node)

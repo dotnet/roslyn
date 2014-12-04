@@ -187,6 +187,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expression = expression.WalkUpParentheses();
                 var parent = expression.Parent;
 
+                if (parent is ConditionalAccessExpressionSyntax)
+                {
+                    parent = parent.Parent;
+                }
+
                 return parent.TypeSwitch(
                     (AnonymousObjectMemberDeclaratorSyntax memberDeclarator) => InferTypeInMemberDeclarator(memberDeclarator),
                     (ArgumentSyntax argument) => InferTypeInArgument(argument),

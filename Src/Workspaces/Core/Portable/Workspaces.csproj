@@ -668,7 +668,9 @@
     <Compile Include="Shared\Extensions\ITypeSymbolExtensions.AnonymousTypeRemover.cs" />
     <Compile Include="Shared\Extensions\ITypeSymbolExtensions.CollectTypeParameterSymbolsVisitor.cs" />
     <Compile Include="Shared\Extensions\ITypeSymbolExtensions.CompilationTypeGenerator.cs" />
-    <Compile Include="Shared\Extensions\ITypeSymbolExtensions.cs" />
+    <Compile Include="Shared\Extensions\ITypeSymbolExtensions.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
     <Compile Include="Shared\Extensions\ITypeSymbolExtensions.MinimalAccessibilityVisitor.cs" />
     <Compile Include="Shared\Extensions\ITypeSymbolExtensions.SubstituteTypesVisitor.cs" />
     <Compile Include="Shared\Extensions\ITypeSymbolExtensions.UnavailableTypeParameterRemover.cs" />

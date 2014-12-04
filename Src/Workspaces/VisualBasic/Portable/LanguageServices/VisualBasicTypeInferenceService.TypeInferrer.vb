@@ -74,8 +74,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private Function InferTypesWorker(expression As ExpressionSyntax) As IEnumerable(Of ITypeSymbol)
                 expression = expression.WalkUpParentheses()
+                Dim parent = expression.Parent
+                If TypeOf parent Is ConditionalAccessExpressionSyntax Then
+                    parent = parent.Parent
+                End If
 
-                Return expression.Parent.TypeSwitch(
+                Return parent.TypeSwitch(
                     Function(addRemoveHandlerStatement As AddRemoveHandlerStatementSyntax) InferTypeInAddRemoveHandlerStatementSyntax(addRemoveHandlerStatement, expression),
                     Function(argument As ArgumentSyntax) InferTypeInArgumentList(TryCast(argument.Parent, ArgumentListSyntax), argument),
                     Function(arrayCreationExpression As ArrayCreationExpressionSyntax) InferTypeInArrayCreationExpression(arrayCreationExpression),

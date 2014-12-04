@@ -128,6 +128,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return vbNode IsNot Nothing AndAlso vbNode.IsMemberAccessExpressionName()
         End Function
 
+        Public Function IsConditionalMemberAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsConditionalMemberAccessExpression
+            Return TypeOf node Is ConditionalAccessExpressionSyntax
+        End Function
+
         Public Function IsInvocationExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInvocationExpression
             Return TypeOf node Is InvocationExpressionSyntax
         End Function
@@ -413,6 +417,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function GetExpressionOfMemberAccessExpression(node As SyntaxNode) As Microsoft.CodeAnalysis.SyntaxNode Implements ISyntaxFactsService.GetExpressionOfMemberAccessExpression
             Return DirectCast(node, MemberAccessExpressionSyntax).GetExpressionOfMemberAccessExpression()
+        End Function
+
+        Public Function GetExpressionOfConditionalMemberAccessExpression(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetExpressionOfConditionalMemberAccessExpression
+            Return TryCast(node, ConditionalAccessExpressionSyntax)?.Expression
         End Function
 
         Public Function IsInNamespaceOrTypeContext(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInNamespaceOrTypeContext

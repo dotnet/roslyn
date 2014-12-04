@@ -288,6 +288,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                targetToken.IsChildToken(Of CallStatementSyntax)(Function(callStatementSyntax) callStatementSyntax.CallKeyword) OrElse
                targetToken.IsChildToken(Of CatchFilterClauseSyntax)(Function(catchFilterClauseSyntax) catchFilterClauseSyntax.WhenKeyword) OrElse
                targetToken.IsChildToken(Of CaseStatementSyntax)(Function(caseStatement) caseStatement.CaseKeyword) OrElse
+               targetToken.IsChildToken(Of ConditionalAccessExpressionSyntax)(Function(conditionalAccessExpressionSyntax) conditionalAccessExpressionSyntax.QuestionMarkToken) OrElse
                targetToken.IsChildSeparatorToken(Of CaseStatementSyntax, CaseClauseSyntax)(Function(caseStatement) caseStatement.Cases) OrElse
                targetToken.IsChildToken(Of RangeCaseClauseSyntax)(Function(rangeCaseClause) rangeCaseClause.ToKeyword) OrElse
                targetToken.IsChildToken(Of RelationalCaseClauseSyntax)(Function(relationalCaseClause) relationalCaseClause.OperatorToken) OrElse

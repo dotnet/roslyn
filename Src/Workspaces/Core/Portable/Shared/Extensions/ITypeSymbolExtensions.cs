@@ -42,12 +42,27 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsAbstractClass(this ITypeSymbol symbol)
         {
-            return symbol != null && symbol.TypeKind == TypeKind.Class && symbol.IsAbstract;
+            return symbol?.TypeKind == TypeKind.Class && symbol.IsAbstract;
         }
 
         public static bool IsSystemVoid(this ITypeSymbol symbol)
         {
-            return symbol != null && symbol.SpecialType == SpecialType.System_Void;
+            return symbol?.SpecialType == SpecialType.System_Void;
+        }
+
+        public static bool IsNullable(this ITypeSymbol symbol)
+        {
+            return symbol?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
+        }
+
+        public static ITypeSymbol RemoveNullableIfPresent(this ITypeSymbol symbol)
+        {
+            if (symbol.IsNullable())
+            {
+                return symbol.GetTypeArguments().Single();
+            }
+
+            return symbol;
         }
 
         /// <summary>

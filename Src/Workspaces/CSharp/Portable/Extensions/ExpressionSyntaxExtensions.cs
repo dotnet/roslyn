@@ -137,7 +137,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsMemberAccessExpressionName(this ExpressionSyntax expression)
         {
-            return expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) && ((MemberAccessExpressionSyntax)expression.Parent).Name == expression;
+            return (expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) && ((MemberAccessExpressionSyntax)expression.Parent).Name == expression) ||
+                   (expression.IsParentKind(SyntaxKind.MemberBindingExpression) && expression.Parent.Parent.IsParentKind(SyntaxKind.ConditionalAccessExpression) && ((MemberBindingExpressionSyntax)expression.Parent).Name == expression);
         }
 
         public static bool IsAnyMemberAccessExpressionName(this ExpressionSyntax expression)
@@ -485,6 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 expression.IsParentKind(SyntaxKind.EqualsValueClause) ||
                 expression.IsParentKind(SyntaxKind.ArrayInitializerExpression) ||
                 expression.IsParentKind(SyntaxKind.CollectionInitializerExpression) ||
+                expression.IsParentKind(SyntaxKind.ConditionalAccessExpression) ||
                 expression.IsParentKind(SyntaxKind.Argument) ||
                 expression.IsParentKind(SyntaxKind.AttributeArgument) ||
                 expression.IsParentKind(SyntaxKind.AnonymousObjectMemberDeclarator) ||
@@ -2206,6 +2208,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (simple != null)
             {
                 return simple;
+            }
+
+            var conditional = node as ConditionalAccessExpressionSyntax;
+            if (conditional != null)
+            {
+                return conditional.WhenNotNull.GetRightmostName();
             }
 
             return null;

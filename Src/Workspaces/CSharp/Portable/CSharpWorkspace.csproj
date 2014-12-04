@@ -215,7 +215,9 @@
     <Compile Include="LanguageServices\CSharpCompilationFactoryService.cs" />
     <Compile Include="LanguageServices\CSharpSemanticFactsService.cs" />
     <Compile Include="LanguageServices\CSharpSymbolDeclarationService.cs" />
-    <Compile Include="LanguageServices\CSharpSyntaxFactsService.cs" />
+    <Compile Include="LanguageServices\CSharpSyntaxFactsService.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
     <Compile Include="LanguageServices\CSharpSyntaxTreeFactory.PathSyntaxReference.cs" />
     <Compile Include="LanguageServices\CSharpSyntaxTreeFactoryService.cs" />
     <Compile Include="LanguageServices\CSharpSyntaxTreeFactoryService.NullSyntaxReference.cs" />
