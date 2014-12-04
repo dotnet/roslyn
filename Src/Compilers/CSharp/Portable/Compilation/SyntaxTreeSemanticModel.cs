@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        internal override SymbolInfo GetCollectionInitializerSymbolInfoWorker(ObjectCreationExpressionSyntax collectionInitializer, ExpressionSyntax node, CancellationToken cancellationToken = default(CancellationToken))
+        internal override SymbolInfo GetCollectionInitializerSymbolInfoWorker(InitializerExpressionSyntax collectionInitializer, ExpressionSyntax node, CancellationToken cancellationToken = default(CancellationToken))
         {
             var model = this.GetMemberModel(collectionInitializer);
 

@@ -820,13 +820,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 : new Optional<object>(constantValue.Value);
         }
 
-        internal override SymbolInfo GetCollectionInitializerSymbolInfoWorker(ObjectCreationExpressionSyntax collectionInitializer, ExpressionSyntax node, CancellationToken cancellationToken = default(CancellationToken))
+        internal override SymbolInfo GetCollectionInitializerSymbolInfoWorker(InitializerExpressionSyntax collectionInitializer, ExpressionSyntax node, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var boundCollectionInitializer = GetLowerBoundNode(collectionInitializer.Initializer) as BoundCollectionInitializerExpression;
+            var boundCollectionInitializer = GetLowerBoundNode(collectionInitializer) as BoundCollectionInitializerExpression;
 
             if (boundCollectionInitializer != null)
             {
-                var boundAdd = boundCollectionInitializer.Initializers[collectionInitializer.Initializer.Expressions.IndexOf(node)];
+                var boundAdd = boundCollectionInitializer.Initializers[collectionInitializer.Expressions.IndexOf(node)];
 
                 return GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, boundAdd, boundAdd, null, binderOpt: null);
             }

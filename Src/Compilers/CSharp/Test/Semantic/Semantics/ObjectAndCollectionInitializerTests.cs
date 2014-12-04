@@ -2079,6 +2079,143 @@ class X : List<int>
             }
         }
 
+        [WorkItem(1084686, "DevDiv"), WorkItem(390, "CodePlex")]
+        [Fact]
+        public void GetCollectionInitializerSymbolInfo_CollectionInitializerWithinObjectInitializer_01()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+class Test 
+{
+    public List<string> List { get; set; }
+    
+    static void Main() 
+    {
+        var x = new Test 
+                    { 
+                        List = { ""Hello"", ""World"" },
+                    };
+    };
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+            var objectCreation = root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+            var listAssignment = (AssignmentExpressionSyntax)objectCreation.Initializer.Expressions[0];
+
+            Assert.Equal(SyntaxKind.SimpleAssignmentExpression, listAssignment.CSharpKind());
+            Assert.Equal("List", listAssignment.Left.ToString());
+
+            var listInitializer = (InitializerExpressionSyntax)listAssignment.Right;
+
+            SymbolInfo symbolInfo;
+
+            foreach (var expression in listInitializer.Expressions)
+            {
+                symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(expression);
+                Assert.Equal("void System.Collections.Generic.List<System.String>.Add(System.String item)", symbolInfo.Symbol.ToTestDisplayString());
+            }
+        }
+
+        [WorkItem(1084686, "DevDiv"), WorkItem(390, "CodePlex")]
+        [Fact]
+        public void GetCollectionInitializerSymbolInfo_CollectionInitializerWithinObjectInitializer_02()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+class Test 
+{
+    public List<string> List { get; set; }
+    
+    static void Main() 
+    {
+        var x = new Test2 
+                    { 
+                        P = { 
+                                List = { ""Hello"", ""World"" },
+                            }
+                    };
+    };
+}
+
+class Test2 
+{
+    public Test P { get; set; }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+            var objectCreation = root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
+            var listAssignment = (AssignmentExpressionSyntax)((InitializerExpressionSyntax)((AssignmentExpressionSyntax)objectCreation.Initializer.Expressions[0]).Right).Expressions[0];
+
+            Assert.Equal(SyntaxKind.SimpleAssignmentExpression, listAssignment.CSharpKind());
+            Assert.Equal("List", listAssignment.Left.ToString());
+
+            var listInitializer = (InitializerExpressionSyntax)listAssignment.Right;
+
+            SymbolInfo symbolInfo;
+
+            foreach (var expression in listInitializer.Expressions)
+            {
+                symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(expression);
+                Assert.Equal("void System.Collections.Generic.List<System.String>.Add(System.String item)", symbolInfo.Symbol.ToTestDisplayString());
+            }
+        }
+
+        [WorkItem(1084686, "DevDiv"), WorkItem(390, "CodePlex")]
+        [Fact]
+        public void GetCollectionInitializerSymbolInfo_CollectionInitializerWithinObjectInitializer_03()
+        {
+            var source = @"
+using System;
+using System.Collections.Generic;
+
+class C : System.Collections.Generic.List<C>
+{
+    class D
+    {
+        public C[] arr = new C[1] { new C() };
+    }
+
+    static void Main()
+    {
+        var d = new D { arr = { [0] = { null } } };
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var semanticModel = compilation.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+            var objectCreation = root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
+            var listAssignment = (AssignmentExpressionSyntax)((InitializerExpressionSyntax)((AssignmentExpressionSyntax)objectCreation.Initializer.Expressions[0]).Right).Expressions[0];
+
+            Assert.Equal(SyntaxKind.SimpleAssignmentExpression, listAssignment.CSharpKind());
+            Assert.Equal("[0]", listAssignment.Left.ToString());
+
+            var listInitializer = (InitializerExpressionSyntax)listAssignment.Right;
+
+            SymbolInfo symbolInfo;
+
+            foreach (var expression in listInitializer.Expressions)
+            {
+                symbolInfo = semanticModel.GetCollectionInitializerSymbolInfo(expression);
+                Assert.Equal("void System.Collections.Generic.List<C>.Add(C item)", symbolInfo.Symbol.ToTestDisplayString());
+            }
+        }
+
         [Fact, WorkItem(1073330)]
         public void NestedIndexerInitializerArray()
         {

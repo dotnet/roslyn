@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This is the worker function that is overridden in various derived kinds of Semantic Models. It can assume that 
         /// CheckSyntaxNode has already been called and the <paramref name="node"/> is in the right place in the syntax tree.
         /// </summary>
-        internal abstract SymbolInfo GetCollectionInitializerSymbolInfoWorker(ObjectCreationExpressionSyntax collectionInitializer, ExpressionSyntax node, CancellationToken cancellationToken = default(CancellationToken));
+        internal abstract SymbolInfo GetCollectionInitializerSymbolInfoWorker(InitializerExpressionSyntax collectionInitializer, ExpressionSyntax node, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Gets type information about a syntax node. This is overridden by various specializations of SemanticModel.
@@ -519,14 +519,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 CheckSyntaxNode(expression);
 
-                if (expression.Parent != null && expression.Parent.Kind == SyntaxKind.CollectionInitializerExpression &&
-                    expression.Parent.Parent != null && expression.Parent.Parent.Kind == SyntaxKind.ObjectCreationExpression &&
-                    CanGetSemanticInfo(expression.Parent.Parent, allowNamedArgumentName: false))
+                if (expression.Parent != null && expression.Parent.Kind == SyntaxKind.CollectionInitializerExpression)
                 {
-                    var collectionInitializer = ((ObjectCreationExpressionSyntax)expression.Parent.Parent);
-                    if (((ObjectCreationExpressionSyntax)expression.Parent.Parent).Initializer == expression.Parent)
+                    // Find containing object creation expression
+
+                    InitializerExpressionSyntax initializer = (InitializerExpressionSyntax)expression.Parent;
+
+                    // Skip containing object initializers
+                    while (initializer.Parent != null && 
+                           initializer.Parent.Kind == SyntaxKind.SimpleAssignmentExpression &&
+                           ((AssignmentExpressionSyntax)initializer.Parent).Right == initializer &&
+                           initializer.Parent.Parent != null &&
+                           initializer.Parent.Parent.Kind == SyntaxKind.ObjectInitializerExpression)
                     {
-                        return GetCollectionInitializerSymbolInfoWorker(collectionInitializer, expression, cancellationToken);
+                        initializer = (InitializerExpressionSyntax)initializer.Parent.Parent;
+                    }
+
+
+                    if (initializer.Parent != null && initializer.Parent.Kind == SyntaxKind.ObjectCreationExpression &&
+                        ((ObjectCreationExpressionSyntax)initializer.Parent).Initializer == initializer &&
+                        CanGetSemanticInfo(initializer.Parent, allowNamedArgumentName: false))
+                    {
+                        return GetCollectionInitializerSymbolInfoWorker((InitializerExpressionSyntax)expression.Parent, expression, cancellationToken);
                     }
                 }
 
