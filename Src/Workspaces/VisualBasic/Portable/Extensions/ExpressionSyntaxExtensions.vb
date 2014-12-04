@@ -383,6 +383,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     End If
                 End If
 
+                If expression.IsChildNode(Of NamedFieldInitializerSyntax)(Function(n) n.Name) Then
+                    Return True
+                End If
+
                 Return False
             End If
 
@@ -409,6 +413,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     If expression Is assignmentStatement.Left Then
                         Return True
                     End If
+                End If
+
+                If expression.IsChildNode(Of NamedFieldInitializerSyntax)(Function(n) n.Name) Then
+                    Return True
                 End If
 
                 Return False

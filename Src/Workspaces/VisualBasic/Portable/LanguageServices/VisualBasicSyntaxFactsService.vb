@@ -526,8 +526,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsObjectInitializerNamedAssignmentIdentifier(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsObjectInitializerNamedAssignmentIdentifier
-            ' TODO(cyrusn): implement this.
-            Return False
+            Dim identifier = TryCast(node, IdentifierNameSyntax)
+            Return If(identifier?.IsChildNode(Of NamedFieldInitializerSyntax)(Function(n) n.Name), False)
         End Function
 
         Public Function IsElementAccessExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsElementAccessExpression
