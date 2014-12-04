@@ -542,6 +542,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim asClause = DirectCast(variableDeclarator.AsClause, SimpleAsClauseSyntax)
                         Return GetTypes(asClause.Type)
                     End If
+                ElseIf equalsValue.IsParentKind(SyntaxKind.PropertyStatement) Then
+                    Dim propertySyntaxType = TryCast(equalsValue.Parent, PropertyStatementSyntax)?.AsClause?.Type
+                    If propertySyntaxType Is Nothing Then
+                        Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
+                    End If
+                    Dim propertyType = _semanticModel.GetTypeInfo(propertySyntaxType).Type
+                    Return If(propertyType IsNot Nothing,
+                        SpecializedCollections.SingletonEnumerable(propertyType),
+                        SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)())
                 End If
 
                 Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()

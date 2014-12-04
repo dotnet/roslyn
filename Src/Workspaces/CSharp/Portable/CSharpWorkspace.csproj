@@ -224,7 +224,9 @@
     <Compile Include="LanguageServices\CSharpSyntaxTreeFactoryService.PositionalSyntaxReference.cs" />
     <Compile Include="LanguageServices\CSharpSyntaxTreeFactoryService.RecoverableSyntaxTree.cs" />
     <Compile Include="LanguageServices\CSharpTypeInferenceService.cs" />
-    <Compile Include="LanguageServices\CSharpTypeInferenceService.TypeInferrer.cs" />
+    <Compile Include="LanguageServices\CSharpTypeInferenceService.TypeInferrer.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
     <Compile Include="LinkedFiles\CSharpLinkedFileMergeConflictCommentAdditionService.cs" />
     <Compile Include="Recommendations\CSharpRecommendationService.cs" />
     <Compile Include="Rename\CSharpRenameRewriterLanguageService.cs" />
