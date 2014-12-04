@@ -7061,7 +7061,7 @@ namespace A.C
 namespace C
 {
     using A.B;
-    using A.C.X;
+    using static A.C.X;
     class M
     {
         public static int Main()

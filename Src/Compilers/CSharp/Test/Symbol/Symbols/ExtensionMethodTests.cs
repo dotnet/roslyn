@@ -3331,7 +3331,35 @@ internal static class Test
         {
             const string source = @"
 using System;
-using N.S;
+using static N.S;
+
+class Program
+{
+    static void Main()
+    {
+        1.Foo();
+    }
+}
+
+namespace N
+{
+    static class S
+    {
+        public static void Foo(this int x)
+        {
+            Console.Write(x);
+        }
+    }
+}";
+            CompileAndVerify(source, expectedOutput:  "1");
+        }
+
+        [Fact, WorkItem(1085744, "DevDiv")]
+        public void ExtensionMethodsAreNotImportedAsSimpleNames()
+        {
+            const string source = @"
+using System;
+using static N.S;
 
 class Program
 {
@@ -3352,7 +3380,11 @@ namespace N
         }
     }
 }";
-            CompileAndVerify(source, expectedOutput:  "11");
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            compilation.VerifyDiagnostics(
+                // (10,9): error CS0103: The name 'Foo' does not exist in the current context
+                //         Foo(1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Foo").WithArguments("Foo").WithLocation(10, 9));
         }
 
         [Fact, WorkItem(1010648, "DevDiv")]
@@ -3361,7 +3393,7 @@ namespace N
             const string source = @"
 using System;
 using N;
-using N.S;
+using static N.S;
 
 class Program
 {
@@ -3389,7 +3421,7 @@ namespace N
         {
             const string source = @"
 using N;
-using N.S;
+using static N.S;
 
 class Program
 {
@@ -3431,7 +3463,7 @@ using N;
 
 namespace K
 {
-    using S;
+    using static S;
 
     class Program
     {
@@ -3471,8 +3503,8 @@ using System;
 
 namespace K
 {
-    using N.S;
-    using N.R;
+    using static N.S;
+    using static N.R;
 
     class Program
     {
@@ -3514,7 +3546,7 @@ namespace N
             const string source = @"
 namespace N
 {
-    using Program;
+    using static Program;
 
     static class Program
     {
@@ -3542,7 +3574,7 @@ namespace N
                 Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("N.Program.Foo(int)", "N.R.Foo(int)").WithLocation(10, 15),
                 // (4,5): hidden CS8019: Unnecessary using directive.
                 //     using Program;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Program;").WithLocation(4, 5));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static Program;").WithLocation(4, 5));
         }
 
         [Fact, WorkItem(1010648, "DevDiv")]

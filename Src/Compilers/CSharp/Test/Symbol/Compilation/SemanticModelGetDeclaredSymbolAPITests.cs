@@ -2652,11 +2652,11 @@ public static class S2
 
 namespace A
 {
-    using S1;
+    using static S1;
 
     namespace B
     {
-        using S2;
+        using static S2;
 
         public static class Z
         {

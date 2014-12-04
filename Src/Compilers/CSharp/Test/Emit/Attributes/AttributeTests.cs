@@ -5919,9 +5919,9 @@ class System : Attribute
                 // (2,7): warning CS0437: The type 'System' in '' conflicts with the imported namespace 'System' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 // using System;
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggNs, "System").WithArguments("", "System", "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", "System"),
-                // (2,7): error CS7007: A using directive can only be applied to static classes or namespaces; 'System' is a non-static class
+                // (2,7): error CS0138: A 'using namespace' directive can only be applied to namespaces; 'System' is a type not a namespace. Consider using a 'using static' directive instead
                 // using System;
-                Diagnostic(ErrorCode.ERR_BadUsingType, "System").WithArguments("System").WithLocation(2, 7),
+                Diagnostic(ErrorCode.ERR_BadUsingNamespace, "System").WithArguments("System").WithLocation(2, 7),
                 // (4,16): error CS0246: The type or namespace name 'Attribute' could not be found (are you missing a using directive or an assembly reference?)
                 // class System : Attribute
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Attribute").WithArguments("Attribute"),

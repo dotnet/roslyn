@@ -933,6 +933,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var usingToken = this.EatToken(SyntaxKind.UsingKeyword);
 
+            var staticToken = default(SyntaxToken);
+            if (this.CurrentToken.Kind == SyntaxKind.StaticKeyword)
+            {
+                staticToken = this.EatToken(SyntaxKind.StaticKeyword);
+            }
+
             NameEqualsSyntax alias = null;
             if (this.IsNamedAssignment())
             {
@@ -975,7 +981,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 semicolon = this.EatToken(SyntaxKind.SemicolonToken);
             }
 
-            return syntaxFactory.UsingDirective(usingToken, alias, name, semicolon);
+            var usingDirective = syntaxFactory.UsingDirective(usingToken, staticToken, alias, name, semicolon);
+            if (staticToken != default(SyntaxToken))
+            {
+                usingDirective = CheckFeatureAvailability(usingDirective, MessageID.IDS_FeatureUsingStatic);
+            }
+
+            return usingDirective;
         }
 
         private bool IsPossibleGlobalAttributeDeclaration()

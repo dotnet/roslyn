@@ -1853,7 +1853,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A using namespace directive can only be applied to namespaces; &apos;{0}&apos; is a type not a namespace.
+        ///   Looks up a localized string similar to A &apos;using namespace&apos; directive can only be applied to namespaces; &apos;{0}&apos; is a type not a namespace. Consider using a &apos;using static&apos; directive instead.
         /// </summary>
         internal static string ERR_BadUsingNamespace {
             get {
@@ -1862,7 +1862,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A using directive can only be applied to static classes or namespaces; the type &apos;{0}&apos; is not a static class.
+        ///   Looks up a localized string similar to A &apos;using static&apos; directive can only be applied to types; &apos;{0}&apos; is a namespace not a type. Consider using a &apos;using namespace&apos; directive instead.
         /// </summary>
         internal static string ERR_BadUsingType {
             get {
@@ -4949,6 +4949,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Assembly culture strings may not contain embedded NUL characters..
+        /// </summary>
+        internal static string ERR_InvalidAssemblyCulture {
+            get {
+                return ResourceManager.GetString("ERR_InvalidAssemblyCulture", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Executables cannot be satellite assemblies; culture should always be empty.
         /// </summary>
         internal static string ERR_InvalidAssemblyCultureForExe {
@@ -5908,6 +5917,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_NewVirtualInSealed {
             get {
                 return ResourceManager.GetString("ERR_NewVirtualInSealed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A &apos;using static&apos; directive cannot be used to declare an alias.
+        /// </summary>
+        internal static string ERR_NoAliasHere {
+            get {
+                return ResourceManager.GetString("ERR_NoAliasHere", resourceCulture);
             }
         }
         
@@ -8987,6 +9005,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureTypeVariance {
             get {
                 return ResourceManager.GetString("IDS_FeatureTypeVariance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to using static.
+        /// </summary>
+        internal static string IDS_FeatureUsingStatic {
+            get {
+                return ResourceManager.GetString("IDS_FeatureUsingStatic", resourceCulture);
             }
         }
         

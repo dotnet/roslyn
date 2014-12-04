@@ -2181,6 +2181,7 @@
     <Field Name="UsingKeyword" Type="SyntaxToken">
       <Kind Name="UsingKeyword"/>
     </Field>
+    <Field Name="StaticKeyword" Type="SyntaxToken" Optional="true"/>
     <Field Name="Alias" Type="NameEqualsSyntax" Optional="true"/>
     <Field Name="Name" Type="NameSyntax"/>
     <Field Name="SemicolonToken" Type="SyntaxToken">

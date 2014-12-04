@@ -106,6 +106,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_LogoLine1 = MessageBase + 12698,
         IDS_LogoLine2 = MessageBase + 12699,
         IDS_CSCHelp = MessageBase + 12700,
+
+        IDS_FeatureUsingStatic = MessageBase + 12701,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -150,6 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureNameof:
                 case MessageID.IDS_FeatureDictionaryInitializer:
                 case MessageID.IDS_FeatureStructParameterlessConstructors:
+                case MessageID.IDS_FeatureUsingStatic:
                     return LanguageVersion.CSharp6;
 
                 // C# 5 features.

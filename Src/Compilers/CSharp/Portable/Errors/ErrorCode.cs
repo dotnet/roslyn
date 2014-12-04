@@ -1296,5 +1296,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_SubexpressionNotInNameof = 8082,
         ERR_AliasQualifiedNameNotAnExpression = 8083,
         ERR_NameofMethodGroupWithTypeParameters = 8084,
+        ERR_NoAliasHere = 8085,
     }
 }

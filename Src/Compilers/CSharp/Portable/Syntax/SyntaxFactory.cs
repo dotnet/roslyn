@@ -1969,5 +1969,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 accessorList: accessorList,
                 expressionBody: default(ArrowExpressionClauseSyntax));
         }
+
+        /// <summary>Creates a new UsingDirectiveSyntax instance.</summary>
+        public static UsingDirectiveSyntax UsingDirective(NameEqualsSyntax alias, NameSyntax name)
+        {
+            return UsingDirective(
+                usingKeyword: Token(SyntaxKind.UsingKeyword),
+                staticKeyword: default(SyntaxToken),
+                alias: alias,
+                name: name,
+                semicolonToken: Token(SyntaxKind.SemicolonToken));
+        }
     }
 }

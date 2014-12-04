@@ -1872,8 +1872,8 @@ class Program
         public void Bug879811_1()
         {
             const string source = @"
-using Static<string>;
-using Static<int>;
+using static Static<string>;
+using static Static<int>;
  
 public static class Static<T>
 {
@@ -1902,8 +1902,8 @@ class D
         public void Bug879811_2()
         {
             const string source = @"
-using Static<string>;
-using Static<System.String>;
+using static Static<string>;
+using static Static<System.String>;
  
 public static class Static<T>
 {
@@ -1923,10 +1923,10 @@ class D
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (3,7): warning CS0105: The using directive for 'Static<string>' appeared previously in this namespace
                 // using Static<System.String>;
-                Diagnostic(ErrorCode.WRN_DuplicateUsing, "Static<System.String>").WithArguments("Static<string>").WithLocation(3, 7),
+                Diagnostic(ErrorCode.WRN_DuplicateUsing, "Static<System.String>").WithArguments("Static<string>").WithLocation(3, 14),
                 // (3,1): hidden CS8019: Unnecessary using directive.
                 // using Static<System.String>;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Static<System.String>;").WithLocation(3, 1));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static Static<System.String>;").WithLocation(3, 1));
         }
 
         [Fact]
@@ -1934,7 +1934,7 @@ class D
         public void Bug879811_3()
         {
             const string source = @"
-using Static<string>;
+using static Static<string>;
 
 public static class Static<T>
 {
@@ -1946,7 +1946,7 @@ public static class Static<T>
 
 namespace N
 {
-    using Static<int>;
+    using static Static<int>;
     class D
     {
         static void Main()
@@ -1958,7 +1958,7 @@ namespace N
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using Static<string>;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using Static<string>;").WithLocation(2, 1));
+                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static Static<string>;").WithLocation(2, 1));
         }
     }
 }

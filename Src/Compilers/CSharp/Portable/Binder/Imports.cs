@@ -107,31 +107,36 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var uniqueUsings = new HashSet<NamespaceOrTypeSymbol>();
 
-                foreach (var u in usingDirectives)
+                foreach (var usingDirective in usingDirectives)
                 {
-                    binder.Compilation.RecordImport(u);
+                    binder.Compilation.RecordImport(usingDirective);
 
-                    if (u.Alias != null)
+                    if (usingDirective.Alias != null)
                     {
-                        string identifierValueText = u.Alias.Name.Identifier.ValueText;
+                        if (usingDirective.StaticKeyword != default(SyntaxToken))
+                        {
+                            diagnostics.Add(ErrorCode.ERR_NoAliasHere, usingDirective.Alias.Name.Location);
+                        }
+
+                        string identifierValueText = usingDirective.Alias.Name.Identifier.ValueText;
                         if (usingAliases != null && usingAliases.ContainsKey(identifierValueText))
                         {
                             // Suppress diagnostics if we're already broken.
-                            if (!u.Name.IsMissing)
+                            if (!usingDirective.Name.IsMissing)
                             {
                                 // The using alias '{0}' appeared previously in this namespace
-                                diagnostics.Add(ErrorCode.ERR_DuplicateAlias, u.Alias.Name.Location, identifierValueText);
+                                diagnostics.Add(ErrorCode.ERR_DuplicateAlias, usingDirective.Alias.Name.Location, identifierValueText);
                             }
                         }
                         else
                         {
                             //EDMAURER an O(m*n) algorithm here but n (number of extern aliases) will likely be very small.
-                            foreach (var e in externAliases)
+                            foreach (var externAlias in externAliases)
                             {
-                                if (e.Alias.Name == identifierValueText)
+                                if (externAlias.Alias.Name == identifierValueText)
                                 {
                                     // The using alias '{0}' appeared previously in this namespace
-                                    diagnostics.Add(ErrorCode.ERR_DuplicateAlias, u.Location, identifierValueText);
+                                    diagnostics.Add(ErrorCode.ERR_DuplicateAlias, usingDirective.Location, identifierValueText);
                                     break;
                                 }
                             }
@@ -143,54 +148,52 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             // EDMAURER construct the alias sym with the binder for which we are building imports. That
                             // way the alias target can make use of extern alias definitions.
-                            usingAliases.Add(identifierValueText, new AliasAndUsingDirective(new AliasSymbol(usingsBinder, u), u));
+                            usingAliases.Add(identifierValueText, new AliasAndUsingDirective(new AliasSymbol(usingsBinder, usingDirective), usingDirective));
                         }
                     }
                     else
                     {
-                        if (u.Name.IsMissing)
+                        if (usingDirective.Name.IsMissing)
                         {
                             //don't try to lookup namespaces inserted by parser error recovery
                             continue;
                         }
 
-                        var imported = usingsBinder.BindNamespaceOrTypeSymbol(u.Name, diagnostics, basesBeingResolved);
+                        var imported = usingsBinder.BindNamespaceOrTypeSymbol(usingDirective.Name, diagnostics, basesBeingResolved);
                         if (imported.Kind == SymbolKind.Namespace)
                         {
-                            if (uniqueUsings.Contains(imported))
+                            if (usingDirective.StaticKeyword != default(SyntaxToken))
                             {
-                                diagnostics.Add(ErrorCode.WRN_DuplicateUsing, u.Name.Location, imported);
+                                diagnostics.Add(ErrorCode.ERR_BadUsingType, usingDirective.Name.Location, imported);
+                            }
+                            else if (uniqueUsings.Contains(imported))
+                            {
+                                diagnostics.Add(ErrorCode.WRN_DuplicateUsing, usingDirective.Name.Location, imported);
                             }
                             else
                             {
                                 uniqueUsings.Add(imported);
-                                usings.Add(new NamespaceOrTypeAndUsingDirective(imported, u));
+                                usings.Add(new NamespaceOrTypeAndUsingDirective(imported, usingDirective));
                             }
                         }
                         else if (imported.Kind == SymbolKind.NamedType)
                         {
-                            var importedType = (NamedTypeSymbol)imported;
-                            if (!binder.AllowStaticClassUsings)
+                            if (usingDirective.StaticKeyword == default(SyntaxToken))
                             {
-                                // error: A using directive can only be applied to namespace; '{0}' is a type not a namespace
-                                diagnostics.Add(ErrorCode.ERR_BadUsingNamespace, u.Name.Location, importedType);
+                                diagnostics.Add(ErrorCode.ERR_BadUsingNamespace, usingDirective.Name.Location, imported);
                             }
-                            else if (importedType.IsStatic && importedType.TypeKind == TypeKind.Class)
+                            else
                             {
+                                var importedType = (NamedTypeSymbol)imported;
                                 if (uniqueUsings.Contains(importedType))
                                 {
-                                    diagnostics.Add(ErrorCode.WRN_DuplicateUsing, u.Name.Location, importedType);
+                                    diagnostics.Add(ErrorCode.WRN_DuplicateUsing, usingDirective.Name.Location, importedType);
                                 }
                                 else
                                 {
                                     uniqueUsings.Add(importedType);
-                                    usings.Add(new NamespaceOrTypeAndUsingDirective(importedType, u));
+                                    usings.Add(new NamespaceOrTypeAndUsingDirective(importedType, usingDirective));
                                 }
-                            }
-                            else
-                            {
-                                // error: A using directive can only be applied to classes that are static; '{0}' is not a static class
-                                diagnostics.Add(ErrorCode.ERR_BadUsingType, u.Name.Location, importedType);
                             }
                         }
                         else if (imported.Kind != SymbolKind.ErrorType)
@@ -198,8 +201,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Do not report additional error if the symbol itself is erroneous.
 
                             // error: '<symbol>' is a '<symbol kind>' but is used as 'type or namespace'
-                            diagnostics.Add(ErrorCode.ERR_BadSKknown, u.Name.Location,
-                                u.Name,
+                            diagnostics.Add(ErrorCode.ERR_BadSKknown, usingDirective.Name.Location,
+                                usingDirective.Name,
                                 imported.GetKindText(),
                                 MessageID.IDS_SK_TYPE_OR_NAMESPACE.Localize());
                         }
@@ -474,20 +477,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<Symbol> candidates = Binder.GetCandidateMembers(typeOrNamespace.NamespaceOrType, name, options, originalBinder: originalBinder);
                 foreach (Symbol symbol in candidates)
                 {
-                    // lookup via "using namespace" ignores namespaces inside
-                    if (symbol.Kind != SymbolKind.Namespace)
+                    switch (symbol.Kind)
                     {
-                        // Found a match in our list of normal using directives.  Mark the directive
-                        // as being seen so that it won't be reported to the user as something that
-                        // can be removed.
-                        var res = originalBinder.CheckViability(symbol, arity, options, null, diagnose, ref useSiteDiagnostics, basesBeingResolved);
-                        if (res.Kind == LookupResultKind.Viable)
-                        {
-                            MarkImportDirective(typeOrNamespace.UsingDirective, callerIsSemanticModel);
-                        }
+                        // lookup via "using namespace" ignores namespaces inside
+                        case SymbolKind.Namespace:
+                            continue;
 
-                        result.MergeEqual(res);
+                        // lookup via "using static" ignores extension methods and non-static methods
+                        case SymbolKind.Method:
+                            if (!symbol.IsStatic || ((MethodSymbol)symbol).IsExtensionMethod)
+                            {
+                                continue;
+                            }
+
+                            break;
+
+                        // types are considered static members for purposes of "using static" feature
+                        // regardless of whether they are declared with "static" modifier or not
+                        case SymbolKind.NamedType:
+                            break;
+
+                        // lookup via "using static" ignores non-static members
+                        default:
+                            if (!symbol.IsStatic)
+                            {
+                                continue;
+                            }
+
+                            break;
                     }
+
+                    // Found a match in our list of normal using directives.  Mark the directive
+                    // as being seen so that it won't be reported to the user as something that
+                    // can be removed.
+                    var res = originalBinder.CheckViability(symbol, arity, options, null, diagnose, ref useSiteDiagnostics, basesBeingResolved);
+                    if (res.Kind == LookupResultKind.Viable)
+                    {
+                        MarkImportDirective(typeOrNamespace.UsingDirective, callerIsSemanticModel);
+                    }
+
+                    result.MergeEqual(res);
                 }
             }
         }

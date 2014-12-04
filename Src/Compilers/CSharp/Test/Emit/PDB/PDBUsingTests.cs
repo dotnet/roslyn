@@ -1994,7 +1994,7 @@ namespace foo
         public void StaticType()
         {
             var source = @"
-using System.Math;
+using static System.Math;
 
 class D
 {

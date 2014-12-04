@@ -3,10 +3,9 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -81,9 +80,77 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(ud.UsingKeyword);
             Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.CSharpKind());
             Assert.Null(ud.Alias);
+            Assert.True(ud.StaticKeyword == default(SyntaxToken));
             Assert.NotNull(ud.Name);
             Assert.Equal("a", ud.Name.ToString());
             Assert.NotNull(ud.SemicolonToken);
+        }
+
+        [Fact]
+        public void TestUsingStatic()
+        {
+            var text = "using static a;";
+            var file = this.ParseFile(text);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Usings.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            var ud = file.Usings[0];
+
+            Assert.NotNull(ud.UsingKeyword);
+            Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.CSharpKind());
+            Assert.Equal(SyntaxKind.StaticKeyword, ud.StaticKeyword.CSharpKind());
+            Assert.Null(ud.Alias);
+            Assert.NotNull(ud.Name);
+            Assert.Equal("a", ud.Name.ToString());
+            Assert.NotNull(ud.SemicolonToken);
+        }
+
+        [Fact]
+        public void TestUsingStaticInWrongOrder()
+        {
+            var text = "static using a;";
+            var file = this.ParseFile(text);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Usings.Count);
+            Assert.Equal(text, file.ToFullString());
+
+            var errors = file.Errors();
+            Assert.True(errors.Length > 0);
+            Assert.Equal((int)ErrorCode.ERR_NamespaceUnexpected, errors[0].Code);
+        }
+
+        [Fact]
+        public void TestDuplicateStatic()
+        {
+            var text = "using static static a;";
+            var file = this.ParseFile(text);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Usings.Count);
+            Assert.Equal(text, file.ToString());
+
+            var errors = file.Errors();
+            Assert.True(errors.Length > 0);
+            Assert.Equal((int)ErrorCode.ERR_IdentifierExpectedKW, errors[0].Code);
+        }
+
+        [Fact]
+        public void TestUsingNamespace()
+        {
+            var text = "using namespace a;";
+            var file = this.ParseFile(text);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Usings.Count);
+            Assert.Equal(text, file.ToString());
+
+            var errors = file.Errors();
+            Assert.True(errors.Length > 0);
+            Assert.Equal((int)ErrorCode.ERR_IdentifierExpectedKW, errors[0].Code);
         }
 
         [Fact]
@@ -101,9 +168,54 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.NotNull(ud.UsingKeyword);
             Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.CSharpKind());
+            Assert.True(ud.StaticKeyword == default(SyntaxToken));
             Assert.Null(ud.Alias);
             Assert.NotNull(ud.Name);
             Assert.Equal("a.b", ud.Name.ToString());
+            Assert.NotNull(ud.SemicolonToken);
+        }
+
+        [Fact]
+        public void TestUsingStaticDottedName()
+        {
+            var text = "using static a.b;";
+            var file = this.ParseFile(text);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Usings.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            var ud = file.Usings[0];
+
+            Assert.NotNull(ud.UsingKeyword);
+            Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.CSharpKind());
+            Assert.Equal(SyntaxKind.StaticKeyword, ud.StaticKeyword.CSharpKind());
+            Assert.Null(ud.Alias);
+            Assert.NotNull(ud.Name);
+            Assert.Equal("a.b", ud.Name.ToString());
+            Assert.NotNull(ud.SemicolonToken);
+        }
+
+        [Fact]
+        public void TestUsingStaticGenericName()
+        {
+            var text = "using static a<int?>;";
+            var file = this.ParseFile(text);
+
+            Assert.NotNull(file);
+            Assert.Equal(1, file.Usings.Count);
+            Assert.Equal(text, file.ToString());
+            Assert.Equal(0, file.Errors().Length);
+
+            var ud = file.Usings[0];
+
+            Assert.NotNull(ud.UsingKeyword);
+            Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.CSharpKind());
+            Assert.Equal(SyntaxKind.StaticKeyword, ud.StaticKeyword.CSharpKind());
+            Assert.Null(ud.Alias);
+            Assert.NotNull(ud.Name);
+            Assert.Equal("a<int?>", ud.Name.ToString());
             Assert.NotNull(ud.SemicolonToken);
         }
 

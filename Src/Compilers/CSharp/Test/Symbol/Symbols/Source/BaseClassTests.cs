@@ -1838,18 +1838,46 @@ class D
             var compilation = CreateCompilationWithMscorlib(source);
             // Once we allow static import of nonstatic classes, this should not be an error.
             compilation.VerifyDiagnostics(
-                // (4,14): error CS0246: The type or namespace name 'C' could not be found (are you missing a using directive or an assembly reference?)
-                // class A<T> : C
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C").WithArguments("C").WithLocation(4, 14),
-                // (2,7): error CS7007: A using directive can only be applied to static classes or namespaces; the type 'D' is not a static class
-                // using D;
-                Diagnostic(ErrorCode.ERR_BadUsingType, "D").WithArguments("D").WithLocation(2, 7),
-                // (2,1): hidden CS8019: Unnecessary using directive.
-                // using D;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using D;").WithLocation(2, 1),
-                // (1,1): hidden CS8019: Unnecessary using directive.
-                // using A<int>.B;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using A<int>.B;").WithLocation(1, 1)
+                    // (4,14): error CS0246: The type or namespace name 'C' could not be found (are you missing a using directive or an assembly reference?)
+                    // class A<T> : C
+                    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C").WithArguments("C").WithLocation(4, 14),
+                    // (1,7): error CS0138: A 'using namespace' directive can only be applied to namespaces; 'A<int>.B' is a type not a namespace. Consider using a 'using static' directive instead
+                    // using A<int>.B;
+                    Diagnostic(ErrorCode.ERR_BadUsingNamespace, "A<int>.B").WithArguments("A<int>.B").WithLocation(1, 7),
+                    // (2,7): error CS0138: A 'using namespace' directive can only be applied to namespaces; 'D' is a type not a namespace. Consider using a 'using static' directive instead
+                    // using D;
+                    Diagnostic(ErrorCode.ERR_BadUsingNamespace, "D").WithArguments("D").WithLocation(2, 7),
+                    // (2,1): hidden CS8019: Unnecessary using directive.
+                    // using D;
+                    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using D;").WithLocation(2, 1),
+                    // (1,1): hidden CS8019: Unnecessary using directive.
+                    // using A<int>.B;
+                    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using A<int>.B;").WithLocation(1, 1)
+                );
+        }
+
+        [Fact, WorkItem(1085632, "DevDiv")]
+        public void BaseLookupRecursionWithStaticImport02()
+        {
+            var source =
+@"using static A<int>.B;
+using static D;
+
+class A<T> : C
+{
+    public static class B { }
+}
+
+class D
+{
+    public class C { }
+}";
+            var compilation = CreateCompilationWithMscorlib(source);
+            // Once we allow static import of nonstatic classes, this should not be an error.
+            compilation.VerifyDiagnostics(
+                    // (1,1): hidden CS8019: Unnecessary using directive.
+                    // using static A<int>.B;
+                    Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static A<int>.B;").WithLocation(1, 1)
                 );
         }
     }
