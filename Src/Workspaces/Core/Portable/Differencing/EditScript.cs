@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Differencing
                 //   i. k := FindPos(x)
                 //  ii. Append INS((w, a, value(x)), z, k) to E for a new identifier w.
                 // iii. Add (w, x) to M' and apply INS((w, a, value(x)), z, k) to T1.          
-                edits.Add(new Edit<TNode>(EditKind.Insert, Comparer, node1: default(TNode), node2: x));
+                edits.Add(new Edit<TNode>(EditKind.Insert, Comparer, oldNode: default(TNode), newNode: x));
 
                 // NOTE:
                 // We don't update M' here.
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Differencing
                 // The Comparer defines what changes in node values it cares about.
                 if (!Comparer.ValuesEqual(w, x))
                 {
-                    edits.Add(new Edit<TNode>(EditKind.Update, Comparer, node1: w, node2: x));
+                    edits.Add(new Edit<TNode>(EditKind.Update, Comparer, oldNode: w, newNode: x));
                 }
 
                 // If parents of w and x don't match, it's a move.
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Differencing
                     // B. k := FindPos(x)
                     // C. Append MOV(w, z, k)
                     // D. Apply MOV(w, z, k) to T1
-                    edits.Add(new Edit<TNode>(EditKind.Move, Comparer, node1: w, node2: x));
+                    edits.Add(new Edit<TNode>(EditKind.Move, Comparer, oldNode: w, newNode: x));
                 }
             }
 
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Differencing
             {
                 if (!match.HasPartnerInTree2(w))
                 {
-                    edits.Add(new Edit<TNode>(EditKind.Delete, Comparer, node1: w, node2: default(TNode)));
+                    edits.Add(new Edit<TNode>(EditKind.Delete, Comparer, oldNode: w, newNode: default(TNode)));
                 }
             }
         }
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Differencing
                     Debug.Assert(Comparer.TreesEqual(a, Root1));
                     Debug.Assert(Comparer.TreesEqual(b, Root2));
 
-                    edits.Add(new Edit<TNode>(EditKind.Reorder, Comparer, node1: a, node2: b));
+                    edits.Add(new Edit<TNode>(EditKind.Reorder, Comparer, oldNode: a, newNode: b));
                 }
             }
         }

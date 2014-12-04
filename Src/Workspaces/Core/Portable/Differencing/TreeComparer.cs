@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// Used to determine whether two nodes of the same label match.
         /// Even if 0 is returned the nodes might be slightly different.
         /// </remarks>
-        public abstract double GetDistance(TNode left, TNode right);
+        public abstract double GetDistance(TNode oldNode, TNode newNode);
 
         /// <summary>
         /// Returns true if the specified nodes have equal values.
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// <summary>
         /// Return true if specified nodes belong to the same tree.
         /// </summary>
-        protected internal abstract bool TreesEqual(TNode left, TNode right);
+        protected internal abstract bool TreesEqual(TNode oldNode, TNode newNode);
 
         /// <summary>
         /// Returns the position of the node.

@@ -366,6 +366,8 @@
     <Compile Include="CodeGeneration\TypeConstraintKind.cs" />
     <Compile Include="CodeGeneration\TypeGenerator.cs" />
     <Compile Include="CodeRefactorings\CodeRefactoringContext.cs" />
+    <Compile Include="Differencing\LongestCommonImmutableArraySubsequence.cs" />
+    <Compile Include="Differencing\SequenceEdit.cs" />
     <Compile Include="Log\AggregateLogger.cs" />
     <Compile Include="Log\KeyValueLogMessage.cs" />
     <Compile Include="Log\LogAggregator.cs" />

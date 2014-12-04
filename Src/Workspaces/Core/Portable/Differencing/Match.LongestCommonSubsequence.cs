@@ -18,30 +18,30 @@ namespace Microsoft.CodeAnalysis.Differencing
                 this.match = match;
             }
 
-            protected override bool ItemsEqual(IReadOnlyList<TNode> sequenceA, int indexA, IReadOnlyList<TNode> sequenceB, int indexB)
+            protected override bool ItemsEqual(IReadOnlyList<TNode> oldSequence, int oldIndex, IReadOnlyList<TNode> newSequence, int newIndex)
             {
-                return match.Contains(sequenceA[indexA], sequenceB[indexB]);
+                return match.Contains(oldSequence[oldIndex], newSequence[newIndex]);
             }
 
-            internal Dictionary<TNode, TNode> GetMatchingNodes(IReadOnlyList<TNode> nodes1, IReadOnlyList<TNode> nodes2)
+            internal Dictionary<TNode, TNode> GetMatchingNodes(IReadOnlyList<TNode> oldNodes, IReadOnlyList<TNode> newNodes)
             {
                 var result = new Dictionary<TNode, TNode>();
 
-                foreach (var pair in GetMatchingPairs(nodes1, nodes1.Count, nodes2, nodes2.Count))
+                foreach (var pair in GetMatchingPairs(oldNodes, oldNodes.Count, newNodes, newNodes.Count))
                 {
-                    result.Add(nodes1[pair.Key], nodes2[pair.Value]);
+                    result.Add(oldNodes[pair.Key], newNodes[pair.Value]);
                 }
 
                 return result;
             }
 
-            internal IEnumerable<Edit<TNode>> GetEdits(IReadOnlyList<TNode> nodes1, IReadOnlyList<TNode> nodes2)
+            internal IEnumerable<Edit<TNode>> GetEdits(IReadOnlyList<TNode> oldNodes, IReadOnlyList<TNode> newNodes)
             {
-                foreach (var edit in GetEdits(nodes1, nodes1.Count, nodes2, nodes2.Count))
+                foreach (var edit in GetEdits(oldNodes, oldNodes.Count, newNodes, newNodes.Count))
                 {
                     yield return new Edit<TNode>(edit.Kind, match.Comparer,
-                        edit.IndexA >= 0 ? nodes1[edit.IndexA] : default(TNode),
-                        edit.IndexB >= 0 ? nodes2[edit.IndexB] : default(TNode));
+                        edit.OldIndex >= 0 ? oldNodes[edit.OldIndex] : default(TNode),
+                        edit.NewIndex >= 0 ? newNodes[edit.NewIndex] : default(TNode));
                 }
             }
         }

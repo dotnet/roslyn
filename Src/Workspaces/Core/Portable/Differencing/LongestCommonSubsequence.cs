@@ -3,6 +3,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Differencing
@@ -10,33 +11,19 @@ namespace Microsoft.CodeAnalysis.Differencing
     /// <summary>
     /// Calculates Longest Common Subsequence.
     /// </summary>
-    public abstract class LongestCommonSubsequence<TSequence>
+    internal abstract class LongestCommonSubsequence<TSequence>
     {
-        protected struct Edit
-        {
-            public readonly EditKind Kind;
-            public readonly int IndexA;
-            public readonly int IndexB;
-
-            internal Edit(EditKind kind, int indexA, int indexB)
-            {
-                this.Kind = kind;
-                this.IndexA = indexA;
-                this.IndexB = indexB;
-            }
-        }
-
         private const int DeleteCost = 1;
         private const int InsertCost = 1;
         private const int UpdateCost = 2;
 
-        protected abstract bool ItemsEqual(TSequence sequenceA, int indexA, TSequence sequenceB, int indexB);
+        protected abstract bool ItemsEqual(TSequence oldSequence, int oldIndex, TSequence newSequence, int newIndex);
 
-        protected IEnumerable<KeyValuePair<int, int>> GetMatchingPairs(TSequence sequenceA, int lengthA, TSequence sequenceB, int lengthB)
+        protected IEnumerable<KeyValuePair<int, int>> GetMatchingPairs(TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
         {
-            int[,] d = ComputeCostMatrix(sequenceA, lengthA, sequenceB, lengthB);
-            int i = lengthA;
-            int j = lengthB;
+            int[,] d = ComputeCostMatrix(oldSequence, oldLength, newSequence, newLength);
+            int i = oldLength;
+            int j = newLength;
 
             while (i != 0 && j != 0)
             {
@@ -57,45 +44,45 @@ namespace Microsoft.CodeAnalysis.Differencing
             }
         }
 
-        protected IEnumerable<Edit> GetEdits(TSequence sequenceA, int lengthA, TSequence sequenceB, int lengthB)
+        protected IEnumerable<SequenceEdit> GetEdits(TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
         {
-            int[,] d = ComputeCostMatrix(sequenceA, lengthA, sequenceB, lengthB);
-            int i = lengthA;
-            int j = lengthB;
+            int[,] d = ComputeCostMatrix(oldSequence, oldLength, newSequence, newLength);
+            int i = oldLength;
+            int j = newLength;
 
             while (i != 0 && j != 0)
             {
                 if (d[i, j] == d[i - 1, j] + DeleteCost)
                 {
                     i--;
-                    yield return new Edit(EditKind.Delete, i, -1);
+                    yield return new SequenceEdit(i, -1);
                 }
                 else if (d[i, j] == d[i, j - 1] + InsertCost)
                 {
                     j--;
-                    yield return new Edit(EditKind.Insert, -1, j);
+                    yield return new SequenceEdit(-1, j);
                 }
                 else
                 {
                     i--;
                     j--;
-                    yield return new Edit(EditKind.Update, i, j);
+                    yield return new SequenceEdit(i, j);
                 }
             }
 
             while (i > 0)
             {
                 i--;
-                yield return new Edit(EditKind.Delete, i, -1);
+                yield return new SequenceEdit(i, -1);
             }
 
             while (j > 0)
             {
                 j--;
-                yield return new Edit(EditKind.Insert, -1, j);
+                yield return new SequenceEdit(-1, j);
             }
         }
-
+        
         /// <summary>
         /// Returns a distance [0..1] of the specified sequences.
         /// The smaller distance the more of their elements match.
@@ -104,22 +91,22 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// Returns a distance [0..1] of the specified sequences.
         /// The smaller distance the more of their elements match.
         /// </summary>
-        protected double ComputeDistance(TSequence sequenceA, int lengthA, TSequence sequenceB, int lengthB)
+        protected double ComputeDistance(TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
         {
-            Debug.Assert(lengthA >= 0 && lengthB >= 0);
+            Debug.Assert(oldLength >= 0 && newLength >= 0);
 
-            if (lengthA == 0 || lengthB == 0)
+            if (oldLength == 0 || newLength == 0)
             {
-                return (lengthA == lengthB) ? 0.0 : 1.0;
+                return (oldLength == newLength) ? 0.0 : 1.0;
             }
 
             int lcsLength = 0;
-            foreach (var pair in GetMatchingPairs(sequenceA, lengthA, sequenceB, lengthB))
+            foreach (var pair in GetMatchingPairs(oldSequence, oldLength, newSequence, newLength))
             {
                 lcsLength++;
             }
 
-            int max = Math.Max(lengthA, lengthB);
+            int max = Math.Max(oldLength, newLength);
             Debug.Assert(lcsLength <= max);
             return 1.0 - (double)lcsLength / (double)max;
         }
@@ -144,31 +131,31 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// In every vertex the cheapest outgoing edge is selected. 
         /// The number of diagonal edges on the path from (0,0) to (lengthA, lengthB) is the length of the longest common subsequence.
         /// </remarks>
-        private int[,] ComputeCostMatrix(TSequence sequenceA, int lengthA, TSequence sequenceB, int lengthB)
+        private int[,] ComputeCostMatrix(TSequence oldSequence, int oldLength, TSequence newSequence, int newLength)
         {
-            var la = lengthA + 1;
-            var lb = lengthB + 1;
+            var la = oldLength + 1;
+            var lb = newLength + 1;
 
             // TODO: Optimization possible: O(ND) time, O(N) space
             // EUGENE W. MYERS: An O(ND) Difference Algorithm and Its Variations
             var d = new int[la, lb];
 
             d[0, 0] = 0;
-            for (int i = 1; i <= lengthA; i++)
+            for (int i = 1; i <= oldLength; i++)
             {
                 d[i, 0] = d[i - 1, 0] + DeleteCost;
             }
 
-            for (int j = 1; j <= lengthB; j++)
+            for (int j = 1; j <= newLength; j++)
             {
                 d[0, j] = d[0, j - 1] + InsertCost;
             }
 
-            for (int i = 1; i <= lengthA; i++)
+            for (int i = 1; i <= oldLength; i++)
             {
-                for (int j = 1; j <= lengthB; j++)
+                for (int j = 1; j <= newLength; j++)
                 {
-                    int m1 = d[i - 1, j - 1] + (ItemsEqual(sequenceA, i - 1, sequenceB, j - 1) ? 0 : UpdateCost);
+                    int m1 = d[i - 1, j - 1] + (ItemsEqual(oldSequence, i - 1, newSequence, j - 1) ? 0 : UpdateCost);
                     int m2 = d[i - 1, j] + DeleteCost;
                     int m3 = d[i, j - 1] + InsertCost;
                     d[i, j] = Math.Min(Math.Min(m1, m2), m3);

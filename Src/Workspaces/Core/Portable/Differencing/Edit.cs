@@ -15,22 +15,22 @@ namespace Microsoft.CodeAnalysis.Differencing
     {
         private readonly TreeComparer<TNode> comparer;
         private readonly EditKind kind;
-        private readonly TNode node1;
-        private readonly TNode node2;
+        private readonly TNode oldNode;
+        private readonly TNode newNode;
 
-        internal Edit(EditKind kind, TreeComparer<TNode> comparer, TNode node1, TNode node2)
+        internal Edit(EditKind kind, TreeComparer<TNode> comparer, TNode oldNode, TNode newNode)
         {
-            Debug.Assert((node1 == null || node1.Equals(default(TNode))) == (kind == EditKind.Insert));
-            Debug.Assert((node2 == null || node2.Equals(default(TNode))) == (kind == EditKind.Delete));
+            Debug.Assert((oldNode == null || oldNode.Equals(default(TNode))) == (kind == EditKind.Insert));
+            Debug.Assert((newNode == null || newNode.Equals(default(TNode))) == (kind == EditKind.Delete));
 
-            Debug.Assert((node1 == null || node1.Equals(default(TNode))) ||
-                         (node2 == null || node2.Equals(default(TNode))) ||
-                         !comparer.TreesEqual(node1, node2));
+            Debug.Assert((oldNode == null || oldNode.Equals(default(TNode))) ||
+                         (newNode == null || newNode.Equals(default(TNode))) ||
+                         !comparer.TreesEqual(oldNode, newNode));
 
             this.comparer = comparer;
             this.kind = kind;
-            this.node1 = node1;
-            this.node2 = node2;
+            this.oldNode = oldNode;
+            this.newNode = newNode;
         }
 
         public EditKind Kind { get { return kind; } }
@@ -43,9 +43,9 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// Deleted node.
         /// 
         /// Move, Update: 
-        /// Node in the tree/sequence #1.
+        /// Node in the old tree/sequence.
         /// </summary>
-        public TNode OldNode { get { return node1; } }
+        public TNode OldNode { get { return oldNode; } }
 
         /// <summary>
         /// Insert: 
@@ -55,9 +55,9 @@ namespace Microsoft.CodeAnalysis.Differencing
         /// default(TNode)
         /// 
         /// Move, Update:
-        /// Node in the tree/sequence #2.
+        /// Node in the new tree/sequence.
         /// </summary>
-        public TNode NewNode { get { return node2; } }
+        public TNode NewNode { get { return newNode; } }
 
         public override bool Equals(object obj)
         {
@@ -67,21 +67,21 @@ namespace Microsoft.CodeAnalysis.Differencing
         public bool Equals(Edit<TNode> other)
         {
             return this.kind == other.kind
-                && (this.node1 == null) ? other.node1 == null : this.node1.Equals(other.node1)
-                && (this.node2 == null) ? other.node2 == null : this.node2.Equals(other.node2);
+                && (this.oldNode == null) ? other.oldNode == null : this.oldNode.Equals(other.oldNode)
+                && (this.newNode == null) ? other.newNode == null : this.newNode.Equals(other.newNode);
         }
 
         public override int GetHashCode()
         {
             int hash = (int)this.kind;
-            if (node1 != null)
+            if (oldNode != null)
             {
-                hash = Hash.Combine(node1.GetHashCode(), hash);
+                hash = Hash.Combine(oldNode.GetHashCode(), hash);
             }
 
-            if (node2 != null)
+            if (newNode != null)
             {
-                hash = Hash.Combine(node2.GetHashCode(), hash);
+                hash = Hash.Combine(newNode.GetHashCode(), hash);
             }
 
             return hash;
@@ -94,17 +94,17 @@ namespace Microsoft.CodeAnalysis.Differencing
             switch (Kind)
             {
                 case EditKind.Delete:
-                    return result + " [" + node1.ToString() + "]" + DisplayPosition(node1);
+                    return result + " [" + oldNode.ToString() + "]" + DisplayPosition(oldNode);
 
                 case EditKind.Insert:
-                    return result + " [" + node2.ToString() + "]" + DisplayPosition(node2);
+                    return result + " [" + newNode.ToString() + "]" + DisplayPosition(newNode);
 
                 case EditKind.Update:
-                    return result + " [" + node1.ToString() + "]" + DisplayPosition(node1) + " -> [" + node2.ToString() + "]" + DisplayPosition(node2);
+                    return result + " [" + oldNode.ToString() + "]" + DisplayPosition(oldNode) + " -> [" + newNode.ToString() + "]" + DisplayPosition(newNode);
 
                 case EditKind.Move:
                 case EditKind.Reorder:
-                    return result + " [" + node1.ToString() + "]" + DisplayPosition(node1) + " -> " + DisplayPosition(node2);
+                    return result + " [" + oldNode.ToString() + "]" + DisplayPosition(oldNode) + " -> " + DisplayPosition(newNode);
             }
 
             return result;
