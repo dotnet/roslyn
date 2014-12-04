@@ -707,7 +707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Field:
                     return Bound.Convert(MemberInfoType, Bound.FieldInfo((FieldSymbol)symbol));
                 case SymbolKind.Property:
-                    return Bound.MethodInfo(((PropertySymbol)symbol).SetMethod);
+                    return Bound.MethodInfo(((PropertySymbol)symbol).GetOwnOrInheritedSetMethod());
                 case SymbolKind.Event:
                     return Bound.Convert(MemberInfoType, Bound.FieldInfo(((EventSymbol)symbol).AssociatedField));
                 default:
@@ -722,7 +722,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SymbolKind.Field:
                     return Bound.Convert(MemberInfoType, Bound.FieldInfo((FieldSymbol)symbol));
                 case SymbolKind.Property:
-                    return Bound.MethodInfo(((PropertySymbol)symbol).GetMethod);
+                    return Bound.MethodInfo(((PropertySymbol)symbol).GetOwnOrInheritedGetMethod());
                 case SymbolKind.Event:
                     return Bound.Convert(MemberInfoType, Bound.FieldInfo(((EventSymbol)symbol).AssociatedField));
                 default:

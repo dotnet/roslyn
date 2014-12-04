@@ -1090,7 +1090,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitIndexerAccess(BoundIndexerAccess node)
         {
             VisitRvalue(node.ReceiverOpt);
-            var method = GetMethod(node.Indexer) ?? node.Indexer.SetMethod;
+            var method = node.Indexer.GetOwnOrInheritedGetMethod() ?? node.Indexer.SetMethod;
             VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, method);
             if (trackExceptions && (object)method != null) NotePossibleException(node);
             if ((object)method != null) VisitReceiverAfterCall(node.ReceiverOpt, method);
@@ -1441,7 +1441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var left = (BoundPropertyAccess)node.Left;
                 var property = left.PropertySymbol;
-                var method = SetMethod(property) ?? property.GetMethod;
+                var method = property.GetOwnOrInheritedSetMethod() ?? property.GetMethod;
                 VisitReceiverBeforeCall(left.ReceiverOpt, method);
                 VisitRvalue(node.Right);
                 PropertySetter(node, left.ReceiverOpt, method, node.Right);
@@ -1462,8 +1462,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var left = (BoundPropertyAccess)node.Left;
                 var property = left.PropertySymbol;
-                var readMethod = GetMethod(property) ?? property.SetMethod;
-                var writeMethod = SetMethod(property) ?? property.GetMethod;
+                var readMethod = property.GetOwnOrInheritedGetMethod() ?? property.SetMethod;
+                var writeMethod = property.GetOwnOrInheritedSetMethod() ?? property.GetMethod;
                 Debug.Assert(node.HasAnyErrors || (object)readMethod != (object)writeMethod);
                 VisitReceiverBeforeCall(left.ReceiverOpt, readMethod);
                 if (trackExceptions) NotePossibleException(node);
@@ -1536,7 +1536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var method = GetMethod(property) ?? property.SetMethod;
+            var method = property.GetOwnOrInheritedGetMethod() ?? property.SetMethod;
             VisitReceiverBeforeCall(node.ReceiverOpt, method);
             if (trackExceptions) NotePossibleException(node);
             VisitReceiverAfterCall(node.ReceiverOpt, method);
@@ -1818,16 +1818,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        MethodSymbol GetMethod(PropertySymbol prop)
-        {
-            return ((object)prop == null) ? null : prop.GetMethod ?? GetMethod(prop.OverriddenProperty);
-        }
-
-        MethodSymbol SetMethod(PropertySymbol prop)
-        {
-            return ((object)prop == null) ? null : prop.SetMethod ?? SetMethod(prop.OverriddenProperty);
-        }
-
         public override BoundNode VisitIncrementOperator(BoundIncrementOperator node)
         {
             // TODO: should we also specially handle events?
@@ -1835,8 +1825,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var left = (BoundPropertyAccess)node.Operand;
                 var property = left.PropertySymbol;
-                var readMethod = GetMethod(property) ?? property.SetMethod;
-                var writeMethod = SetMethod(property) ?? property.GetMethod;
+                var readMethod = property.GetOwnOrInheritedGetMethod() ?? property.SetMethod;
+                var writeMethod = property.GetOwnOrInheritedSetMethod() ?? property.GetMethod;
                 Debug.Assert(node.HasAnyErrors || (object)readMethod != (object)writeMethod);
                 VisitReceiverBeforeCall(left.ReceiverOpt, readMethod);
                 if (trackExceptions) NotePossibleException(node); // a read

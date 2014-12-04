@@ -4492,6 +4492,82 @@ class Test
                 expectedOutput: expectedOutput);
         }
 
+        [WorkItem(1090404, "DevDiv")]
+        [Fact]
+        public void Bug1090404()
+        {
+            const string source = @"
+using System.Linq;
+ 
+public class Base
+{
+    public virtual int X { get { return 0; } set { System.Console.Write(value); } }
+}
+
+public class Derived : Base
+{
+    public override int X { get { return 42; } }
+}
+
+public class Foo
+{
+    static Derived Bug(IQueryable<int> query)
+    {
+        return query.Select(i => new Derived { X = i }).First();
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Bug(new[] { 42 }.AsQueryable()).X);
+    }
+}";
+
+            const string expectedOutput = @"4242";
+
+            CompileAndVerify(
+                new[] { source },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(1090404, "DevDiv")]
+        [Fact]
+        public void Bug1090404_2()
+        {
+            const string source = @"
+using System.Linq;
+ 
+public class Base
+{
+    public virtual int X { get { return 42; } set { } }
+}
+
+public class Derived : Base
+{
+    public override int X { set { System.Console.Write(value); } }
+}
+
+public class Foo
+{
+    static int Bug(IQueryable<int> query)
+    {
+        return query.Select(i => (new Derived { X = i }).X).First();
+    }
+
+    static void Main()
+    {
+        System.Console.Write(Bug(new[] { 42 }.AsQueryable()));
+    }
+}";
+
+            const string expectedOutput = @"4242";
+
+            CompileAndVerify(
+                new[] { source },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
         [WorkItem(1089777, "DevDiv")]
         [Fact]
         public void Bug1089777()

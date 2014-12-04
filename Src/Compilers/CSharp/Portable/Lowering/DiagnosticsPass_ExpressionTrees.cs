@@ -189,7 +189,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)method != null);
             Debug.Assert(((object)propertyAccess == null) ||
-                (method.AssociatedSymbol == propertyAccess) ||
+                (method == propertyAccess.GetOwnOrInheritedGetMethod()) ||
+                (method == propertyAccess.GetOwnOrInheritedSetMethod()) ||
                 propertyAccess.MustCallMethodsDirectly);
 
             CheckArguments(argumentRefKindsOpt, arguments, method);
@@ -301,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitIndexerAccess(BoundIndexerAccess node)
         {
             var indexer = node.Indexer;
-            var method = indexer.GetMethod ?? indexer.SetMethod;
+            var method = indexer.GetOwnOrInheritedGetMethod() ?? indexer.GetOwnOrInheritedSetMethod();
             if ((object)method != null)
             {
                 VisitCall(method, indexer, node.Arguments, node.ArgumentRefKindsOpt, node.ArgumentNamesOpt, node.Expanded, node);
