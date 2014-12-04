@@ -2888,7 +2888,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
                     End If
 
-                    Debug.Assert(localSymbol.GetUseSiteErrorInfo() Is Nothing)
+                    ' Debug.Assert(localSymbol.GetUseSiteErrorInfo() Is Nothing) ' Not true in the debugger.
                     Return New BoundLocal(node, localSymbol, localAccessType, hasErrors:=hasError)
 
                 Case SymbolKind.RangeVariable
