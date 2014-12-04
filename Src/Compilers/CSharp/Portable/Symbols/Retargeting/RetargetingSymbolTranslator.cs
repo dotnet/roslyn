@@ -726,12 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     return missing;
                 }
 
-                // produce an error symbol that will trigger an error on use
-                if (!(type is ExtendedErrorTypeSymbol))
-                {
-                    return new ExtendedErrorTypeSymbol(type, LookupResultKind.Empty, new CSDiagnosticInfo(ErrorCode.ERR_NoTypeDef), true);
-                }
-
+                // TODO: produce an error symbol that will trigger an error on use
                 return type;
             }
 
