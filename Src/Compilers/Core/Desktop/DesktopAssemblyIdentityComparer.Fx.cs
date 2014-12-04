@@ -487,6 +487,7 @@ namespace Microsoft.CodeAnalysis
             {"System.Xaml.Hosting", SHAREDLIB_PUBLICKEY_STR_L, VER_ASSEMBLYVERSION_STR_L},
             {"XamlBuildTask", SHAREDLIB_PUBLICKEY_STR_L, VER_ASSEMBLYVERSION_STR_L},
             {"XsdBuildTask", SHAREDLIB_PUBLICKEY_STR_L, VER_ASSEMBLYVERSION_STR_L},
+            {"System.Numerics.Vectors", MICROSOFT_PUBLICKEY_STR_L, VER_ASSEMBLYVERSION_STR_L},
 
             // FX 4.5 facade assemblies:
             {"System.Collections", MICROSOFT_PUBLICKEY_STR_L, VER_ASSEMBLYVERSION_STR_L},
@@ -505,6 +506,7 @@ namespace Microsoft.CodeAnalysis
             {"System.Linq.Expressions", MICROSOFT_PUBLICKEY_STR_L, VER_ASSEMBLYVERSION_STR_L},
             {"System.Linq.Parallel", MICROSOFT_PUBLICKEY_STR_L, VER_ASSEMBLYVERSION_STR_L},
             {"System.Linq.Queryable", MICROSOFT_PUBLICKEY_STR_L, VER_ASSEMBLYVERSION_STR_L},
+            {"System.Net.Http.Rtc", MICROSOFT_PUBLICKEY_STR_L, VER_ASSEMBLYVERSION_STR_L},
             {"System.Net.NetworkInformation", MICROSOFT_PUBLICKEY_STR_L, VER_ASSEMBLYVERSION_STR_L},
             {"System.Net.Primitives", MICROSOFT_PUBLICKEY_STR_L, VER_ASSEMBLYVERSION_STR_L},
             {"System.Net.Requests", MICROSOFT_PUBLICKEY_STR_L, VER_ASSEMBLYVERSION_STR_L},
@@ -518,6 +520,7 @@ namespace Microsoft.CodeAnalysis
             {"System.Resources.ResourceManager", MICROSOFT_PUBLICKEY_STR_L, VER_ASSEMBLYVERSION_STR_L},
             {"System.Runtime", MICROSOFT_PUBLICKEY_STR_L, VER_ASSEMBLYVERSION_STR_L},
             {"System.Runtime.Extensions", MICROSOFT_PUBLICKEY_STR_L, VER_ASSEMBLYVERSION_STR_L},
+            {"System.Runtime.Handles", MICROSOFT_PUBLICKEY_STR_L, VER_ASSEMBLYVERSION_STR_L},
             {"System.Runtime.InteropServices", MICROSOFT_PUBLICKEY_STR_L, VER_ASSEMBLYVERSION_STR_L},
             {"System.Runtime.InteropServices.WindowsRuntime", MICROSOFT_PUBLICKEY_STR_L, VER_ASSEMBLYVERSION_STR_L},
             {"System.Runtime.Numerics", MICROSOFT_PUBLICKEY_STR_L, VER_ASSEMBLYVERSION_STR_L},
@@ -541,7 +544,6 @@ namespace Microsoft.CodeAnalysis
             {"System.Xml.XDocument", MICROSOFT_PUBLICKEY_STR_L, VER_ASSEMBLYVERSION_STR_L},
             {"System.Xml.XmlSerializer", MICROSOFT_PUBLICKEY_STR_L, VER_ASSEMBLYVERSION_STR_L},
             // Manually added facades
-            {"System.Net.Http.Rtc", MICROSOFT_PUBLICKEY_STR_L, VER_ASSEMBLYVERSION_STR_L},
             {"System.Windows", MICROSOFT_PUBLICKEY_STR_L, VER_ASSEMBLYVERSION_STR_L},
             {"System.Xml.Serialization", ECMA_PUBLICKEY_STR_L, VER_ASSEMBLYVERSION_STR_L},
 
