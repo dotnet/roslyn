@@ -210,8 +210,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     var previousProperty = (BasePropertyDeclarationSyntax)previousMember;
                     var nextProperty = (BasePropertyDeclarationSyntax)nextMember;
 
-                    if (previousProperty.AccessorList.Accessors.All(a => a.Body == null) &&
-                        nextProperty.AccessorList.Accessors.All(a => a.Body == null))
+                    if (previousProperty?.AccessorList?.Accessors.All(a => a.Body == null) == true &&
+                        nextProperty?.AccessorList?.Accessors.All(a => a.Body == null) == true)
                     {
                         return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
                     }

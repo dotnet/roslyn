@@ -490,6 +490,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 expression.IsParentKind(SyntaxKind.Argument) ||
                 expression.IsParentKind(SyntaxKind.AttributeArgument) ||
                 expression.IsParentKind(SyntaxKind.AnonymousObjectMemberDeclarator) ||
+                expression.IsParentKind(SyntaxKind.ArrowExpressionClause) ||
                 expression.IsParentKind(SyntaxKind.ReturnStatement) ||
                 expression.IsParentKind(SyntaxKind.YieldReturnStatement) ||
                 expression.IsParentKind(SyntaxKind.ParenthesizedLambdaExpression) ||

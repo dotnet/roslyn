@@ -201,7 +201,9 @@
     <Compile Include="Formatting\FormattingHelpers.cs" />
     <Compile Include="Formatting\Rules\AnchorIndentationFormattingRule.cs" />
     <Compile Include="Formatting\Rules\BaseFormattingRule.cs" />
-    <Compile Include="Formatting\Rules\ElasticTriviaFormattingRule.cs" />
+    <Compile Include="Formatting\Rules\ElasticTriviaFormattingRule.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
     <Compile Include="Formatting\Rules\EndOfFileTokenFormattingRule.cs" />
     <Compile Include="Formatting\Rules\IndentBlockFormattingRule.cs" />
     <Compile Include="Formatting\Rules\IndentUserSettingsFormattingRule.cs" />

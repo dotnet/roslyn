@@ -221,6 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (PostfixUnaryExpressionSyntax postfixUnary) => InferTypeInPostfixUnaryExpression(postfixUnary),
                     (PrefixUnaryExpressionSyntax prefixUnary) => InferTypeInPrefixUnaryExpression(prefixUnary),
                     (AwaitExpressionSyntax awaitExpression) => InferTypeInAwaitExpression(awaitExpression),
+                    (ArrowExpressionClauseSyntax arrowClause) => InferTypeInArrowExpressionClause(arrowClause),
                     (ReturnStatementSyntax returnStatement) => InferTypeForReturnStatement(returnStatement),
                     (SimpleLambdaExpressionSyntax simpleLambdaExpression) => InferTypeInSimpleLambdaExpression(simpleLambdaExpression),
                     (SwitchLabelSyntax switchLabel) => InferTypeInSwitchLabel(switchLabel),
@@ -230,6 +231,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (WhileStatementSyntax whileStatement) => InferTypeInWhileStatement(whileStatement),
                     (YieldStatementSyntax yieldStatement) => InferTypeInYieldStatement(yieldStatement),
                     _ => SpecializedCollections.EmptyEnumerable<ITypeSymbol>());
+            }
+
+            private IEnumerable<ITypeSymbol> InferTypeInArrowExpressionClause(ArrowExpressionClauseSyntax arrowClause)
+            {
+                if (arrowClause.IsParentKind(SyntaxKind.PropertyDeclaration))
+                {
+                    return InferTypeInPropertyDeclaration(arrowClause.Parent as PropertyDeclarationSyntax);
+                }
+
+                if (arrowClause.Parent is BaseMethodDeclarationSyntax)
+                {
+                    return InferTypeInBaseMethodDeclaration(arrowClause.Parent as BaseMethodDeclarationSyntax);
+                }
+
+                return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
             }
 
             private IEnumerable<ITypeSymbol> InferTypesWorker(int position)
@@ -959,15 +975,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private IEnumerable<ITypeSymbol> InferTypeInPropertyDeclaration(PropertyDeclarationSyntax propertyDeclaration)
             {
-                if (propertyDeclaration?.Type == null)
-                {
-                    return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
-                }
+                Contract.Assert(propertyDeclaration?.Type != null, "Property type should never be null");
 
                 var typeInfo = this.semanticModel.GetTypeInfo(propertyDeclaration.Type);
-                return typeInfo.Type != null ? 
-                    SpecializedCollections.SingletonEnumerable(typeInfo.Type) :
-                    SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
+                return typeInfo.Type != null 
+                    ? SpecializedCollections.SingletonEnumerable(typeInfo.Type) 
+                    : SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
+            }
+
+            private IEnumerable<ITypeSymbol> InferTypeInBaseMethodDeclaration(BaseMethodDeclarationSyntax declaration)
+            {
+
+                var methodSymbol = this.semanticModel.GetDeclaredSymbol(declaration);
+                return methodSymbol?.ReturnType != null
+                    ? SpecializedCollections.SingletonEnumerable(methodSymbol.ReturnType)
+                    : SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
             }
 
             private IEnumerable<ITypeSymbol> InferTypeInExpressionStatement(ExpressionStatementSyntax expressionStatement, SyntaxToken? previousToken = null)
