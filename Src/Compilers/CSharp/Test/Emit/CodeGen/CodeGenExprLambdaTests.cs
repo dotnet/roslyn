@@ -1482,11 +1482,24 @@ public class Node
     public Node B { set; get; }
     public List<Node> C = new List<Node>();
     public List<Node> D { set; get; }
+    public string S;
 }
 
 class Program : TestBase
 {
     public static void N(Expression<Func<Node, Node>> e) { Console.WriteLine(e.Dump()); }
+    public static void M<T>()
+        where T : Node, new()
+    {
+        N(x => new T { A = x });
+        N(x => new T { B = x });
+        N(x => new T { A = { A = { A = x } } });
+        N(x => new T { B = { B = { B = x } } });
+        N(x => new T { B = { B = { C = { x, x } } } });
+        N(x => new T { C = { x, x } });
+        N(x => new T { D = { x, x } });
+        N(x => new T { S = ""hello"" + x.ToString() });
+    }
     public static void Main(string[] args)
     {
         N(x => new Node { A = x });
@@ -1496,6 +1509,8 @@ class Program : TestBase
         N(x => new Node { B = { B = { C = { x, x } } } });
         N(x => new Node { C = { x, x } });
         N(x => new Node { D = { x, x } });
+        N(x => new Node { S = ""hello"" + x.ToString() });
+        M<Node>();
     }
 }";
             var expectedOutput =
@@ -1505,7 +1520,16 @@ MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberMember
 MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberMemberBinding(Member=Node B MemberMemberBinding(Member=Node B MemberAssignment(Member=Node B Expression=Parameter(x Type:Node))))] Type:Node)
 MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberMemberBinding(Member=Node B MemberMemberBinding(Member=Node B MemberListBinding(Member=System.Collections.Generic.List`1[Node] C ElementInit(Void Add(Node) Parameter(x Type:Node)) ElementInit(Void Add(Node) Parameter(x Type:Node)))))] Type:Node)
 MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberListBinding(Member=System.Collections.Generic.List`1[Node] C ElementInit(Void Add(Node) Parameter(x Type:Node)) ElementInit(Void Add(Node) Parameter(x Type:Node)))] Type:Node)
-MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberListBinding(Member=System.Collections.Generic.List`1[Node] D ElementInit(Void Add(Node) Parameter(x Type:Node)) ElementInit(Void Add(Node) Parameter(x Type:Node)))] Type:Node)";
+MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberListBinding(Member=System.Collections.Generic.List`1[Node] D ElementInit(Void Add(Node) Parameter(x Type:Node)) ElementInit(Void Add(Node) Parameter(x Type:Node)))] Type:Node)
+MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberAssignment(Member=System.String S Expression=Add(Constant(hello Type:System.String) Call(Parameter(x Type:Node).[System.String ToString()]() Type:System.String) Method:[System.String Concat(System.String, System.String)] Type:System.String))] Type:Node)
+MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberAssignment(Member=Node A Expression=Parameter(x Type:Node))] Type:Node)
+MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberAssignment(Member=Node B Expression=Parameter(x Type:Node))] Type:Node)
+MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberMemberBinding(Member=Node A MemberMemberBinding(Member=Node A MemberAssignment(Member=Node A Expression=Parameter(x Type:Node))))] Type:Node)
+MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberMemberBinding(Member=Node B MemberMemberBinding(Member=Node B MemberAssignment(Member=Node B Expression=Parameter(x Type:Node))))] Type:Node)
+MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberMemberBinding(Member=Node B MemberMemberBinding(Member=Node B MemberListBinding(Member=System.Collections.Generic.List`1[Node] C ElementInit(Void Add(Node) Parameter(x Type:Node)) ElementInit(Void Add(Node) Parameter(x Type:Node)))))] Type:Node)
+MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberListBinding(Member=System.Collections.Generic.List`1[Node] C ElementInit(Void Add(Node) Parameter(x Type:Node)) ElementInit(Void Add(Node) Parameter(x Type:Node)))] Type:Node)
+MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberListBinding(Member=System.Collections.Generic.List`1[Node] D ElementInit(Void Add(Node) Parameter(x Type:Node)) ElementInit(Void Add(Node) Parameter(x Type:Node)))] Type:Node)
+MemberInit(NewExpression: New([Void .ctor()]() Type:Node) Bindings:[MemberAssignment(Member=System.String S Expression=Add(Constant(hello Type:System.String) Call(Parameter(x Type:Node).[System.String ToString()]() Type:System.String) Method:[System.String Concat(System.String, System.String)] Type:System.String))] Type:Node)";
             var compilation = CompileAndVerify(
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
@@ -4461,6 +4485,38 @@ class Test
 }";
 
             string expectedOutput = @"m => m";
+
+            CompileAndVerify(
+                new[] { source },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(1089777, "DevDiv")]
+        [Fact]
+        public void Bug1089777()
+        {
+            const string source =@"
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class A
+{
+    public int Id;
+
+    public static T Run<T>(IQueryable<int> items) where T : A, new()
+    {
+        return (from x in items select new T() { Id = x }).First();
+    }
+
+    public static void Main()
+    {
+        Console.Write(Run<A>(new[] { 42 }.AsQueryable()).Id);
+    }
+}";
+
+            const string expectedOutput = @"42";
 
             CompileAndVerify(
                 new[] { source },

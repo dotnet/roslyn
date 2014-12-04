@@ -35,19 +35,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (inExpressionLambda)
             {
-                if (!temps.IsDefaultOrEmpty) throw ExceptionUtilities.UnexpectedValue(temps.Length);
-
-                // Rewrite the optional initializer expression
-                BoundExpression rewrittenInitializerExpressionOpt = null;
-
-                if (node.InitializerExpressionOpt != null && !node.InitializerExpressionOpt.HasErrors)
+                if (!temps.IsDefaultOrEmpty)
                 {
-                    // We may need to MakeArguments for collection initializer add method call if the method has a param array parameter.
-                    var rewrittenInitializers = MakeObjectOrCollectionInitializersForExpressionTree(node.InitializerExpressionOpt);
-                    rewrittenInitializerExpressionOpt = UpdateInitializers(node.InitializerExpressionOpt, rewrittenInitializers);
+                    throw ExceptionUtilities.UnexpectedValue(temps.Length);
                 }
 
-                rewrittenObjectCreation = node.UpdateArgumentsAndInitializer(rewrittenArguments, rewrittenInitializerExpressionOpt, changeTypeOpt: node.Constructor.ContainingType);
+                rewrittenObjectCreation = node.UpdateArgumentsAndInitializer(rewrittenArguments, MakeObjectCreationInitializerForExpressionTree(node.InitializerExpressionOpt), changeTypeOpt: node.Constructor.ContainingType);
 
                 if (node.Type.IsInterfaceType())
                 {
@@ -88,6 +81,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return MakeObjectCreationWithInitializer(node.Syntax, rewrittenObjectCreation, node.InitializerExpressionOpt, node.Type);
+        }
+
+        private BoundExpression MakeObjectCreationInitializerForExpressionTree(BoundExpression initializerExpressionOpt)
+        {
+            if (initializerExpressionOpt != null && !initializerExpressionOpt.HasErrors)
+            {
+                // We may need to MakeArguments for collection initializer add method call if the method has a param array parameter.
+                var rewrittenInitializers = MakeObjectOrCollectionInitializersForExpressionTree(initializerExpressionOpt);
+                return UpdateInitializers(initializerExpressionOpt, rewrittenInitializers);
+            }
+
+            return null;
         }
 
         // Shared helper for MakeObjectCreationWithInitializer and MakeNewT
@@ -136,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (inExpressionLambda)
             {
-                return node;
+                return node.Update(MakeObjectCreationInitializerForExpressionTree(node.InitializerExpressionOpt), node.Type);
             }
 
             var rewrittenNewT = MakeNewT(node.Syntax, (TypeParameterSymbol)node.Type);
