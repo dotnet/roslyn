@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
@@ -8,10 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Cci = Microsoft.Cci;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 {
@@ -25,7 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
     {
         /// <summary>
         /// Retargeting map from underlying module to this one.
-        /// 
         /// </summary>
         private readonly ConcurrentDictionary<Symbol, Symbol> SymbolMap = new ConcurrentDictionary<Symbol, Symbol>();
 
@@ -92,7 +88,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             /// <summary>
             /// Retargeting map from underlying module to the retargeting module.
-            /// 
             /// </summary>
             private ConcurrentDictionary<Symbol, Symbol> SymbolMap
             {
@@ -146,13 +141,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             public MarshalPseudoCustomAttributeData Retarget(MarshalPseudoCustomAttributeData marshallingInfo)
             {
-                if (marshallingInfo == null)
-                {
-                    return null;
-                }
-
                 // Retarget by type code - primitive types are encoded in short form in an attribute signature:
-                return marshallingInfo.WithTranslatedTypes<TypeSymbol, RetargetingSymbolTranslator>(
+                return marshallingInfo?.WithTranslatedTypes<TypeSymbol, RetargetingSymbolTranslator>(
                     (type, translator) => translator.Retarget(type, RetargetOptions.RetargetPrimitiveTypesByTypeCode), this);
             }
 
@@ -279,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 {
                     // Get type's identity
 
-                    bool isInterface = (type.IsInterface);
+                    bool isInterface = type.IsInterface;
                     bool hasGuid = false;
                     string interfaceGuid = null;
                     string scope = null;
@@ -491,16 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 }
 
                 // See if definition or any of the arguments were retargeted
-                bool anythingRetargeted = false;
-
-                if (!originalDefinition.Equals(newDefinition))
-                {
-                    anythingRetargeted = true;
-                }
-                else
-                {
-                    anythingRetargeted = !oldArguments.SequenceEqual(newArguments);
-                }
+                bool anythingRetargeted = !originalDefinition.Equals(newDefinition) || !oldArguments.SequenceEqual(newArguments);
 
                 // See if it is or its enclosing type is a non-interface closed over NoPia local types. 
                 bool noPiaIllegalGenericInstantiation = IsNoPiaIllegalGenericInstantiation(oldArguments, newArguments, startOfNonInterfaceArguments);
@@ -543,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
                 if (noPiaIllegalGenericInstantiation)
                 {
-                    constructedType = new NoPiaIllegalGenericInstantiationSymbol(retargetingModule, constructedType);
+                    return new NoPiaIllegalGenericInstantiationSymbol(retargetingModule, constructedType);
                 }
 
                 return constructedType;
@@ -718,14 +699,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             public static ErrorTypeSymbol Retarget(ErrorTypeSymbol type)
             {
-                MissingMetadataTypeSymbol missing = type as MissingMetadataTypeSymbol;
-
-                if ((object)missing != null)
-                {
-                    // TODO: if it is no longer missing in the target assembly, then we can resolve it here.
-                    return missing;
-                }
-
                 // TODO: produce an error symbol that will trigger an error on use
                 return type;
             }
