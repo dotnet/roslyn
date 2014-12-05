@@ -480,6 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         // It doesn't look like a method, we allow this to be replaced.
                         return true;
                     }
+
                 case SyntaxKind.IsExpression:
                 case SyntaxKind.AsExpression:
                     // Can't introduce a variable for the type portion of an is/as check.
