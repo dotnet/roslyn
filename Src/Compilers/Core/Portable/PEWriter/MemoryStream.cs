@@ -133,7 +133,14 @@ namespace Microsoft.Cci
             this.Clear();
             if (pool != null)
             {
-                pool.Free(this);
+                if (this.Capacity < 1024)
+                {
+                    pool.Free(this);
+                }
+                else
+                {
+                    pool.ForgetTrackedObject(this);
+                }
             }
         }
 
@@ -148,7 +155,7 @@ namespace Microsoft.Cci
 
         public static ObjectPool<MemoryStream> CreatePool()
         {
-            return CreatePool(128);
+            return CreatePool(32);
         }
 
         public static ObjectPool<MemoryStream> CreatePool(int size)
