@@ -595,7 +595,9 @@ namespace Microsoft.CodeAnalysis
         public Document AddDocument(string name, SyntaxNode syntaxRoot, IEnumerable<string> folders = null)
         {
             var id = DocumentId.CreateNewId(this.Id);
-            return this.Solution.AddDocument(id, name, syntaxRoot, folders).GetDocument(id);
+
+            // use preserve identity for forked solution directly from syntax node.
+            return this.Solution.AddDocument(id, name, syntaxRoot, folders, preservationMode: PreservationMode.PreserveIdentity).GetDocument(id);
         }
 
         /// <summary>
