@@ -130,14 +130,6 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return GetSequencePoints();
         }
 
-        public bool HasAnyLocations
-        {
-            get
-            {
-                return this.HasAnySequencePoints;
-            }
-        }
-
         ImmutableArray<Cci.LocalScope> Cci.IMethodBody.LocalScopes
         {
             get

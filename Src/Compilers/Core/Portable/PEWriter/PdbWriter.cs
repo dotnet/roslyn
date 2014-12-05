@@ -88,7 +88,7 @@ namespace Microsoft.Cci
             Debug.Assert(metadataWriter != null);
 
             bool isIterator = methodBody.StateMachineTypeName != null;
-            bool emitDebugInfo = isIterator || methodBody.HasAnyLocations;
+            bool emitDebugInfo = isIterator || methodBody.HasAnySequencePoints;
 
             if (!emitDebugInfo)
             {

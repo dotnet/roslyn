@@ -151,11 +151,6 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                     get { return SpecializedCollections.EmptyArray<byte>(); }
                 }
 
-                bool Cci.IMethodBody.HasAnyLocations
-                {
-                    get { return false; }
-                }
-
                 bool Cci.IMethodBody.HasAnySequencePoints
                 {
                     get { return false; }

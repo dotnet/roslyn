@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -732,6 +733,9 @@ class C
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1)));
 
+                // only methods with sequence points should be listed in UpdatedMethods:
+                AssertEx.Equal(new[] { 0x06000005 }, diff1.UpdatedMethods.Select(m => MetadataTokens.GetToken(m)));
+
                 // Verify delta metadata contains expected rows.
                 using (var md1 = diff1.GetMetadata())
                 {
@@ -877,6 +881,9 @@ class C
                 var diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1)));
+
+                // only methods with sequence points should be listed in UpdatedMethods:
+                AssertEx.Equal(new[] { 0x06000004 }, diff1.UpdatedMethods.Select(m => MetadataTokens.GetToken(m)));
 
                 using (var md1 = diff1.GetMetadata())
                 {

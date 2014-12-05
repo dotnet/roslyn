@@ -198,13 +198,14 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         /// <summary>
-        /// Return tokens for all modified methods.
+        /// Return tokens for all modified debuggable methods.
         /// </summary>
         public void GetMethodTokens(ICollection<MethodDefinitionHandle> methods)
         {
             foreach (var def in this.methodDefs.GetRows())
             {
-                if (!this.methodDefs.IsAddedNotChanged(def))
+                // The debugger tries to remap all modified methods, which requires presence of sequence points.
+                if (!this.methodDefs.IsAddedNotChanged(def) && (def.GetBody(this.Context)?.HasAnySequencePoints ?? false))
                 {
                     methods.Add(MetadataTokens.MethodDefinitionHandle((int)this.methodDefs[def]));
                 }
