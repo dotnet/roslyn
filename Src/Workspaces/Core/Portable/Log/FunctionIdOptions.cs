@@ -95,6 +95,10 @@ namespace Microsoft.CodeAnalysis.Internal.Log
                 case FunctionId.Diagnostics_RemoveProject:
                     return false;
 
+                case FunctionId.SuggestedActions_HasSuggestedActionsAsync:
+                case FunctionId.SuggestedActions_GetSuggestedActions:
+                    return false;
+
                 default:
                     return true;
             }
