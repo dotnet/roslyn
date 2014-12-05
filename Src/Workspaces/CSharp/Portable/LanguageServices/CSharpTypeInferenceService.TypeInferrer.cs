@@ -354,6 +354,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
+                if (argument.Parent.IsParentKind(SyntaxKind.ImplicitElementAccess) &&
+                    argument.Parent.Parent.IsParentKind(SyntaxKind.SimpleAssignmentExpression) &&
+                    argument.Parent.Parent.Parent.IsParentKind(SyntaxKind.ObjectInitializerExpression) &&
+                    argument.Parent.Parent.Parent.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression))
+                {
+                    var objectCreation = (ObjectCreationExpressionSyntax)argument.Parent.Parent.Parent.Parent.Parent;
+                    var types = GetTypes(objectCreation);
+
+                    if (types.Any(t => t is INamedTypeSymbol))
+                    {
+                        return types.OfType<INamedTypeSymbol>().SelectMany(t =>
+                            GetCollectionElementType(t,
+                                parameterIndex: 0));
+                    }
+                }
+
                 return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
             }
 
@@ -978,8 +994,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Contract.Assert(propertyDeclaration?.Type != null, "Property type should never be null");
 
                 var typeInfo = this.semanticModel.GetTypeInfo(propertyDeclaration.Type);
-                return typeInfo.Type != null 
-                    ? SpecializedCollections.SingletonEnumerable(typeInfo.Type) 
+                return typeInfo.Type != null
+                    ? SpecializedCollections.SingletonEnumerable(typeInfo.Type)
                     : SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
             }
 
@@ -1116,6 +1132,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (initializerExpression.IsParentKind(SyntaxKind.ArrayCreationExpression))
                 {
                     // new int[] { Foo() } 
+                    var symbols = this.semanticModel.GetCollectionInitializerSymbolInfo(initializerExpression).GetAllSymbols();
+
+                    if (symbols.Any(t => t is INamedTypeSymbol))
+                    {
+                        return symbols.OfType<INamedTypeSymbol>();
+                    }
+
                     var arrayCreation = (ArrayCreationExpressionSyntax)initializerExpression.Parent;
                     IEnumerable<ITypeSymbol> types = GetTypes(arrayCreation);
 
@@ -1127,21 +1150,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (initializerExpression.IsParentKind(SyntaxKind.ObjectCreationExpression))
                 {
                     // new List<T> { Foo() } 
+
                     var objectCreation = (ObjectCreationExpressionSyntax)initializerExpression.Parent;
 
                     IEnumerable<ITypeSymbol> types = GetTypes(objectCreation);
                     if (types.Any(t => t is INamedTypeSymbol))
                     {
                         return types.OfType<INamedTypeSymbol>().SelectMany(t =>
-                            GetCollectionElementType(t, parameterIndex: 0, parameterCount: 1));
+                            GetCollectionElementType(t, parameterIndex: 0));
                     }
                 }
-                else if (
-                    initializerExpression.IsParentKind(SyntaxKind.ComplexElementInitializerExpression) &&
-                    initializerExpression.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression))
+                else if ((initializerExpression.IsParentKind(SyntaxKind.ComplexElementInitializerExpression) &&
+                          initializerExpression.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression)) ||
+                         (initializerExpression.IsKind(SyntaxKind.ComplexElementInitializerExpression) &&
+                          initializerExpression.IsParentKind(SyntaxKind.CollectionInitializerExpression) &&
+                          initializerExpression.Parent.IsParentKind(SyntaxKind.ObjectCreationExpression)))
                 {
                     // new Dictionary<K,V> { { Foo(), ... } }
                     var objectCreation = (ObjectCreationExpressionSyntax)initializerExpression.Parent.Parent;
+                    var symbols = this.semanticModel.GetCollectionInitializerSymbolInfo(initializerExpression).GetAllSymbols();
+
+                    if (symbols.Any(t => t is INamedTypeSymbol))
+                    {
+                        return symbols.OfType<INamedTypeSymbol>();
+                    }
 
                     IEnumerable<ITypeSymbol> types = GetTypes(objectCreation);
 
@@ -1153,13 +1185,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         return types.OfType<INamedTypeSymbol>().SelectMany(t =>
                             GetCollectionElementType(t,
-                                parameterIndex: parameterIndex,
-                                parameterCount: initializerExpression.Expressions.Count));
+                                parameterIndex: parameterIndex));
                     }
                 }
                 else if (initializerExpression.IsParentKind(SyntaxKind.SimpleAssignmentExpression))
                 {
                     // new Foo { a = { Foo() } }
+                    var symbols = this.semanticModel.GetCollectionInitializerSymbolInfo(initializerExpression).GetAllSymbols();
+
+                    if (symbols.Any(t => t is INamedTypeSymbol))
+                    {
+                        return symbols.OfType<INamedTypeSymbol>();
+                    }
+
                     var assignExpression = (AssignmentExpressionSyntax)initializerExpression.Parent;
                     IEnumerable<ITypeSymbol> types = GetTypes(assignExpression.Left);
 
@@ -1171,8 +1209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         return types.OfType<INamedTypeSymbol>().SelectMany(t =>
                             GetCollectionElementType(t,
-                                parameterIndex: parameterIndex,
-                                parameterCount: initializerExpression.Expressions.Count));
+                                parameterIndex: parameterIndex));
                     }
                 }
 
@@ -1570,21 +1607,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.SingletonEnumerable(this.Compilation.GetSpecialType(SpecialType.System_Boolean));
             }
 
-            private IEnumerable<ITypeSymbol> GetCollectionElementType(INamedTypeSymbol type, int parameterIndex, int parameterCount)
+            private IEnumerable<ITypeSymbol> GetCollectionElementType(INamedTypeSymbol type, int parameterIndex)
             {
                 if (type != null)
                 {
-                    // TODO(cyrusn): Move to use matt's Lookup method once he's checked in. 
-#if false
-            var addMethods = this.Binding.Lookup(leftType, "Add").OfType<MethodSymbol>();
-            var method = addMethods.Where(m => !m.IsStatic)
-                                   .Where(m => m.Arity == 0)
-                                   .Where(m => m.Parameters.Count == parameterCount).FirstOrDefault();
-            if (method != null)
-            {
-                return method.Parameters[parameterIndex].Type;
-            }
-#endif
+                    var parameters = type.GetAllTypeArguments();
+
+                    var elementType = parameters.ElementAtOrDefault(parameterIndex);
+                    if (elementType != null)
+                    {
+                        return SpecializedCollections.SingletonCollection(elementType);
+                    }
                 }
 
                 return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
