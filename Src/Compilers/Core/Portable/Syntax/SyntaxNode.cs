@@ -795,6 +795,8 @@ namespace Microsoft.CodeAnalysis
                 .Parent
                 .FirstAncestorOrSelf<SyntaxNode>(a => a.FullSpan.Contains(span));
 
+            var cuRoot = node.SyntaxTree != null ? node.SyntaxTree.GetRoot() : null;
+
             // Tie-breaking.
             if (!getInnermostNodeForTie)
             {
@@ -803,6 +805,8 @@ namespace Microsoft.CodeAnalysis
                     var parent = node.Parent;
                     // NOTE: We care about FullSpan equality, but FullWidth is cheaper and equivalent.
                     if (parent == null || parent.FullWidth != node.FullWidth) break;
+                    // prefer child over compilation unit
+                    if (parent == cuRoot) break;
                     node = parent;
                 }
             }

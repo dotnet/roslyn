@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return new CA1012CodeFixProvider();
         }
 
-        [Fact(Skip = "Bug 823796"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void TestCSPublicAbstractClass()
         {
             var code = @"
@@ -70,7 +70,7 @@ End Class
             VerifyBasicFix(code, fix);
         }
 
-        [Fact(Skip = "Bug 823796"), Trait(Traits.Feature, Traits.Features.Diagnostics)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)]
         public void TestCSInternalAbstractClass()
         {
             var code = @"

@@ -26,8 +26,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 
         internal override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            var attr = CodeGenerationSymbolFactory.CreateAttributeData(WellKnownTypes.SerializableAttribute(model.Compilation));
-            var newNode = CodeGenerator.AddAttributes(nodeToFix, document.Project.Solution.Workspace, SpecializedCollections.SingletonEnumerable(attr)).WithAdditionalAnnotations(Formatting.Formatter.Annotation);
+            var generator = SyntaxGenerator.GetGenerator(document);
+            var attr = generator.Attribute(generator.TypeExpression(WellKnownTypes.SerializableAttribute(model.Compilation)));
+            var newNode = generator.AddAttributes(nodeToFix, attr);
             return Task.FromResult(document.WithSyntaxRoot(root.ReplaceNode(nodeToFix, newNode)));
         }
     }

@@ -38,8 +38,7 @@ namespace Microsoft.CodeAnalysis
             // create an id for each node
             foreach (var node in nodes)
             {
-                var nodeRoot = GetRoot(node);
-                if (nodeRoot != root)
+                if (!IsDescendant(root, node))
                 {
                     throw new ArgumentException("Node to track is not a descendant of the root.".NeedsLocalization());
                 }
@@ -157,6 +156,32 @@ namespace Microsoft.CodeAnalysis
                     node = ((IStructuredTriviaSyntax)node).ParentTrivia.Token.Parent;
                 }
             }
+        }
+
+        private static bool IsDescendant(SyntaxNode root, SyntaxNode node)
+        {
+            while (node != null)
+            {
+                if (node == root)
+                {
+                    return true;
+                }
+
+                if (node.Parent != null)
+                {
+                    node = node.Parent;
+                }
+                else if (!node.IsStructuredTrivia)
+                {
+                    break;
+                }
+                else
+                {
+                    node = ((IStructuredTriviaSyntax)node).ParentTrivia.Token.Parent;
+                }
+            }
+
+            return false;
         }
 
         private class CurrentNodes

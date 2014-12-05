@@ -53,12 +53,12 @@ using System.Runtime.Serialization;
 [Serializable]
 public class CA2229NoConstructor : ISerializable
 {
-    protected CA2229NoConstructor(SerializationInfo serializationInfo, StreamingContext streamingContext)
+    public void GetObjectData(SerializationInfo info, StreamingContext context)
     {
         throw new NotImplementedException();
     }
 
-    public void GetObjectData(SerializationInfo info, StreamingContext context)
+    protected CA2229NoConstructor(SerializationInfo serializationInfo, StreamingContext streamingContext)
     {
         throw new NotImplementedException();
     }
@@ -81,12 +81,12 @@ Imports System.Runtime.Serialization
 Public Class CA2229NoConstructor
     Implements ISerializable
 
-    Protected Sub New(serializationInfo As SerializationInfo, streamingContext As StreamingContext)
-        Throw New NotImplementedException()
-    End Sub
-
     Public Sub GetObjectData(info as SerializationInfo, context as StreamingContext)
         throw new NotImplementedException()
+    End Sub
+
+    Protected Sub New(serializationInfo As SerializationInfo, streamingContext As StreamingContext)
+        Throw New NotImplementedException()
     End Sub
 End Class");
         }

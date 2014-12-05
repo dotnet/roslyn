@@ -13,20 +13,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
     Public Class CA1008BasicCodeFixProvider
         Inherits CA1008CodeFixProviderBase
 
-        Friend Overrides Function GetFieldInitializer(field As IFieldSymbol) As SyntaxNode
-            If field.DeclaringSyntaxReferences.Length = 0 Then
-                Return Nothing
-            End If
-
-            Dim syntax = field.DeclaringSyntaxReferences.First().GetSyntax()
-            Dim enumMemberSyntax = TryCast(syntax, EnumMemberDeclarationSyntax)
-            Return If(enumMemberSyntax Is Nothing, Nothing, enumMemberSyntax.Initializer)
-        End Function
-
-        Friend Overrides Function CreateConstantValueInitializer(constantValueExpression As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.EqualsValue(DirectCast(constantValueExpression, ExpressionSyntax))
-        End Function
-
         Protected Overrides Function GetParentNodeOrSelfToFix(nodeToFix As SyntaxNode) As SyntaxNode
             If nodeToFix.IsKind(SyntaxKind.EnumStatement) And nodeToFix.Parent IsNot Nothing Then
                 Return nodeToFix.Parent

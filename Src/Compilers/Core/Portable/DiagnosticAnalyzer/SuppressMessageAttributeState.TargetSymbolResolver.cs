@@ -10,6 +10,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     internal partial class SuppressMessageAttributeState
     {
+        private static string SuppressionPrefix = "~";
+
         private struct TargetSymbolResolver
         {
             private static readonly char[] nameDelimiters = { ':', '.', '+', '(', ')', '<', '>', '[', ']', '{', '}', ',', '&', '*', '`' };
@@ -37,6 +39,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 this.index = 0;
             }
 
+            private static string RemovePrefix(string id, string prefix)
+            {
+                if (prefix != null)
+                {
+                    if (id == null || !id.StartsWith(prefix))
+                    {
+                        return null;
+                    }
+                    else
+                    {
+                        return id.Substring(prefix.Length);
+                    }
+                }
+
+                return id;
+            }
+
             public void Resolve(IList<ISymbol> results)
             {
                 if (string.IsNullOrEmpty(this.name))
@@ -46,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Try to parse the name as declaration ID generated from symbol's documentation comment Id.
                 List<ISymbol> docIdResults;
-                if (DocumentationCommentId.TryGetSymbolsForDeclarationId(this.name, this.compilation, out docIdResults, DocumentationCommentId.SuppressionPrefix))
+                if (DocumentationCommentId.TryGetSymbolsForDeclarationId(RemovePrefix(this.name, SuppressionPrefix), this.compilation, out docIdResults))
                 {
                     foreach (var result in docIdResults)
                     {

@@ -29,8 +29,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
             var fieldNode = GetFieldDeclarationNode(nodeToFix);
             if (fieldNode != null)
             {
-                var attr = CodeGenerationSymbolFactory.CreateAttributeData(WellKnownTypes.NonSerializedAttribute(model.Compilation));
-                var newNode = CodeGenerator.AddAttributes(fieldNode, document.Project.Solution.Workspace, SpecializedCollections.SingletonEnumerable(attr)).WithAdditionalAnnotations(Formatting.Formatter.Annotation);
+                var generator = SyntaxGenerator.GetGenerator(document);
+                var attr = generator.Attribute(generator.TypeExpression(WellKnownTypes.NonSerializedAttribute(model.Compilation)));
+                var newNode = generator.AddAttributes(fieldNode, attr);
                 var newDocument = document.WithSyntaxRoot(root.ReplaceNode(fieldNode, newNode));
                 var codeAction = new MyDocumentCodeAction(FxCopFixersResources.AddNonSerializedAttribute, newDocument);
                 actions = SpecializedCollections.SingletonEnumerable(codeAction);
@@ -41,9 +42,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                 if (type.Locations.Any(l => l.IsInSource))
                 {
                     var typeDeclNode = type.DeclaringSyntaxReferences.First().GetSyntax();
-                    var serializableAttr = CodeGenerationSymbolFactory.CreateAttributeData(WellKnownTypes.SerializableAttribute(model.Compilation));
-                    var newTypeDeclNode = CodeGenerator.AddAttributes(typeDeclNode, document.Project.Solution.Workspace, SpecializedCollections.SingletonEnumerable(serializableAttr)).WithAdditionalAnnotations(Formatting.Formatter.Annotation);
 
+                    var serializableAttr = generator.Attribute(generator.TypeExpression(WellKnownTypes.SerializableAttribute(model.Compilation)));
+                    var newTypeDeclNode = generator.AddAttributes(typeDeclNode, serializableAttr);
                     var documentContainingNode = document.Project.Solution.GetDocument(typeDeclNode.SyntaxTree);
                     var docRoot = await documentContainingNode.GetSyntaxRootAsync(cancellationToken);
                     var newDocumentContainingNode = documentContainingNode.WithSyntaxRoot(docRoot.ReplaceNode(typeDeclNode, newTypeDeclNode));

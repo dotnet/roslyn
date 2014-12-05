@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -197,7 +198,11 @@ namespace Microsoft.CodeAnalysis.Formatting
                 throw new ArgumentNullException("annotation");
             }
 
-            return Format(node, GetAnnotatedSpans(node, annotation), workspace, options, rules, cancellationToken);
+            var spans = (annotation == SyntaxAnnotation.ElasticAnnotation)
+                ? GetElasticSpans(node)
+                : GetAnnotatedSpans(node, annotation);
+
+            return Format(node, spans, workspace, options, rules, cancellationToken);
         }
 
         /// <summary>
@@ -337,22 +342,67 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 var firstToken = nodeOrToken.IsNode ? nodeOrToken.AsNode().GetFirstToken(includeZeroWidth: true) : nodeOrToken.AsToken();
                 var lastToken = nodeOrToken.IsNode ? nodeOrToken.AsNode().GetLastToken(includeZeroWidth: true) : nodeOrToken.AsToken();
-
-                var previousToken = firstToken.GetPreviousToken();
-                var nextToken = lastToken.GetNextToken();
-
-                if (previousToken.RawKind != 0)
-                {
-                    firstToken = previousToken;
-                }
-
-                if (nextToken.RawKind != 0)
-                {
-                    lastToken = nextToken;
-                }
-
-                yield return TextSpan.FromBounds(firstToken.SpanStart, lastToken.Span.End);
+                yield return GetSpan(firstToken, lastToken);
             }
+        }
+
+        private static TextSpan GetSpan(SyntaxToken firstToken, SyntaxToken lastToken)
+        {
+            var previousToken = firstToken.GetPreviousToken();
+            var nextToken = lastToken.GetNextToken();
+
+            if (previousToken.RawKind != 0)
+            {
+                firstToken = previousToken;
+            }
+
+            if (nextToken.RawKind != 0)
+            {
+                lastToken = nextToken;
+            }
+
+            return TextSpan.FromBounds(firstToken.SpanStart, lastToken.Span.End);
+        }
+
+        private static IEnumerable<TextSpan> GetElasticSpans(SyntaxNode root)
+        {
+            var tokens = root.GetAnnotatedTrivia(SyntaxAnnotation.ElasticAnnotation).Select(tr => tr.Token).Distinct();
+            return AggregateSpans(tokens.Select(t => GetElasticSpan(t)));
+        }
+
+        private static TextSpan GetElasticSpan(SyntaxToken token)
+        {
+            return GetSpan(token, token);
+        }
+
+        private static IEnumerable<TextSpan> AggregateSpans(IEnumerable<TextSpan> spans)
+        {
+            var aggregateSpans = new List<TextSpan>();
+
+            var last = default(TextSpan);
+            foreach (var span in spans)
+            {
+                if (last == default(TextSpan))
+                {
+                    last = span;
+                }
+                else if (span.IntersectsWith(last))
+                {
+                    last = TextSpan.FromBounds(last.Start, span.End);
+                }
+                else
+                {
+                    aggregateSpans.Add(last);
+                    last = span;
+                }
+            }
+
+            if (last != default(TextSpan))
+            {
+                aggregateSpans.Add(last);
+            }
+
+            return aggregateSpans;
         }
     }
 }

@@ -147,10 +147,24 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
             var processedSolution = changedSolution;
 
+            // process changed projects
             foreach (var projectChanges in solutionChanges.GetProjectChanges())
             {
                 var documentsToProcess = projectChanges.GetChangedDocuments().Concat(
                     projectChanges.GetAddedDocuments());
+
+                foreach (var documentId in documentsToProcess)
+                {
+                    var document = processedSolution.GetDocument(documentId);
+                    var processedDocument = await PostProcessChangesAsync(document, cancellationToken).ConfigureAwait(false);
+                    processedSolution = processedDocument.Project.Solution;
+                }
+            }
+
+            // process completely new projects too
+            foreach (var addedProject in solutionChanges.GetAddedProjects())
+            {
+                var documentsToProcess = addedProject.DocumentIds;
 
                 foreach (var documentId in documentsToProcess)
                 {
@@ -174,7 +188,13 @@ namespace Microsoft.CodeAnalysis.CodeActions
         protected virtual async Task<Document> PostProcessChangesAsync(Document document, CancellationToken cancellationToken)
         {
             document = await Simplifier.ReduceAsync(document, Simplifier.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            // format any node with explicit formatter annotation
             document = await Formatter.FormatAsync(document, Formatter.Annotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            // format any elastic whitespace
+            document = await Formatter.FormatAsync(document, SyntaxAnnotation.ElasticAnnotation, cancellationToken: cancellationToken).ConfigureAwait(false);
+
             document = await CaseCorrector.CaseCorrectAsync(document, CaseCorrector.Annotation, cancellationToken).ConfigureAwait(false);
             return document;
         }

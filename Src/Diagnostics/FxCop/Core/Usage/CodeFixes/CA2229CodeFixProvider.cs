@@ -31,28 +31,28 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 
         internal async override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            var syntaxFactoryService = document.GetLanguageService<SyntaxGenerator>();
-
             var symbol = model.GetDeclaredSymbol(nodeToFix);
+            var generator = SyntaxGenerator.GetGenerator(document);
 
             // There was no constructor and so the diagnostic was on the type. Generate a serlialization ctor.
             if (symbol.Kind == SymbolKind.NamedType)
             {
                 var typeSymbol = symbol as INamedTypeSymbol;
-                var throwStatement = syntaxFactoryService.CreateThrowNotImplementedStatementBlock(model.Compilation);
+                var throwStatement = generator.ThrowStatement(generator.ObjectCreationExpression(generator.DottedName("System.NotImplementedException")));
 
-                var parameters = ImmutableArray.Create(
-                    CodeGenerationSymbolFactory.CreateParameterSymbol(WellKnownTypes.SerializationInfo(model.Compilation), "serializationInfo"),
-                    CodeGenerationSymbolFactory.CreateParameterSymbol(WellKnownTypes.StreamingContext(model.Compilation), "streamingContext"));
+                var ctorDecl = generator.ConstructorDeclaration(
+                    typeSymbol.Name,
+                    new[]
+                    {
+                        generator.ParameterDeclaration("serializationInfo", generator.TypeExpression(WellKnownTypes.SerializationInfo(model.Compilation))),
+                        generator.ParameterDeclaration("streamingContext", generator.TypeExpression(WellKnownTypes.StreamingContext(model.Compilation)))
+                    },
+                    typeSymbol.IsSealed ? Accessibility.Private : Accessibility.Protected,
+                    statements: new[] { throwStatement });
 
-                var ctorSymbol = CodeGenerationSymbolFactory.CreateConstructorSymbol(null,
-                                                                                     typeSymbol.IsSealed ? Accessibility.Private : Accessibility.Protected,
-                                                                                     new DeclarationModifiers(),
-                                                                                     typeSymbol.Name,
-                                                                                     parameters,
-                                                                                     throwStatement);
-
-                return await CodeGenerator.AddMethodDeclarationAsync(document.Project.Solution, typeSymbol, ctorSymbol).ConfigureAwait(false);
+                var editor = new SymbolEditor(document.Project.Solution);
+                await editor.EditOneDeclarationAsync(typeSymbol, nodeToFix.GetLocation(), (d, g) => g.AddMembers(d, new[] { ctorDecl }), cancellationToken);
+                return editor.GetChangedDocuments().First();
             }
             else if (symbol.Kind == SymbolKind.Method)
             {
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                 var declaration = await methodSymbol.DeclaringSyntaxReferences.First().GetSyntaxAsync(cancellationToken);
 
                 var newAccessibility = methodSymbol.ContainingType.IsSealed ? Accessibility.Private : Accessibility.Protected;
-                var newDecl = CodeGenerator.UpdateDeclarationAccessibility(declaration, document.Project.Solution.Workspace, newAccessibility, cancellationToken: cancellationToken);
+                var newDecl = generator.WithAccessibility(declaration, newAccessibility);
                 return document.WithSyntaxRoot(root.ReplaceNode(declaration, newDecl));
             }
 

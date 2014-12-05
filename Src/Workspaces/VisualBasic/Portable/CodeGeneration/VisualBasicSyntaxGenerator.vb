@@ -1091,11 +1091,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return Argument(name, RefKind.None, expression)
         End Function
 
-        Private Shared Function ClearTrivia(Of TNode As SyntaxNode)(nodes As IEnumerable(Of TNode)) As IEnumerable(Of TNode)
-            Return If(nodes IsNot Nothing, nodes.Select(Function(n) ClearTrivia(n)), Nothing)
-        End Function
-
-        Private Shared Function ClearTrivia(Of TNode As SyntaxNode)(node As TNode) As TNode
+        Protected Overrides Function ClearTrivia(Of TNode As SyntaxNode)(node As TNode) As TNode
             Return node.WithLeadingTrivia(SyntaxFactory.ElasticMarker).WithTrailingTrivia(SyntaxFactory.ElasticMarker)
         End Function
 
@@ -1136,8 +1132,50 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return PreserveTrivia(declaration, Function(d) RemoveReturnAttributes(WithAttributeLists(d, Nothing)))
         End Function
 
+        Public Overrides Function RemoveAttributes(declaration As SyntaxNode, attributes As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Return PreserveTrivia(declaration.TrackNodes(attributes), Function(d) RemoveAttributesInternal(d, attributes))
+        End Function
+
+        Private Function RemoveAttributesInternal(declaration As SyntaxNode, attributes As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            For Each attr In attributes
+                declaration = RemoveAttribute(declaration, declaration.GetCurrentNode(attr))
+            Next
+            Return declaration
+        End Function
+
+        Private Function RemoveAttribute(declaration As SyntaxNode, attribute As SyntaxNode) As SyntaxNode
+            Dim attrStmt = TryCast(attribute, AttributesStatementSyntax)
+            If attrStmt IsNot Nothing Then
+                Return declaration.RemoveNode(attrStmt, SyntaxRemoveOptions.KeepNoTrivia)
+            End If
+
+            Dim attrList = TryCast(attribute, AttributeListSyntax)
+            If attrList IsNot Nothing Then
+                attrStmt = TryCast(attrList.Parent, AttributesStatementSyntax)
+                If attrStmt IsNot Nothing AndAlso attrStmt.AttributeLists.Count = 1 Then
+                    ' remove entire statement if only the one list
+                    Return RemoveAttribute(declaration, attrStmt)
+                End If
+
+                Return declaration.RemoveNode(attrList, SyntaxRemoveOptions.KeepNoTrivia)
+            End If
+
+            Dim attr = TryCast(attribute, AttributeSyntax)
+            If attr IsNot Nothing Then
+                attrList = TryCast(attr.Parent, AttributeListSyntax)
+                If attrList IsNot Nothing AndAlso attrList.Attributes.Count = 1 Then
+                    ' remove entire list if only the one attribute
+                    Return RemoveAttribute(declaration, attrList)
+                End If
+
+                Return declaration.RemoveNode(attr, SyntaxRemoveOptions.KeepNoTrivia)
+            End If
+
+            Return declaration
+        End Function
+
         Public Overrides Function AddAttributes(declaration As SyntaxNode, attributes As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Return PreserveTrivia(declaration, Function(d) AddAttributesInternal(d, ClearTrivia(attributes)))
+            Return PreserveTrivia(declaration, Function(d) AddAttributesInternal(d, MyBase.ClearTrivia(attributes)))
         End Function
 
         Private Function AddAttributesInternal(declaration As SyntaxNode, attributes As IEnumerable(Of SyntaxNode)) As SyntaxNode
@@ -1224,7 +1262,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function AddReturnAttributes(methodDeclaration As SyntaxNode, attributes As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Dim lists = GetAttributeLists(ClearTrivia(attributes))
+            Dim lists = GetAttributeLists(MyBase.ClearTrivia(attributes))
 
             Dim methodBlock = TryCast(methodDeclaration, MethodBlockSyntax)
             If (methodBlock IsNot Nothing) Then
@@ -1892,9 +1930,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Case SyntaxKind.ConstructorBlock
                     Return DirectCast(declaration, ConstructorBlockSyntax).Begin.Modifiers
                 Case SyntaxKind.FunctionStatement,
-                     SyntaxKind.SubStatement,
-                     SyntaxKind.SubNewStatement
+                     SyntaxKind.SubStatement
                     Return DirectCast(declaration, MethodStatementSyntax).Modifiers
+                Case SyntaxKind.SubNewStatement
+                    Return DirectCast(declaration, SubNewStatementSyntax).Modifiers
                 Case SyntaxKind.PropertyBlock
                     Return DirectCast(declaration, PropertyBlockSyntax).PropertyStatement.Modifiers
                 Case SyntaxKind.PropertyStatement
@@ -1943,6 +1982,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Case SyntaxKind.FunctionStatement,
                      SyntaxKind.SubStatement
                     Return DirectCast(declaration, MethodStatementSyntax).WithModifiers(tokens)
+                Case SyntaxKind.SubNewStatement
+                    Return DirectCast(declaration, SubNewStatementSyntax).WithModifiers(tokens)
                 Case SyntaxKind.PropertyBlock
                     Return DirectCast(declaration, PropertyBlockSyntax).WithPropertyStatement(DirectCast(declaration, PropertyBlockSyntax).PropertyStatement.WithModifiers(tokens))
                 Case SyntaxKind.PropertyStatement

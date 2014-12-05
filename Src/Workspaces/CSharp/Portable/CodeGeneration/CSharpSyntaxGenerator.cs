@@ -718,19 +718,54 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return list.Target != null ? list.Target.Identifier.IsKind(SyntaxKind.ReturnKeyword) : false;
         }
 
-        private static IEnumerable<TNode> ClearTrivia<TNode>(IEnumerable<TNode> nodes) where TNode : SyntaxNode
+        protected override TNode ClearTrivia<TNode>(TNode node)
         {
-            return nodes != null ? nodes.Select(n => ClearTrivia(n)): null;
-        }
-
-        private static TNode ClearTrivia<TNode>(TNode node) where TNode : SyntaxNode
-        {
-            return node.WithLeadingTrivia(SyntaxFactory.ElasticMarker).WithTrailingTrivia(SyntaxFactory.ElasticMarker);
+            return node.WithLeadingTrivia(SyntaxFactory.ElasticSpace)
+                       .WithTrailingTrivia(SyntaxFactory.ElasticSpace);
         }
 
         public override SyntaxNode RemoveAttributes(SyntaxNode declaration)
         {
             return PreserveTrivia(declaration, d => WithAttributeLists(d, default(SyntaxList<AttributeListSyntax>)));
+        }
+
+        public override SyntaxNode RemoveAttributes(SyntaxNode declaration, IEnumerable<SyntaxNode> attributes)
+        {
+            return PreserveTrivia(declaration.TrackNodes(attributes), d => RemoveAttributesInternal(d, attributes));
+        }
+
+        private SyntaxNode RemoveAttributesInternal(SyntaxNode declaration, IEnumerable<SyntaxNode> attributes)
+        {
+            foreach (var attr in attributes)
+            {
+                declaration = RemoveAttribute(declaration, declaration.GetCurrentNode(attr));
+            }
+
+            return declaration;
+        }
+
+        private SyntaxNode RemoveAttribute(SyntaxNode declaration, SyntaxNode attribute)
+        {
+            var attrList = attribute as AttributeListSyntax;
+            if (attrList != null)
+            {
+                return declaration.RemoveNode(attrList, SyntaxRemoveOptions.KeepNoTrivia);
+            }
+
+            var attr = attribute as AttributeSyntax;
+            if (attr != null)
+            {
+                attrList = attr.Parent as AttributeListSyntax;
+                if (attrList != null && attrList.Attributes.Count == 1)
+                {
+                    // remove entire list if only one attribute
+                    return RemoveAttribute(declaration, attrList);
+                }
+
+                return declaration.RemoveNode(attr, SyntaxRemoveOptions.KeepNoTrivia);
+            }
+
+            return declaration;
         }
 
         public override SyntaxNode AddAttributes(SyntaxNode declaration, IEnumerable<SyntaxNode> attributes)
@@ -803,13 +838,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private IEnumerable<AttributeListSyntax> AsReturnAttributes(IEnumerable<SyntaxNode> attributes)
         {
             return GetAttributeLists(attributes)
-                .Select(list => list.WithTarget(SyntaxFactory.AttributeTargetSpecifier(SyntaxFactory.Token(SyntaxKind.ReturnKeyword))).WithAdditionalAnnotations(Formatter.Annotation));
+                .Select(list => list.WithTarget(SyntaxFactory.AttributeTargetSpecifier(SyntaxFactory.Token(SyntaxKind.ReturnKeyword))));
         }
 
         private SyntaxList<AttributeListSyntax> GetAssemblyAttributeLists(IEnumerable<AttributeListSyntax> attributes)
         {
             return SyntaxFactory.List(
-                    attributes.Select(list => list.WithTarget(SyntaxFactory.AttributeTargetSpecifier(SyntaxFactory.Token(SyntaxKind.AssemblyKeyword))).WithAdditionalAnnotations(Formatter.Annotation)));
+                    attributes.Select(list => list.WithTarget(SyntaxFactory.AttributeTargetSpecifier(SyntaxFactory.Token(SyntaxKind.AssemblyKeyword)))));
         }
 
         private SyntaxList<AttributeListSyntax> GetAttributeLists(SyntaxNode declaration)
@@ -946,6 +981,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode AddMembers(SyntaxNode declaration, IEnumerable<SyntaxNode> members)
         {
+            members = members.Select(m => ClearTrivia(m));
+
             switch (declaration.CSharpKind())
             {
                 case SyntaxKind.ClassDeclaration:

@@ -4,8 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -25,7 +28,35 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return workspace.Services.GetLanguageServices(language).GetService<SyntaxGenerator>();
         }
 
+        /// <summary>
+        /// Gets the <see cref="SyntaxGenerator"/> for the language corresponding to the document.
+        /// </summary>
+        public static SyntaxGenerator GetGenerator(Document document)
+        {
+            return document.Project.LanguageServices.GetService<SyntaxGenerator>();
+        }
+
         #region Declarations
+
+        /// <summary>
+        /// Returns the node if it is a declaration, the immediate enclosing declaration if one exists, or null.
+        /// </summary>
+        public SyntaxNode GetDeclaration(SyntaxNode node)
+        {
+            while (node != null)
+            {
+                if (GetDeclarationKind(node) != DeclarationKind.None)
+                {
+                    return node;
+                }
+                else
+                {
+                    node = node.Parent;
+                }
+            }
+
+            return null;
+        }
 
         /// <summary>
         /// Creates a field declaration.
@@ -40,7 +71,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <summary>
         /// Creates a field declaration matching an existing field symbol.
         /// </summary>
-        public SyntaxNode FieldDeclaration(IFieldSymbol field, SyntaxNode initializer = null)
+        public SyntaxNode FieldDeclaration(IFieldSymbol field)
+        {
+            var initializer = field.HasConstantValue ? this.LiteralExpression(field.ConstantValue) : null;
+            return FieldDeclaration(field, initializer);
+        }
+
+        /// <summary>
+        /// Creates a field declaration matching an existing field symbol.
+        /// </summary>
+        public SyntaxNode FieldDeclaration(IFieldSymbol field, SyntaxNode initializer)
         {
             return FieldDeclaration(
                 field.Name,
@@ -593,6 +633,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract SyntaxNode RemoveAttributes(SyntaxNode declaration);
 
         /// <summary>
+        /// Removes specific attributes from the declaration.
+        /// </summary>
+        public abstract SyntaxNode RemoveAttributes(SyntaxNode declaration, IEnumerable<SyntaxNode> attributes);
+
+        /// <summary>
         /// Creates a new instance of a declaration with the specified attributes added.
         /// </summary>
         public abstract SyntaxNode AddAttributes(SyntaxNode declaration, IEnumerable<SyntaxNode> attributes);
@@ -636,6 +681,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// Creates a new instance of the declaration with the members added to the end.
         /// </summary>
         public abstract SyntaxNode AddMembers(SyntaxNode declaration, IEnumerable<SyntaxNode> members);
+
+        /// <summary>
+        /// Creates a new instance of the declaration with the members added to the end.
+        /// </summary>
+        public SyntaxNode AddMembers(SyntaxNode declaration, params SyntaxNode[] members)
+        {
+            return this.AddMembers(declaration, (IEnumerable<SyntaxNode>)members);
+        }
 
         /// <summary>
         /// Gets the accessibility of the declaration.
@@ -782,6 +835,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             return root.ReplaceToken(original, combinedTriviaReplacement);
         }
+
+        protected IEnumerable<TNode> ClearTrivia<TNode>(IEnumerable<TNode> nodes) where TNode : SyntaxNode
+        {
+            return nodes != null ? nodes.Select(n => ClearTrivia(n)) : null;
+        }
+
+        protected abstract TNode ClearTrivia<TNode>(TNode node) where TNode : SyntaxNode;
 
         #endregion
 
@@ -1066,7 +1126,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 }
                 else
                 {
-                    name = QualifiedName(name, IdentifierName(part));
+                    name = QualifiedName(name, IdentifierName(part)).WithAdditionalAnnotations(Simplification.Simplifier.Annotation);
                 }
             }
 

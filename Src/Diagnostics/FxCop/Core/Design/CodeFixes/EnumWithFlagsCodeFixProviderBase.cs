@@ -55,9 +55,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 
         private static SyntaxNode AddFlagsAttribute(Workspace workspace, SyntaxNode enumTypeSyntax, INamedTypeSymbol flagsAttributeType, CancellationToken cancellationToken)
         {
-            var attr = CodeGenerationSymbolFactory.CreateAttributeData(flagsAttributeType);
-            return CodeGenerator.AddAttributes(enumTypeSyntax, workspace, SpecializedCollections.SingletonEnumerable(attr))
-                .WithAdditionalAnnotations(Formatter.Annotation);
+            var generator = SyntaxGenerator.GetGenerator(workspace, enumTypeSyntax.Language);
+            return generator.AddAttributes(enumTypeSyntax, generator.Attribute(generator.TypeExpression(flagsAttributeType)));
         }
 
         private static SyntaxNode RemoveFlagsAttribute(Workspace workspace, SemanticModel model, SyntaxNode enumTypeSyntax, INamedTypeSymbol flagsAttributeType, CancellationToken cancellationToken)
@@ -66,7 +65,10 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             Contract.ThrowIfNull(enumType);
 
             var flagsAttribute = enumType.GetAttributes().First(a => a.AttributeClass == flagsAttributeType);
-            return CodeGenerator.RemoveAttribute(enumTypeSyntax, workspace, flagsAttribute, CodeGenerationOptions.Default, cancellationToken);
+            var attributeNode = flagsAttribute.ApplicationSyntaxReference.GetSyntax();
+            var generator = SyntaxGenerator.GetGenerator(workspace, enumTypeSyntax.Language);
+
+            return generator.RemoveAttributes(enumTypeSyntax, new[] { attributeNode });
         }
     }
 }

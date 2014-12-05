@@ -30,18 +30,18 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             return FxCopFixersResources.AbstractTypesShouldNotHavePublicConstructorsCodeFix;
         }
 
+        private static SyntaxNode GetDeclaration(ISymbol symbol)
+        {
+            return (symbol.DeclaringSyntaxReferences.Length > 0) ? symbol.DeclaringSyntaxReferences[0].GetSyntax() : null;
+        }
+
         internal override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var classSymbol = (INamedTypeSymbol)model.GetDeclaredSymbol(nodeToFix);
-            var instanceConstructors = classSymbol.InstanceConstructors.Where(t => t.DeclaredAccessibility == Accessibility.Public).Select(t => t.DeclaringSyntaxReferences[0].GetSyntax());
-            var workspace = document.Project.Solution.Workspace;
-            Func<SyntaxNode, SyntaxNode, SyntaxNode> replacementForNodes = (constructorNode, dummy) =>
-                {
-                    var newSyntax = CodeGenerator.UpdateDeclarationAccessibility(constructorNode, workspace, Accessibility.Protected, cancellationToken: cancellationToken).WithAdditionalAnnotations(Formatter.Annotation);
-                    return newSyntax;
-                };
-
-            return Task.FromResult(document.WithSyntaxRoot(root.ReplaceNodes(instanceConstructors, replacementForNodes)));
+            var instanceConstructors = classSymbol.InstanceConstructors.Where(t => t.DeclaredAccessibility == Accessibility.Public).Select(t => GetDeclaration(t)).Where(d => d != null).ToList();
+            var generator = SyntaxGenerator.GetGenerator(document);
+            var newRoot = root.ReplaceNodes(instanceConstructors, (original, rewritten) => generator.WithAccessibility(original, Accessibility.Protected));
+            return Task.FromResult(document.WithSyntaxRoot(newRoot));
         }
     }
 }
