@@ -631,10 +631,10 @@
     <value>A local or parameter named '{0}' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter</value>
   </data>
   <data name="ERR_BadUsingNamespace" xml:space="preserve">
-    <value>A 'using namespace' directive can only be applied to namespaces; '{0}' is a type not a namespace. Consider using a 'using static' directive instead</value>
+    <value>A 'using namespace' directive can only be applied to namespaces; '{0}' is a type not a namespace. Consider a 'using static' directive instead</value>
   </data>
   <data name="ERR_BadUsingType" xml:space="preserve">
-    <value>A 'using static' directive can only be applied to types; '{0}' is a namespace not a type. Consider using a 'using namespace' directive instead</value>
+    <value>A 'using static' directive can only be applied to types; '{0}' is a namespace not a type. Consider a 'using namespace' directive instead</value>
   </data>
   <data name="ERR_NoAliasHere" xml:space="preserve">
     <value>A 'using static' directive cannot be used to declare an alias</value>

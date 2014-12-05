@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Empty;
             }
 
-            // EDMAURER define all of the extern aliases first. They may used by the target of a using
+            // define all of the extern aliases first. They may used by the target of a using
 
             // using Bar=Foo::Bar;
             // using Foo::Baz;
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            //EDMAURER an O(m*n) algorithm here but n (number of extern aliases) will likely be very small.
+                            // an O(m*n) algorithm here but n (number of extern aliases) will likely be very small.
                             foreach (var externAlias in externAliases)
                             {
                                 if (externAlias.Alias.Name == identifierValueText)
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 usingAliases = new Dictionary<string, AliasAndUsingDirective>();
                             }
 
-                            // EDMAURER construct the alias sym with the binder for which we are building imports. That
+                            // construct the alias sym with the binder for which we are building imports. That
                             // way the alias target can make use of extern alias definitions.
                             usingAliases.Add(identifierValueText, new AliasAndUsingDirective(new AliasSymbol(usingsBinder, usingDirective), usingDirective));
                         }
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                //EDMAURER some n^2 action, but n should be very small.
+                // some n^2 action, but n should be very small.
                 foreach (var existingAlias in builder)
                 {
                     if (existingAlias.Alias.Name == aliasSyntax.Identifier.ValueText)

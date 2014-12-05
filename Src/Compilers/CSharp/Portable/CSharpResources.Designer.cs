@@ -1853,7 +1853,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A &apos;using namespace&apos; directive can only be applied to namespaces; &apos;{0}&apos; is a type not a namespace. Consider using a &apos;using static&apos; directive instead.
+        ///   Looks up a localized string similar to A &apos;using namespace&apos; directive can only be applied to namespaces; &apos;{0}&apos; is a type not a namespace. Consider a &apos;using static&apos; directive instead.
         /// </summary>
         internal static string ERR_BadUsingNamespace {
             get {
@@ -1862,7 +1862,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A &apos;using static&apos; directive can only be applied to types; &apos;{0}&apos; is a namespace not a type. Consider using a &apos;using namespace&apos; directive instead.
+        ///   Looks up a localized string similar to A &apos;using static&apos; directive can only be applied to types; &apos;{0}&apos; is a namespace not a type. Consider a &apos;using namespace&apos; directive instead.
         /// </summary>
         internal static string ERR_BadUsingType {
             get {
