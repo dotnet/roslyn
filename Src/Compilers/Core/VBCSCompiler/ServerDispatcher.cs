@@ -89,20 +89,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private readonly string basePipeName;
         private readonly IRequestHandler handler;
 
-        // Semaphore for number of active connections.
-        // All writes should be Interlocked.
-        private int activeConnectionCount = 0;
-
         private readonly KeepAliveTimer keepAliveTimer;
 
-        // The current pipe stream which is waiting for connections
-        private NamedPipeServerStream waitingPipeStream = null;
-
-        // The list of active connections. To avoid the need to synchronize
-        // access, items are only added or removed when a new connection
-        // comes along. At any given time, some of the items in this list may
-        // have completed but not yet removed.
-        private readonly List<Task> activeConnections = new List<Task>();
+        /// <summary>
+        /// The set of server state shared (read and write) amongst threads.  All access
+        /// to this data must be done inside of a lock (this.sharedState) block.
+        /// </summary>
+        private readonly SharedState sharedState = new SharedState();
 
         /// <summary>
         /// Create a new server that listens on the given base pipe name.
@@ -127,21 +120,21 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
 
         /// <summary>
-        /// This function never returns. It loops and dispatches requests 
-        /// until the process it terminated. Each incoming request is
-        /// dispatched to a new thread which runs.
+        /// This function will accept and process new connections until an event causes
+        /// the server to enter a passive shut down mode.  For example if analyzers change
+        /// or the idle timeout is hit.  At which point this function will cease 
+        /// accepting new connections and wait for existing connections to complete before
+        /// returning.
         /// </summary>
         public void ListenAndDispatchConnections()
         {
             Debug.Assert(SynchronizationContext.Current == null);
+
             // We loop here continuously, dispatching client connections as 
             // they come in, until TimeoutFired causes an exception to be
             // thrown. Each time through the loop we either have accepted a
             // client connection, or timed out. After each connection, 
             // we need to create a new instance of the pipe to listen on.
-
-            bool firstConnection = true;
-
             while (true)
             {
                 // Create the pipe and begin waiting for a connection. This 
@@ -152,65 +145,81 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 NamedPipeServerStream pipeStream = ConstructPipe();
                 if (pipeStream == null)
                 {
-                    return;
+                    break;
                 }
 
-                this.waitingPipeStream = pipeStream;
+                bool startTimer;
+                lock (this.sharedState)
+                {
+                    if (!this.sharedState.ShouldAcceptNewConnections)
+                    {
+                        break;
+                    }
 
-                // If this is the first connection then we want to start a timeout
-                // Otherwise, we should start the timeout when the last connection
-                // finishes processing.
-                if (firstConnection)
+                    this.sharedState.WaitingPipe = pipeStream;
+                    this.sharedState.ClearCompletedConnections();
+
+                    // Whenever the server is doing no work (has no active connections) then the timeout
+                    // should be in effect.  Connection completion does a similar check to restart the 
+                    // timer.  
+                    startTimer = this.sharedState.ActiveConnections.Count == 0;
+                }
+
+                if (startTimer)
                 {
                     StartTimeoutTimer();
-                    firstConnection = false;
                 }
 
-                CompilerServerLogger.Log("Waiting for new connection");
-
-                // Wait for a connection or the timeout
-                // If a timeout occurs then the pipe will be closed and we will throw an exception
-                // to the calling function.
+                bool hadException = false;
                 try
                 {
+                    // Wait for a connection or the timeout.  If a timeout occurs then the pipe will be
+                    // closed by the timeout handler and an exception will occur here.
+                    CompilerServerLogger.Log("Waiting for new connection");
                     pipeStream.WaitForConnection();
+                    CompilerServerLogger.Log("Pipe connection detected.");
                 }
-                catch (ObjectDisposedException)
+                catch (Exception e)
                 {
-                    CompilerServerLogger.Log("Listening pipe closed; exiting.");
-                    break;
-                }
-                catch (IOException)
-                {
-                    CompilerServerLogger.Log("The pipe was closed or the client has been disconnected");
-                    break;
+                    CompilerServerLogger.Log("Listening error: {0}", e.Message);
+                    hadException = true;
                 }
 
-                // We have a connection
-                CompilerServerLogger.Log("Pipe connection detected.");
+                lock (this.sharedState)
+                {
+                    this.sharedState.WaitingPipe = null;
+                    if (hadException || !this.sharedState.ShouldAcceptNewConnections)
+                    {
+                        break;
+                    }
+                }
 
                 // Cancel the timeouts
                 this.keepAliveTimer.CancelIfActive();
 
-                // Dispatch the new connection on the thread pool
+                // Dispatch the new connection on the thread pool.
                 var newConnection = DispatchConnection(pipeStream);
-                // Connection object now owns the connected pipe. 
 
-                // Cleanup any connections that have completed, and then add
-                // the new one.
-                activeConnections.RemoveAll(t => t.IsCompleted);
-                activeConnections.Add(newConnection);
+                lock (this.sharedState)
+                {
+                    this.sharedState.ActiveConnections.Add(newConnection);
+                }
 
                 if (this.keepAliveTimer.StopAfterFirstConnection)
                 {
                     break;
                 }
-
-                // Next time around the loop, create a new instance of the pipe
-                // to listen for another connection.
             }
 
-            Task.WhenAll(activeConnections).Wait();
+            // At this point no new connections will be accepted.  The server process needs 
+            // to wait until all of the existing requests are completed before exiting though.
+            Task[] array;
+            lock (this.sharedState)
+            {
+                array = this.sharedState.ActiveConnections.ToArray();
+            }
+
+            Task.WhenAll(array).Wait();
         }
 
         /// <summary>
@@ -222,13 +231,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             try
             {
-                // There is always a race between timeout and connections because
-                // there is no way to cancel listening on the pipe without
-                // closing the pipe. We immediately increment the connection
-                // semaphore while processing connections in order to narrow
-                // the race window as much as possible.
-                Interlocked.Increment(ref this.activeConnectionCount);
-
                 if (Environment.Is64BitProcess || MemoryHelper.IsMemoryAvailable())
                 {
                     CompilerServerLogger.Log("Memory available - accepting connection");
@@ -254,9 +256,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     // As long as we haven't written a response, the client has not 
                     // committed to this server instance and can look elsewhere.
                     pipeStream.Close();
-
-                    // We didn't create a connection -- decrement the semaphore
-                    Interlocked.Decrement(ref this.activeConnectionCount);
                 }
                 ConnectionCompleted();
             }
@@ -313,35 +312,36 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
 
         /// <summary>
-        /// Called from the Connection class when the connection is complete.
+        /// Called when a given Connection is completed.  
         /// </summary>
         private void ConnectionCompleted()
         {
-            Interlocked.Decrement(ref this.activeConnectionCount);
-
-            if (this.activeConnectionCount == 0)
+            bool isQuiet = false;
+            lock (this.sharedState)
             {
-                Quiet();
+                this.sharedState.ClearCompletedConnections();
+                isQuiet = this.sharedState.ActiveConnections.Count == 0;
+                CompilerServerLogger.Log("Removed connection, {0} remaining.", this.sharedState.ActiveConnections.Count);
             }
-            CompilerServerLogger.Log("Removed connection, {0} remaining.", this.activeConnectionCount);
-        }
 
-        /// <summary>
-        /// The server has reached 0 connections.
-        /// </summary>
-        private void Quiet()
-        {
-            StartTimeoutTimer();
-
-            // Start GC timer
-            const int GC_TIMEOUT = 30 * 1000; // 30 seconds
-            Task.Delay(GC_TIMEOUT).ContinueWith(t =>
+            if (isQuiet)
             {
-                if (this.activeConnectionCount == 0)
+                StartTimeoutTimer();
+
+                // Start GC timer
+                const int GC_TIMEOUT = 30 * 1000; // 30 seconds
+                Task.Delay(GC_TIMEOUT).ContinueWith(t =>
                 {
-                    GC.Collect();
-                }
-            });
+                    lock (this.sharedState)
+                    {
+                        this.sharedState.ClearCompletedConnections();
+                        if (this.sharedState.ActiveConnections.Count == 0)
+                        {
+                            GC.Collect();
+                        }
+                    }
+                });
+            }
         }
 
         private void StartTimeoutTimer()
@@ -354,15 +354,39 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
 
         /// <summary>
+        /// Called when the server should begin shutting down.  This will not actively shut down the
+        /// server but instead put it in a state where it no longer accepts connections and hangs around
+        /// long enough to process all remaining connections.
+        /// </summary>
+        private void InitiateShutdown()
+        {
+            lock (this.sharedState)
+            {
+                this.sharedState.ShouldAcceptNewConnections = false;
+                if (this.sharedState.WaitingPipe != null)
+                {
+                    try
+                    {
+                        this.sharedState.WaitingPipe.Close();
+                    }
+                    catch
+                    {
+                        // Okay if an exception occurs here.  Just want to ensure the server is 
+                        // interrupted if it is actively listening for a connection.
+                    }
+                }
+            }
+
+            this.keepAliveTimer.CancelIfActive();
+        }
+
+        /// <summary>
         /// Called from the <see cref="AnalyzerWatcher"/> class when an analyzer file
         /// changes on disk.
         /// </summary>
         private void AnalyzerFileChanged()
         {
-            // An analyzer file has changed on disk. Close the waiting stream, which
-            // will both prevent further connections and signal that we should shut
-            // down.
-            this.waitingPipeStream.Close();
+            InitiateShutdown();
         }
 
         /// <summary>
@@ -370,21 +394,46 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         private void ServerDieTimeoutFired(Task timeoutTask)
         {
-            // If the timeout wasn't cancelled and we have no connections
-            // we should shut down
-            if (!timeoutTask.IsCanceled && this.activeConnectionCount == 0)
+            if (timeoutTask.IsCanceled)
             {
-                // N.B. There is no way to cancel waiting for a connection other than closing the
-                // pipe, so there is a race between closing the pipe and getting another 
-                // connection. We should close the pipe as soon as possible and do any necessary 
-                // cleanup afterwards
-                this.waitingPipeStream.Close();
-                CompilerServerLogger.Log("Waiting for pipe connection timed out after {0} ms.",
-                    this.keepAliveTimer.KeepAliveTime);
+                this.keepAliveTimer.Clear();
             }
             else
             {
-                this.keepAliveTimer.Clear();
+                // The timeout occured, begin shutting down the server 
+                InitiateShutdown();
+                CompilerServerLogger.Log("Waiting for pipe connection timed out after {0} ms.", this.keepAliveTimer.KeepAliveTime);
+            }
+        }
+
+        /// <summary>
+        /// All of the data ServerDispatcher shares between threads.  This type does no internal
+        /// synchronization.  It is the responsibility of the consumer to synchronize access to 
+        /// the members.
+        /// </summary>
+        private sealed class SharedState
+        {
+            /// <summary>
+            /// The list of active connection objects.  At any given time some
+            /// of the items in this list may have completed but not yet been
+            /// removed.
+            /// </summary>
+            public readonly List<Task> ActiveConnections = new List<Task>();
+
+            /// <summary>
+            /// When non-null this is the NamedPipeServerStream which the server is 
+            /// actively listening for a connection on.
+            /// </summary>
+            public NamedPipeServerStream WaitingPipe;
+
+            /// <summary>
+            /// Should the server accept any new connections.
+            /// </summary>
+            public bool ShouldAcceptNewConnections = true;
+
+            public void ClearCompletedConnections()
+            {
+                this.ActiveConnections.RemoveAll(x => x.IsCompleted);
             }
         }
     }
