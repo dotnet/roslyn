@@ -22,8 +22,6 @@ using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
-    using BitArithmeticUtilities;
-    
     internal abstract class MetadataWriter
     {
         private static readonly Encoding Utf8Encoding = Encoding.UTF8;
@@ -2395,7 +2393,7 @@ namespace Microsoft.Cci
         private static void SerializeStreamHeader(ref int offsetFromStartOfMetadata, int alignedStreamSize, string streamName, BinaryWriter writer)
         {
             // 4 for the first uint (offset), 4 for the second uint (padded size), length of stream name + 1 for null terminator (then padded)
-            int sizeOfStreamHeader = 8 + Align(streamName.Length + 1, 4);
+            int sizeOfStreamHeader = 8 + BitArithmeticUtilities.Align(streamName.Length + 1, 4);
             writer.WriteInt(offsetFromStartOfMetadata);
             writer.WriteInt(alignedStreamSize);
             foreach (char ch in streamName)

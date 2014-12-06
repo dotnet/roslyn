@@ -13,8 +13,6 @@ using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
-    using BitArithmeticUtilities;
-
     internal sealed class PeWriter
     {
         /// <summary>
@@ -301,7 +299,7 @@ namespace Microsoft.Cci
             uint result = 0;
             result += this.sizeOfImportAddressTable;
             result += 72; // size of CLR header
-            result += Align((uint)ilStreamLength, 4);
+            result += BitArithmeticUtilities.Align((uint)ilStreamLength, 4);
             return result;
         }
 
@@ -348,7 +346,7 @@ namespace Microsoft.Cci
             {
                 textSectionLength += !this.module.Requires64bits ? 66u : 70u; //size of import table
                 textSectionLength += 14; //size of name table
-                textSectionLength = Align(textSectionLength, !this.module.Requires64bits ? 4u : 8u); //optional padding to make startup stub's target address align on word or double word boundary
+                textSectionLength = BitArithmeticUtilities.Align(textSectionLength, !this.module.Requires64bits ? 4u : 8u); //optional padding to make startup stub's target address align on word or double word boundary
                 textSectionLength += !this.module.Requires64bits ? 8u : 16u; //fixed size of runtime startup stub
             }
 
@@ -363,7 +361,7 @@ namespace Microsoft.Cci
             uint result = 0;
             if (this.win32ResourceWriter.BaseStream.Length > 0)
             {
-                result += Align(this.win32ResourceWriter.BaseStream.Length, 4);
+                result += BitArithmeticUtilities.Align(this.win32ResourceWriter.BaseStream.Length, 4);
             }            // result += Align(this.win32ResourceWriter.BaseStream.Length+1, 8);
 
             return result;
@@ -402,8 +400,8 @@ namespace Microsoft.Cci
             ntHeader.PointerToSymbolTable = 0;
             ntHeader.SizeOfCode = this.textSection.SizeOfRawData;
             ntHeader.SizeOfInitializedData = this.rdataSection.SizeOfRawData + this.coverSection.SizeOfRawData + this.sdataSection.SizeOfRawData + this.tlsSection.SizeOfRawData + this.resourceSection.SizeOfRawData + this.relocSection.SizeOfRawData;
-            ntHeader.SizeOfHeaders = Align(this.ComputeSizeOfPeHeaders(), this.module.FileAlignment);
-            ntHeader.SizeOfImage = Align(this.relocSection.RelativeVirtualAddress + this.relocSection.VirtualSize, 0x2000);
+            ntHeader.SizeOfHeaders = BitArithmeticUtilities.Align(this.ComputeSizeOfPeHeaders(), this.module.FileAlignment);
+            ntHeader.SizeOfImage = BitArithmeticUtilities.Align(this.relocSection.RelativeVirtualAddress + this.relocSection.VirtualSize, 0x2000);
             ntHeader.SizeOfUninitializedData = 0;
 
             // In the PE File Header this is a "Time/Date Stamp" whose description is "Time and date
@@ -472,10 +470,10 @@ namespace Microsoft.Cci
                     NumberOfLinenumbers = 0,
                     NumberOfRelocations = 0,
                     PointerToLinenumbers = 0,
-                    PointerToRawData = Align(sizeOfPeHeaders, this.module.FileAlignment),
+                    PointerToRawData = BitArithmeticUtilities.Align(sizeOfPeHeaders, this.module.FileAlignment),
                     PointerToRelocations = 0,
-                    RelativeVirtualAddress = Align(sizeOfPeHeaders, 0x2000),
-                    SizeOfRawData = Align(sizeOfTextSection, this.module.FileAlignment),
+                    RelativeVirtualAddress = BitArithmeticUtilities.Align(sizeOfPeHeaders, 0x2000),
+                    SizeOfRawData = BitArithmeticUtilities.Align(sizeOfTextSection, this.module.FileAlignment),
                     VirtualSize = sizeOfTextSection
                 };
             }
@@ -492,8 +490,8 @@ namespace Microsoft.Cci
                 PointerToLinenumbers = 0,
                 PointerToRawData = this.textSection.PointerToRawData + this.textSection.SizeOfRawData,
                 PointerToRelocations = 0,
-                RelativeVirtualAddress = Align(this.textSection.RelativeVirtualAddress + this.textSection.VirtualSize, 0x2000),
-                SizeOfRawData = Align(this.rdataWriter.BaseStream.Length, this.module.FileAlignment),
+                RelativeVirtualAddress = BitArithmeticUtilities.Align(this.textSection.RelativeVirtualAddress + this.textSection.VirtualSize, 0x2000),
+                SizeOfRawData = BitArithmeticUtilities.Align(this.rdataWriter.BaseStream.Length, this.module.FileAlignment),
                 VirtualSize = this.rdataWriter.BaseStream.Length,
             };
 
@@ -506,8 +504,8 @@ namespace Microsoft.Cci
                 PointerToLinenumbers = 0,
                 PointerToRawData = this.rdataSection.PointerToRawData + this.rdataSection.SizeOfRawData,
                 PointerToRelocations = 0,
-                RelativeVirtualAddress = Align(this.rdataSection.RelativeVirtualAddress + this.rdataSection.VirtualSize, 0x2000),
-                SizeOfRawData = Align(this.sdataWriter.BaseStream.Length, this.module.FileAlignment),
+                RelativeVirtualAddress = BitArithmeticUtilities.Align(this.rdataSection.RelativeVirtualAddress + this.rdataSection.VirtualSize, 0x2000),
+                SizeOfRawData = BitArithmeticUtilities.Align(this.sdataWriter.BaseStream.Length, this.module.FileAlignment),
                 VirtualSize = this.sdataWriter.BaseStream.Length,
             };
 
@@ -520,8 +518,8 @@ namespace Microsoft.Cci
                 PointerToLinenumbers = 0,
                 PointerToRawData = this.sdataSection.PointerToRawData + this.sdataSection.SizeOfRawData,
                 PointerToRelocations = 0,
-                RelativeVirtualAddress = Align(this.sdataSection.RelativeVirtualAddress + this.sdataSection.VirtualSize, 0x2000),
-                SizeOfRawData = Align(this.coverageDataWriter.BaseStream.Length, this.module.FileAlignment),
+                RelativeVirtualAddress = BitArithmeticUtilities.Align(this.sdataSection.RelativeVirtualAddress + this.sdataSection.VirtualSize, 0x2000),
+                SizeOfRawData = BitArithmeticUtilities.Align(this.coverageDataWriter.BaseStream.Length, this.module.FileAlignment),
                 VirtualSize = this.coverageDataWriter.BaseStream.Length,
             };
 
@@ -534,12 +532,12 @@ namespace Microsoft.Cci
                 PointerToLinenumbers = 0,
                 PointerToRawData = this.coverSection.PointerToRawData + this.coverSection.SizeOfRawData,
                 PointerToRelocations = 0,
-                RelativeVirtualAddress = Align(this.coverSection.RelativeVirtualAddress + this.coverSection.VirtualSize, 0x2000),
-                SizeOfRawData = Align(this.tlsDataWriter.BaseStream.Length, this.module.FileAlignment),
+                RelativeVirtualAddress = BitArithmeticUtilities.Align(this.coverSection.RelativeVirtualAddress + this.coverSection.VirtualSize, 0x2000),
+                SizeOfRawData = BitArithmeticUtilities.Align(this.tlsDataWriter.BaseStream.Length, this.module.FileAlignment),
                 VirtualSize = this.tlsDataWriter.BaseStream.Length,
             };
 
-            uint resourcesRva = Align(this.tlsSection.RelativeVirtualAddress + this.tlsSection.VirtualSize, 0x2000);
+            uint resourcesRva = BitArithmeticUtilities.Align(this.tlsSection.RelativeVirtualAddress + this.tlsSection.VirtualSize, 0x2000);
             uint sizeOfWin32Resources = this.ComputeSizeOfWin32Resources(resourcesRva);
 
             this.resourceSection = new SectionHeader
@@ -552,7 +550,7 @@ namespace Microsoft.Cci
                 PointerToRawData = this.tlsSection.PointerToRawData + this.tlsSection.SizeOfRawData,
                 PointerToRelocations = 0,
                 RelativeVirtualAddress = resourcesRva,
-                SizeOfRawData = Align(sizeOfWin32Resources, this.module.FileAlignment),
+                SizeOfRawData = BitArithmeticUtilities.Align(sizeOfWin32Resources, this.module.FileAlignment),
                 VirtualSize = sizeOfWin32Resources,
             };
 
@@ -565,7 +563,7 @@ namespace Microsoft.Cci
                 PointerToLinenumbers = 0,
                 PointerToRawData = this.resourceSection.PointerToRawData + this.resourceSection.SizeOfRawData,
                 PointerToRelocations = 0,
-                RelativeVirtualAddress = Align(this.resourceSection.RelativeVirtualAddress + this.resourceSection.VirtualSize, 0x2000),
+                RelativeVirtualAddress = BitArithmeticUtilities.Align(this.resourceSection.RelativeVirtualAddress + this.resourceSection.VirtualSize, 0x2000),
                 SizeOfRawData = this.emitRuntimeStartupStub ? this.module.FileAlignment : 0,
                 VirtualSize = this.emitRuntimeStartupStub ? (this.module.Requires64bits && !this.module.RequiresAmdInstructionSet ? 14u : 12u) : 0,
             };
@@ -1435,7 +1433,7 @@ namespace Microsoft.Cci
             if (!this.module.Requires64bits)
             {
                 //emit 0's (nops) to pad the entry point code so that the target address is aligned on a 4 byte boundary.
-                for (uint i = 0, n = (uint)(Align((uint)peStream.Position, 4) - peStream.Position); i < n; i++) writer.WriteByte(0);
+                for (uint i = 0, n = (uint)(BitArithmeticUtilities.Align((uint)peStream.Position, 4) - peStream.Position); i < n; i++) writer.WriteByte(0);
                 writer.WriteUshort(0);
                 writer.WriteByte(0xff);
                 writer.WriteByte(0x25); //4
@@ -1444,7 +1442,7 @@ namespace Microsoft.Cci
             else
             {
                 //emit 0's (nops) to pad the entry point code so that the target address is aligned on a 8 byte boundary.
-                for (uint i = 0, n = (uint)(Align((uint)peStream.Position, 8) - peStream.Position); i < n; i++) writer.WriteByte(0);
+                for (uint i = 0, n = (uint)(BitArithmeticUtilities.Align((uint)peStream.Position, 8) - peStream.Position); i < n; i++) writer.WriteByte(0);
                 writer.WriteUint(0);
                 writer.WriteUshort(0);
                 writer.WriteByte(0xff);

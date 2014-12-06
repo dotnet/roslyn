@@ -7,8 +7,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.Cci
 {
-    using BitArithmeticUtilities;
-
     internal sealed class MetadataSizes
     {
         private const int StreamAlignment = 4;
@@ -192,7 +190,7 @@ namespace Microsoft.Cci
             size += GetTableSize(TableIndex.GenericParamConstraint, this.GenericParamIndexSize + this.TypeDefOrRefCodedIndexSize);
 
             // +1 for terminating 0 byte
-            size = Align(size + 1, StreamAlignment);
+            size = BitArithmeticUtilities.Align(size + 1, StreamAlignment);
 
             this.MetadataTableStreamSize = size;
 
@@ -232,7 +230,7 @@ namespace Microsoft.Cci
 
         public int GetAlignedHeapSize(HeapIndex index)
         {
-            return Align(HeapSizes[(int)index], StreamAlignment);
+            return BitArithmeticUtilities.Align(HeapSizes[(int)index], StreamAlignment);
         }
 
         private int GetTableSize(TableIndex index, int rowSize)
