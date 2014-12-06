@@ -1060,14 +1060,9 @@ End Module
                 <entry il_offset="0xa8" start_row="14" start_column="5" end_row="14" end_column="17" file_ref="0"/>
                 <entry il_offset="0xb2" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
             </sequencepoints>
-            <locals>
-                <local name="F" il_index="2" il_start="0xf" il_end="0x82" attributes="0"/>
-            </locals>
+            <locals/>
             <scope startOffset="0x0" endOffset="0xc0">
                 <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
-                <scope startOffset="0xf" endOffset="0x82">
-                    <local name="F" il_index="2" il_start="0xf" il_end="0x82" attributes="0"/>
-                </scope>
             </scope>
             <async-info>
                 <kickoff-method declaringType="Module1" methodName="F" parameterNames="a"/>
@@ -7582,6 +7577,62 @@ End Class
         </method>
     </methods>
 
+</symbols>)
+        End Sub
+
+        <WorkItem(1085911)>
+        <Fact>
+        Sub AsyncReturnVariable()
+            Dim source =
+<compilation>
+    <file>
+Imports System
+Imports System.Threading.Tasks
+
+Class C
+    Shared Async Function M() As Task(Of Integer)
+        Return 1
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim c = CreateCompilationWithReferences(source, references:=LatestReferences, options:=TestOptions.DebugDll)
+            c.AssertNoErrors()
+
+            ' NOTE: No <local> for the return variable "M".
+            c.VerifyPdb("C+VB$StateMachine_1_M.MoveNext",
+<symbols>
+    <methods>
+        <method containingType="C+VB$StateMachine_1_M" name="MoveNext" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="16">
+                    <slot kind="20" offset="-1"/>
+                    <slot kind="27" offset="-1"/>
+                    <slot kind="0" offset="-1"/>
+                    <slot kind="temp"/>
+                </encLocalSlotMap>
+            </customDebugInfo>
+            <sequencepoints total="7">
+                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x7" start_row="5" start_column="5" end_row="5" end_column="50" file_ref="0"/>
+                <entry il_offset="0x8" start_row="6" start_column="9" end_row="6" end_column="17" file_ref="0"/>
+                <entry il_offset="0xc" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x13" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+                <entry il_offset="0x2f" start_row="7" start_column="5" end_row="7" end_column="17" file_ref="0"/>
+                <entry il_offset="0x39" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
+            </sequencepoints>
+            <locals/>
+            <scope startOffset="0x0" endOffset="0x47">
+                <namespace name="System" importlevel="file"/>
+                <namespace name="System.Threading.Tasks" importlevel="file"/>
+                <currentnamespace name=""/>
+            </scope>
+            <async-info>
+                <kickoff-method declaringType="C" methodName="M" parameterNames=""/>
+            </async-info>
+        </method>
+    </methods>
 </symbols>)
         End Sub
 

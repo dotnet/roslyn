@@ -1264,17 +1264,18 @@ OtherExpressions:
             Dim localId As LocalDebugId = Nothing
             Dim name As String = GetLocalDebugName(local, localId)
 
+            Dim synthesizedKind = local.SynthesizedKind
             Dim localDef = _builder.LocalSlotManager.DeclareLocal(
                 type:=translatedType,
                 symbol:=local,
                 name:=name,
-                kind:=local.SynthesizedKind,
+                kind:=synthesizedKind,
                 id:=localId,
-                pdbAttributes:=local.SynthesizedKind.PdbAttributes(),
+                pdbAttributes:=synthesizedKind.PdbAttributes(),
                 constraints:=constraints,
                 isDynamic:=False,
                 dynamicTransformFlags:=Nothing,
-                isSlotReusable:=local.SynthesizedKind.IsSlotReusable(_optimizations))
+                isSlotReusable:=synthesizedKind.IsSlotReusable(_optimizations))
 
             ' If named, add it to the local debug scope.
             If localDef.Name IsNot Nothing Then
@@ -1292,6 +1293,17 @@ OtherExpressions:
 
             If local.IsImportedFromMetadata Then
                 Return local.Name
+            End If
+
+            ' We include function value locals in async and iterator methods so that appropriate
+            ' errors can be reported when users attempt to refer to them.  However, there's no
+            ' reason to actually emit them into the resulting MoveNext method, because they will
+            ' never be accessed.  Unfortunately, for implementation-specific reasons, dropping them
+            ' would be non-trivial.  Instead, we drop their names so that they do not appear while
+            ' debugging (esp in the Locals window).
+            If local.DeclarationKind = LocalDeclarationKind.FunctionValue AndAlso
+                TypeOf _method Is SynthesizedStateMachineMethod Then
+                Return Nothing
             End If
 
             Dim localKind = local.SynthesizedKind
