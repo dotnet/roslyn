@@ -24,6 +24,14 @@
       <Project>{63d0f073-f0b3-42cd-829f-e48b977b48ba}</Project>
       <Name>csc2</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\CSharp\csc\csc.csproj">
+      <Project>{4b45ca0c-03a0-400f-b454-3d4bcb16af38}</Project>
+      <Name>csc</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\VisualBasic\vbc\vbc.vbproj">
+      <Project>{2ac2755d-9437-4271-bbde-1a3795a0c320}</Project>
+      <Name>vbc</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Desktop\CodeAnalysis.Desktop.csproj">
       <Project>{dfa21ca1-7f96-47ee-940c-069858e81727}</Project>
       <Name>CodeAnalysis.Desktop</Name>
