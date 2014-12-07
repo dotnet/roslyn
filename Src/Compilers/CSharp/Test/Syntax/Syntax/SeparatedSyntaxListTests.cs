@@ -263,5 +263,27 @@ c,b", insertAfterEOL.ToFullString());
             Assert.Throws<ArgumentNullException>(() => list.Insert(0, null));
             Assert.Throws<ArgumentNullException>(() => list.InsertRange(0, (IEnumerable<SyntaxNode>)null));
         }
+
+        [Fact]
+        public void Extensions()
+        {
+            var list = SyntaxFactory.SeparatedList<SyntaxNode>(
+                new[] {
+                    SyntaxFactory.ParseExpression("A+B"),
+                    SyntaxFactory.IdentifierName("B"),
+                    SyntaxFactory.ParseExpression("1") });
+
+            Assert.Equal(0, list.IndexOf(SyntaxKind.AddExpression));
+            Assert.True(list.Any(SyntaxKind.AddExpression));
+
+            Assert.Equal(1, list.IndexOf(SyntaxKind.IdentifierName));
+            Assert.True(list.Any(SyntaxKind.IdentifierName));
+
+            Assert.Equal(2, list.IndexOf(SyntaxKind.NumericLiteralExpression));
+            Assert.True(list.Any(SyntaxKind.NumericLiteralExpression));
+
+            Assert.Equal(-1, list.IndexOf(SyntaxKind.WhereClause));
+            Assert.False(list.Any(SyntaxKind.WhereClause));
+        }
     }
 }

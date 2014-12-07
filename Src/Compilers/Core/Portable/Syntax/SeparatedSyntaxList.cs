@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis
 
         public int IndexOf(TNode node)
         {
-            for (int i = 0; i < this.Count; i++)
+            for (int i = 0, n = this.Count; i < n; i++)
             {
                 if (object.Equals(this[i], node))
                 {
@@ -231,9 +231,22 @@ namespace Microsoft.CodeAnalysis
 
         public int IndexOf(Func<TNode, bool> predicate)
         {
-            for (int i = 0; i < this.Count; i++)
+            for (int i = 0, n = this.Count; i < n; i++)
             {
                 if (predicate(this[i]))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        internal int IndexOf(int rawKind)
+        {
+            for (int i = 0, n = this.Count; i < n; i++)
+            {
+                if (this[i].RawKind == rawKind)
                 {
                     return i;
                 }

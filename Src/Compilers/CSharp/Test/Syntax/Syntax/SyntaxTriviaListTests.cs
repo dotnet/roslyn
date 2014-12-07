@@ -221,5 +221,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Throws<ArgumentNullException>(() => list.AddRange((IEnumerable<SyntaxTrivia>)null));
             Assert.Throws<ArgumentNullException>(() => list.InsertRange(0, (IEnumerable<SyntaxTrivia>)null));
         }
+
+        [Fact]
+        public void Extensions()
+        {
+            var list = SyntaxFactory.ParseLeadingTrivia("/*A*//*B*//*C*/");
+
+            Assert.Equal(0, list.IndexOf(SyntaxKind.MultiLineCommentTrivia));
+            Assert.True(list.Any(SyntaxKind.MultiLineCommentTrivia));
+
+            Assert.Equal(-1, list.IndexOf(SyntaxKind.SingleLineCommentTrivia));
+            Assert.False(list.Any(SyntaxKind.SingleLineCommentTrivia));
+        }
     }
 }

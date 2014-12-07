@@ -109,60 +109,103 @@ Namespace Microsoft.CodeAnalysis
         End Function
 
         ''' <summary>
-        ''' Tests whether a list contains tokens of a particular kind.
+        ''' Returns the index of the first node of a specified kind in the node list.
         ''' </summary>
-        ''' <param name="kind">The <see cref="VisualBasic.SyntaxKind"/> to test for.</param>
-        ''' <returns>Returns true if the list contains a token which matches <paramref name="kind"/></returns>
+        ''' <param name="list">Node list.</param>
+        ''' <param name="kind">The <see cref="SyntaxKind"/> to find.</param>
+        ''' <returns>Returns non-negative index if the list contains a node which matches <paramref name="kind"/>, -1 otherwise.</returns>
         <Extension>
-        Public Function Any(list As SyntaxTriviaList, kind As SyntaxKind) As Boolean
-            For Each trivia In list
-                If trivia.IsKind(kind) Then
-                    Return True
-                End If
-            Next
-            Return False
+        Public Function IndexOf(Of TNode As SyntaxNode)(list As SyntaxList(Of TNode), kind As SyntaxKind) As Integer
+            Return list.IndexOf(CType(kind, Integer))
         End Function
 
         ''' <summary>
-        ''' Tests whether a list contains tokens of a particular kind.
+        ''' Tests whether a list contains node of a particular kind.
         ''' </summary>
-        ''' <param name="kind">The <see cref="VisualBasic.SyntaxKind"/> to test for.</param>
+        ''' <param name="kind">The <see cref="SyntaxKind"/> to test for.</param>
+        ''' <returns>Returns true if the list contains a token which matches <paramref name="kind"/></returns>
+        <Extension>
+        Public Function Any(Of TNode As SyntaxNode)(list As SyntaxList(Of TNode), kind As SyntaxKind) As Boolean
+            Return list.IndexOf(kind) >= 0
+        End Function
+
+        ''' <summary>
+        ''' Returns the index of the first node of a specified kind in the node list.
+        ''' </summary>
+        ''' <param name="list">Node list.</param>
+        ''' <param name="kind">The <see cref="SyntaxKind"/> to find.</param>
+        ''' <returns>Returns non-negative index if the list contains a node which matches <paramref name="kind"/>, -1 otherwise.</returns>
+        <Extension>
+        Public Function IndexOf(Of TNode As SyntaxNode)(list As SeparatedSyntaxList(Of TNode), kind As SyntaxKind) As Integer
+            Return list.IndexOf(CType(kind, Integer))
+        End Function
+
+        ''' <summary>
+        ''' Tests whether a list contains node of a particular kind.
+        ''' </summary>
+        ''' <param name="kind">The <see cref="SyntaxKind"/> to test for.</param>
+        ''' <returns>Returns true if the list contains a token which matches <paramref name="kind"/></returns>
+        <Extension>
+        Public Function Any(Of TNode As SyntaxNode)(list As SeparatedSyntaxList(Of TNode), kind As SyntaxKind) As Boolean
+            Return list.IndexOf(kind) >= 0
+        End Function
+
+        ''' <summary>
+        ''' Returns the index of the first trivia of a specified kind in the trivia list.
+        ''' </summary>
+        ''' <param name="list">Trivia list.</param>
+        ''' <param name="kind">The <see cref="SyntaxKind"/> to find.</param>
+        ''' <returns>Returns non-negative index if the list contains a trivia which matches <paramref name="kind"/>, -1 otherwise.</returns>
+        <Extension>
+        Public Function IndexOf(list As SyntaxTriviaList, kind As SyntaxKind) As Integer
+            Return list.IndexOf(CType(kind, Integer))
+        End Function
+
+        ''' <summary>
+        ''' Tests whether a list contains trivia of a particular kind.
+        ''' </summary>
+        ''' <param name="kind">The <see cref="SyntaxKind"/> to test for.</param>
+        ''' <returns>Returns true if the list contains a trivia which matches <paramref name="kind"/></returns>
+        <Extension>
+        Public Function Any(list As SyntaxTriviaList, kind As SyntaxKind) As Boolean
+            Return list.IndexOf(kind) >= 0
+        End Function
+
+        ''' <summary>
+        ''' Returns the index of the first token of a specified kind in the token list.
+        ''' </summary>
+        ''' <param name="list">Token list.</param>
+        ''' <param name="kind">The <see cref="SyntaxKind"/> to find.</param>
+        ''' <returns>Returns non-negative index if the list contains a token which matches <paramref name="kind"/>, -1 otherwise.</returns>
+        <Extension>
+        Public Function IndexOf(list As SyntaxTokenList, kind As SyntaxKind) As Integer
+            Return list.IndexOf(CType(kind, Integer))
+        End Function
+
+        ''' <summary>
+        ''' Tests whether a list contains token of a particular kind.
+        ''' </summary>
+        ''' <param name="kind">The <see cref="SyntaxKind"/> to test for.</param>
         ''' <returns>Returns true if the list contains a token which matches <paramref name="kind"/></returns>
         <Extension>
         Public Function Any(list As SyntaxTokenList, kind As SyntaxKind) As Boolean
-            For Each token In list
-                If token.IsKind(kind) Then
-                    Return True
-                End If
-            Next
-            Return False
+            Return list.IndexOf(kind) >= 0
         End Function
 
         <Extension>
         Friend Function FirstOrDefault(list As SyntaxTokenList, kind As SyntaxKind) As SyntaxToken
-            If list.Count > 0 Then
-                For Each element In list
-                    If element.IsKind(kind) Then
-                        Return element
-                    End If
-                Next
-            End If
-            Return Nothing
+            Dim index = list.IndexOf(kind)
+            Return If(index >= 0, list(index), Nothing)
         End Function
 
         <Extension>
         Friend Function First(list As SyntaxTokenList, kind As SyntaxKind) As SyntaxToken
-            If list.Count > 0 Then
-                For Each element In list
-                    If element.IsKind(kind) Then
-                        Return element
-                    End If
-                Next
+            Dim index = list.IndexOf(kind)
+            If index < 0 Then
+                Throw New InvalidOperationException()
             End If
-            Throw New InvalidOperationException()
+            Return list(index)
         End Function
-
-
     End Module
 End Namespace
 

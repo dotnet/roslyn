@@ -1,14 +1,5 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.Utilities
-Imports Xunit
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class SyntaxListTests
 
@@ -191,6 +182,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Throws(Of ArgumentNullException)(Function() list.AddRange(DirectCast(Nothing, IEnumerable(Of SyntaxNode))))
             Assert.Throws(Of ArgumentNullException)(Function() list.Insert(0, Nothing))
             Assert.Throws(Of ArgumentNullException)(Function() list.InsertRange(0, DirectCast(Nothing, IEnumerable(Of SyntaxNode))))
+        End Sub
+
+        <Fact>
+        Public Sub Extensions()
+            Dim list = SyntaxFactory.List(Of SyntaxNode)(
+                   {SyntaxFactory.ParseExpression("A+B"),
+                    SyntaxFactory.IdentifierName("B"),
+                    SyntaxFactory.ParseExpression("1")})
+
+            Assert.Equal(0, list.IndexOf(SyntaxKind.AddExpression))
+            Assert.True(list.Any(SyntaxKind.AddExpression))
+
+            Assert.Equal(1, list.IndexOf(SyntaxKind.IdentifierName))
+            Assert.True(list.Any(SyntaxKind.IdentifierName))
+
+            Assert.Equal(2, list.IndexOf(SyntaxKind.NumericLiteralExpression))
+            Assert.True(list.Any(SyntaxKind.NumericLiteralExpression))
+
+            Assert.Equal(-1, list.IndexOf(SyntaxKind.WhereClause))
+            Assert.False(list.Any(SyntaxKind.WhereClause))
         End Sub
 
     End Class

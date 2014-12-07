@@ -193,5 +193,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Throws(Of ArgumentNullException)(Function() list.InsertRange(0, DirectCast(Nothing, IEnumerable(Of SyntaxNode))))
         End Sub
 
+        <Fact>
+        Public Sub Extensions()
+            Dim list = SyntaxFactory.SeparatedList(New SyntaxNode() {
+                SyntaxFactory.ParseExpression("A+B"),
+                SyntaxFactory.IdentifierName("B"),
+                SyntaxFactory.ParseExpression("1")})
+
+            Assert.Equal(0, list.IndexOf(SyntaxKind.AddExpression))
+            Assert.True(list.Any(SyntaxKind.AddExpression))
+
+            Assert.Equal(1, list.IndexOf(SyntaxKind.IdentifierName))
+            Assert.True(list.Any(SyntaxKind.IdentifierName))
+
+            Assert.Equal(2, list.IndexOf(SyntaxKind.NumericLiteralExpression))
+            Assert.True(list.Any(SyntaxKind.NumericLiteralExpression))
+
+            Assert.Equal(-1, list.IndexOf(SyntaxKind.WhereClause))
+            Assert.False(list.Any(SyntaxKind.WhereClause))
+        End Sub
     End Class
 End Namespace

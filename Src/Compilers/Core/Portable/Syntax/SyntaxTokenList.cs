@@ -248,6 +248,19 @@ namespace Microsoft.CodeAnalysis
             return -1;
         }
 
+        internal int IndexOf(int rawKind)
+        {
+            for (int i = 0, n = this.Count; i < n; i++)
+            {
+                if (this[i].RawKind == rawKind)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
         /// <summary>
         /// Creates a new <see cref="SyntaxTokenList"/> with the specified token added to the end.
         /// </summary>

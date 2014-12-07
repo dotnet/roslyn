@@ -224,5 +224,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var newMethodDeclaration = SyntaxFactory.MethodDeclaration(SyntaxFactory.ParseTypeName("void"), "M");
             Assert.DoesNotThrow(() => newMethodDeclaration.AddAttributeLists(attributes));
         }
+
+        [Fact]
+        public void Extensions()
+        {
+            var list = SyntaxFactory.List<SyntaxNode>(
+                new[] {
+                    SyntaxFactory.ParseExpression("A+B"),
+                    SyntaxFactory.IdentifierName("B"),
+                    SyntaxFactory.ParseExpression("1") });
+
+            Assert.Equal(0, list.IndexOf(SyntaxKind.AddExpression));
+            Assert.True(list.Any(SyntaxKind.AddExpression));
+
+            Assert.Equal(1, list.IndexOf(SyntaxKind.IdentifierName));
+            Assert.True(list.Any(SyntaxKind.IdentifierName));
+
+            Assert.Equal(2, list.IndexOf(SyntaxKind.NumericLiteralExpression));
+            Assert.True(list.Any(SyntaxKind.NumericLiteralExpression));
+
+            Assert.Equal(-1, list.IndexOf(SyntaxKind.WhereClause));
+            Assert.False(list.Any(SyntaxKind.WhereClause));
+        }
     }
 }

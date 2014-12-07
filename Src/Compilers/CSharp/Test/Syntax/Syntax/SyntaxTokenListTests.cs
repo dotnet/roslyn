@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // index is considered
             EqualityTesting.AssertNotEqual(new SyntaxTokenList(node1, node1.ReturnKeyword.Node, 0, 1), new SyntaxTokenList(node1, node1.ReturnKeyword.Node, 0, 0));
-            
+
             // position not considered:
             EqualityTesting.AssertEqual(new SyntaxTokenList(node1, node1.ReturnKeyword.Node, 1, 0), new SyntaxTokenList(node1, node1.ReturnKeyword.Node, 0, 0));
         }
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Assert.Equal(4, newList.Count);
             Assert.Equal("A B D E ", newList.ToFullString());
 
-            newList = list.ReplaceRange(elementA, new SyntaxToken[] {  });
+            newList = list.ReplaceRange(elementA, new SyntaxToken[] { });
             Assert.Equal(2, newList.Count);
             Assert.Equal("B C ", newList.ToFullString());
 
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private void DoTestAddInsertRemoveReplaceOnEmptyList(SyntaxTokenList list)
-        { 
+        {
             Assert.Equal(0, list.Count);
 
             var tokenD = SyntaxFactory.ParseToken("D ");
@@ -229,6 +229,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             Assert.Throws<ArgumentException>(() => list.Insert(0, default(SyntaxToken)));
             Assert.Throws<ArgumentNullException>(() => list.AddRange((IEnumerable<SyntaxToken>)null));
             Assert.Throws<ArgumentNullException>(() => list.InsertRange(0, (IEnumerable<SyntaxToken>)null));
-       }
+        }
+
+        [Fact]
+        public void Extensions()
+        {
+            var list = SyntaxFactory.TokenList(
+                SyntaxFactory.Token(SyntaxKind.SizeOfKeyword),
+                SyntaxFactory.Literal("x"),
+                SyntaxFactory.Token(SyntaxKind.DotToken));
+
+            Assert.Equal(0, list.IndexOf(SyntaxKind.SizeOfKeyword));
+            Assert.True(list.Any(SyntaxKind.SizeOfKeyword));
+
+            Assert.Equal(1, list.IndexOf(SyntaxKind.StringLiteralToken));
+            Assert.True(list.Any(SyntaxKind.StringLiteralToken));
+
+            Assert.Equal(2, list.IndexOf(SyntaxKind.DotToken));
+            Assert.True(list.Any(SyntaxKind.DotToken));
+
+            Assert.Equal(-1, list.IndexOf(SyntaxKind.NullKeyword));
+            Assert.False(list.Any(SyntaxKind.NullKeyword));
+        }
     }
 }

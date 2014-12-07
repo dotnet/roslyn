@@ -65,83 +65,92 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// True if the list has at least one node of the specified kind.
+        /// Returns the index of the first node of a specified kind in the node list.
         /// </summary>
-        public static bool Any<TNode>(this SyntaxList<TNode> list, SyntaxKind kind) where TNode : SyntaxNode
+        /// <param name="list">Node list.</param>
+        /// <param name="kind">The <see cref="SyntaxKind"/> to find.</param>
+        /// <returns>Returns non-negative index if the list contains a node which matches <paramref name="kind"/>, -1 otherwise.</returns>
+        public static int IndexOf<TNode>(this SyntaxList<TNode> list, SyntaxKind kind)
+            where TNode : SyntaxNode
         {
-            foreach (var element in list)
-            {
-                if (element.IsKind(kind))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        public static bool Any<TNode>(this SeparatedSyntaxList<TNode> list, SyntaxKind kind) where TNode : SyntaxNode
-        {
-            for (int i = 0; i < list.Count; i++)
-            {
-                if (list[i].IsKind(kind))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        public static bool Any(this SyntaxTriviaList list, SyntaxKind kind)
-        {
-            foreach (var trivia in list)
-            {
-                if (trivia.IsKind(kind))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            return list.IndexOf((int)kind);
         }
 
         /// <summary>
-        /// Tests whether a list contains tokens of a particular kind.
+        /// True if the list has at least one node of the specified kind.
+        /// </summary>
+        public static bool Any<TNode>(this SyntaxList<TNode> list, SyntaxKind kind) 
+            where TNode : SyntaxNode
+        {
+            return list.IndexOf(kind) >= 0;
+        }
+
+        /// <summary>
+        /// Returns the index of the first node of a specified kind in the node list.
+        /// </summary>
+        /// <param name="list">Node list.</param>
+        /// <param name="kind">The <see cref="SyntaxKind"/> to find.</param>
+        /// <returns>Returns non-negative index if the list contains a node which matches <paramref name="kind"/>, -1 otherwise.</returns>
+        public static int IndexOf<TNode>(this SeparatedSyntaxList<TNode> list, SyntaxKind kind)
+            where TNode : SyntaxNode
+        {
+            return list.IndexOf((int)kind);
+        }
+
+        /// <summary>
+        /// True if the list has at least one node of the specified kind.
+        /// </summary>
+        public static bool Any<TNode>(this SeparatedSyntaxList<TNode> list, SyntaxKind kind) 
+            where TNode : SyntaxNode
+        {
+            return list.IndexOf(kind) >= 0;
+        }
+
+        /// <summary>
+        /// Returns the index of the first trivia of a specified kind in the trivia list.
+        /// </summary>
+        /// <param name="list">Trivia list.</param>
+        /// <param name="kind">The <see cref="SyntaxKind"/> to find.</param>
+        /// <returns>Returns non-negative index if the list contains a trivia which matches <paramref name="kind"/>, -1 otherwise.</returns>
+        public static int IndexOf(this SyntaxTriviaList list, SyntaxKind kind)
+        {
+            return list.IndexOf((int)kind);
+        }
+
+        /// <summary>
+        /// True if the list has at least one trivia of the specified kind.
+        /// </summary>
+        public static bool Any(this SyntaxTriviaList list, SyntaxKind kind)
+        {
+            return list.IndexOf(kind) >= 0;
+        }
+
+        /// <summary>
+        /// Returns the index of the first token of a specified kind in the token list.
+        /// </summary>
+        /// <param name="list">Token list.</param>
+        /// <param name="kind">The <see cref="SyntaxKind"/> to find.</param>
+        /// <returns>Returns non-negative index if the list contains a token which matches <paramref name="kind"/>, -1 otherwise.</returns>
+        public static int IndexOf(this SyntaxTokenList list, SyntaxKind kind)
+        {
+            return list.IndexOf((int)kind);
+        }
+
+        /// <summary>
+        /// Tests whether a list contains a token of a particular kind.
         /// </summary>
         /// <param name="list"></param>
         /// <param name="kind">The <see cref="CSharp.SyntaxKind"/> to test for.</param>
         /// <returns>Returns true if the list contains a token which matches <paramref name="kind"/></returns>
         public static bool Any(this SyntaxTokenList list, SyntaxKind kind)
         {
-            if (list.Count > 0)
-            {
-                foreach (var token in list)
-                {
-                    if (token.IsKind(kind))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
+            return list.IndexOf(kind) >= 0;
         }
 
         internal static SyntaxToken FirstOrDefault(this SyntaxTokenList list, SyntaxKind kind)
         {
-            if (list.Count > 0)
-            {
-                foreach (var token in list)
-                {
-                    if (token.IsKind(kind))
-                    {
-                        return token;
-                    }
-                }
-            }
-
-            return default(SyntaxToken);
+            int index = list.IndexOf(kind);
+            return (index >= 0) ? list[index] : default(SyntaxToken);
         }
     }
 }

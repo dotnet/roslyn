@@ -165,7 +165,9 @@
     <Compile Include="Syntax\SyntaxListTests.vb" />
     <Compile Include="Syntax\SyntaxRewriterTests.vb" />
     <Compile Include="Syntax\SyntaxTokenFactoryTests.vb" />
-    <Compile Include="Syntax\VisualBasicSyntaxTreeTests.vb" />
+    <Compile Include="Syntax\SyntaxTokenListTests.vb" />
+    <Compile Include="Syntax\SyntaxTreeTests.vb" />
+    <Compile Include="Syntax\SyntaxTriviaListTests.vb" />
     <Compile Include="TestSyntaxNodes.vb" />
     <Content Include="Syntax\VBAllInOne.txt" />
     <None Include="packages.config" />

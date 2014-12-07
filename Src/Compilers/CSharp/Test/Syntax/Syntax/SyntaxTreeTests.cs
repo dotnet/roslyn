@@ -1,10 +1,12 @@
-﻿using System.Text;
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Text;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class CSharpSyntaxTreeTests
+    public class SyntaxTreeTests
     {
         [Fact]
         public void WithRootAndOptions_ParsedTree()

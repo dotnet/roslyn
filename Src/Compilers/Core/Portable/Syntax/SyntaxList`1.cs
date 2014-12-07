@@ -451,6 +451,22 @@ namespace Microsoft.CodeAnalysis
             return -1;
         }
 
+        internal int IndexOf(int rawKind)
+        {
+            var index = 0;
+            foreach (var child in this)
+            {
+                if (child.RawKind == rawKind)
+                {
+                    return index;
+                }
+
+                index++;
+            }
+
+            return -1;
+        }
+
         public int LastIndexOf(TNode node)
         {
             for (int i = this.Count - 1; i >= 0; i--)
