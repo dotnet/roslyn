@@ -75,6 +75,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        internal override bool IsInMethodBody
+        {
+            get
+            {
+                return false;
+            }
+        }
+
         internal override bool IsDirectlyInIterator
         {
             get

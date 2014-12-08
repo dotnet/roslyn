@@ -846,6 +846,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options |= LookupOptions.MustBeInvocableIfMember;
             }
 
+            if (!IsInMethodBody)
+            {
+                Debug.Assert((options & LookupOptions.NamespacesOrTypesOnly) == 0);
+                options |= LookupOptions.MustNotBeMethodTypeParameter;
+            }
+
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             this.LookupSymbolsWithFallback(lookupResult, node.Identifier.ValueText, arity: arity, useSiteDiagnostics: ref useSiteDiagnostics, options: options);
             diagnostics.Add(node, useSiteDiagnostics);

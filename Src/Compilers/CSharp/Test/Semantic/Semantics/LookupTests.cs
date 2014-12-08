@@ -1649,6 +1649,168 @@ public class Outer
             Assert.Equal(2, symbols.Length);
         }
 
+        [Fact, WorkItem(1078958, "DevDiv")]
+        public void Bug1078958()
+        {
+            const string source = @"
+class C
+{
+    static void Foo<T>()
+    {
+        /*<bind>*/T/*</bind>*/();
+    }
+ 
+    static void T() { }
+}";
+
+            var symbols = GetLookupSymbols(source);
+            Assert.True(symbols.Any(s => s.Kind == SymbolKind.TypeParameter));
+        }
+
+        [Fact, WorkItem(1078961, "DevDiv")]
+        public void Bug1078961()
+        {
+            const string source = @"
+class C
+{
+    const int T = 42;
+    static void Foo<T>(int x = /*<bind>*/T/*</bind>*/)
+    {
+        System.Console.Write(x);
+    }
+
+    static void Main()
+    {
+        Foo<object>();
+    }
+}";
+
+            var symbols = GetLookupSymbols(source);
+            Assert.False(symbols.Any(s => s.Kind == SymbolKind.TypeParameter));
+        }
+
+        [Fact, WorkItem(1078961, "DevDiv")]
+        public void Bug1078961_2()
+        {
+            const string source = @"
+class A : System.Attribute
+{
+    public A(int i) { }
+}
+
+class C
+{
+    const int T = 42;
+
+    static void Foo<T>([A(/*<bind>*/T/*</bind>*/)] int x)
+    {
+    }
+}";
+
+            var symbols = GetLookupSymbols(source);
+            Assert.False(symbols.Any(s => s.Kind == SymbolKind.TypeParameter));
+        }
+
+        [Fact, WorkItem(1078961, "DevDiv")]
+        public void Bug1078961_3()
+        {
+            const string source = @"
+class A : System.Attribute
+{
+    public A(int i) { }
+}
+
+class C
+{
+    const int T = 42;
+
+    [A(/*<bind>*/T/*</bind>*/)]
+    static void Foo<T>(int x)
+    {
+    }
+}";
+
+            var symbols = GetLookupSymbols(source);
+            Assert.False(symbols.Any(s => s.Kind == SymbolKind.TypeParameter));
+        }
+
+        [Fact, WorkItem(1078961, "DevDiv")]
+        public void Bug1078961_4()
+        {
+            const string source = @"
+class A : System.Attribute
+{
+    public A(int i) { }
+}
+
+class C
+{
+    const int T = 42;
+
+    static void Foo<[A(/*<bind>*/T/*</bind>*/)] T>(int x)
+    {
+    }
+}";
+
+            var symbols = GetLookupSymbols(source);
+            Assert.False(symbols.Any(s => s.Kind == SymbolKind.TypeParameter));
+        }
+
+        [Fact, WorkItem(1078961, "DevDiv")]
+        public void Bug1078961_5()
+        {
+             const string source = @"
+class C
+{
+    class T { }
+
+    static void Foo<T>(T x = default(/*<bind>*/T/*</bind>*/))
+    {
+        System.Console.Write((object)x == null);
+    }
+
+    static void Main()
+    {
+        Foo<object>();
+    }
+}";
+
+            var symbols = GetLookupSymbols(source);
+            Assert.True(symbols.Any(s => s.Kind == SymbolKind.TypeParameter));
+        }
+
+        [Fact, WorkItem(1078961, "DevDiv")]
+        public void Bug1078961_6()
+        {
+             const string source = @"
+class C
+{
+    class T { }
+
+    static void Foo<T>(T x = default(/*<bind>*/T/*</bind>*/))
+    {
+        System.Console.Write((object)x == null);
+    }
+
+    static void Main()
+    {
+        Foo<object>();
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var position = GetPositionForBinding(tree);
+
+            var symbols = model.LookupNamespacesAndTypes(position);
+            Assert.True(symbols.Any(s => s.Kind == SymbolKind.TypeParameter));
+        }
+
+
         #endregion
     }
 }

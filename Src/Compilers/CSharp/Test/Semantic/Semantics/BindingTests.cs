@@ -2359,5 +2359,177 @@ class Program
             Assert.Null(symbolInfo.Symbol);
             Assert.Equal(CandidateReason.NotReferencable, symbolInfo.CandidateReason);
         }
+
+        [Fact, WorkItem(1078958, "DevDiv")]
+        public void Bug1078958()
+        {
+            const string source = @"
+class C
+{
+    static void Foo<T>()
+    {
+        T();
+    }
+ 
+    static void T() { }
+}";
+
+                CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                    // (6,9): error CS0119: 'T' is a type, which is not valid in the given context
+                    //         T();
+                    Diagnostic(ErrorCode.ERR_BadSKunknown, "T").WithArguments("T", "type").WithLocation(6, 9));
+        }
+
+        [Fact, WorkItem(1078958, "DevDiv")]
+        public void Bug1078958_2()
+        {
+            const string source = @"
+class C
+{
+    static void Foo<T>()
+    {
+        T<T>();
+    }
+ 
+    static void T() { }
+
+    static void T<U>() { }
+}";
+
+                CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(1078961, "DevDiv")]
+        public void Bug1078961()
+        {
+            const string source = @"
+class C
+{
+    const int T = 42;
+    static void Foo<T>(int x = T)
+    {
+        System.Console.Write(x);
+    }
+
+    static void Main()
+    {
+        Foo<object>();
+    }
+}";
+
+            CompileAndVerify(source, expectedOutput: "42");
+        }
+
+        [Fact, WorkItem(1078961, "DevDiv")]
+        public void Bug1078961_2()
+        {
+            const string source = @"
+class A : System.Attribute
+{
+    public A(int i) { }
+}
+
+class C
+{
+    const int T = 42;
+
+    static void Foo<T>([A(T)] int x)
+    {
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics();
+
+            var c = comp.GlobalNamespace.GetTypeMembers("C").Single();
+            var t = (FieldSymbol)c.GetMembers("T").Single();
+            var foo = (MethodSymbol)c.GetMembers("Foo").Single();
+            var x = foo.Parameters[0];
+            var a = x.GetAttributes()[0];
+            var i = a.ConstructorArguments.Single();
+            Assert.Equal((int)i.Value, (int)t.ConstantValue);
+        }
+
+        [Fact, WorkItem(1078961, "DevDiv")]
+        public void Bug1078961_3()
+        {
+            const string source = @"
+class A : System.Attribute
+{
+    public A(int i) { }
+}
+
+class C
+{
+    const int T = 42;
+
+    [A(T)]
+    static void Foo<T>(int x)
+    {
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics();
+
+            var c = comp.GlobalNamespace.GetTypeMembers("C").Single();
+            var t = (FieldSymbol)c.GetMembers("T").Single();
+            var foo = (MethodSymbol)c.GetMembers("Foo").Single();
+            var a = foo.GetAttributes()[0];
+            var i = a.ConstructorArguments.Single();
+            Assert.Equal((int)i.Value, (int)t.ConstantValue);
+        }
+
+        [Fact, WorkItem(1078961, "DevDiv")]
+        public void Bug1078961_4()
+        {
+            const string source = @"
+class A : System.Attribute
+{
+    public A(int i) { }
+}
+
+class C
+{
+    const int T = 42;
+
+    static void Foo<[A(T)] T>(int x)
+    {
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics();
+
+            var c = comp.GlobalNamespace.GetTypeMembers("C").Single();
+            var t = (FieldSymbol)c.GetMembers("T").Single();
+            var foo = (MethodSymbol)c.GetMembers("Foo").Single();
+            var tt = foo.TypeParameters[0];
+            var a = tt.GetAttributes()[0];
+            var i = a.ConstructorArguments.Single();
+            Assert.Equal((int)i.Value, (int)t.ConstantValue);
+        }
+
+        [Fact, WorkItem(1078961, "DevDiv")]
+        public void Bug1078961_5()
+        {
+             const string source = @"
+class C
+{
+    class T { }
+
+    static void Foo<T>(T x = default(T))
+    {
+        System.Console.Write((object)x == null);
+    }
+
+    static void Main()
+    {
+        Foo<object>();
+    }
+}";
+
+            CompileAndVerify(source, expectedOutput: "True");
+        }
     }
 }

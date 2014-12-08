@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void AddLookupSymbolsInfoInSingleBinder(LookupSymbolsInfo result, LookupOptions options, Binder originalBinder)
         {
-            if (options.CanConsiderTypeParameters())
+            if (CanConsiderTypeParameters(options))
             {
                 foreach (string name in TypeParameterMap.Keys)
                 {

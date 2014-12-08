@@ -173,6 +173,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Is the contained code within a member method body?
+        /// </summary>
+        /// <remarks>
+        /// May be false in lambdas that are outside of member method bodies, e.g. lambdas in
+        /// field initializers.
+        /// </remarks>
+        internal virtual bool IsInMethodBody
+        {
+            get
+            {
+                return Next.IsInMethodBody;
+            }
+        }
+
+        /// <summary>
         /// Is the contained code within an iterator block?
         /// </summary>
         /// <remarks>

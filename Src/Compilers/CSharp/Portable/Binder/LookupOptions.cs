@@ -91,6 +91,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Consider named types of any arity when arity zero is specified. It is specifically desired for nameof in such situations: nameof(System.Collections.Generic.List)
         /// </summary>
         AllNamedTypesOnArityZero = 1 << 13,
+
+        /// <summary>
+        /// Do not consider symbols that are method type parameters.
+        /// </summary>
+        MustNotBeMethodTypeParameter = 1 << 14,
     }
 
     internal static class LookupOptionExtensions
@@ -128,8 +133,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            // If MustNotBeNamespace is set, neither NamespaceAliasesOnly nor NamespacesOrTypesOnly must be set.
-            if ((options & LookupOptions.MustNotBeNamespace) != 0 &&
+            // If MustNotBeNamespace or MustNotBeMethodTypeParameter is set, neither NamespaceAliasesOnly nor NamespacesOrTypesOnly must be set.
+            if ((options & (LookupOptions.MustNotBeNamespace | LookupOptions.MustNotBeMethodTypeParameter)) != 0 &&
                 (options & (LookupOptions.NamespaceAliasesOnly | LookupOptions.NamespacesOrTypesOnly)) != 0)
             {
                 return false;
@@ -154,11 +159,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         static bool OnlyOneBitSet(LookupOptions o)
         {
             return (o & (o - 1)) == 0;
-        }
-
-        internal static bool CanConsiderTypeParameters(this LookupOptions options)
-        {
-            return (options & (LookupOptions.MustBeInvocableIfMember | LookupOptions.MustBeInstance | LookupOptions.LabelsOnly)) == 0;
         }
 
         internal static bool CanConsiderMembers(this LookupOptions options)

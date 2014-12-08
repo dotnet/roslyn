@@ -17,29 +17,44 @@ namespace Microsoft.CodeAnalysis.CSharp
         // TODO: Change this to a data structure that won't allocate enumerators
         protected abstract MultiDictionary<string, TypeParameterSymbol> TypeParameterMap { get; }
 
+        // This is only overridden by WithMethodTypeParametersBinder.
+        protected virtual LookupOptions LookupMask
+        {
+            get
+            {
+                return LookupOptions.NamespaceAliasesOnly | LookupOptions.MustBeInvocableIfMember;
+            }
+        }
+
+        protected bool CanConsiderTypeParameters(LookupOptions options)
+        {
+            return (options & (LookupMask | LookupOptions.MustBeInstance | LookupOptions.LabelsOnly)) == 0;
+        }
+
         internal override void LookupSymbolsInSingleBinder(
             LookupResult result, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            if ((options & (LookupOptions.NamespaceAliasesOnly | LookupOptions.MustBeInvocableIfMember)) != 0)
+            Debug.Assert(result.IsClear);
+
+            if ((options & LookupMask) != 0)
             {
                 return;
             }
 
-            Debug.Assert(result.IsClear);
-
-            var count = TypeParameterMap.GetCountForKey(name);
+            var typeParameterMap = TypeParameterMap;
+            var count = typeParameterMap.GetCountForKey(name);
             if (count == 1)
             {
-                TypeParameterSymbol p;
-                TypeParameterMap.TryGetSingleValue(name, out p);
-                result.MergeEqual(originalBinder.CheckViability(p, arity, options, null, diagnose, ref useSiteDiagnostics));
+                TypeParameterSymbol typeParameter;
+                typeParameterMap.TryGetSingleValue(name, out typeParameter);
+                result.MergeEqual(originalBinder.CheckViability(typeParameter, arity, options, null, diagnose, ref useSiteDiagnostics));
             }
             else if (count > 1)
             {
-                var parameters = TypeParameterMap[name];
-                foreach (var s in parameters)
+                var parameters = typeParameterMap[name];
+                foreach (var typeParameter in parameters)
                 {
-                    result.MergeEqual(originalBinder.CheckViability(s, arity, options, null, diagnose, ref useSiteDiagnostics));
+                    result.MergeEqual(originalBinder.CheckViability(typeParameter, arity, options, null, diagnose, ref useSiteDiagnostics));
                 }
             }
         }

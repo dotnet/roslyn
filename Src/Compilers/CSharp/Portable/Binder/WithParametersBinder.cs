@@ -8,6 +8,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    /// <summary>
+    /// Binder used to place the parameters of a method, property, indexer, or delegate
+    /// in scope when binding &lt;param&gt; tags inside of XML documentation comments.
+    /// </summary>
     internal sealed class WithParametersBinder : Binder
     {
         private readonly ImmutableArray<ParameterSymbol> parameters;
@@ -15,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal WithParametersBinder(ImmutableArray<ParameterSymbol> parameters, Binder next)
             : base(next)
         {
-            Debug.Assert(!parameters.IsEmpty);
+            Debug.Assert(!parameters.IsDefaultOrEmpty);
             this.parameters = parameters;
         }
 

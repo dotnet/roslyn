@@ -88,6 +88,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal override bool IsInMethodBody
+        {
+            get
+            {
+                return true;
+            }
+        }
+
         internal void MakeIterator()
         {
             if (this.iteratorInfo == null)
