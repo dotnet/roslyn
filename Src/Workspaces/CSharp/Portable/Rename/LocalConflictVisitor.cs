@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
             tracker.AddIdentifiers(tokens);
             Visit(node.Block);
-            tracker.AddIdentifiers(tokens);
+            tracker.RemoveIdentifiers(tokens);
         }
 
         public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
