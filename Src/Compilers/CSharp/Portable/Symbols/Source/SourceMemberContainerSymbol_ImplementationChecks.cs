@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             // checks.  Roslyn can't, since the language says they are not virtual/override and that's what we need to expose
                             // in the symbol model.  Having said that, Dev11 doesn't seem to produce override errors other than this one
                             // (see SymbolPreparer::prepareOperator).
-                            if ((object)overridden != null && overridden.IsMetadataFinal())
+                            if ((object)overridden != null && overridden.IsMetadataFinal)
                             {
                                 diagnostics.Add(ErrorCode.ERR_CantOverrideSealed, method.Locations[0], method, overridden);
                             }

@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingMethod.HasFinalFlag;
+                return UnderlyingMethod.IsMetadataFinal;
             }
         }
 

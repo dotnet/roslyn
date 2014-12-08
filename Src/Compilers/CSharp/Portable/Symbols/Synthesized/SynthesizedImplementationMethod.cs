@@ -244,9 +244,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        internal override bool IsMetadataFinal()
+        internal override bool IsMetadataFinal
         {
-            return true;
+            get
+            {
+                return true;
+            }
         }
 
         internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)

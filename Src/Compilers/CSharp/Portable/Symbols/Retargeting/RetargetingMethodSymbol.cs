@@ -343,9 +343,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return this.underlyingMethod.IsMetadataVirtual(ignoreInterfaceImplementationChanges);
         }
 
-        internal sealed override bool IsMetadataFinal()
+        internal override bool IsMetadataFinal
         {
-            return this.underlyingMethod.IsMetadataFinal();
+            get
+            {
+                return this.underlyingMethod.IsMetadataFinal;
+            }
         }
 
         internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
@@ -555,13 +558,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        internal override bool HasFinalFlag
-        {
-            get
-            {
-                return this.underlyingMethod.HasFinalFlag;
-            }
-        }
 
         internal override bool ReturnValueIsMarshalledExplicitly
         {

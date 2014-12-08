@@ -393,9 +393,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property HasFinalFlag As Boolean
+        Friend Overrides ReadOnly Property IsMetadataFinal As Boolean
             Get
-                Return m_UnderlyingMethod.HasFinalFlag
+                Return m_UnderlyingMethod.IsMetadataFinal
             End Get
         End Property
 

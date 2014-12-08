@@ -942,7 +942,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Debug.Assert(receiver.Type.IsVerifierReference())
                     callKind = CallKind.Call
 
-                ElseIf method.IsNotOverridable AndAlso CanUseCallOnRefTypeReceiver(receiver) Then
+                ElseIf method.IsMetadataFinal AndAlso CanUseCallOnRefTypeReceiver(receiver) Then
                     ' special case for calling 'final' virtual method on reference receiver
                     Debug.Assert(receiver.Type.IsVerifierReference())
                     callKind = CallKind.Call

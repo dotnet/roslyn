@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
 
         Protected Overrides ReadOnly Property IsSealed As Boolean
             Get
-                Return UnderlyingMethod.HasFinalFlag
+                Return UnderlyingMethod.IsMetadataFinal
             End Get
         End Property
 

@@ -415,16 +415,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.flags.EnsureMetadataVirtual();
         }
 
-        /// <summary>
-        /// This method indicates whether or not the runtime will regard the method
-        /// as final (as indicated by the presence of the "final" modifier in the
-        /// signature).
-        /// NOTE: The method is supposed to be called ONLY from emitter.
-        /// </summary>
-        internal override bool IsMetadataFinal()
-        {
-            return ((Cci.IMethodDefinition)this).IsSealed;
-        }
 
         protected DeclarationModifiers DeclarationModifiers
         {

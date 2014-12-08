@@ -122,9 +122,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal sealed override bool IsMetadataFinal()
+        internal override bool IsMetadataFinal
         {
-            return false;
+            get
+            {
+                return false;
+            }
         }
 
         public override bool IsVararg

@@ -1306,7 +1306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // Because of the "GetOriginalConstructedOverriddenMethod" above, the actual target
                 // can only be final when it is "newslot virtual final".
                 // In such case Dev11 emits "call" and we will just replicate the behavior. (see DevDiv: 546853 )
-                else if (actualMethodTargetedByTheCall.IsMetadataFinal() && CanUseCallOnRefTypeReceiver(receiver))
+                else if (actualMethodTargetedByTheCall.IsMetadataFinal && CanUseCallOnRefTypeReceiver(receiver))
                 {
                     // special case for calling 'final' virtual method on reference receiver
                     Debug.Assert(receiver.Type.IsVerifierReference());

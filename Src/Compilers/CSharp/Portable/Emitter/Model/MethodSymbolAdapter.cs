@@ -487,15 +487,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.HasFinalFlag;
+                return this.IsMetadataFinal;
             }
         }
 
-        internal virtual bool HasFinalFlag
+        internal virtual bool IsMetadataFinal
         {
             get
             {
-                CheckDefinitionInvariant();
+                // destructors should override this behavior
+                Debug.Assert(this.MethodKind != MethodKind.Destructor);
+
                 return this.IsSealed ||
                     (this.IsMetadataVirtual() &&
                      !(this.IsVirtual || this.IsOverride || this.IsAbstract || this.MethodKind == MethodKind.Destructor));
@@ -541,14 +543,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// NOTE: Not ignoring changes can only result in a value that is more true.
         /// </summary>
         internal abstract bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false);
-
-        /// <summary>
-        /// This method indicates whether or not the runtime will regard the method
-        /// as final (as indicated by the presence of the "final" modifier in the
-        /// signature).
-        /// NOTE: The method is supposed to only be called from emitter.
-        /// </summary>
-        internal abstract bool IsMetadataFinal();
 
         ImmutableArray<Cci.IParameterDefinition> Cci.IMethodDefinition.Parameters
         {

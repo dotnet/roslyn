@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property HasFinalFlag As Boolean
+        Friend Overrides ReadOnly Property IsMetadataFinal As Boolean
             Get
                 Return (m_Flags And MethodAttributes.Final) <> 0
             End Get

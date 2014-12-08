@@ -54,9 +54,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        internal override bool IsMetadataFinal()
+        internal override bool IsMetadataFinal
         {
-            return false;
+            get
+            {
+                return false;
+            }
         }
 
         public override MethodKind MethodKind

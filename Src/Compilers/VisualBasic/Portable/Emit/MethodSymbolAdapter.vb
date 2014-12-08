@@ -397,14 +397,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IMethodDefinitionIsSealed As Boolean Implements Cci.IMethodDefinition.IsSealed
             Get
                 CheckDefinitionInvariant()
-                Return Me.HasFinalFlag
+                Return Me.IsMetadataFinal
             End Get
         End Property
 
-        Friend Overridable ReadOnly Property HasFinalFlag As Boolean
+        Friend Overridable ReadOnly Property IsMetadataFinal As Boolean
             Get
-                CheckDefinitionInvariant()
-
                 ' If we are metadata virtual, but not language virtual, set the "final" bit (i.e., interface
                 ' implementation methods). Also do it if we are explicitly marked "NotOverridable".
                 Return Me.IsNotOverridable OrElse

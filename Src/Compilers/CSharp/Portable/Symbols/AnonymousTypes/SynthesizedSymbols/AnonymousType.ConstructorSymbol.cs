@@ -73,9 +73,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            internal override bool IsMetadataFinal()
+            internal override bool IsMetadataFinal
             {
-                return false;
+                get
+                {
+                    return false;
+                }
             }
 
             public override ImmutableArray<Location> Locations

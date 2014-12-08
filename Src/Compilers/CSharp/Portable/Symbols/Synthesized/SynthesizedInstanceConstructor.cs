@@ -36,9 +36,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ContainingType.IsAbstract ? Accessibility.Protected : Accessibility.Public; }
         }
 
-        internal override bool IsMetadataFinal()
+        internal override bool IsMetadataFinal
         {
-            return false;
+            get
+            {
+                return false;
+            }
         }
 
         #region Sealed

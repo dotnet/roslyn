@@ -416,7 +416,7 @@ Null
   IL_0003:  ldnull
   IL_0004:  br.s       IL_000c
   IL_0006:  ldarg.0
-  IL_0007:  callvirt   "Function C1.get_P2() As String"
+  IL_0007:  call       "Function C1.get_P2() As String"
   IL_000c:  call       "Sub Module1.Do(Of String)(String)"
   IL_0011:  ret
 }
@@ -434,7 +434,7 @@ Null
   IL_0005:  pop
   IL_0006:  ldnull
   IL_0007:  br.s       IL_000e
-  IL_0009:  callvirt   "Function C1.get_P2() As String"
+  IL_0009:  call       "Function C1.get_P2() As String"
   IL_000e:  call       "Sub Module1.Do(Of String)(String)"
   IL_0013:  ret
 }
@@ -450,7 +450,7 @@ Null
   IL_0003:  ldnull
   IL_0004:  br.s       IL_000c
   IL_0006:  ldarg.0
-  IL_0007:  callvirt   "Function C1.get_P2() As String"
+  IL_0007:  call       "Function C1.get_P2() As String"
   IL_000c:  call       "Sub Module1.Do(Of String)(String)"
   IL_0011:  ret
 }
@@ -468,7 +468,7 @@ Null
   IL_0005:  pop
   IL_0006:  ldnull
   IL_0007:  br.s       IL_000e
-  IL_0009:  callvirt   "Function C1.get_P2() As String"
+  IL_0009:  call       "Function C1.get_P2() As String"
   IL_000e:  call       "Sub Module1.Do(Of String)(String)"
   IL_0013:  ret
 }
@@ -487,7 +487,7 @@ Null
   IL_0006:  pop
   IL_0007:  ldnull
   IL_0008:  br.s       IL_000f
-  IL_000a:  callvirt   "Function C1.get_P2() As String"
+  IL_000a:  call       "Function C1.get_P2() As String"
   IL_000f:  call       "Sub Module1.Do(Of String)(String)"
   IL_0014:  ret
 }

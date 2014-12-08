@@ -202,9 +202,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal override bool IsMetadataFinal()
+        internal override bool IsMetadataFinal
         {
-            return false;
+            get
+            {
+                return false;
+            }
         }
 
         internal sealed override bool RequiresSecurityObject

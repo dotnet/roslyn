@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // error if it is overridden - it emits a virtual method without the newslot
                 // modifier as for a normal override.  It is not clear how the runtime rules
                 // interpret this overriding method since the overridden method is invalid.
-                return this.HasFinalFlag && !this.IsAbstract && this.IsOverride; //slowest check last
+                return this.IsMetadataFinal && !this.IsAbstract && this.IsOverride; //slowest check last
             }
         }
 
@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // Has to be metadata virtual and cannot be a destructor.  Cannot be either abstract or override.
                 // Final is a little special - if a method has the virtual, newslot, and final attr
                 // (and is not an explicit override) then we treat it as non-virtual for C# purposes.
-                return this.IsMetadataVirtual() && !this.IsDestructor && !this.HasFinalFlag && !this.IsAbstract && !this.IsOverride;
+                return this.IsMetadataVirtual() && !this.IsDestructor && !this.IsMetadataFinal && !this.IsAbstract && !this.IsOverride;
             }
         }
 
@@ -538,17 +538,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return (this.flags & MethodAttributes.Virtual) != 0;
         }
 
-        internal sealed override bool IsMetadataFinal()
-        {
-            return HasFinalFlag;
-        }
-
         internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
         {
             return (this.flags & MethodAttributes.NewSlot) != 0;
         }
 
-        internal override bool HasFinalFlag
+        internal override bool IsMetadataFinal
         {
             get
             {

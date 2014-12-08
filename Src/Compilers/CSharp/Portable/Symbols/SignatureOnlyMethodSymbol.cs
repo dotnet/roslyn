@@ -130,7 +130,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) { throw ExceptionUtilities.Unreachable; }
 
-        internal sealed override bool IsMetadataFinal() { throw ExceptionUtilities.Unreachable; }
+        internal override bool IsMetadataFinal
+        {
+            get
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
 
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree) { throw ExceptionUtilities.Unreachable; }
 

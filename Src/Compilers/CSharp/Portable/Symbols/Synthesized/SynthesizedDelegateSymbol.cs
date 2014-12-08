@@ -138,9 +138,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            internal override bool IsMetadataFinal()
+            internal override bool IsMetadataFinal
             {
-                return false;
+                get
+                {
+                    return false;
+                }
             }
 
             public override MethodKind MethodKind

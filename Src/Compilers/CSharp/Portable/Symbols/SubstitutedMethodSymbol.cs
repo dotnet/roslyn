@@ -363,9 +363,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return originalDefinition.IsMetadataVirtual(ignoreInterfaceImplementationChanges);
         }
 
-        internal override bool IsMetadataFinal()
+        internal override bool IsMetadataFinal
         {
-            return originalDefinition.IsMetadataFinal();
+            get
+            {
+                return originalDefinition.IsMetadataFinal;
+            }
         }
 
         internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
