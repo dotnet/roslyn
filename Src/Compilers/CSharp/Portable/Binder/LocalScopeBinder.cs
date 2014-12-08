@@ -147,28 +147,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected SourceLocalSymbol MakeLocal(VariableDeclarationSyntax declaration, VariableDeclaratorSyntax declarator, LocalDeclarationKind kind)
         {
-            SourceLocalSymbol localSymbol;
-            if (declarator.Initializer == null)
-            {
-                localSymbol = SourceLocalSymbol.MakeLocal(
-                                    this.ContainingMemberOrLambda,
-                                    this,
-                                    declaration.Type,
-                                    declarator.Identifier,
-                                    kind);
-            }
-            else
-            {
-                localSymbol = SourceLocalSymbol.MakeLocalWithInitializer(
-                                    this.ContainingMemberOrLambda,
-                                    this,
-                                    declaration.Type,
-                                    declarator.Identifier,
-                                    declarator.Initializer,
-                                    kind);
-            }
-
-            return localSymbol;
+            return SourceLocalSymbol.MakeLocal(
+                this.ContainingMemberOrLambda,
+                this,
+                declaration.Type,
+                declarator.Identifier,
+                kind,
+                declarator.Initializer);
         }
 
         protected void BuildLabels(SyntaxList<StatementSyntax> statements, ref ArrayBuilder<LabelSymbol> labels)

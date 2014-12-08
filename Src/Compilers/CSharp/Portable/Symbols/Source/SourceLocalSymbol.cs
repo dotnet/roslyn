@@ -4,7 +4,6 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -26,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<Location> locations;
         private readonly TypeSyntax typeSyntax;
         private readonly LocalDeclarationKind declarationKind;
-        protected TypeSymbol type;
+        private TypeSymbol type;
 
         /// <summary>
         /// There are three ways to initialize a fixed statement local:
@@ -75,27 +74,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new ForEachLocal(containingMethod, binder, typeSyntax, identifierToken, collection, LocalDeclarationKind.ForEachIterationVariable);
         }
 
-        public static SourceLocalSymbol MakeLocalWithInitializer(
-            Symbol containingSymbol,
-            Binder binder,
-            TypeSyntax typeSyntax,
-            SyntaxToken identifierToken,
-            EqualsValueClauseSyntax initializer,
-            LocalDeclarationKind declarationKind)
-        {
-            Debug.Assert(declarationKind != LocalDeclarationKind.ForEachIterationVariable);
-            return new LocalWithInitializer(containingSymbol, binder, typeSyntax, identifierToken, initializer, declarationKind);
-        }
-
         public static SourceLocalSymbol MakeLocal(
             Symbol containingSymbol,
             Binder binder,
             TypeSyntax typeSyntax,
             SyntaxToken identifierToken,
-            LocalDeclarationKind declarationKind)
+            LocalDeclarationKind declarationKind,
+            EqualsValueClauseSyntax initializer = null)
         {
             Debug.Assert(declarationKind != LocalDeclarationKind.ForEachIterationVariable);
-            return new SourceLocalSymbol(containingSymbol, binder, typeSyntax, identifierToken, declarationKind);
+            return (initializer == null) ?
+                new SourceLocalSymbol(containingSymbol, binder, typeSyntax, identifierToken, declarationKind) :
+                new LocalWithInitializer(containingSymbol, binder, typeSyntax, identifierToken, initializer, declarationKind);
         }
 
         internal override bool IsImportedFromMetadata
@@ -333,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Hash.Combine(this.identifierToken.GetHashCode(), this.containingSymbol.GetHashCode());
         }
 
-        private class LocalWithInitializer : SourceLocalSymbol
+        private sealed class LocalWithInitializer : SourceLocalSymbol
         {
             private readonly EqualsValueClauseSyntax initializer;
 
@@ -351,12 +341,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SyntaxToken identifierToken,
                 EqualsValueClauseSyntax initializer,
                 LocalDeclarationKind declarationKind) :
-                    base(containingSymbol, binder, typeSyntax, identifierToken, declarationKind)
+                base(containingSymbol, binder, typeSyntax, identifierToken, declarationKind)
             {
-                if (initializer == null)
-                {
-                    throw ExceptionUtilities.Unreachable;
-                }
+                Debug.Assert(declarationKind != LocalDeclarationKind.ForEachIterationVariable);
+                Debug.Assert(initializer != null);
 
                 this.initializer = initializer;
             }
@@ -421,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private class ForEachLocal : SourceLocalSymbol
+        private sealed class ForEachLocal : SourceLocalSymbol
         {
             private readonly ExpressionSyntax collection;
 
