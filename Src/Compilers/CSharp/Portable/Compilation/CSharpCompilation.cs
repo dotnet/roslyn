@@ -3084,14 +3084,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 spine.Add(current);
 
-                NamespaceOrTypeSymbol container = null;
-                var mergedType = (MergedTypeDeclaration)current;
-                foreach (var name in mergedType.MemberNames)
+                var container = GetSpineSymbol(spine);
+                foreach (var member in container.GetMembers())
                 {
-                    if (predicate(name))
+                    if (!member.IsTypeOrTypeAlias() &&
+                        (member.CanBeReferencedByName || member.IsExplicitInterfaceImplementation() || member.IsIndexer()) &&
+                        predicate(member.Name))
                     {
-                        container = container ?? GetSpineSymbol(spine);
-                        set.UnionWith(container.GetMembers(name));
+                        set.Add(member);
                     }
                 }
 

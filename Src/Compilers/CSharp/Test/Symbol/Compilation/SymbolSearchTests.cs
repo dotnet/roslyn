@@ -3,6 +3,7 @@
 using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -130,6 +131,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Test(compilation, n => n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace: true, includeType: true, includeMember: true, count: 9);
 
             Test(compilation, n => n.IndexOf("enum", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace: true, includeType: true, includeMember: true, count: 2);
+        }
+
+        [WorkItem(876191)]
+        [Fact]
+        public void TestExplicitInterfaceSearch()
+        {
+            var source = @"
+interface I
+{
+    void M();
+}
+
+class Explicit : I
+{
+    void I.M() { }
+}
+
+class Implicit : I
+{
+    public void M() { }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(sources: new string[] { source });
+
+            Test(compilation, n => n.IndexOf("M", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace: false, includeType: false, includeMember: true, count: 3);
         }
 
         private static CSharpCompilation GetTestCompilation()
