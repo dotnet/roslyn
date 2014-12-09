@@ -3006,24 +3006,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE:    we want to perform constant analysis of is/as expressions during binding to generate warnings (always true/false/null)
             // NOTE:    and during rewriting for optimized codegen.
 
-            // Native compiler port:
-            //     // check for case we know is always false
-            //     if (arg->isNull() || !canCast(arg, type2, NOUDC) && type1->IsValType() && type2->isClassType() && (!type1->IsTypeParameterType() || !type2->isPredefType(PT_ENUM)))
-            //     {
-            //          GetErrorContext()->Error(tree, WRN_AlwaysNull, type2);
-            //          return rval;
-            //     }
-
-            if (operandConstantValue == ConstantValue.Null ||
-                (conversionKind == ConversionKind.NoConversion &&
-                 (operandType.IsValueType && targetType.IsClassType() && (!operandType.IsTypeParameter() || targetType.SpecialType != SpecialType.System_Enum))))
+            ConstantValue isOperatorConstantResult = GetIsOperatorConstantResult(operandType, targetType, conversionKind, operandConstantValue);
+            if (isOperatorConstantResult != null && !isOperatorConstantResult.BooleanValue)
             {
                 return ConstantValue.Null;
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
 
         private BoundExpression GenerateNullCoalescingBadBinaryOpsError(BinaryExpressionSyntax node, BoundExpression leftOperand, BoundExpression rightOperand, Conversion leftConversion, DiagnosticBag diagnostics)

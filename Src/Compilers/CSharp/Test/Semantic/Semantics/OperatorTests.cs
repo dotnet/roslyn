@@ -8324,5 +8324,273 @@ System.Nullable`1[System.Int64]
 System.Nullable`1[System.Int64]
 ");
         }
+
+        [Fact, WorkItem(1090786, "DevDiv")]
+        public void Bug1090786_01()
+        {
+            string source = @"
+class Test
+{
+    static void Main()
+    {
+        Test0();
+        Test1();
+        Test2();
+        Test3();
+        Test4();
+    }
+
+    static void Test0()
+    {
+        Print(((System.TypeCode)0) as int?);
+        Print(0 as int?);
+        Print(((int?)0) as int?);
+        Print(0 as long?);
+        Print(0 as ulong?);
+        Print(GetNullableInt() as long?);
+    }
+
+    static int? GetNullableInt()
+    {
+        return 0;
+    }
+
+    static void Test1()
+    {
+        var c1 = new C1<int>();
+        c1.M1(0);
+    }
+
+    static void Test2()
+    {
+        var c1 = new C1<ulong>();
+        c1.M1<ulong>(0);
+    }
+
+    static void Test3()
+    {
+        var c1 = new C2();
+        c1.M1(0);
+    }
+
+    static void Test4()
+    {
+        var c1 = new C3();
+        c1.M1<int?>(0);
+    }
+
+    public static void Print<T>(T? v) where T : struct 
+    {
+        System.Console.WriteLine(v.HasValue);
+    }
+}
+
+class C1<T>
+{
+    public virtual void M1<S>(S x) where S :T
+    {
+        Test.Print(x as ulong?);
+    }
+}
+
+class C2 : C1<int>
+{
+    public override void M1<S>(S x)
+    {
+        Test.Print(x as ulong?);
+    }
+}
+
+class C3 : C1<int?>
+{
+    public override void M1<S>(S x)
+    {
+        Test.Print(x as ulong?);
+    }
+}
+";
+            var verifier = CompileAndVerify(source: source, expectedOutput:
+@"False
+True
+True
+False
+False
+False
+False
+True
+False
+False
+");
+
+            verifier.VerifyIL("Test.Test0",
+@"
+{
+   // Code size       85 (0x55)
+  .maxstack  1
+  .locals init (int? V_0,
+                long? V_1,
+                ulong? V_2)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""int?""
+  IL_0008:  ldloc.0
+  IL_0009:  call       ""void Test.Print<int>(int?)""
+  IL_000e:  ldc.i4.0
+  IL_000f:  newobj     ""int?..ctor(int)""
+  IL_0014:  call       ""void Test.Print<int>(int?)""
+  IL_0019:  ldc.i4.0
+  IL_001a:  newobj     ""int?..ctor(int)""
+  IL_001f:  call       ""void Test.Print<int>(int?)""
+  IL_0024:  ldloca.s   V_1
+  IL_0026:  initobj    ""long?""
+  IL_002c:  ldloc.1
+  IL_002d:  call       ""void Test.Print<long>(long?)""
+  IL_0032:  ldloca.s   V_2
+  IL_0034:  initobj    ""ulong?""
+  IL_003a:  ldloc.2
+  IL_003b:  call       ""void Test.Print<ulong>(ulong?)""
+  IL_0040:  call       ""int? Test.GetNullableInt()""
+  IL_0045:  pop
+  IL_0046:  ldloca.s   V_1
+  IL_0048:  initobj    ""long?""
+  IL_004e:  ldloc.1
+  IL_004f:  call       ""void Test.Print<long>(long?)""
+  IL_0054:  ret
+}");
+
+            verifier.VerifyIL("C1<T>.M1<S>",
+@"
+{
+  // Code size       22 (0x16)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  box        ""S""
+  IL_0006:  isinst     ""ulong?""
+  IL_000b:  unbox.any  ""ulong?""
+  IL_0010:  call       ""void Test.Print<ulong>(ulong?)""
+  IL_0015:  ret
+}");
+
+            verifier.VerifyIL("C2.M1<S>",
+@"
+{
+  // Code size       22 (0x16)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  box        ""S""
+  IL_0006:  isinst     ""ulong?""
+  IL_000b:  unbox.any  ""ulong?""
+  IL_0010:  call       ""void Test.Print<ulong>(ulong?)""
+  IL_0015:  ret
+}");
+
+            verifier.VerifyIL("C3.M1<S>",
+@"
+{
+  // Code size       22 (0x16)
+  .maxstack  1
+  IL_0000:  ldarg.1
+  IL_0001:  box        ""S""
+  IL_0006:  isinst     ""ulong?""
+  IL_000b:  unbox.any  ""ulong?""
+  IL_0010:  call       ""void Test.Print<ulong>(ulong?)""
+  IL_0015:  ret
+}");
+
+            verifier.VerifyDiagnostics(
+    // (15,15): warning CS0458: The result of the expression is always 'null' of type 'int?'
+    //         Print(((System.TypeCode)0) as int?);
+    Diagnostic(ErrorCode.WRN_AlwaysNull, "((System.TypeCode)0) as int?").WithArguments("int?").WithLocation(15, 15),
+    // (18,15): warning CS0458: The result of the expression is always 'null' of type 'long?'
+    //         Print(0 as long?);
+    Diagnostic(ErrorCode.WRN_AlwaysNull, "0 as long?").WithArguments("long?").WithLocation(18, 15),
+    // (19,15): warning CS0458: The result of the expression is always 'null' of type 'ulong?'
+    //         Print(0 as ulong?);
+    Diagnostic(ErrorCode.WRN_AlwaysNull, "0 as ulong?").WithArguments("ulong?").WithLocation(19, 15),
+    // (20,15): warning CS0458: The result of the expression is always 'null' of type 'long?'
+    //         Print(GetNullableInt() as long?);
+    Diagnostic(ErrorCode.WRN_AlwaysNull, "GetNullableInt() as long?").WithArguments("long?").WithLocation(20, 15)
+                );
+        }
+
+        [Fact, WorkItem(1090786, "DevDiv")]
+        public void Bug1090786_02()
+        {
+            string source = @"
+using System;
+
+class Program
+{
+    static void Main()
+    {
+        var x = 0 as long?;
+        Console.WriteLine(x.HasValue);
+
+        var y = 0 as ulong?;
+        Console.WriteLine(y.HasValue);
+    }
+}
+";
+            CompileAndVerify(source: source, expectedOutput:
+@"False
+False
+");
+        }
+
+        [Fact, WorkItem(1090786, "DevDiv")]
+        public void Bug1090786_03()
+        {
+            string source = @"
+class Test
+{
+    static void Main()
+    {
+        Test0();
+    }
+
+    static void Test0()
+    {
+        var c2 = new C2();
+        c2.M1<C1>(null);
+    }
+
+    public static void Print<T>(T v) where T : class 
+    {
+        System.Console.WriteLine(v != null);
+    }
+}
+
+class C1
+{}
+
+class C2 
+{
+    public void M1<S>(C1 x) where S : C1
+    {
+        Test.Print(x as S);
+        Test.Print(((C1)null) as S);
+    }
+}";
+            var verifier = CompileAndVerify(source: source, expectedOutput:
+@"False
+False
+");
+
+            verifier.VerifyIL("C2.M1<S>",
+@"
+{
+  // Code size       31 (0x1f)
+  .maxstack  1
+  .locals init (S V_0)
+  IL_0000:  ldarg.1
+  IL_0001:  isinst     ""S""
+  IL_0006:  unbox.any  ""S""
+  IL_000b:  call       ""void Test.Print<S>(S)""
+  IL_0010:  ldloca.s   V_0
+  IL_0012:  initobj    ""S""
+  IL_0018:  ldloc.0
+  IL_0019:  call       ""void Test.Print<S>(S)""
+  IL_001e:  ret
+}");
+        }
     }
 }
