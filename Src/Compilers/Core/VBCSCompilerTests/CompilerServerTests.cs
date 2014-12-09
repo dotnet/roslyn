@@ -1201,7 +1201,7 @@ End Class
             };
         }
 
-        [Fact()]
+        [Fact(Skip = "Codeplex issue 461")]
         public void SimpleMSBuild()
         {
             string arguments = string.Format(@"/m /nr:false /t:Rebuild /p:UseRoslyn=1 HelloSolution.sln");
@@ -1776,7 +1776,7 @@ class MyAnalyzer : DiagnosticAnalyzer
             };
         }
 
-        [Fact]
+        [Fact(Skip = "Codeplex issue 460")]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void AnalyzerChangesOnDisk()
         {

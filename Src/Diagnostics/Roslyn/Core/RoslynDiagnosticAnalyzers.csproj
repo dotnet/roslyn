@@ -15,6 +15,7 @@
     <RootNamespace>Roslyn.Diagnostics.Analyzers</RootNamespace>
     <AssemblyName>Roslyn.Diagnostics.Analyzers</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
+    <NeedsFakeSign>true</NeedsFakeSign>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <ItemGroup Label="File References">

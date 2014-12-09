@@ -45,7 +45,24 @@
       ShadowCopy="false" />
   </Target>
 
-  <Target Name="BuildAndTest"
-          DependsOnTargets="Build;Test" />
+  <!-- Work around for issue that we shipped delay signed binaries to nuget. -->
+	<!-- Nuget package for Microsoft.CodeAnalysis.Test.Resources.Proprietary.blah has a delay signed signed .dll -->
+  <Target Name="Workaround_Codeplex_Issue_458">
 
+	  <PropertyGroup>
+	  	<Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
+	  </PropertyGroup>
+
+
+    <ItemGroup>
+      <ToFakeSign Include="packages\**\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll" />
+    </ItemGroup>
+
+    <Exec Command="&quot;Binaries\$(Configuration)\fakesign.exe&quot; &quot;%(ToFakeSign.Identity)&quot;" />
+
+  </Target>
+
+
+  <Target Name="BuildAndTest"
+          DependsOnTargets="Build;Workaround_Codeplex_Issue_458;Test" />
 </Project>
