@@ -40,27 +40,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i <= n; i++)
             {
                 var part = node.Parts[i];
-                if ((i % 2) == 0)
+                var fillin = part as BoundStringInsert;
+                if (fillin == null)
                 {
                     // this is one of the literal parts
-                    foreach (var c in part.ConstantValue.StringValue)
-                    {
-                        // certain characters require escaping from String.Format
-                        if (c == '{' || c == '}')
-                        {
-                            formatString.Builder.Append("{" + (nextFormatPosition++) + "}");
-                            fillins.Add(factory.Convert(compilation.ObjectType, factory.StringLiteral(c.ToString())));
-                        }
-                        else
-                        {
-                            formatString.Builder.Append(c);
-                        }
-                    }
+                    formatString.Builder.Append(part.ConstantValue.StringValue);
                 }
                 else
                 {
                     // this is one of the expression holes
-                    var fillin = (BoundStringInsert)part;
                     formatString.Builder.Append("{").Append(nextFormatPosition++);
                     if (fillin.Alignment != null && !fillin.Alignment.HasErrors)
                     {
@@ -68,13 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     if (fillin.Format != null && !fillin.Format.HasErrors)
                     {
-                        formatString.Builder.Append(":");
-                        foreach (var c in fillin.Format.ConstantValue.StringValue)
-                        {
-                            // certain characters require escaping from String.Format
-                            if (c == '{' || c == '}') formatString.Builder.Append(c);
-                            formatString.Builder.Append(c);
-                        }
+                        formatString.Builder.Append(":").Append(fillin.Format.ConstantValue.StringValue);
                     }
                     formatString.Builder.Append("}");
                     fillins.Add(VisitExpression(fillin.Value));

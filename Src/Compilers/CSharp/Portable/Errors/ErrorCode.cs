@@ -1297,5 +1297,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AliasQualifiedNameNotAnExpression = 8083,
         ERR_NameofMethodGroupWithTypeParameters = 8084,
         ERR_NoAliasHere = 8085,
+        ERR_UnescapedCurly = 8086,
+        ERR_EscapedCurly = 8087,
+        ERR_TrailingWhitespaceInFormatSpecifier = 8088,
+        ERR_EmptyFormatSpecifier = 8089,
     }
 }

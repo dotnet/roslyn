@@ -3931,7 +3931,7 @@
     <value>Auto-implemented properties must have get accessors.</value>
   </data>
   <data name="ERR_AutoPropertyMustOverrideSet" xml:space="preserve">
-    <value>“Auto-implemented properties must override all accessors of the overridden property.”</value>
+    <value>Auto-implemented properties must override all accessors of the overridden property.</value>
   </data>
   <data name="ERR_AutoPropertyInitializerInInterface" xml:space="preserve">
     <value>Auto-implemented properties inside interfaces cannot have initializers.</value>
@@ -3970,7 +3970,7 @@
     <value>struct instance parameterless constructors</value>
   </data>
   <data name="ERR_UnclosedExpressionHole" xml:space="preserve">
-    <value>Missing close delimiter '}' for interpolated expression started with \{.</value>
+    <value>Missing close delimiter '}' for interpolated expression started with '{'.</value>
   </data>
   <data name="ERR_SingleLineCommentInExpressionHole" xml:space="preserve">
     <value>A single-line comment may not be used in an interpolated string.</value>
@@ -3998,5 +3998,20 @@
   </data>
   <data name="IDS_FeatureUsingStatic" xml:space="preserve">
     <value>using static</value>
+  </data>
+  <data name="IDS_FeatureInterpolatedStrings" xml:space="preserve">
+    <value>interpolated strings</value>
+  </data>
+  <data name="ERR_UnescapedCurly" xml:space="preserve">
+    <value>A '{0}' character must be escaped (by doubling) in an interpolated string.</value>
+  </data>
+  <data name="ERR_EscapedCurly" xml:space="preserve">
+    <value>A '{0}' character may only be escaped by doubling '{0}{0}' in an interpolated string.</value>
+  </data>
+  <data name="ERR_TrailingWhitespaceInFormatSpecifier" xml:space="preserve">
+    <value>A format specifier may not contain trailing whitespace.</value>
+  </data>
+  <data name="ERR_EmptyFormatSpecifier" xml:space="preserve">
+    <value>Empty format specifier.</value>
   </data>
 </root>

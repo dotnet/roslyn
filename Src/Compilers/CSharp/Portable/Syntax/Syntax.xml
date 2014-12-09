@@ -3918,7 +3918,6 @@
     <!-- TODO: Add "summary" documentation comments to these. -->
     <Field Name="Comma" Type="SyntaxToken" Optional="true" />
     <Field Name="Alignment" Type="ExpressionSyntax" Optional="true" />
-    <Field Name="Colon" Type="SyntaxToken" Optional="true" />
     <Field Name="Format" Type="SyntaxToken" Optional="true" />
   </Node>
 </Tree>

@@ -75,6 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private int identLen;
         private DirectiveStack directives;
         private readonly LexerCache cache;
+        private readonly bool allowPreprocessorDirectives;
 
         internal struct TokenInfo
         {
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             internal bool IsVerbatim;
         }
 
-        public Lexer(SourceText text, CSharpParseOptions options)
+        public Lexer(SourceText text, CSharpParseOptions options, bool allowPreprocessorDirectives = true)
             : base(text)
         {
             Debug.Assert(options != null);
@@ -107,6 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             this.identBuffer = new char[32];
             this.cache = new LexerCache();
             this.createQuickTokenFunction = this.CreateQuickToken;
+            this.allowPreprocessorDirectives = allowPreprocessorDirectives;
         }
 
         public override void Dispose()
@@ -740,7 +742,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
 
                 case '$':
-                    if (this.ModeIs(LexerMode.DebuggerSyntax))
+                    if (TextWindow.PeekChar(1) == '"')
+                    {
+                        this.ScanInterpolatedStringLiteral(false, ref info);
+                        CheckFeatureAvailability(MessageID.IDS_FeatureInterpolatedStrings);
+                        break;
+                    }
+                    else if (TextWindow.PeekChar(1) == '@' && TextWindow.PeekChar(2) == '"')
+                    {
+                        this.ScanInterpolatedStringLiteral(true, ref info);
+                        CheckFeatureAvailability(MessageID.IDS_FeatureInterpolatedStrings);
+                        break;
+                    }
+                    else if (this.ModeIs(LexerMode.DebuggerSyntax))
                     {
                         goto case 'a';
                     }
@@ -874,6 +888,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     this.AddError(ErrorCode.ERR_UnexpectedCharacter, info.Text);
                     break;
             }
+        }
+        
+        private void CheckFeatureAvailability(MessageID feature)
+        {
+            LanguageVersion availableVersion = this.Options.LanguageVersion;
+            var requiredVersion = feature.RequiredVersion();
+            if (availableVersion >= requiredVersion) return;
+            var featureName = feature.Localize();
+            this.AddError(availableVersion.GetErrorCode(), featureName, requiredVersion.Localize());
         }
 
         private bool ScanInteger()
@@ -1271,217 +1294,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             return result;
-        }
-
-        private char ScanEscapeSequence(out char surrogateCharacter)
-        {
-            var start = TextWindow.Position;
-            surrogateCharacter = SlidingTextWindow.InvalidCharacter;
-            char ch = TextWindow.NextChar();
-            Debug.Assert(ch == '\\');
-
-            ch = TextWindow.NextChar();
-            switch (ch)
-            {
-                // escaped characters that translate to themselves
-                case '\'':
-                case '\"':
-                case '\\':
-                    break;
-                // translate escapes as per C# spec 2.4.4.4
-                case '0':
-                    ch = '\u0000';
-                    break;
-                case 'a':
-                    ch = '\u0007';
-                    break;
-                case 'b':
-                    ch = '\u0008';
-                    break;
-                case 'f':
-                    ch = '\u000c';
-                    break;
-                case 'n':
-                    ch = '\u000a';
-                    break;
-                case 'r':
-                    ch = '\u000d';
-                    break;
-                case 't':
-                    ch = '\u0009';
-                    break;
-                case 'v':
-                    ch = '\u000b';
-                    break;
-                case 'x':
-                case 'u':
-                case 'U':
-                    TextWindow.Reset(start);
-                    SyntaxDiagnosticInfo error;
-                    ch = TextWindow.NextUnicodeEscape(surrogateCharacter: out surrogateCharacter, info: out error);
-                    AddError(error);
-                    break;
-                default:
-                    this.AddError(start, TextWindow.Position - start, ErrorCode.ERR_IllegalEscape);
-                    break;
-            }
-
-            return ch;
-        }
-
-        internal void ScanStringLiteral(ref TokenInfo info, bool allowEscapes = true)
-        {
-            var start = TextWindow.Position;
-            var quoteCharacter = TextWindow.PeekChar();
-            if (quoteCharacter == '\'' || quoteCharacter == '"')
-            {
-                TextWindow.AdvanceChar();
-                this.builder.Length = 0;
-                while (true)
-                {
-                    char ch;
-                    if ((ch = TextWindow.PeekChar()) == '\\' && allowEscapes)
-                    {
-                        // We support string interpolation starting in language version 6.
-                        if (TextWindow.PeekChar(1) == '{' && quoteCharacter == '"' && options.LanguageVersion >= LanguageVersion.CSharp6)
-                        {
-                            // An interpolated string literal.
-                            TextWindow.Reset(start);
-                            ScanInterpolatedStringLiteral(ref info);
-                            return;
-                        }
-
-                        // normal string & char constants can have escapes
-                        char c2;
-                        ch = this.ScanEscapeSequence(out c2);
-                        this.builder.Append(ch);
-                        if (c2 != SlidingTextWindow.InvalidCharacter)
-                        {
-                            this.builder.Append(c2);
-                        }
-                    }
-                    else if (ch == quoteCharacter)
-                    {
-                        TextWindow.AdvanceChar();
-                        break;
-                    }
-                    else if (SyntaxFacts.IsNewLine(ch) ||
-                            (ch == SlidingTextWindow.InvalidCharacter && TextWindow.IsReallyAtEnd()))
-                    //String and character literals can contain any Unicode character. They are not limited
-                    //to valid UTF-16 characters. So if we get the SlidingTextWindow's sentinel value,
-                    //double check that it was not real user-code contents. This will be rare.
-                    {
-                        Debug.Assert(TextWindow.Width > 0);
-                        this.AddError(ErrorCode.ERR_NewlineInConst);
-                        break;
-                    }
-                    else
-                    {
-                        TextWindow.AdvanceChar();
-                        this.builder.Append(ch);
-                    }
-                }
-
-                // text = textWindow.GetText(false);
-                info.Text = TextWindow.GetText(true);
-                if (quoteCharacter == '\'')
-                {
-                    info.Kind = SyntaxKind.CharacterLiteralToken;
-                    if (this.builder.Length != 1)
-                    {
-                        this.AddError((this.builder.Length != 0) ? ErrorCode.ERR_TooManyCharsInConst : ErrorCode.ERR_EmptyCharConst);
-                    }
-
-                    if (this.builder.Length > 0)
-                    {
-                        info.StringValue = TextWindow.Intern(this.builder);
-                        info.CharValue = info.StringValue[0];
-                    }
-                    else
-                    {
-                        info.StringValue = string.Empty;
-                        info.CharValue = SlidingTextWindow.InvalidCharacter;
-                    }
-                }
-                else
-                {
-                    info.Kind = SyntaxKind.StringLiteralToken;
-                    if (this.builder.Length > 0)
-                    {
-                        // unescapedText = this.builder.ToString();
-                        info.StringValue = TextWindow.Intern(this.builder);
-                    }
-                    else
-                    {
-                        info.StringValue = string.Empty;
-                    }
-                }
-            }
-            else
-            {
-                info.Kind = SyntaxKind.None;
-                info.Text = null;
-            }
-        }
-
-        private void ScanVerbatimStringLiteral(ref TokenInfo info)
-        {
-            this.builder.Length = 0;
-
-            if (TextWindow.PeekChar() == '@' && TextWindow.PeekChar(1) == '"')
-            {
-                TextWindow.AdvanceChar(2);
-                bool done = false;
-                char ch;
-                this.builder.Length = 0;
-                while (!done)
-                {
-                    switch (ch = TextWindow.PeekChar())
-                    {
-                        case '\"':
-                            TextWindow.AdvanceChar();
-                            if (TextWindow.PeekChar() == '\"')
-                            {
-                                // Doubled quote -- skip & put the single quote in the string
-                                TextWindow.AdvanceChar();
-                                this.builder.Append(ch);
-                            }
-                            else
-                            {
-                                done = true;
-                            }
-
-                            break;
-
-                        case SlidingTextWindow.InvalidCharacter:
-                            if (!TextWindow.IsReallyAtEnd())
-                            {
-                                goto default;
-                            }
-
-                            // Reached the end of the source without finding the end-quote.  Give
-                            // an error back at the starting point.
-                            this.AddError(ErrorCode.ERR_UnterminatedStringLit);
-                            done = true;
-                            break;
-
-                        default:
-                            TextWindow.AdvanceChar();
-                            this.builder.Append(ch);
-                            break;
-                    }
-                }
-
-                info.Kind = SyntaxKind.StringLiteralToken;
-                info.Text = TextWindow.GetText(false);
-                info.StringValue = this.builder.ToString();
-            }
-            else
-            {
-                info.Kind = SyntaxKind.None;
-                info.Text = null;
-                info.StringValue = null;
-            }
         }
 
         private void ResetIdentBuffer()
@@ -2372,8 +2184,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         onlyWhitespaceOnLine = true;
                         break;
                     case '#':
-                        this.LexDirectiveAndExcludedTrivia(afterFirstToken, isTrailing || !onlyWhitespaceOnLine, ref triviaList);
-                        break;
+                        if (allowPreprocessorDirectives)
+                        {
+                            this.LexDirectiveAndExcludedTrivia(afterFirstToken, isTrailing || !onlyWhitespaceOnLine, ref triviaList);
+                            break;
+                        }
+                        else
+                        {
+                            return;
+                        }
                     default:
                         return;
                 }
@@ -2641,6 +2460,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         followedByDirective = false;
                         return TextWindow.Width > 0 ? SyntaxFactory.DisabledText(TextWindow.GetText(false)) : null;
                     case '#':
+                        if (!allowPreprocessorDirectives) goto default;
                         followedByDirective = true;
                         if (lastLineStart < TextWindow.Position && !allWhitespace)
                         {

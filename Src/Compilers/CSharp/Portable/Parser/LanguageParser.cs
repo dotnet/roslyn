@@ -8476,9 +8476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     expr = syntaxFactory.LiteralExpression(SyntaxFacts.GetLiteralExpression(tk), this.EatToken());
                     break;
                 case SyntaxKind.InterpolatedStringStartToken:
-                    expr = this.ParseInterpolatedString();
-                    // throw new NotImplementedException(); // this should not occur one we fix up the incremental scanner
-                    break;
+                    throw new NotImplementedException(); // this should not occur because these tokens are produced and parsed immediately
                 case SyntaxKind.InterpolatedStringToken:
                     expr = this.ParseInterpolatedStringToken();
                     break;

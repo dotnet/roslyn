@@ -225,10 +225,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         XmlEntityLiteralToken = 8512,  // &lt; &gt; &quot; &amp; &apos; or &name; or &#nnnn; or &#xhhhh;
         XmlTextLiteralToken = 8513,    // xml text node text
         XmlTextLiteralNewLineToken = 8514,
-        InterpolatedStringToken = 8515, // terminal for the whole interpolated string
-        InterpolatedStringStartToken = 8516, // "...\{
-        InterpolatedStringMidToken = 8517,   // }...\{
-        InterpolatedStringEndToken = 8518,   // }..."
+
+        InterpolatedStringToken = 8515,                 // terminal for a whole interpolated string $" ... { expr } ..."
+        InterpolatedStringStartToken = 8516,            // $"...{ or $@"...{
+        InterpolatedStringMidToken = 8517,              // }...{
+        InterpolatedStringEndToken = 8518,              // }..."
 
         // trivia
         EndOfLineTrivia = 8539,

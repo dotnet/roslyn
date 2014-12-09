@@ -746,7 +746,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to “Auto-implemented properties must override all accessors of the overridden property.”.
+        ///   Looks up a localized string similar to Auto-implemented properties must override all accessors of the overridden property..
         /// </summary>
         internal static string ERR_AutoPropertyMustOverrideSet {
             get {
@@ -3428,6 +3428,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Empty format specifier..
+        /// </summary>
+        internal static string ERR_EmptyFormatSpecifier {
+            get {
+                return ResourceManager.GetString("ERR_EmptyFormatSpecifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Expression expected after yield return.
         /// </summary>
         internal static string ERR_EmptyYield {
@@ -3532,6 +3541,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ErrorDirective {
             get {
                 return ResourceManager.GetString("ERR_ErrorDirective", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A &apos;{0}&apos; character may only be escaped by doubling &apos;{0}{0}&apos; in an interpolated string..
+        /// </summary>
+        internal static string ERR_EscapedCurly {
+            get {
+                return ResourceManager.GetString("ERR_EscapedCurly", resourceCulture);
             }
         }
         
@@ -7982,6 +8000,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A format specifier may not contain trailing whitespace..
+        /// </summary>
+        internal static string ERR_TrailingWhitespaceInFormatSpecifier {
+            get {
+                return ResourceManager.GetString("ERR_TrailingWhitespaceInFormatSpecifier", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The {1} &apos;{0}&apos; cannot be used with type arguments.
         /// </summary>
         internal static string ERR_TypeArgsNotAllowed {
@@ -8081,11 +8108,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Missing close delimiter &apos;}&apos; for interpolated expression started with \{..
+        ///   Looks up a localized string similar to Missing close delimiter &apos;}&apos; for interpolated expression started with &apos;{&apos;..
         /// </summary>
         internal static string ERR_UnclosedExpressionHole {
             get {
                 return ResourceManager.GetString("ERR_UnclosedExpressionHole", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A &apos;{0}&apos; character must be escaped (by doubling) in an interpolated string..
+        /// </summary>
+        internal static string ERR_UnescapedCurly {
+            get {
+                return ResourceManager.GetString("ERR_UnescapedCurly", resourceCulture);
             }
         }
         
@@ -8843,6 +8879,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureImplicitLocal {
             get {
                 return ResourceManager.GetString("IDS_FeatureImplicitLocal", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to interpolated strings.
+        /// </summary>
+        internal static string IDS_FeatureInterpolatedStrings {
+            get {
+                return ResourceManager.GetString("IDS_FeatureInterpolatedStrings", resourceCulture);
             }
         }
         

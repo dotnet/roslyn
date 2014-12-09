@@ -22,6 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(stringStart.CSharpKind() == SyntaxKind.InterpolatedStringStartToken);
             var stringType = GetSpecialType(SpecialType.System_String, diagnostics, node);
             var objectType = GetSpecialType(SpecialType.System_Object, diagnostics, node);
+            var intType = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
             builder.Add(new BoundLiteral(node, ConstantValue.Create(stringStart.ValueText, SpecialType.System_String), stringType));
             var inserts = node.InterpolatedInserts.GetWithSeparators();
             for (int i = 0; i < inserts.Count; i++)
@@ -30,8 +31,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // an expression hole
                     var expr = (InterpolatedStringInsertSyntax)inserts[i].AsNode();
-                    var bound = this.GenerateConversionForAssignment(objectType, this.BindExpression(expr.Expression, diagnostics), diagnostics);
-                    BoundExpression alignment = expr.Alignment != null ? BindExpression(expr.Alignment, diagnostics) : null;
+                    var bound = GenerateConversionForAssignment(objectType, this.BindExpression(expr.Expression, diagnostics), diagnostics);
+                    BoundExpression alignment = null;
+                    if (expr.Alignment != null)
+                    {
+                        alignment = GenerateConversionForAssignment(intType, this.BindExpression(expr.Alignment, diagnostics), diagnostics);
+                        if (!alignment.HasErrors && alignment.ConstantValue == null)
+                        {
+                            diagnostics.Add(ErrorCode.ERR_ConstantExpected, expr.Alignment.Location);
+                        }
+                    }
+
                     BoundExpression format = null;
                     if (expr.Format != default(SyntaxToken))
                     {

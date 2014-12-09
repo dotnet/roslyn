@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -9,6 +11,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal partial class LanguageParser
     {
+        /// <summary>
+        /// "Safe" substring using start and end positions rather than start and length.
+        /// If things are out of bounds just returns the whole string. That should only
+        /// be used by clients to assist in error recovery.
+        /// <param name="s">original string</param>
+        /// <param name="first">index of first character to be included</param>
+        /// <param name="last">index of last character to be included</param>
+        /// </summary>
+        private string Substring(string s, int first, int last)
+        {
+            int len = last - first + 1;
+            return (last > s.Length || len < 0) ? s : s.Substring(first, len);
+        }
+
         private ExpressionSyntax ParseInterpolatedStringToken()
         {
             // We don't want to make the scanner stateful (between tokens) if we can possibly avoid it.
@@ -40,66 +56,107 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             //
 
             var originalToken = this.EatToken();
+            var originalText = originalToken.ValueText; // this is actually the source text
+            Debug.Assert(originalText[0] == '$');
+            var isVerbatim = originalText.Length > 2 && originalText[1] == '@';
             Debug.Assert(originalToken.Kind == SyntaxKind.InterpolatedStringToken);
-            var originalText = originalToken.ValueText;
             var interpolations = ArrayBuilder<Lexer.Interpolation>.GetInstance();
             SyntaxDiagnosticInfo error = null;
-            using (var tempLexer = new Lexer(Text.SourceText.From(originalText), this.Options))
+            using (var tempLexer = new Lexer(Text.SourceText.From(originalText), this.Options, allowPreprocessorDirectives: false))
             {
-                // compute the positions of the interpolations in the original string literal
+                // compute the positions of the interpolations in the original string literal, and also compute/preserve
+                // lexical errors
                 var info = default(Lexer.TokenInfo);
-                tempLexer.ScanISLTop(interpolations, ref info, ref error);
+                tempLexer.ScanInterpolatedStringLiteralTop(interpolations, isVerbatim, ref info, ref error);
             }
 
-            Debug.Assert(interpolations.Count != 0);
             var builder = this.pool.AllocateSeparated<InterpolatedStringInsertSyntax>();
             try
             {
                 SyntaxToken stringStart = null;
                 SyntaxToken stringEnd = null;
-
-                for (int i = 0; i < interpolations.Count; i++)
+                if (interpolations.Count == 0)
                 {
-                    var interpolation = interpolations[i];
-                    var first = i == 0;
-                    var last = i == (interpolations.Count - 1);
-
-                    if (first)
+                    // In the special case when there are no interpolations, we just construct a format string
+                    // with no inserts. We must still use String.Format to get its handling of escapes such as {{
+                    var startText = Substring(originalText, isVerbatim ? 3 : 2, originalText.Length - 1);
+                    stringStart = MakeStringToken(originalText, startText, isVerbatim, SyntaxKind.InterpolatedStringStartToken).WithLeadingTrivia(originalToken.GetLeadingTrivia());
+                    stringEnd = SyntaxFactory.Literal(null, string.Empty, SyntaxKind.InterpolatedStringEndToken, string.Empty, null).WithTrailingTrivia(originalToken.GetTrailingTrivia());
+                }
+                else
+                {
+                    for (int i = 0; i < interpolations.Count; i++)
                     {
-                        // compute stringStart
-                        var startText = originalText.Substring(0, interpolation.Start + 1);
-                        stringStart = MakeStringToken(startText, SyntaxKind.InterpolatedStringStartToken).WithLeadingTrivia(originalToken.GetLeadingTrivia());
-                        Debug.Assert(stringStart.Kind == SyntaxKind.InterpolatedStringStartToken);
-                    }
+                        var interpolation = interpolations[i];
+                        var first = i == 0;
+                        var last = i == (interpolations.Count - 1);
 
-                    CSharpSyntaxNode additionalTrivia;
-                    var interpText = originalText.Substring(interpolation.Start + 1, interpolation.End - interpolation.Start - 1);
-                    using (var tempLexer = new Lexer(Text.SourceText.From(interpText), this.Options))
-                    {
-                        using (var tempParser = new LanguageParser(tempLexer, null, null))
+                        if (first)
                         {
-                            var insert = tempParser.ParseInterpolatedStringInsert();
-                            insert = tempParser.ConsumeUnexpectedTokens(insert);
-                            // In case the insert is empty, move the leading trivia from its EOF token to the following literal part.
-                            additionalTrivia = tempParser.CurrentToken.GetLeadingTrivia();
-                            builder.Add(insert);
+                            // compute stringStart
+                            var startText1 = Substring(originalText, 0, interpolation.Start);
+                            var startText2 = Substring(originalText, isVerbatim ? 3 : 2, interpolation.Start - 1);
+                            stringStart = MakeStringToken(startText1, startText2, isVerbatim, SyntaxKind.InterpolatedStringStartToken).WithLeadingTrivia(originalToken.GetLeadingTrivia());
+                            Debug.Assert(stringStart.Kind == SyntaxKind.InterpolatedStringStartToken);
                         }
-                    }
 
-                    if (last)
-                    {
-                        // compute stringEnd
-                        var endText = originalText.Substring(interpolation.End);
-                        stringEnd = MakeStringToken(endText, SyntaxKind.InterpolatedStringEndToken).WithLeadingTrivia(additionalTrivia).WithTrailingTrivia(originalToken.GetTrailingTrivia());
-                        Debug.Assert(stringEnd.Kind == SyntaxKind.InterpolatedStringEndToken);
-                    } else {
-                        // add an interpolated string mid token for the following }...{ part
-                        var midText = originalText.Substring(interpolation.End, interpolations[i + 1].Start - interpolation.End + 1);
-                        var stringMid = MakeStringToken(midText, SyntaxKind.InterpolatedStringMidToken).WithLeadingTrivia(additionalTrivia);
-                        Debug.Assert(stringMid.Kind == SyntaxKind.InterpolatedStringMidToken);
-                        builder.AddSeparator(stringMid);
-                    }
+                        CSharpSyntaxNode additionalTrivia;
+                        var hasFormatSpecifier = interpolation.Colon != 0;
+                        var end = hasFormatSpecifier ? interpolation.Colon : interpolation.End;
+                        var interpText = Substring(originalText, interpolation.Start + 1, end - 1);
+                        using (var tempLexer = new Lexer(Text.SourceText.From(interpText), this.Options, allowPreprocessorDirectives: false))
+                        {
+                            using (var tempParser = new LanguageParser(tempLexer, null, null))
+                            {
+                                ExpressionSyntax expr;
+                                SyntaxToken commaToken;
+                                ExpressionSyntax alignmentExpression;
+                                tempParser.ParseInterpolationStart(out expr, out commaToken, out alignmentExpression);
+                                // In case the insert is empty, move the leading trivia from its EOF token to the following token.
+                                additionalTrivia = tempParser.CurrentToken.GetLeadingTrivia();
 
+                                var formatToken = default(SyntaxToken);
+                                if (hasFormatSpecifier)
+                                {
+                                    additionalTrivia = null;
+                                    var formatString1 = Substring(originalText, interpolation.Colon, interpolation.End - 1);
+                                    var formatString2 = Substring(originalText, interpolation.Colon + 1, interpolation.End - 1);
+                                    formatToken = MakeStringToken(formatString1, formatString2, isVerbatim, SyntaxKind.StringLiteralToken);
+                                    var text = formatToken.ValueText;
+                                    if (text.Length == 0)
+                                    {
+                                        formatToken = AddError(formatToken, ErrorCode.ERR_EmptyFormatSpecifier);
+                                    }
+                                    else if (SyntaxFacts.IsWhitespace(text[text.Length - 1]) || SyntaxFacts.IsNewLine(text[text.Length - 1]))
+                                    {
+                                        formatToken = AddError(formatToken, ErrorCode.ERR_TrailingWhitespaceInFormatSpecifier);
+                                    }
+                                }
+
+                                var insert = SyntaxFactory.InterpolatedStringInsert(expr, commaToken, alignmentExpression, formatToken);
+                                builder.Add(insert);
+                            }
+                        }
+
+                        if (last)
+                        {
+                            // compute stringEnd
+                            var endText1 = originalText.Substring(interpolation.End);
+                            var endText2 = Substring(originalText, interpolation.End + 1, originalText.Length - 2);
+                            stringEnd = MakeStringToken(endText1, endText2, isVerbatim, SyntaxKind.InterpolatedStringEndToken).WithLeadingTrivia(additionalTrivia).WithTrailingTrivia(originalToken.GetTrailingTrivia());
+                            Debug.Assert(stringEnd.Kind == SyntaxKind.InterpolatedStringEndToken);
+                        }
+                        else
+                        {
+                            // add an interpolated string mid token for the following }...{ part
+                            var midText1 = Substring(originalText, interpolation.End, interpolations[i + 1].Start);
+                            var midText2 = Substring(originalText, interpolation.End + 1, interpolations[i + 1].Start - 1);
+                            var stringMid = MakeStringToken(midText1, midText2, isVerbatim, SyntaxKind.InterpolatedStringMidToken).WithLeadingTrivia(additionalTrivia);
+                            Debug.Assert(stringMid.Kind == SyntaxKind.InterpolatedStringMidToken);
+                            builder.AddSeparator(stringMid);
+                        }
+
+                    }
                 }
 
                 interpolations.Free();
@@ -117,93 +174,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// Take the given text and treat it as the contents of a string literal, returning a token for that.
         /// </summary>
         /// <param name="text">The text for the full string literal, including the quotes and contents</param>
+        /// <param name="bodyText">The text for the string literal's contents, excluding surrounding quotes</param>
+        /// <param name="isVerbatim">True if the string contents should be scanned using the rules for verbatim strings</param>
         /// <param name="kind">The token kind to be assigned to the resulting token</param>
-        SyntaxToken MakeStringToken(string text, SyntaxKind kind)
+        SyntaxToken MakeStringToken(string text, string bodyText, bool isVerbatim, SyntaxKind kind)
         {
-            int length = text.Length;
-            int startingChars = (length > 2 && text[0] == '"' || length > 1 && text[0] == '}') ? 1 : 0;
-            int endingChars = (length > 1 && text[length - 1] == '"') ? 1 : (length > 2 && text[length - 1] == '{' && text[length - 2] == '\\') ? 2 : 0;
-            using (var tempLexer = new Lexer(Text.SourceText.From("\"" + text.Substring(startingChars, length - startingChars - endingChars) + "\""), this.Options))
+            var fakeString = (isVerbatim ? "@\"" : "\"") + bodyText + "\"";
+            using (var tempLexer = new Lexer(Text.SourceText.From(fakeString), this.Options, allowPreprocessorDirectives: false))
             {
                 var info = default(Lexer.TokenInfo);
-                tempLexer.ScanStringLiteral(ref info);
+                if (isVerbatim) tempLexer.ScanVerbatimStringLiteral(ref info); else tempLexer.ScanStringLiteral(ref info);
                 Debug.Assert(info.Kind == SyntaxKind.StringLiteralToken);
                 return SyntaxFactory.Literal(null, text, kind, info.StringValue, null);
             }
         }
 
-        private ExpressionSyntax ParseInterpolatedString()
+        private void ParseInterpolationStart(out ExpressionSyntax expr, out SyntaxToken commaToken, out ExpressionSyntax alignmentExpression)
         {
-            // The following *should* be dead code, as we always construct the tokens and parse them at the same time, above.
-            throw new NotImplementedException();
-
-            ////var stringStart = this.EatToken();
-            ////Debug.Assert(stringStart.Kind == SyntaxKind.InterpolatedStringStart);
-            ////SyntaxToken stringEnd = default(SyntaxToken);
-            ////var builder = this.pool.AllocateSeparated<InterpolatedStringInsertSyntax>();
-            ////try
-            ////{
-            ////    while (true)
-            ////    {
-            ////        var insert = ParseInterpolatedStringInsert();
-            ////        builder.Add(insert);
-            ////        if (this.CurrentToken.Kind == SyntaxKind.InterpolatedStringMid)
-            ////        {
-            ////            builder.AddSeparator(this.EatToken());
-            ////        }
-            ////        else if (this.CurrentToken.Kind == SyntaxKind.InterpolatedStringEnd)
-            ////        {
-            ////            stringEnd = this.EatToken();
-            ////            break;
-            ////        }
-            ////        else
-            ////        {
-            ////            throw new NotImplementedException();
-            ////        }
-            ////    }
-
-            ////    return SyntaxFactory.InterpolatedString(stringStart, builder.ToList(), stringEnd);
-            ////}
-            ////finally
-            ////{
-            ////    this.pool.Free(builder);
-            ////}
-        }
-
-        private InterpolatedStringInsertSyntax ParseInterpolatedStringInsert()
-        {
-            ExpressionSyntax expr;
-            var commaToken = default(SyntaxToken);
-            ExpressionSyntax alignmentExpression = null;
-            var colonToken = default(SyntaxToken);
-            var formatToken = default(SyntaxToken);
-
             expr = this.ParseExpression();
-
             if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
             {
                 commaToken = this.EatToken(SyntaxKind.CommaToken);
-                // require the width to be a literal (one token) of the negative of a literal (two tokens)
+                // require the width to be a literal (one token) or the negative of a literal (two tokens)
                 var minusToken = (this.CurrentToken.Kind == SyntaxKind.MinusToken) ? this.EatToken(SyntaxKind.MinusToken) : null;
                 var widthToken = this.EatToken(SyntaxKind.NumericLiteralToken);
                 var widthExpression = SyntaxFactory.LiteralExpression(SyntaxKind.NumericLiteralExpression, widthToken);
                 alignmentExpression = (minusToken != null) ? (ExpressionSyntax)SyntaxFactory.PrefixUnaryExpression(SyntaxKind.UnaryMinusExpression, minusToken, widthExpression) : widthExpression;
+                alignmentExpression = ConsumeUnexpectedTokens(alignmentExpression);
             }
-
-            if (this.CurrentToken.Kind == SyntaxKind.ColonToken)
+            else
             {
-                colonToken = this.EatToken(SyntaxKind.ColonToken);
-                formatToken = this.EatToken(this.CurrentToken.Kind == SyntaxKind.IdentifierToken ? SyntaxKind.IdentifierToken : SyntaxKind.StringLiteralToken);
+                commaToken = default(SyntaxToken);
+                alignmentExpression = null;
+                expr = ConsumeUnexpectedTokens(expr);
             }
-
-            return SyntaxFactory.InterpolatedStringInsert(
-                expr,                // expression
-                commaToken,          // ,
-                alignmentExpression, // -5
-                colonToken,          // :
-                formatToken);        // N2
-
         }
-
     }
 }

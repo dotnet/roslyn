@@ -2607,7 +2607,7 @@ class D { }
         {
             var interfaceKeyword = SyntaxFactory.ParseToken("interface"); // prime the memoizer
 
-            var text = @"class foo { public void m() { string s = ""\{1} world"" ; } }";
+            var text = @"class foo { public void m() { string s = $""{1} world"" ; } }";
             var oldTree = this.Parse6(text);
             var newTree = oldTree.WithReplaceFirst(@"world"" ", @"world""  ");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);

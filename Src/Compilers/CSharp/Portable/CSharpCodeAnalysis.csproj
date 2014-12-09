@@ -452,7 +452,7 @@
     <Compile Include="Parser\LanguageParser_InterpolatedString.cs" />
     <Compile Include="Parser\Lexer.cs" />
     <Compile Include="Parser\LexerCache.cs" />
-    <Compile Include="Parser\Lexer_InterpolatedStringLiteral.cs" />
+    <Compile Include="Parser\Lexer_StringLiteral.cs" />
     <Compile Include="Parser\QuickScanner.cs" />
     <Compile Include="Parser\SlidingTextWindow.cs" />
     <Compile Include="Parser\SyntaxFactoryContext.cs" />
