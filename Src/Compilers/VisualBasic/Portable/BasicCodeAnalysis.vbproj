@@ -689,6 +689,7 @@
     <Compile Include="Symbols\OverriddenMembersResult.vb" />
     <Compile Include="Symbols\ParameterSymbol.vb" />
     <Compile Include="Symbols\PEOrSourceOrMergedNamespaceSymbol.vb" />
+    <Compile Include="Symbols\PointerTypeSymbol.vb" />
     <Compile Include="Symbols\PreprocessingSymbol.vb" />
     <Compile Include="Symbols\PropertySignatureComparer.vb" />
     <Compile Include="Symbols\PropertySymbol.vb" />

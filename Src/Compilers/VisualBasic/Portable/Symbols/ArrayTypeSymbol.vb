@@ -329,7 +329,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' And then hash that with the "T" type.
 
             Dim hashCode = 0
-            Dim current As ITypeSymbol = Me
+            Dim current As TypeSymbol = Me
             While (current.TypeKind = TypeKind.Array)
                 Dim cur = DirectCast(current, ArrayTypeSymbol)
                 hashCode = Hash.Combine(cur.Rank, hashCode)

@@ -207,7 +207,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 If Not t1IsDefinition Then ' This is a generic instantiation
 
-                    If t1.OriginalDefinition IsNot t2.OriginalDefinition Then
+                    If t1.OriginalDefinition <> t2.OriginalDefinition Then
                         Return False ' different definition
                     End If
 

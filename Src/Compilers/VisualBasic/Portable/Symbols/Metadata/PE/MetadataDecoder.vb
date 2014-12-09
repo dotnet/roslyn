@@ -230,7 +230,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
         Protected Overrides Function MakePointerTypeSymbol(type As TypeSymbol, customModifiers As ImmutableArray(Of ModifierInfo)) As TypeSymbol
-            Return GetUnsupportedMetadataTypeSymbol()
+            Return New PointerTypeSymbol(type, VisualBasicCustomModifier.Convert(customModifiers))
         End Function
 
         Protected Overrides Function SubstituteWithUnboundIfGeneric(type As TypeSymbol) As TypeSymbol

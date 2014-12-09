@@ -6824,6 +6824,85 @@ BC31417: 'Friend Overrides Property Set r(Value As Object)' cannot override 'Fri
 
         End Sub
 
-    End Class
+        <WorkItem(1067044, "DevDiv")>
+        <Fact>
+        Sub Bug1067044()
+            Dim il = <![CDATA[
+.class public abstract auto ansi beforefieldinit C1
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig newslot abstract virtual 
+          instance int32*  M1() cil managed
+  {
+  } // end of method C1::M1
 
+  .method family hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method C1::.ctor
+
+} // end of class C1
+
+.class public abstract auto ansi beforefieldinit C2
+       extends C1
+{
+  .method public hidebysig virtual instance int32* 
+          M1() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  1
+    .locals init (int32* V_0)
+    IL_0000:  nop
+    IL_0001:  ldc.i4.0
+    IL_0002:  conv.u
+    IL_0003:  stloc.0
+    IL_0004:  br.s       IL_0006
+
+    IL_0006:  ldloc.0
+    IL_0007:  ret
+  } // end of method C2::M1
+
+  .method public hidebysig newslot abstract virtual 
+          instance void  M2() cil managed
+  {
+  } // end of method C2::M2
+
+  .method family hidebysig specialname rtspecialname 
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void C1::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method C2::.ctor
+
+} // end of class C2
+]]>
+
+            Dim source =
+               <compilation>
+                   <file name="a.vb">
+Public Class C3
+    Inherits C2
+
+    Public Overrides Sub M2()
+    End Sub
+End Class
+                    </file>
+               </compilation>
+
+            Dim compilation = CreateCompilationWithCustomILSource(source, il.Value, options:=TestOptions.DebugDll)
+
+            CompileAndVerify(compilation)
+        End Sub
+
+    End Class
 End Namespace

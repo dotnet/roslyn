@@ -93,7 +93,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
             Dim p6Type As TypeSymbol = p6.Type
 
-            Assert.IsType(Of UnsupportedMetadataTypeSymbol)(p6Type)
+            Assert.IsType(Of PointerTypeSymbol)(p6Type)
+            Assert.Equal(ERRID.ERR_UnsupportedType1, p6Type.GetUseSiteErrorInfo().Code)
 
             Assert.False(m7.IsSub)
             Assert.Equal(1, m7.ReturnTypeCustomModifiers.Length)
