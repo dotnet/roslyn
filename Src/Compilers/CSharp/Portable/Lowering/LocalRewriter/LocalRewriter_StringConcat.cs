@@ -155,8 +155,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (boundCoalesce.LeftConversion.IsIdentity)
                     {
-                        var right = boundCoalesce.RightOperand;
-                        if (right.ConstantValue != null && right.ConstantValue.StringValue.Length == 0)
+                        // The RHS may be a constant value with an identity conversion to string even
+                        // if it is not a string: in particular, the null literal behaves this way.
+                        // To be safe, check that the constant value is actually a string before
+                        // attempting to access its value as a string.
+
+                        var rightConstant = boundCoalesce.RightOperand.ConstantValue;
+                        if (rightConstant != null && rightConstant.IsString && rightConstant.StringValue.Length == 0)
                         {
                             flattened.Add(boundCoalesce.LeftOperand);
                             return;

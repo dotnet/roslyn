@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class StringConcatTests : CSharpTestBase
     {
-        [Fact()]
+        [Fact]
         public void ConcatConsts()
         {
             var source = @"
@@ -79,7 +79,7 @@ B
 ");
         }
 
-        [Fact()]
+        [Fact]
         public void ConcatDefaults()
         {
             var source = @"
@@ -146,7 +146,7 @@ B
 ");
         }
 
-        [Fact()]
+        [Fact]
         public void ConcatFour()
         {
             var source = @"
@@ -181,7 +181,7 @@ public class Test
 ");
         }
 
-        [Fact()]
+        [Fact]
         public void ConcatMerge()
         {
             var source = @"
@@ -286,7 +286,7 @@ OAFABOFA");
 ");
         }
 
-        [Fact()]
+        [Fact]
         public void ConcatMergeFromOne()
         {
             var source = @"
@@ -338,7 +338,7 @@ public class Test
 ");
         }
 
-        [Fact()]
+        [Fact]
         public void ConcatOneArg()
         {
             var source = @"
@@ -378,7 +378,7 @@ F");
 ");
         }
 
-        [Fact()]
+        [Fact]
         public void ConcatEmptyString()
         {
             var source = @"
@@ -418,7 +418,7 @@ F");
 ");
         }
 
-        [Fact()]
+        [Fact]
         [WorkItem(679120, "DevDiv")]
         public void ConcatEmptyArray()
         {
@@ -472,7 +472,7 @@ End");
         }
 
         [WorkItem(529064, "DevDiv")]
-        [Fact()]
+        [Fact]
         public void TestStringConcatOnLiteralAndCompound()
         {
             var source = @"
@@ -502,7 +502,7 @@ public class Test
 ");
         }
 
-        [Fact()]
+        [Fact]
         public void ConcatGeneric()
         {
             var source = @"
@@ -605,7 +605,7 @@ A0A0
 ");
         }
 
-        [Fact()]
+        [Fact]
         public void ConcatGenericConstrained()
         {
             var source = @"
@@ -696,7 +696,7 @@ B
 ");
         }
 
-        [Fact()]
+        [Fact]
         public void ConcatWithOtherOptimizations()
         {
             var source = @"
@@ -740,5 +740,78 @@ public class Test
 ");
         }
 
+        [Fact, WorkItem(1092853, "DevDiv")]
+        public void ConcatWithNullCoalescedNullLiteral()
+        {
+            const string source = @"
+class Repro
+{
+    static string Bug(string s)
+    {
+        string x = """";
+        x += s ?? null;
+        return x;
+    }
+
+    static void Main()
+    {
+        System.Console.Write(""\""{0}\"""", Bug(null));
+    }
+}";
+
+            var comp = CompileAndVerify(source, expectedOutput: "\"\"");
+
+            comp.VerifyIL("Repro.Bug", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  3
+  IL_0000:  ldstr      """"
+  IL_0005:  ldarg.0
+  IL_0006:  dup
+  IL_0007:  brtrue.s   IL_000b
+  IL_0009:  pop
+  IL_000a:  ldnull
+  IL_000b:  call       ""string string.Concat(string, string)""
+  IL_0010:  ret
+}
+");
+        }
+
+        [Fact, WorkItem(1092853, "DevDiv")]
+        public void ConcatWithNullCoalescedNullLiteral_2()
+        {
+            const string source = @"
+class Repro
+{
+    static string Bug(string s)
+    {
+        string x = """";
+        x += s ?? ((string)null ?? null);
+        return x;
+    }
+
+    static void Main()
+    {
+        System.Console.Write(""\""{0}\"""", Bug(null));
+    }
+}";
+
+            var comp = CompileAndVerify(source, expectedOutput: "\"\"");
+
+            comp.VerifyIL("Repro.Bug", @"
+{
+  // Code size       17 (0x11)
+  .maxstack  3
+  IL_0000:  ldstr      """"
+  IL_0005:  ldarg.0
+  IL_0006:  dup
+  IL_0007:  brtrue.s   IL_000b
+  IL_0009:  pop
+  IL_000a:  ldnull
+  IL_000b:  call       ""string string.Concat(string, string)""
+  IL_0010:  ret
+}
+");
+        }
     }
 }
