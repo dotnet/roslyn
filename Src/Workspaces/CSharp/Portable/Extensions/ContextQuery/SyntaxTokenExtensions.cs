@@ -2,11 +2,9 @@
 
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
@@ -18,6 +16,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return
                 token.CSharpKind() == SyntaxKind.UsingKeyword ||
                 token.CSharpKind() == SyntaxKind.ExternKeyword;
+        }
+
+        public static bool IsUsingKeywordInUsingDirective(this SyntaxToken token)
+        {
+            if (token.IsKind(SyntaxKind.UsingKeyword))
+            {
+                var usingDirective = token.GetAncestor<UsingDirectiveSyntax>();
+                if (usingDirective != null &&
+                    usingDirective.UsingKeyword == token)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public static bool IsStaticKeywordInUsingDirective(this SyntaxToken token)
+        {
+            if (token.IsKind(SyntaxKind.StaticKeyword))
+            {
+                var usingDirective = token.GetAncestor<UsingDirectiveSyntax>();
+                if (usingDirective != null &&
+                    usingDirective.StaticKeyword == token)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public static bool IsBeginningOfStatementContext(this SyntaxToken token)

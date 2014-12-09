@@ -1,11 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
@@ -48,13 +44,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             var directive1IsExtern = extern1 != null;
             var directive2IsExtern = extern2 != null;
 
-            var directive1IsNamespace = using1 != null && using1.Alias == null;
-            var directive2IsNamespace = using2 != null && using2.Alias == null;
+            var directive1IsNamespace = using1 != null && using1.Alias == null && !using1.StaticKeyword.IsKind(SyntaxKind.StaticKeyword);
+            var directive2IsNamespace = using2 != null && using2.Alias == null && !using2.StaticKeyword.IsKind(SyntaxKind.StaticKeyword);
+
+            var directive1IsUsingStatic = using1 != null && using1.StaticKeyword.IsKind(SyntaxKind.StaticKeyword);
+            var directive2IsUsingStatic = using2 != null && using2.StaticKeyword.IsKind(SyntaxKind.StaticKeyword);
 
             var directive1IsAlias = using1 != null && using1.Alias != null;
             var directive2IsAlias = using2 != null && using2.Alias != null;
 
             // different types of usings get broken up into groups.
+            //  * externs
+            //  * usings
+            //  * using statics
+            //  * aliases
+
             if (directive1IsExtern && !directive2IsExtern)
             {
                 return -1;
@@ -68,6 +72,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 return -1;
             }
             else if (directive2IsNamespace && !directive1IsNamespace)
+            {
+                return 1;
+            }
+            else if (directive1IsUsingStatic && !directive2IsUsingStatic)
+            {
+                return -1;
+            }
+            else if (directive2IsUsingStatic && !directive1IsUsingStatic)
             {
                 return 1;
             }

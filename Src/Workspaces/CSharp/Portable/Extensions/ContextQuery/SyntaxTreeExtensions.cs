@@ -506,6 +506,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
+            // using static | is never a type declaration context
+            if (token.IsStaticKeywordInUsingDirective())
+            {
+                return false;
+            }
+
             var modifierTokens = contextOpt != null
                 ? contextOpt.PrecedingModifiers
                 : syntaxTree.GetPrecedingModifiers(position, leftToken, cancellationToken);
@@ -577,6 +583,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
             }
 
+            // using static |
+            if (token.IsStaticKeywordInUsingDirective())
+            {
+                return true;
+            }
+
             // if it is not using directive location, most of places where 
             // type can appear, namespace can appear as well
             return syntaxTree.IsTypeContext(position, cancellationToken, semanticModelOpt);
@@ -625,6 +637,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 syntaxTree.IsStatementContext(position, tokenOnLeftOfPosition, cancellationToken) ||
                 syntaxTree.IsTypeParameterConstraintContext(position, tokenOnLeftOfPosition, cancellationToken) ||
                 syntaxTree.IsUsingAliasContext(position, cancellationToken) ||
+                syntaxTree.IsUsingStaticContext(position, cancellationToken) ||
                 syntaxTree.IsGlobalMemberDeclarationContext(position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 syntaxTree.IsMemberDeclarationContext(
                     position,
@@ -669,6 +682,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             return false;
+        }
+
+        public static bool IsUsingStaticContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            // using static |
+
+            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            token = token.GetPreviousTokenIfTouchingWord(position);
+
+            return token.IsStaticKeywordInUsingDirective();
         }
 
         public static bool IsTypeArgumentOfConstraintClause(

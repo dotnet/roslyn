@@ -162,6 +162,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 ((ITypeSymbol)symbol).TypeKind == TypeKind.Module;
         }
 
+        public static bool IsInterfaceType(this ISymbol symbol)
+        {
+            return
+                symbol is ITypeSymbol &&
+                ((ITypeSymbol)symbol).TypeKind == TypeKind.Interface;
+        }
+
         public static bool IsArrayType(this ISymbol symbol)
         {
             return

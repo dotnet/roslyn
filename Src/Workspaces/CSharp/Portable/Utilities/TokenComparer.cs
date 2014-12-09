@@ -1,12 +1,8 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Globalization;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
@@ -32,8 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         public int Compare(SyntaxToken x, SyntaxToken y)
         {
             if (specialCaseSystem &&
-                x.GetPreviousToken(includeSkipped: true).CSharpKind() == SyntaxKind.UsingKeyword &&
-                y.GetPreviousToken(includeSkipped: true).CSharpKind() == SyntaxKind.UsingKeyword)
+                x.GetPreviousToken(includeSkipped: true).IsKind(SyntaxKind.UsingKeyword, SyntaxKind.StaticKeyword) &&
+                y.GetPreviousToken(includeSkipped: true).IsKind(SyntaxKind.UsingKeyword, SyntaxKind.StaticKeyword))
             {
                 var token1IsSystem = IsSystem(x.ValueText);
                 var token2IsSystem = IsSystem(y.ValueText);

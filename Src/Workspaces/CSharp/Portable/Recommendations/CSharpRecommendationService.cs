@@ -220,6 +220,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
         {
             var symbols = context.SemanticModel.LookupNamespacesAndTypes(context.LeftToken.SpanStart);
 
+            if (context.TargetToken.IsUsingKeywordInUsingDirective())
+            {
+                return symbols.Where(s => s.IsNamespace());
+            }
+
+            if (context.TargetToken.IsStaticKeywordInUsingDirective())
+            {
+                return symbols.Where(s => !s.IsDelegateType() && !s.IsInterfaceType());
+            }
+
             return symbols;
         }
 
@@ -247,6 +257,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             IEnumerable<ISymbol> symbols = !context.IsNameOfContext && context.LeftToken.Parent.IsInStaticContext()
                 ? context.SemanticModel.LookupStaticMembers(context.LeftToken.SpanStart)
                 : context.SemanticModel.LookupSymbols(context.LeftToken.SpanStart);
+
+            // Filter out any extension methods that might be imported by a using static directive.
+            symbols = symbols.Where(symbol => !symbol.IsExtensionMethod());
 
             // The symbols may include local variables that are declared later in the method and
             // should not be included in the completion list, so remove those. Filter them away,
@@ -301,15 +314,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 // Filter the types when in a using directive, but not an alias.
                 // 
                 // Cases:
-                //    using | -- Show namespaces (and static types in C# v6)
+                //    using | -- Show namespaces
+                //    using A.| -- Show namespaces
+                //    using static | -- Show namespace and types
                 //    using A = B.| -- Show namespace and types
                 var usingDirective = name.GetAncestorOrThis<UsingDirectiveSyntax>();
                 if (usingDirective != null && usingDirective.Alias == null)
                 {
-                    // Do we also have inclusion of static types?
-                    if (((CSharpParseOptions)context.SyntaxTree.Options).LanguageVersion >= LanguageVersion.CSharp6)
+                    if (usingDirective.StaticKeyword.IsKind(SyntaxKind.StaticKeyword))
                     {
-                        symbols = symbols.Where(s => s.IsNamespace() || s.IsStaticType()).ToList();
+                        return symbols.Where(s => !s.IsDelegateType() && !s.IsInterfaceType());
                     }
                     else
                     {
