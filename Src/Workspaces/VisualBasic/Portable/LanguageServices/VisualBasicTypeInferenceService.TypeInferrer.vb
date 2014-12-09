@@ -109,12 +109,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(returnStatement As ReturnStatementSyntax) InferTypeForReturnStatement(returnStatement),
                     Function(switchStatement As SelectStatementSyntax) InferTypeInSelectStatement(switchStatement),
                     Function(throwStatement As ThrowStatementSyntax) InferTypeInThrowStatement(),
+                    Function(typeOfExpression As TypeOfExpressionSyntax) InferTypeInTypeOfExpressionSyntax(typeOfExpression),
                     Function(usingStatement As UsingStatementSyntax) InferTypeInUsingStatement(usingStatement),
                     Function(whileStatement As WhileStatementSyntax) InferTypeInWhileStatement(),
                     Function(whileStatement As WhileOrUntilClauseSyntax) InferTypeInWhileOrUntilClause(),
                     Function(yieldStatement As YieldStatementSyntax) InferTypeInYieldStatement(yieldStatement),
                     Function(expressionStatement As ExpressionStatementSyntax) InferTypeInExpressionStatement(expressionStatement),
                     Function(x) SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)())
+            End Function
+
+            Private Function InferTypeInTypeOfExpressionSyntax(typeOfExpression As TypeOfExpressionSyntax) As IEnumerable(Of ITypeSymbol)
+                Dim expresionType = typeOfExpression.Type
+                If expresionType Is Nothing Then
+                    Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
+                End If
+
+                Dim typeSymbol = _semanticModel.GetTypeInfo(expresionType).Type
+                If TypeOf typeSymbol IsNot INamedTypeSymbol Then
+                    Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
+                End If
+
+                Return SpecializedCollections.SingletonEnumerable(typeSymbol)
             End Function
 
             Private Function InferTypeInAddRemoveHandlerStatementSyntax(addRemoveHandlerStatement As AddRemoveHandlerStatementSyntax,
