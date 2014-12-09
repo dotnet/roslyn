@@ -2634,19 +2634,19 @@ End Namespace
 
             AssertTheseDiagnostics(compilation,
 <expected>
-BC37210: Type 'C1' conficts with public type defined in added module 'module.netmodule'.
+BC37210: Type 'C1' conflicts with public type defined in added module 'module.netmodule'.
     Friend Class C1
                  ~~
-BC37210: Type 'c2' conficts with public type defined in added module 'module.netmodule'.
+BC37210: Type 'c2' conflicts with public type defined in added module 'module.netmodule'.
     Friend Class c2
                  ~~
 BC40055: Casing of namespace name 'ns1' does not match casing of namespace name 'NS1' in 'a.vb'.
 Namespace ns1
           ~~~
-BC37210: Type 'C3' conficts with public type defined in added module 'module.netmodule'.
+BC37210: Type 'C3' conflicts with public type defined in added module 'module.netmodule'.
     Friend Class C3
                  ~~
-BC37210: Type 'c4' conficts with public type defined in added module 'module.netmodule'.
+BC37210: Type 'c4' conflicts with public type defined in added module 'module.netmodule'.
     Friend Class c4
                  ~~
 </expected>)
@@ -2761,7 +2761,7 @@ End Namespace
 BC40055: Casing of namespace name 'ns1' does not match casing of namespace name 'NS1' in 'a.vb'.
 Namespace ns1
           ~~~
-BC37210: Type 'c4' conficts with public type defined in added module 'module.netmodule'.
+BC37210: Type 'c4' conflicts with public type defined in added module 'module.netmodule'.
     Friend Class c4
                  ~~
 </expected>)
@@ -2815,16 +2815,16 @@ End Namespace
 
             AssertTheseDiagnostics(compilation,
 <expected>
-BC37210: Type 'C1' conficts with public type defined in added module 'module.netmodule'.
+BC37210: Type 'C1' conflicts with public type defined in added module 'module.netmodule'.
 Friend Class C1
              ~~
-BC37210: Type 'c2' conficts with public type defined in added module 'module.netmodule'.
+BC37210: Type 'c2' conflicts with public type defined in added module 'module.netmodule'.
 Friend Class c2
              ~~
-BC37210: Type 'C3' conficts with public type defined in added module 'module.netmodule'.
+BC37210: Type 'C3' conflicts with public type defined in added module 'module.netmodule'.
     Friend Class C3
                  ~~
-BC37210: Type 'c4' conficts with public type defined in added module 'module.netmodule'.
+BC37210: Type 'c4' conflicts with public type defined in added module 'module.netmodule'.
     Friend Class c4
                  ~~
 </expected>)
@@ -2878,10 +2878,10 @@ End Namespace
 
             AssertTheseDiagnostics(compilation,
 <expected>
-BC37210: Type 'C1' conficts with public type defined in added module 'module.netmodule'.
+BC37210: Type 'C1' conflicts with public type defined in added module 'module.netmodule'.
 Friend Class C1
              ~~
-BC37210: Type 'c2' conficts with public type defined in added module 'module.netmodule'.
+BC37210: Type 'c2' conflicts with public type defined in added module 'module.netmodule'.
 Friend Class c2
              ~~
 </expected>)

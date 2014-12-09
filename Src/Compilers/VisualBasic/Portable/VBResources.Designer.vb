@@ -2225,7 +2225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Type &apos;{0}&apos; conficts with public type defined in added module &apos;{1}&apos;..
+        '''  Looks up a localized string similar to Type &apos;{0}&apos; conflicts with public type defined in added module &apos;{1}&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_CollisionWithPublicTypeInModule() As String
             Get

@@ -4329,7 +4329,7 @@
     <value>Invalid signature public key specified in AssemblySignatureKeyAttribute.</value>
   </data>
   <data name="ERR_CollisionWithPublicTypeInModule" xml:space="preserve">
-    <value>Type '{0}' conficts with public type defined in added module '{1}'.</value>
+    <value>Type '{0}' conflicts with public type defined in added module '{1}'.</value>
   </data>
   <data name="ERR_ExportedTypeConflictsWithDeclaration" xml:space="preserve">
     <value>Type '{0}' exported from module '{1}' conflicts with type declared in primary module of this assembly.</value>
