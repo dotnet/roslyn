@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             // Create a tasks that waits indefinitely (-1) and completes only when cancelled.
             var waitCancellationTokenSource = new CancellationTokenSource();
             var waitTask = Task.Delay(
-                -1,
+                Timeout.Infinite,
                 CancellationTokenSource.CreateLinkedTokenSource(waitCancellationTokenSource.Token, cancellationToken).Token);
             await Task.WhenAny(listenTask, waitTask).ConfigureAwait(false);
             if (listenTask.IsCompleted)
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private NamedPipeServerStream ConstructPipe()
         {
             // Add the process ID onto the pipe name so each process gets a unique pipe name.
-            // The client must user this algorithm too to connect.
+            // The client must use this algorithm too to connect.
             string pipeName = basePipeName + Process.GetCurrentProcess().Id.ToString();
 
             CompilerServerLogger.Log("Constructing pipe '{0}'.", pipeName);
