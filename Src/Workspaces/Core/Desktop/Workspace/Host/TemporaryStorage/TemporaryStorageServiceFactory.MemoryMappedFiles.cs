@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.MemoryMappedFiles;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Host
@@ -235,23 +236,24 @@ namespace Microsoft.CodeAnalysis.Host
                 }
             }
 
-            private class SharedReadableStream : Stream, ISupportDirectMemoryAccess
+            private unsafe sealed class SharedReadableStream : Stream, ISupportDirectMemoryAccess
             {
                 private readonly MemoryMappedViewAccessor accessor;
-                private readonly long length;
 
                 private MemoryMappedInfo owner;
-                private IntPtr lazyPointer;
-                private long position;
+                private byte* start;
+                private byte* current;
+                private readonly byte* end;
 
                 public SharedReadableStream(MemoryMappedInfo owner, MemoryMappedViewAccessor accessor, long length)
                 {
+                    Contract.Assert(accessor.CanRead);
+
                     this.owner = owner;
                     this.accessor = accessor;
-                    this.length = length;
-
-                    this.lazyPointer = IntPtr.Zero;
-                    this.position = 0;
+                    this.start = AcquirePointer();
+                    this.current = this.start;
+                    this.end = this.start + length;
                 }
 
                 ~SharedReadableStream()
@@ -266,7 +268,7 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     get
                     {
-                        return this.accessor.CanRead;
+                        return true;
                     }
                 }
 
@@ -290,7 +292,7 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     get
                     {
-                        return this.length;
+                        return this.end - this.start;
                     }
                 }
 
@@ -298,64 +300,63 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     get
                     {
-                        return this.position;
+                        return this.current - this.start;
                     }
 
                     set
                     {
-                        if (value < 0 || value >= length)
+                        var target = this.start + value;
+                        if (target < this.start || target >= this.end)
                         {
                             throw new ArgumentOutOfRangeException("value");
                         }
 
-                        this.position = value;
+                        this.current = target;
                     }
                 }
 
                 public override int ReadByte()
                 {
-                    if (position >= length)
+                    // PERF: Keeping this as simple as possible since it's on the hot path
+                    if (this.current >= this.end)
                     {
                         return -1;
                     }
 
-                    var result = accessor.ReadByte(position);
-                    position++;
-
-                    return result;
+                    return *this.current++;
                 }
 
                 public override int Read(byte[] buffer, int offset, int count)
                 {
-                    if (position >= length)
+                    if (this.current >= this.end)
                     {
                         return 0;
                     }
 
-                    var adjustedCount = Math.Min((long)count, length - position);
-                    var result = accessor.ReadArray(position, buffer, offset, (int)adjustedCount);
+                    int adjustedCount = Math.Min(count, (int)(this.end - this.current));
+                    Marshal.Copy((IntPtr)this.current, buffer, offset, adjustedCount);
 
-                    position += result;
-                    return result;
+                    this.current += adjustedCount;
+                    return adjustedCount;
                 }
 
                 public override long Seek(long offset, SeekOrigin origin)
                 {
-                    long target;
+                    byte* target;
                     try
                     {
                         switch (origin)
                         {
                             case SeekOrigin.Begin:
-                                target = offset;
+                                target = checked(this.start + offset);
                                 break;
 
                             case SeekOrigin.Current:
-                                target = checked(offset + position);
+                                target = checked(this.current + offset);
                                 break;
 
                             case SeekOrigin.End:
-                                target = checked(offset + length);
+                                target = checked(this.end + offset);
                                 break;
 
                             default:
@@ -367,13 +368,13 @@ namespace Microsoft.CodeAnalysis.Host
                         throw new ArgumentOutOfRangeException("offset");
                     }
 
-                    if (target < 0 || target >= length)
+                    if (target < this.start || target >= this.end)
                     {
                         throw new ArgumentOutOfRangeException("offset");
                     }
 
-                    position = target;
-                    return target;
+                    this.current = target;
+                    return this.current - this.start;
                 }
 
                 public override void Flush()
@@ -395,10 +396,10 @@ namespace Microsoft.CodeAnalysis.Host
                 {
                     base.Dispose(disposing);
 
-                    if (this.lazyPointer != IntPtr.Zero)
+                    if (this.start != null)
                     {
                         this.accessor.SafeMemoryMappedViewHandle.ReleasePointer();
-                        this.lazyPointer = IntPtr.Zero;
+                        this.start = null;
                     }
 
                     if (this.owner != null)
@@ -409,26 +410,24 @@ namespace Microsoft.CodeAnalysis.Host
                 }
 
                 /// <summary>
-                /// get underlying native memory directly
+                /// Get underlying native memory directly.
                 /// </summary>
                 public IntPtr GetPointer()
                 {
-                    // if we already have pointer, just return it
-                    if (this.lazyPointer == IntPtr.Zero)
-                    {
-                        this.lazyPointer = AcquirePointer();
-                    }
-
-                    return this.lazyPointer;
+                    return (IntPtr)this.start;
                 }
 
-                private unsafe IntPtr AcquirePointer()
+                /// <summary>
+                /// Acquire the fixed pointer to the start of the memory mapped view.
+                /// The pointer will be released during <see cref="Dispose(bool)"/>
+                /// </summary>
+                /// <returns>The pointer to the start of the memory mapped view. The pointer is valid, and remains fixed for the lifetime of this object.</returns>
+                private byte* AcquirePointer()
                 {
                     byte* ptr = null;
                     this.accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref ptr);
                     ptr += GetPrivateOffset(this.accessor);
-
-                    return (IntPtr)ptr;
+                    return ptr;
                 }
 
                 // this is a copy from compiler's MemoryMappedFileBlock. see MemoryMappedFileBlock for more information on why this is needed.
