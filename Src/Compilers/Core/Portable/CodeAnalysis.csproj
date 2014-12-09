@@ -612,6 +612,7 @@
     <InternalsVisibleToTest Include="Roslyn.Scripting.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Scripting.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
+    <InternalsVisibleToTest Include="Roslyn.Compilers.CompilerServer.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="CodeAnalysisResources.resx">

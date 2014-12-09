@@ -174,15 +174,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <summary>
         /// A command line argument to the compilation. 
         /// An argument is formatted as follows:
-    	/// 
-    	///  Field Name         Type            Size (bytes)
-    	/// --------------------------------------------------
-    	///  ID                 UInteger        4
-    	///  Index              UInteger        4
-    	///  Value              String          Variable
-    	/// 
-    	/// Strings are encoded via a length prefix as a signed
-    	/// 32-bit integer, followed by an array of characters.
+        /// 
+        ///  Field Name         Type            Size (bytes)
+        /// --------------------------------------------------
+        ///  ID                 UInteger        4
+        ///  Index              UInteger        4
+        ///  Value              String          Variable
+        /// 
+        /// Strings are encoded via a length prefix as a signed
+        /// 32-bit integer, followed by an array of characters.
         /// </summary>
         public struct Argument
         {
@@ -218,16 +218,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
     /// <summary>
     /// Base class for all possible responses to a request.
-	/// The ResponseType enum should list all possible response types
-	/// and ReadResponse creates the appropriate response subclass based
-	/// on the response type sent by the client.
-	/// The format of a response is:
+    /// The ResponseType enum should list all possible response types
+    /// and ReadResponse creates the appropriate response subclass based
+    /// on the response type sent by the client.
+    /// The format of a response is:
     ///
     /// Field Name       Field Type          Size (bytes)
     /// -------------------------------------------------
-	/// responseLength   int (positive)      4  
-	/// responseType     enum ResponseType   4
-	/// responseBody     Response subclass   variable
+    /// responseLength   int (positive)      4  
+    /// responseType     enum ResponseType   4
+    /// responseBody     Response subclass   variable
     /// </summary>
     internal abstract class BuildResponse
     {

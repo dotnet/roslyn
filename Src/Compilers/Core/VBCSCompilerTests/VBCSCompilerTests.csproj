@@ -60,6 +60,10 @@
       <Project>{63d0f073-f0b3-42cd-829f-e48b977b48ba}</Project>
       <Name>vbc2</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Portable\CodeAnalysis.csproj">
+      <Project>{1ee8cad3-55f9-4d91-96b2-084641da9a6c}</Project>
+      <Name>CodeAnalysis</Name>
+    </ProjectReference>
     <ProjectReference Include="..\VBCSCompiler\VBCSCompiler.csproj">
       <Project>{9508f118-f62e-4c16-a6f4-7c3b56e166ad}</Project>
       <Name>VBCSCompiler</Name>
@@ -68,6 +72,7 @@
   <ItemGroup Label="File References">
     <Reference Include="..\..\..\..\packages\System.Reflection.Metadata.1.0.17-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
     <Reference Include="..\..\..\..\packages\System.Collections.Immutable.1.1.32-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
+    <Reference Include="..\..\..\..\packages\Moq.4.2.1402.2112\lib\net40\Moq.dll" />
     <Reference Include="xunit.abstractions">
       <HintPath>..\..\..\..\packages\xunit.abstractions.2.0.0-alpha-build2576\lib\net35\xunit.abstractions.dll</HintPath>
     </Reference>
@@ -97,6 +102,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyAttributes.cs" />
+    <Compile Include="CompilerServerApiTest.cs" />
     <Compile Include="CompilerServerTests.cs" />
     <Compile Include="RunKeepAliveTests.cs" />
   </ItemGroup>

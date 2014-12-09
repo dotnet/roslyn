@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
@@ -11,7 +12,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     {
         private sealed class AnalyzerWatcher
         {
-            private readonly ServerDispatcher dispatcher;
+            // This value should be resolved whenever the watcher detects that an analyzer file has changed on
+            // disk.  The server is listening for this event and will initiate a shutdown when it occurs.
+            private readonly TaskCompletionSource<bool> fileChangedCompletionSource;
 
             // Maps from a directory path to the associated FileSystemWatcher.
             private readonly Dictionary<string, FileSystemWatcher> fileSystemWatchers = new Dictionary<string, FileSystemWatcher>(StringComparer.OrdinalIgnoreCase);
@@ -23,9 +26,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             // Controls access to the file system watcher data structures.
             private readonly object fileSystemWatcherLock = new object();
 
-            public AnalyzerWatcher(ServerDispatcher dispatcher)
+            public AnalyzerWatcher(TaskCompletionSource<bool> fileChangedCompletionSource)
             {
-                this.dispatcher = dispatcher;
+                this.fileChangedCompletionSource = fileChangedCompletionSource;
 
                 AnalyzerFileReference.AssemblyLoad += AnalyzerFileReference_AssemblyLoad;
             }
@@ -70,9 +73,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     if (this.watchedFiles.TryGetValue(directoryPath, out watchedFilesInDirectory) &&
                         watchedFilesInDirectory.Contains(fileName))
                     {
-                        this.dispatcher.AnalyzerFileChanged();
+                        this.fileChangedCompletionSource.TrySetResult(true);
                     }
                 }
+            }
+
+            internal static Task CreateWatchFilesTask()
+            {
+                var source = new TaskCompletionSource<bool>();
+                var _ = new AnalyzerWatcher(source);
+                return source.Task;
             }
         }
     }
