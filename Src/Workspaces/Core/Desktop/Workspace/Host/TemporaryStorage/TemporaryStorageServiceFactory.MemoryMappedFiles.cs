@@ -251,9 +251,8 @@ namespace Microsoft.CodeAnalysis.Host
 
                     this.owner = owner;
                     this.accessor = accessor;
-                    this.start = AcquirePointer();
-                    this.current = this.start;
-                    this.end = this.start + length;
+                    this.current = this.start = AcquirePointer(accessor);
+                    this.end = checked(this.start + length);
                 }
 
                 ~SharedReadableStream()
@@ -422,11 +421,11 @@ namespace Microsoft.CodeAnalysis.Host
                 /// The pointer will be released during <see cref="Dispose(bool)"/>
                 /// </summary>
                 /// <returns>The pointer to the start of the memory mapped view. The pointer is valid, and remains fixed for the lifetime of this object.</returns>
-                private byte* AcquirePointer()
+                private static byte* AcquirePointer(MemoryMappedViewAccessor accessor)
                 {
                     byte* ptr = null;
-                    this.accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref ptr);
-                    ptr += GetPrivateOffset(this.accessor);
+                    accessor.SafeMemoryMappedViewHandle.AcquirePointer(ref ptr);
+                    ptr += GetPrivateOffset(accessor);
                     return ptr;
                 }
 
