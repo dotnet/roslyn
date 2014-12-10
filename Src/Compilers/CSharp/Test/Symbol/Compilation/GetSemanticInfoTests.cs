@@ -158,15 +158,7 @@ public class A
 
             var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             var sym = model.GetSymbolInfo(expr);
-            Assert.NotNull(sym.Symbol);
-            // Assert.Equal(SymbolKind.ErrorType, sym.Symbol.Kind);
-            Assert.Equal(SymbolKind.Method, sym.Symbol.Kind);
-
-            var info = model.GetTypeInfo(expr);
-            var conv = model.GetConversion(expr);
-            Assert.Equal(ConversionKind.AnonymousFunction, conv.Kind);
-            Assert.Null(info.Type);
-            Assert.Null(info.ConvertedType);
+            Assert.Null(sym.Symbol);
         }
 
         [WorkItem(541973, "DevDiv")]

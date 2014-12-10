@@ -2671,6 +2671,36 @@ End Module
     End Sub
 
     <Fact>
+    <WorkItem(1085618, "DevDiv")>
+    Public Sub TooDeepLambdaDeclarations()
+        Dim depth = 5000
+        Dim builder As New StringBuilder()
+        builder.AppendLine(<![CDATA[
+
+Module Module1
+
+     Sub Test()
+         Dim c = New Customer With { _]]>.Value)
+
+        For i = 0 To depth
+            Dim line = String.Format("Dim x{0} = Sub()", i)
+            builder.AppendLine(line)
+        Next
+
+        For i = 0 To depth
+            builder.AppendLine("End Sub")
+        Next
+
+        builder.AppendLine(<![CDATA[}
+    End Sub
+End Module]]>.Value)
+
+        Dim tree = Parse(builder.ToString())
+        Dim diagnostic = tree.GetDiagnostics().Single()
+        Assert.Equal(CInt(ERRID.ERR_InsufficientStack), diagnostic.Code)
+    End Sub
+
+    <Fact>
     Public Sub TooDeepObjectInitializers()
         Dim depth = 5000
         Dim builder As New StringBuilder()

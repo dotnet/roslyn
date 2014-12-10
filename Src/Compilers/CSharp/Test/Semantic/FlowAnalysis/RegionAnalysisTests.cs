@@ -3707,10 +3707,7 @@ public class C {
                 var index = tree.GetCompilationUnitRoot().ToFullString().IndexOf(".Class)");
                 var tok = tree.GetCompilationUnitRoot().FindToken(index);
                 var node = tok.Parent as StatementSyntax;
-                var model = compilation.GetSemanticModel(tree);
-                var controlFlowAnalysis = model.AnalyzeControlFlow(node, node);
-
-                Assert.False(controlFlowAnalysis.Succeeded);
+                Assert.Null(node);
             }
             {
                 var results = CompileAndAnalyzeControlAndDataFlowStatements(@"

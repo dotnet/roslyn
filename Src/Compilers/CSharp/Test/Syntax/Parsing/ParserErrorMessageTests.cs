@@ -2250,13 +2250,18 @@ class C
     }
 }";
             ParseAndValidate(test,
-Diagnostic(ErrorCode.ERR_CloseParenExpected, "this"),
-Diagnostic(ErrorCode.ERR_LbraceExpected, "this"),
-Diagnostic(ErrorCode.ERR_SemicolonExpected, "object"),
-Diagnostic(ErrorCode.ERR_SemicolonExpected, ")"),
-Diagnostic(ErrorCode.ERR_RbraceExpected, ")"),
-Diagnostic(ErrorCode.ERR_SemicolonExpected, ")"),
-Diagnostic(ErrorCode.ERR_RbraceExpected, ")"));
+                // (6,25): error CS1026: ) expected
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "this").WithLocation(6, 25),
+                // (6,25): error CS1514: { expected
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "this").WithLocation(6, 25),
+                // (6,25): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "this").WithLocation(6, 25),
+                // (6,30): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "object").WithLocation(6, 30),
+                // (6,38): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 38),
+                // (6,38): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 38));
         }
 
         [Fact, WorkItem(541347, "DevDiv")]
@@ -4751,6 +4756,83 @@ class Test
             var actualErrors = parsedTree.GetDiagnostics().ToArray();
             Assert.Equal(1, actualErrors.Length);
             Assert.Equal((int)ErrorCode.ERR_InsufficientStack, actualErrors[0].Code);
+        }
+
+        [Fact]
+        [WorkItem(1085618, "DevDiv")]
+        public void TooDeepDelegateDeclaration()
+        {
+            var builder = new StringBuilder();
+            builder.AppendLine(
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+");
+
+            const int depth = 10000;
+            for (int i = 0; i < depth; i++)
+            {
+                var line = string.Format("Action a{0} = delegate d{0} {{", i);
+                builder.AppendLine(line);
+            }
+
+            for (int i = 0; i < depth; i++)
+            {
+                builder.Append("};");
+            }
+
+            builder.Append(@"} }");
+
+            var parsedTree = Parse(builder.ToString());
+            var actualErrors = parsedTree.GetDiagnostics().ToArray();
+            Assert.Equal(1, actualErrors.Length);
+            Assert.Equal((int)ErrorCode.ERR_InsufficientStack, actualErrors[0].Code);
+        }
+
+        [Fact]
+        [WorkItem(1085618, "DevDiv")]
+        public void MismatchedBracesAndDelegateDeclaration()
+        {
+            var source = @"
+class Program
+{
+    public static void Main(string[] args)
+    {
+
+    delegate int F1(); 
+    delegate int F2();
+}
+";
+
+            SyntaxFactory.ParseSyntaxTree(source).GetDiagnostics().Verify(
+                // (7,14): error CS1514: { expected
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "int").WithLocation(7, 14),
+                // (7,14): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "int").WithLocation(7, 14),
+                // (7,20): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "()").WithLocation(7, 20),
+                // (7,20): error CS1003: Syntax error, '[' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(7, 20),
+                // (7,21): error CS1525: Invalid expression term ')'
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(7, 21),
+                // (7,22): error CS1003: Syntax error, ']' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(7, 22),
+                // (8,14): error CS1514: { expected
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "int").WithLocation(8, 14),
+                // (8,14): error CS1002: ; expected
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "int").WithLocation(8, 14),
+                // (8,20): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+                Diagnostic(ErrorCode.ERR_BadVarDecl, "()").WithLocation(8, 20),
+                // (8,20): error CS1003: Syntax error, '[' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(8, 20),
+                // (8,21): error CS1525: Invalid expression term ')'
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(8, 21),
+                // (8,22): error CS1003: Syntax error, ']' expected
+                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(8, 22),
+                // (9,2): error CS1513: } expected
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(9, 2));
         }
 
         #endregion

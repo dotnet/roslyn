@@ -853,6 +853,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Lines: 2606 - 2606
         ' .Parser::ParseStatementInMethodBody( [ _Inout_ bool& ErrorInConstruct ] )
         Friend Function ParseStatementInMethodBody() As StatementSyntax
+            Try
+                _recursionDepth += 1
+                If _recursionDepth >= _maxUncheckedRecursionDepth Then
+                    _ensureSufficientExecutionStack()
+                End If
+
+                Return ParseStatementInMethodBodyCore()
+            Finally
+                _recursionDepth -= 1
+            End Try
+        End Function
+
+        Friend Function ParseStatementInMethodBodyCore() As StatementSyntax
             _cancellationToken.ThrowIfCancellationRequested()
 
             Select Case CurrentToken.Kind
@@ -887,7 +900,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case SyntaxKind.IfKeyword
                     Return ParseIfStatement()
 
-                    'TODO - davidsch - In C++ code there is a call to GreedilyParseColonSeparatedStatements.  Why?
+                'TODO - davidsch - In C++ code there is a call to GreedilyParseColonSeparatedStatements.  Why?
 
                 Case SyntaxKind.ElseKeyword
                     If PeekToken(1).Kind = SyntaxKind.IfKeyword Then
@@ -1142,7 +1155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case SyntaxKind.GosubKeyword
                     Return ParseAnachronisticStatement()
 
-                    'TODO - Move the check below ExecutableStatementContext.ProcessStatement
+                'TODO - Move the check below ExecutableStatementContext.ProcessStatement
 
                 Case SyntaxKind.InheritsKeyword,
                         SyntaxKind.ImplementsKeyword,

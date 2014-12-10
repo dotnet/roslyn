@@ -193,10 +193,11 @@ abstract void M();";
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
-            var charLiteralSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
-            Assert.Equal(SyntaxKind.CharacterLiteralToken, charLiteralSyntax.Token.CSharpKind());
+            var usingSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Single();
+            Assert.DoesNotThrow(() => model.GetSymbolInfo(usingSyntax));
 
-            Assert.DoesNotThrow(() => model.GetSymbolInfo(charLiteralSyntax));
+            var identifierSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Single();
+            Assert.DoesNotThrow(() => model.GetSymbolInfo(identifierSyntax));
         }
 
         [WorkItem(611177, "DevDiv")]
