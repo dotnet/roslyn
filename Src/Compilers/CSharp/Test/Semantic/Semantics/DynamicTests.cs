@@ -6,6 +6,8 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Collections.Generic;
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -3219,5 +3221,69 @@ class C
         }
 
         #endregion
+
+        [Fact, WorkItem(922611, "DevDiv"), WorkItem(56, "CodePlex")]
+        public void Bug922611_01()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+
+class Test
+{
+    static void Main()
+    {
+        IEnumerable<object> objectSource = null;
+        Action<dynamic> dynamicAction = null;
+        // Fails under Roslyn, compiles under C# 5 compiler
+        Foo(objectSource, dynamicAction);
+    }
+
+    static void Foo<T>(IEnumerable<T> source, Action<T> action)
+    {
+        System.Console.WriteLine(typeof(T));
+    }
+}";
+            var verifier = CompileAndVerify(source, new[] { CSharpRef }, expectedOutput: "System.Object").VerifyDiagnostics();
+
+            var tree = verifier.Compilation.SyntaxTrees.Single();
+            var model = verifier.Compilation.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Foo").Single();
+            Assert.Equal("void Test.Foo<dynamic>(System.Collections.Generic.IEnumerable<dynamic> source, System.Action<dynamic> action)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(922611, "DevDiv"), WorkItem(56, "CodePlex")]
+        public void Bug922611_02()
+        {
+            string source = @"
+using System;
+using System.Collections.Generic;
+
+class Test
+{
+    static void Main()
+    {
+        IEnumerable<object> objectSource = null;
+        Action<dynamic> dynamicAction = null;
+        // Fails under Roslyn, compiles under C# 5 compiler
+        Foo(dynamicAction, objectSource);
+    }
+
+    static void Foo<T>(Action<T> action, IEnumerable<T> source)
+    {
+        System.Console.WriteLine(typeof(T));
+    }
+}";
+            CompileAndVerify(source, new[] { CSharpRef }, expectedOutput: "System.Object").VerifyDiagnostics();
+
+            var verifier = CompileAndVerify(source, new[] { CSharpRef }, expectedOutput: "System.Object").VerifyDiagnostics();
+
+            var tree = verifier.Compilation.SyntaxTrees.Single();
+            var model = verifier.Compilation.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Foo").Single();
+            Assert.Equal("void Test.Foo<dynamic>(System.Action<dynamic> action, System.Collections.Generic.IEnumerable<dynamic> source)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+        }
     }
 }

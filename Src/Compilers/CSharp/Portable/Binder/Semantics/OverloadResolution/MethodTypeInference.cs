@@ -2309,12 +2309,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         goto OuterBreak;
                     }
                 }
-                if ((object)best != null)
+
+                // SPEC: 4.7 The Dynamic Type
+                //       Type inference (7.5.2) will prefer dynamic over object if both are candidates.
+                if ((object)best == null || (best.IsObjectType() && candidate.IsDynamic()))
+                {
+                    best = candidate;
+                }
+                else if (!(best.IsDynamic() && candidate.IsObjectType()))
                 {
                     // best candidate is not unique
                     return false;
                 }
-                best = candidate;
 
             OuterBreak:
                 ;
