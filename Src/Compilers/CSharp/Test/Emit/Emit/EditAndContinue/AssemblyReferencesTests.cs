@@ -69,7 +69,7 @@ class C
                     c2.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("Main"))
             };
 
-            c2.EmitDifference(baseline, edits, s => false, mdStream, ilStream, pdbStream, updatedMethods);
+            c2.EmitDifference(baseline, edits, mdStream, ilStream, pdbStream, updatedMethods);
 
             var actualIL = ilStream.ToArray().GetMethodIL();
             var expectedIL = @"
@@ -140,7 +140,7 @@ class C
                     c2.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("Main"))
             };
 
-            c2.EmitDifference(baseline, edits, s => false, mdStream, ilStream, pdbStream, updatedMethods);
+            c2.EmitDifference(baseline, edits, mdStream, ilStream, pdbStream, updatedMethods);
 
             var actualIL = ilStream.ToArray().GetMethodIL();
 
