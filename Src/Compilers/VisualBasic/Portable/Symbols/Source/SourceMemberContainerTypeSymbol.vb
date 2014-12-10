@@ -3662,22 +3662,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
 
             ' Compare all pairs of interfaces in each bucket.
-            For Each bucket In originalDefinitionBuckets.Keys
-                If originalDefinitionBuckets.GetCountForKey(bucket) >= 2 Then
-                    Dim interfacesInBucket = originalDefinitionBuckets(bucket).ToArray()
-                    For i1 As Integer = 0 To interfacesInBucket.Count - 2
-                        Dim interface1 As NamedTypeSymbol = interfacesInBucket(i1)
-                        For i2 As Integer = i1 + 1 To interfacesInBucket.Count - 1
-                            Dim interface2 As NamedTypeSymbol = interfacesInBucket(i2)
-                            Debug.Assert(interface2.IsGenericType AndAlso interface1.OriginalDefinition = interface2.OriginalDefinition)
+            For Each kvp In originalDefinitionBuckets
+                If kvp.Value.Count >= 2 Then
+                    Dim i1 As Integer = 0
+                    For Each interface1 In kvp.Value
+                        Dim i2 As Integer = 0
+                        For Each interface2 In kvp.Value
+                            If i2 > i1 Then
+                                Debug.Assert(interface2.IsGenericType AndAlso interface1.OriginalDefinition = interface2.OriginalDefinition)
 
-                            ' Check for interface unification, then variance ambiguity
-                            If TypeUnification.CanUnify(Me, interface1, interface2) Then
-                                ReportInterfaceUnificationError(diagnostics, interface1, interface2)
-                            ElseIf VarianceAmbiguity.HasVarianceAmbiguity(Me, interface1, interface2, Nothing) Then
-                                ReportVarianceAmbiguityWarning(diagnostics, interface1, interface2)
+                                ' Check for interface unification, then variance ambiguity
+                                If TypeUnification.CanUnify(Me, interface1, interface2) Then
+                                    ReportInterfaceUnificationError(diagnostics, interface1, interface2)
+                                ElseIf VarianceAmbiguity.HasVarianceAmbiguity(Me, interface1, interface2, Nothing) Then
+                                    ReportVarianceAmbiguityWarning(diagnostics, interface1, interface2)
+                                End If
                             End If
+
+                            i2 += 1
                         Next
+
+                        i1 += 1
                     Next
                 End If
             Next

@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             protected override BoundExpression BindRangeVariable(SimpleNameSyntax node, RangeVariableSymbol qv, DiagnosticBag diagnostics)
             {
                 Debug.Assert(!qv.IsTransparent);
+
                 BoundExpression translation;
                 ImmutableArray<string> path;
                 if (rangeVariableMap.TryGetValue(qv, out path))
@@ -39,10 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (path.IsEmpty)
                     {
                         // the range variable maps directly to a use of the parameter of that name
-                        ParameterSymbol parameter;
-                        bool success = base.parameterMap.TryGetSingleValue(qv.Name, out parameter);
-                        Debug.Assert(success);
-                        translation = new BoundParameter(node, parameter) { WasCompilerGenerated = true };
+                        var value = base.parameterMap[qv.Name];
+                        Debug.Assert(value.Count == 1);
+                        translation = new BoundParameter(node, value.Single()) { WasCompilerGenerated = true };
                     }
                     else
                     {
@@ -88,6 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 LookupMembersWithFallback(lookupResult, receiver.Type, name, 0, ref useSiteDiagnostics, basesBeingResolved: null, options: options);
                 diagnostics.Add(node, useSiteDiagnostics);
+
                 var result = BindMemberOfType(node, node, name, 0, receiver, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeSymbol>), lookupResult, BoundMethodGroupFlags.None, diagnostics);
                 result.WasCompilerGenerated = true;
                 lookupResult.Free();
@@ -97,23 +98,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal override void LookupSymbolsInSingleBinder(
                 LookupResult result, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
             {
-                if ((options & LookupOptions.NamespaceAliasesOnly) != 0) return;
-
                 Debug.Assert(result.IsClear);
 
-                var count = parameterMap.GetCountForKey(name);
-                if (count == 1)
+                if ((options & LookupOptions.NamespaceAliasesOnly) != 0)
                 {
-                    RangeVariableSymbol p;
-                    parameterMap.TryGetSingleValue(name, out p);
-                    result.MergeEqual(originalBinder.CheckViability(p, arity, options, null, diagnose, ref useSiteDiagnostics));
+                    return;
                 }
-                else if (count > 1)
+
+                foreach (var rangeVariable in parameterMap[name])
                 {
-                    foreach (var sym in parameterMap[name])
-                    {
-                        result.MergeEqual(originalBinder.CheckViability(sym, arity, options, null, diagnose, ref useSiteDiagnostics));
-                    }
+                    result.MergeEqual(originalBinder.CheckViability(rangeVariable, arity, options, null, diagnose, ref useSiteDiagnostics));
                 }
             }
 
@@ -121,9 +115,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (options.CanConsiderMembers())
                 {
-                    foreach (var rangeVariableName in parameterMap.Keys)
+                    foreach (var kvp in parameterMap)
                     {
-                        result.AddSymbol(null, rangeVariableName, 0);
+                        result.AddSymbol(null, kvp.Key, 0);
                     }
                 }
             }

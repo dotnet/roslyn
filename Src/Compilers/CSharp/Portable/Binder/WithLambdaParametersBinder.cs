@@ -70,30 +70,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override TypeSymbol GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
         {
-            if (node != null) diagnostics.Add(ErrorCode.ERR_YieldInAnonMeth, node.YieldKeyword.GetLocation());
+            if (node != null)
+            {
+                diagnostics.Add(ErrorCode.ERR_YieldInAnonMeth, node.YieldKeyword.GetLocation());
+            }
             return CreateErrorType();
         }
 
         internal override void LookupSymbolsInSingleBinder(
             LookupResult result, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            if ((options & LookupOptions.NamespaceAliasesOnly) != 0) return;
-
             Debug.Assert(result.IsClear);
 
-            var count = parameterMap.GetCountForKey(name);
-            if (count == 1)
+            if ((options & LookupOptions.NamespaceAliasesOnly) != 0)
             {
-                ParameterSymbol p;
-                parameterMap.TryGetSingleValue(name, out p);
-                result.MergeEqual(originalBinder.CheckViability(p, arity, options, null, diagnose, ref useSiteDiagnostics));
+                return;
             }
-            else if (count > 1)
+
+            foreach (var parameterSymbol in parameterMap[name])
             {
-                foreach (var sym in parameterMap[name])
-                {
-                    result.MergeEqual(originalBinder.CheckViability(sym, arity, options, null, diagnose, ref useSiteDiagnostics));
-                }
+                result.MergeEqual(originalBinder.CheckViability(parameterSymbol, arity, options, null, diagnose, ref useSiteDiagnostics));
             }
         }
 
@@ -127,7 +123,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Quirk of the way we represent lambda parameters.                
             SymbolKind newSymbolKind = (object)newSymbol == null ? SymbolKind.Parameter : newSymbol.Kind;
 
-            if (newSymbolKind == SymbolKind.ErrorType) return true;
+            if (newSymbolKind == SymbolKind.ErrorType)
+            {
+                return true;
+            }
 
             if (newSymbolKind == SymbolKind.Parameter || newSymbolKind == SymbolKind.Local)
             {

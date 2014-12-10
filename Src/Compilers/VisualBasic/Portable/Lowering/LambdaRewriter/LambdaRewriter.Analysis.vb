@@ -166,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 lambdaScopes = New Dictionary(Of LambdaSymbol, BoundNode)(ReferenceEqualityComparer.Instance)
                 needsParentFrame = New HashSet(Of BoundNode)
 
-                For Each lambda In captures.Keys
+                For Each kvp In captures
                     ' get innermost and outermost scopes from which a lambda captures
 
                     Dim innermostScopeDepth As Integer = -1
@@ -175,7 +175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim outermostScopeDepth As Integer = Integer.MaxValue
                     Dim outermostScope As BoundNode = Nothing
 
-                    For Each v In captures(lambda)
+                    For Each v In kvp.Value
                         Dim curBlock As BoundNode = Nothing
                         Dim curBlockDepth As Integer
 
@@ -209,7 +209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     '   and this frame will also lift original Me as a field when created by its parent.
                     '   Note that is is completely irrelevant how deeply the lexical scope of the lambda was originally nested.
                     If innermostScope IsNot Nothing Then
-                        lambdaScopes.Add(lambda, innermostScope)
+                        lambdaScopes.Add(kvp.Key, innermostScope)
 
                         While innermostScope IsNot outermostScope
                             needsParentFrame.Add(innermostScope)

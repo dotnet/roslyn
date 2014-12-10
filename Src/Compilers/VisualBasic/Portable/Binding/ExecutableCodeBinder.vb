@@ -99,35 +99,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Function LookupLabelByNameToken(labelName As SyntaxToken) As LabelSymbol
             Dim name As String = labelName.ValueText
 
-            ' NOTE: instead of calling TryGetMultipleValues(...) we first check GetCountForKey(...)
-            '       which seems to be double dictionary search; well, it is, but because *current* 
-            '       implementation of MultiDictionary "promotes singleton to set" even for keys 
-            '       with a single value (which we want to avoid) we still do it twice even with 
-            '       simple call to TryGetMultipleValues(...)
-            Select Case Me.LabelsMap.GetCountForKey(name)
-                Case 0
-                    ' Not found
-
-                Case 1
-                    Dim singleLabelSymbol As SourceLabelSymbol = Nothing
-                    Me.LabelsMap.TryGetSingleValue(name, singleLabelSymbol)
-                    Debug.Assert(singleLabelSymbol IsNot Nothing)
-                    If singleLabelSymbol.LabelName = labelName Then
-                        Return singleLabelSymbol
-                    End If
-
-                Case Else
-                    Dim results As IEnumerable(Of SourceLabelSymbol) = Nothing
-                    Me.LabelsMap.TryGetMultipleValues(name, results)
-                    Debug.Assert(results IsNot Nothing)
-
-                    For Each symbol In results
-                        If symbol.LabelName = labelName Then
-                            Return symbol
-                        End If
-                    Next
-
-            End Select
+            For Each labelSymbol As LabelSymbol In Me.LabelsMap(name)
+                If labelSymbol.LabelName = labelName Then
+                    Return labelSymbol
+                End If
+            Next
 
             Return MyBase.LookupLabelByNameToken(labelName)
         End Function
@@ -141,30 +117,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(lookupResult.IsClear)
 
             If (options And LookupOptions.LabelsOnly) = LookupOptions.LabelsOnly AndAlso LabelsMap IsNot Nothing Then
+                Dim labels = Me.LabelsMap(name)
 
-                ' NOTE: instead of calling TryGetMultipleValues(...) we first check GetCountForKey(...)
-                '       which seems to be double dictionary search; well, it is, but because *current* 
-                '       implementation of MultiDictionary "promotes singleton to set" even for keys 
-                '       with a single value (which we want to avoid) we still do it twice even with 
-                '       simple call to TryGetMultipleValues(...)
-                Select Case Me.LabelsMap.GetCountForKey(name)
+                Select Case labels.Count
                     Case 0
                         ' Not found
-
+                    
                     Case 1
-                        Dim singleLabelSymbol As SourceLabelSymbol = Nothing
-                        Me.LabelsMap.TryGetSingleValue(name, singleLabelSymbol)
-                        lookupResult.SetFrom(SingleLookupResult.Good(singleLabelSymbol))
+                        lookupResult.SetFrom(SingleLookupResult.Good(labels.Single()))
 
                     Case Else
-                        Dim results As IEnumerable(Of SourceLabelSymbol) = Nothing
-                        Me.LabelsMap.TryGetMultipleValues(name, results)
-
                         ' There are several labels with the same name, so we are going through the list 
                         ' of labels and pick one with the smallest location to make the choice deterministic
                         Dim bestSymbol As SourceLabelSymbol = Nothing
                         Dim bestLocation As Location = Nothing
-                        For Each symbol In results
+                        For Each symbol In labels
                             Debug.Assert(symbol.Locations.Length = 1)
                             Dim sourceLocation As Location = symbol.Locations(0)
                             If bestSymbol Is Nothing OrElse Me.Compilation.CompareSourceLocations(bestLocation, sourceLocation) > 0 Then

@@ -813,12 +813,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                string name = member.Name;
-
-                IEnumerable<Symbol> sameNameSymbols;
-                if (seenByName.TryGetMultipleValues(name, out sameNameSymbols))
+                var name = member.Name;
+                var sameNameSymbols = seenByName[name];
+                if (sameNameSymbols.Count > 0)
                 {
-                    CheckSymbolDistinctness(member, sameNameSymbols);
+                    CheckSymbolDistinctness(member, name, sameNameSymbols);
                 }
 
                 seenByName.Add(name, member);
@@ -832,16 +831,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// does not consider two members with identical names (i.e. not differing
         /// in case) to collide.
         /// </remarks>
-        private void CheckSymbolDistinctness(Symbol symbol, IEnumerable<Symbol> sameNameSymbols)
+        private void CheckSymbolDistinctness(Symbol symbol, string symbolName, MultiDictionary<string, Symbol>.ValueSet sameNameSymbols)
         {
-            System.Diagnostics.Debug.Assert(sameNameSymbols != null);
-            System.Diagnostics.Debug.Assert(System.Linq.Enumerable.Any(sameNameSymbols));
+            Debug.Assert(sameNameSymbols.Count > 0);
+            Debug.Assert(symbol.Name == symbolName);
 
             bool isMethodOrProperty = symbol.Kind == SymbolKind.Method || symbol.Kind == SymbolKind.Property;
 
             foreach (Symbol other in sameNameSymbols)
             {
-                if (other.Name != symbol.Name && !(isMethodOrProperty && other.Kind == symbol.Kind))
+                if (other.Name != symbolName && !(isMethodOrProperty && other.Kind == symbol.Kind))
                 {
                     // TODO: Shouldn't we somehow reference the conflicting member?  Dev11 doesn't.
                     this.AddDiagnostic(ErrorCode.WRN_CLS_BadIdentifierCase, symbol.Locations[0], symbol);
@@ -866,7 +865,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this.AddDiagnostic(code, symbol.Locations[0], symbol);
                     return;
                 }
-                else if (symbol.Name != other.Name)
+                else if (other.Name != symbolName)
                 {
                     // TODO: Shouldn't we somehow reference the conflicting member?  Dev11 doesn't.
                     this.AddDiagnostic(ErrorCode.WRN_CLS_BadIdentifierCase, symbol.Locations[0], symbol);

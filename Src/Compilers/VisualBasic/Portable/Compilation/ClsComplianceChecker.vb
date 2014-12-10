@@ -444,8 +444,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim name As String = member.Name
-                Dim sameNameSymbols As IEnumerable(Of Symbol) = Nothing
-                If seenByName.TryGetMultipleValues(name, sameNameSymbols) Then
+                Dim sameNameSymbols = seenByName(name)
+                If sameNameSymbols.Count > 0 Then
                     CheckSymbolDistinctness(member, sameNameSymbols)
                 End If
 
@@ -460,16 +460,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' does not consider two members with identical names (i.e. not differing
         ''' in case) to collide.
         ''' </remarks>
-        Private Sub CheckSymbolDistinctness(symbol As Symbol, sameNameSymbols As IEnumerable(Of Symbol))
-            Debug.Assert(sameNameSymbols IsNot Nothing)
-            Debug.Assert(System.Linq.Enumerable.Any(sameNameSymbols))
+        Private Sub CheckSymbolDistinctness(symbol As Symbol, sameNameSymbols As MultiDictionary(Of String, Symbol).ValueSet)
+            Debug.Assert(sameNameSymbols.Count > 0)
 
             Dim isMethodOrProperty As Boolean = symbol.Kind = SymbolKind.Method OrElse symbol.Kind = SymbolKind.Property
             If Not isMethodOrProperty Then
                 Return
             End If
 
-            For Each other In sameNameSymbols
+            For Each other As Symbol In sameNameSymbols
                 ' Note: not checking accessor signatures, but checking accessor names.
                 If symbol.Kind = other.Kind AndAlso Not symbol.IsAccessor() AndAlso Not other.IsAccessor() AndAlso SignaturesCollide(symbol, other) Then
                     Me.AddDiagnostic(symbol, ERRID.WRN_ArrayOverloadsNonCLS2, symbol, other)

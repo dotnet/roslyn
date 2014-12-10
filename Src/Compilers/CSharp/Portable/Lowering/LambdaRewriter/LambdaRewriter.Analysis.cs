@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lambdaScopes = new Dictionary<LambdaSymbol, BoundNode>(ReferenceEqualityComparer.Instance);
                 needsParentFrame = new HashSet<BoundNode>();
 
-                foreach (var lambda in capturedVariablesByLambda.Keys)
+                foreach (var kvp in capturedVariablesByLambda)
                 {
                     // get innermost and outermost scopes from which a lambda captures
 
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     int outermostScopeDepth = int.MaxValue;
                     BoundNode outermostScope = null;
 
-                    foreach (var variables in capturedVariablesByLambda[lambda])
+                    foreach (var variables in kvp.Value)
                     {
                         BoundNode curBlock = null;
                         int curBlockDepth;
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //   Note that is is completely irrelevant how deeply the lexical scope of the lambda was originally nested.
                     if (innermostScope != null)
                     {
-                        lambdaScopes.Add(lambda, innermostScope);
+                        lambdaScopes.Add(kvp.Key, innermostScope);
 
                         while (innermostScope != outermostScope)
                         {

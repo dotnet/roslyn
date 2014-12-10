@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             internal readonly ImmutableArray<AnonymousTypePropertySymbol> Properties;
 
             /// <summary> Maps member names to symbol(s) </summary>
-            private readonly MultiDictionary<string, Symbol> name2symbol = new MultiDictionary<string, Symbol>();
+            private readonly MultiDictionary<string, Symbol> nameToSymbols = new MultiDictionary<string, Symbol>();
 
             /// <summary> Anonymous type manager owning this template </summary>
             internal readonly AnonymousTypeManager Manager;
@@ -81,10 +81,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this.members = members.AsImmutableOrNull();
                 Debug.Assert(memberIndex == this.members.Length);
 
-                //  fill name2symbol map
+                //  fill nameToSymbols map
                 foreach (var symbol in this.members)
                 {
-                    this.name2symbol.Add(symbol.Name, symbol);
+                    this.nameToSymbols.Add(symbol.Name, symbol);
                 }
             }
 
@@ -105,22 +105,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override ImmutableArray<Symbol> GetMembers(string name)
             {
-                int count = this.name2symbol.GetCountForKey(name);
+                var symbols = this.nameToSymbols[name];
+                var builder = ArrayBuilder<Symbol>.GetInstance(symbols.Count);
+                foreach (var symbol in symbols)
+                {
+                    builder.Add(symbol);
+                }
 
-                if (count == 0)
-                {
-                    return ImmutableArray<Symbol>.Empty;
-                }
-                else if (count == 1)
-                {
-                    Symbol symbol = null;
-                    this.name2symbol.TryGetSingleValue(name, out symbol);
-                    return ImmutableArray.Create<Symbol>(symbol);
-                }
-                else
-                {
-                    return ImmutableArray.CreateRange<Symbol>(this.name2symbol[name]);
-                }
+                return builder.ToImmutableAndFree();
             }
 
             internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers()
@@ -135,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override IEnumerable<string> MemberNames
             {
-                get { return this.name2symbol.Keys; }
+                get { return this.nameToSymbols.Keys; }
             }
 
             public override Symbol ContainingSymbol

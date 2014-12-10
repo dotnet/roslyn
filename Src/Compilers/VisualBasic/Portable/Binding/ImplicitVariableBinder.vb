@@ -92,14 +92,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If _implicitLocals IsNot Nothing AndAlso _possiblyShadowingVariables IsNot Nothing Then
                     For Each localName As String In _implicitLocals.Keys
-                        Dim shadowingVariables As IEnumerable(Of ShadowedVariableInfo) = Nothing
-                        If _possiblyShadowingVariables.TryGetMultipleValues(localName, shadowingVariables) Then
+                        For Each shadowingVariableInfo In _possiblyShadowingVariables(localName)
                             ' An already declared variable in an enclosed block is shadowing this new implicit variable. 
                             ' Report an error at THAT declaration's location.
-                            For Each shadowingVariableInfo In shadowingVariables
-                                ReportDiagnostic(diagnostics, shadowingVariableInfo.Location, shadowingVariableInfo.ErrorId, shadowingVariableInfo.Name)
-                            Next
-                        End If
+                            ReportDiagnostic(diagnostics, shadowingVariableInfo.Location, shadowingVariableInfo.ErrorId, shadowingVariableInfo.Name)
+                        Next
                     Next
                 End If
             End If

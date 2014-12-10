@@ -881,7 +881,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim translatedLambdaContainer As InstanceTypeSymbol
             Dim lambdaScope As BoundNode = Nothing
-            Dim lambdaIsStatic As Boolean = _analysis.captures(node.LambdaSymbol).IsEmpty()
+            Dim lambdaIsStatic As Boolean = _analysis.captures(node.LambdaSymbol).Count = 0
 
             If _analysis.lambdaScopes.TryGetValue(node.LambdaSymbol, lambdaScope) Then
                 translatedLambdaContainer = frames(lambdaScope)

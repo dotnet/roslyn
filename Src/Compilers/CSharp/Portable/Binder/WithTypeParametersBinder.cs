@@ -41,21 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var typeParameterMap = TypeParameterMap;
-            var count = typeParameterMap.GetCountForKey(name);
-            if (count == 1)
+            foreach (var typeParameter in TypeParameterMap[name])
             {
-                TypeParameterSymbol typeParameter;
-                typeParameterMap.TryGetSingleValue(name, out typeParameter);
                 result.MergeEqual(originalBinder.CheckViability(typeParameter, arity, options, null, diagnose, ref useSiteDiagnostics));
-            }
-            else if (count > 1)
-            {
-                var parameters = typeParameterMap[name];
-                foreach (var typeParameter in parameters)
-                {
-                    result.MergeEqual(originalBinder.CheckViability(typeParameter, arity, options, null, diagnose, ref useSiteDiagnostics));
-                }
             }
         }
     }

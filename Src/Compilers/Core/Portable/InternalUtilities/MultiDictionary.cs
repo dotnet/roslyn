@@ -8,111 +8,181 @@ using System.Diagnostics;
 namespace Roslyn.Utilities
 {
     // Note that this is not threadsafe for concurrent reading and writing.
-    internal sealed class MultiDictionary<K, V> : IReadOnlySet<K>
+    internal sealed class MultiDictionary<K, V>
     {
-        // store either a single V or an ImmutableHashSet<V>
-        private readonly Dictionary<K, object> dictionary;
-
-        public MultiDictionary()
+        public struct ValueSet
         {
-            this.dictionary = new Dictionary<K, object>();
-        }
-
-        public MultiDictionary(IEqualityComparer<K> comparer)
-        {
-            this.dictionary = new Dictionary<K, object>(comparer);
-        }
-
-        public MultiDictionary(int capacity, IEqualityComparer<K> comparer)
-        {
-            this.dictionary = new Dictionary<K, object>(capacity, comparer);
-        }
-
-        public void Add(K k, V v)
-        {
-            object item;
-            if (this.dictionary.TryGetValue(k, out item))
+            public struct Enumerator
             {
-                var set = item as ImmutableHashSet<V> ?? ImmutableHashSet.Create<V>((V)item);
-                this.dictionary[k] = set.Add(v);
+                private readonly V value;
+                private ImmutableHashSet<V>.Enumerator values;
+                private int count;
+
+                public Enumerator(ValueSet v)
+                {
+                    if (v.value == null)
+                    {
+                        value = default(V);
+                        values = default(ImmutableHashSet<V>.Enumerator);
+                        count = 0;
+                    }
+                    else
+                    {
+                        var set = v.value as ImmutableHashSet<V>;
+                        if (set == null)
+                        {
+                            value = (V)v.value;
+                            values = default(ImmutableHashSet<V>.Enumerator);
+                            count = 1;
+                        }
+                        else
+                        {
+                            value = default(V);
+                            values = set.GetEnumerator();
+                            count = set.Count;
+                            Debug.Assert(count > 1);
+                        }
+
+                        Debug.Assert(count == v.Count);
+                    }
+                }
+
+                // Note that this property is not guaranteed to throw either before MoveNext()
+                // has been called or after the end of the set has been reached.
+                public V Current
+                {
+                    get
+                    {
+                        return count > 1 ? values.Current : value;
+                    }
+                }
+
+                public bool MoveNext()
+                {
+                    switch (count)
+                    {
+                        case 0:
+                            return false;
+
+                        case 1:
+                            count = 0;
+                            return true;
+
+                        default:
+                            if (values.MoveNext())
+                            {
+                                return true;
+                            }
+
+                            count = 0;
+                            return false;
+                    }
+                }
             }
-            else
+
+            // Stores either a single V or an ImmutableHashSet<V>
+            private readonly object value;
+
+            public int Count
             {
-                this.dictionary[k] = v;
+                get
+                {
+                    if (value == null)
+                    {
+                        return 0;
+                    }
+                    else
+                    {
+                        var set = value as ImmutableHashSet<V>;
+                        return set == null ? 1 : set.Count;
+                    }
+                }
             }
-        }
 
-        public int KeyCount
-        {
-            get { return this.dictionary.Count; }
-        }
-
-        public int GetCountForKey(K k)
-        {
-            object item;
-            if (this.dictionary.TryGetValue(k, out item))
+            public ValueSet(object value)
             {
-                var set = item as ImmutableHashSet<V>;
-                return set == null ? 1 : set.Count;
+                this.value = value;
             }
 
-            return 0;
-        }
-
-        public bool TryGetSingleValue(K k, out V v)
-        {
-            object item;
-            if (this.dictionary.TryGetValue(k, out item))
+            public Enumerator GetEnumerator()
             {
-                var set = item as ImmutableHashSet<V>;
+                return new Enumerator(this);
+            }
+
+            public ValueSet Add(V v)
+            {
+                Debug.Assert(value != null);
+
+                var set = value as ImmutableHashSet<V>;
                 if (set == null)
                 {
-                    v = (V)item;
-                    return true;
+                    if (ImmutableHashSet<V>.Empty.KeyComparer.Equals((V)value, v))
+                    {
+                        return this;
+                    }
+
+                    set = ImmutableHashSet.Create((V)value);
                 }
-                else
-                {
-                    Debug.Assert(set.Count > 1);
-                }
+
+                return new ValueSet(set.Add(v));
             }
 
-            v = default(V);
-            return false;
-        }
-
-        public bool TryGetMultipleValues(K k, out IEnumerable<V> items)
-        {
-            object item;
-            if (this.dictionary.TryGetValue(k, out item))
+            public V Single()
             {
-                items = item as ImmutableHashSet<V> ?? SpecializedCollections.SingletonEnumerable<V>((V)item);
-                return true;
+                Debug.Assert(value is V); // Implies value != null
+                return (V)value;
             }
-
-            items = null;
-            return false;
         }
 
-        // Returns an empty set if there is no such key in the dictionary.
-        public IEnumerable<V> this[K k]
+        private readonly Dictionary<K, ValueSet> dictionary;
+
+        public int Count
         {
             get
             {
-                IEnumerable<V> items;
-                if (this.TryGetMultipleValues(k, out items))
-                {
-                    return items;
-                }
-                else
-                {
-                    return SpecializedCollections.EmptyEnumerable<V>();
-                }
+                return this.dictionary.Count;
             }
         }
 
         public IEnumerable<K> Keys
         {
             get { return this.dictionary.Keys; }
+        }
+
+        // Returns an empty set if there is no such key in the dictionary.
+        public ValueSet this[K k]
+        {
+            get
+            {
+                ValueSet set;
+                return this.dictionary.TryGetValue(k, out set) ? set : default(ValueSet);
+            }
+        }
+
+        public MultiDictionary()
+        {
+            this.dictionary = new Dictionary<K, ValueSet>();
+        }
+
+        public MultiDictionary(IEqualityComparer<K> comparer)
+        {
+            this.dictionary = new Dictionary<K, ValueSet>(comparer);
+        }
+
+        public MultiDictionary(int capacity, IEqualityComparer<K> comparer)
+        {
+            this.dictionary = new Dictionary<K, ValueSet>(capacity, comparer);
+        }
+
+        public void Add(K k, V v)
+        {
+            ValueSet set;
+            this.dictionary[k] = this.dictionary.TryGetValue(k, out set) ? set.Add(v) : new ValueSet(v);
+        }
+
+        public IEnumerator<KeyValuePair<K, ValueSet>> GetEnumerator()
+        {
+            return this.dictionary.GetEnumerator();
         }
 
         public bool ContainsKey(K k)
@@ -123,16 +193,6 @@ namespace Roslyn.Utilities
         internal void Clear()
         {
             this.dictionary.Clear();
-        }
-
-        int IReadOnlySet<K>.Count
-        {
-            get { return KeyCount; }
-        }
-
-        bool IReadOnlySet<K>.Contains(K item)
-        {
-            return ContainsKey(item);
         }
     }
 }

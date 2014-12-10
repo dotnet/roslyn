@@ -68,11 +68,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (lazyDisallowedCaptures != null)
             {
-                foreach (var variable in lazyDisallowedCaptures.Keys)
+                foreach (var kvp in lazyDisallowedCaptures)
                 {
+                    var variable = kvp.Key;
                     var type = (variable.Kind == SymbolKind.Local) ? ((LocalSymbol)variable).Type : ((ParameterSymbol)variable).Type;
 
-                    foreach (CSharpSyntaxNode syntax in lazyDisallowedCaptures[variable])
+                    foreach (CSharpSyntaxNode syntax in kvp.Value)
                     {
                         // CS4013: Instance of type '{0}' cannot be used inside an anonymous function, query expression, iterator block or async method
                         diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, type);

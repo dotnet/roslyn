@@ -179,20 +179,24 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 HashSet<XElement> children2Used = new HashSet<XElement>(ReferenceEqualityComparer.Instance);
                 foreach (XElement child1 in children1)
                 {
-                    IEnumerable<XElement> candidates2;
-                    if (children2Dict.TryGetMultipleValues(child1, out candidates2))
+                    XElement child2 = null;
+                    foreach (var candidate in children2Dict[child1])
                     {
-                        XElement child2 = candidates2.FirstOrDefault(candidate => !children2Used.Contains(candidate));
-                        if (child2 == null)
+                        if (!children2Used.Contains(candidate))
                         {
-                            return false;
+                            child2 = candidate;
+                            break;
                         }
-                        children2Used.Add(child2);
-                        stack.Push(new Tuple<XElement, XElement>(child1, child2));
+                    }
+
+                    if (child2 == null)
+                    {
+                        return false;
                     }
                     else
                     {
-                        return false;
+                        children2Used.Add(child2);
+                        stack.Push(new Tuple<XElement, XElement>(child1, child2));
                     }
                 }
 

@@ -236,8 +236,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             NamedTypeSymbol containingType = this.ContainingType;
 
-            foreach (Symbol captured in analysis.capturedVariables.Keys)
+            foreach (var kvp in analysis.capturedVariables)
             {
+                var captured = kvp.Key;
+
                 BoundNode node;
                 if (!analysis.variableScope.TryGetValue(captured, out node))
                 {
@@ -255,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (hoistedField.Type.IsRestrictedType())
                 {
-                    foreach (CSharpSyntaxNode syntax in analysis.capturedVariables[captured])
+                    foreach (CSharpSyntaxNode syntax in kvp.Value)
                     {
                         // CS4013: Instance of type '{0}' cannot be used inside an anonymous function, query expression, iterator block or async method
                         this.Diagnostics.Add(ErrorCode.ERR_SpecialByRefInLambda, syntax.Location, hoistedField.Type);
@@ -884,7 +886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             NamedTypeSymbol translatedLambdaContainer;
             BoundNode lambdaScope = null;
-            bool lambdaIsStatic = analysis.capturedVariablesByLambda[node.Symbol].IsEmpty();
+            bool lambdaIsStatic = analysis.capturedVariablesByLambda[node.Symbol].Count == 0;
 
             if (analysis.lambdaScopes.TryGetValue(node.Symbol, out lambdaScope))
             {

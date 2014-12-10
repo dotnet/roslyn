@@ -188,6 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SpecialType.System_Collections_IEnumerable:
                     case SpecialType.System_Collections_IEnumerator:
                         return GetSpecialType(SpecialType.System_Object, diagnostics, errorLocationNode);
+
                     case SpecialType.System_Collections_Generic_IEnumerable_T:
                     case SpecialType.System_Collections_Generic_IEnumerator_T:
                         return ((NamedTypeSymbol)returnType).TypeArgumentsNoUseSiteDiagnostics[0];
@@ -200,24 +201,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override void LookupSymbolsInSingleBinder(
             LookupResult result, string name, int arity, ConsList<Symbol> basesBeingResolved, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            if (parameterMap == null || (options & LookupOptions.NamespaceAliasesOnly) != 0) return;
-
             Debug.Assert(result.IsClear);
 
-            var count = parameterMap.GetCountForKey(name);
-            if (count == 1)
+            if (parameterMap == null || (options & LookupOptions.NamespaceAliasesOnly) != 0)
             {
-                ParameterSymbol p;
-                parameterMap.TryGetSingleValue(name, out p);
-                result.MergeEqual(originalBinder.CheckViability(p, arity, options, null, diagnose, ref useSiteDiagnostics));
+                return;
             }
-            else if (count > 1)
+
+            foreach (var parameterSymbol in parameterMap[name])
             {
-                var parameters = parameterMap[name];
-                foreach (var sym in parameters)
-                {
-                    result.MergeEqual(originalBinder.CheckViability(sym, arity, options, null, diagnose, ref useSiteDiagnostics));
-                }
+                result.MergeEqual(originalBinder.CheckViability(parameterSymbol, arity, options, null, diagnose, ref useSiteDiagnostics));
             }
         }
 
@@ -244,7 +237,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Quirk of the way we represent lambda parameters.                
             SymbolKind newSymbolKind = (object)newSymbol == null ? SymbolKind.Parameter : newSymbol.Kind;
 
-            if (newSymbolKind == SymbolKind.ErrorType) return true;
+            if (newSymbolKind == SymbolKind.ErrorType)
+            {
+                return true;
+            }
 
             if (parameterKind == SymbolKind.Parameter)
             {
