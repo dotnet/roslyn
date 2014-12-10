@@ -57,13 +57,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     fixAllContext.CancellationToken.ThrowIfCancellationRequested();
 
                     var documents = documentsAndDiagnosticsToFixMap.Keys.ToImmutableArray();
-                    var options = new ParallelOptions();
-                    options.CancellationToken = fixAllContext.CancellationToken;
-
+                    var options = new ParallelOptions() { CancellationToken = fixAllContext.CancellationToken };
                     Parallel.ForEach(documents, options, document =>
                     {
-                        options.CancellationToken.ThrowIfCancellationRequested();
-                        AddDocumentFixesAsync(document, documentsAndDiagnosticsToFixMap[document], fixesBag.Add, fixAllContext).Wait(options.CancellationToken);
+                        fixAllContext.CancellationToken.ThrowIfCancellationRequested();
+                        AddDocumentFixesAsync(document, documentsAndDiagnosticsToFixMap[document], fixesBag.Add, fixAllContext).Wait(fixAllContext.CancellationToken);
                     });
                 }
 
@@ -121,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 });
             }
 
-            Task.WaitAll(fixerTasks);
+            Task.WaitAll(fixerTasks, cancellationToken);
         }
 
         public virtual async Task<CodeAction> GetFixAsync(
@@ -136,14 +134,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                 using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesComputation_Fixes, fixAllContext.CancellationToken))
                 {
-                    var options = new ParallelOptions();
-                    options.CancellationToken = fixAllContext.CancellationToken;
-
+                    var options = new ParallelOptions() { CancellationToken = fixAllContext.CancellationToken };
                     Parallel.ForEach(projectsAndDiagnosticsToFixMap.Keys, options, project =>
                     {
-                        options.CancellationToken.ThrowIfCancellationRequested();
+                        fixAllContext.CancellationToken.ThrowIfCancellationRequested();
                         var diagnostics = projectsAndDiagnosticsToFixMap[project];
-                        AddProjectFixesAsync(project, diagnostics, fixesBag.Add, fixAllContext).Wait(options.CancellationToken);
+                        AddProjectFixesAsync(project, diagnostics, fixesBag.Add, fixAllContext).Wait(fixAllContext.CancellationToken);
                     });
                 }
 
@@ -251,32 +247,23 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                 if (documentsToFix != null && documentsToFix.Any())
                 {
-                    var documentAndDiagnostics = ImmutableDictionary.CreateBuilder<Document, ImmutableArray<Diagnostic>>();
-                    var cancellationToken = fixAllContext.CancellationToken;
-
-                    // TODO: Parallelize the diagnostic computation once DiagnosticAnalyzerService is multithreaded.
-
-                    // var documentAndDiagnostics = new ConcurrentDictionary<Document, ImmutableArray<Diagnostic>>();
-                    // var options = new ParallelOptions();
-                    // options.CancellationToken = fixAllContext.CancellationToken;
-                    // Parallel.ForEach(documentsToFix, options, doc =>
-                    // {
-                    // });
-
-                    foreach (var doc in documentsToFix)
+                    var documentAndDiagnostics = new ConcurrentDictionary<Document, ImmutableArray<Diagnostic>>();
+                    var options = new ParallelOptions() { CancellationToken = fixAllContext.CancellationToken };
+                    Parallel.ForEach(documentsToFix, options, doc =>
                     {
-                        cancellationToken.ThrowIfCancellationRequested();
+                        fixAllContext.CancellationToken.ThrowIfCancellationRequested();
+
                         if (!generatedCodeServices.IsGeneratedCode(doc))
                         {
-                            var documentDiagnostics = fixAllContext.GetDiagnosticsAsync(doc).WaitAndGetResult(cancellationToken);
+                            var documentDiagnostics = fixAllContext.GetDiagnosticsAsync(doc).WaitAndGetResult(fixAllContext.CancellationToken);
                             if (documentDiagnostics.Any())
                             {
-                                documentAndDiagnostics.Add(doc, documentDiagnostics);
+                                documentAndDiagnostics.TryAdd(doc, documentDiagnostics);
                             }
                         }
-                    }
+                    });
 
-                    return documentAndDiagnostics.ToImmutable();
+                    return documentAndDiagnostics.ToImmutableDictionary();
                 }
 
                 return ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Empty;
@@ -298,27 +285,19 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                             return ImmutableDictionary.CreateRange(kvp);
 
                         case FixAllScope.Solution:
-                            // TODO: Parallelize the diagnostic computation once DiagnosticAnalyzerService is multithreaded.
-                            // var projectsAndDiagnostics = new ConcurrentDictionary<Project, ImmutableArray<Diagnostic>>();
-
-                            // var options = new ParallelOptions();
-                            // options.CancellationToken = fixAllContext.CancellationToken;
-                            // Parallel.ForEach(project.Solution.Projects, options, proj =>
-                            // {
-                            // });
-
-                            var projectsAndDiagnostics = ImmutableDictionary.CreateBuilder<Project, ImmutableArray<Diagnostic>>();
-                            var cancellationToken = fixAllContext.CancellationToken;
-                            foreach (var proj in project.Solution.Projects)
+                            var projectsAndDiagnostics = new ConcurrentDictionary<Project, ImmutableArray<Diagnostic>>();
+                            var options = new ParallelOptions() { CancellationToken = fixAllContext.CancellationToken };
+                            Parallel.ForEach(project.Solution.Projects, options, proj =>
                             {
-                                var projectDiagnostics = fixAllContext.GetDiagnosticsAsync(proj).WaitAndGetResult(cancellationToken);
+                                fixAllContext.CancellationToken.ThrowIfCancellationRequested();
+                                var projectDiagnostics = fixAllContext.GetDiagnosticsAsync(proj).WaitAndGetResult(fixAllContext.CancellationToken);
                                 if (projectDiagnostics.Any())
                                 {
-                                    projectsAndDiagnostics.Add(proj, projectDiagnostics);
+                                    projectsAndDiagnostics.TryAdd(proj, projectDiagnostics);
                                 }
-                            }
+                            });
 
-                            return projectsAndDiagnostics.ToImmutable();
+                            return projectsAndDiagnostics.ToImmutableDictionary();
                     }
                 }
 
