@@ -168,15 +168,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return null;
                     }
 
+                    string nameWithPolicyApplied = AppDomain.CurrentDomain.ApplyPolicy(args.Name);
+
                     Assembly assembly;
-                    if (assembliesFromNames.TryGetValue(args.Name, out assembly))
+                    if (assembliesFromNames.TryGetValue(nameWithPolicyApplied, out assembly))
                     {
                         // We've already loaded an assembly by this name; use that.
                         return assembly;
                     }
 
                     AssemblyIdentity assemblyIdentity;
-                    if (!AssemblyIdentity.TryParseDisplayName(args.Name, out assemblyIdentity))
+                    if (!AssemblyIdentity.TryParseDisplayName(nameWithPolicyApplied, out assemblyIdentity))
                     {
                         return null;
                     }
