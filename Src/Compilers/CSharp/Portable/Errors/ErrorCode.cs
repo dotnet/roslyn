@@ -1301,5 +1301,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EscapedCurly = 8087,
         ERR_TrailingWhitespaceInFormatSpecifier = 8088,
         ERR_EmptyFormatSpecifier = 8089,
+        ERR_ErrorInReferencedAssembly = 8090,
     }
 }

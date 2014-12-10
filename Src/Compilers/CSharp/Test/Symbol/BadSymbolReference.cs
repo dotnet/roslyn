@@ -274,76 +274,76 @@ interface I1<T>
             DiagnosticDescription[] errors = {
                 // (140,11): error CS0012: The type 'CL2_I1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //     class C5 : CL3_I1, I1<CL3_I1>
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "C5").WithArguments("CL2_I1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "C5").WithArguments("CL2_I1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(140, 11),
                 // (125,16): error CS0012: The type 'CL2_C1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //     class C2 : CL3_C1
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "CL3_C1").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "CL3_C1").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(125, 16),
                 // (133,11): error CS0509: 'Module1.C4': cannot derive from sealed type 'CL3_S1'
                 //     class C4 : CL3_S1
-                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "C4").WithArguments("Module1.C4", "CL3_S1"),
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "C4").WithArguments("Module1.C4", "CL3_S1").WithLocation(133, 11),
                 // (137,15): error CS0012: The type 'CL2_I1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //     interface I2 : CL3_I1, I1<CL3_I1>
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "I2").WithArguments("CL2_I1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "I2").WithArguments("CL2_I1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(137, 15),
                 // (9,16): warning CS0219: The variable 'x1' is assigned but its value is never used
                 //         CL3_C1 x1;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1"),
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(9, 16),
                 // (15,16): warning CS0219: The variable 'x2' is assigned but its value is never used
                 //         CL3_C3 x2;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x2").WithArguments("x2"),
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x2").WithArguments("x2").WithLocation(15, 16),
                 // (21,31): warning CS0219: The variable 'x3' is assigned but its value is never used
                 //         System.Action<CL3_C3> x3;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x3").WithArguments("x3"),
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x3").WithArguments("x3").WithLocation(21, 31),
                 // (27,16): error CS0012: The type 'CL2_C1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         CL3_C1.Test1();
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "Test1").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "Test1").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(27, 16),
                 // (32,24): error CS0012: The type 'CL2_C1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         global::CL3_C1.Test1();
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "Test1").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "Test1").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(32, 24),
                 // (53,18): warning CS0219: The variable 'x4' is assigned but its value is never used
                 //         CL3_C3[] x4;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x4").WithArguments("x4"),
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x4").WithArguments("x4").WithLocation(53, 18),
                 // (65,20): warning CS0219: The variable 'x5' is assigned but its value is never used
                 //         C1<CL3_C1> x5;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x5").WithArguments("x5"),
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x5").WithArguments("x5").WithLocation(65, 20),
                 // (88,22): error CS0012: The type 'CL2_C1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         object z = y.x;
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "x").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "x").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(88, 22),
                 // (145,17): warning CS0219: The variable 'x6' is assigned but its value is never used
                 //         CL3_S1? x6;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x6").WithArguments("x6"),
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x6").WithArguments("x6").WithLocation(145, 17),
                 // (151,9): error CS0012: The type 'CL2_C1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         CL3_C2.Test1();
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "CL3_C2.Test1").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "CL3_C2.Test1").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(151, 9),
                 // (156,9): error CS0120: An object reference is required for the non-static field, method, or property 'CL3_C2.Test1(int)'
                 //         CL3_C2.Test1(1);
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "CL3_C2.Test1").WithArguments("CL3_C2.Test1(int)"),
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "CL3_C2.Test1").WithArguments("CL3_C2.Test1(int)").WithLocation(156, 9),
                 // (161,9): error CS0012: The type 'CL2_C1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         CL3_C2.Test3();
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "CL3_C2.Test3").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
-                // (166,9): error CS1501: No overload for method 'Test4' takes 0 arguments
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "CL3_C2.Test3").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(161, 9),
+                // (166,16): error CS1501: No overload for method 'Test4' takes 0 arguments
                 //         CL3_C2.Test4();
-                Diagnostic(ErrorCode.ERR_BadArgCount, "Test4").WithArguments("Test4", "0"),
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Test4").WithArguments("Test4", "0").WithLocation(166, 16),
                 // (171,9): error CS0012: The type 'CL2_C1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         CL3_C2.Test4(null);
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "CL3_C2.Test4").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
-                // (171,9): error CS0121: The call is ambiguous between the following methods or properties: 'CL3_C2.Test4(CL3_C1)' and 'CL3_C2.Test4(CL3_C3)'
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "CL3_C2.Test4").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(171, 9),
+                // (171,16): error CS0121: The call is ambiguous between the following methods or properties: 'CL3_C2.Test4(CL3_C1)' and 'CL3_C2.Test4(CL3_C3)'
                 //         CL3_C2.Test4(null);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Test4").WithArguments("CL3_C2.Test4(CL3_C1)", "CL3_C2.Test4(CL3_C3)"),
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Test4").WithArguments("CL3_C2.Test4(CL3_C1)", "CL3_C2.Test4(CL3_C3)").WithLocation(171, 16),
                 // (177,9): error CS0012: The type 'CL2_C1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         y.Test1();
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "y.Test1").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "y.Test1").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(177, 9),
                 // (195,23): error CS0012: The type 'CL2_C1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         CL3_D1 d1 = y.Test2;
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "Test2").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "Test2").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(195, 23),
                 // (207,9): error CS0012: The type 'CL2_C1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         y.w(null);
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "y.w(null)").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "y.w(null)").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(207, 9),
                 // (212,20): error CS0012: The type 'CL2_C1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         CL3_D1 u = (uuu) => System.Console.WriteLine();
-                Diagnostic(ErrorCode.ERR_NoTypeDef, "(uuu) => System.Console.WriteLine()").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"),
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "(uuu) => System.Console.WriteLine()").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(212, 20),
                 // (5,20): warning CS0649: Field 'Module1.f1' is never assigned to, and will always have its default value null
                 //     private CL3_C1 f1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "f1").WithArguments("Module1.f1", "null")
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "f1").WithArguments("Module1.f1", "null").WithLocation(5, 20)
                                              };
 
             var compilation2 = CreateCompilationWithMscorlib(a_cs, new MetadataReference[] { cl3 });
@@ -459,45 +459,81 @@ public interface CL3_I1 : CL2_I1
             var compilation4 = CreateCompilationWithMscorlib(a_cs, new MetadataReference[] { new CSharpCompilationReference(cl3BadCompilation1) });
 
             DiagnosticDescription[] errors2 = {
+                // (140,11): error CS0246: The type or namespace name 'CL2_I1' could not be found (are you missing a using directive or an assembly reference?)
+                //     class C5 : CL3_I1, I1<CL3_I1>
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "C5").WithArguments("CL2_I1").WithLocation(140, 11),
+                // (125,16): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
+                //     class C2 : CL3_C1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CL3_C1").WithArguments("CL2_C1").WithLocation(125, 16),
                 // (133,11): error CS0509: 'Module1.C4': cannot derive from sealed type 'CL3_S1'
                 //     class C4 : CL3_S1
-                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "C4").WithArguments("Module1.C4", "CL3_S1"),
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "C4").WithArguments("Module1.C4", "CL3_S1").WithLocation(133, 11),
+                // (137,15): error CS0246: The type or namespace name 'CL2_I1' could not be found (are you missing a using directive or an assembly reference?)
+                //     interface I2 : CL3_I1, I1<CL3_I1>
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "I2").WithArguments("CL2_I1").WithLocation(137, 15),
                 // (9,16): warning CS0219: The variable 'x1' is assigned but its value is never used
                 //         CL3_C1 x1;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1"),
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(9, 16),
                 // (15,16): warning CS0219: The variable 'x2' is assigned but its value is never used
                 //         CL3_C3 x2;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x2").WithArguments("x2"),
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x2").WithArguments("x2").WithLocation(15, 16),
                 // (21,31): warning CS0219: The variable 'x3' is assigned but its value is never used
                 //         System.Action<CL3_C3> x3;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x3").WithArguments("x3"),
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x3").WithArguments("x3").WithLocation(21, 31),
+                // (27,16): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
+                //         CL3_C1.Test1();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Test1").WithArguments("CL2_C1").WithLocation(27, 16),
+                // (32,24): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
+                //         global::CL3_C1.Test1();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Test1").WithArguments("CL2_C1").WithLocation(32, 24),
                 // (53,18): warning CS0219: The variable 'x4' is assigned but its value is never used
                 //         CL3_C3[] x4;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x4").WithArguments("x4"),
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x4").WithArguments("x4").WithLocation(53, 18),
                 // (65,20): warning CS0219: The variable 'x5' is assigned but its value is never used
                 //         C1<CL3_C1> x5;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x5").WithArguments("x5"),
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x5").WithArguments("x5").WithLocation(65, 20),
+                // (88,22): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
+                //         object z = y.x;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "x").WithArguments("CL2_C1").WithLocation(88, 22),
                 // (145,17): warning CS0219: The variable 'x6' is assigned but its value is never used
                 //         CL3_S1? x6;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x6").WithArguments("x6"),
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x6").WithArguments("x6").WithLocation(145, 17),
+                // (151,9): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
+                //         CL3_C2.Test1();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CL3_C2.Test1").WithArguments("CL2_C1").WithLocation(151, 9),
                 // (156,9): error CS0120: An object reference is required for the non-static field, method, or property 'CL3_C2.Test1(int)'
                 //         CL3_C2.Test1(1);
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "CL3_C2.Test1").WithArguments("CL3_C2.Test1(int)"),
-                // (166,9): error CS1501: No overload for method 'Test4' takes 0 arguments
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "CL3_C2.Test1").WithArguments("CL3_C2.Test1(int)").WithLocation(156, 9),
+                // (161,9): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
+                //         CL3_C2.Test3();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CL3_C2.Test3").WithArguments("CL2_C1").WithLocation(161, 9),
+                // (166,16): error CS1501: No overload for method 'Test4' takes 0 arguments
                 //         CL3_C2.Test4();
-                Diagnostic(ErrorCode.ERR_BadArgCount, "Test4").WithArguments("Test4", "0"),
-                // (171,9): error CS0121: The call is ambiguous between the following methods or properties: 'CL3_C2.Test4(CL3_C1)' and 'CL3_C2.Test4(CL3_C3)'
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Test4").WithArguments("Test4", "0").WithLocation(166, 16),
+                // (171,9): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
                 //         CL3_C2.Test4(null);
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Test4").WithArguments("CL3_C2.Test4(CL3_C1)", "CL3_C2.Test4(CL3_C3)"),
-                // (177,9): error CS0176: Member 'CL3_C2.Test1()' cannot be accessed with an instance reference; qualify it with a type name instead
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CL3_C2.Test4").WithArguments("CL2_C1").WithLocation(171, 9),
+                // (171,9): error CS0246: The type or namespace name 'CL2_I1' could not be found (are you missing a using directive or an assembly reference?)
+                //         CL3_C2.Test4(null);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CL3_C2.Test4").WithArguments("CL2_I1").WithLocation(171, 9),
+                // (171,16): error CS0121: The call is ambiguous between the following methods or properties: 'CL3_C2.Test4(CL3_C1)' and 'CL3_C2.Test4(CL3_C3)'
+                //         CL3_C2.Test4(null);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Test4").WithArguments("CL3_C2.Test4(CL3_C1)", "CL3_C2.Test4(CL3_C3)").WithLocation(171, 16),
+                // (177,9): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
                 //         y.Test1();
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "y.Test1").WithArguments("CL3_C2.Test1()"),
-                // (195,23): error CS0123: No overload for 'Test2' matches delegate 'CL3_D1'
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "y.Test1").WithArguments("CL2_C1").WithLocation(177, 9),
+                // (195,23): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
                 //         CL3_D1 d1 = y.Test2;
-                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "Test2").WithArguments("Test2", "CL3_D1"),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Test2").WithArguments("CL2_C1").WithLocation(195, 23),
+                // (207,9): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
+                //         y.w(null);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "y.w(null)").WithArguments("CL2_C1").WithLocation(207, 9),
+                // (212,20): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
+                //         CL3_D1 u = (uuu) => System.Console.WriteLine();
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "(uuu) => System.Console.WriteLine()").WithArguments("CL2_C1").WithLocation(212, 20),
                 // (5,20): warning CS0649: Field 'Module1.f1' is never assigned to, and will always have its default value null
                 //     private CL3_C1 f1;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "f1").WithArguments("Module1.f1", "null")
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "f1").WithArguments("Module1.f1", "null").WithLocation(5, 20)
                                               };
 
             compilation4.VerifyDiagnostics(errors2);
@@ -544,13 +580,129 @@ public interface CL3_I1 : CL2_I1
 
             var compilation5 = CreateCompilationWithMscorlib(a_cs, new MetadataReference[] { new CSharpCompilationReference(cl3BadCompilation2) });
 
-            compilation5.VerifyDiagnostics(errors2);
+            DiagnosticDescription[] errors5 = {
+                // (133,11): error CS0509: 'Module1.C4': cannot derive from sealed type 'CL3_S1'
+                //     class C4 : CL3_S1
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "C4").WithArguments("Module1.C4", "CL3_S1").WithLocation(133, 11),
+                // (9,16): warning CS0219: The variable 'x1' is assigned but its value is never used
+                //         CL3_C1 x1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(9, 16),
+                // (15,16): warning CS0219: The variable 'x2' is assigned but its value is never used
+                //         CL3_C3 x2;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x2").WithArguments("x2").WithLocation(15, 16),
+                // (21,31): warning CS0219: The variable 'x3' is assigned but its value is never used
+                //         System.Action<CL3_C3> x3;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x3").WithArguments("x3").WithLocation(21, 31),
+                // (53,18): warning CS0219: The variable 'x4' is assigned but its value is never used
+                //         CL3_C3[] x4;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x4").WithArguments("x4").WithLocation(53, 18),
+                // (65,20): warning CS0219: The variable 'x5' is assigned but its value is never used
+                //         C1<CL3_C1> x5;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x5").WithArguments("x5").WithLocation(65, 20),
+                // (145,17): warning CS0219: The variable 'x6' is assigned but its value is never used
+                //         CL3_S1? x6;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x6").WithArguments("x6").WithLocation(145, 17),
+                // (156,9): error CS0120: An object reference is required for the non-static field, method, or property 'CL3_C2.Test1(int)'
+                //         CL3_C2.Test1(1);
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "CL3_C2.Test1").WithArguments("CL3_C2.Test1(int)").WithLocation(156, 9),
+                // (166,16): error CS1501: No overload for method 'Test4' takes 0 arguments
+                //         CL3_C2.Test4();
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Test4").WithArguments("Test4", "0").WithLocation(166, 16),
+                // (171,16): error CS0121: The call is ambiguous between the following methods or properties: 'CL3_C2.Test4(CL3_C1)' and 'CL3_C2.Test4(CL3_C3)'
+                //         CL3_C2.Test4(null);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Test4").WithArguments("CL3_C2.Test4(CL3_C1)", "CL3_C2.Test4(CL3_C3)").WithLocation(171, 16),
+                // (177,9): error CS0176: Member 'CL3_C2.Test1()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         y.Test1();
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "y.Test1").WithArguments("CL3_C2.Test1()").WithLocation(177, 9),
+                // (195,23): error CS0123: No overload for 'Test2' matches delegate 'CL3_D1'
+                //         CL3_D1 d1 = y.Test2;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "Test2").WithArguments("Test2", "CL3_D1").WithLocation(195, 23),
+                // (5,20): warning CS0649: Field 'Module1.f1' is never assigned to, and will always have its default value null
+                //     private CL3_C1 f1;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "f1").WithArguments("Module1.f1", "null").WithLocation(5, 20)
+            };
+
+            compilation5.VerifyDiagnostics(errors5);
 
             string cl4Source = a_cs + cl3Source;
 
             var compilation6 = CreateCompilationWithMscorlib(cl4Source);
 
-            compilation6.VerifyDiagnostics(errors3.Concat(errors2).ToArray());
+            DiagnosticDescription[] errors6 = {
+                // (232,23): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
+                // public class CL3_C1 : CL2_C1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CL2_C1").WithArguments("CL2_C1").WithLocation(232, 23),
+                // (306,23): error CS0246: The type or namespace name 'CL2_I1' could not be found (are you missing a using directive or an assembly reference?)
+                // public class CL3_C3 : CL2_I1, CL2_I2
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CL2_I1").WithArguments("CL2_I1").WithLocation(306, 23),
+                // (306,31): error CS0246: The type or namespace name 'CL2_I2' could not be found (are you missing a using directive or an assembly reference?)
+                // public class CL3_C3 : CL2_I1, CL2_I2
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CL2_I2").WithArguments("CL2_I2").WithLocation(306, 31),
+                // (319,23): error CS0246: The type or namespace name 'CL2_I1' could not be found (are you missing a using directive or an assembly reference?)
+                // public struct CL3_S1: CL2_I1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CL2_I1").WithArguments("CL2_I1").WithLocation(319, 23),
+                // (239,19): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
+                //     public static CL2_C1 Test2()
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CL2_C1").WithArguments("CL2_C1").WithLocation(239, 19),
+                // (322,27): error CS0246: The type or namespace name 'CL2_I1' could not be found (are you missing a using directive or an assembly reference?)
+                // public interface CL3_I1 : CL2_I1
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CL2_I1").WithArguments("CL2_I1").WithLocation(322, 27),
+                // (317,29): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
+                // public delegate void CL3_D1(CL2_C1 x);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CL2_C1").WithArguments("CL2_C1").WithLocation(317, 29),
+                // (244,12): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
+                //     public CL2_C1 Test3()
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CL2_C1").WithArguments("CL2_C1").WithLocation(244, 12),
+                // (267,19): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
+                //     public static CL2_C1 Test3()
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CL2_C1").WithArguments("CL2_C1").WithLocation(267, 19),
+                // (252,19): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
+                //     public static CL2_C1 Test1()
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CL2_C1").WithArguments("CL2_C1").WithLocation(252, 19),
+                // (257,12): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
+                //     public CL2_C1 x;
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CL2_C1").WithArguments("CL2_C1").WithLocation(257, 12),
+                // (133,11): error CS0509: 'Module1.C4': cannot derive from sealed type 'CL3_S1'
+                //     class C4 : CL3_S1
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "C4").WithArguments("Module1.C4", "CL3_S1").WithLocation(133, 11),
+                // (9,16): warning CS0219: The variable 'x1' is assigned but its value is never used
+                //         CL3_C1 x1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(9, 16),
+                // (15,16): warning CS0219: The variable 'x2' is assigned but its value is never used
+                //         CL3_C3 x2;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x2").WithArguments("x2").WithLocation(15, 16),
+                // (21,31): warning CS0219: The variable 'x3' is assigned but its value is never used
+                //         System.Action<CL3_C3> x3;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x3").WithArguments("x3").WithLocation(21, 31),
+                // (53,18): warning CS0219: The variable 'x4' is assigned but its value is never used
+                //         CL3_C3[] x4;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x4").WithArguments("x4").WithLocation(53, 18),
+                // (65,20): warning CS0219: The variable 'x5' is assigned but its value is never used
+                //         C1<CL3_C1> x5;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x5").WithArguments("x5").WithLocation(65, 20),
+                // (145,17): warning CS0219: The variable 'x6' is assigned but its value is never used
+                //         CL3_S1? x6;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x6").WithArguments("x6").WithLocation(145, 17),
+                // (156,9): error CS0120: An object reference is required for the non-static field, method, or property 'CL3_C2.Test1(int)'
+                //         CL3_C2.Test1(1);
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "CL3_C2.Test1").WithArguments("CL3_C2.Test1(int)").WithLocation(156, 9),
+                // (166,16): error CS1501: No overload for method 'Test4' takes 0 arguments
+                //         CL3_C2.Test4();
+                Diagnostic(ErrorCode.ERR_BadArgCount, "Test4").WithArguments("Test4", "0").WithLocation(166, 16),
+                // (171,16): error CS0121: The call is ambiguous between the following methods or properties: 'CL3_C2.Test4(CL3_C1)' and 'CL3_C2.Test4(CL3_C3)'
+                //         CL3_C2.Test4(null);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Test4").WithArguments("CL3_C2.Test4(CL3_C1)", "CL3_C2.Test4(CL3_C3)").WithLocation(171, 16),
+                // (177,9): error CS0176: Member 'CL3_C2.Test1()' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         y.Test1();
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "y.Test1").WithArguments("CL3_C2.Test1()").WithLocation(177, 9),
+                // (195,23): error CS0123: No overload for 'Test2' matches delegate 'CL3_D1'
+                //         CL3_D1 d1 = y.Test2;
+                Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "Test2").WithArguments("Test2", "CL3_D1").WithLocation(195, 23),
+                // (5,20): warning CS0649: Field 'Module1.f1' is never assigned to, and will always have its default value null
+                //     private CL3_C1 f1;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "f1").WithArguments("Module1.f1", "null").WithLocation(5, 20)
+            };
+            compilation6.VerifyDiagnostics(errors6);
 
             compilation1.VerifyDiagnostics(
                 // (6,16): warning CS0219: The variable 'x1' is assigned but its value is never used

@@ -1672,6 +1672,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_ExpressionDoesntHaveName = 37244
         ERR_InvalidNameOfSubExpression = 37245
         ERR_MethodTypeArgsUnexpected = 37246
+        ERR_InReferencedAssembly = 37247
 
         ERR_LastPlusOne
 

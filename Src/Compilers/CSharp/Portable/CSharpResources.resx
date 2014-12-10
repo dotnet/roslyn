@@ -4014,4 +4014,7 @@
   <data name="ERR_EmptyFormatSpecifier" xml:space="preserve">
     <value>Empty format specifier.</value>
   </data>
+  <data name="ERR_ErrorInReferencedAssembly" xml:space="preserve">
+    <value>There is an error in a referenced assembly '{0}'.</value>
+  </data>
 </root>

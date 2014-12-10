@@ -50,6 +50,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.resultKind = LookupResultKind.Empty;
         }
 
+        private ExtendedErrorTypeSymbol(NamespaceOrTypeSymbol containingSymbol, string name, int arity, DiagnosticInfo errorInfo, bool unreported, bool variableUsedBeforeDeclaration, ImmutableArray<Symbol> candidateSymbols, LookupResultKind resultKind)
+        {
+            this.name = name;
+            this.errorInfo = errorInfo;
+            this.containingSymbol = containingSymbol;
+            this.arity = arity;
+            this.unreported = unreported;
+            this.VariableUsedBeforeDeclaration = variableUsedBeforeDeclaration;
+            this.candidateSymbols = candidateSymbols;
+            this.resultKind = resultKind;
+        }
+
         internal ExtendedErrorTypeSymbol(NamespaceOrTypeSymbol guessSymbol, LookupResultKind resultKind, DiagnosticInfo errorInfo, bool unreported = false)
             : this(guessSymbol.ContainingNamespaceOrType(), guessSymbol, resultKind, errorInfo, unreported)
         {
@@ -66,6 +78,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.candidateSymbols = UnwrapErrorCandidates(candidateSymbols);
             this.resultKind = resultKind;
             Debug.Assert(candidateSymbols.IsEmpty || resultKind != LookupResultKind.Viable, "Shouldn't use LookupResultKind.Viable with candidate symbols");
+        }
+
+        internal ExtendedErrorTypeSymbol AsUnreported()
+        {
+            return this.Unreported ? this :
+                new ExtendedErrorTypeSymbol(containingSymbol, name, arity, errorInfo, true, VariableUsedBeforeDeclaration, candidateSymbols, resultKind);
         }
 
         private static ImmutableArray<Symbol> UnwrapErrorCandidates(ImmutableArray<Symbol> candidateSymbols)

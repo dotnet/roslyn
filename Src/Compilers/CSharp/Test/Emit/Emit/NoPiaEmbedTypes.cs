@@ -4880,8 +4880,12 @@ class UsePia5
 ";
 
             DiagnosticDescription[] expected = {
-    // error CS0246: The type or namespace name 'ITest33' could not be found (are you missing a using directive or an assembly reference?)
-    Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound).WithArguments("ITest33")
+                // error CS0246: The type or namespace name 'ITest33' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound).WithArguments("ITest33").WithLocation(1, 1),
+                // error CS0246: The type or namespace name 'ITest33' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound).WithArguments("ITest33").WithLocation(1, 1),
+                // error CS0246: The type or namespace name 'ITest33' could not be found (are you missing a using directive or an assembly reference?)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound).WithArguments("ITest33").WithLocation(1, 1)
                                                };
 
             var compilation1 = CreateCompilationWithMscorlib(consumer, options: TestOptions.ReleaseExe,
@@ -4933,7 +4937,7 @@ class UsePia5
             {
                 // (10,9): error CS0246: The type or namespace name 'ITest33' could not be found (are you missing a using directive or an assembly reference?)
                 //         y.M2(null);
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "y.M2(null)").WithArguments("ITest33")
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "y.M2").WithArguments("ITest33").WithLocation(10, 9)
             };
 
             VerifyEmitDiagnostics(compilation1, true, expected);

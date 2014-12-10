@@ -771,15 +771,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End Function
 
             Public Function Retarget(type As ErrorTypeSymbol) As ErrorTypeSymbol
-                Dim missing As MissingMetadataTypeSymbol = TryCast(type, MissingMetadataTypeSymbol)
+                ' TODO: if it is no longer missing in the target assembly, then we can resolve it here.
 
-                If missing IsNot Nothing Then
-                    ' TODO: if it is no longer missing in the target assembly, then we can resolve it here.
-                    Return missing
+                ' A retargeted error symbol must trigger an error on use so that a dependent compilation won't
+                ' improperly succeed. We therefore ensure we have a use-site diagnostic.
+                Dim useSiteDiagnostic = type.GetUseSiteErrorInfo
+                If useSiteDiagnostic IsNot Nothing Then
+                    Return type
                 End If
 
-                'TODO: produce an error symbol that will trigger an error on use
-                Return type
+                Dim errorInfo = If(type.ErrorInfo, ErrorFactory.ErrorInfo(ERRID.ERR_InReferencedAssembly, If(type.ContainingAssembly?.Identity.GetDisplayName, "")))
+                Return New ExtendedErrorTypeSymbol(errorInfo, type.Name, type.Arity, type.CandidateSymbols, type.ResultKind, True)
             End Function
 
             Public Function Retarget(sequence As IEnumerable(Of NamedTypeSymbol)) As IEnumerable(Of NamedTypeSymbol)

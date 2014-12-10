@@ -319,26 +319,54 @@ BC30652: Reference required to assembly 'CL2, Version=0.0.0.0, Culture=neutral, 
 
             Dim errors2 =
 <errors>
+BC30002: Type 'CL2_C1' is not defined.
+        CL3_C1.Test1()
+        ~~~~~~~~~~~~
+BC30002: Type 'CL2_C1' is not defined.
+        Global.CL3_C1.Test1()
+        ~~~~~~~~~~~~~~~~~~~
+BC30002: Type 'CL2_C1' is not defined.
+        Dim z As Object = y.x
+                          ~~~
+BC30002: Type 'CL2_C1' is not defined.
+        Inherits CL3_C1
+                 ~~~~~~
 BC30258: Classes can inherit only from other classes.
         Inherits CL3_S1
                  ~~~~~~
+BC30002: Type 'CL2_I1' is not defined.
+        Inherits CL3_I1, I1(Of CL3_I1)
+                 ~~~~~~
+BC30002: Type 'CL2_I1' is not defined.
+        Implements CL3_I1, I1(Of CL3_I1)
+                   ~~~~~~
+BC30002: Type 'CL2_C1' is not defined.
+        CL3_C2.Test1()
+        ~~~~~~~~~~~~~~
 BC30469: Reference to a non-shared member requires an object reference.
         CL3_C2.Test1(1)
         ~~~~~~~~~~~~
+BC30002: Type 'CL2_C1' is not defined.
+        CL3_C2.Test3()
+        ~~~~~~~~~~~~~~
 BC30516: Overload resolution failed because no accessible 'Test4' accepts this number of arguments.
         CL3_C2.Test4()
                ~~~~~
-BC30521: Overload resolution failed because no accessible 'Test4' is most specific for these arguments:
-    'Public Shared Sub Test4(x As CL3_C1)': Not most specific.
-    'Public Shared Sub Test4(x As CL3_C3)': Not most specific.
+BC30002: Type 'CL2_C1' is not defined.
         CL3_C2.Test4(nothing)
-               ~~~~~
-BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
+        ~~~~~~~~~~~~~~~~~~~~~
+BC30002: Type 'CL2_C1' is not defined.
         y.Test1()
-        ~~~~~~~
-BC31143: Method 'Public Sub Test2(x As Integer)' does not have a signature compatible with delegate 'Delegate Sub CL3_D1(x As CL2_C1)'.
+        ~~~~~~~~~
+BC30002: Type 'CL2_C1' is not defined.
         Dim d1 As CL3_D1 = AddressOf y.Test2
-                                     ~~~~~~~
+                           ~~~~~~~~~~~~~~~~~
+BC30002: Type 'CL2_C1' is not defined.
+        y.w(Nothing)
+        ~~~
+BC30002: Type 'CL2_C1' is not defined.
+        Dim u As CL3_D1 = Sub(uuu) System.Console.WriteLine()
+                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 </errors>
             CompilationUtils.AssertTheseDiagnostics(compilation4, errors2)
 
@@ -385,8 +413,87 @@ BC30002: Type 'CL2_I1' is not defined.
 
             Dim compilation5 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, {New VisualBasicCompilationReference(cl3BadCompilation2)}, options:=TestOptions.ReleaseExe)
 
-            CompilationUtils.AssertTheseDiagnostics(compilation5, errors2)
+            Dim errors5 =
+<errors>
+BC30258: Classes can inherit only from other classes.
+        Inherits CL3_S1
+                 ~~~~~~
+BC30469: Reference to a non-shared member requires an object reference.
+        CL3_C2.Test1(1)
+        ~~~~~~~~~~~~
+BC30516: Overload resolution failed because no accessible 'Test4' accepts this number of arguments.
+        CL3_C2.Test4()
+               ~~~~~
+BC30521: Overload resolution failed because no accessible 'Test4' is most specific for these arguments:
+    'Public Shared Sub Test4(x As CL3_C1)': Not most specific.
+    'Public Shared Sub Test4(x As CL3_C3)': Not most specific.
+        CL3_C2.Test4(nothing)
+               ~~~~~
+BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
+        y.Test1()
+        ~~~~~~~
+BC31143: Method 'Public Sub Test2(x As Integer)' does not have a signature compatible with delegate 'Delegate Sub CL3_D1(x As CL2_C1)'.
+        Dim d1 As CL3_D1 = AddressOf y.Test2
+                                     ~~~~~~~
+</errors>
+            CompilationUtils.AssertTheseDiagnostics(compilation5, errors5)
 
+            Dim errors6 =
+<errors>
+BC30258: Classes can inherit only from other classes.
+        Inherits CL3_S1
+                 ~~~~~~
+BC30469: Reference to a non-shared member requires an object reference.
+        CL3_C2.Test1(1)
+        ~~~~~~~~~~~~
+BC30516: Overload resolution failed because no accessible 'Test4' accepts this number of arguments.
+        CL3_C2.Test4()
+               ~~~~~
+BC30521: Overload resolution failed because no accessible 'Test4' is most specific for these arguments:
+    'Public Shared Sub Test4(x As CL3_C1)': Not most specific.
+    'Public Shared Sub Test4(x As CL3_C3)': Not most specific.
+        CL3_C2.Test4(nothing)
+               ~~~~~
+BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
+        y.Test1()
+        ~~~~~~~
+BC31143: Method 'Public Sub Test2(x As Integer)' does not have a signature compatible with delegate 'Delegate Sub CL3_D1(x As CL2_C1)'.
+        Dim d1 As CL3_D1 = AddressOf y.Test2
+                                     ~~~~~~~
+BC30002: Type 'CL2_C1' is not defined.
+    Inherits CL2_C1
+             ~~~~~~
+BC30002: Type 'CL2_C1' is not defined.
+    Public Shared Function Test2() As CL2_C1
+                                      ~~~~~~
+BC30002: Type 'CL2_C1' is not defined.
+    Public Function Test3() As CL2_C1
+                               ~~~~~~
+BC30002: Type 'CL2_C1' is not defined.
+    Public Shared Function Test1() As CL2_C1
+                                      ~~~~~~
+BC30002: Type 'CL2_C1' is not defined.
+    Public x As CL2_C1
+                ~~~~~~
+BC30002: Type 'CL2_C1' is not defined.
+    Public Shared Function Test3() As CL2_C1
+                                      ~~~~~~
+BC30002: Type 'CL2_I1' is not defined.
+    Implements CL2_I1, CL2_I2
+               ~~~~~~
+BC30002: Type 'CL2_I2' is not defined.
+    Implements CL2_I1, CL2_I2
+                       ~~~~~~
+BC30002: Type 'CL2_C1' is not defined.
+Public Delegate Sub CL3_D1(x As CL2_C1)
+                                ~~~~~~
+BC30002: Type 'CL2_I1' is not defined.
+    Implements CL2_I1
+               ~~~~~~
+BC30002: Type 'CL2_I1' is not defined.
+    Inherits CL2_I1
+             ~~~~~~
+</errors>
             Dim cl4Source =
     <compilation name="cl4">
         <%= a_vb %>
@@ -395,8 +502,7 @@ BC30002: Type 'CL2_I1' is not defined.
 
             Dim compilation6 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(cl4Source)
 
-            CompilationUtils.AssertTheseDiagnostics(compilation6,
-<error><%= errors2.Value.TrimEnd() + errors3.Value %></error>)
+            CompilationUtils.AssertTheseDiagnostics(compilation6, errors6)
 
             CompilationUtils.AssertNoErrors(compilation1)
         End Sub

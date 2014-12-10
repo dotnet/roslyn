@@ -3894,7 +3894,9 @@ End Class
 ]]></file>
                            </compilation>
             Dim errors = <errors>
-BC36970: Failed to emit module 'Consumer.dll'.
+BC30002: Type 'I1' is not defined.
+        o.M2(Nothing)
+        ~~~~~~~~~~~~~
 </errors>
             Dim piaCompilation2 = CreateCompilationWithMscorlib(pia2)
             'CompileAndVerify(piaCompilation2, emitOptions:=EmitOptions.RefEmitBug)

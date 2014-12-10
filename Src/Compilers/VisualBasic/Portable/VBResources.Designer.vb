@@ -5433,6 +5433,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to There is an error in a referenced assembly &apos;{0}&apos;..
+        '''</summary>
+        Friend ReadOnly Property ERR_InReferencedAssembly() As String
+            Get
+                Return ResourceManager.GetString("ERR_InReferencedAssembly", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to An expression is too long or complex to compile.
         '''</summary>
         Friend ReadOnly Property ERR_InsufficientStack() As String

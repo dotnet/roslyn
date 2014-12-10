@@ -699,8 +699,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             public static ErrorTypeSymbol Retarget(ErrorTypeSymbol type)
             {
-                // TODO: produce an error symbol that will trigger an error on use
-                return type;
+                // TODO: if it is a missing symbol error but no longer missing in the target assembly, then we can resolve it here.
+
+                var useSiteDiagnostic = type.GetUseSiteDiagnostic();
+                if (useSiteDiagnostic != null)
+                {
+                    return type;
+                }
+
+                // A retargeted error symbol must trigger an error on use so that a dependent compilation won't
+                // improperly succeed. We therefore ensure we have a use-site diagnostic.
+                return
+                    (type as ExtendedErrorTypeSymbol)?.AsUnreported() ?? // preserve diagnostic information if possible
+                    new ExtendedErrorTypeSymbol(type, type.ResultKind,
+                        type.ErrorInfo ?? new CSDiagnosticInfo(ErrorCode.ERR_ErrorInReferencedAssembly, type.ContainingAssembly?.Identity.GetDisplayName() ?? string.Empty), true);
             }
 
             public ImmutableArray<Symbol> Retarget(ImmutableArray<Symbol> arr)

@@ -3545,6 +3545,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to There is an error in a referenced assembly &apos;{0}&apos;..
+        /// </summary>
+        internal static string ERR_ErrorInReferencedAssembly {
+            get {
+                return ResourceManager.GetString("ERR_ErrorInReferencedAssembly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A &apos;{0}&apos; character may only be escaped by doubling &apos;{0}{0}&apos; in an interpolated string..
         /// </summary>
         internal static string ERR_EscapedCurly {
