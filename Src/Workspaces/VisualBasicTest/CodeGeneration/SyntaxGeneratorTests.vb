@@ -1647,7 +1647,7 @@ End Class ' end</x>.Value).Members(0)
 Class C
 End Class ' end</x>.Value)
 
-            Dim removed = g.RemoveAttributes(added)
+            Dim removed = g.RemoveAllAttributes(added)
             VerifySyntax(Of ClassBlockSyntax)(
                 removed,
 <x>' comment
@@ -1939,35 +1939,102 @@ End Function</x>.Value)
         End Sub
 
         <Fact>
-        Public Sub TestWithParameters()
-            Assert.Equal(1, g.GetParameters(g.WithParameters(g.MethodDeclaration("m"), {g.ParameterDeclaration("p", g.IdentifierName("t"))})).Count)
-            Assert.Equal(1, g.GetParameters(g.WithParameters(g.ConstructorDeclaration(), {g.ParameterDeclaration("p", g.IdentifierName("t"))})).Count)
-            Assert.Equal(2, g.GetParameters(g.WithParameters(g.IndexerDeclaration({g.ParameterDeclaration("p", g.IdentifierName("t"))}, g.IdentifierName("t")), {g.ParameterDeclaration("p2", g.IdentifierName("t2")), g.ParameterDeclaration("p3", g.IdentifierName("t3"))})).Count)
+        Public Sub TestAddParameters()
+            Assert.Equal(1, g.GetParameters(g.AddParameters(g.MethodDeclaration("m"), {g.ParameterDeclaration("p", g.IdentifierName("t"))})).Count)
+            Assert.Equal(1, g.GetParameters(g.AddParameters(g.ConstructorDeclaration(), {g.ParameterDeclaration("p", g.IdentifierName("t"))})).Count)
+            Assert.Equal(3, g.GetParameters(g.AddParameters(g.IndexerDeclaration({g.ParameterDeclaration("p", g.IdentifierName("t"))}, g.IdentifierName("t")), {g.ParameterDeclaration("p2", g.IdentifierName("t2")), g.ParameterDeclaration("p3", g.IdentifierName("t3"))})).Count)
 
-            Assert.Equal(1, g.GetParameters(g.WithParameters(g.ValueReturningLambdaExpression(g.IdentifierName("expr")), {g.LambdaParameter("p")})).Count)
-            Assert.Equal(1, g.GetParameters(g.WithParameters(g.VoidReturningLambdaExpression(g.IdentifierName("expr")), {g.LambdaParameter("p")})).Count)
+            Assert.Equal(1, g.GetParameters(g.AddParameters(g.ValueReturningLambdaExpression(g.IdentifierName("expr")), {g.LambdaParameter("p")})).Count)
+            Assert.Equal(1, g.GetParameters(g.AddParameters(g.VoidReturningLambdaExpression(g.IdentifierName("expr")), {g.LambdaParameter("p")})).Count)
 
-            Assert.Equal(1, g.GetParameters(g.WithParameters(g.DelegateDeclaration("d"), {g.ParameterDeclaration("p", g.IdentifierName("t"))})).Count)
+            Assert.Equal(1, g.GetParameters(g.AddParameters(g.DelegateDeclaration("d"), {g.ParameterDeclaration("p", g.IdentifierName("t"))})).Count)
 
-            Assert.Equal(0, g.GetParameters(g.WithParameters(g.ClassDeclaration("c"), {g.ParameterDeclaration("p", g.IdentifierName("t"))})).Count)
-            Assert.Equal(0, g.GetParameters(g.WithParameters(g.IdentifierName("x"), {g.ParameterDeclaration("p", g.IdentifierName("t"))})).Count)
-            Assert.Equal(0, g.GetParameters(g.WithParameters(g.PropertyDeclaration("p", g.IdentifierName("t")), {g.ParameterDeclaration("p", g.IdentifierName("t"))})).Count)
+            Assert.Equal(0, g.GetParameters(g.AddParameters(g.ClassDeclaration("c"), {g.ParameterDeclaration("p", g.IdentifierName("t"))})).Count)
+            Assert.Equal(0, g.GetParameters(g.AddParameters(g.IdentifierName("x"), {g.ParameterDeclaration("p", g.IdentifierName("t"))})).Count)
+            Assert.Equal(0, g.GetParameters(g.AddParameters(g.PropertyDeclaration("p", g.IdentifierName("t")), {g.ParameterDeclaration("p", g.IdentifierName("t"))})).Count)
         End Sub
 
         <Fact>
-        Public Sub TestGetInitializer()
-            Assert.Equal("x", g.GetInitializer(g.FieldDeclaration("f", g.IdentifierName("t"), initializer:=g.IdentifierName("x"))).ToString())
-            Assert.Equal("x", g.GetInitializer(g.ParameterDeclaration("p", g.IdentifierName("t"), initializer:=g.IdentifierName("x"))).ToString())
-            Assert.Equal("x", g.GetInitializer(g.LocalDeclarationStatement("loc", initializer:=g.IdentifierName("x"))).ToString())
-            Assert.Null(g.GetInitializer(g.IdentifierName("e")))
+        Public Sub TestGetExpression()
+            ' initializers
+            Assert.Equal("x", g.GetExpression(g.FieldDeclaration("f", g.IdentifierName("t"), initializer:=g.IdentifierName("x"))).ToString())
+            Assert.Equal("x", g.GetExpression(g.ParameterDeclaration("p", g.IdentifierName("t"), initializer:=g.IdentifierName("x"))).ToString())
+            Assert.Equal("x", g.GetExpression(g.LocalDeclarationStatement("loc", initializer:=g.IdentifierName("x"))).ToString())
+
+            ' lambda bodies
+            Assert.Null(g.GetExpression(g.ValueReturningLambdaExpression("p", {g.IdentifierName("x")})))
+            Assert.Equal(1, g.GetStatements(g.ValueReturningLambdaExpression("p", {g.IdentifierName("x")})).Count)
+            Assert.Equal("x", g.GetExpression(g.ValueReturningLambdaExpression(g.IdentifierName("x"))).ToString())
+            Assert.Equal("x", g.GetExpression(g.VoidReturningLambdaExpression(g.IdentifierName("x"))).ToString())
+            Assert.Equal("x", g.GetExpression(g.ValueReturningLambdaExpression("p", g.IdentifierName("x"))).ToString())
+            Assert.Equal("x", g.GetExpression(g.VoidReturningLambdaExpression("p", g.IdentifierName("x"))).ToString())
+
+            Assert.Null(g.GetExpression(g.IdentifierName("e")))
         End Sub
 
         <Fact>
-        Public Sub TestWithInitializer()
-            Assert.Equal("x", g.GetInitializer(g.WithInitializer(g.FieldDeclaration("f", g.IdentifierName("t")), g.IdentifierName("x"))).ToString())
-            Assert.Equal("x", g.GetInitializer(g.WithInitializer(g.ParameterDeclaration("p", g.IdentifierName("t")), g.IdentifierName("x"))).ToString())
-            Assert.Equal("x", g.GetInitializer(g.WithInitializer(g.LocalDeclarationStatement(g.IdentifierName("t"), "loc"), g.IdentifierName("x"))).ToString())
-            Assert.Null(g.GetInitializer(g.WithInitializer(g.IdentifierName("e"), g.IdentifierName("x"))))
+        Public Sub TestWithExpression()
+            ' initializers
+            Assert.Equal("x", g.GetExpression(g.WithExpression(g.FieldDeclaration("f", g.IdentifierName("t")), g.IdentifierName("x"))).ToString())
+            Assert.Equal("x", g.GetExpression(g.WithExpression(g.ParameterDeclaration("p", g.IdentifierName("t")), g.IdentifierName("x"))).ToString())
+            Assert.Equal("x", g.GetExpression(g.WithExpression(g.LocalDeclarationStatement(g.IdentifierName("t"), "loc"), g.IdentifierName("x"))).ToString())
+
+            ' lambda bodies
+            Assert.Equal("y", g.GetExpression(g.WithExpression(g.ValueReturningLambdaExpression("p", {g.IdentifierName("x")}), g.IdentifierName("y"))).ToString())
+            Assert.Equal("y", g.GetExpression(g.WithExpression(g.VoidReturningLambdaExpression("p", {g.IdentifierName("x")}), g.IdentifierName("y"))).ToString())
+            Assert.Equal("y", g.GetExpression(g.WithExpression(g.ValueReturningLambdaExpression({g.IdentifierName("x")}), g.IdentifierName("y"))).ToString())
+            Assert.Equal("y", g.GetExpression(g.WithExpression(g.VoidReturningLambdaExpression({g.IdentifierName("x")}), g.IdentifierName("y"))).ToString())
+            Assert.Equal("y", g.GetExpression(g.WithExpression(g.ValueReturningLambdaExpression("p", g.IdentifierName("x")), g.IdentifierName("y"))).ToString())
+            Assert.Equal("y", g.GetExpression(g.WithExpression(g.VoidReturningLambdaExpression("p", g.IdentifierName("x")), g.IdentifierName("y"))).ToString())
+            Assert.Equal("y", g.GetExpression(g.WithExpression(g.ValueReturningLambdaExpression(g.IdentifierName("x")), g.IdentifierName("y"))).ToString())
+            Assert.Equal("y", g.GetExpression(g.WithExpression(g.VoidReturningLambdaExpression(g.IdentifierName("x")), g.IdentifierName("y"))).ToString())
+
+            VerifySyntax(Of SingleLineLambdaExpressionSyntax)(
+                g.WithExpression(g.ValueReturningLambdaExpression({g.IdentifierName("s")}), g.IdentifierName("e")),
+                <x>Function() e</x>.Value)
+
+            Assert.Null(g.GetExpression(g.WithExpression(g.IdentifierName("e"), g.IdentifierName("x"))))
+        End Sub
+
+        <Fact>
+        Public Sub TestWithExpression_LambdaChanges()
+            ' multi line function changes to single line function
+            VerifySyntax(Of SingleLineLambdaExpressionSyntax)(
+                g.WithExpression(g.ValueReturningLambdaExpression({g.IdentifierName("s")}), g.IdentifierName("e")),
+                <x>Function() e</x>.Value)
+
+            ' multi line sub changes to single line sub
+            VerifySyntax(Of SingleLineLambdaExpressionSyntax)(
+                g.WithExpression(g.VoidReturningLambdaExpression({g.IdentifierName("s")}), g.IdentifierName("e")),
+                <x>Sub() e</x>.Value)
+
+            ' single line function changes to multi-line function with null expression
+            VerifySyntax(Of MultiLineLambdaExpressionSyntax)(
+                g.WithExpression(g.ValueReturningLambdaExpression(g.IdentifierName("e")), Nothing),
+<x>Function()
+End Function</x>.Value)
+
+            ' single line sub changes to multi line sub with null expression
+            VerifySyntax(Of MultiLineLambdaExpressionSyntax)(
+                g.WithExpression(g.VoidReturningLambdaExpression(g.IdentifierName("e")), Nothing),
+<x>Sub()
+End Sub</x>.Value)
+
+            ' multi line function no-op when assigned null expression
+            VerifySyntax(Of MultiLineLambdaExpressionSyntax)(
+                g.WithExpression(g.ValueReturningLambdaExpression({g.IdentifierName("s")}), Nothing),
+<x>Function()
+    s
+End Function</x>.Value)
+
+            ' multi line sub no-op when assigned null expression
+            VerifySyntax(Of MultiLineLambdaExpressionSyntax)(
+                g.WithExpression(g.VoidReturningLambdaExpression({g.IdentifierName("s")}), Nothing),
+<x>Sub()
+    s
+End Sub</x>.Value)
+
+            Assert.Null(g.GetExpression(g.WithExpression(g.IdentifierName("e"), g.IdentifierName("x"))))
         End Sub
 
         <Fact>
@@ -1980,9 +2047,11 @@ End Function</x>.Value)
             Assert.Equal(0, g.GetStatements(g.ConstructorDeclaration()).Count)
             Assert.Equal(2, g.GetStatements(g.ConstructorDeclaration(statements:=stmts)).Count)
 
+            Assert.Equal(0, g.GetStatements(g.VoidReturningLambdaExpression(g.IdentifierName("e"))).Count)
             Assert.Equal(0, g.GetStatements(g.VoidReturningLambdaExpression({})).Count)
             Assert.Equal(2, g.GetStatements(g.VoidReturningLambdaExpression(stmts)).Count)
 
+            Assert.Equal(0, g.GetStatements(g.ValueReturningLambdaExpression(g.IdentifierName("e"))).Count)
             Assert.Equal(0, g.GetStatements(g.ValueReturningLambdaExpression({})).Count)
             Assert.Equal(2, g.GetStatements(g.ValueReturningLambdaExpression(stmts)).Count)
 
@@ -1995,10 +2064,67 @@ End Function</x>.Value)
 
             Assert.Equal(2, g.GetStatements(g.WithStatements(g.MethodDeclaration("m"), stmts)).Count)
             Assert.Equal(2, g.GetStatements(g.WithStatements(g.ConstructorDeclaration(), stmts)).Count)
+
             Assert.Equal(2, g.GetStatements(g.WithStatements(g.VoidReturningLambdaExpression({}), stmts)).Count)
             Assert.Equal(2, g.GetStatements(g.WithStatements(g.ValueReturningLambdaExpression({}), stmts)).Count)
 
+            Assert.Equal(2, g.GetStatements(g.WithStatements(g.VoidReturningLambdaExpression(g.IdentifierName("e")), stmts)).Count)
+            Assert.Equal(2, g.GetStatements(g.WithStatements(g.ValueReturningLambdaExpression(g.IdentifierName("e")), stmts)).Count)
+
             Assert.Equal(0, g.GetStatements(g.WithStatements(g.IdentifierName("x"), stmts)).Count)
+        End Sub
+
+        <Fact>
+        Public Sub TestWithStatements_LambdaChanges()
+            Dim stmts = {g.ExpressionStatement(g.IdentifierName("x")), g.ExpressionStatement(g.IdentifierName("y"))}
+
+            VerifySyntax(Of MultiLineLambdaExpressionSyntax)(
+                g.WithStatements(g.VoidReturningLambdaExpression({}), stmts),
+<x>Sub()
+    x
+    y
+End Sub</x>.Value)
+
+            VerifySyntax(Of MultiLineLambdaExpressionSyntax)(
+                g.WithStatements(g.ValueReturningLambdaExpression({}), stmts),
+<x>Function()
+    x
+    y
+End Function</x>.Value)
+
+            VerifySyntax(Of MultiLineLambdaExpressionSyntax)(
+                g.WithStatements(g.VoidReturningLambdaExpression(g.IdentifierName("e")), stmts),
+<x>Sub()
+    x
+    y
+End Sub</x>.Value)
+
+            VerifySyntax(Of MultiLineLambdaExpressionSyntax)(
+                g.WithStatements(g.ValueReturningLambdaExpression(g.IdentifierName("e")), stmts),
+<x>Function()
+    x
+    y
+End Function</x>.Value)
+
+            VerifySyntax(Of MultiLineLambdaExpressionSyntax)(
+                g.WithStatements(g.VoidReturningLambdaExpression(stmts), {}),
+<x>Sub()
+End Sub</x>.Value)
+
+            VerifySyntax(Of MultiLineLambdaExpressionSyntax)(
+                g.WithStatements(g.ValueReturningLambdaExpression(stmts), {}),
+<x>Function()
+End Function</x>.Value)
+
+            VerifySyntax(Of MultiLineLambdaExpressionSyntax)(
+                g.WithStatements(g.VoidReturningLambdaExpression(g.IdentifierName("e")), {}),
+<x>Sub()
+End Sub</x>.Value)
+
+            VerifySyntax(Of MultiLineLambdaExpressionSyntax)(
+                g.WithStatements(g.ValueReturningLambdaExpression(g.IdentifierName("e")), {}),
+<x>Function()
+End Function</x>.Value)
         End Sub
 
         <Fact>
@@ -2043,8 +2169,9 @@ End Function</x>.Value)
             Assert.Equal(0, g.GetSetAccessorStatements(g.WithSetAccessorStatements(g.IdentifierName("x"), stmts)).Count)
         End Sub
 
-        Private Sub AssertNamesEqual(expectedNames As String(), actualNodes As IEnumerable(Of SyntaxNode))
+        Private Sub AssertNamesEqual(expectedNames As String(), actualNodes As IReadOnlyList(Of SyntaxNode))
             Dim actualNames = actualNodes.Select(Function(n) g.GetName(n)).ToArray()
+            Assert.Equal(expectedNames.Length, actualNames.Length)
             Dim expected = String.Join(", ", expectedNames)
             Dim actual = String.Join(", ", actualNames)
             Assert.Equal(expected, actual)
@@ -2069,23 +2196,6 @@ End Function</x>.Value)
         End Sub
 
         <Fact>
-        Public Sub TestWithMembers()
-            AssertMemberNamesEqual("m", g.WithMembers(g.ClassDeclaration("d"), {g.MethodDeclaration("m")}))
-            AssertMemberNamesEqual("m", g.WithMembers(g.StructDeclaration("s"), {g.MethodDeclaration("m")}))
-            AssertMemberNamesEqual("m", g.WithMembers(g.InterfaceDeclaration("i"), {g.MethodDeclaration("m")}))
-            AssertMemberNamesEqual("v", g.WithMembers(g.EnumDeclaration("e"), {g.EnumMember("v")}))
-            AssertMemberNamesEqual("n2", g.WithMembers(g.NamespaceDeclaration("n"), {g.NamespaceDeclaration("n2")}))
-            AssertMemberNamesEqual("n", g.WithMembers(g.CompilationUnit(), {g.NamespaceDeclaration("n")}))
-
-            Assert.Equal(0, g.GetMembers(g.WithMembers(g.ClassDeclaration("d", members:={g.MethodDeclaration("m")}), Nothing)).Count)
-            Assert.Equal(0, g.GetMembers(g.WithMembers(g.StructDeclaration("s", members:={g.MethodDeclaration("m")}), Nothing)).Count)
-            Assert.Equal(0, g.GetMembers(g.WithMembers(g.InterfaceDeclaration("i", members:={g.MethodDeclaration("m")}), Nothing)).Count)
-            Assert.Equal(0, g.GetMembers(g.WithMembers(g.EnumDeclaration("i", members:={g.EnumMember("v")}), Nothing)).Count)
-            Assert.Equal(0, g.GetMembers(g.WithMembers(g.NamespaceDeclaration("n", {g.NamespaceDeclaration("n")}), Nothing)).Count)
-            Assert.Equal(0, g.GetMembers(g.WithMembers(g.CompilationUnit(declarations:={g.NamespaceDeclaration("n")}), Nothing)).Count)
-        End Sub
-
-        <Fact>
         Public Sub TestAddMembers()
             AssertMemberNamesEqual("m", g.AddMembers(g.ClassDeclaration("d"), {g.MethodDeclaration("m")}))
             AssertMemberNamesEqual("m", g.AddMembers(g.StructDeclaration("s"), {g.MethodDeclaration("m")}))
@@ -2101,5 +2211,25 @@ End Function</x>.Value)
             AssertMemberNamesEqual({"n1", "n2"}, g.AddMembers(g.NamespaceDeclaration("n", {g.NamespaceDeclaration("n1")}), {g.NamespaceDeclaration("n2")}))
             AssertMemberNamesEqual({"n1", "n2"}, g.AddMembers(g.CompilationUnit(declarations:={g.NamespaceDeclaration("n1")}), {g.NamespaceDeclaration("n2")}))
         End Sub
+
+        <Fact>
+        Public Sub TestRemoveMembers()
+            TestRemoveAllMembers(g.RemoveMembers(g.ClassDeclaration("d", members:={g.MethodDeclaration("m")})))
+            TestRemoveAllMembers(g.RemoveMembers(g.StructDeclaration("s", members:={g.MethodDeclaration("m")})))
+            TestRemoveAllMembers(g.RemoveMembers(g.InterfaceDeclaration("i", members:={g.MethodDeclaration("m")})))
+            TestRemoveAllMembers(g.RemoveMembers(g.EnumDeclaration("i", members:={g.EnumMember("v")})))
+            TestRemoveAllMembers(g.AddMembers(g.NamespaceDeclaration("n", {g.NamespaceDeclaration("n1")})))
+            TestRemoveAllMembers(g.AddMembers(g.CompilationUnit(declarations:={g.NamespaceDeclaration("n1")})))
+        End Sub
+
+        Private Sub TestRemoveAllMembers(declaration As SyntaxNode)
+            Assert.Equal(0, g.GetMembers(g.RemoveMembers(declaration, g.GetMembers(declaration))).Count)
+        End Sub
+
+        Private Sub TestRemoveMember(declaration As SyntaxNode, name As String, remainingNames As String())
+            Dim newDecl = g.RemoveMembers(declaration, g.GetMembers(declaration).First(Function(m) g.GetName(m) = name))
+            AssertMemberNamesEqual(remainingNames, newDecl)
+        End Sub
+
     End Class
 End Namespace

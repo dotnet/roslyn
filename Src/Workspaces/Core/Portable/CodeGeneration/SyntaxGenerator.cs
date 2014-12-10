@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     /// </summary>
     public abstract class SyntaxGenerator : ILanguageService
     {
+        public static SyntaxRemoveOptions DefaultRemoveOptions = SyntaxRemoveOptions.KeepUnbalancedDirectives | SyntaxRemoveOptions.AddElasticMarker;
+
         /// <summary>
         /// Gets the <see cref="SyntaxGenerator"/> for the specified language.
         /// </summary>
@@ -46,6 +48,26 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             while (node != null)
             {
                 if (GetDeclarationKind(node) != DeclarationKind.None)
+                {
+                    return node;
+                }
+                else
+                {
+                    node = node.Parent;
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Returns the enclosing declaration of the specified kind or null.
+        /// </summary>
+        public SyntaxNode GetDeclaration(SyntaxNode node, DeclarationKind kind)
+        {
+            while (node != null)
+            {
+                if (GetDeclarationKind(node) == kind)
                 {
                     return node;
                 }
@@ -519,11 +541,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <summary>
         /// Creates a namespace declaration.
         /// </summary>
+        /// <param name="name">The name of the namespace.</param>
+        /// <param name="declarations">Zero or more namespace or type declarations.</param>
         public abstract SyntaxNode NamespaceDeclaration(SyntaxNode name, IEnumerable<SyntaxNode> declarations);
 
         /// <summary>
         /// Creates a namespace declaration.
         /// </summary>
+        /// <param name="name">The name of the namespace.</param>
+        /// <param name="declarations">Zero or more namespace or type declarations.</param>
         public SyntaxNode NamespaceDeclaration(SyntaxNode name, params SyntaxNode[] declarations)
         {
             return NamespaceDeclaration(name, (IEnumerable<SyntaxNode>)declarations);
@@ -532,6 +558,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <summary>
         /// Creates a namespace declaration.
         /// </summary>
+        /// <param name="name">The name of the namespace.</param>
+        /// <param name="declarations">Zero or more namespace or type declarations.</param>
         public SyntaxNode NamespaceDeclaration(string name, IEnumerable<SyntaxNode> declarations)
         {
             return NamespaceDeclaration(DottedName(name), declarations);
@@ -540,6 +568,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <summary>
         /// Creates a namespace declaration.
         /// </summary>
+        /// <param name="name">The name of the namespace.</param>
+        /// <param name="declarations">Zero or more namespace or type declarations.</param>
         public SyntaxNode NamespaceDeclaration(string name, params SyntaxNode[] declarations)
         {
             return NamespaceDeclaration(DottedName(name), (IEnumerable<SyntaxNode>)declarations);
@@ -548,11 +578,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <summary>
         /// Creates a compilation unit declaration
         /// </summary>
-        public abstract SyntaxNode CompilationUnit(IEnumerable<SyntaxNode> declarations = null);
+        /// <param name="declarations">Zero or more namespace import, namespace or type declarations.</param>
+        public abstract SyntaxNode CompilationUnit(IEnumerable<SyntaxNode> declarations);
 
         /// <summary>
         /// Creates a compilation unit declaration
         /// </summary>
+        /// <param name="declarations">Zero or more namespace import, namespace or type declarations.</param>
         public SyntaxNode CompilationUnit(params SyntaxNode[] declarations)
         {
             return CompilationUnit((IEnumerable<SyntaxNode>)declarations);
@@ -561,11 +593,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <summary>
         /// Creates a namespace import declaration.
         /// </summary>
+        /// <param name="name">The name of the namespace being imported.</param>
         public abstract SyntaxNode NamespaceImportDeclaration(SyntaxNode name);
 
         /// <summary>
         /// Creates a namespace import declaration.
         /// </summary>
+        /// <param name="name">The name of the namespace being imported.</param>
         public SyntaxNode NamespaceImportDeclaration(string name)
         {
             return NamespaceImportDeclaration(DottedName(name));
@@ -623,14 +657,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         /// <summary>
-        /// Gets the attributes of a declaration.
-        /// </summary>
-        public abstract IEnumerable<SyntaxNode> GetAttributes(SyntaxNode declaration);
-
-        /// <summary>
         /// Removes all attributes from the declaration, including return attributes.
         /// </summary>
-        public abstract SyntaxNode RemoveAttributes(SyntaxNode declaration);
+        public abstract SyntaxNode RemoveAllAttributes(SyntaxNode declaration);
+
+        /// <summary>
+        /// Gets the attributes of a declaration, not including the return attributes.
+        /// </summary>
+        public abstract IReadOnlyList<SyntaxNode> GetAttributes(SyntaxNode declaration);
 
         /// <summary>
         /// Removes specific attributes from the declaration.
@@ -638,9 +672,25 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract SyntaxNode RemoveAttributes(SyntaxNode declaration, IEnumerable<SyntaxNode> attributes);
 
         /// <summary>
+        /// Creates a new instance of the declaration with the attributes inserted.
+        /// </summary>
+        public abstract SyntaxNode InsertAttributes(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> attributes);
+
+        /// <summary>
+        /// Creates a new instance of the declaration with the attributes inserted.
+        /// </summary>
+        public SyntaxNode InsertAttributes(SyntaxNode declaration, int index, params SyntaxNode[] attributes)
+        {
+            return this.InsertAttributes(declaration, index, (IEnumerable<SyntaxNode>)attributes);
+        }
+
+        /// <summary>
         /// Creates a new instance of a declaration with the specified attributes added.
         /// </summary>
-        public abstract SyntaxNode AddAttributes(SyntaxNode declaration, IEnumerable<SyntaxNode> attributes);
+        public SyntaxNode AddAttributes(SyntaxNode declaration, IEnumerable<SyntaxNode> attributes)
+        {
+            return this.InsertAttributes(declaration, this.GetAttributes(declaration).Count, attributes);
+        }
 
         /// <summary>
         /// Creates a new instance of a declaration with the specified attributes added.
@@ -650,21 +700,93 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return AddAttributes(declaration, (IEnumerable<SyntaxNode>)attributes);
         }
 
-        public abstract IEnumerable<SyntaxNode> GetReturnAttributes(SyntaxNode declaration);
+        /// <summary>
+        /// Gets the return attributes from the declaration.
+        /// </summary>
+        public abstract IReadOnlyList<SyntaxNode> GetReturnAttributes(SyntaxNode declaration);
 
-        public abstract SyntaxNode WithReturnAttributes(SyntaxNode declaration, IEnumerable<SyntaxNode> attributes);
+        /// <summary>
+        /// Removes the specified return attributes from the declaration.
+        /// </summary>
+        public abstract SyntaxNode RemoveReturnAttributes(SyntaxNode declaration, IEnumerable<SyntaxNode> attributes);
+
+        /// <summary>
+        /// Creates a new instance of a method declaration with return attributes inserted.
+        /// </summary>
+        public abstract SyntaxNode InsertReturnAttributes(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> attributes);
+
+        /// <summary>
+        /// Creates a new instance of a method declaration with return attributes inserted.
+        /// </summary>
+        public SyntaxNode InsertReturnAttributes(SyntaxNode declaration, int index, params SyntaxNode[] attributes)
+        {
+            return this.InsertReturnAttributes(declaration, index, attributes);
+        }
 
         /// <summary>
         /// Creates a new instance of a method declaration with return attributes added.
         /// </summary>
-        public abstract SyntaxNode AddReturnAttributes(SyntaxNode methodDeclaration, IEnumerable<SyntaxNode> attributes);
+        public SyntaxNode AddReturnAttributes(SyntaxNode declaration, IEnumerable<SyntaxNode> attributes)
+        {
+            return this.InsertReturnAttributes(declaration, this.GetReturnAttributes(declaration).Count, attributes);
+        }
 
         /// <summary>
         /// Creates a new instance of a method declaration node with return attributes added.
         /// </summary>
-        public SyntaxNode AddReturnAttributes(SyntaxNode methodDeclaration, params SyntaxNode[] attributes)
+        public SyntaxNode AddReturnAttributes(SyntaxNode declaration, params SyntaxNode[] attributes)
         {
-            return AddReturnAttributes(methodDeclaration, (IEnumerable<SyntaxNode>)attributes);
+            return AddReturnAttributes(declaration, (IEnumerable<SyntaxNode>)attributes);
+        }
+
+        /// <summary>
+        /// Gets the namespace imports that are part of the declaration.
+        /// </summary>
+        public abstract IReadOnlyList<SyntaxNode> GetNamespaceImports(SyntaxNode declaration);
+
+        /// <summary>
+        /// Creates a new instance of the declaration with the namespace imports inserted.
+        /// </summary>
+        public abstract SyntaxNode InsertNamespaceImports(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> imports);
+
+        /// <summary>
+        /// Creates a new instance of the declaration with the namespace imports inserted.
+        /// </summary>
+        public SyntaxNode InsertNamespaceImports(SyntaxNode declaration, int index, params SyntaxNode[] imports)
+        {
+            return this.InsertNamespaceImports(declaration, index, imports);
+        }
+
+        /// <summary>
+        /// Creates a new instance of the declaration with the namespace imports added.
+        /// </summary>
+        public SyntaxNode AddNamespaceImports(SyntaxNode declaration, IEnumerable<SyntaxNode> imports)
+        {
+            return this.InsertNamespaceImports(declaration, this.GetNamespaceImports(declaration).Count, imports);
+        }
+
+        /// <summary>
+        /// Creates a new instance of the declaration with the namespace imports added.
+        /// </summary>
+        public SyntaxNode AddNamespaceImports(SyntaxNode declaration, params SyntaxNode[] imports)
+        {
+            return this.AddNamespaceImports(declaration, (IEnumerable<SyntaxNode>)imports);
+        }
+
+        /// <summary>
+        /// Creates a new instance of the declaration with the specified namespace imports removed.
+        /// </summary>
+        public SyntaxNode RemoveNamespaceImports(SyntaxNode declaration, IEnumerable<SyntaxNode> imports)
+        {
+            return declaration.RemoveNodes(imports, DefaultRemoveOptions);
+        }
+
+        /// <summary>
+        /// Creates a new instance of the declaration with the specified namespace imports removed.
+        /// </summary>
+        public SyntaxNode RemoveNamespaceImports(SyntaxNode declaration, params SyntaxNode[] imports)
+        {
+            return this.RemoveNamespaceImports(declaration, (IEnumerable<SyntaxNode>)imports);
         }
 
         /// <summary>
@@ -673,14 +795,41 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract IReadOnlyList<SyntaxNode> GetMembers(SyntaxNode declaration);
 
         /// <summary>
-        /// Creates a new instance of the declaration with the members specified.
+        /// Creates a new instance of the declaration with the members removed.
         /// </summary>
-        public abstract SyntaxNode WithMembers(SyntaxNode declaration, IEnumerable<SyntaxNode> members);
+        public SyntaxNode RemoveMembers(SyntaxNode declaration, IEnumerable<SyntaxNode> members)
+        {
+            return declaration.RemoveNodes(members, DefaultRemoveOptions);
+        }
+
+        /// <summary>
+        /// Creates a new instance of the declaration with the members removed.
+        /// </summary>
+        public SyntaxNode RemoveMembers(SyntaxNode declaration, params SyntaxNode[] members)
+        {
+            return this.RemoveMembers(declaration, (IEnumerable<SyntaxNode>)members);
+        }
+
+        /// <summary>
+        /// Creates a new instance of the declaration with the members inserted.
+        /// </summary>
+        public abstract SyntaxNode InsertMembers(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> members);
+
+        /// <summary>
+        /// Creates a new instance of the declaration with the members inserted.
+        /// </summary>
+        public SyntaxNode InsertMembers(SyntaxNode declaration, int index, params SyntaxNode[] members)
+        {
+            return this.InsertMembers(declaration, index, (IEnumerable<SyntaxNode>)members);
+        }
 
         /// <summary>
         /// Creates a new instance of the declaration with the members added to the end.
         /// </summary>
-        public abstract SyntaxNode AddMembers(SyntaxNode declaration, IEnumerable<SyntaxNode> members);
+        public SyntaxNode AddMembers(SyntaxNode declaration, IEnumerable<SyntaxNode> members)
+        {
+            return this.InsertMembers(declaration, this.GetMembers(declaration).Count, members);
+        }
 
         /// <summary>
         /// Creates a new instance of the declaration with the members added to the end.
@@ -741,19 +890,35 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract IReadOnlyList<SyntaxNode> GetParameters(SyntaxNode declaration);
 
         /// <summary>
-        /// Changes the list of parameters for the declaration.
+        /// Inserts the parameters at the specified index into the declaration.
         /// </summary>
-        public abstract SyntaxNode WithParameters(SyntaxNode declaration, IEnumerable<SyntaxNode> parameters);
+        public abstract SyntaxNode InsertParameters(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> parameters);
 
         /// <summary>
-        /// Gets the initializer expression for the declaration.
+        /// Adds the parameters to the declaration.
         /// </summary>
-        public abstract SyntaxNode GetInitializer(SyntaxNode declaration);
+        public SyntaxNode AddParameters(SyntaxNode declaration, IEnumerable<SyntaxNode> parameters)
+        {
+            return this.InsertParameters(declaration, this.GetParameters(declaration).Count, parameters);
+        }
 
         /// <summary>
-        /// Changes the intializer expression for the declaration.
+        /// Removes the specified parameters from the declaration.
         /// </summary>
-        public abstract SyntaxNode WithInitializer(SyntaxNode declaration, SyntaxNode initializer);
+        public SyntaxNode RemoveParameters(SyntaxNode declaration, IEnumerable<SyntaxNode> parameters)
+        {
+            return declaration.RemoveNodes(parameters, DefaultRemoveOptions);
+        }
+
+        /// <summary>
+        /// Gets the expression associated with the declaration.
+        /// </summary>
+        public abstract SyntaxNode GetExpression(SyntaxNode declaration);
+
+        /// <summary>
+        /// Changes the expression associated with the declaration.
+        /// </summary>
+        public abstract SyntaxNode WithExpression(SyntaxNode declaration, SyntaxNode expression);
 
         /// <summary>
         /// Gets the statements for the body of the declaration.
@@ -789,14 +954,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         #region Utility
 
-        protected static TNode WithoutTrivia<TNode>(TNode node) where TNode : SyntaxNode
-        {
-            return node.WithoutLeadingTrivia().WithoutTrailingTrivia();
-        }
-
         protected static SyntaxNode PreserveTrivia<TNode>(TNode node, Func<TNode, SyntaxNode> nodeChanger) where TNode : SyntaxNode
         {
-            var nodeWithoutTrivia = WithoutTrivia(node);
+            var nodeWithoutTrivia = node.WithoutLeadingTrivia().WithoutTrailingTrivia();
 
             var changedNode = nodeChanger(nodeWithoutTrivia);
 

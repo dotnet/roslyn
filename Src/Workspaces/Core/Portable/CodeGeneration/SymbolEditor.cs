@@ -23,6 +23,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             this.currentSolution = solution;
         }
 
+        public SymbolEditor(Document document)
+            : this(document.Project.Solution)
+        {
+        }
+
         /// <summary>
         /// The original solution.
         /// </summary>
@@ -79,20 +84,20 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             var project = this.currentSolution.GetProject(symbol.ContainingAssembly);
             if (project != null)
             {
-                return await GetCurrentSymbolAsync(project.Id, symbolId, cancellationToken).ConfigureAwait(false);
+                return await GetSymbolAsync(this.currentSolution, project.Id, symbolId, cancellationToken).ConfigureAwait(false);
             }
 
             // check to see if it is from original solution
             project = this.originalSolution.GetProject(symbol.ContainingAssembly);
             if (project != null)
             {
-                return await GetCurrentSymbolAsync(project.Id, symbolId, cancellationToken).ConfigureAwait(false);
+                return await GetSymbolAsync(this.currentSolution, project.Id, symbolId, cancellationToken).ConfigureAwait(false);
             }
 
             // try to find symbol from any project (from current solution) with matching assembly name
             foreach (var projectId in this.GetProjectsForAssembly(symbol.ContainingAssembly))
             {
-                var currentSymbol = await GetCurrentSymbolAsync(projectId, symbolId, cancellationToken).ConfigureAwait(false);
+                var currentSymbol = await GetSymbolAsync(this.currentSolution, projectId, symbolId, cancellationToken).ConfigureAwait(false);
                 if (currentSymbol != null)
                 {
                     return currentSymbol;
@@ -122,9 +127,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return projectIds;
         }
 
-        private async Task<ISymbol> GetCurrentSymbolAsync(ProjectId projectId, string symbolId, CancellationToken cancellationToken)
+        private async Task<ISymbol> GetSymbolAsync(Solution solution, ProjectId projectId, string symbolId, CancellationToken cancellationToken)
         { 
-            var comp = await this.currentSolution.GetProject(projectId).GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var comp = await solution.GetProject(projectId).GetCompilationAsync(cancellationToken).ConfigureAwait(false);
             var symbols = DocumentationCommentId.GetSymbolsForDeclarationId(symbolId, comp).ToList();
 
             if (symbols.Count == 1)
@@ -151,9 +156,40 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         /// <summary>
+        /// Get's the current symbol for a declaration at a specified position within a documment.
+        /// </summary>
+        private Task<ISymbol> GetCurrentSymbolAsync(DocumentId docId, int position, DeclarationKind kind, CancellationToken cancellationToken)
+        {
+            return this.GetSymbolAsync(this.currentSolution, docId, position, kind, cancellationToken);
+        }
+
+        private DeclarationKind GetKind(SyntaxNode declaration)
+        {
+            return SyntaxGenerator.GetGenerator(this.currentSolution.Workspace, declaration.Language).GetDeclarationKind(declaration);
+        }
+
+        private async Task<ISymbol> GetSymbolAsync(Solution solution, DocumentId docId, int position, DeclarationKind kind, CancellationToken cancellationToken)
+        {
+            var doc = solution.GetDocument(docId);
+            var model = await doc.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var generator = SyntaxGenerator.GetGenerator(doc);
+            var node = model.SyntaxTree.GetRoot().FindToken(position).Parent;
+            var decl = generator.GetDeclaration(node, kind);
+
+            if (decl != null)
+            {
+                return model.GetDeclaredSymbol(decl, cancellationToken);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Gets the declaration syntax nodes for a given symbol.
         /// </summary>
-        public IEnumerable<SyntaxNode> GetDeclarations(ISymbol symbol)
+        private IEnumerable<SyntaxNode> GetDeclarations(ISymbol symbol)
         {
             return symbol.DeclaringSyntaxReferences
                          .Select(sr => sr.GetSyntax())
@@ -172,6 +208,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         /// <summary>
         /// Enables editting the definition of one of the symbol's declarations.
+        /// Partial types and methods may have more than one declaration.
         /// </summary>
         /// <param name="symbol">The symbol to edit.</param>
         /// <param name="declarationEditor">The function that produces the changed declaration.</param>
@@ -184,86 +221,147 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             var currentSymbol = await this.GetCurrentSymbolAsync(symbol, cancellationToken).ConfigureAwait(false);
 
+            CheckSymbolArgument(currentSymbol, symbol);
+
             SyntaxNode declaration;
             if (TryGetBestDeclarationForSingleEdit(currentSymbol, out declaration))
             {
-                var doc = this.currentSolution.GetDocument(declaration.SyntaxTree);
-                var root = declaration.SyntaxTree.GetRoot();
-                var generator = SyntaxGenerator.GetGenerator(this.currentSolution.Workspace, declaration.Language);
-                var newDecl = declarationEditor(declaration, generator);
-                var newRoot = root.ReplaceNode(declaration, newDecl);
-                var newDoc = doc.WithSyntaxRoot(newRoot);
-                this.currentSolution = newDoc.Project.Solution;
-                return await this.GetCurrentSymbolAsync(symbol, cancellationToken).ConfigureAwait(false);
+                return await this.EditDeclarationAsync(currentSymbol, declaration, declarationEditor, cancellationToken).ConfigureAwait(false);
             }
 
             return null;
         }
 
+        private void CheckSymbolArgument(ISymbol currentSymbol, ISymbol argSymbol)
+        {
+            if (currentSymbol == null)
+            {
+                throw new ArgumentException(string.Format("The symbol '{0}' cannot be located within the current solution.".NeedsLocalization(), argSymbol.Name));
+            }
+        }
+
+        private async Task<ISymbol> EditDeclarationAsync(ISymbol currentSymbol, SyntaxNode declaration, Func<SyntaxNode, SyntaxGenerator, SyntaxNode> declarationEditor, CancellationToken cancellationToken)
+        {
+            var doc = this.currentSolution.GetDocument(declaration.SyntaxTree);
+            var root = declaration.SyntaxTree.GetRoot();
+            var generator = SyntaxGenerator.GetGenerator(this.currentSolution.Workspace, declaration.Language);
+            var newDecl = declarationEditor(declaration, generator);
+
+            SyntaxNode newRoot;
+            if (newDecl != null)
+            {
+                newRoot = root.ReplaceNode(declaration, newDecl);
+            }
+            else
+            {
+                newRoot = root.RemoveNode(declaration, SyntaxGenerator.DefaultRemoveOptions);
+            }
+
+            var newDoc = doc.WithSyntaxRoot(newRoot);
+            this.currentSolution = newDoc.Project.Solution;
+
+            if (newDecl != null)
+            {
+                return await this.GetCurrentSymbolAsync(doc.Id, declaration.Span.Start, GetKind(newDecl), cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                return await this.GetCurrentSymbolAsync(currentSymbol, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
         /// <summary>
         /// Enables editting the definition of one of the symbol's declarations.
+        /// Partial types and methods may have more than one declaration.
         /// </summary>
         /// <param name="symbol">The symbol to edit.</param>
         /// <param name="location">A location within one of the symbol's declarations.</param>
         /// <param name="declarationEditor">The function that produces the changed declaration.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/>.</param>
         /// <returns>The new symbol including the changes.</returns>
-        public Task<ISymbol> EditOneDeclarationAsync(
+        public async Task<ISymbol> EditOneDeclarationAsync(
             ISymbol symbol,
             Location location,
             Func<SyntaxNode, SyntaxGenerator, SyntaxNode> declarationEditor,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             var sourceTree = location.SourceTree;
-            return this.EditAllDeclarationsAsync(symbol,
-                (d, g) =>
-                {
-                    if (d.SyntaxTree == sourceTree && d.FullSpan.IntersectsWith(location.SourceSpan.Start))
-                    {
-                        return declarationEditor(d, g);
-                    }
-                    else
-                    {
-                        return d;
-                    }
-                },
-                cancellationToken);
+
+            var doc = this.currentSolution.GetDocument(sourceTree);
+            if (doc != null)
+            {
+                return await this.EditOneDeclarationAsync(symbol, doc.Id, location.SourceSpan.Start, declarationEditor, cancellationToken).ConfigureAwait(false);
+            }
+
+            doc = this.originalSolution.GetDocument(sourceTree);
+            if (doc != null)
+            {
+                return await this.EditOneDeclarationAsync(symbol, doc.Id, location.SourceSpan.Start, declarationEditor, cancellationToken).ConfigureAwait(false);
+            }
+
+            throw new ArgumentException("The location specified is not part of the solution.", nameof(location));
+        }
+
+        private async Task<ISymbol> EditOneDeclarationAsync(
+            ISymbol symbol,
+            DocumentId documentId,
+            int position,
+            Func<SyntaxNode, SyntaxGenerator, SyntaxNode> declarationEditor,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var currentSymbol = await this.GetCurrentSymbolAsync(symbol, cancellationToken).ConfigureAwait(false);
+            CheckSymbolArgument(currentSymbol, symbol);
+
+            var decl = this.GetDeclarations(currentSymbol).FirstOrDefault(d =>
+            {
+                var doc = this.currentSolution.GetDocument(d.SyntaxTree);
+                return doc != null && doc.Id == documentId && d.FullSpan.IntersectsWith(position);
+            });
+
+            if (decl == null)
+            {
+                throw new ArgumentNullException("The position is not within the symbol's declaration".NeedsLocalization(), nameof(position));
+            }
+
+            return await this.EditDeclarationAsync(currentSymbol, decl, declarationEditor, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Enables editting the symbol's declaration where the member is also declared.
+        /// Partial types and methods may have more than one declaration.
         /// </summary>
         /// <param name="symbol">The symbol to edit.</param>
         /// <param name="member">A symbol whose declaration is contained within one of the primary symbol's declarations.</param>
         /// <param name="declarationEditor">The function that produces the changed declaration.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/>.</param>
         /// <returns>The new symbol including the changes.</returns>
-        public async Task<ISymbol> EditDeclarationsWithMemberDeclaredAsync(
+        public async Task<ISymbol> EditOneDeclarationAsync(
             ISymbol symbol,
             ISymbol member,
             Func<SyntaxNode, SyntaxGenerator, SyntaxNode> declarationEditor,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            var currentMember = await this.GetCurrentSymbolAsync(member, cancellationToken).ConfigureAwait(false);
-            var memberDecls = this.GetDeclarations(currentMember);
+            var currentSymbol = await this.GetCurrentSymbolAsync(symbol, cancellationToken).ConfigureAwait(false);
+            CheckSymbolArgument(currentSymbol, symbol);
 
-            return await this.EditAllDeclarationsAsync(symbol,
-                (d, g) =>
-                {
-                    if (memberDecls.Any(md => md.SyntaxTree == d.SyntaxTree && d.FullSpan.IntersectsWith(md.FullSpan)))
-                    {
-                        return declarationEditor(d, g);
-                    }
-                    else
-                    {
-                        return d;
-                    }
-                },
-                cancellationToken).ConfigureAwait(false);
+            var currentMember = await this.GetCurrentSymbolAsync(member, cancellationToken).ConfigureAwait(false);
+            CheckSymbolArgument(currentMember, member);
+
+            // get first symbol declaration that encompasses at least one of the member declarations
+            var memberDecls = this.GetDeclarations(currentMember).ToList();
+            var declaration = this.GetDeclarations(currentSymbol).FirstOrDefault(d => memberDecls.Any(md => md.SyntaxTree == d.SyntaxTree && d.FullSpan.IntersectsWith(md.FullSpan)));
+
+            if (declaration == null)
+            {
+                throw new ArgumentException(string.Format("The member '{0}' is not declared within the declaration of the symbol.".NeedsLocalization(), member.Name));
+            }
+
+            return await this.EditDeclarationAsync(currentSymbol, declaration, declarationEditor, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
-        /// Enables editting all the symbol's declarations.
+        /// Enables editting all the symbol's declarations. 
+        /// Partial types and methods may have more than one declaration.
         /// </summary>
         /// <param name="symbol">The symbol to be editted.</param>
         /// <param name="declarationEditor">The function that produces a changed declaration.</param>
@@ -273,18 +371,41 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             var currentSymbol = await this.GetCurrentSymbolAsync(symbol, cancellationToken).ConfigureAwait(false);
 
+            var docMap = new Dictionary<SyntaxTree, Document>();
+            var changeMap = new Dictionary<SyntaxNode, SyntaxNode>();
+
             foreach (var decls in this.GetDeclarations(currentSymbol).GroupBy(d => d.SyntaxTree))
             {
                 var doc = this.currentSolution.GetDocument(decls.Key);
+                docMap.Add(decls.Key, doc);
+
                 var root = decls.Key.GetRoot();
 
                 var generator = SyntaxGenerator.GetGenerator(doc);
-                var newRoot = root.ReplaceNodes(decls, (original, rewritten) => declarationEditor(original, generator));
+                var changes = decls.Select(d => new KeyValuePair<SyntaxNode, SyntaxNode>(d, declarationEditor(d, generator)));
+                changeMap.AddRange(changes);
+
+                var newRoot = root.ReplaceNodes(decls, (original, rewritten) => changeMap[original]);
                 var newDoc = doc.WithSyntaxRoot(newRoot);
+
                 this.currentSolution = newDoc.Project.Solution;
             }
 
-            return await this.GetCurrentSymbolAsync(symbol, cancellationToken).ConfigureAwait(false);
+            // try to find new symbol using the first lexically changed decl in one of the trees, because the position will not have changed
+            var firstTreeChanges = changeMap.GroupBy(kvp => kvp.Key.SyntaxTree).FirstOrDefault();
+            if (firstTreeChanges != null)
+            {
+                var doc = docMap[firstTreeChanges.Key];
+
+                var firstChangedDecl = firstTreeChanges.OrderBy(kvp => kvp.Key.SpanStart).FirstOrDefault().Value;
+                if (firstChangedDecl != null)
+                {
+                    return await GetCurrentSymbolAsync(doc.Id, firstChangedDecl.SpanStart, GetKind(firstChangedDecl), cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            // if prior method fails (possibly due to declaration being removed), attempt to rebind the original symbol
+            return await GetCurrentSymbolAsync(symbol, cancellationToken).ConfigureAwait(false);
         }
     }
 }

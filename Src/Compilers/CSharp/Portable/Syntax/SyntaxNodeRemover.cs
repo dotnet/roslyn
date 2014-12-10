@@ -282,6 +282,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 {
                     this.AddEndOfLine();
                 }
+
+                if ((this.options & SyntaxRemoveOptions.AddElasticMarker) != 0)
+                {
+                    this.AddResidualTrivia(SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker));
+                }
             }
 
             private void AddTrivia(SyntaxToken token, SyntaxNode node)
@@ -316,6 +321,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 {
                     this.AddEndOfLine();
                 }
+
+                if ((this.options & SyntaxRemoveOptions.AddElasticMarker) != 0)
+                {
+                    this.AddResidualTrivia(SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker));
+                }
             }
 
             private void AddTrivia(SyntaxNode node, SyntaxToken token)
@@ -349,6 +359,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         HasEndOfLine(token.TrailingTrivia)))
                 {
                     this.AddEndOfLine();
+                }
+
+                if ((this.options & SyntaxRemoveOptions.AddElasticMarker) != 0)
+                {
+                    this.AddResidualTrivia(SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker));
                 }
             }
 

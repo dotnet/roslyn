@@ -42,5 +42,10 @@ namespace Microsoft.CodeAnalysis
         /// Ensure that at least one EndOfLine trivia is kept if one was present 
         /// </summary>
         KeepEndOfLine               = 0x10,
+
+        /// <summary>
+        /// Adds elastic marker trivia
+        /// </summary>
+        AddElasticMarker            = 0x20
     }
 }

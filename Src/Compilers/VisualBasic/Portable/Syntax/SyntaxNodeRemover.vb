@@ -214,6 +214,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 ElseIf (Me._options And SyntaxRemoveOptions.KeepEndOfLine) <> 0 AndAlso HasEndOfLine(node.GetTrailingTrivia()) Then
                     Me.AddEndOfLine()
                 End If
+
+                If (Me._options And SyntaxRemoveOptions.AddElasticMarker) <> 0 Then
+                    Me.AddResidualTrivia(SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker))
+                End If
             End Sub
 
             Private Sub AddTrivia(token As SyntaxToken, node As SyntaxNode)
@@ -237,6 +241,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 ElseIf (Me._options And SyntaxRemoveOptions.KeepEndOfLine) <> 0 AndAlso HasEndOfLine(node.GetTrailingTrivia()) Then
                     Me.AddEndOfLine()
                 End If
+
+                If (Me._options And SyntaxRemoveOptions.AddElasticMarker) <> 0 Then
+                    Me.AddResidualTrivia(SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker))
+                End If
             End Sub
 
             Private Sub AddTrivia(node As SyntaxNode, token As SyntaxToken)
@@ -259,6 +267,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 ElseIf (Me._options And SyntaxRemoveOptions.KeepEndOfLine) <> 0 AndAlso
                         (HasEndOfLine(node.GetTrailingTrivia()) OrElse HasEndOfLine(token.LeadingTrivia) OrElse HasEndOfLine(token.TrailingTrivia)) Then
                     Me.AddEndOfLine()
+                End If
+
+                If (Me._options And SyntaxRemoveOptions.AddElasticMarker) <> 0 Then
+                    Me.AddResidualTrivia(SyntaxFactory.TriviaList(SyntaxFactory.ElasticMarker))
                 End If
             End Sub
 
