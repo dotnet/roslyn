@@ -3,6 +3,7 @@
 Imports System.Collections.Generic
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
@@ -16,38 +17,117 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend NotInheritable Class IteratorAndAsyncCaptureWalker
         Inherits DataFlowPass
 
+        ' In Release builds we hoist only variables (locals And parameters) that are captured. 
+        ' This set will contain such variables after the bound tree is visited.
+        Private _variablesToHoist As OrderedSet(Of Symbol)
+        Private _byRefLocalsInitializers As Dictionary(Of LocalSymbol, BoundExpression)
+
+        ' Contains variables that are captured but can't be hoisted since their type can't be allocated on heap.
+        ' The value is a list of all usage of each such variable.
+        Private _lazyDisallowedCaptures As MultiDictionary(Of Symbol, VisualBasicSyntaxNode)
+
         Public Structure Result
-            Public ReadOnly CapturedLocals As HashSet(Of Symbol)
+            Public ReadOnly CapturedLocals As OrderedSet(Of Symbol)
             Public ReadOnly ByRefLocalsInitializers As Dictionary(Of LocalSymbol, BoundExpression)
 
-            Friend Sub New(cl As HashSet(Of Symbol), initializers As Dictionary(Of LocalSymbol, BoundExpression))
+            Friend Sub New(cl As OrderedSet(Of Symbol), initializers As Dictionary(Of LocalSymbol, BoundExpression))
                 Me.CapturedLocals = cl
                 Me.ByRefLocalsInitializers = initializers
             End Sub
         End Structure
 
-        Private _capturedLocals As HashSet(Of Symbol)
-        Private _byRefLocalsInitializers As Dictionary(Of LocalSymbol, BoundExpression)
-
         Public Sub New(info As FlowAnalysisInfo)
             MyBase.New(info, Nothing, suppressConstExpressionsSupport:=False, trackStructsWithIntrinsicTypedFields:=True, trackUnassignments:=True)
+
+            Me._variablesToHoist = New OrderedSet(Of Symbol)()
+            Me._byRefLocalsInitializers = New Dictionary(Of LocalSymbol, BoundExpression)()
         End Sub
 
-        Public Overloads Shared Function Analyze(info As FlowAnalysisInfo) As Result
+        ' Returns deterministically ordered list of variables that ought to be hoisted.
+        Public Overloads Shared Function Analyze(info As FlowAnalysisInfo, diagnostics As DiagnosticBag) As Result
             Dim walker As New IteratorAndAsyncCaptureWalker(info)
             walker.Analyze()
             Debug.Assert(Not walker.InvalidRegionDetected)
 
-            Dim result As New Result(walker._capturedLocals, walker._byRefLocalsInitializers)
+            Dim variablesToHoist = walker._variablesToHoist
+            Dim allVariables = walker.variableBySlot
+            Dim byRefLocalsInitializers = walker._byRefLocalsInitializers
+            Dim lazyDisallowedCaptures = walker._lazyDisallowedCaptures
+
             walker.Free()
-            Return result
+
+            If lazyDisallowedCaptures IsNot Nothing Then
+                For Each variable In lazyDisallowedCaptures.Keys
+                    Dim type As TypeSymbol = If(variable.Kind = SymbolKind.Local, TryCast(variable, LocalSymbol).Type, TryCast(variable, ParameterSymbol).Type)
+                    For Each node In lazyDisallowedCaptures(variable)
+                        ' Variable of restricted type '{0}' cannot be declared in an Async or Iterator method.
+                        diagnostics.Add(ERRID.ERR_CannotLiftRestrictedTypeResumable1, node.GetLocation(), type)
+                    Next
+                Next
+            End If
+
+            If info.Compilation.Options.OptimizationLevel <> OptimizationLevel.Release Then
+                Debug.Assert(variablesToHoist.Count = 0)
+
+                ' In debug build we hoist all locals and parameters:
+                variablesToHoist.AddRange(From v In allVariables
+                                          Where v.Symbol IsNot Nothing AndAlso HoistInDebugBuild(v.Symbol)
+                                          Select v.Symbol)
+            End If
+
+            Return New Result(variablesToHoist, byRefLocalsInitializers)
+        End Function
+
+        Private Shared Function HoistInDebugBuild(symbol As Symbol) As Boolean
+            ' In debug build hoist all parameters that can be hoisted:
+            If symbol.Kind = SymbolKind.Parameter Then
+                Dim parameter = TryCast(symbol, ParameterSymbol)
+                Return Not parameter.Type.IsRestrictedType()
+            End If
+
+            If symbol.Kind = SymbolKind.Local Then
+                Dim local = TryCast(symbol, LocalSymbol)
+                If local.IsConst Then
+                    Return False
+                End If
+
+                ' Hoist all user-defined locals that can be hoisted:
+                ' TODO: filter out synthesized variables which do not need hoist
+                ' (see MustSurviveStateMachineSuspension in C#)
+                Return Not local.Type.IsRestrictedType()
+            End If
+
+            Return False
         End Function
 
         Protected Overrides Function Scan() As Boolean
-            Me._capturedLocals = New HashSet(Of Symbol)()
-            Me._byRefLocalsInitializers = New Dictionary(Of LocalSymbol, BoundExpression)()
+            Me._variablesToHoist.Clear()
+            Me._byRefLocalsInitializers.Clear()
+            Me._lazyDisallowedCaptures?.Clear()
+
             Return MyBase.Scan()
         End Function
+
+        Private Sub CaptureVariable(variable As Symbol, syntax As VisualBasicSyntaxNode)
+            Dim type As TypeSymbol = If(variable.Kind = SymbolKind.Local, TryCast(variable, LocalSymbol).Type, TryCast(variable, ParameterSymbol).Type)
+            If type.IsRestrictedType() Then
+                ' Error has already been reported:
+                If TypeOf variable Is SynthesizedLocal Then
+                    Return
+                End If
+
+                If _lazyDisallowedCaptures Is Nothing Then
+                    _lazyDisallowedCaptures = New MultiDictionary(Of Symbol, VisualBasicSyntaxNode)()
+                End If
+
+                _lazyDisallowedCaptures.Add(variable, syntax)
+
+            ElseIf compilation.Options.OptimizationLevel = OptimizationLevel.Release
+                ' In debug build we hoist all locals and parameters after walk:
+                Me._variablesToHoist.Add(variable)
+            End If
+
+        End Sub
 
         Protected Overrides Sub EnterParameter(parameter As ParameterSymbol)
             ' parameters are NOT intitially assigned here - if that is a problem, then
@@ -56,7 +136,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Instead of analysing of which parameters are actually being referenced
             ' we add all of them; this might need to be revised later
-            Me._capturedLocals.Add(parameter)
+            CaptureVariable(parameter, Nothing)
         End Sub
 
         Protected Overrides Sub ReportUnassigned(symbol As Symbol, node As VisualBasicSyntaxNode, rwContext As ReadWriteContext, Optional slot As Integer = -1, Optional boundFieldAccess As BoundFieldAccess = Nothing)
@@ -68,11 +148,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(Not TypeOf sym Is AmbiguousLocalsPseudoSymbol)
 
                 If sym IsNot Nothing Then
-                    Me._capturedLocals.Add(sym)
+                    CaptureVariable(sym, node)
                 End If
 
             ElseIf symbol.Kind = SymbolKind.Parameter OrElse symbol.Kind = SymbolKind.Local Then
-                Me._capturedLocals.Add(symbol)
+                CaptureVariable(symbol, node)
             End If
         End Sub
 

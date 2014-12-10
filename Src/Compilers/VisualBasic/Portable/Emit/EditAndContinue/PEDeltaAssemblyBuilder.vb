@@ -22,11 +22,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                        outputKind As OutputKind,
                        serializationProperties As ModulePropertiesForSerialization,
                        manifestResources As IEnumerable(Of ResourceDescription),
-                       assemblySymbolMapper As Func(Of AssemblySymbol, AssemblyIdentity),
                        previousGeneration As EmitBaseline,
                        edits As IEnumerable(Of SemanticEdit))
 
-            MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, additionalTypes:=ImmutableArray(Of NamedTypeSymbol).Empty)
+            MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, assemblySymbolMapper:=Nothing, additionalTypes:=ImmutableArray(Of NamedTypeSymbol).Empty)
 
             Dim context = New EmitContext(Me, Nothing, New DiagnosticBag())
             Dim [module] = previousGeneration.OriginalMetadata
@@ -57,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Me.m_Changes = New SymbolChanges(m_PreviousDefinitions, edits)
         End Sub
 
-        Private Overloads Shared Function GetAnonymousTypeMap(
+        Private Overloads Shared Function GetAnonymousTypeMapFromMetadata(
                                                    reader As MetadataReader,
                                                    metadataDecoder As Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE.MetadataDecoder) As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue)
             Dim result = New Dictionary(Of AnonymousTypeKey, AnonymousTypeValue)
@@ -139,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return previousGeneration
             End If
 
-            Dim anonymousTypeMap = GetAnonymousTypeMap(previousGeneration.MetadataReader, metadataDecoder)
+            Dim anonymousTypeMap = GetAnonymousTypeMapFromMetadata(previousGeneration.MetadataReader, metadataDecoder)
             Return previousGeneration.WithAnonymousTypeMap(anonymousTypeMap)
         End Function
 

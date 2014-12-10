@@ -33,10 +33,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            F As SyntheticBoundNodeFactory,
                            state As FieldSymbol,
                            current As FieldSymbol,
+                           HoistedVariables As IReadOnlySet(Of Symbol),
                            localProxies As Dictionary(Of Symbol, FieldSymbol),
+                           SynthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser,
+                           slotAllocatorOpt As VariableSlotAllocator,
+                           nextFreeHoistedLocalSlot As Integer,
                            diagnostics As DiagnosticBag)
 
-                MyBase.New(F, state, localProxies, diagnostics)
+                MyBase.New(F, state, HoistedVariables, localProxies, SynthesizedLocalOrdinals, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
 
                 Me._current = current
 

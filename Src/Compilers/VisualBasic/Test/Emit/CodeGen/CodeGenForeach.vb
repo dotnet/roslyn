@@ -933,7 +933,7 @@ End Class
     IL_0016:  brfalse.s  IL_001f
     IL_0018:  ldsfld     "C._Closure$__1._ClosureCache$__3 As System.Func(Of Integer, String)"
     IL_001d:  br.s       IL_0035
-    IL_001f:  ldsfld     "C._Closure$__1.$Inst As C._Closure$__1"
+    IL_001f:  ldsfld     "C._Closure$__1.$I As C._Closure$__1"
     IL_0024:  ldftn      "Function C._Closure$__1._Lambda$__2(Integer) As String"
     IL_002a:  newobj     "Sub System.Func(Of Integer, String)..ctor(Object, System.IntPtr)"
     IL_002f:  dup
@@ -2816,7 +2816,7 @@ End Module
     IL_0010:  brfalse.s  IL_0019
     IL_0012:  ldsfld     "m1._Closure$__2._ClosureCache$__4 As <generated method>"
     IL_0017:  br.s       IL_002f
-    IL_0019:  ldsfld     "m1._Closure$__2.$Inst As m1._Closure$__2"
+    IL_0019:  ldsfld     "m1._Closure$__2.$I As m1._Closure$__2"
     IL_001e:  ldftn      "Function m1._Closure$__2._Lambda$__3(Object) As System.Collections.Generic.IEnumerable(Of Integer)"
     IL_0024:  newobj     "Sub VB$AnonymousDelegate_0(Of Object, System.Collections.Generic.IEnumerable(Of Integer))..ctor(Object, System.IntPtr)"
     IL_0029:  dup
@@ -2937,7 +2937,7 @@ End Module
   IL_000d:  stloc.1
   IL_000e:  newobj     "Sub m1._Closure$__1..ctor()"
   IL_0013:  dup
-  IL_0014:  ldfld      "m1._Closure$__1.$VB$NonLocal_ As Integer"
+  IL_0014:  ldfld      "m1._Closure$__1.$VB$NonLocal_2 As Integer"
   IL_0019:  box        "Integer"
   IL_001e:  callvirt   "Function m1._Closure$__1._Lambda$__3(Object) As Object()"
   IL_0023:  stloc.2
@@ -2972,7 +2972,7 @@ End Module
   IL_0063:  brfalse.s  IL_006c
   IL_0065:  ldsfld     "m1._Closure$__5._ClosureCache$__7 As System.Action"
   IL_006a:  br.s       IL_0082
-  IL_006c:  ldsfld     "m1._Closure$__5.$Inst As m1._Closure$__5"
+  IL_006c:  ldsfld     "m1._Closure$__5.$I As m1._Closure$__5"
   IL_0071:  ldftn      "Sub m1._Closure$__5._Lambda$__6()"
   IL_0077:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_007c:  dup

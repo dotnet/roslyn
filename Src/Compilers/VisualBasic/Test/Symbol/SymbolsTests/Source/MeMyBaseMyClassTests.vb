@@ -1141,7 +1141,7 @@ End Module
   IL_000b:  brfalse.s  IL_0014
   IL_000d:  ldsfld     "Module1.Class2._Closure$__1._ClosureCache$__3 As System.Func(Of Char, Char)"
   IL_0012:  br.s       IL_002a
-  IL_0014:  ldsfld     "Module1.Class2._Closure$__1.$Inst As Module1.Class2._Closure$__1"
+  IL_0014:  ldsfld     "Module1.Class2._Closure$__1.$I As Module1.Class2._Closure$__1"
   IL_0019:  ldftn      "Function Module1.Class2._Closure$__1._Lambda$__2(Char) As Char"
   IL_001f:  newobj     "Sub System.Func(Of Char, Char)..ctor(Object, System.IntPtr)"
   IL_0024:  dup

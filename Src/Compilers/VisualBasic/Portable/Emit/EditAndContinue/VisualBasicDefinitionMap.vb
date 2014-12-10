@@ -81,24 +81,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End If
         End Function
 
-        Private Overloads Function TryGetMethodHandle(baseline As EmitBaseline, def As Cci.IMethodDefinition, <Out> ByRef handle As MethodDefinitionHandle) As Boolean
-            If Me.TryGetMethodHandle(def, handle) Then
-                Return True
-            End If
-
-            def = DirectCast(Me.mapToPrevious.MapDefinition(def), Cci.IMethodDefinition)
-            If def IsNot Nothing Then
-                Dim methodIndex As UInteger = 0
-                If baseline.MethodsAdded.TryGetValue(def, methodIndex) Then
-                    handle = MetadataTokens.MethodDefinitionHandle(CInt(methodIndex))
-                    Return True
-                End If
-            End If
-
-            handle = Nothing
-            Return False
-        End Function
-
         Friend Overrides Function TryGetPropertyHandle(def As Cci.IPropertyDefinition, <Out> ByRef handle As PropertyDefinitionHandle) As Boolean
             Dim other = TryCast(Me.mapToMetadata.MapDefinition(def), PEPropertySymbol)
             If other IsNot Nothing Then
@@ -126,10 +108,48 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                                                                     <Out> ByRef hoistedLocalMap As IReadOnlyDictionary(Of EncHoistedLocalInfo, Integer),
                                                                     <Out> ByRef awaiterMap As IReadOnlyDictionary(Of ITypeReference, Integer),
                                                                     <Out> ByRef awaiterSlotCount As Integer)
-            ' TODO:
-            hoistedLocalMap = New Dictionary(Of EncHoistedLocalInfo, Integer)()
-            awaiterMap = New Dictionary(Of ITypeReference, Integer)
-            awaiterSlotCount = 0
+            Dim hoistedLocals = New Dictionary(Of EncHoistedLocalInfo, Integer)()
+            Dim awaiters = New Dictionary(Of ITypeReference, Integer)
+            Dim maxAwaiterSlotIndex = -1
+
+            For Each member In stateMachineType.GetMembers()
+                If member.Kind = SymbolKind.Field Then
+                    Dim name = member.Name
+                    Dim slotIndex As Integer
+
+                    Select Case GeneratedNames.GetKind(name)
+                        Case GeneratedNameKind.AwaiterField
+                            If GeneratedNames.TryParseSlotIndex(name, slotIndex) Then
+                                Dim field = TryCast(member, IFieldSymbol)
+
+                                ' Correct metadata won't contain duplicates, but malformed might, ignore the duplicate:
+                                awaiters(TryCast(field.Type, Cci.ITypeReference)) = slotIndex
+
+                                If slotIndex > maxAwaiterSlotIndex Then
+                                    maxAwaiterSlotIndex = slotIndex
+                                End If
+                            End If
+
+                        Case GeneratedNameKind.HoistedLocalField,
+                             GeneratedNameKind.HoistedSynthesizedLocalField
+                            If GeneratedNames.TryParseSlotIndex(name, slotIndex) Then
+                                Dim field = TryCast(member, IFieldSymbol)
+                                If slotIndex >= localSlotDebugInfo.Length Then
+                                    ' Invalid metadata
+                                    Continue For
+                                End If
+
+                                Dim key = New EncHoistedLocalInfo(localSlotDebugInfo(slotIndex), DirectCast(field.Type, Cci.ITypeReference))
+
+                                ' Correct metadata won't contain duplicates, but malformed might, ignore the duplicate:
+                                hoistedLocals(key) = slotIndex
+                            End If
+                    End Select
+                End If
+            Next
+
+            hoistedLocalMap = hoistedLocals
+            awaiterMap = awaiters
         End Sub
 
         Protected Overrides Function TryGetLocalSlotMapFromMetadata(handle As MethodDefinitionHandle, debugInfo As EditAndContinueMethodDebugInformation) As ImmutableArray(Of EncLocalInfo)

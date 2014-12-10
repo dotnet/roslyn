@@ -39,15 +39,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' captured symbol is either a local or parameter.
             Dim local = TryCast(captured, LocalSymbol)
             If local IsNot Nothing AndAlso local.IsCompilerGenerated Then
-                Return StringConstants.LiftedNonLocalPrefix & If(local.SynthesizedKind.IsLongLived(), GeneratedNames.MakeHoistedLocalFieldName(local.SynthesizedKind, local.Type, uniqueId), Nothing)
+                Select Case local.SynthesizedKind
+                    Case SynthesizedLocalKind.LambdaDisplayClass
+                        uniqueId += 1
+                        Return StringConstants.HoistedSpecialVariablePrefix & StringConstants.ClosureVariablePrefix & uniqueId
+
+                    Case SynthesizedLocalKind.With
+                        uniqueId += 1
+                        Return StringConstants.HoistedWithLocalPrefix & uniqueId
+
+                    Case Else
+                        uniqueId += 1
+                        Return StringConstants.HoistedSpecialVariablePrefix & uniqueId
+                End Select
             End If
 
             Dim parameter = TryCast(captured, ParameterSymbol)
             If parameter IsNot Nothing AndAlso parameter.IsMe Then
-                Return StringConstants.LiftedMeName
+                Return StringConstants.HoistedMeName
             End If
 
-            Return StringConstants.LiftedLocalPrefix & captured.Name
+            Return StringConstants.HoistedUserVariablePrefix & captured.Name
         End Function
 
         Public Shared Function GetCapturedVariableFieldType(frame As LambdaFrame, captured As Symbol) As TypeSymbol

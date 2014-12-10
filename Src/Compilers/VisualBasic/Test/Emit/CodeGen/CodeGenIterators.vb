@@ -68,25 +68,25 @@ False").VerifyIL("A.VB$StateMachine_1_YieldString.MoveNext", "
   IL_002c:  ldc.i4.0
   IL_002d:  ldc.i4.1
   IL_002e:  stelem.i1
-  IL_002f:  stfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_VB$ForEachArray$1 As Boolean()""
+  IL_002f:  stfld      ""A.VB$StateMachine_1_YieldString.$S0 As Boolean()""
   IL_0034:  ldarg.0
   IL_0035:  ldc.i4.0
-  IL_0036:  stfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_VB$ForEachArrayIndex$2 As Integer""
+  IL_0036:  stfld      ""A.VB$StateMachine_1_YieldString.$S3 As Integer""
   IL_003b:  br         IL_00c7
   IL_0040:  ldarg.0
   IL_0041:  ldarg.0
-  IL_0042:  ldfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_VB$ForEachArray$1 As Boolean()""
+  IL_0042:  ldfld      ""A.VB$StateMachine_1_YieldString.$S0 As Boolean()""
   IL_0047:  ldarg.0
-  IL_0048:  ldfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_VB$ForEachArrayIndex$2 As Integer""
+  IL_0048:  ldfld      ""A.VB$StateMachine_1_YieldString.$S3 As Integer""
   IL_004d:  ldelem.u1
-  IL_004e:  stfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_b$1 As Boolean""
+  IL_004e:  stfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_b$2 As Boolean""
   IL_0053:  ldarg.0
   IL_0054:  ldc.i4.1
-  IL_0055:  stfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_VB$SelectCaseValue$3 As Boolean""
+  IL_0055:  stfld      ""A.VB$StateMachine_1_YieldString.$S1 As Boolean""
   IL_005a:  ldarg.0
-  IL_005b:  ldfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_VB$SelectCaseValue$3 As Boolean""
+  IL_005b:  ldfld      ""A.VB$StateMachine_1_YieldString.$S1 As Boolean""
   IL_0060:  ldarg.0
-  IL_0061:  ldfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_b$1 As Boolean""
+  IL_0061:  ldfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_b$2 As Boolean""
   IL_0066:  bne.un.s   IL_0089
   IL_0068:  ldarg.0
   IL_0069:  ldstr      ""True""
@@ -105,9 +105,9 @@ False").VerifyIL("A.VB$StateMachine_1_YieldString.MoveNext", "
   IL_0082:  stfld      ""A.VB$StateMachine_1_YieldString.$State As Integer""
   IL_0087:  br.s       IL_00b9
   IL_0089:  ldarg.0
-  IL_008a:  ldfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_VB$SelectCaseValue$3 As Boolean""
+  IL_008a:  ldfld      ""A.VB$StateMachine_1_YieldString.$S1 As Boolean""
   IL_008f:  ldarg.0
-  IL_0090:  ldfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_b$1 As Boolean""
+  IL_0090:  ldfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_b$2 As Boolean""
   IL_0095:  ldc.i4.0
   IL_0096:  ceq
   IL_0098:  bne.un.s   IL_00b9
@@ -128,14 +128,14 @@ False").VerifyIL("A.VB$StateMachine_1_YieldString.MoveNext", "
   IL_00b4:  stfld      ""A.VB$StateMachine_1_YieldString.$State As Integer""
   IL_00b9:  ldarg.0
   IL_00ba:  ldarg.0
-  IL_00bb:  ldfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_VB$ForEachArrayIndex$2 As Integer""
+  IL_00bb:  ldfld      ""A.VB$StateMachine_1_YieldString.$S3 As Integer""
   IL_00c0:  ldc.i4.1
   IL_00c1:  add.ovf
-  IL_00c2:  stfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_VB$ForEachArrayIndex$2 As Integer""
+  IL_00c2:  stfld      ""A.VB$StateMachine_1_YieldString.$S3 As Integer""
   IL_00c7:  ldarg.0
-  IL_00c8:  ldfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_VB$ForEachArrayIndex$2 As Integer""
+  IL_00c8:  ldfld      ""A.VB$StateMachine_1_YieldString.$S3 As Integer""
   IL_00cd:  ldarg.0
-  IL_00ce:  ldfld      ""A.VB$StateMachine_1_YieldString.$VB$ResumableLocal_VB$ForEachArray$1 As Boolean()""
+  IL_00ce:  ldfld      ""A.VB$StateMachine_1_YieldString.$S0 As Boolean()""
   IL_00d3:  ldlen
   IL_00d4:  conv.i4
   IL_00d5:  blt        IL_0040
@@ -296,16 +296,16 @@ End Module
   IL_0037:  stelem.i4
   IL_0038:  ldarg.0
   IL_0039:  ldloc.1
-  IL_003a:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_VB$ForEachArray$1 As Integer()"
+  IL_003a:  stfld      "Module1.VB$StateMachine_1_Foo.$S0 As Integer()"
   IL_003f:  ldarg.0
   IL_0040:  ldc.i4.0
-  IL_0041:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_VB$ForEachArrayIndex$2 As Integer"
+  IL_0041:  stfld      "Module1.VB$StateMachine_1_Foo.$S2 As Integer"
   IL_0046:  br.s       IL_00a9
   IL_0048:  ldarg.0
   IL_0049:  ldarg.0
-  IL_004a:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_VB$ForEachArray$1 As Integer()"
+  IL_004a:  ldfld      "Module1.VB$StateMachine_1_Foo.$S0 As Integer()"
   IL_004f:  ldarg.0
-  IL_0050:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_VB$ForEachArrayIndex$2 As Integer"
+  IL_0050:  ldfld      "Module1.VB$StateMachine_1_Foo.$S2 As Integer"
   IL_0055:  ldelem.i4
   IL_0056:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$1 As Integer"
   IL_005b:  ldarg.0
@@ -342,34 +342,34 @@ End Module
   IL_0096:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
   IL_009b:  ldarg.0
   IL_009c:  ldarg.0
-  IL_009d:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_VB$ForEachArrayIndex$2 As Integer"
+  IL_009d:  ldfld      "Module1.VB$StateMachine_1_Foo.$S2 As Integer"
   IL_00a2:  ldc.i4.1
   IL_00a3:  add.ovf
-  IL_00a4:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_VB$ForEachArrayIndex$2 As Integer"
+  IL_00a4:  stfld      "Module1.VB$StateMachine_1_Foo.$S2 As Integer"
   IL_00a9:  ldarg.0
-  IL_00aa:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_VB$ForEachArrayIndex$2 As Integer"
+  IL_00aa:  ldfld      "Module1.VB$StateMachine_1_Foo.$S2 As Integer"
   IL_00af:  ldarg.0
-  IL_00b0:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_VB$ForEachArray$1 As Integer()"
+  IL_00b0:  ldfld      "Module1.VB$StateMachine_1_Foo.$S0 As Integer()"
   IL_00b5:  ldlen
   IL_00b6:  conv.i4
   IL_00b7:  blt.s      IL_0048
   IL_00b9:  ldarg.0
   IL_00ba:  ldstr      "abc"
-  IL_00bf:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_VB$ForEachArray$3 As String"
+  IL_00bf:  stfld      "Module1.VB$StateMachine_1_Foo.$S3 As String"
   IL_00c4:  ldarg.0
   IL_00c5:  ldc.i4.0
-  IL_00c6:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_VB$ForEachArrayIndex$4 As Integer"
+  IL_00c6:  stfld      "Module1.VB$StateMachine_1_Foo.$S5 As Integer"
   IL_00cb:  br.s       IL_013c
   IL_00cd:  ldarg.0
   IL_00ce:  ldarg.0
-  IL_00cf:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_VB$ForEachArray$3 As String"
+  IL_00cf:  ldfld      "Module1.VB$StateMachine_1_Foo.$S3 As String"
   IL_00d4:  ldarg.0
-  IL_00d5:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_VB$ForEachArrayIndex$4 As Integer"
+  IL_00d5:  ldfld      "Module1.VB$StateMachine_1_Foo.$S5 As Integer"
   IL_00da:  callvirt   "Function String.get_Chars(Integer) As Char"
-  IL_00df:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$2 As Char"
+  IL_00df:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$4 As Char"
   IL_00e4:  ldarg.0
   IL_00e5:  ldarg.0
-  IL_00e6:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$2 As Char"
+  IL_00e6:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$4 As Char"
   IL_00eb:  call       "Function System.Convert.ToInt32(Char) As Integer"
   IL_00f0:  stfld      "Module1.VB$StateMachine_1_Foo.$Current As Integer"
   IL_00f5:  ldarg.0
@@ -386,7 +386,7 @@ End Module
   IL_0104:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
   IL_0109:  ldarg.0
   IL_010a:  ldarg.0
-  IL_010b:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$2 As Char"
+  IL_010b:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$4 As Char"
   IL_0110:  call       "Function System.Convert.ToInt32(Char) As Integer"
   IL_0115:  stfld      "Module1.VB$StateMachine_1_Foo.$Current As Integer"
   IL_011a:  ldarg.0
@@ -404,14 +404,14 @@ End Module
   IL_0129:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
   IL_012e:  ldarg.0
   IL_012f:  ldarg.0
-  IL_0130:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_VB$ForEachArrayIndex$4 As Integer"
+  IL_0130:  ldfld      "Module1.VB$StateMachine_1_Foo.$S5 As Integer"
   IL_0135:  ldc.i4.1
   IL_0136:  add.ovf
-  IL_0137:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_VB$ForEachArrayIndex$4 As Integer"
+  IL_0137:  stfld      "Module1.VB$StateMachine_1_Foo.$S5 As Integer"
   IL_013c:  ldarg.0
-  IL_013d:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_VB$ForEachArrayIndex$4 As Integer"
+  IL_013d:  ldfld      "Module1.VB$StateMachine_1_Foo.$S5 As Integer"
   IL_0142:  ldarg.0
-  IL_0143:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_VB$ForEachArray$3 As String"
+  IL_0143:  ldfld      "Module1.VB$StateMachine_1_Foo.$S3 As String"
   IL_0148:  callvirt   "Function String.get_Length() As Integer"
   IL_014d:  blt        IL_00cd
   IL_0152:  ldc.i4.0
@@ -676,10 +676,10 @@ End Module
     IL_003b:  ldarg.0
     IL_003c:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$Local_x As System.Collections.Generic.IEnumerable(Of Integer)"
     IL_0041:  callvirt   "Function System.Collections.Generic.IEnumerable(Of Integer).GetEnumerator() As System.Collections.Generic.IEnumerator(Of Integer)"
-    IL_0046:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_VB$ForEachEnumerator$1 As System.Collections.Generic.IEnumerator(Of Integer)"
+    IL_0046:  stfld      "Module1.VB$StateMachine_1_Foo.$S0 As System.Collections.Generic.IEnumerator(Of Integer)"
     IL_004b:  br.s       IL_0076
     IL_004d:  ldarg.0
-    IL_004e:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_VB$ForEachEnumerator$1 As System.Collections.Generic.IEnumerator(Of Integer)"
+    IL_004e:  ldfld      "Module1.VB$StateMachine_1_Foo.$S0 As System.Collections.Generic.IEnumerator(Of Integer)"
     IL_0053:  callvirt   "Function System.Collections.Generic.IEnumerator(Of Integer).get_Current() As Integer"
     IL_0058:  stloc.2
     IL_0059:  ldarg.0
@@ -699,7 +699,7 @@ End Module
     IL_0070:  stloc.1
     IL_0071:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
     IL_0076:  ldarg.0
-    IL_0077:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_VB$ForEachEnumerator$1 As System.Collections.Generic.IEnumerator(Of Integer)"
+    IL_0077:  ldfld      "Module1.VB$StateMachine_1_Foo.$S0 As System.Collections.Generic.IEnumerator(Of Integer)"
     IL_007c:  callvirt   "Function System.Collections.IEnumerator.MoveNext() As Boolean"
     IL_0081:  brtrue.s   IL_004d
     IL_0083:  leave.s    IL_009d
@@ -710,10 +710,10 @@ End Module
     IL_0086:  ldc.i4.0
     IL_0087:  bge.s      IL_009c
     IL_0089:  ldarg.0
-    IL_008a:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_VB$ForEachEnumerator$1 As System.Collections.Generic.IEnumerator(Of Integer)"
+    IL_008a:  ldfld      "Module1.VB$StateMachine_1_Foo.$S0 As System.Collections.Generic.IEnumerator(Of Integer)"
     IL_008f:  brfalse.s  IL_009c
     IL_0091:  ldarg.0
-    IL_0092:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_VB$ForEachEnumerator$1 As System.Collections.Generic.IEnumerator(Of Integer)"
+    IL_0092:  ldfld      "Module1.VB$StateMachine_1_Foo.$S0 As System.Collections.Generic.IEnumerator(Of Integer)"
     IL_0097:  callvirt   "Sub System.IDisposable.Dispose()"
     IL_009c:  endfinally
   }
@@ -785,10 +785,10 @@ End Module
   IL_0014:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
   IL_0019:  ldarg.0
   IL_001a:  ldc.i4.1
-  IL_001b:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_i$1 As Integer"
+  IL_001b:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_i$0 As Integer"
   IL_0020:  ldarg.0
   IL_0021:  ldarg.0
-  IL_0022:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_i$1 As Integer"
+  IL_0022:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_i$0 As Integer"
   IL_0027:  stfld      "Module1.VB$StateMachine_1_Foo.$Current As Integer"
   IL_002c:  ldarg.0
   IL_002d:  ldc.i4.1
@@ -804,12 +804,12 @@ End Module
   IL_003b:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
   IL_0040:  ldarg.0
   IL_0041:  ldarg.0
-  IL_0042:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_i$1 As Integer"
+  IL_0042:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_i$0 As Integer"
   IL_0047:  ldc.i4.1
   IL_0048:  add.ovf
-  IL_0049:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_i$1 As Integer"
+  IL_0049:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_i$0 As Integer"
   IL_004e:  ldarg.0
-  IL_004f:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_i$1 As Integer"
+  IL_004f:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_i$0 As Integer"
   IL_0054:  ldc.i4.5
   IL_0055:  ble.s      IL_0020
   IL_0057:  ldc.i4.0
@@ -868,16 +868,16 @@ End Module
   // Code size      168 (0xa8)
   .maxstack  3
   .locals init (Boolean V_0,
-  Integer V_1,
-  Integer V_2) //y
+                Integer V_1,
+                Integer V_2) //y
   IL_0000:  ldarg.0
   IL_0001:  ldfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  switch    (
-  IL_001b,
-  IL_002b,
-  IL_002b)
+        IL_001b,
+        IL_002b,
+        IL_002b)
   IL_0019:  ldc.i4.0
   IL_001a:  ret
   IL_001b:  ldarg.0
@@ -887,71 +887,71 @@ End Module
   IL_001f:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
   IL_0024:  ldarg.0
   IL_0025:  ldc.i4.1
-  IL_0026:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$1 As Integer"
+  IL_0026:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$0 As Integer"
   IL_002b:  nop
   .try
-{
-  IL_002c:  ldloc.1
-  IL_002d:  ldc.i4.1
-  IL_002e:  beq.s      IL_0068
-  IL_0030:  ldloc.1
-  IL_0031:  ldc.i4.2
-  IL_0032:  bne.un.s   IL_0041
-  IL_0034:  ldarg.0
-  IL_0035:  ldc.i4.m1
-  IL_0036:  dup
-  IL_0037:  stloc.1
-  IL_0038:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
-  IL_003d:  ldc.i4.1
-  IL_003e:  stloc.0
-  IL_003f:  leave.s    IL_00a6
-  IL_0041:  ldarg.0
-  IL_0042:  ldarg.0
-  IL_0043:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$1 As Integer"
-  IL_0048:  ldc.i4.1
-  IL_0049:  add.ovf
-  IL_004a:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$1 As Integer"
-  IL_004f:  ldarg.0
-  IL_0050:  ldarg.0
-  IL_0051:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$1 As Integer"
-  IL_0056:  stfld      "Module1.VB$StateMachine_1_Foo.$Current As Integer"
-  IL_005b:  ldarg.0
-  IL_005c:  ldc.i4.1
-  IL_005d:  dup
-  IL_005e:  stloc.1
-  IL_005f:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
-  IL_0064:  ldc.i4.1
-  IL_0065:  stloc.0
-  IL_0066:  leave.s    IL_00a6
-  IL_0068:  ldarg.0
-  IL_0069:  ldc.i4.m1
-  IL_006a:  dup
-  IL_006b:  stloc.1
-  IL_006c:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
-  IL_0071:  leave.s    IL_00a4
-}
+  {
+    IL_002c:  ldloc.1
+    IL_002d:  ldc.i4.1
+    IL_002e:  beq.s      IL_0068
+    IL_0030:  ldloc.1
+    IL_0031:  ldc.i4.2
+    IL_0032:  bne.un.s   IL_0041
+    IL_0034:  ldarg.0
+    IL_0035:  ldc.i4.m1
+    IL_0036:  dup
+    IL_0037:  stloc.1
+    IL_0038:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
+    IL_003d:  ldc.i4.1
+    IL_003e:  stloc.0
+    IL_003f:  leave.s    IL_00a6
+    IL_0041:  ldarg.0
+    IL_0042:  ldarg.0
+    IL_0043:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$0 As Integer"
+    IL_0048:  ldc.i4.1
+    IL_0049:  add.ovf
+    IL_004a:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$0 As Integer"
+    IL_004f:  ldarg.0
+    IL_0050:  ldarg.0
+    IL_0051:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$0 As Integer"
+    IL_0056:  stfld      "Module1.VB$StateMachine_1_Foo.$Current As Integer"
+    IL_005b:  ldarg.0
+    IL_005c:  ldc.i4.1
+    IL_005d:  dup
+    IL_005e:  stloc.1
+    IL_005f:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
+    IL_0064:  ldc.i4.1
+    IL_0065:  stloc.0
+    IL_0066:  leave.s    IL_00a6
+    IL_0068:  ldarg.0
+    IL_0069:  ldc.i4.m1
+    IL_006a:  dup
+    IL_006b:  stloc.1
+    IL_006c:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
+    IL_0071:  leave.s    IL_00a4
+  }
   finally
-{
-  IL_0073:  ldloc.1
-  IL_0074:  ldc.i4.0
-  IL_0075:  bge.s      IL_00a3
-  IL_0077:  ldarg.0
-  IL_0078:  ldarg.0
-  IL_0079:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$1 As Integer"
-  IL_007e:  ldc.i4.1
-  IL_007f:  add.ovf
-  IL_0080:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$1 As Integer"
-  IL_0085:  ldarg.0
-  IL_0086:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$1 As Integer"
-  IL_008b:  stloc.2
-  IL_008c:  ldarg.0
-  IL_008d:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$1 As Integer"
-  IL_0092:  call       "Sub System.Console.Write(Integer)"
-  IL_0097:  ldloca.s   V_2
-  IL_0099:  call       "Function Integer.ToString() As String"
-  IL_009e:  call       "Sub System.Console.Write(String)"
-  IL_00a3:  endfinally
-}
+  {
+    IL_0073:  ldloc.1
+    IL_0074:  ldc.i4.0
+    IL_0075:  bge.s      IL_00a3
+    IL_0077:  ldarg.0
+    IL_0078:  ldarg.0
+    IL_0079:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$0 As Integer"
+    IL_007e:  ldc.i4.1
+    IL_007f:  add.ovf
+    IL_0080:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$0 As Integer"
+    IL_0085:  ldarg.0
+    IL_0086:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$0 As Integer"
+    IL_008b:  stloc.2
+    IL_008c:  ldarg.0
+    IL_008d:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_x$0 As Integer"
+    IL_0092:  call       "Sub System.Console.Write(Integer)"
+    IL_0097:  ldloca.s   V_2
+    IL_0099:  call       "Function Integer.ToString() As String"
+    IL_009e:  call       "Sub System.Console.Write(String)"
+    IL_00a3:  endfinally
+  }
   IL_00a4:  ldc.i4.0
   IL_00a5:  ret
   IL_00a6:  ldloc.0
@@ -1010,17 +1010,17 @@ End Module
   // Code size      175 (0xaf)
   .maxstack  3
   .locals init (Boolean V_0,
-  Integer V_1,
-  System.Exception V_2)
+                Integer V_1,
+                System.Exception V_2)
   IL_0000:  ldarg.0
   IL_0001:  ldfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
   IL_0006:  stloc.1
   IL_0007:  ldloc.1
   IL_0008:  switch    (
-  IL_001f,
-  IL_002f,
-  IL_002f,
-  IL_00a2)
+        IL_001f,
+        IL_002f,
+        IL_002f,
+        IL_00a2)
   IL_001d:  ldc.i4.0
   IL_001e:  ret
   IL_001f:  ldarg.0
@@ -1030,59 +1030,59 @@ End Module
   IL_0023:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
   IL_0028:  ldarg.0
   IL_0029:  ldnull
-  IL_002a:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_ex$1 As System.Exception"
+  IL_002a:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_ex$0 As System.Exception"
   IL_002f:  nop
   .try
-{
-  IL_0030:  ldloc.1
-  IL_0031:  ldc.i4.1
-  IL_0032:  beq.s      IL_0062
-  IL_0034:  ldloc.1
-  IL_0035:  ldc.i4.2
-  IL_0036:  bne.un.s   IL_0045
-  IL_0038:  ldarg.0
-  IL_0039:  ldc.i4.m1
-  IL_003a:  dup
-  IL_003b:  stloc.1
-  IL_003c:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
-  IL_0041:  ldc.i4.1
-  IL_0042:  stloc.0
-  IL_0043:  leave.s    IL_00ad
-  IL_0045:  ldarg.0
-  IL_0046:  ldstr      "1"
-  IL_004b:  newobj     "Sub System.Exception..ctor(String)"
-  IL_0050:  stfld      "Module1.VB$StateMachine_1_Foo.$Current As System.Exception"
-  IL_0055:  ldarg.0
-  IL_0056:  ldc.i4.1
-  IL_0057:  dup
-  IL_0058:  stloc.1
-  IL_0059:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
-  IL_005e:  ldc.i4.1
-  IL_005f:  stloc.0
-  IL_0060:  leave.s    IL_00ad
-  IL_0062:  ldarg.0
-  IL_0063:  ldc.i4.m1
-  IL_0064:  dup
-  IL_0065:  stloc.1
-  IL_0066:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
-  IL_006b:  ldstr      "2"
-  IL_0070:  newobj     "Sub System.Exception..ctor(String)"
-  IL_0075:  throw
-}
+  {
+    IL_0030:  ldloc.1
+    IL_0031:  ldc.i4.1
+    IL_0032:  beq.s      IL_0062
+    IL_0034:  ldloc.1
+    IL_0035:  ldc.i4.2
+    IL_0036:  bne.un.s   IL_0045
+    IL_0038:  ldarg.0
+    IL_0039:  ldc.i4.m1
+    IL_003a:  dup
+    IL_003b:  stloc.1
+    IL_003c:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
+    IL_0041:  ldc.i4.1
+    IL_0042:  stloc.0
+    IL_0043:  leave.s    IL_00ad
+    IL_0045:  ldarg.0
+    IL_0046:  ldstr      "1"
+    IL_004b:  newobj     "Sub System.Exception..ctor(String)"
+    IL_0050:  stfld      "Module1.VB$StateMachine_1_Foo.$Current As System.Exception"
+    IL_0055:  ldarg.0
+    IL_0056:  ldc.i4.1
+    IL_0057:  dup
+    IL_0058:  stloc.1
+    IL_0059:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
+    IL_005e:  ldc.i4.1
+    IL_005f:  stloc.0
+    IL_0060:  leave.s    IL_00ad
+    IL_0062:  ldarg.0
+    IL_0063:  ldc.i4.m1
+    IL_0064:  dup
+    IL_0065:  stloc.1
+    IL_0066:  stfld      "Module1.VB$StateMachine_1_Foo.$State As Integer"
+    IL_006b:  ldstr      "2"
+    IL_0070:  newobj     "Sub System.Exception..ctor(String)"
+    IL_0075:  throw
+  }
   catch System.Exception
-{
-  IL_0076:  dup
-  IL_0077:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_007c:  stloc.2
-  IL_007d:  ldarg.0
-  IL_007e:  ldloc.2
-  IL_007f:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_ex$1 As System.Exception"
-  IL_0084:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0089:  leave.s    IL_008b
-}
+  {
+    IL_0076:  dup
+    IL_0077:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_007c:  stloc.2
+    IL_007d:  ldarg.0
+    IL_007e:  ldloc.2
+    IL_007f:  stfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_ex$0 As System.Exception"
+    IL_0084:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0089:  leave.s    IL_008b
+  }
   IL_008b:  ldarg.0
   IL_008c:  ldarg.0
-  IL_008d:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_ex$1 As System.Exception"
+  IL_008d:  ldfld      "Module1.VB$StateMachine_1_Foo.$VB$ResumableLocal_ex$0 As System.Exception"
   IL_0092:  stfld      "Module1.VB$StateMachine_1_Foo.$Current As System.Exception"
   IL_0097:  ldarg.0
   IL_0098:  ldc.i4.3
@@ -1348,11 +1348,11 @@ End Module
   IL_0035:  stfld      "Module1.cls1.VB$StateMachine_1_f.$VB$Me As Module1.cls1"
   IL_003a:  ldloc.0
   IL_003b:  ldarg.0
-  IL_003c:  ldfld      "Module1.cls1.VB$StateMachine_1_f.proto$x As System.Guid"
+  IL_003c:  ldfld      "Module1.cls1.VB$StateMachine_1_f.$P_x As System.Guid"
   IL_0041:  stfld      "Module1.cls1.VB$StateMachine_1_f.$VB$Local_x As System.Guid"
   IL_0046:  ldloc.0
   IL_0047:  ldarg.0
-  IL_0048:  ldfld      "Module1.cls1.VB$StateMachine_1_f.proto$y As System.Guid"
+  IL_0048:  ldfld      "Module1.cls1.VB$StateMachine_1_f.$P_y As System.Guid"
   IL_004d:  stfld      "Module1.cls1.VB$StateMachine_1_f.$VB$Local_y As System.Guid"
   IL_0052:  ldloc.0
   IL_0053:  ret

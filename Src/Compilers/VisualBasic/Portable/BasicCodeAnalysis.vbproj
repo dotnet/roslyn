@@ -785,6 +785,7 @@
     <Compile Include="Symbols\Symbol_Attributes.vb" />
     <Compile Include="Symbols\SymbolExtensions.vb" />
     <Compile Include="Symbols\SymbolVisitor`2.vb" />
+    <Compile Include="Symbols\SynthesizedSymbols\GeneratedNameKind.vb" />
     <Compile Include="Symbols\SynthesizedSymbols\GeneratedNames.vb" />
     <Compile Include="Symbols\SynthesizedSymbols\SynthesizedAccessor.vb" />
     <Compile Include="Symbols\SynthesizedSymbols\SynthesizedAttributeData.vb" />

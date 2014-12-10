@@ -1366,9 +1366,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' We need to save additional debugging information for MoveNext of an async state machine.
                 Dim stateMachineMethod = TryCast(method, SynthesizedStateMachineMethod)
-                If stateMachineMethod IsNot Nothing AndAlso
-                   stateMachineMethod.StateMachineType.KickoffMethod.IsAsync AndAlso
-                   method.Name = WellKnownMemberNames.MoveNextMethodName Then
+
+                Dim isStateMachineMoveNextMethod As Boolean = stateMachineMethod IsNot Nothing AndAlso method.Name = WellKnownMemberNames.MoveNextMethodName
+                If isStateMachineMoveNextMethod AndAlso stateMachineMethod.StateMachineType.KickoffMethod.IsAsync Then
 
                     Dim asyncCatchHandlerOffset As Integer = -1
                     Dim asyncYieldPoints As ImmutableArray(Of Integer) = Nothing
@@ -1392,6 +1392,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' We will only save the IL builders when running tests.
                 If moduleBuilder.SaveTestData Then
                     moduleBuilder.SetMethodTestData(method, builder.GetSnapshot())
+                End If
+
+                Dim stateMachineHoistedLocalSlots As ImmutableArray(Of EncHoistedLocalInfo) = Nothing
+                Dim stateMachineAwaiterSlots As ImmutableArray(Of Cci.ITypeReference) = Nothing
+                If optimizations = OptimizationLevel.Debug AndAlso stateMachineTypeOpt IsNot Nothing Then
+                    Debug.Assert(method.IsAsync OrElse method.IsIterator)
+                    GetStateMachineSlotDebugInfo(moduleBuilder.GetSynthesizedFields(stateMachineTypeOpt), stateMachineHoistedLocalSlots, stateMachineAwaiterSlots)
                 End If
 
                 ' edgeInclusive must be true as that is what VB EE expects.
@@ -1429,14 +1436,48 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       namespaceScopeEncoding:=Cci.NamespaceScopeEncoding.Forwarding,
                                       stateMachineTypeNameOpt:=Nothing,
                                       stateMachineHoistedLocalScopes:=Nothing,
-                                      stateMachineHoistedLocalSlots:=Nothing, ' TODO
-                                      stateMachineAwaiterSlots:=Nothing, ' TODO
+                                      stateMachineHoistedLocalSlots:=stateMachineHoistedLocalSlots,
+                                      stateMachineAwaiterSlots:=stateMachineAwaiterSlots,
                                       asyncMethodDebugInfo:=asyncDebugInfo)
             Finally
                 ' Free resources used by the basic blocks in the builder.
                 builder.FreeBasicBlocks()
             End Try
         End Function
+
+        Private Shared Sub GetStateMachineSlotDebugInfo(fieldDefs As IEnumerable(Of Cci.IFieldDefinition),
+                                                        ByRef hoistedVariableSlots As ImmutableArray(Of EncHoistedLocalInfo),
+                                                        ByRef awaiterSlots As ImmutableArray(Of Cci.ITypeReference))
+
+            Dim hoistedVariables = ArrayBuilder(Of EncHoistedLocalInfo).GetInstance()
+            Dim awaiters = ArrayBuilder(Of Cci.ITypeReference).GetInstance()
+
+            For Each field As StateMachineFieldSymbol In fieldDefs
+                Dim index = field.SlotIndex
+
+                If field.SlotDebugInfo.SynthesizedKind = SynthesizedLocalKind.AwaiterField Then
+                    Debug.Assert(index >= 0)
+
+                    While index >= awaiters.Count
+                        awaiters.Add(Nothing)
+                    End While
+
+                    awaiters(index) = TryCast(field.Type, Cci.ITypeReference)
+                ElseIf Not field.SlotDebugInfo.Id.IsNone Then
+                    Debug.Assert(index >= 0 AndAlso field.SlotDebugInfo.SynthesizedKind.IsLongLived())
+
+                    While index >= hoistedVariables.Count
+                        ' Empty slots may be present if variables were deleted during EnC.
+                        hoistedVariables.Add(New EncHoistedLocalInfo())
+                    End While
+
+                    hoistedVariables(index) = New EncHoistedLocalInfo(field.SlotDebugInfo, TryCast(field.Type, Cci.ITypeReference))
+                End If
+            Next
+
+            hoistedVariableSlots = hoistedVariables.ToImmutableAndFree()
+            awaiterSlots = awaiters.ToImmutableAndFree()
+        End Sub
 
         Friend Shared Function BindAndAnalyzeMethodBody(method As MethodSymbol,
                                                        compilationState As TypeCompilationState,

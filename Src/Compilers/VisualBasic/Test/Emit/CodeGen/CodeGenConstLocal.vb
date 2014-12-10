@@ -505,7 +505,7 @@ End Module
   IL_0005:  brfalse.s  IL_000e
   IL_0007:  ldsfld     "C._Closure$__1._ClosureCache$__3 As <generated method>"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "C._Closure$__1.$Inst As C._Closure$__1"
+  IL_000e:  ldsfld     "C._Closure$__1.$I As C._Closure$__1"
   IL_0013:  ldftn      "Sub C._Closure$__1._Lambda$__2()"
   IL_0019:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
   IL_001e:  dup
@@ -558,7 +558,7 @@ End Module
   IL_0005:  brfalse.s  IL_000e
   IL_0007:  ldsfld     "C._Closure$__1._ClosureCache$__3 As <generated method>"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "C._Closure$__1.$Inst As C._Closure$__1"
+  IL_000e:  ldsfld     "C._Closure$__1.$I As C._Closure$__1"
   IL_0013:  ldftn      "Sub C._Closure$__1._Lambda$__2()"
   IL_0019:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
   IL_001e:  dup
@@ -623,7 +623,7 @@ End Module
   IL_0005:  brfalse.s  IL_000e
   IL_0007:  ldsfld     "C._Closure$__1._ClosureCache$__3 As <generated method>"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "C._Closure$__1.$Inst As C._Closure$__1"
+  IL_000e:  ldsfld     "C._Closure$__1.$I As C._Closure$__1"
   IL_0013:  ldftn      "Sub C._Closure$__1._Lambda$__2()"
   IL_0019:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
   IL_001e:  dup
@@ -679,7 +679,7 @@ End Module
   IL_0005:  brfalse.s  IL_000e
   IL_0007:  ldsfld     "C._Closure$__1._ClosureCache$__3 As <generated method>"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "C._Closure$__1.$Inst As C._Closure$__1"
+  IL_000e:  ldsfld     "C._Closure$__1.$I As C._Closure$__1"
   IL_0013:  ldftn      "Sub C._Closure$__1._Lambda$__2()"
   IL_0019:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
   IL_001e:  dup

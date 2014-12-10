@@ -27,12 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ''' <summary> Current enclosing Catch block if there is any. </summary>
         Private _currentCatchBlock As BoundCatchBlock = Nothing
 
-        ' unique id for generated local names
-        Private _uniqueId As Integer
-
-        ' Dispenser of unique ordinals for synthesized variable names that have the same kind And syntax offset.
-        ' The key Is (local.SyntaxOffset << 8) | local.SynthesizedKind.
-        Private _synthesizedLocalOrdinals As PooledDictionary(Of Long, Integer)
+        Private ReadOnly _synthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser = New SynthesizedLocalOrdinalsDispenser()
         Private _uniqueNameId As Integer
 
         ' label used when when return is emitted in a form of store/goto
@@ -156,10 +151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 _builder.Realize()
             End If
 
-            If _synthesizedLocalOrdinals IsNot Nothing Then
-                _synthesizedLocalOrdinals.Free()
-                _synthesizedLocalOrdinals = Nothing
-            End If
+            _synthesizedLocalOrdinals.Free()
         End Sub
 
         Private Sub HandleReturn()

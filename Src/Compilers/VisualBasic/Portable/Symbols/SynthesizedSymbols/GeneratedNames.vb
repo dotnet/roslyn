@@ -78,21 +78,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Generates the name of a state machine's 'awaiter_xyz' field 
         ''' </summary>
         Public Shared Function MakeStateMachineAwaiterFieldName(index As Integer) As String
-            Return String.Format(StringConstants.StateMachineAwaiterFieldName, index)
+            Return StringConstants.StateMachineAwaiterFieldPrefix & index
         End Function
 
         ''' <summary>
         ''' Generates the name of a state machine's parameter name
         ''' </summary>
         Public Shared Function MakeStateMachineParameterName(paramName As String) As String
-            Return StringConstants.LiftedLocalPrefix & paramName
+            Return StringConstants.HoistedUserVariablePrefix & paramName
         End Function
 
         ''' <summary>
         ''' Generates the name of a state machine's parameter name
         ''' </summary>
         Public Shared Function MakeIteratorParameterProxyName(paramName As String) As String
-            Return StringConstants.IteratorParameterProxyName & paramName
+            Return StringConstants.IteratorParameterProxyPrefix & paramName
         End Function
 
         ''' <summary>
@@ -101,27 +101,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <returns></returns>
         Public Shared Function MakeCachedFrameInstanceName() As String
             Return StringConstants.CachedFrameInstanceName
-        End Function
-
-        ''' <summary>
-        ''' Generates the name of a field used to store stack-spilled value 
-        ''' </summary>
-        Public Shared Function MakeStateMachineStackSpillFieldName(index As Integer) As String
-            Return String.Format(StringConstants.StateMachineStackSpillNameMask, index)
-        End Function
-
-        ''' <summary>
-        ''' Generates the name of a state machine's field created to store captured r-value expression
-        ''' </summary>
-        Public Shared Function MakeStateMachineExpressionCaptureName(index As Integer) As String
-            Return String.Format(StringConstants.StateMachineExpressionCaptureNameMask, index)
-        End Function
-
-        ''' <summary>
-        ''' Generates the name of a state machine's local name
-        ''' </summary>
-        Public Shared Function MakeStateMachineLocalName(index As Integer, localName As String) As String
-            Return String.Format(StringConstants.StateMachineLocalNameMask, index, If(localName, "")) ' TODO: empty temp local name??
         End Function
 
         ''' <summary>
@@ -139,15 +118,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
-        ''' The function is reverse of 'MakeStateMachineLocalName'; it tries to parse the local name assuming 
-        ''' it is produced by MakeStateMachineLocalName and returns 'index' and 'name' in case of successful.
+        ''' Parse the local name and returns 'index' and 'name' in case of successful.
         ''' </summary>
         Public Shared Function TryParseStateMachineLocalName(proxyName As String, <Out()> ByRef localName As String, <Out()> ByRef index As Integer) As Boolean
             localName = Nothing
             index = 0
 
             ' All names should start with "$VB$ResumableLocal_"
-            If Not proxyName.StartsWith(StringConstants.StateMachineLocalNamePrefix) Then
+            If Not proxyName.StartsWith(StringConstants.StateMachineHoistedUserVariablePrefix) Then
                 Return False
             End If
 
@@ -156,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return False
             End If
 
-            Dim prefixLen As Integer = StringConstants.StateMachineLocalNamePrefix.Length
+            Dim prefixLen As Integer = StringConstants.StateMachineHoistedUserVariablePrefix.Length
             localName = proxyName.Substring(prefixLen, separator - prefixLen)
             Return Integer.TryParse(proxyName.Substring(separator + 1), NumberStyles.None, CultureInfo.InvariantCulture, index)
         End Function
@@ -165,14 +143,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Generates the name of a state machine field name for captured me reference
         ''' </summary>
         Public Shared Function MakeStateMachineCapturedMeName() As String
-            Return StringConstants.LiftedMeName
+            Return StringConstants.HoistedMeName
         End Function
 
         ''' <summary>
         ''' Generates the name of a state machine field name for captured me reference of lambda closure
         ''' </summary>
         Public Shared Function MakeStateMachineCapturedClosureMeName(closureName As String) As String
-            Return StringConstants.LiftedNonLocalPrefix & closureName
+            Return StringConstants.HoistedSpecialVariablePrefix & closureName
         End Function
 
         Friend Const AnonymousTypeOrDelegateCommonPrefix = "VB$Anonymous"
@@ -196,93 +174,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return False
         End Function
 
-        Friend Shared Function MakeHoistedLocalFieldName(kind As SynthesizedLocalKind, type As TypeSymbol, ByRef index As Integer) As String
-            Debug.Assert(kind.IsLongLived())
-
-            Const SynthesizedLocalNamePrefix As String = "VB$"
-
-            Select Case kind
-                Case SynthesizedLocalKind.XmlInExpressionLambda
-                    index += 1
-                    Return SynthesizedLocalNamePrefix & type.GetNativeCompilerVType() & "$L" & index
-
-                Case SynthesizedLocalKind.LambdaDisplayClass
-                    index += 1
-                    Return StringConstants.ClosureVariablePrefix & index
-
-                Case SynthesizedLocalKind.With
-                    index += 1
-                    Return StringConstants.SynthesizedLocalKindWith & index
-
-                Case SynthesizedLocalKind.SelectCaseValue
-                    Return StringConstants.SynthesizedLocalKindSelectCaseValue
-                Case SynthesizedLocalKind.Lock
-                    Return StringConstants.SynthesizedLocalKindLock
-                Case SynthesizedLocalKind.Using
-                    Return StringConstants.SynthesizedLocalKindUsing
-                Case SynthesizedLocalKind.ForEachEnumerator
-                    Return StringConstants.SynthesizedLocalKindForEachEnumerator
-                Case SynthesizedLocalKind.ForEachArray
-                    Return StringConstants.SynthesizedLocalKindForEachArray
-                Case SynthesizedLocalKind.ForEachArrayIndex
-                    Return StringConstants.SynthesizedLocalKindForEachArrayIndex
-                Case SynthesizedLocalKind.LockTaken
-                    Return StringConstants.SynthesizedLocalKindLockTaken
-
-                Case SynthesizedLocalKind.ForLimit
-                    Return StringConstants.ForLimit
-                Case SynthesizedLocalKind.ForStep
-                    Return StringConstants.ForStep
-                Case SynthesizedLocalKind.ForLoopObject
-                    Return StringConstants.ForLoopObject
-                Case SynthesizedLocalKind.ForDirection
-                    Return StringConstants.ForDirection
-
-                Case SynthesizedLocalKind.StateMachineReturnValue
-                    Return StringConstants.StateMachineReturnValueLocalName
-                Case SynthesizedLocalKind.StateMachineCachedState
-                    Return StringConstants.StateMachineCachedState
-
-                Case SynthesizedLocalKind.OnErrorActiveHandler
-                    Return StringConstants.OnErrorActiveHandler
-                Case SynthesizedLocalKind.OnErrorResumeTarget
-                    Return StringConstants.OnErrorResumeTarget
-                Case SynthesizedLocalKind.OnErrorCurrentStatement
-                    Return StringConstants.OnErrorCurrentStatement
-                Case SynthesizedLocalKind.OnErrorCurrentLine
-                    Return StringConstants.OnErrorCurrentLine
-            End Select
-
-            Throw ExceptionUtilities.UnexpectedValue(kind)
-        End Function
-
-        Friend Shared Function TryParseLocalName(name As String, ByRef kind As SynthesizedLocalKind, ByRef uniqueId As Integer) As Boolean
-            ' TODO: revisit this method
-
-            uniqueId = 0
-
-            Select Case name
-                Case StringConstants.SynthesizedLocalKindWith
-                    kind = SynthesizedLocalKind.With
-
-                Case StringConstants.StateMachineCachedState
-                    kind = SynthesizedLocalKind.StateMachineCachedState
-                Case StringConstants.StateMachineReturnValueLocalName
-                    kind = SynthesizedLocalKind.StateMachineReturnValue
-
-                Case Else
-
-                    If name.StartsWith(StringConstants.ClosureVariablePrefix, StringComparison.Ordinal) Then
-                        kind = SynthesizedLocalKind.LambdaDisplayClass
-                        Return True
-                    End If
-
-                    kind = SynthesizedLocalKind.UserDefined
-                    Return False
-            End Select
-            Return True
-        End Function
-
         Friend Shared Function MakeSynthesizedLocalName(kind As SynthesizedLocalKind, ByRef uniqueId As Integer) As String
             Debug.Assert(kind.IsLongLived())
 
@@ -295,7 +186,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Case SynthesizedLocalKind.With
                     ' Dev12 didn't name the local. We do so that we can do better job in EE evaluating With statements.
-                    name = StringConstants.SynthesizedLocalKindWith & uniqueId
+                    name = StringConstants.HoistedWithLocalPrefix & uniqueId
                     uniqueId += 1
 
                 Case Else
@@ -310,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Friend Shared Function MakeLambdaDisplayClassName(index As Integer) As String
-            Return StringConstants.ClosureClassPrefix & index
+            Return StringConstants.DisplayClassPrefix & index
         End Function
 
         Friend Shared Function MakeLambdaDisplayClassStorageName(uniqueId As Integer) As String
@@ -358,6 +249,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             methodName = Nothing
             methodSignature = Nothing
             localName = Nothing
+            Return False
+        End Function
+
+        ' Extracts the slot index from a name of a field that stores hoisted variables Or awaiters.
+        ' Such a name ends with "__{slot index + 1}". 
+        ' Returned slot index Is >= 0.
+        Friend Shared Function TryParseSlotIndex(fieldName As String, <Out> ByRef slotIndex As Integer) As Boolean
+            Dim lastUnder = fieldName.LastIndexOf("_"c)
+            If lastUnder - 1 < 0 OrElse lastUnder = fieldName.Length OrElse fieldName(lastUnder - 1) <> "_"c Then
+                slotIndex = -1
+                Return False
+            End If
+
+            If Integer.TryParse(fieldName.Substring(lastUnder + 1), slotIndex) AndAlso slotIndex >= 1 Then
+                slotIndex = slotIndex - 1
+                Return True
+            End If
+
+            slotIndex = -1
             Return False
         End Function
 

@@ -47,52 +47,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Const ThenByMethod As String = "ThenBy"
         Friend Const UnnamedNamespaceErrName As String = "<Default>"
         Friend Const WhereMethod As String = "Where"
-        Friend Const LiftedMeName As String = "$VB$Me"
-        Friend Const LiftedNonLocalPrefix As String = "$VB$NonLocal_"
-        Friend Const LiftedLocalPrefix As String = "$VB$Local_"
-        Friend Const ClosureClassPrefix As String = "_Closure$__"
+
+        ' EE recognized names (prefixes):
+        Friend Const HoistedMeName As String = "$VB$Me"
+        Friend Const HoistedUserVariablePrefix As String = "$VB$Local_"
+        Friend Const HoistedSpecialVariablePrefix As String = "$VB$NonLocal_" ' prefixes Me and Closure variables when hoisted
+        Friend Const HoistedWithLocalPrefix As String = "$W"
+        Friend Const StateMachineHoistedUserVariablePrefix As String = "$VB$ResumableLocal_"
+        Friend Const StateMachineHoistedUserVariablePrefixMask As String = StateMachineHoistedUserVariablePrefix & "{0}${1}"
         Friend Const ClosureVariablePrefix As String = "$VB$Closure_"
-        Friend Const CachedFrameInstanceName As String = "$Inst"
 
-        Friend Const OnErrorActiveHandler As String = "VB$ActiveHandler"
-        Friend Const OnErrorResumeTarget As String = "VB$ResumeTarget"
-        Friend Const OnErrorCurrentStatement As String = "VB$CurrentStatement"
-        Friend Const OnErrorCurrentLine As String = "VB$CurrentLine"
-        Friend Const StateMachineCachedState As String = "VB$cachedState"
-
-        Friend Const SynthesizedLocalKindSelectCaseValue As String = "VB$SelectCaseValue"
-        Friend Const SynthesizedLocalKindLock As String = "VB$Lock"
-        Friend Const SynthesizedLocalKindUsing As String = "VB$Using"
-        Friend Const SynthesizedLocalKindForEachEnumerator As String = "VB$ForEachEnumerator"
-        Friend Const SynthesizedLocalKindForEachArray As String = "VB$ForEachArray"
-        Friend Const SynthesizedLocalKindForEachArrayIndex As String = "VB$ForEachArrayIndex"
-        Friend Const SynthesizedLocalKindLockTaken As String = "VB$LockTaken"
-        Friend Const SynthesizedLocalKindWith As String = "VB$With_"
-
-        Friend Const ForLimit As String = "VB$ForLimit"
-        Friend Const ForStep As String = "VB$ForStep"
-        Friend Const ForLoopObject As String = "VB$LoopObject"
-        Friend Const ForDirection As String = "VB$LoopDirection"
-
+        Friend Const DisplayClassPrefix As String = "_Closure$__"
         Friend Const StateMachineTypeNamePrefix As String = "VB$StateMachine_"
         Friend Const StateMachineTypeNameMask As String = StateMachineTypeNamePrefix & "{0}_{1}"
-        Friend Const StateMachineLocalNamePrefix As String = "$VB$ResumableLocal_"
-        Friend Const StateMachineLocalNameMask As String = StateMachineLocalNamePrefix & "{1}${0}"
-        Friend Const StateMachineExceptionLocalName As String = "$ex"
-        Friend Const StateMachineReturnValueLocalName As String = "VB$returnTemp"
 
         ' Microsoft.VisualStudio.VIL.VisualStudioHost.AsyncReturnStackFrame depends on these names.
         Friend Const StateMachineBuilderFieldName As String = "$Builder"
         Friend Const StateMachineStateFieldName As String = "$State"
 
-        Friend Const StateMachineAwaiterFieldName As String = "$awaiter_{0}"
-        Friend Const StateMachineStackSpillNameMask As String = "VB$StackSpill_${0}"
-        Friend Const StateMachineExpressionCaptureNameMask As String = "VB$ExpressionCapture_${0}"
+        Friend Const HoistedSynthesizedLocalPrefix As String = "$S"
+        Friend Const CachedFrameInstanceName As String = "$I"
+        Friend Const StateMachineAwaiterFieldPrefix As String = "$A"
+        Friend Const StateMachineStackSpillPrefix As String = "$W"
+        Friend Const StateMachineExpressionCapturePrefix As String = "$V"
+
         Friend Const StateMachineTypeParameterPrefix As String = "SM$"
 
         Friend Const IteratorCurrentFieldName As String = "$Current"
         Friend Const IteratorInitialThreadIdName As String = "$InitialThreadId"
-        Friend Const IteratorParameterProxyName As String = "proto$"
+        Friend Const IteratorParameterProxyPrefix As String = "$P_"
 
         Friend Const StaticLocalFieldNamePrefix = "$STATIC$"
         Friend Const StaticLocalFieldNameMask = StaticLocalFieldNamePrefix & "{0}${1}${2}"

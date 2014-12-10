@@ -154,7 +154,7 @@ End Module
   IL_0005:  brfalse.s  IL_000e
   IL_0007:  ldsfld     "M1._Closure$__1._ClosureCache$__3 As System.Action"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "M1._Closure$__1.$Inst As M1._Closure$__1"
+  IL_000e:  ldsfld     "M1._Closure$__1.$I As M1._Closure$__1"
   IL_0013:  ldftn      "Sub M1._Closure$__1._Lambda$__2()"
   IL_0019:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_001e:  dup
@@ -164,7 +164,7 @@ End Module
   IL_002e:  brfalse.s  IL_0037
   IL_0030:  ldsfld     "M1._Closure$__1._ClosureCache$__5 As System.Action"
   IL_0035:  br.s       IL_004d
-  IL_0037:  ldsfld     "M1._Closure$__1.$Inst As M1._Closure$__1"
+  IL_0037:  ldsfld     "M1._Closure$__1.$I As M1._Closure$__1"
   IL_003c:  ldftn      "Sub M1._Closure$__1._Lambda$__4()"
   IL_0042:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0047:  dup
@@ -1063,7 +1063,7 @@ End Module
   IL_0005:  brfalse.s  IL_000e
   IL_0007:  ldsfld     "M1.C1._Closure$__1(Of T)._ClosureCache$__3 As System.Action"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "M1.C1._Closure$__1(Of T).$Inst As M1.C1._Closure$__1(Of T)"
+  IL_000e:  ldsfld     "M1.C1._Closure$__1(Of T).$I As M1.C1._Closure$__1(Of T)"
   IL_0013:  ldftn      "Sub M1.C1._Closure$__1(Of T)._Lambda$__2()"
   IL_0019:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_001e:  dup
@@ -2942,7 +2942,7 @@ End Class
 {
   // Code size       28 (0x1c)
   .maxstack  2
-  IL_0000:  ldsfld     "Test._Closure$__1.$Inst As Test._Closure$__1"
+  IL_0000:  ldsfld     "Test._Closure$__1.$I As Test._Closure$__1"
   IL_0005:  ldftn      "Function Test._Closure$__1._Lambda$__2() As Integer"
   IL_000b:  newobj     "Sub D..ctor(Object, System.IntPtr)"
   IL_0010:  stsfld     "Test.field As D"
@@ -3336,7 +3336,7 @@ End Module
   IL_000c:  ldloc.0
   IL_000d:  ldftn      "Function SLamContext01mod._Closure$__1._Lambda$__4(Short) As Object"
   IL_0013:  newobj     "Sub VB$AnonymousDelegate_0(Of Short, Object)..ctor(Object, System.IntPtr)"
-  IL_0018:  stfld      "SLamContext01mod._Closure$__3.$VB$NonLocal_ As <generated method>"
+  IL_0018:  stfld      "SLamContext01mod._Closure$__3.$VB$NonLocal_3 As <generated method>"
   IL_001d:  pop
   IL_001e:  ldstr      "success"
   IL_0023:  call       "Sub System.Console.WriteLine(String)"

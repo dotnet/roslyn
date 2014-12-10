@@ -239,7 +239,7 @@ End Class
   IL_000c:  brfalse.s  IL_0015
   IL_000e:  ldsfld     "Program._Closure$__1._ClosureCache$__3 As Program.E1EventHandler"
   IL_0013:  br.s       IL_002b
-  IL_0015:  ldsfld     "Program._Closure$__1.$Inst As Program._Closure$__1"
+  IL_0015:  ldsfld     "Program._Closure$__1.$I As Program._Closure$__1"
   IL_001a:  ldftn      "Sub Program._Closure$__1._Lambda$__2(Integer)"
   IL_0020:  newobj     "Sub Program.E1EventHandler..ctor(Object, System.IntPtr)"
   IL_0025:  dup
@@ -258,7 +258,7 @@ End Class
   IL_000c:  brfalse.s  IL_0015
   IL_000e:  ldsfld     "Program._Closure$__1._ClosureCache$__5 As Program.E1EventHandler"
   IL_0013:  br.s       IL_002b
-  IL_0015:  ldsfld     "Program._Closure$__1.$Inst As Program._Closure$__1"
+  IL_0015:  ldsfld     "Program._Closure$__1.$I As Program._Closure$__1"
   IL_001a:  ldftn      "Sub Program._Closure$__1._Lambda$__4(Integer)"
   IL_0020:  newobj     "Sub Program.E1EventHandler..ctor(Object, System.IntPtr)"
   IL_0025:  dup
@@ -327,7 +327,7 @@ handled2
   IL_001d:  brfalse.s  IL_0026
   IL_001f:  ldsfld     "Program._Closure$__2._ClosureCache$__4 As base.E2EventHandler"
   IL_0024:  br.s       IL_003c
-  IL_0026:  ldsfld     "Program._Closure$__2.$Inst As Program._Closure$__2"
+  IL_0026:  ldsfld     "Program._Closure$__2.$I As Program._Closure$__2"
   IL_002b:  ldftn      "Sub Program._Closure$__2._Lambda$__3(ByRef Integer)"
   IL_0031:  newobj     "Sub base.E2EventHandler..ctor(Object, System.IntPtr)"
   IL_0036:  dup
@@ -627,7 +627,7 @@ handledS
   IL_001f:  brfalse.s  IL_0028
   IL_0021:  ldsfld     "cls2._Closure$__3._ClosureCache$__5 As cls1.E1EventHandler"
   IL_0026:  br.s       IL_003e
-  IL_0028:  ldsfld     "cls2._Closure$__3.$Inst As cls2._Closure$__3"
+  IL_0028:  ldsfld     "cls2._Closure$__3.$I As cls2._Closure$__3"
   IL_002d:  ldftn      "Sub cls2._Closure$__3._Lambda$__4(Integer)"
   IL_0033:  newobj     "Sub cls1.E1EventHandler..ctor(Object, System.IntPtr)"
   IL_0038:  dup
@@ -637,7 +637,7 @@ handledS
   IL_0044:  brfalse.s  IL_004d
   IL_0046:  ldsfld     "cls2._Closure$__3._ClosureCache$__7 As cls1.E1EventHandler"
   IL_004b:  br.s       IL_0063
-  IL_004d:  ldsfld     "cls2._Closure$__3.$Inst As cls2._Closure$__3"
+  IL_004d:  ldsfld     "cls2._Closure$__3.$I As cls2._Closure$__3"
   IL_0052:  ldftn      "Sub cls2._Closure$__3._Lambda$__6(Integer)"
   IL_0058:  newobj     "Sub cls1.E1EventHandler..ctor(Object, System.IntPtr)"
   IL_005d:  dup

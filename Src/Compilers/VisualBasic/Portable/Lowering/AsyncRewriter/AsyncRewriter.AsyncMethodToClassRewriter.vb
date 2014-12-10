@@ -55,6 +55,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private ReadOnly _awaiterFields As New Dictionary(Of TypeSymbol, FieldSymbol)()
 
+            Private nextAwaiterId As Integer
+
             Private ReadOnly _owner As AsyncRewriter
 
             Private ReadOnly _spillFieldAllocator As SpillFieldAllocator
@@ -67,11 +69,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            F As SyntheticBoundNodeFactory,
                            state As FieldSymbol,
                            builder As FieldSymbol,
-                           variableProxies As Dictionary(Of Symbol, CapturedSymbolOrExpression),
+                           hoistedVariables As IReadOnlySet(Of Symbol),
+                           nonReusableLocalProxies As Dictionary(Of Symbol, CapturedSymbolOrExpression),
+                           synthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser,
+                           slotAllocatorOpt As VariableSlotAllocator,
+                           nextFreeHoistedLocalSlot As Integer,
                            owner As AsyncRewriter,
                            diagnostics As DiagnosticBag)
 
-                MyBase.New(F, state, variableProxies, diagnostics)
+                MyBase.New(F, state, hoistedVariables, nonReusableLocalProxies, synthesizedLocalOrdinals, slotAllocatorOpt, nextFreeHoistedLocalSlot, diagnostics)
 
                 Me._method = method
                 Me._builder = builder
@@ -84,13 +90,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If Me._asyncMethodKind = AsyncMethodKind.GenericTaskFunction Then
                     Me._exprRetValue = Me.F.SynthesizedLocal(Me._owner._resultType, SynthesizedLocalKind.StateMachineReturnValue, F.Syntax)
                 End If
+
+                Me.nextAwaiterId = If(slotAllocatorOpt IsNot Nothing, slotAllocatorOpt.PreviousAwaiterSlotCount, 0)
             End Sub
 
             Private Function GetAwaiterField(awaiterType As TypeSymbol) As FieldSymbol
                 Dim result As FieldSymbol = Nothing
+
+                ' Awaiters of the same type always share the same slot, regardless of what await expressions they belong to.
+                ' Even in case of nested await expressions only one awaiter Is active.
+                ' So we don't need to tie the awaiter variable to a particular await expression and only use its type 
+                ' to find the previous awaiter field.
                 If Not Me._awaiterFields.TryGetValue(awaiterType, result) Then
-                    Dim name As String = GeneratedNames.MakeStateMachineAwaiterFieldName(CompilationState.GenerateTempNumber())
-                    result = Me.F.StateMachineField(awaiterType, Me._method, name, Accessibility.Friend)
+                    Dim slotIndex As Integer = -1
+                    If Me.SlotAllocatorOpt IsNot Nothing Then
+                        slotIndex = Me.SlotAllocatorOpt.GetPreviousAwaiterSlotIndex(DirectCast(awaiterType, Cci.ITypeReference))
+                    End If
+
+                    If slotIndex = -1 Then
+                        slotIndex = nextAwaiterId
+                        nextAwaiterId = nextAwaiterId + 1
+                    End If
+
+                    Dim fieldName As String = GeneratedNames.MakeStateMachineAwaiterFieldName(slotIndex)
+                    result = Me.F.StateMachineField(awaiterType, Me._method, fieldName, SynthesizedLocalKind.AwaiterField, slotIndex, accessibility:=Accessibility.Friend)
                     Me._awaiterFields.Add(awaiterType, result)
                 End If
                 Return result

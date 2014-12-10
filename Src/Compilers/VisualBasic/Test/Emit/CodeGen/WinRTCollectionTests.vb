@@ -265,7 +265,7 @@ End Class
   IL_001a:  brfalse.s  IL_0023
   IL_001c:  ldsfld     "A._Closure$__1._ClosureCache$__3 As System.Func(Of Windows.Data.Json.IJsonValue, Boolean)"
   IL_0021:  br.s       IL_0039
-  IL_0023:  ldsfld     "A._Closure$__1.$Inst As A._Closure$__1"
+  IL_0023:  ldsfld     "A._Closure$__1.$I As A._Closure$__1"
   IL_0028:  ldftn      "Function A._Closure$__1._Lambda$__2(Windows.Data.Json.IJsonValue) As Boolean"
   IL_002e:  newobj     "Sub System.Func(Of Windows.Data.Json.IJsonValue, Boolean)..ctor(Object, System.IntPtr)"
   IL_0033:  dup
@@ -275,7 +275,7 @@ End Class
   IL_0043:  brfalse.s  IL_004c
   IL_0045:  ldsfld     "A._Closure$__1._ClosureCache$__5 As System.Func(Of Windows.Data.Json.IJsonValue, Windows.Data.Json.IJsonValue)"
   IL_004a:  br.s       IL_0062
-  IL_004c:  ldsfld     "A._Closure$__1.$Inst As A._Closure$__1"
+  IL_004c:  ldsfld     "A._Closure$__1.$I As A._Closure$__1"
   IL_0051:  ldftn      "Function A._Closure$__1._Lambda$__4(Windows.Data.Json.IJsonValue) As Windows.Data.Json.IJsonValue"
   IL_0057:  newobj     "Sub System.Func(Of Windows.Data.Json.IJsonValue, Windows.Data.Json.IJsonValue)..ctor(Object, System.IntPtr)"
   IL_005c:  dup
@@ -4441,7 +4441,7 @@ End Class
   IL_0082:  brfalse.s  IL_008b
   IL_0084:  ldsfld     "AllMembers._Closure$__3._ClosureCache$__5 As System.Func(Of Integer, Integer)"
   IL_0089:  br.s       IL_00a1
-  IL_008b:  ldsfld     "AllMembers._Closure$__3.$Inst As AllMembers._Closure$__3"
+  IL_008b:  ldsfld     "AllMembers._Closure$__3.$I As AllMembers._Closure$__3"
   IL_0090:  ldftn      "Function AllMembers._Closure$__3._Lambda$__4(Integer) As Integer"
   IL_0096:  newobj     "Sub System.Func(Of Integer, Integer)..ctor(Object, System.IntPtr)"
   IL_009b:  dup
@@ -4484,7 +4484,7 @@ End Class
   IL_0110:  brfalse.s  IL_0119
   IL_0112:  ldsfld     "AllMembers._Closure$__3._ClosureCache$__7 As System.Func(Of Integer, Boolean)"
   IL_0117:  br.s       IL_012f
-  IL_0119:  ldsfld     "AllMembers._Closure$__3.$Inst As AllMembers._Closure$__3"
+  IL_0119:  ldsfld     "AllMembers._Closure$__3.$I As AllMembers._Closure$__3"
   IL_011e:  ldftn      "Function AllMembers._Closure$__3._Lambda$__6(Integer) As Boolean"
   IL_0124:  newobj     "Sub System.Func(Of Integer, Boolean)..ctor(Object, System.IntPtr)"
   IL_0129:  dup
@@ -4494,7 +4494,7 @@ End Class
   IL_0139:  brfalse.s  IL_0142
   IL_013b:  ldsfld     "AllMembers._Closure$__3._ClosureCache$__9 As System.Func(Of Integer, Integer)"
   IL_0140:  br.s       IL_0158
-  IL_0142:  ldsfld     "AllMembers._Closure$__3.$Inst As AllMembers._Closure$__3"
+  IL_0142:  ldsfld     "AllMembers._Closure$__3.$I As AllMembers._Closure$__3"
   IL_0147:  ldftn      "Function AllMembers._Closure$__3._Lambda$__8(Integer) As Integer"
   IL_014d:  newobj     "Sub System.Func(Of Integer, Integer)..ctor(Object, System.IntPtr)"
   IL_0152:  dup

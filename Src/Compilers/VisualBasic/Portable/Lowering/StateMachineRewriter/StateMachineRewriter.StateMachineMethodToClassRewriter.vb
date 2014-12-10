@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -54,16 +55,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' </summary>
             Protected CurrentFinalizerState As Integer = -1
 
+            ''' <summary>
+            ''' The set of local variables and parameters that were hoisted and need a proxy.
+            ''' </summary>
+            Protected Friend ReadOnly HoistedVariables As IReadOnlySet(Of Symbol) = Nothing
+
+            Protected ReadOnly SlotAllocatorOpt As VariableSlotAllocator
+            Private ReadOnly _synthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser
+            Private _nextFreeHoistedLocalSlot As Integer
+
             Public Sub New(F As SyntheticBoundNodeFactory,
                            stateField As FieldSymbol,
+                           hoistedVariables As IReadOnlySet(Of Symbol),
                            initialProxies As Dictionary(Of Symbol, TProxy),
-                           diagnostics As DiagnosticBag)
+                           synthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser,
+                           slotAllocatorOpt As VariableSlotAllocator,
+                           nextFreeHoistedLocalSlot As Integer,
+                           Diagnostics As DiagnosticBag)
 
-                MyBase.New(F.CompilationState, diagnostics)
+                MyBase.New(F.CompilationState, Diagnostics)
+
+                Debug.Assert(F IsNot Nothing)
+                Debug.Assert(stateField IsNot Nothing)
+                Debug.Assert(hoistedVariables IsNot Nothing)
+                Debug.Assert(initialProxies IsNot Nothing)
+                Debug.Assert(nextFreeHoistedLocalSlot >= 0)
+                Debug.Assert(Diagnostics IsNot Nothing)
 
                 Me.F = F
                 Me.StateField = stateField
                 Me.CachedState = F.SynthesizedLocal(F.SpecialType(SpecialType.System_Int32), SynthesizedLocalKind.StateMachineCachedState, F.Syntax)
+                Me.HoistedVariables = hoistedVariables
+                Me.SlotAllocatorOpt = slotAllocatorOpt
+                Me._synthesizedLocalOrdinals = synthesizedLocalOrdinals
+                Me._nextFreeHoistedLocalSlot = nextFreeHoistedLocalSlot
 
                 For Each p In initialProxies
                     Me.Proxies.Add(p.Key, p.Value)
@@ -169,25 +194,47 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return wrapped
                 End If
 
-                Dim proxyFields = ArrayBuilder(Of FieldSymbol).GetInstance()
+                Dim hoistedLocalsWithDebugScopes = ArrayBuilder(Of FieldSymbol).GetInstance()
                 For Each local In locals
+                    If Not NeedsProxy(local) Then
+                        Continue For
+                    End If
+
+                    ' Ref synthesized variables have proxies that are allocated in VisitAssignmentOperator.
+                    If local.IsByRef Then
+                        Debug.Assert(local.SynthesizedKind = SynthesizedLocalKind.AwaitSpill)
+                        Continue For
+                    End If
+
+                    Debug.Assert(local.SynthesizedKind.IsLongLived())
+
+                    ' We need to produce hoisted local scope debug information for user locals as well as 
+                    ' lambda display classes, since Dev12 EE uses them to determine which variables are displayed 
+                    ' in Locals window.
                     If local.SynthesizedKind = SynthesizedLocalKind.UserDefined OrElse local.SynthesizedKind = SynthesizedLocalKind.LambdaDisplayClass Then
                         Dim proxy As TProxy = Nothing
                         If Proxies.TryGetValue(local, proxy) Then
-                            Me.AddProxyFieldsForStateMachineScope(proxy, proxyFields)
+                            Me.AddProxyFieldsForStateMachineScope(proxy, hoistedLocalsWithDebugScopes)
                         End If
                     End If
                 Next
 
-                If proxyFields.Count = 0 Then
-                    proxyFields.Free()
-                    Return wrapped
+                ' Wrap the node in a StateMachineScope for debugging
+                Dim translatedStatement As BoundNode = wrapped
+                If hoistedLocalsWithDebugScopes.Count > 0 Then
+                    translatedStatement = Me.F.Block(New BoundStateMachineScope(Me.F.Syntax,
+                                                             hoistedLocalsWithDebugScopes.ToImmutable(),
+                                                             DirectCast(translatedStatement, BoundStatement)).MakeCompilerGenerated)
                 End If
 
-                ' Wrap it into a regular block to make sure the result of rewriting is a BoundBlock still
-                Return Me.F.Block(New BoundStateMachineScope(Me.F.Syntax,
-                                                             proxyFields.ToImmutableAndFree(),
-                                                             DirectCast(wrapped, BoundStatement)).MakeCompilerGenerated)
+                hoistedLocalsWithDebugScopes.Free()
+
+                Return translatedStatement
+            End Function
+
+            Private Function NeedsProxy(localOrParameter As Symbol) As Boolean
+                Debug.Assert(localOrParameter.Kind = SymbolKind.Local OrElse localOrParameter.Kind = SymbolKind.Parameter)
+                Return HoistedVariables.Contains(localOrParameter)
             End Function
 
             Friend MustOverride Sub AddProxyFieldsForStateMachineScope(proxy As TProxy, proxyFields As ArrayBuilder(Of FieldSymbol))

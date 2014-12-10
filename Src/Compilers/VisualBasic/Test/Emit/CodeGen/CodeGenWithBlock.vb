@@ -155,7 +155,7 @@ expectedOutput:="").
   .locals init (Module1.S() V_0, //x
                 Integer V_1, //dummy
                 Integer V_2, //i
-                Module1.S& V_3) //VB$With_0
+                Module1.S& V_3) //$W0
   IL_0000:  ldc.i4.s   11
   IL_0002:  newarr     "Module1.S"
   IL_0007:  stloc.0
@@ -304,7 +304,7 @@ expectedOutput:="System.String: abc|cba")
 {
   // Code size       56 (0x38)
   .maxstack  3
-  .locals init (String V_0) //VB$With_0
+  .locals init (String V_0) //$W0
   IL_0000:  ldstr      "abc|"
   IL_0005:  ldstr      "cba"
   IL_000a:  callvirt   "Function String.ToString() As String"
@@ -349,7 +349,7 @@ expectedOutput:="System.String: #3").
 {
   // Code size       62 (0x3e)
   .maxstack  4
-  .locals init (String V_0) //VB$With_0
+  .locals init (String V_0) //$W0
   IL_0000:  ldc.i4.s   11
   IL_0002:  newarr     "String"
   IL_0007:  dup
@@ -400,7 +400,7 @@ expectedOutput:="System.Int32")
 {
   // Code size       24 (0x18)
   .maxstack  1
-  .locals init (Integer V_0) //VB$With_0
+  .locals init (Integer V_0) //$W0
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
@@ -438,7 +438,7 @@ expectedOutput:="System.Int32")
 {
   // Code size       28 (0x1c)
   .maxstack  1
-  .locals init (Integer V_0) //VB$With_0
+  .locals init (Integer V_0) //$W0
   IL_0000:  call       "Function Program.get_IntProp() As Integer"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -737,7 +737,7 @@ expectedOutput:="Program+SSS")
 {
   // Code size       26 (0x1a)
   .maxstack  2
-  .locals init (Program.SSS V_0) //VB$With_0
+  .locals init (Program.SSS V_0) //$W0
   IL_0000:  ldloca.s   V_0
   IL_0002:  ldc.i4.1
   IL_0003:  call       "Sub Program.SSS..ctor(Integer)"
@@ -784,7 +784,7 @@ expectedOutput:="Program+SSS").
 {
   // Code size       34 (0x22)
   .maxstack  2
-  .locals init (Program.SSS V_0) //VB$With_0
+  .locals init (Program.SSS V_0) //$W0
   IL_0000:  ldloca.s   V_0
   IL_0002:  ldc.i4.1
   IL_0003:  call       "Sub Program.SSS..ctor(Integer)"
@@ -833,7 +833,7 @@ expectedOutput:="12").
 {
   // Code size       47 (0x2f)
   .maxstack  2
-  .locals init (C2.SSS V_0) //VB$With_0
+  .locals init (C2.SSS V_0) //$W0
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    "C2.SSS"
   IL_0008:  ldloca.s   V_0
@@ -1228,7 +1228,7 @@ expectedOutput:="System.DateTime").
 {
   // Code size       38 (0x26)
   .maxstack  1
-  .locals init (T V_0) //VB$With_0
+  .locals init (T V_0) //$W0
   IL_0000:  call       "Function C(Of T).get_TProp() As T"
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_0
@@ -1271,7 +1271,7 @@ expectedOutput:="System.DateTime").
 {
   // Code size       38 (0x26)
   .maxstack  1
-  .locals init (T V_0) //VB$With_0
+  .locals init (T V_0) //$W0
   IL_0000:  call       "Function System.Activator.CreateInstance(Of T)() As T"
   IL_0005:  stloc.0
   IL_0006:  ldloca.s   V_0
@@ -1360,8 +1360,8 @@ expectedOutput:="System.DateTime0").
 {
   // Code size       80 (0x50)
   .maxstack  2
-  .locals init (T() V_0, //VB$With_0
-                Integer V_1) //VB$With_1
+  .locals init (T() V_0, //$W0
+                Integer V_1) //$W1
   IL_0000:  ldc.i4.s   11
   IL_0002:  newarr     "T"
   IL_0007:  stloc.0
@@ -1418,7 +1418,7 @@ expectedOutput:="123text")
 {
   // Code size       50 (0x32)
   .maxstack  2
-  .locals init (VB$AnonymousType_0(Of Integer, String) V_0) //VB$With_0
+  .locals init (VB$AnonymousType_0(Of Integer, String) V_0) //$W0
   IL_0000:  ldc.i4.1
   IL_0001:  ldstr      "text"
   IL_0006:  newobj     "Sub VB$AnonymousType_0(Of Integer, String)..ctor(Integer, String)"
@@ -1900,7 +1900,7 @@ expectedOutput:=".A = 1; .B = 1/2/2003; .C = !").
   IL_000c:  brfalse.s  IL_0015
   IL_000e:  ldsfld     "C2._Closure$__2._ClosureCache$__5 As <generated method>"
   IL_0013:  br.s       IL_002b
-  IL_0015:  ldsfld     "C2._Closure$__2.$Inst As C2._Closure$__2"
+  IL_0015:  ldsfld     "C2._Closure$__2.$I As C2._Closure$__2"
   IL_001a:  ldftn      "Function C2._Closure$__2._Lambda$__3() As C2.ABC"
   IL_0020:  newobj     "Sub VB$AnonymousDelegate_0(Of C2.ABC)..ctor(Object, System.IntPtr)"
   IL_0025:  dup
@@ -2020,20 +2020,20 @@ expectedOutput:="A = 2; B = 6/6/2006; C = ?")
   IL_002a:  dup
   IL_002b:  ldarg.0
   IL_002c:  ldfld      "C2.ARR As C2.ABC()"
-  IL_0031:  stfld      "C2._Closure$__1.$VB$NonLocal_VB$With_2 As C2.ABC()"
+  IL_0031:  stfld      "C2._Closure$__1.$W2 As C2.ABC()"
   IL_0036:  dup
   IL_0037:  ldarg.0
   IL_0038:  ldfld      "C2.ARR As C2.ABC()"
   IL_003d:  ldc.i4.0
   IL_003e:  ldelema    "C2.ABC"
   IL_0043:  ldfld      "C2.ABC.A As Integer"
-  IL_0048:  stfld      "C2._Closure$__1.$VB$NonLocal_VB$With_3 As Integer"
+  IL_0048:  stfld      "C2._Closure$__1.$W3 As Integer"
   IL_004d:  dup
   IL_004e:  ldftn      "Sub C2._Closure$__1._Lambda$__2()"
   IL_0054:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
   IL_0059:  callvirt   "Sub VB$AnonymousDelegate_0.Invoke()"
   IL_005e:  ldnull
-  IL_005f:  stfld      "C2._Closure$__1.$VB$NonLocal_VB$With_2 As C2.ABC()"
+  IL_005f:  stfld      "C2._Closure$__1.$W2 As C2.ABC()"
   IL_0064:  ldarg.0
   IL_0065:  ldarg.0
   IL_0066:  ldfld      "C2.ARR As C2.ABC()"
@@ -2049,9 +2049,9 @@ expectedOutput:="A = 2; B = 6/6/2006; C = ?")
   .maxstack  3
   .locals init (System.Action V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "C2._Closure$__1.$VB$NonLocal_VB$With_2 As C2.ABC()"
+  IL_0001:  ldfld      "C2._Closure$__1.$W2 As C2.ABC()"
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "C2._Closure$__1.$VB$NonLocal_VB$With_3 As Integer"
+  IL_0007:  ldfld      "C2._Closure$__1.$W3 As Integer"
   IL_000c:  ldelema    "C2.ABC"
   IL_0011:  ldc.i4.2
   IL_0012:  stfld      "C2.ABC.A As Integer"
@@ -2078,17 +2078,17 @@ expectedOutput:="A = 2; B = 6/6/2006; C = ?")
   // Code size       64 (0x40)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "C2._Closure$__1.$VB$NonLocal_VB$With_2 As C2.ABC()"
+  IL_0001:  ldfld      "C2._Closure$__1.$W2 As C2.ABC()"
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "C2._Closure$__1.$VB$NonLocal_VB$With_3 As Integer"
+  IL_0007:  ldfld      "C2._Closure$__1.$W3 As Integer"
   IL_000c:  ldelema    "C2.ABC"
   IL_0011:  ldc.i8     0x8c8571349d14000
   IL_001a:  newobj     "Sub Date..ctor(Long)"
   IL_001f:  stfld      "C2.ABC.B As Date"
   IL_0024:  ldarg.0
-  IL_0025:  ldfld      "C2._Closure$__1.$VB$NonLocal_VB$With_2 As C2.ABC()"
+  IL_0025:  ldfld      "C2._Closure$__1.$W2 As C2.ABC()"
   IL_002a:  ldarg.0
-  IL_002b:  ldfld      "C2._Closure$__1.$VB$NonLocal_VB$With_3 As Integer"
+  IL_002b:  ldfld      "C2._Closure$__1.$W3 As Integer"
   IL_0030:  ldelema    "C2.ABC"
   IL_0035:  ldstr      "?"
   IL_003a:  stfld      "C2.ABC.C As String"
@@ -2324,7 +2324,7 @@ expectedOutput:="A = 2; B = 6/6/2006; C = ?").
   IL_000c:  brfalse.s  IL_0015
   IL_000e:  ldsfld     "C2._Closure$__2._ClosureCache$__5 As <generated method>"
   IL_0013:  br.s       IL_002b
-  IL_0015:  ldsfld     "C2._Closure$__2.$Inst As C2._Closure$__2"
+  IL_0015:  ldsfld     "C2._Closure$__2.$I As C2._Closure$__2"
   IL_001a:  ldftn      "Sub C2._Closure$__2._Lambda$__3()"
   IL_0020:  newobj     "Sub VB$AnonymousDelegate_0..ctor(Object, System.IntPtr)"
   IL_0025:  dup
@@ -2489,7 +2489,7 @@ End Structure    </file>
 {
   // Code size       16 (0x10)
   .maxstack  1
-  .locals init (Struct V_0) //VB$With_0
+  .locals init (Struct V_0) //$W0
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    "Struct"
   IL_0008:  ldloca.s   V_0
@@ -3101,16 +3101,16 @@ End Structure
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldarg.1
-  IL_0008:  stfld      "Clazz._Closure$__1.$VB$NonLocal_VB$With_2 As Clazz()"
+  IL_0008:  stfld      "Clazz._Closure$__1.$W2 As Clazz()"
   IL_000d:  ldloc.0
   IL_000e:  ldarg.2
   IL_000f:  ldc.i4.5
   IL_0010:  sub.ovf
-  IL_0011:  stfld      "Clazz._Closure$__1.$VB$NonLocal_VB$With_3 As Integer"
+  IL_0011:  stfld      "Clazz._Closure$__1.$W3 As Integer"
   IL_0016:  ldloc.0
-  IL_0017:  ldfld      "Clazz._Closure$__1.$VB$NonLocal_VB$With_2 As Clazz()"
+  IL_0017:  ldfld      "Clazz._Closure$__1.$W2 As Clazz()"
   IL_001c:  ldloc.0
-  IL_001d:  ldfld      "Clazz._Closure$__1.$VB$NonLocal_VB$With_3 As Integer"
+  IL_001d:  ldfld      "Clazz._Closure$__1.$W3 As Integer"
   IL_0022:  ldelema    "Clazz"
   IL_0027:  ldstr      "Success"
   IL_002c:  call       "Function Clazz.get_F(String) As String"
@@ -3123,7 +3123,7 @@ End Structure
   IL_004c:  callvirt   "Sub System.Action.Invoke()"
   IL_0051:  ldloc.0
   IL_0052:  ldnull
-  IL_0053:  stfld      "Clazz._Closure$__1.$VB$NonLocal_VB$With_2 As Clazz()"
+  IL_0053:  stfld      "Clazz._Closure$__1.$W2 As Clazz()"
   IL_0058:  ret
 }
 ]]>)
@@ -3132,9 +3132,9 @@ End Structure
   // Code size       33 (0x21)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "Clazz._Closure$__1.$VB$NonLocal_VB$With_2 As Clazz()"
+  IL_0001:  ldfld      "Clazz._Closure$__1.$W2 As Clazz()"
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "Clazz._Closure$__1.$VB$NonLocal_VB$With_3 As Integer"
+  IL_0007:  ldfld      "Clazz._Closure$__1.$W3 As Integer"
   IL_000c:  ldelema    "Clazz"
   IL_0011:  ldstr      "Lambda"
   IL_0016:  call       "Function Clazz.get_F(String) As String"
@@ -3189,16 +3189,16 @@ End Structure
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldarg.1
-  IL_0008:  stfld      "Clazz._Closure$__1.$VB$NonLocal_VB$With_2 As Clazz()"
+  IL_0008:  stfld      "Clazz._Closure$__1.$W2 As Clazz()"
   IL_000d:  ldloc.0
   IL_000e:  ldarg.2
   IL_000f:  ldc.i4.5
   IL_0010:  sub.ovf
-  IL_0011:  stfld      "Clazz._Closure$__1.$VB$NonLocal_VB$With_3 As Integer"
+  IL_0011:  stfld      "Clazz._Closure$__1.$W3 As Integer"
   IL_0016:  ldloc.0
-  IL_0017:  ldfld      "Clazz._Closure$__1.$VB$NonLocal_VB$With_2 As Clazz()"
+  IL_0017:  ldfld      "Clazz._Closure$__1.$W2 As Clazz()"
   IL_001c:  ldloc.0
-  IL_001d:  ldfld      "Clazz._Closure$__1.$VB$NonLocal_VB$With_3 As Integer"
+  IL_001d:  ldfld      "Clazz._Closure$__1.$W3 As Integer"
   IL_0022:  ldelema    "Clazz"
   IL_0027:  ldstr      "Success"
   IL_002c:  call       "Function Clazz.get_F(String) As String"
@@ -3211,7 +3211,7 @@ End Structure
   IL_004c:  callvirt   "Sub System.Action.Invoke()"
   IL_0051:  ldloc.0
   IL_0052:  ldnull
-  IL_0053:  stfld      "Clazz._Closure$__1.$VB$NonLocal_VB$With_2 As Clazz()"
+  IL_0053:  stfld      "Clazz._Closure$__1.$W2 As Clazz()"
   IL_0058:  ret
 }
 ]]>)
@@ -3220,9 +3220,9 @@ End Structure
   // Code size       33 (0x21)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "Clazz._Closure$__1.$VB$NonLocal_VB$With_2 As Clazz()"
+  IL_0001:  ldfld      "Clazz._Closure$__1.$W2 As Clazz()"
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "Clazz._Closure$__1.$VB$NonLocal_VB$With_3 As Integer"
+  IL_0007:  ldfld      "Clazz._Closure$__1.$W3 As Integer"
   IL_000c:  ldelema    "Clazz"
   IL_0011:  ldstr      "Lambda"
   IL_0016:  call       "Function Clazz.get_F(String) As String"
@@ -3282,8 +3282,8 @@ End Structure
 {
   // Code size      154 (0x9a)
   .maxstack  3
-  .locals init (Clazz V_0, //VB$With_0
-                Clazz V_1, //VB$With_1
+  .locals init (Clazz V_0, //$W0
+                Clazz V_1, //$W1
                 Clazz._Closure$__1 V_2) //$VB$Closure_2
   IL_0000:  ldarg.1
   IL_0001:  ldarg.2
@@ -3303,9 +3303,9 @@ End Structure
   IL_0028:  ldloca.s   V_1
   IL_002a:  ldstr      "Three"
   IL_002f:  call       "Function Clazz.get_F(String) As Clazz"
-  IL_0034:  stfld      "Clazz._Closure$__1.$VB$NonLocal_VB$With_2 As Clazz"
+  IL_0034:  stfld      "Clazz._Closure$__1.$W2 As Clazz"
   IL_0039:  ldloc.2
-  IL_003a:  ldflda     "Clazz._Closure$__1.$VB$NonLocal_VB$With_2 As Clazz"
+  IL_003a:  ldflda     "Clazz._Closure$__1.$W2 As Clazz"
   IL_003f:  ldstr      "Success"
   IL_0044:  call       "Function Clazz.get_F(String) As Clazz"
   IL_0049:  ldfld      "Clazz.Str As String"
@@ -3320,7 +3320,7 @@ End Structure
   IL_0073:  call       "Function System.Linq.Enumerable.FirstOrDefault(Of String)(System.Collections.Generic.IEnumerable(Of String)) As String"
   IL_0078:  call       "Sub System.Console.Write(String)"
   IL_007d:  ldloc.2
-  IL_007e:  ldflda     "Clazz._Closure$__1.$VB$NonLocal_VB$With_2 As Clazz"
+  IL_007e:  ldflda     "Clazz._Closure$__1.$W2 As Clazz"
   IL_0083:  initobj    "Clazz"
   IL_0089:  ldloca.s   V_1
   IL_008b:  initobj    "Clazz"
@@ -3335,7 +3335,7 @@ End Structure
   // Code size       22 (0x16)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldflda     "Clazz._Closure$__1.$VB$NonLocal_VB$With_2 As Clazz"
+  IL_0001:  ldflda     "Clazz._Closure$__1.$W2 As Clazz"
   IL_0006:  ldstr      "Query"
   IL_000b:  call       "Function Clazz.get_F(String) As Clazz"
   IL_0010:  ldfld      "Clazz.Str As String"

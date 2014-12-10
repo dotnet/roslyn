@@ -161,7 +161,7 @@ End Module
   IL_000c:  brfalse.s  IL_0015
   IL_000e:  ldsfld     "C._Closure$__1._ClosureCache$__3 As <generated method>"
   IL_0013:  br.s       IL_002b
-  IL_0015:  ldsfld     "C._Closure$__1.$Inst As C._Closure$__1"
+  IL_0015:  ldsfld     "C._Closure$__1.$I As C._Closure$__1"
   IL_001a:  ldftn      "Function C._Closure$__1._Lambda$__2(Integer) As Integer"
   IL_0020:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer, Integer)..ctor(Object, System.IntPtr)"
   IL_0025:  dup

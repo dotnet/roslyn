@@ -614,7 +614,7 @@ Hello World!
   IL_002e:  brfalse.s  IL_0037
   IL_0030:  ldsfld     "C1._Closure$__3._ClosureCache$__5 As System.Action"
   IL_0035:  br.s       IL_004d
-  IL_0037:  ldsfld     "C1._Closure$__3.$Inst As C1._Closure$__3"
+  IL_0037:  ldsfld     "C1._Closure$__3.$I As C1._Closure$__3"
   IL_003c:  ldftn      "Sub C1._Closure$__3._Lambda$__4()"
   IL_0042:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0047:  dup

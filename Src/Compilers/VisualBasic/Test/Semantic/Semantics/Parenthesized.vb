@@ -317,7 +317,7 @@ F1
   IL_005f:  brfalse.s  IL_0068
   IL_0061:  ldsfld     "Program._Closure$__1._ClosureCache$__3 As Program.DT1"
   IL_0066:  br.s       IL_007e
-  IL_0068:  ldsfld     "Program._Closure$__1.$Inst As Program._Closure$__1"
+  IL_0068:  ldsfld     "Program._Closure$__1.$I As Program._Closure$__1"
   IL_006d:  ldftn      "Function Program._Closure$__1._Lambda$__2() As Integer"
   IL_0073:  newobj     "Sub Program.DT1..ctor(Object, System.IntPtr)"
   IL_0078:  dup
@@ -328,7 +328,7 @@ F1
   IL_0089:  brfalse.s  IL_0092
   IL_008b:  ldsfld     "Program._Closure$__1._ClosureCache$__5 As Program.DT1"
   IL_0090:  br.s       IL_00a8
-  IL_0092:  ldsfld     "Program._Closure$__1.$Inst As Program._Closure$__1"
+  IL_0092:  ldsfld     "Program._Closure$__1.$I As Program._Closure$__1"
   IL_0097:  ldftn      "Function Program._Closure$__1._Lambda$__4() As Integer"
   IL_009d:  newobj     "Sub Program.DT1..ctor(Object, System.IntPtr)"
   IL_00a2:  dup
@@ -339,7 +339,7 @@ F1
   IL_00b3:  brfalse.s  IL_00bc
   IL_00b5:  ldsfld     "Program._Closure$__1._ClosureCache$__7 As Program.DT1"
   IL_00ba:  br.s       IL_00d2
-  IL_00bc:  ldsfld     "Program._Closure$__1.$Inst As Program._Closure$__1"
+  IL_00bc:  ldsfld     "Program._Closure$__1.$I As Program._Closure$__1"
   IL_00c1:  ldftn      "Function Program._Closure$__1._Lambda$__6() As Integer"
   IL_00c7:  newobj     "Sub Program.DT1..ctor(Object, System.IntPtr)"
   IL_00cc:  dup
@@ -350,7 +350,7 @@ F1
   IL_00dd:  brfalse.s  IL_00e6
   IL_00df:  ldsfld     "Program._Closure$__1._ClosureCache$__9 As Program.DT1"
   IL_00e4:  br.s       IL_00fc
-  IL_00e6:  ldsfld     "Program._Closure$__1.$Inst As Program._Closure$__1"
+  IL_00e6:  ldsfld     "Program._Closure$__1.$I As Program._Closure$__1"
   IL_00eb:  ldftn      "Function Program._Closure$__1._Lambda$__8() As Integer"
   IL_00f1:  newobj     "Sub Program.DT1..ctor(Object, System.IntPtr)"
   IL_00f6:  dup
@@ -361,7 +361,7 @@ F1
   IL_0107:  brfalse.s  IL_0110
   IL_0109:  ldsfld     "Program._Closure$__1._ClosureCache$__11 As Program.DT1"
   IL_010e:  br.s       IL_0126
-  IL_0110:  ldsfld     "Program._Closure$__1.$Inst As Program._Closure$__1"
+  IL_0110:  ldsfld     "Program._Closure$__1.$I As Program._Closure$__1"
   IL_0115:  ldftn      "Function Program._Closure$__1._Lambda$__10() As Integer"
   IL_011b:  newobj     "Sub Program.DT1..ctor(Object, System.IntPtr)"
   IL_0120:  dup
@@ -372,7 +372,7 @@ F1
   IL_0131:  brfalse.s  IL_013a
   IL_0133:  ldsfld     "Program._Closure$__1._ClosureCache$__13 As <generated method>"
   IL_0138:  br.s       IL_0150
-  IL_013a:  ldsfld     "Program._Closure$__1.$Inst As Program._Closure$__1"
+  IL_013a:  ldsfld     "Program._Closure$__1.$I As Program._Closure$__1"
   IL_013f:  ldftn      "Function Program._Closure$__1._Lambda$__12() As Integer"
   IL_0145:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_014a:  dup
@@ -528,7 +528,7 @@ L5]]>.Value.Replace(vbLf, vbCrLf))
   IL_0023:  brfalse.s  IL_002c
   IL_0025:  ldsfld     "Program._Closure$__1._ClosureCache$__3 As Program.DT1"
   IL_002a:  br.s       IL_0042
-  IL_002c:  ldsfld     "Program._Closure$__1.$Inst As Program._Closure$__1"
+  IL_002c:  ldsfld     "Program._Closure$__1.$I As Program._Closure$__1"
   IL_0031:  ldftn      "Function Program._Closure$__1._Lambda$__2() As Integer"
   IL_0037:  newobj     "Sub Program.DT1..ctor(Object, System.IntPtr)"
   IL_003c:  dup
@@ -548,7 +548,7 @@ L5]]>.Value.Replace(vbLf, vbCrLf))
   IL_0064:  brfalse.s  IL_006d
   IL_0066:  ldsfld     "Program._Closure$__1._ClosureCache$__5 As Program.DT1"
   IL_006b:  br.s       IL_0083
-  IL_006d:  ldsfld     "Program._Closure$__1.$Inst As Program._Closure$__1"
+  IL_006d:  ldsfld     "Program._Closure$__1.$I As Program._Closure$__1"
   IL_0072:  ldftn      "Function Program._Closure$__1._Lambda$__4() As Integer"
   IL_0078:  newobj     "Sub Program.DT1..ctor(Object, System.IntPtr)"
   IL_007d:  dup
@@ -569,7 +569,7 @@ L5]]>.Value.Replace(vbLf, vbCrLf))
   IL_00a3:  brfalse.s  IL_00ac
   IL_00a5:  ldsfld     "Program._Closure$__1._ClosureCache$__7 As <generated method>"
   IL_00aa:  br.s       IL_00c2
-  IL_00ac:  ldsfld     "Program._Closure$__1.$Inst As Program._Closure$__1"
+  IL_00ac:  ldsfld     "Program._Closure$__1.$I As Program._Closure$__1"
   IL_00b1:  ldftn      "Function Program._Closure$__1._Lambda$__6() As Integer"
   IL_00b7:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_00bc:  dup
@@ -580,7 +580,7 @@ L5]]>.Value.Replace(vbLf, vbCrLf))
   IL_00cd:  brfalse.s  IL_00d6
   IL_00cf:  ldsfld     "Program._Closure$__1._ClosureCache$__9 As <generated method>"
   IL_00d4:  br.s       IL_00ec
-  IL_00d6:  ldsfld     "Program._Closure$__1.$Inst As Program._Closure$__1"
+  IL_00d6:  ldsfld     "Program._Closure$__1.$I As Program._Closure$__1"
   IL_00db:  ldftn      "Function Program._Closure$__1._Lambda$__8() As Integer"
   IL_00e1:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_00e6:  dup
@@ -597,7 +597,7 @@ L5]]>.Value.Replace(vbLf, vbCrLf))
   IL_0107:  brfalse.s  IL_0110
   IL_0109:  ldsfld     "Program._Closure$__1._ClosureCache$__11 As <generated method>"
   IL_010e:  br.s       IL_0126
-  IL_0110:  ldsfld     "Program._Closure$__1.$Inst As Program._Closure$__1"
+  IL_0110:  ldsfld     "Program._Closure$__1.$I As Program._Closure$__1"
   IL_0115:  ldftn      "Function Program._Closure$__1._Lambda$__10() As Integer"
   IL_011b:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_0120:  dup
@@ -609,7 +609,7 @@ L5]]>.Value.Replace(vbLf, vbCrLf))
   IL_012f:  brfalse.s  IL_0138
   IL_0131:  ldsfld     "Program._Closure$__1._ClosureCache$__13 As <generated method>"
   IL_0136:  br.s       IL_014e
-  IL_0138:  ldsfld     "Program._Closure$__1.$Inst As Program._Closure$__1"
+  IL_0138:  ldsfld     "Program._Closure$__1.$I As Program._Closure$__1"
   IL_013d:  ldftn      "Function Program._Closure$__1._Lambda$__12() As Integer"
   IL_0143:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_0148:  dup
@@ -655,7 +655,7 @@ End Module
   IL_0005:  brfalse.s  IL_000e
   IL_0007:  ldsfld     "Program._Closure$__1._ClosureCache$__3 As <generated method>"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "Program._Closure$__1.$Inst As Program._Closure$__1"
+  IL_000e:  ldsfld     "Program._Closure$__1.$I As Program._Closure$__1"
   IL_0013:  ldftn      "Function Program._Closure$__1._Lambda$__2() As Integer"
   IL_0019:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_001e:  dup

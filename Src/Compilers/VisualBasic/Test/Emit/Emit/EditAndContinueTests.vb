@@ -1926,7 +1926,7 @@ End Class
   // Code size       27 (0x1b)
   .maxstack  2
   .locals init (System.Guid() V_0, //x
-  System.Guid& V_1) //VB$With_0
+                System.Guid& V_1) //$W0
   IL_0000:  nop
   IL_0001:  ldnull
   IL_0002:  stloc.0
@@ -1958,7 +1958,7 @@ End Class
   // Code size       27 (0x1b)
   .maxstack  2
   .locals init (System.Guid() V_0, //x
-  System.Guid& V_1) //VB$With_0
+                System.Guid& V_1) //$W0
   IL_0000:  nop
   IL_0001:  ldnull
   IL_0002:  stloc.0
@@ -2013,7 +2013,7 @@ End Class
   // Code size       17 (0x11)
   .maxstack  1
   .locals init (System.Guid() V_0, //x
-                System.Guid() V_1) //VB$With_0
+                System.Guid() V_1) //$W0
   IL_0000:  nop
   IL_0001:  ldnull
   IL_0002:  stloc.0
@@ -2043,7 +2043,7 @@ End Class
   // Code size       17 (0x11)
   .maxstack  1
   .locals init (System.Guid() V_0, //x
-                System.Guid() V_1) //VB$With_0
+                System.Guid() V_1) //$W0
   IL_0000:  nop
   IL_0001:  ldnull
   IL_0002:  stloc.0
@@ -2885,9 +2885,9 @@ End Class
   // Code size       19 (0x13)
   .maxstack  1
   .locals init (Object V_0, //y
-  System.Guid() V_1, //x
-  System.Guid() V_2, //VB$With_0
-  String V_3) //z
+                System.Guid() V_1, //x
+                System.Guid() V_2, //$W0
+                String V_3) //z
   IL_0000:  nop
   IL_0001:  ldnull
   IL_0002:  stloc.1
@@ -2921,9 +2921,9 @@ End Class
   // Code size       19 (0x13)
   .maxstack  1
   .locals init (Object V_0, //y
-  System.Guid() V_1, //x
-  System.Guid() V_2, //VB$With_0
-  String V_3) //z
+                System.Guid() V_1, //x
+                System.Guid() V_2, //$W0
+                String V_3) //z
   IL_0000:  nop
   IL_0001:  ldnull
   IL_0002:  stloc.1

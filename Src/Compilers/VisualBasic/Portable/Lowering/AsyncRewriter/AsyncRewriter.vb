@@ -124,8 +124,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Protected Overrides Sub GenerateFields()
-            Me._builderField = Me.F.StateMachineField(Me._builderType, Me.Method, GeneratedNames.MakeStateMachineBuilderFieldName(), Accessibility.Friend)
+        Protected Overrides Sub GenerateControlFields()
+            ' The fields are initialized from async method, so they need to be public:
+            Me.StateField = Me.F.StateMachineField(Me.F.SpecialType(SpecialType.System_Int32), Me.Method, GeneratedNames.MakeStateMachineStateFieldName(), Accessibility.Public)
+            Me._builderField = Me.F.StateMachineField(Me._builderType, Me.Method, GeneratedNames.MakeStateMachineBuilderFieldName(), Accessibility.Public)
         End Sub
 
         Protected Overrides Sub InitializeStateMachine(bodyBuilder As ArrayBuilder(Of BoundStatement), frameType As NamedTypeSymbol, stateMachineLocal As LocalSymbol)
@@ -197,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Protected Overrides Function GenerateReplacementBody(stateMachineVariable As LocalSymbol, frameType As NamedTypeSymbol) As BoundStatement
+        Protected Overrides Function GenerateStateMachineCreation(stateMachineVariable As LocalSymbol, frameType As NamedTypeSymbol) As BoundStatement
             Dim bodyBuilder = ArrayBuilder(Of BoundStatement).GetInstance()
 
             ' STAT:   localStateMachine.$stateField = NotStartedStateMachine
@@ -249,7 +251,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                           F:=Me.F,
                                                           state:=Me.StateField,
                                                           builder:=Me._builderField,
-                                                          variableProxies:=Me.variableProxies,
+                                                          hoistedVariables:=Me.hoistedVariables,
+                                                          nonReusableLocalProxies:=Me.nonReusableLocalProxies,
+                                                          synthesizedLocalOrdinals:=Me.SynthesizedLocalOrdinals,
+                                                          slotAllocatorOpt:=Me.SlotAllocatorOpt,
+                                                          nextFreeHoistedLocalSlot:=Me.nextFreeHoistedLocalSlot,
                                                           owner:=Me,
                                                           diagnostics:=Diagnostics)
 
@@ -442,7 +448,7 @@ lCaptureRValue:
                                     Me.F.StateMachineField(
                                         expression.Type,
                                         Me.Method,
-                                        GeneratedNames.MakeStateMachineExpressionCaptureName(Me._lastExpressionCaptureNumber),
+                                        StringConstants.StateMachineExpressionCapturePrefix & Me._lastExpressionCaptureNumber,
                                         Accessibility.Friend),
                                     expression)
             End Select

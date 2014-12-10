@@ -45,7 +45,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     outputKind:=compilation.Options.OutputKind,
                     serializationProperties:=serializationProperties,
                     manifestResources:=manifestResources,
-                    assemblySymbolMapper:=Nothing,
                     previousGeneration:=baseline,
                     edits:=edits)
 

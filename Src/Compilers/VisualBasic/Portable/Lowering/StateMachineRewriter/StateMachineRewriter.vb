@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.CodeGen
+Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -27,13 +28,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected ReadOnly F As SyntheticBoundNodeFactory
         Protected ReadOnly StateMachineType As SynthesizedContainer
         Protected ReadOnly SlotAllocatorOpt As VariableSlotAllocator
+        Protected ReadOnly SynthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser
 
         Protected StateField As FieldSymbol
-        Protected variableProxies As Dictionary(Of Symbol, TProxy)
+        Protected nonReusableLocalProxies As Dictionary(Of Symbol, TProxy)
+        Protected nextFreeHoistedLocalSlot As Integer
+        Protected hoistedVariables As IReadOnlySet(Of Symbol)
         Protected InitialParameters As Dictionary(Of Symbol, TProxy)
-
-        Private nextLocalNumber As Integer = 1
-        Private nextTempNumber As Integer = 1
 
         Protected Sub New(body As BoundStatement,
                           method As MethodSymbol,
@@ -53,6 +54,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me.StateMachineType = stateMachineType
             Me.SlotAllocatorOpt = slotAllocatorOpt
             Me.Diagnostics = diagnostics
+            Me.SynthesizedLocalOrdinals = New SynthesizedLocalOrdinalsDispenser()
+            Me.nonReusableLocalProxies = New Dictionary(Of Symbol, TProxy)()
 
             Me.F = New SyntheticBoundNodeFactory(method, method, method.ContainingType, body.Syntax, compilationState, diagnostics)
         End Sub
@@ -68,9 +71,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend MustOverride ReadOnly Property TypeMap As TypeSubstitution
 
         ''' <summary>
-        ''' Add fields to the state machine class that are unique to async or iterator methods.
+        ''' Add fields to the state machine class that control the state machine.
         ''' </summary>
-        Protected MustOverride Sub GenerateFields()
+        Protected MustOverride Sub GenerateControlFields()
 
         ''' <summary>
         ''' Initialize the state machine class.
@@ -78,9 +81,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected MustOverride Sub InitializeStateMachine(bodyBuilder As ArrayBuilder(Of BoundStatement), frameType As NamedTypeSymbol, stateMachineLocal As LocalSymbol)
 
         ''' <summary>
-        ''' Generate implementation-specific state machine initialization for the replacement method body.
+        ''' Generate implementation-specific state machine initialization for the kickoff method body.
         ''' </summary>
-        Protected MustOverride Function GenerateReplacementBody(stateMachineVariable As LocalSymbol, frameType As NamedTypeSymbol) As BoundStatement
+        Protected MustOverride Function GenerateStateMachineCreation(stateMachineVariable As LocalSymbol, frameType As NamedTypeSymbol) As BoundStatement
 
         ''' <summary>
         ''' Generate implementation-specific state machine member method implementations.
@@ -93,11 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me.F.OpenNestedType(Me.StateMachineType)
             Me.F.CompilationState.StateMachineImplementationClass(Me.Method) = Me.StateMachineType
 
-            ' Add a field: int _state
-            Dim intType = Me.F.SpecialType(SpecialType.System_Int32)
-            Me.StateField = Me.F.StateMachineField(intType, Me.Method, GeneratedNames.MakeStateMachineStateFieldName(), Accessibility.Friend)
-
-            Me.GenerateFields()
+            Me.GenerateControlFields()
 
             ' and fields for the initial values of all the parameters of the method
             If Me.PreserveInitialParameterValues Then
@@ -105,55 +104,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' add fields for the captured variables of the method
-            Dim captured = IteratorAndAsyncCaptureWalker.Analyze(New FlowAnalysisInfo(F.CompilationState.Compilation, Me.Method, Me.Body))
+            Dim variablesToHoist = IteratorAndAsyncCaptureWalker.Analyze(New FlowAnalysisInfo(F.CompilationState.Compilation, Me.Method, Me.Body), Me.Diagnostics)
 
-            Me.variableProxies = New Dictionary(Of Symbol, TProxy)()
+            CreateNonReusableLocalProxies(variablesToHoist, Me.nextFreeHoistedLocalSlot)
 
-            CreateInitialProxies(captured)
+            Me.hoistedVariables = New OrderedSet(Of Symbol)(variablesToHoist.CapturedLocals)
 
             GenerateMethodImplementations()
 
-            ' Return a replacement body for the original iterator method
-            Return ReplaceOriginalMethod()
+            ' Return a replacement body for the kickoff method
+            Return GenerateKickoffMethodBody()
         End Function
 
-        Private Function ReplaceOriginalMethod() As BoundBlock
+        Private Function GenerateKickoffMethodBody() As BoundBlock
             Me.F.CurrentMethod = Me.Method
             Dim bodyBuilder = ArrayBuilder(Of BoundStatement).GetInstance()
             bodyBuilder.Add(Me.F.HiddenSequencePoint())
 
-            Dim frameType As NamedTypeSymbol = SubstituteTypeIfNeeded(Me.StateMachineType)
-
+            Dim frameType As NamedTypeSymbol = If(Me.Method.IsGenericMethod, Me.StateMachineType.Construct(Method.TypeArguments), Me.StateMachineType)
             Dim stateMachineVariable As LocalSymbol = F.SynthesizedLocal(frameType)
-
             InitializeStateMachine(bodyBuilder, frameType, stateMachineVariable)
 
-            InitializeProxies(bodyBuilder, If(Me.PreserveInitialParameterValues, Me.InitialParameters, variableProxies), stateMachineVariable)
-
-            Return Me.F.Block(
-                ImmutableArray.Create(Of LocalSymbol)(stateMachineVariable),
-                bodyBuilder.ToImmutableAndFree().Add(
-                    GenerateReplacementBody(stateMachineVariable, frameType)))
-        End Function
-
-        Protected Function SubstituteTypeIfNeeded(type As NamedTypeSymbol) As NamedTypeSymbol
-            Return If(Me.Method.IsGenericMethod, type.OriginalDefinition.Construct(Me.Method.TypeArguments), type)
-        End Function
-
-        Private Sub InitializeProxies(bodyBuilder As ArrayBuilder(Of BoundStatement),
-                                      copyDest As Dictionary(Of Symbol, TProxy),
-                                      stateMachineVariable As LocalSymbol)
-
+            ' Plus code to initialize all of the parameter proxies result
+            Dim proxies = If(PreserveInitialParameterValues, Me.InitialParameters, Me.nonReusableLocalProxies)
             Dim initializers = ArrayBuilder(Of BoundExpression).GetInstance()
 
             ' starting with the "Me" proxy
             If Not Me.Method.IsShared AndAlso Me.Method.MeParameter IsNot Nothing Then
-                InitializeParameter(Me.Method.MeParameter, copyDest, stateMachineVariable, initializers)
+                Dim proxy As TProxy = Nothing
+                If proxies.TryGetValue(Me.Method.MeParameter, proxy) Then
+                    InitializeParameterWithProxy(Me.Method.MeParameter, proxy, stateMachineVariable, initializers)
+                End If
             End If
 
             ' then all the parameters
             For Each parameter In Me.Method.Parameters
-                InitializeParameter(parameter, copyDest, stateMachineVariable, initializers)
+                Dim proxy As TProxy = Nothing
+                If proxies.TryGetValue(parameter, proxy) Then
+                    InitializeParameterWithProxy(parameter, proxy, stateMachineVariable, initializers)
+                End If
             Next
 
             If initializers.Count > 0 Then
@@ -161,36 +150,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             initializers.Free()
-        End Sub
 
-        Private Sub InitializeParameter(parameter As ParameterSymbol,
-                                        copyDest As Dictionary(Of Symbol, TProxy),
-                                        stateMachineVariable As LocalSymbol,
-                                        initializers As ArrayBuilder(Of BoundExpression))
+            bodyBuilder.Add(GenerateStateMachineCreation(stateMachineVariable, frameType))
+            Return Me.F.Block(
+                ImmutableArray.Create(Of LocalSymbol)(stateMachineVariable),
+                bodyBuilder.ToImmutableAndFree())
+        End Function
 
-            Dim proxy As TProxy = Nothing
-            If copyDest.TryGetValue(parameter, proxy) Then
-                InitializeParameterWithProxy(parameter, proxy, stateMachineVariable, initializers)
-            End If
-        End Sub
-
-        Private Sub CreateInitialProxies(captured As IteratorAndAsyncCaptureWalker.Result)
+        Private Sub CreateNonReusableLocalProxies(captured As IteratorAndAsyncCaptureWalker.Result,
+                                                  ByRef nextFreeHoistedLocalSlot As Integer)
 
             Dim typeMap As TypeSubstitution = StateMachineType.TypeSubstitution
+            Dim isDebugBuild As Boolean = F.Compilation.Options.OptimizationLevel = OptimizationLevel.Debug
+            Dim mapToPreviousFields = isDebugBuild AndAlso SlotAllocatorOpt IsNot Nothing
+            Me.nextFreeHoistedLocalSlot = If(mapToPreviousFields, SlotAllocatorOpt.PreviousHoistedLocalSlotCount, 0)
 
-            Dim orderedCaptured As IEnumerable(Of Symbol) =
-                                From local In captured.CapturedLocals
-                                Order By local.Name,
-                                         If(local.Locations.Length = 0, 0, local.Locations(0).SourceSpan.Start)
-                                Select local
+            For Each variable In captured.CapturedLocals
+                Debug.Assert(variable.Kind = SymbolKind.Local OrElse variable.Kind = SymbolKind.Parameter)
 
-            For Each sym In orderedCaptured
-                Select Case sym.Kind
+                Select Case variable.Kind
                     Case SymbolKind.Local
-                        CaptureLocalSymbol(typeMap, DirectCast(sym, LocalSymbol), captured.ByRefLocalsInitializers)
+                        Dim local = DirectCast(variable, LocalSymbol)
+                        Dim synthesizedKind = local.SynthesizedKind
+
+                        ' No need to hoist constants
+                        If local.IsConst Then
+                            Continue For
+                        End If
+
+                        CaptureLocalSymbol(typeMap, DirectCast(variable, LocalSymbol), captured.ByRefLocalsInitializers)
 
                     Case SymbolKind.Parameter
-                        CaptureParameterSymbol(typeMap, DirectCast(sym, ParameterSymbol))
+                        CaptureParameterSymbol(typeMap, DirectCast(variable, ParameterSymbol))
                 End Select
             Next
         End Sub
@@ -199,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                   parameter As ParameterSymbol) As TProxy
 
             Dim proxy As TProxy = Nothing
-            If Me.variableProxies.TryGetValue(parameter, proxy) Then
+            If Me.nonReusableLocalProxies.TryGetValue(parameter, proxy) Then
                 ' This proxy may have already be added while processing 
                 ' previous ByRef local
                 Return proxy
@@ -207,7 +198,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If parameter.IsMe Then
                 Dim typeName As String = parameter.ContainingSymbol.ContainingType.Name
-                Dim isMeOfClosureType As Boolean = typeName.StartsWith(StringConstants.ClosureClassPrefix)
+                Dim isMeOfClosureType As Boolean = typeName.StartsWith(StringConstants.DisplayClassPrefix)
 
                 ' NOTE: even though 'Me' is 'ByRef' in structures, Dev11 does capture it by value
                 ' NOTE: without generation of any errors/warnings. Roslyn has to match this behavior
@@ -221,7 +212,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     GeneratedNames.MakeStateMachineCapturedMeName()),
                                 Accessibility.Friend),
                             parameter)
-                Me.variableProxies.Add(parameter, proxy)
+                Me.nonReusableLocalProxies.Add(parameter, proxy)
 
                 If Me.PreserveInitialParameterValues Then
                     Dim initialMe As TProxy = If(Me.Method.ContainingType.IsStructureType(),
@@ -232,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          GeneratedNames.MakeIteratorParameterProxyName(GeneratedNames.MakeStateMachineCapturedMeName()),
                                                          Accessibility.Friend),
                                                      parameter),
-                                                 Me.variableProxies(parameter))
+                                                 Me.nonReusableLocalProxies(parameter))
 
                     Me.InitialParameters.Add(parameter, initialMe)
                 End If
@@ -248,7 +239,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 GeneratedNames.MakeStateMachineParameterName(parameter.Name),
                                 Accessibility.Friend),
                             parameter)
-                Me.variableProxies.Add(parameter, proxy)
+                Me.nonReusableLocalProxies.Add(parameter, proxy)
 
                 If Me.PreserveInitialParameterValues Then
                     Me.InitialParameters.Add(parameter,
@@ -270,22 +261,53 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                               initializers As Dictionary(Of LocalSymbol, BoundExpression)) As TProxy
 
             Dim proxy As TProxy = Nothing
-            If Me.variableProxies.TryGetValue(local, proxy) Then
+            If nonReusableLocalProxies.TryGetValue(local, proxy) Then
                 ' This proxy may have already be added while processing 
                 ' previous ByRef local
                 Return proxy
             End If
 
-            Dim localType As TypeSymbol = local.Type.InternalSubstituteTypeParameters(typeMap)
-
             If local.IsByRef Then
+                ' We'll create proxies for these variable later:
+                ' TODO: so, we have to check if it is already in or not. See the early impl.
+
                 Debug.Assert(initializers.ContainsKey(local))
                 proxy = CreateByRefLocalCapture(typeMap, local, initializers)
-            Else
-                proxy = CreateByValLocalCapture(MakeHoistedFieldForLocal(local, localType), local)
+                nonReusableLocalProxies.Add(local, proxy)
+
+                Return proxy
             End If
 
-            Me.variableProxies.Add(local, proxy)
+            ' Variable needs to be hoisted.
+            Dim fieldType = local.Type.InternalSubstituteTypeParameters(typeMap)
+
+            Dim id As LocalDebugId = LocalDebugId.None
+            Dim slotIndex As Integer = -1
+
+            If Not local.SynthesizedKind.IsSlotReusable(F.Compilation.Options.OptimizationLevel) Then
+                ' Calculate local debug id
+                '
+                ' EnC: When emitting the baseline (gen 0) the id is stored in a custom debug information attached to the kickoff method.
+                '      When emitting a delta the id is only used to map to the existing field in the previous generation.
+
+                Dim declaratorSyntax As SyntaxNode = local.GetDeclaratorSyntax()
+                Dim syntaxOffset As Integer = Me.Method.CalculateLocalSyntaxOffset(declaratorSyntax.SpanStart, declaratorSyntax.SyntaxTree)
+                Dim ordinal As Integer = SynthesizedLocalOrdinals.AssignLocalOrdinal(local.SynthesizedKind, syntaxOffset)
+                id = New LocalDebugId(syntaxOffset, ordinal)
+
+                If SlotAllocatorOpt IsNot Nothing Then
+                    slotIndex = SlotAllocatorOpt.GetPreviousHoistedLocalSlotIndex(declaratorSyntax, DirectCast(fieldType, Cci.ITypeDefinition), local.SynthesizedKind, id)
+                End If
+            End If
+
+            If slotIndex = -1 Then
+                slotIndex = Me.nextFreeHoistedLocalSlot
+                Me.nextFreeHoistedLocalSlot = Me.nextFreeHoistedLocalSlot + 1
+            End If
+
+            proxy = CreateByValLocalCapture(MakeHoistedFieldForLocal(local, fieldType, slotIndex, id), local)
+            nonReusableLocalProxies.Add(local, proxy)
+
             Return proxy
         End Function
 
@@ -303,25 +325,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Throw ExceptionUtilities.Unreachable
         End Function
 
-        Protected Function MakeHoistedFieldForLocal(local As LocalSymbol, localType As TypeSymbol) As FieldSymbol
+        Protected Function MakeHoistedFieldForLocal(local As LocalSymbol, localType As TypeSymbol, slotIndex As Integer, id As LocalDebugId) As FieldSymbol
             Dim proxyName As String
 
-            If local.SynthesizedKind = SynthesizedLocalKind.LambdaDisplayClass Then
-                ' Special Case: There's logic in the EE to recognize locals that have been captured by a lambda
-                ' and would have been hoisted for the state machine.  Basically, we just hoist the local containing
-                ' the instance of the lambda closure class as if it were user-created, rather than a compiler temp.
-                proxyName = GeneratedNames.MakeStateMachineLocalName(Me.nextLocalNumber, GeneratedNames.MakeHoistedLocalFieldName(local.SynthesizedKind, localType, Me.nextLocalNumber))
-                Me.nextLocalNumber += 1
-            ElseIf local.SynthesizedKind <> SynthesizedLocalKind.UserDefined Then
-                proxyName = GeneratedNames.MakeStateMachineLocalName(Me.nextTempNumber,
-                 If(local.SynthesizedKind.IsLongLived(), GeneratedNames.MakeHoistedLocalFieldName(local.SynthesizedKind, localType, Me.nextTempNumber), Nothing))
-                Me.nextTempNumber += 1
-            Else
-                proxyName = GeneratedNames.MakeStateMachineLocalName(Me.nextLocalNumber, local.Name)
-                Me.nextLocalNumber += 1
-            End If
+            Select Case local.SynthesizedKind
+                Case SynthesizedLocalKind.LambdaDisplayClass
+                    proxyName = StringConstants.StateMachineHoistedUserVariablePrefix & StringConstants.ClosureVariablePrefix & "$" & slotIndex
+                Case SynthesizedLocalKind.UserDefined
+                    proxyName = StringConstants.StateMachineHoistedUserVariablePrefix & local.Name & "$" & slotIndex
+                Case SynthesizedLocalKind.With
+                    proxyName = StringConstants.HoistedWithLocalPrefix & slotIndex
+                Case Else
+                    proxyName = StringConstants.HoistedSynthesizedLocalPrefix & slotIndex
+            End Select
 
-            Return F.StateMachineField(localType, Me.Method, proxyName, Accessibility.Friend)
+            Return F.StateMachineField(localType, Me.Method, proxyName, New LocalSlotDebugInfo(local.SynthesizedKind, id), slotIndex, Accessibility.Friend)
         End Function
 
         ''' <summary>

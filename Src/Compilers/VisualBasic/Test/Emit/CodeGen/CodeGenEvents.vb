@@ -44,7 +44,7 @@ End Module
   IL_0005:  brfalse.s  IL_000e
   IL_0007:  ldsfld     "MyClass1._Closure$__1._ClosureCache$__3 As System.EventHandler"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "MyClass1._Closure$__1.$Inst As MyClass1._Closure$__1"
+  IL_000e:  ldsfld     "MyClass1._Closure$__1.$I As MyClass1._Closure$__1"
   IL_0013:  ldftn      "Sub MyClass1._Closure$__1._Lambda$__2(Object, System.EventArgs)"
   IL_0019:  newobj     "Sub System.EventHandler..ctor(Object, System.IntPtr)"
   IL_001e:  dup
@@ -93,7 +93,7 @@ End Module
   IL_0005:  brfalse.s  IL_000e
   IL_0007:  ldsfld     "MyClass1._Closure$__1._ClosureCache$__3 As System.EventHandler"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "MyClass1._Closure$__1.$Inst As MyClass1._Closure$__1"
+  IL_000e:  ldsfld     "MyClass1._Closure$__1.$I As MyClass1._Closure$__1"
   IL_0013:  ldftn      "Sub MyClass1._Closure$__1._Lambda$__2(Object, System.EventArgs)"
   IL_0019:  newobj     "Sub System.EventHandler..ctor(Object, System.IntPtr)"
   IL_001e:  dup
@@ -247,7 +247,7 @@ End Module
   IL_0005:  brfalse.s  IL_000e
   IL_0007:  ldsfld     "Module1._Closure$__1._ClosureCache$__3 As System.Action"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "Module1._Closure$__1.$Inst As Module1._Closure$__1"
+  IL_000e:  ldsfld     "Module1._Closure$__1.$I As Module1._Closure$__1"
   IL_0013:  ldftn      "Sub Module1._Closure$__1._Lambda$__2()"
   IL_0019:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_001e:  dup
@@ -303,7 +303,7 @@ End Module
   IL_0005:  brfalse.s  IL_000e
   IL_0007:  ldsfld     "Module1._Closure$__1._ClosureCache$__3 As Module1.e1EventHandler"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "Module1._Closure$__1.$Inst As Module1._Closure$__1"
+  IL_000e:  ldsfld     "Module1._Closure$__1.$I As Module1._Closure$__1"
   IL_0013:  ldftn      "Sub Module1._Closure$__1._Lambda$__2()"
   IL_0019:  newobj     "Sub Module1.e1EventHandler..ctor(Object, System.IntPtr)"
   IL_001e:  dup
@@ -358,7 +358,7 @@ End Module
   IL_0005:  brfalse.s  IL_000e
   IL_0007:  ldsfld     "Module1._Closure$__1._ClosureCache$__5 As Module1.e1EventHandler"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "Module1._Closure$__1.$Inst As Module1._Closure$__1"
+  IL_000e:  ldsfld     "Module1._Closure$__1.$I As Module1._Closure$__1"
   IL_0013:  ldftn      "Sub Module1._Closure$__1._Lambda$__2(Module1.e1EventHandler)"
   IL_0019:  newobj     "Sub Module1.e1EventHandler..ctor(Object, System.IntPtr)"
   IL_001e:  dup
@@ -480,7 +480,7 @@ End Module
   IL_0005:  brfalse.s  IL_000e
   IL_0007:  ldsfld     "Program._Closure$__1._ClosureCache$__3 As Program.del1"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "Program._Closure$__1.$Inst As Program._Closure$__1"
+  IL_000e:  ldsfld     "Program._Closure$__1.$I As Program._Closure$__1"
   IL_0013:  ldftn      "Sub Program._Closure$__1._Lambda$__2(ByRef String)"
   IL_0019:  newobj     "Sub Program.del1..ctor(Object, System.IntPtr)"
   IL_001e:  dup
@@ -643,7 +643,7 @@ End Module
   IL_000b:  brfalse.s  IL_0014
   IL_000d:  ldsfld     "Program._Closure$__1._ClosureCache$__3 As Program.i1.del1"
   IL_0012:  br.s       IL_002a
-  IL_0014:  ldsfld     "Program._Closure$__1.$Inst As Program._Closure$__1"
+  IL_0014:  ldsfld     "Program._Closure$__1.$I As Program._Closure$__1"
   IL_0019:  ldftn      "Sub Program._Closure$__1._Lambda$__2(ByRef String)"
   IL_001f:  newobj     "Sub Program.i1.del1..ctor(Object, System.IntPtr)"
   IL_0024:  dup
@@ -719,7 +719,7 @@ End Module
   IL_000b:  brfalse.s  IL_0014
   IL_000d:  ldsfld     "Program._Closure$__1._ClosureCache$__3 As Program.i1.del1"
   IL_0012:  br.s       IL_002a
-  IL_0014:  ldsfld     "Program._Closure$__1.$Inst As Program._Closure$__1"
+  IL_0014:  ldsfld     "Program._Closure$__1.$I As Program._Closure$__1"
   IL_0019:  ldftn      "Sub Program._Closure$__1._Lambda$__2(ByRef String)"
   IL_001f:  newobj     "Sub Program.i1.del1..ctor(Object, System.IntPtr)"
   IL_0024:  dup

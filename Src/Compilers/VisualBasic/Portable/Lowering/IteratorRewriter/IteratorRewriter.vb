@@ -120,13 +120,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return hasErrors
         End Function
 
-        Protected Overrides Sub GenerateFields()
+        Protected Overrides Sub GenerateControlFields()
+            ' Add a field: int _state
+            Me.StateField = Me.F.StateMachineField(Me.F.SpecialType(SpecialType.System_Int32), Me.Method, GeneratedNames.MakeStateMachineStateFieldName(), Accessibility.Public)
+
             ' Add a field: T current
-            currentField = F.StateMachineField(elementType, Me.Method, GeneratedNames.MakeIteratorCurrentFieldName(), Accessibility.Friend)
+            currentField = F.StateMachineField(elementType, Me.Method, GeneratedNames.MakeIteratorCurrentFieldName(), Accessibility.Public)
 
             ' if it is an Enumerable, add a field: initialThreadId As Integer
             initialThreadIdField = If(isEnumerable,
-                F.StateMachineField(F.SpecialType(SpecialType.System_Int32), Me.Method, GeneratedNames.MakeIteratorInitialThreadIdName()),
+                F.StateMachineField(F.SpecialType(SpecialType.System_Int32), Me.Method, GeneratedNames.MakeIteratorInitialThreadIdName(), Accessibility.Public),
                 Nothing)
 
         End Sub
@@ -222,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Initialize all the parameter copies
                 Dim copySrc = InitialParameters
-                Dim copyDest = variableProxies
+                Dim copyDest = nonReusableLocalProxies
                 If Not Method.IsShared Then
                     ' starting with "this"
                     Dim proxy As FieldSymbol = Nothing
@@ -314,7 +317,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Protected Overrides Function GenerateReplacementBody(stateMachineVariable As LocalSymbol, frameType As NamedTypeSymbol) As BoundStatement
+        Protected Overrides Function GenerateStateMachineCreation(stateMachineVariable As LocalSymbol, frameType As NamedTypeSymbol) As BoundStatement
             Return F.Return(F.Local(stateMachineVariable, False))
         End Function
 
@@ -341,7 +344,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Private Sub GenerateMoveNextAndDispose(moveNextMethod As SynthesizedStateMachineMethod, disposeMethod As SynthesizedStateMachineMethod)
-            Dim rewriter = New IteratorMethodToClassRewriter(Me.Method, Me.F, Me.StateField, Me.currentField, Me.variableProxies, Me.Diagnostics)
+            Dim rewriter = New IteratorMethodToClassRewriter(method:=Me.Method,
+                                                          F:=Me.F,
+                                                          state:=Me.StateField,
+                                                          current:=Me.currentField,
+                                                          HoistedVariables:=Me.hoistedVariables,
+                                                          localProxies:=Me.nonReusableLocalProxies,
+                                                          SynthesizedLocalOrdinals:=Me.SynthesizedLocalOrdinals,
+                                                          slotAllocatorOpt:=Me.SlotAllocatorOpt,
+                                                          nextFreeHoistedLocalSlot:=Me.nextFreeHoistedLocalSlot,
+                                                          diagnostics:=Diagnostics)
 
             rewriter.GenerateMoveNextAndDispose(Body, moveNextMethod, disposeMethod)
         End Sub

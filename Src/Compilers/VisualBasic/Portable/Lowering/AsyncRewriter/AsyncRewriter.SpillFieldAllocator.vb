@@ -33,8 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If Not Me.AllocatedFields.TryPop(type, field) Then
                     field = F.StateMachineField(type,
                                               F.CurrentMethod,
-                                              GeneratedNames.MakeStateMachineStackSpillFieldName(
-                                                  Me.F.CompilationState.GenerateTempNumber()),
+                                              StringConstants.StateMachineStackSpillPrefix & Me.F.CompilationState.GenerateTempNumber(),
                                               Accessibility.Friend)
                 End If
                 Me.RealizedSpills.Add(field)
