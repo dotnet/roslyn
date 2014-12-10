@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             hasErrors =
                 ReportBadAwaitWithoutAsync(node, diagnostics) |
                 ReportBadAwaitContext(node, diagnostics) |
-                GetAwaitableExpressionInfo(expression, ref getAwaiter, ref isCompleted, ref getResult, node, diagnostics);
+                !GetAwaitableExpressionInfo(expression, ref getAwaiter, ref isCompleted, ref getResult, node, diagnostics);
 
             // Spec 7.7.7.2:
             // The expression await t is classified the same way as the expression (t).GetAwaiter().GetResult(). Thus,
@@ -147,10 +147,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Finds and validates the required members of an awaitable expression, as described in spec 7.7.7.1. Returns
-        /// true if the expression is awaitable.
+        /// Finds and validates the required members of an awaitable expression, as described in spec 7.7.7.1.
         /// </summary>
-        /// <returns>True if the expression contains errors.</returns>
+        /// <returns>True if the expression is awaitable; false otherwise.</returns>
         private bool GetAwaitableExpressionInfo(
             BoundExpression expression,
             ref MethodSymbol getAwaiter,
@@ -161,40 +160,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!ValidateAwaitedExpression(expression, node, diagnostics))
             {
-                return true;
+                return false;
             }
 
             if (expression.HasDynamicType())
             {
+                return true;
+            }
+
+            if (!GetGetAwaiterMethod(expression, node, diagnostics, out getAwaiter))
+            {
                 return false;
             }
 
-            if (!GetGetAwaiterMethod(expression, node, diagnostics, out getAwaiter) ||
-                !ValidateGetAwaiter(getAwaiter, node, diagnostics, expression))
-            {
-                return true;
-            }
-
             TypeSymbol awaiterType = getAwaiter.ReturnType;
-
-            if (!GetIsCompletedProperty(awaiterType, node, diagnostics, out isCompleted) ||
-                !ValidateIsCompleted(isCompleted, node, diagnostics, awaiterType, expression.Type))
-            {
-                return true;
-            }
-
-            if (!AwaiterImplementsINotifyCompletion(awaiterType, node, diagnostics))
-            {
-                return true;
-            }
-
-            if (!GetGetResultMethod(awaiterType, node, diagnostics, out getResult) ||
-                !ValidateGetResult(getResult, node, diagnostics, awaiterType, expression.Type))
-            {
-                return true;
-            }
-
-            return false;
+            return GetIsCompletedProperty(awaiterType, node, expression.Type, diagnostics, out isCompleted)
+                && AwaiterImplementsINotifyCompletion(awaiterType, node, diagnostics)
+                && GetGetResultMethod(awaiterType, node, expression.Type, diagnostics, out getResult);
         }
 
         /// <summary>
@@ -238,29 +220,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var getAwaiterCall = MakeInvocationExpression(node, expression, WellKnownMemberNames.GetAwaiter, ImmutableArray<BoundExpression>.Empty, diagnostics);
-            var call = getAwaiterCall as BoundCall;
-            if (call == null || call.HasAnyErrors && !expression.HasAnyErrors || call.Method is ErrorMethodSymbol)
+            if (getAwaiterCall.HasAnyErrors) // && !expression.HasAnyErrors?
             {
                 getAwaiterMethod = null;
                 return false;
             }
-            else
-            {
-                getAwaiterMethod = call.Method;
-                return true;
-            }
-        }
 
-        /// <summary>
-        /// Validates the GetAwaiter method, returning true if no errors are found.
-        /// </summary>
-        private static bool ValidateGetAwaiter(MethodSymbol getAwaiter, CSharpSyntaxNode node, DiagnosticBag diagnostics, BoundExpression expression)
-        {
-            if ((object)getAwaiter == null ||
-                HasOptionalOrVariableParameters(getAwaiter) || // We might have been able to resolve a GetAwaiter overload with optional parameters, so check for that here
-                getAwaiter.ReturnsVoid) // If GetAwaiter returns void, don't bother checking that it returns an Awaiter.
+            if (getAwaiterCall.Kind != BoundKind.Call)
             {
                 Error(diagnostics, ErrorCode.ERR_BadAwaitArg, node, expression.Type);
+                getAwaiterMethod = null;
+                return false;
+            }
+
+            getAwaiterMethod = ((BoundCall)getAwaiterCall).Method;
+            if (getAwaiterMethod is ErrorMethodSymbol || 
+                HasOptionalOrVariableParameters(getAwaiterMethod) || // We might have been able to resolve a GetAwaiter overload with optional parameters, so check for that here
+                getAwaiterMethod.ReturnsVoid) // If GetAwaiter returns void, don't bother checking that it returns an Awaiter.
+            {
+                Error(diagnostics, ErrorCode.ERR_BadAwaitArg, node, expression.Type);
+                getAwaiterMethod = null;
                 return false;
             }
 
@@ -274,47 +253,36 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Spec 7.7.7.1:
         /// An Awaiter A has an accessible, readable instance property IsCompleted of type bool.
         /// </remarks>
-        private bool GetIsCompletedProperty(TypeSymbol type, CSharpSyntaxNode node, DiagnosticBag diagnostics, out PropertySymbol isCompletedProperty)
+        private bool GetIsCompletedProperty(TypeSymbol awaiterType, CSharpSyntaxNode node, TypeSymbol awaitedExpressionType, DiagnosticBag diagnostics, out PropertySymbol isCompletedProperty)
         {
-            isCompletedProperty = null;
-            var receiver = new BoundLiteral(node, ConstantValue.Null, type);
+            var receiver = new BoundLiteral(node, ConstantValue.Null, awaiterType);
             var name = WellKnownMemberNames.IsCompleted;
             var qualified = BindInstanceMemberAccess(node, node, receiver, name, 0, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeSymbol>), false, diagnostics);
-            if (qualified.Kind == BoundKind.PropertyAccess)
+            if (qualified.HasAnyErrors)
             {
-                var property = (BoundPropertyAccess)qualified;
-                isCompletedProperty = property.PropertySymbol;
+                isCompletedProperty = null;
+                return false;
             }
 
-            return !qualified.HasAnyErrors;
-        }
-
-        /// <summary>
-        /// Validate the IsCompleted property, returning true is no errors are found.
-        /// </summary>
-        private static bool ValidateIsCompleted(
-            PropertySymbol isCompleted,
-            CSharpSyntaxNode node,
-            DiagnosticBag diagnostics,
-            TypeSymbol awaiterType,
-            TypeSymbol awaitedExpressionType)
-        {
-            if ((object)isCompleted == null)
+            if (qualified.Kind != BoundKind.PropertyAccess)
             {
                 Error(diagnostics, ErrorCode.ERR_NoSuchMember, node, awaiterType, WellKnownMemberNames.IsCompleted);
+                isCompletedProperty = null;
                 return false;
             }
 
-            Debug.Assert(!isCompleted.IsStatic); // would have been rejected by GetIsCompletedProperty
-            if (isCompleted.IsWriteOnly)
+            isCompletedProperty = ((BoundPropertyAccess)qualified).PropertySymbol;
+            if (isCompletedProperty.IsWriteOnly)
             {
-                Error(diagnostics, ErrorCode.ERR_PropertyLacksGet, node, isCompleted);
+                Error(diagnostics, ErrorCode.ERR_PropertyLacksGet, node, isCompletedProperty);
+                isCompletedProperty = null;
                 return false;
             }
 
-            if (isCompleted.Type.SpecialType != SpecialType.System_Boolean)
+            if (isCompletedProperty.Type.SpecialType != SpecialType.System_Boolean)
             {
                 Error(diagnostics, ErrorCode.ERR_BadAwaiterPattern, node, awaiterType, awaitedExpressionType);
+                isCompletedProperty = null;
                 return false;
             }
 
@@ -352,36 +320,46 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Spec 7.7.7.1:
         /// An Awaiter A has an accessible instance method GetResult with no parameters and no type parameters.
         /// </remarks>
-        private bool GetGetResultMethod(TypeSymbol type, CSharpSyntaxNode node, DiagnosticBag diagnostics, out MethodSymbol getResultMethod)
+        private bool GetGetResultMethod(TypeSymbol awaiterType, CSharpSyntaxNode node, TypeSymbol awaitedExpressionType, DiagnosticBag diagnostics, out MethodSymbol getResultMethod)
         {
-            var receiver = new BoundLiteral(node, ConstantValue.Null, type);
+            var receiver = new BoundLiteral(node, ConstantValue.Null, awaiterType);
             var getResultCall = MakeInvocationExpression(node, receiver, WellKnownMemberNames.GetResult, ImmutableArray<BoundExpression>.Empty, diagnostics);
-            getResultMethod = (getResultCall.Kind != BoundKind.Call) ? null : ((BoundCall)getResultCall).Method;
-            return !getResultCall.HasAnyErrors;
-        }
+            if (getResultCall.HasAnyErrors)
+            {
+                getResultMethod = null;
+                return false;
+            }
 
-        /// <summary>
-        /// Validate the GetResult method, returning true if there are no errors.
-        /// </summary>
-        private static bool ValidateGetResult(MethodSymbol getResult, CSharpSyntaxNode node, DiagnosticBag diagnostics, TypeSymbol awaiterType, TypeSymbol awaitedExpressionType)
-        {
-            if ((object)getResult == null || getResult.IsExtensionMethod)
+            if (getResultCall.Kind != BoundKind.Call)
             {
                 Error(diagnostics, ErrorCode.ERR_NoSuchMember, node, awaiterType, WellKnownMemberNames.GetResult);
+                getResultMethod = null;
                 return false;
             }
 
-            if (HasOptionalOrVariableParameters(getResult) || getResult.IsConditional)
+            getResultMethod = ((BoundCall)getResultCall).Method;
+            if (getResultMethod.IsExtensionMethod)
+            {
+                Error(diagnostics, ErrorCode.ERR_NoSuchMember, node, awaiterType, WellKnownMemberNames.GetResult);
+                getResultMethod = null;
+                return false;
+            }
+
+            if (HasOptionalOrVariableParameters(getResultMethod) || getResultMethod.IsConditional)
             {
                 Error(diagnostics, ErrorCode.ERR_BadAwaiterPattern, node, awaiterType, awaitedExpressionType);
+                getResultMethod = null;
                 return false;
             }
 
+            // The lack of a GetResult method will be reported by ValidateGetResult().
             return true;
         }
 
         private static bool HasOptionalOrVariableParameters(MethodSymbol method)
         {
+            Debug.Assert(method != null);
+
             if (method.ParameterCount != 0)
             {
                 var parameter = method.Parameters[method.ParameterCount - 1];

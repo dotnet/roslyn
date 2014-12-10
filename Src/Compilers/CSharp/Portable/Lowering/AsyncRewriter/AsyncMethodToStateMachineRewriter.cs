@@ -258,28 +258,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type = VisitType(node.Type);
 
             // The lifespan of awaiter temp doesn't cross sequence points (user code in between awaits), so it doesn't need to be named.
-            LocalSymbol awaiterTemp;
-            if ((object)getResult == null)
-            {
-                awaiterTemp = F.SynthesizedLocal(DynamicTypeSymbol.Instance);
-            }
-            else if (type.IsDynamic())
-            {
-                var awaiterType = ((NamedTypeSymbol)getAwaiter.ReturnType).OriginalDefinition.Construct(F.SpecialType(SpecialType.System_Object));
-                awaiterTemp = F.SynthesizedLocal(awaiterType);
-                getResult = getResult.OriginalDefinition.AsMember(awaiterType);
-                isCompletedMethod = isCompletedMethod.OriginalDefinition.AsMember(awaiterType);
-            }
-            else
-            {
-                awaiterTemp = F.SynthesizedLocal(getAwaiter.ReturnType);
-            }
+            TypeSymbol awaiterType = node.IsDynamic ? DynamicTypeSymbol.Instance : getAwaiter.ReturnType;
+            var awaiterTemp = F.SynthesizedLocal(awaiterType);
 
             var awaitIfIncomplete = F.Block(
                     // temp $awaiterTemp = <expr>.GetAwaiter();
                     F.Assignment(
-                    F.Local(awaiterTemp),
-                    MakeCallMaybeDynamic(expression, getAwaiter, WellKnownMemberNames.GetAwaiter)),
+                        F.Local(awaiterTemp),
+                        MakeCallMaybeDynamic(expression, getAwaiter, WellKnownMemberNames.GetAwaiter)),
 
                     // if(!($awaiterTemp.IsCompleted)) { ... }
                     F.If(
@@ -300,21 +286,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // $resultTemp
                 LocalSymbol resultTemp = F.SynthesizedLocal(type);
                 return F.Block(
-                ImmutableArray.Create(awaiterTemp, resultTemp),
-                    awaitIfIncomplete,
-                    F.Assignment(F.Local(resultTemp), getResultCall),
-                    F.ExpressionStatement(nullAwaiter),
-                    F.Assignment(resultPlace, F.Local(resultTemp)));
+                    ImmutableArray.Create(awaiterTemp, resultTemp),
+                        awaitIfIncomplete,
+                        F.Assignment(F.Local(resultTemp), getResultCall),
+                        F.ExpressionStatement(nullAwaiter),
+                        F.Assignment(resultPlace, F.Local(resultTemp)));
             }
             else
             {
                 // $awaiterTemp.GetResult();
                 // $awaiterTemp = null;
                 return F.Block(
-                ImmutableArray.Create(awaiterTemp),
-                    awaitIfIncomplete,
-                    F.ExpressionStatement(getResultCall),
-                    F.ExpressionStatement(nullAwaiter));
+                    ImmutableArray.Create(awaiterTemp),
+                        awaitIfIncomplete,
+                        F.ExpressionStatement(getResultCall),
+                        F.ExpressionStatement(nullAwaiter));
             }
         }
 

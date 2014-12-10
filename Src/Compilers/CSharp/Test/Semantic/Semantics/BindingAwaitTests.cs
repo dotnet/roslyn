@@ -2728,5 +2728,114 @@ class D
                 Diagnostic(ErrorCode.ERR_BadSKknown, "await x").WithArguments("GetResult", "property", "method")
                 );
         }
+
+        [Fact, WorkItem(1091911, "DevDiv")]
+        public void Repro_1091911()
+        {
+            const string source = @"
+using System;
+using System.Threading.Tasks;
+ 
+class Repro
+{
+    int Boom { get { return 42; } }
+
+    static Task<dynamic> Compute()
+    {
+        return Task.FromResult<dynamic>(new Repro());
+    }
+ 
+    static async Task<int> Bug()
+    {
+        dynamic results = await Compute().ConfigureAwait(false);
+        var x = results.Boom;
+        return (int)x;
+    }
+
+    static void Main()
+    {
+        Console.WriteLine(Bug().Result);
+    }
+}";
+
+            var comp = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "42");
+        }
+
+        [Fact]
+        public void DynamicResultTypeCustomAwaiter()
+        {
+            const string source = @"
+using System;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+
+public struct MyTask
+{
+    public readonly Task task;
+    private readonly Func<dynamic> getResult;
+
+    public MyTask(Task task, Func<dynamic> getResult)
+    {
+        this.task = task;
+        this.getResult = getResult;
+    }
+
+    public dynamic Result { get { return this.getResult(); } }
+}
+
+public struct MyAwaiter : INotifyCompletion
+{
+    private readonly MyTask task;
+
+    public MyAwaiter(MyTask task)
+    {
+        this.task = task;
+    }
+
+    public bool IsCompleted { get { return true; } }
+    public dynamic GetResult() { Console.Write(""dynamic""); return task.Result; }
+    public void OnCompleted(System.Action continuation) { task.task.ContinueWith(_ => continuation()); }
+}
+
+public static class TaskAwaiter
+{
+    public static MyAwaiter GetAwaiter(this MyTask task)
+    {
+        return new MyAwaiter(task);
+    }
+}
+
+class Repro
+{
+    int Boom { get { return 42; } }
+
+    static MyTask Compute()
+    {
+        var task = Task.FromResult(new Repro());
+        return new MyTask(task, () => task.Result);
+    }
+ 
+    static async Task<int> Bug()
+    {
+        return (await Compute()).Boom;
+    }
+
+    static void Main()
+    {
+        Console.WriteLine(Bug().Result);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(
+                // warning CS1685: The predefined type 'ExtensionAttribute' is defined in multiple assemblies in the global alias; using definition from 'System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'
+                Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.Runtime.CompilerServices.ExtensionAttribute", "System.Core, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089").WithLocation(1, 1));
+
+            CompileAndVerify(comp, expectedOutput: "dynamic42");
+        }
     }
 }
