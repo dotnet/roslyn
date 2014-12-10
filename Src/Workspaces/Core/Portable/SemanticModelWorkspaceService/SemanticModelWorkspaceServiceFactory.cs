@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.SemanticModelWorkspaceService
                     var cache = project.Solution.Workspace.Services.GetService<IProjectCacheHostService>();
                     if (cache != null && project.Solution.BranchId == project.Solution.Workspace.PrimaryBranchId)
                     {
-                        return new WeakConstantValueSource<Compilation>(cache.CreateStrongReference(project.Id, project, compilation));
+                        return new WeakConstantValueSource<Compilation>(cache.CacheObjectIfCachingEnabledForKey(project.Id, project, compilation));
                     }
 
                     return new ConstantValueSource<Compilation>(compilation);

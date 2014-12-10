@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 private CompilationUnitSyntax CacheRootNode(CompilationUnitSyntax node)
                 {
-                    return projectCacheService.CacheObject(this.cacheKey, this, node);
+                    return projectCacheService.CacheObjectIfCachingEnabledForKey(this.cacheKey, this, node);
                 }
 
                 public override bool TryGetRoot(out CSharpSyntaxNode root)

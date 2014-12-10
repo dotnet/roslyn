@@ -27,15 +27,18 @@ namespace Microsoft.CodeAnalysis.Host
         /// 
         /// It will not be collected until either caching is disabled for the project
         /// or the owner object is collected.
+        /// 
+        /// If caching is not enabled for the project, the instance is added to a fixed-size
+        /// cache.
         /// </summary>
         /// <returns>The instance passed in is always returned</returns>
-        T CreateStrongReference<T>(ProjectId key, object owner, T instance) where T : class;
+        T CacheObjectIfCachingEnabledForKey<T>(ProjectId key, object owner, T instance) where T : class;
 
         /// <summary>
         /// If caching is enabled for <see cref="ProjectId"/> key, <see cref="ICachedObjectOwner.CachedObject"/>
         /// will be set to instance.
         /// </summary>
         /// <returns>The instance passed in is always returned</returns>
-        T CacheObject<T>(ProjectId key, ICachedObjectOwner owner, T instance) where T : class;
+        T CacheObjectIfCachingEnabledForKey<T>(ProjectId key, ICachedObjectOwner owner, T instance) where T : class;
     }
 }

@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis
                 if (solution.solutionServices.SupportsCachingRecoverableObjects)
                 {
                     // Allow the cache service to create a strong reference to the compilation
-                    solution.solutionServices.CacheService.CreateStrongReference(this.ProjectState.Id, state, state.Compilation.GetValue());
+                    solution.solutionServices.CacheService.CacheObjectIfCachingEnabledForKey(this.ProjectState.Id, state, state.Compilation.GetValue());
                 }
 
                 Volatile.Write(ref this.stateDoNotAccessDirectly, state);

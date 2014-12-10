@@ -10,12 +10,12 @@ namespace Microsoft.CodeAnalysis.UnitTests.Persistence
     [ExportWorkspaceService(typeof(IProjectCacheHostService), "NotKeptAlive"), Shared]
     public class TestProjectCacheService : IProjectCacheHostService
     {
-        T IProjectCacheHostService.CacheObject<T>(ProjectId key, ICachedObjectOwner owner, T instance)
+        T IProjectCacheHostService.CacheObjectIfCachingEnabledForKey<T>(ProjectId key, ICachedObjectOwner owner, T instance)
         {
             return instance;
         }
 
-        T IProjectCacheHostService.CreateStrongReference<T>(ProjectId key, object owner, T instance)
+        T IProjectCacheHostService.CacheObjectIfCachingEnabledForKey<T>(ProjectId key, object owner, T instance)
         {
             return instance;
         }

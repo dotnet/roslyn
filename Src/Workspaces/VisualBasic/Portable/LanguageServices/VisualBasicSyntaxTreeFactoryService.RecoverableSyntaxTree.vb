@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Function
 
                 Private Function CacheRootNode(compilationRoot As CompilationUnitSyntax) As CompilationUnitSyntax
-                    Return _projectCacheService.CacheObject(_cacheKey, Me, compilationRoot)
+                    Return _projectCacheService.CacheObjectIfCachingEnabledForKey(_cacheKey, Me, compilationRoot)
                 End Function
 
                 Public Overrides Function GetRoot(Optional cancellationToken As CancellationToken = Nothing) As VisualBasicSyntaxNode
