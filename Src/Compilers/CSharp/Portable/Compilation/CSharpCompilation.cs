@@ -2526,6 +2526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override EmitDifferenceResult EmitDifference(
             EmitBaseline baseline,
             IEnumerable<SemanticEdit> edits,
+            Func<ISymbol, bool> isAddedSymbol,
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
@@ -2537,6 +2538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this,
                 baseline,
                 edits,
+                isAddedSymbol,
                 metadataStream,
                 ilStream,
                 pdbStream,

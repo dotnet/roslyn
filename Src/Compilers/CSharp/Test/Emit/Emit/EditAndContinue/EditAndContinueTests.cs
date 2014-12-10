@@ -1625,7 +1625,7 @@ class C
   IL_0018:  ret
 }");
 
-            diff1.VerifyPdb(new[] { 0x06000001U },
+            diff1.VerifyPdb(new[] { 0x06000001 },
 @"<symbols>
   <files>
     <file id=""1"" name=""a.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""15, 9B, 5B, 24, 28, 37,  2, 4F, D2, 2E, 40, DB, 1A, 89, 9F, 4D, 54, D5, 95, 89, "" />
@@ -3166,7 +3166,7 @@ class B : A<B>
   IL_0022:  nop       
   IL_0023:  ret       
 }");
-            diff1.VerifyPdb(new[] { 0x06000001U, 0x06000002U, 0x06000003U, 0x06000004U }, @"
+            diff1.VerifyPdb(new[] { 0x06000001, 0x06000002, 0x06000003, 0x06000004 }, @"
 <symbols>
   <methods>
     <method token=""0x6000003"">
@@ -3225,7 +3225,7 @@ class B : A<B>
   IL_001d:  ret
 }");
 
-            diff2.VerifyPdb(new[] { 0x06000001U, 0x06000002U, 0x06000003U, 0x06000004U }, @"
+            diff2.VerifyPdb(new[] { 0x06000001, 0x06000002, 0x06000003, 0x06000004 }, @"
 <symbols>
   <methods>
     <method token=""0x6000003"">
@@ -3283,7 +3283,7 @@ class B : A<B>
   IL_001a:  nop
   IL_001b:  ret
 }");
-            diff3.VerifyPdb(new[] { 0x06000001U, 0x06000002U, 0x06000003U, 0x06000004U }, @"
+            diff3.VerifyPdb(new[] { 0x06000001, 0x06000002, 0x06000003, 0x06000004 }, @"
 <symbols>
   <methods>
     <method token=""0x6000004"">
@@ -3373,7 +3373,7 @@ class B : A<B>
   IL_0008:  stloc.1
   IL_0009:  ret
 }");
-            diff2.VerifyPdb(new[] { 0x06000002U }, @"
+            diff2.VerifyPdb(new[] { 0x06000002 }, @"
 <symbols>
   <methods>
     <method token=""0x6000002"">
@@ -5050,7 +5050,7 @@ class B
                 diff1.EmitResult.Diagnostics.Verify(
                     // (10,17): error CS7097: Cannot continue since the edit includes an operation on a 'dynamic' type.
                     //     static void M(object o)
-                    Diagnostic(ErrorCode.ERR_EnCNoDynamicOperation, "M").WithLocation(10, 17));
+                    Diagnostic(ErrorCode.ERR_EncNoDynamicOperation, "M").WithLocation(10, 17));
 
                 // Source method with no dynamic operations.
                 methodData0 = testData0.GetMethodData("A.N");
@@ -5073,7 +5073,7 @@ class B
                 diff1.EmitResult.Diagnostics.Verify(
                     // (9,5): error CS7097: Cannot continue since the edit includes an operation on a 'dynamic' type.
                     //     A() { }
-                    Diagnostic(ErrorCode.ERR_EnCNoDynamicOperation, "A").WithLocation(9, 5));
+                    Diagnostic(ErrorCode.ERR_EncNoDynamicOperation, "A").WithLocation(9, 5));
 
                 // Explicit .cctor with dynamic operations.
                 methodData0 = testData0.GetMethodData("A..cctor");
@@ -5086,7 +5086,7 @@ class B
                 diff1.EmitResult.Diagnostics.Verify(
                     // (5,12): error CS7097: Cannot continue since the edit includes an operation on a 'dynamic' type.
                     //     static A()
-                    Diagnostic(ErrorCode.ERR_EnCNoDynamicOperation, "A").WithLocation(5, 12));
+                    Diagnostic(ErrorCode.ERR_EncNoDynamicOperation, "A").WithLocation(5, 12));
 
                 // Implicit .ctor with dynamic operations.
                 methodData0 = testData0.GetMethodData("B..ctor");
@@ -5099,7 +5099,7 @@ class B
                 diff1.EmitResult.Diagnostics.Verify(
                     // (19,7): error CS7097: Cannot continue since the edit includes an operation on a 'dynamic' type.
                     // class B
-                    Diagnostic(ErrorCode.ERR_EnCNoDynamicOperation, "B").WithLocation(19, 7));
+                    Diagnostic(ErrorCode.ERR_EncNoDynamicOperation, "B").WithLocation(19, 7));
 
                 // Implicit .cctor with dynamic operations.
                 methodData0 = testData0.GetMethodData("B..cctor");
@@ -5112,7 +5112,7 @@ class B
                 diff1.EmitResult.Diagnostics.Verify(
                     // (19,7): error CS7097: Cannot continue since the edit includes an operation on a 'dynamic' type.
                     // class B
-                    Diagnostic(ErrorCode.ERR_EnCNoDynamicOperation, "B").WithLocation(19, 7));
+                    Diagnostic(ErrorCode.ERR_EncNoDynamicOperation, "B").WithLocation(19, 7));
             }
         }
 
@@ -5267,9 +5267,9 @@ public struct S
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1A, GetEquivalentNodesMap(method1A, method0), preserveLocalVariables: true)));
                 diff1A.EmitResult.Diagnostics.Verify(
                     // error CS7094: Cannot continue since the edit includes a reference to an embedded type: 'S'.
-                    Diagnostic(ErrorCode.ERR_EnCNoPIAReference).WithArguments("S"),
+                    Diagnostic(ErrorCode.ERR_EncNoPIAReference).WithArguments("S"),
                     // error CS7094: Cannot continue since the edit includes a reference to an embedded type: 'IA'.
-                    Diagnostic(ErrorCode.ERR_EnCNoPIAReference).WithArguments("IA"));
+                    Diagnostic(ErrorCode.ERR_EncNoPIAReference).WithArguments("IA"));
 
                 // Allow edits that do not require NoPIA references,
                 // even if the previous code included references.
@@ -5346,9 +5346,9 @@ public interface IB
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1)));
                 diff1.EmitResult.Diagnostics.Verify(
                     // error CS7094: Cannot continue since the edit includes a reference to an embedded type: 'N.IA'.
-                    Diagnostic(ErrorCode.ERR_EnCNoPIAReference).WithArguments("N.IA"),
+                    Diagnostic(ErrorCode.ERR_EncNoPIAReference).WithArguments("N.IA"),
                     // error CS7094: Cannot continue since the edit includes a reference to an embedded type: 'IB'.
-                    Diagnostic(ErrorCode.ERR_EnCNoPIAReference).WithArguments("IB"));
+                    Diagnostic(ErrorCode.ERR_EncNoPIAReference).WithArguments("IB"));
                 diff1.VerifyIL("C<T>.M",
 @"{
   // Code size       26 (0x1a)
@@ -5578,7 +5578,7 @@ class C
                 var diff1 = compilation1.EmitDifference(
                     EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider),
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Insert, null, compilation1.GetMember<MethodSymbol>("C.Main"))),
-                    new CompilationTestData { SymWriterFactory = () => new MockSymUnmanagedWriter() });
+                    testData: new CompilationTestData { SymWriterFactory = () => new MockSymUnmanagedWriter() });
 
                 diff1.EmitResult.Diagnostics.Verify(
                     // error CS0041: Unexpected error writing debug information -- 'The method or operation is not implemented.'
@@ -5654,6 +5654,77 @@ class C
                     }
                 }
             }
+        }
+
+        [Fact]
+        public void ReferenceToMemberAddedToAnotherAssembly1()
+        {
+            var sourceA0 = @"
+public class A
+{
+}
+";
+            var sourceA1 = @"
+public class A
+{
+    public void M() { System.Console.WriteLine(1);}
+}
+
+public class X {} 
+";
+            var sourceB0 = @"
+public class B
+{
+    public static void F() { }
+}";
+            var sourceB1 = @"
+public class B
+{
+    public static void F() { new A().M(); }
+}
+
+public class Y : X { }
+";
+
+            var compilationA0 = CreateCompilationWithMscorlib(sourceA0, options: TestOptions.DebugDll, assemblyName: "LibA");
+            var compilationA1 = compilationA0.WithSource(sourceA1);
+            var compilationB0 = CreateCompilationWithMscorlib(sourceB0, new[] { compilationA0.ToMetadataReference() }, options: TestOptions.DebugDll, assemblyName: "LibB");
+            var compilationB1 = CreateCompilationWithMscorlib(sourceB1, new[] { compilationA1.ToMetadataReference() }, options: TestOptions.DebugDll, assemblyName: "LibB");
+
+            var bytesA0 = compilationA0.EmitToArray();
+            var bytesB0 = compilationB0.EmitToArray();
+            var mdA0 = ModuleMetadata.CreateFromImage(bytesA0);
+            var mdB0 = ModuleMetadata.CreateFromImage(bytesB0);
+            var generationA0 = EmitBaseline.CreateInitialBaseline(mdA0, EmptyLocalsProvider);
+            var generationB0 = EmitBaseline.CreateInitialBaseline(mdB0, EmptyLocalsProvider);
+            var mA1 = compilationA1.GetMember<MethodSymbol>("A.M");
+            var mX1 = compilationA1.GetMember<TypeSymbol>("X");
+
+            var allAddedSymbols = new ISymbol[] { mA1, mX1 };
+
+            var diffA1 = compilationA1.EmitDifference(
+                generationA0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Insert, null, mA1),
+                    new SemanticEdit(SemanticEditKind.Insert, null, mX1)),
+                allAddedSymbols);
+
+            diffA1.EmitResult.Diagnostics.Verify();
+
+            var diffB1 = compilationB1.EmitDifference(
+                generationB0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, compilationB0.GetMember<MethodSymbol>("B.F"), compilationB1.GetMember<MethodSymbol>("B.F")),
+                    new SemanticEdit(SemanticEditKind.Insert, null, compilationB1.GetMember<TypeSymbol>("Y"))),
+                allAddedSymbols);
+
+            diffB1.EmitResult.Diagnostics.Verify(
+                // (7,14): error CS7101: Member 'X' added during the current debug session can only be accessed from within its declaring assembly 'LibA'.
+                // public class X {} 
+                Diagnostic(ErrorCode.ERR_EncReferenceToAddedMember, "X").WithArguments("X", "LibA").WithLocation(7, 14),
+                // (4,17): error CS7101: Member 'M' added during the current debug session can only be accessed from within its declaring assembly 'LibA'.
+                //     public void M() { System.Console.WriteLine(1);}
+                Diagnostic(ErrorCode.ERR_EncReferenceToAddedMember, "M").WithArguments("M", "LibA").WithLocation(4, 17));
         }
 
         [Fact]

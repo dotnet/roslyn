@@ -3998,7 +3998,7 @@ End Module
                 Dim diff1 = compilation1.EmitDifference(
                             EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider),
                             ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Insert, Nothing, compilation1.GetMember(Of MethodSymbol)("C.Main"))),
-                            New CompilationTestData With {.SymWriterFactory = Function() New MockSymUnmanagedWriter()})
+                            testData:=New CompilationTestData With {.SymWriterFactory = Function() New MockSymUnmanagedWriter()})
 
                 diff1.EmitResult.Diagnostics.Verify(
                     Diagnostic(ERRID.ERR_PDBWritingFailed).WithArguments("The method or operation is not implemented."))
@@ -4057,6 +4057,77 @@ End Class
 }
 ")
             End Using
+        End Sub
+
+        <Fact>
+        Public Sub ReferenceToMemberAddedToAnotherAssembly1()
+            Dim sourceA0 = "
+Public Class A
+End Class
+"
+            Dim sourceA1 = "
+Public Class A
+    Public Sub M() 
+        System.Console.WriteLine(1)
+    End Sub
+End Class
+
+Public Class X 
+End Class
+"
+            Dim sourceB0 = "
+Public Class B
+    Public Shared Sub F()
+    End Sub
+End Class"
+            Dim sourceB1 = "
+Public Class B
+    Public Shared Sub F() 
+        Dim a = New A()
+        a.M()
+    End Sub
+End Class
+
+Public Class Y 
+    Inherits X 
+End Class
+"
+
+            Dim compilationA0 = CreateCompilationWithMscorlib({sourceA0}, compOptions:=TestOptions.DebugDll, assemblyName:="LibA")
+            Dim compilationA1 = compilationA0.WithSource(sourceA1)
+            Dim compilationB0 = CreateCompilationWithMscorlib({sourceB0}, {compilationA0.ToMetadataReference()}, compOptions:=TestOptions.DebugDll, assemblyName:="LibB")
+            Dim compilationB1 = CreateCompilationWithMscorlib({sourceB1}, {compilationA1.ToMetadataReference()}, compOptions:=TestOptions.DebugDll, assemblyName:="LibB")
+
+            Dim bytesA0 = compilationA0.EmitToArray()
+            Dim bytesB0 = compilationB0.EmitToArray()
+            Dim mdA0 = ModuleMetadata.CreateFromImage(bytesA0)
+            Dim mdB0 = ModuleMetadata.CreateFromImage(bytesB0)
+            Dim generationA0 = EmitBaseline.CreateInitialBaseline(mdA0, EmptyLocalsProvider)
+            Dim generationB0 = EmitBaseline.CreateInitialBaseline(mdB0, EmptyLocalsProvider)
+            Dim mA1 = compilationA1.GetMember(Of MethodSymbol)("A.M")
+            Dim mX1 = compilationA1.GetMember(Of TypeSymbol)("X")
+
+            Dim allAddedSymbols = New ISymbol() {mA1, mX1}
+
+            Dim diffA1 = compilationA1.EmitDifference(
+                generationA0,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Insert, Nothing, mA1),
+                    New SemanticEdit(SemanticEditKind.Insert, Nothing, mX1)),
+                allAddedSymbols)
+
+            diffA1.EmitResult.Diagnostics.Verify()
+
+            Dim diffB1 = compilationB1.EmitDifference(
+                generationB0,
+                ImmutableArray.Create(
+                    New SemanticEdit(SemanticEditKind.Update, compilationB0.GetMember(Of MethodSymbol)("B.F"), compilationB1.GetMember(Of MethodSymbol)("B.F")),
+                    New SemanticEdit(SemanticEditKind.Insert, Nothing, compilationB1.GetMember(Of TypeSymbol)("Y"))),
+                allAddedSymbols)
+
+            diffB1.EmitResult.Diagnostics.Verify(
+                Diagnostic(ERRID.ERR_EncReferenceToAddedMember, "X").WithArguments("X", "LibA").WithLocation(8, 14),
+                Diagnostic(ERRID.ERR_EncReferenceToAddedMember, "M").WithArguments("M", "LibA").WithLocation(3, 16))
         End Sub
 
         <Fact>

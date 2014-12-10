@@ -4394,8 +4394,11 @@
   <data name="ERR_FieldHasMultipleDistinctConstantValues" xml:space="preserve">
     <value>The field has multiple distinct constant values.</value>
   </data>
-  <data name="ERR_EnCNoPIAReference" xml:space="preserve">
+  <data name="ERR_EncNoPIAReference" xml:space="preserve">
     <value>Cannot continue since the edit includes a reference to an embedded type: '{0}'.</value>
+  </data>
+  <data name="ERR_EncReferenceToAddedMember" xml:space="preserve">
+    <value>Member '{0}' added during the current debug session can only be accessed from within its declaring assembly '{1}'.</value>
   </data>
   <data name="ERR_UnsupportedModule1" xml:space="preserve">
     <value>'{0}' is an unsupported .NET module.</value>

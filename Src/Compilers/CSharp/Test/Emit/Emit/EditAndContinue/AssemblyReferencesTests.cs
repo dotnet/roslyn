@@ -61,13 +61,15 @@ class C
             var pdbStream = new MemoryStream();
             var updatedMethods = new List<MethodDefinitionHandle>();
 
-            c2.EmitDifference(baseline, new[]
+            var edits = new[]
             {
                 new SemanticEdit(
                     SemanticEditKind.Update,
                     c1.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("Main"),
                     c2.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("Main"))
-            }, mdStream, ilStream, pdbStream, updatedMethods);
+            };
+
+            c2.EmitDifference(baseline, edits, s => false, mdStream, ilStream, pdbStream, updatedMethods);
 
             var actualIL = ilStream.ToArray().GetMethodIL();
             var expectedIL = @"
@@ -130,13 +132,15 @@ class C
             var pdbStream = new MemoryStream();
             var updatedMethods = new List<MethodDefinitionHandle>();
 
-            c2.EmitDifference(baseline, new[]
+            var edits = new[]
             {
                 new SemanticEdit(
                     SemanticEditKind.Update,
                     c1.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("Main"),
                     c2.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember("Main"))
-            }, mdStream, ilStream, pdbStream, updatedMethods);
+            };
+
+            c2.EmitDifference(baseline, edits, s => false, mdStream, ilStream, pdbStream, updatedMethods);
 
             var actualIL = ilStream.ToArray().GetMethodIL();
 

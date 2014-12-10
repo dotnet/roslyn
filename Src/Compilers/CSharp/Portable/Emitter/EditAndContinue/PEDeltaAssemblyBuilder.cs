@@ -26,7 +26,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             ModulePropertiesForSerialization serializationProperties,
             IEnumerable<ResourceDescription> manifestResources,
             EmitBaseline previousGeneration,
-            IEnumerable<SemanticEdit> edits)
+            IEnumerable<SemanticEdit> edits,
+            Func<ISymbol, bool> isAddedSymbol)
             : base(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, assemblySymbolMapper: null, additionalTypes: ImmutableArray<NamedTypeSymbol>.Empty)
         {
             var context = new EmitContext(this, null, new DiagnosticBag());
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             this.previousDefinitions = new CSharpDefinitionMap(previousGeneration.OriginalMetadata.Module, edits, metadataDecoder, matchToMetadata, matchToPrevious);
             this.previousGeneration = previousGeneration;
-            this.changes = new SymbolChanges(this.previousDefinitions, edits);
+            this.changes = new SymbolChanges(this.previousDefinitions, edits, isAddedSymbol);
         }
 
         private static IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> GetAnonymousTypeMapFromMetadata(
@@ -192,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 foreach (var embeddedType in embeddedTypesManager.EmbeddedTypesMap.Keys)
                 {
-                    diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_EnCNoPIAReference, embeddedType), Location.None);
+                    diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_EncNoPIAReference, embeddedType), Location.None);
                 }
             }
         }

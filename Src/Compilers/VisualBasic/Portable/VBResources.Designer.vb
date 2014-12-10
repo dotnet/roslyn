@@ -3254,9 +3254,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''<summary>
         '''  Looks up a localized string similar to Cannot continue since the edit includes a reference to an embedded type: &apos;{0}&apos;..
         '''</summary>
-        Friend ReadOnly Property ERR_EnCNoPIAReference() As String
+        Friend ReadOnly Property ERR_EncNoPIAReference() As String
             Get
-                Return ResourceManager.GetString("ERR_EnCNoPIAReference", resourceCulture)
+                Return ResourceManager.GetString("ERR_EncNoPIAReference", resourceCulture)
             End Get
         End Property
         
@@ -3266,6 +3266,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_EncodinglessSyntaxTree() As String
             Get
                 Return ResourceManager.GetString("ERR_EncodinglessSyntaxTree", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Member &apos;{0}&apos; added during the current debug session can only be accessed from within its declaring assembly &apos;{1}&apos;..
+        '''</summary>
+        Friend ReadOnly Property ERR_EncReferenceToAddedMember() As String
+            Get
+                Return ResourceManager.GetString("ERR_EncReferenceToAddedMember", resourceCulture)
             End Get
         End Property
         

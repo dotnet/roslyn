@@ -2340,6 +2340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Overrides Function EmitDifference(
             baseline As EmitBaseline,
             edits As IEnumerable(Of SemanticEdit),
+            isAddedSymbol As Func(Of ISymbol, Boolean),
             metadataStream As Stream,
             ilStream As Stream,
             pdbStream As Stream,
@@ -2351,6 +2352,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me,
                 baseline,
                 edits,
+                isAddedSymbol,
                 metadataStream,
                 ilStream,
                 pdbStream,

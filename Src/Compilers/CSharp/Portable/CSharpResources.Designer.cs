@@ -3448,18 +3448,18 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to Cannot continue since the edit includes an operation on a &apos;dynamic&apos; type..
         /// </summary>
-        internal static string ERR_EnCNoDynamicOperation {
+        internal static string ERR_EncNoDynamicOperation {
             get {
-                return ResourceManager.GetString("ERR_EnCNoDynamicOperation", resourceCulture);
+                return ResourceManager.GetString("ERR_EncNoDynamicOperation", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Cannot continue since the edit includes a reference to an embedded type: &apos;{0}&apos;..
         /// </summary>
-        internal static string ERR_EnCNoPIAReference {
+        internal static string ERR_EncNoPIAReference {
             get {
-                return ResourceManager.GetString("ERR_EnCNoPIAReference", resourceCulture);
+                return ResourceManager.GetString("ERR_EncNoPIAReference", resourceCulture);
             }
         }
         
@@ -3469,6 +3469,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_EncodinglessSyntaxTree {
             get {
                 return ResourceManager.GetString("ERR_EncodinglessSyntaxTree", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Member &apos;{0}&apos; added during the current debug session can only be accessed from within its declaring assembly &apos;{1}&apos;..
+        /// </summary>
+        internal static string ERR_EncReferenceToAddedMember {
+            get {
+                return ResourceManager.GetString("ERR_EncReferenceToAddedMember", resourceCulture);
             }
         }
         

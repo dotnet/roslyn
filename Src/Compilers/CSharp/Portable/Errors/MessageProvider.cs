@@ -194,6 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         // PE Writer:
         public override int ERR_MetadataNameTooLong { get { return (int)ErrorCode.ERR_MetadataNameTooLong; } }
+        public override int ERR_EncReferenceToAddedMember { get { return (int)ErrorCode.ERR_EncReferenceToAddedMember; } }
 
         public override void ReportInvalidAttributeArgument(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int parameterIndex, AttributeData attribute)
         {

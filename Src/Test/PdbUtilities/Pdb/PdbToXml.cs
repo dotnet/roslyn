@@ -47,7 +47,7 @@ namespace Roslyn.Test.PdbUtilities
             this.options = options;
         }
 
-        public unsafe static string DeltaPdbToXml(Stream deltaPdb, IEnumerable<uint> methodTokens)
+        public unsafe static string DeltaPdbToXml(Stream deltaPdb, IEnumerable<int> methodTokens)
         {
             var writer = new StringWriter();
             ToXml(
@@ -55,7 +55,7 @@ namespace Roslyn.Test.PdbUtilities
                 deltaPdb, 
                 metadataReaderOpt: null,
                 options: PdbToXmlOptions.IncludeTokens, 
-                methodHandles: methodTokens.Select(token => (MethodDefinitionHandle)MetadataTokens.Handle((int)token)));
+                methodHandles: methodTokens.Select(token => (MethodDefinitionHandle)MetadataTokens.Handle(token)));
 
             return writer.ToString();
         }

@@ -286,6 +286,11 @@ namespace Microsoft.Cci
             return new FullReferenceIndexer(this);
         }
 
+        protected override void ReportReferencesToAddedSymbols()
+        {
+            // noop
+        }
+
         private sealed class FullReferenceIndexer : ReferenceIndexer
         {
             internal FullReferenceIndexer(MetadataWriter metadataWriter)

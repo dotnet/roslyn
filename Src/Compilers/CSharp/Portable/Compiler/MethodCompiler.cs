@@ -1108,7 +1108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Dynamic operations are not supported in ENC.
                 var location = method.Locations[0];
-                diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_EnCNoDynamicOperation), location);
+                diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_EncNoDynamicOperation), location);
                 return loweredBody;
             }
 

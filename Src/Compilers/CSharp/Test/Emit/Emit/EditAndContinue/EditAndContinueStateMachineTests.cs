@@ -223,7 +223,7 @@ class C
                     Handle(2, TableIndex.NestedClass));
             }
 
-            string actualPdb1 = PdbToXmlConverter.DeltaPdbToXml(diff1.PdbDelta, Enumerable.Range(1, 100).Select(rid => 0x06000000U | (uint)rid));
+            string actualPdb1 = PdbToXmlConverter.DeltaPdbToXml(diff1.PdbDelta, Enumerable.Range(1, 100).Select(rid => 0x06000000 | rid));
 
             // TODO (tomat): bug in SymWriter.
             // The PDB is missing debug info for G method. The info is written to the PDB but the native SymWriter 

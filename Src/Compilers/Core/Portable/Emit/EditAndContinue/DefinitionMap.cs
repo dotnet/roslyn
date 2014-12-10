@@ -61,7 +61,6 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         internal abstract Cci.IDefinition MapDefinition(Cci.IDefinition definition);
-        internal abstract Cci.ITypeReference MapReference(Cci.ITypeReference reference);
 
         internal bool DefinitionExists(Cci.IDefinition definition)
         {
@@ -95,12 +94,6 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             return this.mapToPrevious.MapDefinition(definition) ??
                    (this.mapToMetadata != this.mapToPrevious ? this.mapToMetadata.MapDefinition(definition) : null);
-        }
-
-        internal sealed override Cci.ITypeReference MapReference(Cci.ITypeReference reference)
-        {
-            return this.mapToPrevious.MapReference(reference) ??
-                   (this.mapToMetadata != this.mapToPrevious ? this.mapToMetadata.MapReference(reference) : null);
         }
 
         private bool TryGetMethodHandle(EmitBaseline baseline, Cci.IMethodDefinition def, out MethodDefinitionHandle handle)

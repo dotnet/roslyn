@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -79,9 +80,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             this Compilation compilation,
             EmitBaseline baseline,
             ImmutableArray<SemanticEdit> edits,
+            IEnumerable<ISymbol> allAddedSymbols = null,
             CompilationTestData testData = null)
         {
             testData = testData ?? new CompilationTestData();
+            var isAddedSymbol = new Func<ISymbol, bool>(s => allAddedSymbols?.Contains(s) ?? false);
+
             var pdbName = Path.ChangeExtension(compilation.SourceModule.Name, "pdb");
 
             // keep the stream open, it's passed to CompilationDifference
@@ -94,6 +98,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 var result = compilation.EmitDifference(
                     baseline,
                     edits,
+                    isAddedSymbol,
                     mdStream,
                     ilStream,
                     pdbStream,

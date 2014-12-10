@@ -23,7 +23,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                        serializationProperties As ModulePropertiesForSerialization,
                        manifestResources As IEnumerable(Of ResourceDescription),
                        previousGeneration As EmitBaseline,
-                       edits As IEnumerable(Of SemanticEdit))
+                       edits As IEnumerable(Of SemanticEdit),
+                       isAddedSymbol As Func(Of ISymbol, Boolean))
 
             MyBase.New(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, assemblySymbolMapper:=Nothing, additionalTypes:=ImmutableArray(Of NamedTypeSymbol).Empty)
 
@@ -53,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             Me.m_PreviousDefinitions = New VisualBasicDefinitionMap(previousGeneration.OriginalMetadata.Module, edits, metadataDecoder, matchToMetadata, matchToPrevious)
             Me.m_PreviousGeneration = previousGeneration
-            Me.m_Changes = New SymbolChanges(m_PreviousDefinitions, edits)
+            Me.m_Changes = New SymbolChanges(m_PreviousDefinitions, edits, isAddedSymbol)
         End Sub
 
         Private Overloads Shared Function GetAnonymousTypeMapFromMetadata(
@@ -200,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim embeddedTypesManager = Me.EmbeddedTypesManagerOpt
             If embeddedTypesManager IsNot Nothing Then
                 For Each embeddedType In embeddedTypesManager.EmbeddedTypesMap.Keys
-                    diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_EnCNoPIAReference, embeddedType), Location.None)
+                    diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_EncNoPIAReference, embeddedType), Location.None)
                 Next
             End If
         End Sub

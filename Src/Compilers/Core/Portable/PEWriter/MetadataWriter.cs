@@ -441,12 +441,14 @@ namespace Microsoft.Cci
         /// </summary>
         protected abstract void PopulateEncMapTableRows(List<EncMapRow> table, ImmutableArray<int> rowCounts);
 
+        protected abstract void ReportReferencesToAddedSymbols();
+
         // If true, it is allowed to have methods not have bodies (for emitting metadata-only
         // assembly)
         private readonly CancellationToken cancellationToken;
         protected readonly IModule module;
         public readonly EmitContext Context;
-        private readonly CommonMessageProvider messageProvider;
+        protected readonly CommonMessageProvider messageProvider;
 
         // progress:
         private bool streamsAreComplete;
@@ -1849,13 +1851,12 @@ namespace Microsoft.Cci
 
         private static Location GetNamedEntityLocation(INamedEntity errorEntity)
         {
-            Location location = Location.None;
-            ISymbol symbol = errorEntity as ISymbol;
-            if (symbol != null && !symbol.Locations.IsDefaultOrEmpty)
-            {
-                location = symbol.Locations[0];
-            }
-            return location;
+            return GetSymbolLocation(errorEntity as ISymbol);
+        }
+
+        protected static Location GetSymbolLocation(ISymbol symbolOpt)
+        {
+            return symbolOpt != null && !symbolOpt.Locations.IsDefaultOrEmpty ? symbolOpt.Locations[0] : Location.None;
         }
 
         private static SignatureTypeCode GetConstantTypeCode(object val)
@@ -2481,6 +2482,8 @@ namespace Microsoft.Cci
 
             // method body serialization adds Stand Alone Signatures
             this.tableIndicesAreComplete = true;
+
+            ReportReferencesToAddedSymbols();
 
             PopulateTables(methodBodyRvas, mappedFieldDataWriter, managedResourceDataWriter);
 

@@ -1651,7 +1651,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_FieldHasMultipleDistinctConstantValues = 37228
 
         ERR_AmbiguousInNamespaces2 = 37229
-        ERR_EnCNoPIAReference = 37230
+        ERR_EncNoPIAReference = 37230
         ERR_LinkedNetmoduleMetadataMustProvideFullPEImage = 37231
         ERR_CantReadRulesetFile = 37232
         ERR_MetadataReferencesNotSupported = 37233
@@ -1673,6 +1673,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_InvalidNameOfSubExpression = 37245
         ERR_MethodTypeArgsUnexpected = 37246
         ERR_InReferencedAssembly = 37247
+        ERR_EncReferenceToAddedMember = 37248
 
         ERR_LastPlusOne
 

@@ -1223,13 +1223,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CantReadConfigFile = 7093,
         ERR_BadAwaitInCatchFilter = 7094,
         WRN_FilterIsConstant = 7095,
-        ERR_EnCNoPIAReference = 7096,
-        ERR_EnCNoDynamicOperation = 7097,
+        ERR_EncNoPIAReference = 7096,
+        ERR_EncNoDynamicOperation = 7097,
         ERR_LinkedNetmoduleMetadataMustProvideFullPEImage = 7098,
         ERR_MetadataReferencesNotSupported = 7099,
         ERR_InvalidAssemblyCulture = 7100,
+        ERR_EncReferenceToAddedMember = 7101,
 
-        // available 7101-8000
+        // available 7102-8000
 
         WRN_UnimplementedCommandLineSwitch = 8001,
         WRN_ReferencedAssemblyDoesNotHaveStrongName = 8002,

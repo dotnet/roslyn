@@ -596,6 +596,31 @@ namespace Microsoft.CodeAnalysis.Emit
             return new DeltaReferenceIndexer(this);
         }
 
+        protected override void ReportReferencesToAddedSymbols()
+        {
+            foreach (var typeRef in GetTypeRefs())
+            {
+                ReportReferencesToAddedSymbol(typeRef as ISymbol);
+            }
+
+            foreach (var memberRef in GetMemberRefs())
+            {
+                ReportReferencesToAddedSymbol(memberRef as ISymbol);
+            }
+        }
+
+        private void ReportReferencesToAddedSymbol(ISymbol symbolOpt)
+        {
+            if (symbolOpt != null && this.changes.IsAdded(symbolOpt))
+            {
+                this.Context.Diagnostics.Add(this.messageProvider.CreateDiagnostic(
+                    this.messageProvider.ERR_EncReferenceToAddedMember, 
+                    GetSymbolLocation(symbolOpt), 
+                    symbolOpt.Name,
+                    symbolOpt.ContainingAssembly.Name));
+            }
+        }
+
         protected override uint SerializeLocalVariablesSignature(IMethodBody body)
         {
             uint result = 0;
@@ -1380,10 +1405,14 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             private readonly SymbolChanges changes;
 
-            public DeltaReferenceIndexer(DeltaMetadataWriter writer) :
-                base(writer)
+            public DeltaReferenceIndexer(DeltaMetadataWriter writer)
+                : base(writer)
             {
                 this.changes = writer.changes;
+            }
+
+            private void ReportReferenceToAddedSymbolDefinedInExternalAssembly(IReference symbol)
+            {
             }
 
             public override void Visit(IAssembly assembly)

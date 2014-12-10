@@ -12,13 +12,26 @@ namespace Microsoft.CodeAnalysis.Emit
     {
         private readonly DefinitionMap definitionMap;
         private readonly IReadOnlyDictionary<ISymbol, SymbolChange> changes;
+        private readonly Func<ISymbol, bool> isAddedSymbol;
 
-        public SymbolChanges(DefinitionMap definitionMap, IEnumerable<SemanticEdit> edits)
+        public SymbolChanges(DefinitionMap definitionMap, IEnumerable<SemanticEdit> edits, Func<ISymbol, bool> isAddedSymbol)
         {
             Debug.Assert(definitionMap != null);
             Debug.Assert(edits != null);
+            Debug.Assert(isAddedSymbol != null);
+
             this.definitionMap = definitionMap;
+            this.isAddedSymbol = isAddedSymbol;
             this.changes = CalculateChanges(edits);
+        }
+
+        /// <summary>
+        /// True if the symbol is a source symbol added during EnC session. 
+        /// The symbol may be declared in any source compilation in the current solution.
+        /// </summary>
+        public bool IsAdded(ISymbol symbol)
+        {
+            return isAddedSymbol(symbol);
         }
 
         /// <summary>

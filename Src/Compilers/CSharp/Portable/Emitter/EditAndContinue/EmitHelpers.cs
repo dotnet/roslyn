@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             CSharpCompilation compilation,
             EmitBaseline baseline,
             IEnumerable<SemanticEdit> edits,
+            Func<ISymbol, bool> isAddedSymbol,
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
@@ -54,7 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 serializationProperties: serializationProperties,
                 manifestResources: manifestResources,
                 previousGeneration: baseline,
-                edits: edits);
+                edits: edits,
+                isAddedSymbol: isAddedSymbol);
 
             if (testData != null)
             {
@@ -101,10 +103,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         writer.WriteMetadataAndIL(pdbWriter, metadataStream, ilStream, out metadataSizes);
                         writer.GetMethodTokens(updatedMethods);
 
+                        bool hasErrors = diagnostics.HasAnyErrors();
+
                         return new EmitDifferenceResult(
-                            success: true,
+                            success: !hasErrors,
                             diagnostics: diagnostics.ToReadOnlyAndFree(),
-                            baseline: writer.GetDelta(baseline, compilation, encId, metadataSizes));
+                            baseline: hasErrors ? null : writer.GetDelta(baseline, compilation, encId, metadataSizes));
                     }
                     catch (Cci.PdbWritingException e)
                     {

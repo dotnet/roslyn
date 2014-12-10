@@ -1343,6 +1343,7 @@ namespace Microsoft.CodeAnalysis
         public EmitDifferenceResult EmitDifference(
             EmitBaseline baseline,
             IEnumerable<SemanticEdit> edits,
+            Func<ISymbol, bool> isAddedSymbol,
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,
@@ -1362,6 +1363,11 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(edits));
             }
 
+            if (isAddedSymbol == null)
+            {
+                throw new ArgumentNullException(nameof(isAddedSymbol));
+            }
+
             if (metadataStream == null)
             {
                 throw new ArgumentNullException(nameof(metadataStream));
@@ -1377,12 +1383,13 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(pdbStream));
             }
 
-            return this.EmitDifference(baseline, edits, metadataStream, ilStream, pdbStream, updatedMethods, null, cancellationToken);
+            return this.EmitDifference(baseline, edits, isAddedSymbol, metadataStream, ilStream, pdbStream, updatedMethods, null, cancellationToken);
         }
 
         internal abstract EmitDifferenceResult EmitDifference(
             EmitBaseline baseline,
             IEnumerable<SemanticEdit> edits,
+            Func<ISymbol, bool> isAddedSymbol,
             Stream metadataStream,
             Stream ilStream,
             Stream pdbStream,

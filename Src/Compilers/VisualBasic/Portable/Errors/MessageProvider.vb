@@ -465,6 +465,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return ERRID.ERR_TooLongMetadataName
             End Get
         End Property
+
+        Public Overrides ReadOnly Property ERR_EncReferenceToAddedMember As Integer
+            Get
+                Return ERRID.ERR_EncReferenceToAddedMember
+            End Get
+        End Property
     End Class
 
 End Namespace

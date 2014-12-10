@@ -3546,11 +3546,14 @@
   <data name="ERR_CantReadConfigFile" xml:space="preserve">
     <value>Cannot read config file '{0}' -- '{1}'</value>
   </data>
-  <data name="ERR_EnCNoPIAReference" xml:space="preserve">
+  <data name="ERR_EncNoPIAReference" xml:space="preserve">
     <value>Cannot continue since the edit includes a reference to an embedded type: '{0}'.</value>
   </data>
-  <data name="ERR_EnCNoDynamicOperation" xml:space="preserve">
+  <data name="ERR_EncNoDynamicOperation" xml:space="preserve">
     <value>Cannot continue since the edit includes an operation on a 'dynamic' type.</value>
+  </data>
+  <data name="ERR_EncReferenceToAddedMember" xml:space="preserve">
+    <value>Member '{0}' added during the current debug session can only be accessed from within its declaring assembly '{1}'.</value>
   </data>
   <data name="ERR_LinkedNetmoduleMetadataMustProvideFullPEImage" xml:space="preserve">
     <value>Linked netmodule metadata must provide a full PE image: '{0}'.</value>

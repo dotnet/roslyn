@@ -523,20 +523,6 @@ namespace Microsoft.Cci
             }
         }
 
-        public void VisitMethodBodyTypes(IModule module)
-        {
-            throw new NotImplementedException(); // is this used anywhere?
-            //// Emulates ReferenceIndexerBase.Visit(IOperation operation)
-
-            //this.module = module;
-
-            //int count;
-            //foreach (IReference o in module.ReferencesInIL(out count))
-            //{
-            //    VisitMethodBodyReference(o);
-            //}
-        }
-
         public void VisitMethodBodyReference(IReference reference)
         {
             var typeReference = reference as ITypeReference;

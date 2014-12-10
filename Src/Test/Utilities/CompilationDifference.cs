@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Dictionary<int, string> sequencePointMarkers = null;
             if (!methodToken.IsNil)
             {
-                string actualPdb = PdbToXmlConverter.DeltaPdbToXml(PdbDelta, new[] { (uint)MetadataTokens.GetToken(methodToken) });
+                string actualPdb = PdbToXmlConverter.DeltaPdbToXml(PdbDelta, new[] { MetadataTokens.GetToken(methodToken) });
                 sequencePointMarkers = TestBase.GetSequencePointMarkers(actualPdb);
             }
 
@@ -84,7 +84,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL, escapeQuotes: true, expectedValueSourcePath: callerPath, expectedValueSourceLine: callerLine);
         }
 
-        public void VerifyPdb(IEnumerable<uint> methodTokens, string expectedPdb)
+        public void VerifyPdb(IEnumerable<MethodDefinitionHandle> methodHandles, string expectedPdb)
+        {
+            VerifyPdb(methodHandles.Select(h => MetadataTokens.GetToken(h)), expectedPdb);
+        }
+
+        public void VerifyPdb(IEnumerable<int> methodTokens, string expectedPdb)
         {
             string actualPdb = PdbToXmlConverter.DeltaPdbToXml(PdbDelta, methodTokens);
             TestBase.AssertXmlEqual(expectedPdb, actualPdb);

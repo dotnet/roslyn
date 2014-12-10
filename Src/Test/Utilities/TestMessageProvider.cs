@@ -328,5 +328,13 @@ namespace Roslyn.Test.Utilities
                 throw new NotImplementedException();
             }
         }
+
+        public override int ERR_EncReferenceToAddedMember
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
     }
 }
