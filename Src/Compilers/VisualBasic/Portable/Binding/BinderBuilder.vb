@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim namespaceBinder As Binder = New NamespaceBinder(sourceFileBinder, moduleSymbol.ContainingSourceAssembly.DeclaringCompilation.GlobalNamespace)
             Dim ignoreBasesBinder As Binder = New IgnoreBaseClassesBinder(namespaceBinder)
 
-            Return New LocationSpecificBinder(BindingLocation.ImportsDeclaration, ignoreBasesBinder)
+            Return New LocationSpecificBinder(BindingLocation.SourceFileImportsDeclaration, ignoreBasesBinder)
         End Function
 
         ''' <summary>
@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim namespaceBinder As Binder = New NamespaceBinder(projectImportsBinder, moduleSymbol.ContainingSourceAssembly.DeclaringCompilation.GlobalNamespace)
             Dim ignoreBasesBinder As Binder = New IgnoreBaseClassesBinder(namespaceBinder)
 
-            Return New LocationSpecificBinder(BindingLocation.ImportsDeclaration, ignoreBasesBinder)
+            Return New LocationSpecificBinder(BindingLocation.ProjectImportsDeclaration, ignoreBasesBinder)
         End Function
 
         ''' <summary>

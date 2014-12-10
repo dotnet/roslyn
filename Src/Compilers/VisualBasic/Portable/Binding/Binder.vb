@@ -869,9 +869,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Get
                 Select Case Me.BindingLocation
                     Case BindingLocation.BaseTypes,
-                        BindingLocation.MethodSignature,
-                        BindingLocation.GenericConstraintsClause,
-                        BindingLocation.ImportsDeclaration
+                         BindingLocation.MethodSignature,
+                         BindingLocation.GenericConstraintsClause,
+                         BindingLocation.ProjectImportsDeclaration,
+                         BindingLocation.SourceFileImportsDeclaration
                         Return False
 
                     Case Else

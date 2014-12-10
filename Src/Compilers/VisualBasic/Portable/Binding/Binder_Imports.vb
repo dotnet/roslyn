@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                  binder.ContainingNamespaceOrType,
                                                                  aliasText,
                                                                  aliasTarget,
-                                                                 aliasIdentifier.GetLocation())
+                                                                 If(binder.BindingLocation = BindingLocation.ProjectImportsDeclaration, NoLocation.Singleton, aliasIdentifier.GetLocation()))
 
                                 data.AddAlias(binder.GetSyntaxReference(aliasImportSyntax), aliasText, aliasSymbol, aliasImportSyntax.SpanStart)
                             End If

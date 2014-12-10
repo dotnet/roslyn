@@ -13,7 +13,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         BaseTypes
         MethodSignature ' method parameters and return type
         GenericConstraintsClause ' "T As {...}"
-        ImportsDeclaration
+        ProjectImportsDeclaration
+        SourceFileImportsDeclaration
         Attribute
         EventSignature
         FieldType

@@ -1444,6 +1444,40 @@ BC30456: 'F' is not a member of 'B'.
             CheckSymbols(symbols)
         End Sub
 
+        <Fact, WorkItem(963125)>
+        Public Sub Bug963125()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports alias2 = System
+
+Module Module1
+    Sub Main()
+        alias1.Console.WriteLine()
+        alias2.Console.WriteLine()
+    End Sub
+
+End Module
+
+    </file>
+</compilation>, options:=TestOptions.ReleaseExe.WithGlobalImports(GlobalImport.Parse({"alias1 = System"})))
+
+            compilation.AssertNoDiagnostics()
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim model = compilation.GetSemanticModel(tree)
+
+            Dim node1 = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(n) n.Identifier.ValueText = "alias1").Single()
+            Dim alias1 = model.GetAliasInfo(node1)
+            Assert.Equal("alias1=System", alias1.ToTestDisplayString())
+            Assert.Equal(LocationKind.None, alias1.Locations.Single().Kind)
+
+            Dim node2 = tree.GetRoot().DescendantNodes().OfType(Of IdentifierNameSyntax)().Where(Function(n) n.Identifier.ValueText = "alias2").Single()
+            Dim alias2 = model.GetAliasInfo(node2)
+            Assert.Equal("alias2=System", alias2.ToTestDisplayString())
+            Assert.Equal(LocationKind.SourceFile, alias2.Locations.Single().Kind)
+        End Sub
+
     End Class
 
 End Namespace
