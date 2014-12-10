@@ -1,23 +1,21 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 Imports System.Collections.Immutable
 Imports System.IO
-Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
-Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.MetadataUtilities
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
     Public Class EditAndContinueTests
-        Inherits BasicTestBase
+        Inherits EditAndContinueTestBase
 
         <WorkItem(962219)>
         <Fact>
@@ -40,7 +38,7 @@ End Class
 </file>
 </compilation>
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.Clone()
 
             Dim bytes0 = compilation0.EmitToArray()
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
@@ -123,9 +121,9 @@ End Class
 </file>
 </compilation>
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source0, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.DebugDll)
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntime(source2, TestOptions.DebugDll)
-            Dim compilation3 = CreateCompilationWithMscorlibAndVBRuntime(source3, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.WithSource(source1)
+            Dim compilation2 = compilation1.WithSource(source2)
+            Dim compilation3 = compilation2.WithSource(source3)
 
             Dim bytes0 = compilation0.EmitToArray()
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
@@ -257,7 +255,7 @@ End Class
 </file>
 </compilation>
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.Clone()
 
             Dim bytes0 = compilation0.EmitToArray()
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
@@ -316,7 +314,7 @@ End Namespace
 
             Dim bytes = compilation0.EmitToArray()
             Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes), EmptyLocalsProvider)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(options:=TestOptions.DebugDll, sources:=
+            Dim compilation1 = compilation0.WithSource(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -370,7 +368,7 @@ End Namespace
 }
 ")
 
-            Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntime(options:=TestOptions.DebugDll, sources:=
+            Dim compilation2 = compilation1.WithSource(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -447,7 +445,7 @@ End Class
 ]]></file>
                            </compilation>
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(sources0, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(sources1, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.WithSource(sources1)
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
@@ -477,7 +475,7 @@ End Class
 
             Dim testData1 = New CompilationTestData()
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
-            Dim edit = New SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables:=True)
+            Dim edit = New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(edit))
@@ -547,7 +545,7 @@ End Class
                           </compilation>
             Const ComputeStringHashName As String = "$$method0x6000001-ComputeStringHash"
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(sources, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(sources, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.WithSource(sources)
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
@@ -566,7 +564,7 @@ End Class
 
                 Dim testData1 = New CompilationTestData()
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
-                Dim edit = New SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables:=True)
+                Dim edit = New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)
                 Dim diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(edit))
@@ -615,7 +613,7 @@ End Module
 ]]></file>
                            </compilation>
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(sources0, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(sources1, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.WithSource(sources1)
 
             ' Verify full metadata contains expected rows.
             Dim bytes0 = compilation0.EmitToArray()
@@ -658,7 +656,7 @@ End Class
                     </file>
                 </compilation>
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.Clone()
 
             Dim matcher = New VisualBasicSymbolMatcher(Nothing, compilation1.SourceAssembly, Nothing, compilation0.SourceAssembly, Nothing, Nothing)
             Dim members = compilation1.GetMember(Of NamedTypeSymbol)("A.B").GetMembers("M")
@@ -684,7 +682,7 @@ End Class
                     </file>
                 </compilation>
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.Clone()
 
             Dim matcher = New VisualBasicSymbolMatcher(Nothing, compilation1.SourceAssembly, Nothing, compilation0.SourceAssembly, Nothing, Nothing)
             Dim member = compilation1.GetMember(Of MethodSymbol)("C.M")
@@ -715,7 +713,7 @@ End Class
                 </compilation>
             Dim metadata = CompileIL(ilSource)
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, {metadata}, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source, {metadata}, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.Clone()
 
             Dim member1 = compilation1.GetMember(Of MethodSymbol)("B.F")
             Const nModifiers As Integer = 1
@@ -762,11 +760,13 @@ Class C
 End Class
 ]]></file>
                            </compilation>
+
             Dim compilationPIA = CreateCompilationWithMscorlibAndVBRuntime(sourcesPIA)
             compilationPIA.AssertTheseDiagnostics()
             Dim referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes:=True)
+
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, options:=TestOptions.DebugDll, additionalRefs:={referencePIA})
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources1, options:=TestOptions.DebugDll, additionalRefs:={referencePIA})
+            Dim compilation1 = compilation0.WithSource(sources1)
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
@@ -777,7 +777,7 @@ End Class
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
                 diff1.VerifyIL("C.M", <![CDATA[
 {
   // Code size       11 (0xb)
@@ -861,8 +861,8 @@ End Class
             compilationPIA.AssertTheseDiagnostics()
             Dim referencePIA = compilationPIA.EmitToImageReference(embedInteropTypes:=True)
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, options:=TestOptions.DebugDll, additionalRefs:={referencePIA})
-            Dim compilation1A = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources1A, options:=TestOptions.DebugDll, additionalRefs:={referencePIA})
-            Dim compilation1B = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources1B, options:=TestOptions.DebugDll, additionalRefs:={referencePIA})
+            Dim compilation1A = compilation0.WithSource(sources1A)
+            Dim compilation1B = compilation0.WithSource(sources1B)
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
@@ -877,7 +877,7 @@ End Class
                 Dim method1A = compilation1A.GetMember(Of MethodSymbol)("C.M1")
                 Dim diff1A = compilation1A.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1A, GetLocalMap(method1A, method0), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1A, GetEquivalentNodesMap(method1A, method0), preserveLocalVariables:=True)))
 
                 diff1A.EmitResult.Diagnostics.AssertTheseDiagnostics(<errors><![CDATA[
 BC37230: Cannot continue since the edit includes a reference to an embedded type: 'IA'.
@@ -888,7 +888,7 @@ BC37230: Cannot continue since the edit includes a reference to an embedded type
                 Dim method1B = compilation1B.GetMember(Of MethodSymbol)("C.M1")
                 Dim diff1B = compilation1B.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1B, GetLocalMap(method1B, method0), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1B, GetEquivalentNodesMap(method1B, method0), preserveLocalVariables:=True)))
                 diff1B.VerifyIL("C(Of T).M1", <![CDATA[
 {
   // Code size        9 (0x9)
@@ -947,7 +947,7 @@ End Class
             compilationPIA.AssertTheseDiagnostics()
             Dim referencePIA = AssemblyMetadata.CreateFromImage(compilationPIA.EmitToArray()).GetReference(embedInteropTypes:=True)
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources, options:=TestOptions.DebugDll, additionalRefs:={referencePIA})
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources, options:=TestOptions.DebugDll, additionalRefs:={referencePIA})
+            Dim compilation1 = compilation0.WithSource(sources)
 
             Dim bytes0 = compilation0.EmitToArray()
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
@@ -956,7 +956,7 @@ End Class
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.M")
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
                 diff1.EmitResult.Diagnostics.AssertTheseDiagnostics(<errors><![CDATA[
 BC37230: Cannot continue since the edit includes a reference to an embedded type: 'IA'.
 BC37230: Cannot continue since the edit includes a reference to an embedded type: 'IB'.
@@ -1003,7 +1003,7 @@ End Class
 ]]></file>
 </compilation>
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source, options:=TestOptions.DebugDll)
+            Dim compilation1 = compilation0.Clone()
 
             Dim bytes0 = compilation0.EmitToArray()
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
@@ -1090,7 +1090,7 @@ End Module</file>
 </compilation>
 
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source0, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.WithSource(source1)
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
@@ -1153,7 +1153,7 @@ End Module</file>
 </compilation>
 
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source0, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.WithSource(source1)
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
@@ -1215,7 +1215,7 @@ End Class
 </compilation>
 
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source0, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.WithSource(source1)
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
@@ -1366,9 +1366,9 @@ End Class
                            </compilation>
 
             Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources1, TestOptions.DebugDll)
-            Dim compilation2 = CreateCompilationWithMscorlib(sources2, TestOptions.DebugDll)
-            Dim compilation3 = CreateCompilationWithMscorlib(sources3, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.WithSource(sources1)
+            Dim compilation2 = compilation1.WithSource(sources2)
+            Dim compilation3 = compilation2.WithSource(sources3)
 
             ' Verify full metadata contains expected rows.
             Dim testData0 = New CompilationTestData()
@@ -1392,7 +1392,7 @@ End Class
 
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
 
             diff1.VerifyIL("
 {
@@ -1448,7 +1448,7 @@ End Class
 
             Dim diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method1, method2, GetLocalMap(method2, method1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method1, method2, GetEquivalentNodesMap(method2, method1), preserveLocalVariables:=True)))
 
             diff2.VerifyIL("
 {
@@ -1507,7 +1507,7 @@ End Class
 
             Dim diff3 = compilation3.EmitDifference(
                 diff2.NextGeneration,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method2, method3, GetLocalMap(method3, method2), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method2, method3, GetEquivalentNodesMap(method3, method2), preserveLocalVariables:=True)))
 
             diff3.VerifyIL("
 {
@@ -1591,8 +1591,8 @@ End Class
                            </compilation>
 
             Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources1, TestOptions.DebugDll)
-            Dim compilation2 = CreateCompilationWithMscorlib(sources2, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.WithSource(sources1)
+            Dim compilation2 = compilation1.WithSource(sources2)
 
             Dim bytes0 = compilation0.EmitToArray()
             Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), EmptyLocalsProvider)
@@ -1605,7 +1605,7 @@ End Class
             Dim method2 = compilation2.GetMember(Of MethodSymbol)("C.M")
             Dim diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method1, method2, GetLocalMap(method2, method1), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method1, method2, GetEquivalentNodesMap(method2, method1), preserveLocalVariables:=True)))
             diff2.VerifyIL("C.M", <![CDATA[
 {
   // Code size       10 (0xa)
@@ -1678,7 +1678,7 @@ End Class
                            </compilation>
 
             Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources1, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.WithSource(sources1)
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.Main")
@@ -1686,7 +1686,7 @@ End Class
             Dim generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(bytes0), testData0.GetMethodData("C.Main").EncDebugInfoProvider)
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
             diff1.VerifyIL("C.Main", "
 {
   // Code size       17 (0x11)
@@ -1731,7 +1731,7 @@ End Class
                            </compilation>
 
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, XmlReferences, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, XmlReferences, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
@@ -1804,7 +1804,7 @@ End Class
                            </compilation>
 
             Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
@@ -1916,7 +1916,7 @@ End Class
                            </compilation>
 
             Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
@@ -2003,7 +2003,7 @@ End Class
                            </compilation>
 
             Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
@@ -2089,7 +2089,7 @@ End Class
                            </compilation>
 
             Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
@@ -2290,7 +2290,7 @@ End Class
                            </compilation>
 
             Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
@@ -2469,7 +2469,7 @@ End Class
                            </compilation>
 
             Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
@@ -2648,7 +2648,7 @@ End Class
                            </compilation>
 
             Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
@@ -2875,7 +2875,7 @@ End Class
                            </compilation>
 
             Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
@@ -2976,7 +2976,7 @@ End Class
                            </compilation>
 
             Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
@@ -3077,7 +3077,7 @@ End Class
 
 
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, XmlReferences, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, XmlReferences, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
@@ -3179,7 +3179,7 @@ End Class
                            </compilation>
 
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, XmlReferences, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources0, XmlReferences, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.Clone()
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
@@ -3316,7 +3316,7 @@ End Namespace
                            </compilation>
 
             Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources1, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.WithSource(sources1)
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
@@ -3329,7 +3329,7 @@ End Namespace
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("M.B.M")
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
 
                 Using md1 = diff1.GetMetadata()
                     Dim reader1 = md1.Reader
@@ -3397,7 +3397,7 @@ End Class
                            </compilation>
 
             Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources1, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.WithSource(sources1)
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
@@ -3411,7 +3411,7 @@ End Class
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.N")
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
                 Using md1 = diff1.GetMetadata()
                     Dim reader1 = md1.Reader
                     CheckNamesSorted({reader0, reader1}, reader1.GetTypeDefNames(), "VB$AnonymousDelegate_4`2", "VB$AnonymousType_1`1")
@@ -3541,9 +3541,9 @@ End Class
                            </compilation>
 
             Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources1, TestOptions.DebugDll)
-            Dim compilation2 = CreateCompilationWithMscorlib(sources2, TestOptions.DebugDll)
-            Dim compilation3 = CreateCompilationWithMscorlib(sources3, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.WithSource(sources1)
+            Dim compilation2 = compilation1.WithSource(sources2)
+            Dim compilation3 = compilation2.WithSource(sources3)
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
@@ -3564,7 +3564,7 @@ End Class
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("B.G")
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
                 Using md1 = diff1.GetMetadata()
                     Dim reader1 = md1.Reader
                     CheckNames({reader0, reader1}, reader1.GetTypeDefNames()) ' no additional types
@@ -3591,7 +3591,7 @@ End Class
                     Dim method2 = compilation2.GetMember(Of MethodSymbol)("B.G")
                     Dim diff2 = compilation2.EmitDifference(
                         diff1.NextGeneration,
-                        ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method1, method2, GetLocalMap(method2, method1), preserveLocalVariables:=True)))
+                        ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method1, method2, GetEquivalentNodesMap(method2, method1), preserveLocalVariables:=True)))
 
                     Using md2 = diff2.GetMetadata()
                         Dim reader2 = md2.Reader
@@ -3623,7 +3623,7 @@ End Class
                         Dim method3 = compilation3.GetMember(Of MethodSymbol)("B.G")
                         Dim diff3 = compilation3.EmitDifference(
                         diff2.NextGeneration,
-                        ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method2, method3, GetLocalMap(method3, method2), preserveLocalVariables:=True)))
+                        ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method2, method3, GetEquivalentNodesMap(method3, method2), preserveLocalVariables:=True)))
                         Using md3 = diff3.GetMetadata()
                             Dim reader3 = md3.Reader
                             CheckNames({reader0, reader1, reader2, reader3}, reader3.GetTypeDefNames()) ' no additional types
@@ -3722,9 +3722,9 @@ End Class
                            </compilation>
 
             Dim compilation0 = CreateCompilationWithMscorlib(sources0, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(sources1, TestOptions.DebugDll)
-            Dim compilation2 = CreateCompilationWithMscorlib(sources2, TestOptions.DebugDll)
-            Dim compilation3 = CreateCompilationWithMscorlib(sources3, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.WithSource(sources1)
+            Dim compilation2 = compilation1.WithSource(sources2)
+            Dim compilation3 = compilation2.WithSource(sources3)
 
             Dim testData0 = New CompilationTestData()
             Dim bytes0 = compilation0.EmitToArray(testData:=testData0)
@@ -3746,7 +3746,7 @@ End Class
                 Dim method1G = compilation1.GetMember(Of MethodSymbol)("C.G")
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0F, method1F, GetLocalMap(method1F, method0F), preserveLocalVariables:=True)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0F, method1F, GetEquivalentNodesMap(method1F, method0F), preserveLocalVariables:=True)))
                 Using md1 = diff1.GetMetadata()
                     Dim reader1 = md1.Reader
                     CheckNames({reader0, reader1}, reader1.GetTypeDefNames(), "VB$AnonymousType_1`2") ' one additional type
@@ -3754,7 +3754,7 @@ End Class
                     Dim method2G = compilation2.GetMember(Of MethodSymbol)("C.G")
                     Dim diff2 = compilation2.EmitDifference(
                         diff1.NextGeneration,
-                        ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method1G, method2G, GetLocalMap(method2G, method1G), preserveLocalVariables:=True)))
+                        ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method1G, method2G, GetEquivalentNodesMap(method2G, method1G), preserveLocalVariables:=True)))
                     Using md2 = diff2.GetMetadata()
                         Dim reader2 = md2.Reader
                         CheckNames({reader0, reader1, reader2}, reader2.GetTypeDefNames()) ' no additional types
@@ -3762,7 +3762,7 @@ End Class
                         Dim method3G = compilation3.GetMember(Of MethodSymbol)("C.G")
                         Dim diff3 = compilation3.EmitDifference(
                         diff2.NextGeneration,
-                        ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method2G, method3G, GetLocalMap(method3G, method2G), preserveLocalVariables:=True)))
+                        ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method2G, method3G, GetEquivalentNodesMap(method3G, method2G), preserveLocalVariables:=True)))
                         Using md3 = diff3.GetMetadata()
                             Dim reader3 = md3.Reader
                             CheckNames({reader0, reader1, reader2, reader3}, reader3.GetTypeDefNames()) ' no additional types
@@ -3818,7 +3818,7 @@ End Class
             ' Still need a compilation with source for the initial
             ' generation - to get a MethodSymbol and syntax map.
             Dim compilation0 = CreateCompilationWithMscorlib(source, options:=TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(source, options:=TestOptions.DebugDll)
+            Dim compilation1 = compilation0.Clone()
 
             Dim moduleMetadata0 = DirectCast(metadata0.GetMetadata(), AssemblyMetadata).GetModules(0)
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
@@ -3828,7 +3828,7 @@ End Class
                 Function(m) Nothing)
             Dim testData1 = New CompilationTestData()
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
-            Dim edit = New SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables:=True)
+            Dim edit = New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)
             Dim diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(edit))
@@ -3905,7 +3905,7 @@ End Module
 </file>
 </compilation>
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source0, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.WithSource(source1)
             Dim bytes0 = compilation0.EmitToArray()
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("M.F")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("M.F")
@@ -3941,7 +3941,7 @@ End Module
 </file>
 </compilation>
             Dim compilation0 = CreateCompilationWithMscorlibAndVBRuntime(source0, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntime(source1, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.WithSource(source1)
             Dim bytes0 = compilation0.EmitToArray()
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("M.F")
             Dim method1 = compilation1.GetMember(Of MethodSymbol)("M.F")
@@ -3949,7 +3949,7 @@ End Module
 
             Dim diff0 = compilation1.EmitDifference(
                 generation0,
-                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetLocalMap(method1, method0), preserveLocalVariables:=True)))
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
 
             diff0.VerifyIL("
 {
@@ -3989,7 +3989,7 @@ End Module
 ]]></file>
 </compilation>
             Dim compilation0 = CreateCompilationWithMscorlib(source0, TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlib(source1, TestOptions.DebugDll)
+            Dim compilation1 = compilation0.WithSource(source1)
 
             ' Verify full metadata contains expected rows.
             Dim bytes0 = compilation0.EmitToArray()
@@ -4031,7 +4031,7 @@ End Class
             Dim tree0 = VisualBasicSyntaxTree.ParseText(source0, parseOptions)
             Dim tree1 = VisualBasicSyntaxTree.ParseText(source0.Replace("' Body", "N1(): N2()"), parseOptions)
             Dim compilation0 = CreateCompilationWithMscorlib({tree0}, compOptions:=TestOptions.DebugDll)
-            Dim compilation1 = CreateCompilationWithMscorlib({tree1}, compOptions:=TestOptions.DebugDll)
+            Dim compilation1 = compilation0.ReplaceSyntaxTree(tree0, tree1)
 
             Dim bytes0 = compilation0.EmitToArray()
             Using md0 = ModuleMetadata.CreateFromImage(bytes0)
@@ -4059,186 +4059,84 @@ End Class
             End Using
         End Sub
 
-#Region "Helpers"
-        Private Shared ReadOnly EmptyLocalsProvider As Func(Of MethodDefinitionHandle, EditAndContinueMethodDebugInformation) = Function(token) Nothing
+        <Fact>
+        Public Sub ReferenceToMemberAddedToAnotherAssembly2()
+            Dim sourceA = "
+Public Class A
+    Public Sub M()
+    End Sub
+End Class"
+            Dim sourceB0 = "
+Public Class B
+    Public Shared Sub F() 
+        Dim a = New A()
+    End Sub
+End Class"
+            Dim sourceB1 = "
+Public Class B
+    Public Shared Sub F() 
+        Dim a = New A()
+        a.M()
+    End Sub
+End Class"
+            Dim sourceB2 = "
+Public Class B
+    Public Shared Sub F() 
+        Dim a = New A()
+    End Sub
+End Class"
 
-        Private Shared Function GetAllLocals(compilation As VisualBasicCompilation, method As MethodSymbol) As ImmutableArray(Of LocalSymbol)
-            Dim methodSyntax = method.DeclaringSyntaxReferences(0).GetSyntax().Parent
-            Dim model = compilation.GetSemanticModel(methodSyntax.SyntaxTree)
-            Dim locals = ArrayBuilder(Of LocalSymbol).GetInstance()
+            Dim compilationA = CreateCompilationWithMscorlib({sourceA}, compOptions:=TestOptions.DebugDll, assemblyName:="AssemblyA")
+            Dim aRef = compilationA.ToMetadataReference()
 
-            For Each node In methodSyntax.DescendantNodes()
-                If node.VBKind = SyntaxKind.VariableDeclarator Then
-                    For Each name In DirectCast(node, VariableDeclaratorSyntax).Names
-                        Dim local = DirectCast(model.GetDeclaredSymbol(name), LocalSymbol)
-                        locals.Add(local)
-                    Next
-                End If
-            Next
+            Dim compilationB0 = CreateCompilationWithMscorlib({sourceB0}, {aRef}, compOptions:=TestOptions.DebugDll, assemblyName:="AssemblyB")
+            Dim compilationB1 = compilationB0.WithSource(sourceB1)
+            Dim compilationB2 = compilationB1.WithSource(sourceB2)
 
-            Return locals.ToImmutableAndFree()
-        End Function
+            Dim testDataB0 = New CompilationTestData()
+            Dim bytesB0 = compilationB0.EmitToArray(testData:=testDataB0)
+            Dim mdB0 = ModuleMetadata.CreateFromImage(bytesB0)
+            Dim generationB0 = EmitBaseline.CreateInitialBaseline(mdB0, testDataB0.GetMethodData("B.F").EncDebugInfoProvider())
 
-        Private Shared Function GetAllLocals(compilation As VisualBasicCompilation, method As IMethodSymbol) As ImmutableArray(Of KeyValuePair(Of ILocalSymbol, Integer))
-            Dim locals = GetAllLocals(compilation, DirectCast(method, MethodSymbol))
-            Return locals.SelectAsArray(Function(local, index, arg) New KeyValuePair(Of ILocalSymbol, Integer)(local, index), DirectCast(Nothing, Object))
-        End Function
+            Dim f0 = compilationB0.GetMember(Of MethodSymbol)("B.F")
+            Dim f1 = compilationB1.GetMember(Of MethodSymbol)("B.F")
+            Dim f2 = compilationB2.GetMember(Of MethodSymbol)("B.F")
 
-        Private Shared Function GetAllLocals(method As SourceMethodSymbol) As ImmutableArray(Of VisualBasicSyntaxNode)
-            Dim names = From name In LocalVariableDeclaratorsCollector.GetDeclarators(method).OfType(Of ModifiedIdentifierSyntax)
-                        Select DirectCast(name, VisualBasicSyntaxNode)
+            Dim diffB1 = compilationB1.EmitDifference(
+                generationB0,
+                ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetEquivalentNodesMap(f1, f0), preserveLocalVariables:=True)))
 
-            Return names.AsImmutableOrEmpty
-        End Function
+            diffB1.VerifyIL("B.F", "
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (A V_0) //a
+  IL_0000:  nop
+  IL_0001:  newobj     ""Sub A..ctor()""
+  IL_0006:  stloc.0
+  IL_0007:  ldloc.0
+  IL_0008:  callvirt   ""Sub A.M()""
+  IL_000d:  nop
+  IL_000e:  ret
+}
+")
 
-        Private Shared Function GetLocalName(node As SyntaxNode) As String
-            If node.VBKind = SyntaxKind.ModifiedIdentifier Then
-                Return DirectCast(node, ModifiedIdentifierSyntax).Identifier.ToString()
-            End If
+            Dim diffB2 = compilationB2.EmitDifference(
+               diffB1.NextGeneration,
+               ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2, GetEquivalentNodesMap(f2, f1), preserveLocalVariables:=True)))
 
-            Throw New NotImplementedException()
-        End Function
-
-        Private Shared Function GetLocalMap(method1 As MethodSymbol, method0 As MethodSymbol) As Func(Of SyntaxNode, SyntaxNode)
-            Dim tree1 = method1.Locations(0).SourceTree
-            Dim tree0 = method0.Locations(0).SourceTree
-            Assert.NotEqual(tree1, tree0)
-
-            Dim sourceMethod0 = DirectCast(method0, SourceMethodSymbol)
-
-            Dim locals0 = GetAllLocals(sourceMethod0)
-            Return Function(s As SyntaxNode)
-                       Dim s1 = s
-                       Assert.Equal(s1.SyntaxTree, tree1)
-
-                       ' add mapping for result variable (it's declarator is the Function Statement)
-                       If s.IsKind(SyntaxKind.FunctionStatement) Then
-                           Assert.True(sourceMethod0.BlockSyntax.Begin.IsKind(SyntaxKind.FunctionStatement))
-                           Return sourceMethod0.BlockSyntax.Begin
-                       ElseIf s.IsKind(SyntaxKind.PropertyStatement) Then
-                           Assert.True(sourceMethod0.BlockSyntax.IsKind(SyntaxKind.GetAccessorBlock))
-                           Return DirectCast(sourceMethod0.BlockSyntax.Parent, PropertyBlockSyntax).PropertyStatement
-                       End If
-
-                       For Each s0 In locals0
-                           If Not SyntaxFactory.AreEquivalent(s0, s1) Then
-                               Continue For
-                           End If
-                           ' Make sure the containing statements are the same.
-                           Dim p0 = GetNearestStatement(s0)
-                           Dim p1 = GetNearestStatement(s1)
-                           If SyntaxFactory.AreEquivalent(p0, p1) Then
-                               Return s0
-                           End If
-                       Next
-                       Return Nothing
-                   End Function
-        End Function
-
-        Private Shared Function GetNearestStatement(node As SyntaxNode) As StatementSyntax
-            While node IsNot Nothing
-                Dim statement = TryCast(node, StatementSyntax)
-                If statement IsNot Nothing Then
-                    Return statement
-                End If
-
-                node = node.Parent
-            End While
-            Return Nothing
-        End Function
-
-        Private Shared Function Row(rowNumber As Integer, table As TableIndex, operation As EditAndContinueOperation) As EditAndContinueLogEntry
-            Return New EditAndContinueLogEntry(MetadataTokens.Handle(table, rowNumber), operation)
-        End Function
-
-        Private Shared Function Handle(rowNumber As Integer, table As TableIndex) As Handle
-            Return MetadataTokens.Handle(table, rowNumber)
-        End Function
-
-        Private Shared Sub CheckEncLog(reader As MetadataReader, ParamArray rows As EditAndContinueLogEntry())
-            AssertEx.Equal(rows, reader.GetEditAndContinueLogEntries(), itemInspector:=AddressOf EncLogRowToString)
+            diffB2.VerifyIL("B.F", "
+{
+  // Code size        8 (0x8)
+  .maxstack  1
+  .locals init (A V_0) //a
+  IL_0000:  nop
+  IL_0001:  newobj     ""Sub A..ctor()""
+  IL_0006:  stloc.0
+  IL_0007:  ret
+}
+")
         End Sub
 
-        Private Shared Sub CheckEncMap(reader As MetadataReader, ParamArray [handles] As Handle())
-            AssertEx.Equal([handles], reader.GetEditAndContinueMapEntries(), itemInspector:=AddressOf EncMapRowToString)
-        End Sub
-
-        Private Shared Sub CheckNames(reader As MetadataReader, [handles] As StringHandle(), ParamArray expectedNames As String())
-            CheckNames({reader}, [handles], expectedNames)
-        End Sub
-
-        Private Shared Sub CheckNames(readers As MetadataReader(), [handles] As StringHandle(), ParamArray expectedNames As String())
-            Dim actualNames = readers.GetStrings([handles])
-            AssertEx.Equal(expectedNames, actualNames)
-        End Sub
-
-        Private Shared Sub CheckNamesSorted(readers As MetadataReader(), [handles] As StringHandle(), ParamArray expectedNames As String())
-            Dim actualNames = readers.GetStrings([handles])
-            Array.Sort(actualNames)
-            Array.Sort(expectedNames)
-            AssertEx.Equal(expectedNames, actualNames)
-        End Sub
-
-        Private Shared Function EncLogRowToString(row As EditAndContinueLogEntry) As String
-            Dim index As TableIndex = 0
-            MetadataTokens.TryGetTableIndex(row.Handle.Kind, index)
-            Return String.Format(
-                "Row({0}, TableIndex.{1}, EditAndContinueOperation.{2})",
-                MetadataTokens.GetRowNumber(row.Handle),
-                index,
-                row.Operation)
-        End Function
-
-        Private Shared Function EncMapRowToString(handle As Handle) As String
-            Dim index As TableIndex = 0
-            MetadataTokens.TryGetTableIndex(handle.Kind, index)
-            Return String.Format(
-                "Handle({0}, TableIndex.{1})",
-                MetadataTokens.GetRowNumber(handle),
-                index)
-        End Function
-
-#End Region
     End Class
-
-    Friend Module CompilationDifferenceExtensions
-
-        <Extension()>
-        Friend Sub VerifyIL(diff As CompilationDifference, qualifiedMethodName As String, expectedIL As String)
-            diff.VerifyIL(qualifiedMethodName, expectedIL, AddressOf ToLocalInfo)
-        End Sub
-
-        <Extension()>
-        Friend Function GetMethodIL(diff As CompilationDifference, qualifiedMethodName As String) As String
-            Return ILBuilderVisualizer.ILBuilderToString(diff.TestData.GetMethodData(qualifiedMethodName).ILBuilder, AddressOf ToLocalInfo)
-        End Function
-
-        Private Function ToLocalInfo(local As Cci.ILocalDefinition) As ILVisualizer.LocalInfo
-            Dim signature = local.Signature
-            If signature Is Nothing Then
-                Return New ILVisualizer.LocalInfo(local.Name, local.Type, local.IsPinned, local.IsReference)
-            Else
-                ' Decode simple types only.
-                Dim typeName = If(signature.Length = 1, GetTypeName(CType(signature(0), SignatureTypeCode)), Nothing)
-                Return New ILVisualizer.LocalInfo(Nothing, If(typeName, "[unchanged]"), False, False)
-            End If
-        End Function
-
-        Private Function GetTypeName(typeCode As SignatureTypeCode) As String
-            Select Case typeCode
-                Case SignatureTypeCode.Boolean
-                    Return "Boolean"
-                Case SignatureTypeCode.Int32
-                    Return "Integer"
-                Case SignatureTypeCode.String
-                    Return "String"
-                Case SignatureTypeCode.Object
-                    Return "Object"
-                Case Else
-                    Return Nothing
-            End Select
-        End Function
-
-    End Module
-
 End Namespace

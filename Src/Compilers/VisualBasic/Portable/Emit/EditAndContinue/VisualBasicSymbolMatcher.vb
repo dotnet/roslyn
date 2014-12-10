@@ -304,7 +304,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Function
 
             Public Overrides Function VisitModule([module] As ModuleSymbol) As Symbol
-                Return Me.otherAssembly.Modules([module].Ordinal)
+                ' Only map symbols from source assembly and its previous generations to the other assembly. 
+                ' All other symbols should map to themselves.
+                If [module].ContainingAssembly.Identity.Equals(sourceAssembly.Identity) Then
+                    Return otherAssembly.Modules([module].Ordinal)
+                Else
+                    Return [module]
+                End If
             End Function
 
             Public Overrides Function VisitNamespace([namespace] As NamespaceSymbol) As Symbol

@@ -50,7 +50,7 @@ class B
 }";
 
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source);
 
             var builder = new List<Symbol>();
             var type = compilation1.GetMember<NamedTypeSymbol>("A");
@@ -108,7 +108,7 @@ class B
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source);
 
             var matcher = new CSharpSymbolMatcher(
                 null,
@@ -140,7 +140,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source);
 
             var matcher = new CSharpSymbolMatcher(
                 null,
@@ -170,7 +170,7 @@ class C
     public override object[] F(int* p) { return null; }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, references: new[] { metadataRef });
-            var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, references: new[] { metadataRef });
+            var compilation1 = compilation0.WithSource(source);
 
             var member1 = compilation1.GetMember<MethodSymbol>("B.F");
             Assert.Equal(((PointerTypeSymbol)member1.Parameters[0].Type).CustomModifiers.Length, 1);

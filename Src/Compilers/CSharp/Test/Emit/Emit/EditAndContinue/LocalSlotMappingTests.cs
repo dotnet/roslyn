@@ -35,7 +35,7 @@ public class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: ComSafeDebugDll);
-            var compilation1 = CreateCompilationWithMscorlib(source, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source);
 
             var v0 = CompileAndVerify(compilation0);
             v0.VerifyIL("C.M", @"
@@ -357,7 +357,7 @@ public class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(testData: testData0);
@@ -454,7 +454,7 @@ public class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(testData: testData0);
@@ -609,7 +609,7 @@ public class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeDebugDll);
-            var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeDebugDll);
+            var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(testData: testData0);
@@ -717,7 +717,7 @@ public class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeDebugDll);
-            var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeDebugDll);
+            var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(testData: testData0);
@@ -881,7 +881,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(testData: testData0);
@@ -1064,7 +1064,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source);
 
             var v0 = CompileAndVerify(compilation0);
 
@@ -1249,7 +1249,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(testData: testData0);
@@ -1409,7 +1409,7 @@ class C
             Assert.True(source.IndexOf(tooManyCommas) > 0);
 
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(testData: testData0);
@@ -1546,7 +1546,7 @@ class C
 }");
 
             var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
-            var compilation2 = CreateCompilationWithMscorlib(source2, options: TestOptions.DebugDll);
+            var compilation2 = compilation0.WithSource(source2);
 
             var methodData0 = v0.TestData.GetMethodData("C.M");
             var method0 = compilation0.GetMember<MethodSymbol>("C.M");
@@ -1726,7 +1726,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
 
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(testData: testData0);
@@ -1864,7 +1864,7 @@ class C
 }";
 
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source);
 
             var testData0 = new CompilationTestData();
             var bytes0 = compilation0.EmitToArray(testData: testData0);
@@ -2012,7 +2012,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
 
@@ -2116,7 +2116,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
 
@@ -2239,7 +2239,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
 
@@ -2344,7 +2344,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
 
@@ -2454,7 +2454,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
 
@@ -2560,7 +2560,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
-            var compilation1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
 
@@ -2652,7 +2652,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
-            var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source);
 
             var v0 = CompileAndVerify(compilation0);
             v0.VerifyIL("C.<>c__DisplayClass0.<M>b__1()", @"
@@ -2721,8 +2721,8 @@ class C
     }
 }
 ";
-            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, parseOptions: TestOptions.ExperimentalParseOptions);
-            var compilation1 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, parseOptions: TestOptions.ExperimentalParseOptions);
+            var compilation0 = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source);
 
             var v0 = CompileAndVerify(compilation0);
 
@@ -2835,8 +2835,8 @@ class C
     }
 }
 ";
-            var compilation0 = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, parseOptions: TestOptions.ExperimentalParseOptions);
-            var compilation1 = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, parseOptions: TestOptions.ExperimentalParseOptions);
+            var compilation0 = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source);
 
             var v0 = CompileAndVerify(compilation0);
 

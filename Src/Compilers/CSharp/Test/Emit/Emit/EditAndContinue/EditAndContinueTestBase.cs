@@ -234,4 +234,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                 constructorTableIndex);
         }
     }
+
+    public static class EditAndContinueTestExtensions
+    {
+        internal static CSharpCompilation WithSource(this CSharpCompilation compilation, string newSource)
+        {
+            return compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(CSharpTestBase.Parse(newSource));
+        }
+    }
 }

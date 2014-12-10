@@ -179,6 +179,11 @@ Friend Module CompilationUtils
         Return CreateCompilationWithReferences(sourceTrees, references, options, assemblyName)
     End Function
 
+    Public Function ToSourceTrees(compilationSources As XElement, Optional parseOptions As VisualBasicParseOptions = Nothing) As IEnumerable(Of SyntaxTree)
+        Dim sourcesTreesAndSpans = From f In compilationSources.<file> Select CreateParseTreeAndSpans(f, parseOptions)
+        Return From t In sourcesTreesAndSpans Select t.Item1
+    End Function
+
     Public Function CreateCompilationWithReferences(sourceTrees As IEnumerable(Of SyntaxTree),
                                                     references As IEnumerable(Of MetadataReference),
                                                     Optional options As VisualBasicCompilationOptions = Nothing,

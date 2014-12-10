@@ -374,7 +374,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             public override Symbol VisitModule(ModuleSymbol module)
             {
-                return this.otherAssembly.Modules[module.Ordinal];
+                // Only map symbols from source assembly and its previous generations to the other assembly. 
+                // All other symbols should map to themselves.
+                if (module.ContainingAssembly.Identity.Equals(sourceAssembly.Identity))
+                {
+                    return this.otherAssembly.Modules[module.Ordinal];
+                }
+                else
+                {
+                    return module;
+                }
             }
 
             public override Symbol VisitNamespace(NamespaceSymbol @namespace)

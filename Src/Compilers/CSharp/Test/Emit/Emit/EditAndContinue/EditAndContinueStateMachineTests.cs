@@ -281,7 +281,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
-            var compilation1 = CreateCompilationWithMscorlib45(source1, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
             var v0 = CompileAndVerify(compilation0);
 
             var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), EmptyLocalsProvider);
@@ -355,7 +355,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
-            var compilation1 = CreateCompilationWithMscorlib45(source1, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
 
@@ -458,7 +458,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
-            var compilation1 = CreateCompilationWithMscorlib45(source1, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
 
@@ -530,7 +530,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
-            var compilation1 = CreateCompilationWithMscorlib45(source1, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
 
@@ -577,7 +577,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
-            var compilation1 = CreateCompilationWithMscorlib45(source1, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
 
@@ -648,7 +648,7 @@ class C
     public void X() { } // needs to be present to work around SymWriter bug #1068894
 }";
             var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
-            var compilation1 = CreateCompilationWithMscorlib45(source1, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
 
@@ -719,7 +719,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
-            var compilation1 = CreateCompilationWithMscorlib45(source1, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
 
@@ -868,7 +868,7 @@ class C
     }
 }";
             var compilation0 = CreateCompilationWithMscorlib45(source0, options: TestOptions.DebugDll);
-            var compilation1 = CreateCompilationWithMscorlib45(source1, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
 
@@ -1108,7 +1108,7 @@ class C
     public void X() { } // needs to be present to work around SymWriter bug #1068894
 }";
             var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll);
-            var compilation1 = CreateCompilationWithMscorlib45(source1, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
             var debugInfoProvider = v0.CreatePdbInfoProvider();
@@ -1226,7 +1226,7 @@ class C
     public void X() { } // needs to be present to work around SymWriter bug #1068894
 }";
             var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll);
-            var compilation1 = CreateCompilationWithMscorlib45(source1, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
             var debugInfoProvider = v0.CreatePdbInfoProvider();
@@ -1348,7 +1348,7 @@ class C
     public void X() { } // needs to be present to work around SymWriter bug #1068894
 }";
             var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll);
-            var compilation1 = CreateCompilationWithMscorlib45(source1, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
             var debugInfoProvider = v0.CreatePdbInfoProvider();
@@ -1467,7 +1467,7 @@ class C
     public void X() { } // needs to be present to work around SymWriter bug #1068894
 }";
             var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll);
-            var compilation1 = CreateCompilationWithMscorlib45(source1, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0);
             var debugInfoProvider = v0.CreatePdbInfoProvider();
@@ -1583,7 +1583,7 @@ class C
             // Rude edit but the compiler should handle it.
 
             var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
-            var compilation1 = CreateCompilationWithMscorlib45(source1, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation1 = compilation0.WithSource(source1);
 
             var v0 = CompileAndVerify(compilation0, symbolValidator: module =>
             {
@@ -1845,9 +1845,9 @@ class C
             // Rude edit but the compiler should handle it.
 
             var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
-            var compilation1 = CreateCompilationWithMscorlib45(source1, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
-            var compilation2 = CreateCompilationWithMscorlib45(source2, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
-            var compilation3 = CreateCompilationWithMscorlib45(source3, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation1 = compilation0.WithSource(source1);
+            var compilation2 = compilation1.WithSource(source2);
+            var compilation3 = compilation2.WithSource(source3);
 
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
@@ -2316,10 +2316,10 @@ class C
 
             // Rude edit but the compiler should handle it.
 
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
-            var compilation1 = CreateCompilationWithMscorlib45(source1, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
-            var compilation2 = CreateCompilationWithMscorlib45(source2, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
-            var compilation3 = CreateCompilationWithMscorlib45(source3, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "A");
+            var compilation1 = compilation0.WithSource(source1);
+            var compilation2 = compilation1.WithSource(source2);
+            var compilation3 = compilation2.WithSource(source3);
 
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
             var f1 = compilation1.GetMember<MethodSymbol>("C.F");
