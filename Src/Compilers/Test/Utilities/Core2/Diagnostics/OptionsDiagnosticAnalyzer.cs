@@ -42,8 +42,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         private bool AreEqual(AnalyzerOptions actual, AnalyzerOptions expected)
         {
-            if (actual.AdditionalStreams.Length != expected.AdditionalStreams.Length ||
-                actual.GlobalOptions.Count != expected.GlobalOptions.Count)
+            if (actual.AdditionalStreams.Length != expected.AdditionalStreams.Length)
             {
                 return false;
             }
@@ -51,15 +50,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             for (int i =0; i < actual.AdditionalStreams.Length; i++)
             {
                 if (actual.AdditionalStreams[i].Path != expected.AdditionalStreams[i].Path)
-                {
-                    return false;
-                }
-            }
-
-            for (int i = 0; i < actual.GlobalOptions.Count; i++)
-            {
-                if (actual.GlobalOptions.Keys.ElementAt(i) != expected.GlobalOptions.Keys.ElementAt(i) ||
-                    actual.GlobalOptions.Values.ElementAt(i) != expected.GlobalOptions.Values.ElementAt(i))
                 {
                     return false;
                 }

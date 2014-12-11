@@ -3838,7 +3838,6 @@
  /nowarn:&lt;warn list&gt;           Disable specific warning messages
  /ruleset:&lt;file&gt;               Specify a ruleset file that disables specific
                                diagnostics.
- /option:&lt;name&gt;=&lt;value&gt;        Specify an option that can be passed to analyzers.
 
                         - LANGUAGE -
  /checked[+|-]                 Generate overflow checks

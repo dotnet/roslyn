@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var analyzerOptions = new AnalyzerOptions(Arguments.AdditionalStreams, Arguments.AdditionalOptions, Culture);
+            var analyzerOptions = new AnalyzerOptions(Arguments.AdditionalStreams);
 
             AnalyzerDriver analyzerDriver = null;
             if (!analyzers.IsDefaultOrEmpty)

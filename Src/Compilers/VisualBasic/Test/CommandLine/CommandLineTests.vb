@@ -6102,63 +6102,6 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
             Assert.Equal(0, args.AdditionalStreams.Length)
         End Sub
 
-        <Fact>
-        Public Sub ParseOptions()
-            Dim args = VisualBasicCommandLineParser.Default.Parse({"/option:a=b", "a.vb"}, _baseDirectory)
-            args.Errors.Verify()
-            Assert.Equal("a", args.AdditionalOptions.Keys.Single())
-            Assert.Equal("b", args.AdditionalOptions.Values.Single())
-
-            args = VisualBasicCommandLineParser.Default.Parse({"/option:a=b", "/option:d=e", "a.vb"}, _baseDirectory)
-            args.Errors.Verify()
-            Assert.Equal("b", args.AdditionalOptions("a"))
-            Assert.Equal("e", args.AdditionalOptions("d"))
-
-            args = VisualBasicCommandLineParser.Default.Parse({"/option", "a.vb"}, _baseDirectory)
-            args.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("option", ":<name>=<value>"))
-            Assert.Equal(0, args.AdditionalOptions.Count)
-
-            args = VisualBasicCommandLineParser.Default.Parse({"/option:", "a.vb"}, _baseDirectory)
-            args.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("option", ":<name>=<value>"))
-            Assert.Equal(0, args.AdditionalOptions.Count)
-
-            args = VisualBasicCommandLineParser.Default.Parse({"/option:a", "a.vb"}, _baseDirectory)
-            args.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("option", ":<name>=<value>"))
-            Assert.Equal(0, args.AdditionalOptions.Count)
-
-            args = VisualBasicCommandLineParser.Default.Parse({"/option:a=", "a.vb"}, _baseDirectory)
-            args.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("option", ":<name>=<value>"))
-            Assert.Equal(0, args.AdditionalOptions.Count)
-
-            args = VisualBasicCommandLineParser.Default.Parse({"/option:a:b", "a.vb"}, _baseDirectory)
-            args.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("option", ":<name>=<value>"))
-            Assert.Equal(0, args.AdditionalOptions.Count)
-
-            args = VisualBasicCommandLineParser.Default.Parse({"/option:=b", "a.vb"}, _baseDirectory)
-            args.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("option", ":<name>=<value>"))
-            Assert.Equal(0, args.AdditionalOptions.Count)
-
-            args = VisualBasicCommandLineParser.Default.Parse({"/option:a=b=c", "a.vb"}, _baseDirectory)
-            args.Errors.Verify()
-            Assert.Equal("b=c", args.AdditionalOptions("a"))
-
-            args = VisualBasicCommandLineParser.Default.Parse({"/option:a==b", "a.vb"}, _baseDirectory)
-            args.Errors.Verify()
-            Assert.Equal("=b", args.AdditionalOptions("a"))
-
-            args = VisualBasicCommandLineParser.Default.Parse({"/option:""a b""=""c d""", "a.vb"}, _baseDirectory)
-            args.Errors.Verify()
-            Assert.Equal("c d", args.AdditionalOptions("a b"))
-
-            args = VisualBasicCommandLineParser.Default.Parse({"/option:""a b=c d""", "a.cs"}, _baseDirectory)
-            args.Errors.Verify()
-            Assert.Equal("c d", args.AdditionalOptions("a b"))
-
-            args = VisualBasicCommandLineParser.Default.Parse({"/option:a=b", "/option:a=c", "a.vb"}, _baseDirectory)
-            args.Errors.Verify()
-            Assert.Equal("c", args.AdditionalOptions("a"))
-        End Sub
-
         Private Shared Sub Verify(actual As IEnumerable(Of Diagnostic), ParamArray expected As DiagnosticDescription())
             actual.Verify(expected)
         End Sub

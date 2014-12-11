@@ -112,11 +112,6 @@ namespace Microsoft.CodeAnalysis
         public ImmutableArray<AdditionalStream> AdditionalStreams { get; internal set; }
 
         /// <summary>
-        /// A set of additional options passed in from the /option switch that can be used by analyzers.
-        /// </summary>
-        public ImmutableDictionary<string, string> AdditionalOptions { get; internal set; }
-
-        /// <summary>
         /// If true, prepend the command line header logo during 
         /// <see cref="CommonCompiler.Run"/>.
         /// </summary>

@@ -75,7 +75,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 List<ResourceDescription> managedResources = new List<ResourceDescription>();
                 List<CommandLineSourceFile> sourceFiles = new List<CommandLineSourceFile>();
                 List<AdditionalStream> additionalFiles = new List<AdditionalStream>();
-                Dictionary<string, string> additionalOptions = new Dictionary<string, string>();
                 bool sourceFilesSpecified = false;
                 bool resourcesOrModulesSpecified = false;
                 Encoding codepage = null;
@@ -916,33 +915,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 additionalFiles.AddRange(ParseAdditionalFiles(value, baseDirectory, diagnostics));
                                 continue;
-
-                            case "option":
-                                unquoted = RemoveAllQuotes(value);
-
-                                if (string.IsNullOrEmpty(unquoted))
-                                {
-                                    AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<name>=<value>", name);
-                                    continue;
-                                }
-
-                                var parts = unquoted.Split(new[] { '=' }, 2, StringSplitOptions.None);
-                                if (parts.Length != 2 || string.IsNullOrEmpty(parts[0]) || string.IsNullOrEmpty(parts[1]))
-                                {
-                                    AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<name>=<value>", name);
-                                    continue;
-                                }
-
-                                if (additionalOptions.ContainsKey(parts[0]))
-                                {
-                                    additionalOptions[parts[0]] = parts[1];
-                                }
-                                else
-                                {
-                                    additionalOptions.Add(parts[0], parts[1]);
-                                }
-
-                                continue;
                         }
                     }
 
@@ -1074,7 +1046,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     MetadataReferences = metadataReferences.AsImmutable(),
                     AnalyzerReferences = analyzers.AsImmutable(),
                     AdditionalStreams = additionalFiles.AsImmutable(),
-                    AdditionalOptions = additionalOptions.ToImmutableDictionary(),
                     ReferencePaths = referencePaths,
                     KeyFileSearchPaths = keyFileSearchPaths.AsImmutable(),
                     Win32ResourceFile = win32ResourceFile,
