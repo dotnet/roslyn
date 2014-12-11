@@ -1303,5 +1303,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TrailingWhitespaceInFormatSpecifier = 8088,
         ERR_EmptyFormatSpecifier = 8089,
         ERR_ErrorInReferencedAssembly = 8090,
+        ERR_ExternHasConstructorInitializer = 8091,
     }
 }

@@ -35,10 +35,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var declarationModifiers = this.MakeModifiers(syntax.Modifiers, methodKind, location, diagnostics, out modifierErrors);
             this.MakeFlags(methodKind, declarationModifiers, returnsVoid: true, isExtensionMethod: false);
 
-            var bodyOpt = syntax.Body;
-            if (bodyOpt != null)
+            if (IsExtern)
             {
-                if (IsExtern)
+                if (methodKind == MethodKind.Constructor && syntax.Initializer != null)
+                {
+                    diagnostics.Add(ErrorCode.ERR_ExternHasConstructorInitializer, location, this);
+                }
+
+                if (syntax.Body != null)
                 {
                     diagnostics.Add(ErrorCode.ERR_ExternHasBody, location, this);
                 }

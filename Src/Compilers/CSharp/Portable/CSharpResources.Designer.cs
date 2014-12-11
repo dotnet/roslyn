@@ -3950,6 +3950,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; cannot be extern and have a constructor initializer.
+        /// </summary>
+        internal static string ERR_ExternHasConstructorInitializer {
+            get {
+                return ResourceManager.GetString("ERR_ExternHasConstructorInitializer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Feature &apos;{0}&apos; is only available in &apos;experimental&apos; language version..
         /// </summary>
         internal static string ERR_FeatureIsExperimental {

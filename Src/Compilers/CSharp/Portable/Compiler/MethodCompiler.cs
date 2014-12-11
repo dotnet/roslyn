@@ -1338,7 +1338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement constructorInitializer = null;
 
             // delegates have constructors but not constructor initializers
-            if (method.MethodKind == MethodKind.Constructor && !method.ContainingType.IsDelegateType())
+            if (method.MethodKind == MethodKind.Constructor && !method.ContainingType.IsDelegateType() && !method.IsExtern)
             {
                 var initializerInvocation = BindConstructorInitializer(method, diagnostics, compilation);
 
@@ -1356,9 +1356,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (sourceMethod.IsExtern)
                 {
-                    if (sourceMethod.BodySyntax == null)
+                    if (sourceMethod.BodySyntax == null && (sourceMethod.SyntaxNode as ConstructorDeclarationSyntax)?.Initializer == null)
                     {
-                        // Generate warnings only if we are not generating ERR_ExternHasBody error
+                        // Generate warnings only if we are not generating ERR_ExternHasBody or ERR_ExternHasConstructorInitializer errors
                         GenerateExternalMethodWarnings(sourceMethod, diagnostics);
                     }
 

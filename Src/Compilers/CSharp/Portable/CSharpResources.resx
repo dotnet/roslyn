@@ -756,6 +756,9 @@
   <data name="ERR_ExternHasBody" xml:space="preserve">
     <value>'{0}' cannot be extern and declare a body</value>
   </data>
+  <data name="ERR_ExternHasConstructorInitializer" xml:space="preserve">
+    <value>'{0}' cannot be extern and have a constructor initializer</value>
+  </data>
   <data name="ERR_AbstractAndExtern" xml:space="preserve">
     <value>'{0}' cannot be both extern and abstract</value>
   </data>
