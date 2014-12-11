@@ -1256,12 +1256,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!allSame)
             {
                 // SPEC VIOLATION: Even when parameter type sequences {P1, P2, …, PN} and {Q1, Q2, …, QN} are
-                //                 not equivalent, native compiler has tie-breaking when optional parameters
-                //                 are involved.
-                //                 A candidate that makes use of default values for optional parameters is worse
-                //                 than the other candidate that doesn’t, unless the other candidate is an expanded
-                //                 params form. If the other candidate is an expanded params form, a candidate that
-                //                 makes use of default values for optional parameters is better.
+                //                 not equivalent, we have tie-breaking rules when optional parameters are involved:
+                //                 1. A candidate Mp that uses optional parameters and is not applicable only in expanded
+                //                    form is better than a candidate Mq that is applicable only in expanded form.
+                //                 2. A candidate Mp that does not use optional parameters and is not applicable only in
+                //                    expanded form is better than a candidate Mq that uses optional parameters and is
+                //                    not applicable only in expanded form.
                 //
                 // Relevant code in the native compiler is at the end of
                 //                       BetterTypeEnum ExpressionBinder::WhichMethodIsBetter(
