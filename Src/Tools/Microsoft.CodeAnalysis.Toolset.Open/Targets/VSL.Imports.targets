@@ -5,8 +5,8 @@
   <PropertyGroup Condition="'$(OpenSourceDebug)' == 'true'">
     <DeployVSHive>Roslyn</DeployVSHive>
     <NonShipping Condition="'$(NonShipping)' == ''">false</NonShipping>
-    <AssemblyVersion>$(MajorRoslynVersion).0.0</AssemblyVersion>
-    <BuildVersion>$(MajorRoslynVersion).0.0</BuildVersion>
+    <AssemblyVersion>$(RoslynSemanticVersion).0</AssemblyVersion>
+    <BuildVersion>$(RoslynSemanticVersion).0</BuildVersion>
   </PropertyGroup>
 
   <!-- Returns the current build version. Used in .vsixmanifests to substitute our build version into them -->

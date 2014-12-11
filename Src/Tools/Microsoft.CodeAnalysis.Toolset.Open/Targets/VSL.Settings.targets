@@ -19,7 +19,7 @@
 
     <SignAssembly Condition="'$(SignAssembly)' == ''">true</SignAssembly>
 
-    <MajorRoslynVersion>1.0</MajorRoslynVersion>
+    <RoslynSemanticVersion>1.0.0</RoslynSemanticVersion>
   </PropertyGroup>
 
   <Choose>
