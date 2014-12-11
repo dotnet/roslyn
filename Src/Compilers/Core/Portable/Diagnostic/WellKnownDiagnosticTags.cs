@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis
         public const string Build = "Build";
 
         /// <summary>
+        /// Indicates that the diagnostic is reported by the compiler.
+        /// </summary>
+        public const string Compiler = "Compiler";
+
+        /// <summary>
         /// Indicates that the diagnostic can be used for telemetry
         /// </summary>
         public const string Telemetry = "Telemetry";

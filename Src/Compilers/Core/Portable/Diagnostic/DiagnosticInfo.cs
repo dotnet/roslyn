@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis
         private static ImmutableDictionary<int, DiagnosticDescriptor> errorCodeToDescriptorMap = ImmutableDictionary<int, DiagnosticDescriptor>.Empty;
 
         // Mark compiler errors as non-configurable to ensure they can never be suppressed or filtered.
-        private static readonly ImmutableArray<string> CompilerErrorCustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable);
-        private static readonly ImmutableArray<string> CompilerNonErrorCustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Telemetry);
+        private static readonly ImmutableArray<string> CompilerErrorCustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Compiler, WellKnownDiagnosticTags.Telemetry, WellKnownDiagnosticTags.NotConfigurable);
+        private static readonly ImmutableArray<string> CompilerNonErrorCustomTags = ImmutableArray.Create(WellKnownDiagnosticTags.Compiler, WellKnownDiagnosticTags.Telemetry);
         
         // Only the compiler creates instances.
         internal DiagnosticInfo(CommonMessageProvider messageProvider, int errorCode)
