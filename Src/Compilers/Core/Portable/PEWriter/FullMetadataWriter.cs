@@ -166,11 +166,6 @@ namespace Microsoft.Cci
             return this.parameterDefs.Rows;
         }
 
-        protected override uint GetGenericParameterIndex(IGenericParameter def)
-        {
-            return this.genericParameters[def];
-        }
-
         protected override IReadOnlyList<IGenericParameter> GetGenericParameters()
         {
             return this.genericParameters.Rows;

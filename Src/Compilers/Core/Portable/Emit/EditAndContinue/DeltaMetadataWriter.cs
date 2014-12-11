@@ -312,11 +312,6 @@ namespace Microsoft.CodeAnalysis.Emit
             return this.parameterDefs.GetRows();
         }
 
-        protected override uint GetGenericParameterIndex(IGenericParameter def)
-        {
-            return this.genericParameters[def];
-        }
-
         protected override IReadOnlyList<IGenericParameter> GetGenericParameters()
         {
             return this.genericParameters.GetRows();

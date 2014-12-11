@@ -1408,9 +1408,9 @@ delegate void D();
                         Handle(2, TableIndex.GenericParam),
                         Handle(2, TableIndex.MethodSpec));
                     CheckAttributes(reader1,
+                        new CustomAttributeRow(Handle(1, TableIndex.GenericParam), Handle(1, TableIndex.MethodDef)),
                         new CustomAttributeRow(Handle(2, TableIndex.Property), Handle(2, TableIndex.MethodDef)),
                         new CustomAttributeRow(Handle(2, TableIndex.Event), Handle(1, TableIndex.MethodDef)),
-                        new CustomAttributeRow(Handle(2, TableIndex.GenericParam), Handle(1, TableIndex.MethodDef)),
                         new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(1, TableIndex.MethodDef)),
                         new CustomAttributeRow(Handle(4, TableIndex.Field), Handle(11, TableIndex.MemberRef)),
                         new CustomAttributeRow(Handle(4, TableIndex.Field), Handle(12, TableIndex.MemberRef)),

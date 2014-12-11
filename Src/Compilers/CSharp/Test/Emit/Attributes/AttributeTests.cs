@@ -7248,6 +7248,31 @@ class Test
                 Assert.Equal("Bug1020038", m.ReferencedAssemblies[1].Name);
             });
         }
+
+        [Fact, WorkItem(937575, "DevDiv"), WorkItem(121, "CodePlex")]
+        public void Bug937575()
+        {
+            var source = @"
+using System;
+class XAttribute : Attribute { }
+class C<T>
+{
+    public void M<[X]U>() { }
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+
+            CompileAndVerify(compilation, symbolValidator: (m) =>
+                                                            {
+                                                                var cc = m.GlobalNamespace.GetTypeMember("C");
+                                                                var mm = cc.GetMember<MethodSymbol>("M");
+
+                                                                Assert.True(cc.TypeParameters.Single().GetAttributes().IsEmpty);
+                                                                Assert.Equal("XAttribute", mm.TypeParameters.Single().GetAttributes().Single().ToString());
+                                                            }, 
+                             emitOptions: TestEmitters.RefEmitBug);
+        }
         #endregion
     }
 }

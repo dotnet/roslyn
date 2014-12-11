@@ -248,12 +248,6 @@ namespace Microsoft.Cci
         protected abstract IReadOnlyList<IParameterDefinition> GetParameterDefs();
 
         /// <summary>
-        /// The 1-based index of the generic parameter definition.
-        /// The index is into the full metadata.
-        /// </summary>
-        protected abstract uint GetGenericParameterIndex(IGenericParameter def);
-
-        /// <summary>
         /// The generic parameter definitions to be emitted, in row order. These
         /// are just the generic parameter definitions from the current generation.
         /// </summary>
@@ -2864,7 +2858,7 @@ namespace Microsoft.Cci
             // TODO: exported types 17
             // TODO: this.AddCustomAttributesToTable(assembly.Resources, 18);
 
-            // The indices of this.genericParameterList do not correspond to the table indices because the
+            // The indices of this.GetGenericParameters() do not correspond to the table indices because the
             // the table may be sorted after the list has been constructed.
             // Note that in all other cases, tables that are sorted are sorted in an order that depends
             // only on list indices. The generic parameter table is the sole exception.
@@ -2874,7 +2868,7 @@ namespace Microsoft.Cci
                 sortedGenericParameterList.Add(genericParamRow.GenericParameter);
             }
 
-            this.AddCustomAttributesToTable(sortedGenericParameterList, 19, this.GetGenericParameterIndex);
+            this.AddCustomAttributesToTable(sortedGenericParameterList, 19);
 
             this.customAttributeTable.Sort(new CustomAttributeRowComparer());
         }
@@ -2949,12 +2943,12 @@ namespace Microsoft.Cci
             }
         }
 
-        private void AddCustomAttributesToTable(IEnumerable<IReference> parentList, uint tag)
+        private void AddCustomAttributesToTable<T>(IEnumerable<T> parentList, uint tag)
+            where T : IReference
         {
             uint parentIndex = 0;
-            foreach (IReference parent in parentList)
+            foreach (var parent in parentList)
             {
-                Debug.Assert(this.IsFullMetadata); // parentToken is not relative
                 parentIndex++;
                 uint parentToken = (parentIndex << 5) | tag;
                 foreach (ICustomAttribute customAttribute in parent.GetAttributes(Context))
