@@ -52,7 +52,7 @@ vector<Request::Argument>& Request::Arguments()
 
 void Request::AddCommandLineArguments(_In_ const list<wstring>& commandLineArgs)
 {
-    size_t i;
+    int i;
     list<wstring>::const_iterator iter;
     for (iter = commandLineArgs.cbegin(), i = 0;
          iter != commandLineArgs.cend();

@@ -132,7 +132,8 @@ bool GetExpectedProcessPath(
 {
     processPath.clear();
     processPath.resize(MAX_PATH);
-    while (GetModuleFileNameW(NULL, &processPath[0], processPath.size()) == 0)
+    while (GetModuleFileNameW(NULL, &processPath[0],
+		static_cast<DWORD>(processPath.size())) == 0)
     {
         if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) 
         {

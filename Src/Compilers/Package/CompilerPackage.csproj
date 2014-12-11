@@ -85,11 +85,6 @@
       <Name>vbc</Name>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\Core\MSBuildTasks\MSBuildTasks.csproj">
-      <Project>{AC2BE224-FB28-40D4-B174-63CABDD488ED}</Project>
-      <Name>MSBuildTasks</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
     <ProjectReference Include="..\Core\VBCSCompiler\VBCSCompiler.csproj">
       <Project>{9508F118-F62E-4C16-A6F4-7C3B56E166AD}</Project>
       <Name>VBCSCompiler</Name>

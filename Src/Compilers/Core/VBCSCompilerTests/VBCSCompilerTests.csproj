@@ -52,10 +52,6 @@
       <Project>{F7712928-1175-47B3-8819-EE086753DEE2}</Project>
       <Name>CompilerTestUtilities2</Name>
     </ProjectReference>
-    <ProjectReference Include="..\MSBuildTasks\MSBuildTasks.csproj">
-      <Project>{AC2BE224-FB28-40D4-B174-63CABDD488ED}</Project>
-      <Name>MSBuildTasks</Name>
-    </ProjectReference>
     <ProjectReference Include="..\..\VisualBasic\vbc2\vbc2.vcxproj">
       <Project>{63d0f073-f0b3-42cd-829f-e48b977b48ba}</Project>
       <Name>vbc2</Name>
@@ -90,6 +86,29 @@
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|ARM' ">
     <PlatformTarget>ARM</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutDir>..\..\..\..\Binaries\Debug\amd64</OutDir>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
+    <NoWarn>1591</NoWarn>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
+    <OutDir>..\..\..\..\Binaries\Release\amd64</OutDir>
+    <DefineConstants>TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Optimize>true</Optimize>
+    <NoWarn>1591</NoWarn>
+    <DebugType>pdbonly</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary, Version=0.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">

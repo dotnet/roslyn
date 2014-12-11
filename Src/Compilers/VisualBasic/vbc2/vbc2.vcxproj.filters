@@ -24,8 +24,15 @@
     <ClInclude Include="targetver.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Core\NativeClient\UIStrings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ResourceCompile Include="$(GeneratedVersionInfoResourceFile)" />
+    <ResourceCompile Include="..\..\Core\NativeClient\UIStrings.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
     <ResourceCompile Include="$(GeneratedVersionInfoResourceFile)" />
   </ItemGroup>
 </Project>
