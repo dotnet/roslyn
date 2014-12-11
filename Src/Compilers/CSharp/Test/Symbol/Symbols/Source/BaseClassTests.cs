@@ -1878,5 +1878,28 @@ class D
                     Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static A<int>.B;").WithLocation(1, 1)
                 );
         }
+
+        [Fact]
+        public void BindBases()
+        {
+            // Ensure good semantic model data even in error scenarios
+            var text =
+@"
+class B {
+  public B(long x) {}
+}
+
+class D : B {
+  extern D(int x) : base(y) {}
+  static int y;
+}";
+            var comp = CreateCompilationWithMscorlib45(text);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var baseY = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "y").OfType<ExpressionSyntax>().First();
+            var typeInfo = model.GetTypeInfo(baseY);
+            Assert.Equal(SpecialType.System_Int32, typeInfo.Type.SpecialType);
+            Assert.Equal(SpecialType.System_Int64, typeInfo.ConvertedType.SpecialType);
+        }
     }
 }
