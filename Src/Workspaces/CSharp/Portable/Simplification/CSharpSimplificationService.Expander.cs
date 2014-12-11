@@ -523,11 +523,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                             var identifiersLeadingTrivia = newNode.GetLeadingTrivia();
                             newNode = TryAddTypeArgumentToIdentifierName(newNode, symbol);
 
-                            newNode = SyntaxFactory.MemberAccessExpression(
-                                SyntaxKind.SimpleMemberAccessExpression,
-                                left,
-                                (SimpleNameSyntax)newNode.WithLeadingTrivia(null))
-                                    .WithLeadingTrivia(identifiersLeadingTrivia);
+                            newNode = newNode.CopyAnnotationsTo(
+                                SyntaxFactory.MemberAccessExpression(
+                                    SyntaxKind.SimpleMemberAccessExpression,
+                                    left,
+                                    (SimpleNameSyntax)newNode.WithLeadingTrivia(null))
+                                                             .WithLeadingTrivia(identifiersLeadingTrivia));
                         }
                     }
                 }
