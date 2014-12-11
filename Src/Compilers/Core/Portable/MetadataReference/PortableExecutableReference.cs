@@ -66,7 +66,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <remarks>
         /// Called when the compiler needs to read the documentation for the reference. 
-        /// This method is called at most once per metadata reference and its result is cached on the reference object.
+        /// This method can be called multiple times from different threads.  The result of one of the calls
+        /// is cached on the reference object.
         /// </remarks>
         protected abstract DocumentationProvider CreateDocumentationProvider();
 
