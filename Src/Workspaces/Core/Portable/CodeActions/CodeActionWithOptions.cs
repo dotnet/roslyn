@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions
 {
@@ -25,6 +26,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="cancellationToken">A cancellation token.</param>
         public async Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(object options, CancellationToken cancellationToken)
         {
+            if (options == null)
+            {
+                return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
+            }
+
             var operations = await this.ComputeOperationsAsync(options, cancellationToken).ConfigureAwait(false);
 
             if (operations != null)
@@ -35,11 +41,22 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return operations;
         }
 
+        internal override async Task<IEnumerable<CodeActionOperation>> GetOperationsCoreAsync(CancellationToken cancellationToken)
+        {
+            var options = this.GetOptions(cancellationToken);
+            return await this.GetOperationsAsync(options, cancellationToken).ConfigureAwait(false);
+        }
+
         /// <summary>
         /// Override this method to compute the operations that implement this <see cref="CodeAction"/>.
         /// </summary>
         /// <param name="options">An object instance returned from a call to <see cref="GetOptions(CancellationToken)"/>.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         protected abstract Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(object options, CancellationToken cancellationToken);
+
+        protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+        {
+            return SpecializedTasks.EmptyEnumerable<CodeActionOperation>();
+        }
     }
 }

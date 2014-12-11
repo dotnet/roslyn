@@ -34,6 +34,14 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </summary>
         public async Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(CancellationToken cancellationToken)
         {
+            return await GetOperationsCoreAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// The sequence of operations that define the code action.
+        /// </summary>
+        internal virtual async Task<IEnumerable<CodeActionOperation>> GetOperationsCoreAsync(CancellationToken cancellationToken)
+        {
             var operations = await this.ComputeOperationsAsync(cancellationToken).ConfigureAwait(false);
 
             if (operations != null)
