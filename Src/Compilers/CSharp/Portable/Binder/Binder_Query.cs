@@ -21,11 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal BoundExpression BindQuery(QueryExpressionSyntax node, DiagnosticBag diagnostics)
         {
             var fromClause = node.FromClause;
-
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var boundFromExpression = BindLeftOfPotentialColorColorMemberAccess(fromClause.Expression, ref useSiteDiagnostics) ??
-                this.BindExpression(fromClause.Expression, diagnostics);
-            diagnostics.Add(fromClause.Expression, useSiteDiagnostics);
+            var boundFromExpression = BindLeftOfPotentialColorColorMemberAccess(fromClause.Expression, diagnostics);
 
             // If the from expression is of the type dynamic we can't infer the types for any lambdas that occur in the query.
             // Only if there are none we could bind the query but we report an error regardless since such queries are not useful.

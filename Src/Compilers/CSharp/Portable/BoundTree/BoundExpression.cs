@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
@@ -459,17 +460,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    partial class BoundTypeOrValueExpression
-    {
-        public BoundExpression GetValueExpression()
-        {
-            DiagnosticBag discardedDiagnostics = DiagnosticBag.GetInstance();
-            BoundExpression valueExpr = this.Binder.BindExpression((ExpressionSyntax)this.Syntax, discardedDiagnostics);
-            discardedDiagnostics.Free();
-            return valueExpr;
-        }
-    }
-
     partial class BoundObjectInitializerMember
     {
         public override Symbol ExpressionSymbol
@@ -516,6 +506,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return this.ConstantValueOpt;
             }
+        }
+    }
+
+    internal sealed partial class BoundTypeOrValueExpression : BoundExpression
+    {
+        // NOTE: this constructor should always be used instead of the generated constructor, since the generated
+        //       constructor may spuriously set hasErrors to true if valueExpression or typeExpression have errors.
+        //       This node should never have errors if it is present in the tree.
+        public BoundTypeOrValueExpression(CSharpSyntaxNode syntax, Symbol valueSymbol, BoundExpression valueExpression, ImmutableArray<Diagnostic> valueDiagnostics, BoundExpression typeExpression, ImmutableArray<Diagnostic> typeDiagnostics, TypeSymbol type)
+            : base(BoundKind.TypeOrValueExpression, syntax, type, hasErrors: false)
+        {
+            Debug.Assert(valueSymbol != null, "Field 'valueSymbol' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(valueExpression != null, "Field 'valueExpression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(!valueDiagnostics.IsDefault, "Field 'valueDiagnostics' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(typeExpression != null, "Field 'typeExpression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(!typeDiagnostics.IsDefault, "Field 'typeDiagnostics' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.ValueSymbol = valueSymbol;
+            this.ValueExpression = valueExpression;
+            this.ValueDiagnostics = valueDiagnostics;
+            this.TypeExpression = typeExpression;
+            this.TypeDiagnostics = typeDiagnostics;
         }
     }
 }

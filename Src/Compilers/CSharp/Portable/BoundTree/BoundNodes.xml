@@ -26,6 +26,7 @@
   <ValueType Name="BinaryOperatorKind"/>
   <ValueType Name="LookupResultKind"/>
   <ValueType Name="NoOpStatementFlavor"/>
+  <ValueType Name="TypeOrValueInfo"/>
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
@@ -160,12 +161,11 @@
   <Node Name="BoundTypeOrValueExpression" Base="BoundExpression">
     <!-- Type is required for this node type; may not be null -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <Field Name="Variable" Type="Symbol" Null="disallow"/>
-    <!-- In error scenarios, nodes of this kind may appear in the 
-         initial bound tree.  With this binder, consumers of the initial
-         bound tree will be able to determine the fallback interpretation
-         (i.e. by binding the syntax as an expression).-->
-    <Field Name="Binder" Type="Binder" Null="disallow" />
+    <Field Name="ValueSymbol" Type="Symbol" Null="disallow"/>
+    <Field Name="ValueExpression" Type="BoundExpression" Null="disallow"/>
+    <Field Name="ValueDiagnostics" Type="ImmutableArray&lt;Microsoft.CodeAnalysis.Diagnostic&gt;" Null="disallow"/>
+    <Field Name="TypeExpression" Type="BoundExpression" Null="disallow"/>
+    <Field Name="TypeDiagnostics" Type="ImmutableArray&lt;Microsoft.CodeAnalysis.Diagnostic&gt;" Null="disallow"/>
   </Node>
 
   <Node Name="BoundNamespaceExpression" Base="BoundExpression">

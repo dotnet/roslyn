@@ -319,9 +319,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        private static BoundMethodGroup FixMethodGroupWithTypeOrValue(BoundMethodGroup group, Conversion conversion, DiagnosticBag diagnostics)
+        private BoundMethodGroup FixMethodGroupWithTypeOrValue(BoundMethodGroup group, Conversion conversion, DiagnosticBag diagnostics)
         {
-
             if (!IsMethodGroupWithTypeOrValueReceiver(group))
             {
                 return group;

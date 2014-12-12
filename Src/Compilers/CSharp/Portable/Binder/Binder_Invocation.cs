@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Ideally the runtime binder would choose between type and value based on the result of the overload resolution.
                             // We need to pick one or the other here. Dev11 compiler passes the type only if the value can't be accessed.
                             bool inStaticContext;
-                            bool useType = IsInstance(typeOrValue.Variable) && !HasThis(isExplicit: false, inStaticContext: out inStaticContext);
+                            bool useType = IsInstance(typeOrValue.ValueSymbol) && !HasThis(isExplicit: false, inStaticContext: out inStaticContext);
 
                             BoundExpression finalReceiver = ReplaceTypeOrValueReceiver(typeOrValue, useType, diagnostics);
 
@@ -872,20 +872,27 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Call this once overload resolution has succeeded on the method group of which the BoundTypeOrValueExpression
         /// is the receiver.  Generally, useType will be true if the chosen method is static and false otherwise.
         /// </remarks>
-        private static BoundExpression ReplaceTypeOrValueReceiver(BoundExpression receiver, bool useType, DiagnosticBag diagnostics)
+        private BoundExpression ReplaceTypeOrValueReceiver(BoundExpression receiver, bool useType, DiagnosticBag diagnostics)
         {
-            if (receiver == null) return receiver;
+            if ((object)receiver == null)
+            {
+                return null;
+            }
+
             switch (receiver.Kind)
             {
                 case BoundKind.TypeOrValueExpression:
                     var typeOrValue = (BoundTypeOrValueExpression)receiver;
-                    Binder binder = typeOrValue.Binder;
-                    ExpressionSyntax syntax = (ExpressionSyntax)receiver.Syntax;
-                    receiver = useType ?
-                        binder.BindNamespaceOrType(syntax, diagnostics) :
-                        binder.BindValue(syntax, diagnostics, BindValueKind.RValue);
-
-                    return receiver;
+                    if (useType)
+                    {
+                        diagnostics.AddRange(typeOrValue.TypeDiagnostics);
+                        return typeOrValue.TypeExpression;
+                    }
+                    else
+                    {
+                        diagnostics.AddRange(typeOrValue.ValueDiagnostics);
+                        return CheckValue(typeOrValue.ValueExpression, BindValueKind.RValue, diagnostics);
+                    }
 
                 case BoundKind.QueryClause:
                     // a query clause may wrap a TypeOrValueExpression.
@@ -903,7 +910,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static NamedTypeSymbol GetDelegateType(BoundExpression expr)
         {
-            if ((expr != null) && (expr.Kind != BoundKind.TypeExpression))
+            if ((object)expr != null && expr.Kind != BoundKind.TypeExpression)
             {
                 var type = expr.Type as NamedTypeSymbol;
                 if (((object)type != null) && type.IsDelegateType())
@@ -948,7 +955,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var returnType = GetCommonTypeOrReturnType(methods) ?? new ExtendedErrorTypeSymbol(this.Compilation, string.Empty, arity: 0, errorInfo: null);
-                var methodContainer = receiver != null && (object)receiver.Type != null
+                var methodContainer = (object)receiver != null && (object)receiver.Type != null
                     ? receiver.Type
                     : this.ContainingType;
                 method = new ErrorMethodSymbol(methodContainer, returnType, name);
