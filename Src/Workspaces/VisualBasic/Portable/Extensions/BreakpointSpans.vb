@@ -395,7 +395,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         Private Function TryCreateSpanForLetClause(clause As LetClauseSyntax, position As Integer) As TextSpan?
-            Return clause.Variables(GetItemIndexByPosition(clause.Variables, position)).Span
+            Return clause.Variables(GetItemIndexByPosition(clause.Variables, position)).Expression.Span
         End Function
 
         Private Function TryCreateSpanForExpression(expression As ExpressionSyntax) As TextSpan?
