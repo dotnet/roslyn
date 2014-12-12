@@ -421,9 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
             }
-            else if (ContainingType.IsSealed &&
-                (localAccessibility == Accessibility.Protected || localAccessibility == Accessibility.ProtectedOrInternal) &&
-                !IsOverride)
+            else if (ContainingType.IsSealed && localAccessibility.HasProtected() && !this.IsOverride)
             {
                 diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), location, this);
             }

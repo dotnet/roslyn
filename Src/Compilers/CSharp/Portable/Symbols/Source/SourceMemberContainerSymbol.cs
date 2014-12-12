@@ -195,8 +195,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.flags = new Flags(specialType, modifiers, typeKind);
 
-            if ((object)ContainingType != null && ContainingType.IsSealed &&
-                (this.DeclaredAccessibility == Accessibility.Protected || this.DeclaredAccessibility == Accessibility.ProtectedOrInternal))
+            var containingType = this.ContainingType;
+            if ((object)containingType != null && containingType.IsSealed && this.DeclaredAccessibility.HasProtected())
             {
                 diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), Locations[0], this);
             }

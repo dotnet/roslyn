@@ -16814,9 +16814,6 @@ class C
                 new ErrorDescription { Code = (int)ErrorCode.WRN_ProtectedInSealed, Line = 6, Column = 33, IsWarning = true },
                 new ErrorDescription { Code = (int)ErrorCode.WRN_ProtectedInSealed, Line = 11, Column = 33, IsWarning = true },
                 new ErrorDescription { Code = (int)ErrorCode.WRN_ProtectedInSealed, Line = 12, Column = 21, IsWarning = true });
-
-            var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
-            // TODO...
         }
 
         [Fact]
@@ -16887,6 +16884,39 @@ sealed class C
                 // (4,35): warning CS0067: The event 'C.E' is never used
                 //     protected event System.Action E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E"));
+        }
+
+        [Fact]
+        public void CS0628WRN_ProtectedInSealed05()
+        {
+            const string text = @"
+abstract class C
+{
+    protected C() { }
+}
+
+sealed class D : C
+{
+    protected override D() { }
+    protected D(byte b) { }
+    protected internal D(short s) { }
+    internal protected D(int i) { }
+}
+";
+
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+                // (9,24): error CS0106: The modifier 'override' is not valid for this item
+                //     protected override D() { }
+                Diagnostic(ErrorCode.ERR_BadMemberFlag, "D").WithArguments("override").WithLocation(9, 24),
+                // (10,15): warning CS0628: 'D.D(byte)': new protected member declared in sealed class
+                //     protected D(byte b) { }
+                Diagnostic(ErrorCode.WRN_ProtectedInSealed, "D").WithArguments("D.D(byte)").WithLocation(10, 15),
+                // (11,24): warning CS0628: 'D.D(short)': new protected member declared in sealed class
+                //     protected internal D(short s) { }
+                Diagnostic(ErrorCode.WRN_ProtectedInSealed, "D").WithArguments("D.D(short)").WithLocation(11, 24),
+                // (12,24): warning CS0628: 'D.D(int)': new protected member declared in sealed class
+                //     internal protected D(int i) { }
+                Diagnostic(ErrorCode.WRN_ProtectedInSealed, "D").WithArguments("D.D(int)").WithLocation(12, 24));
         }
 
         [Fact]

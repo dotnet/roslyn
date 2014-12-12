@@ -493,6 +493,7 @@
     <Compile Include="SymbolDisplay\SymbolDisplayVisitor_Minimal.cs" />
     <Compile Include="Symbols\AbstractTypeMap.cs" />
     <Compile Include="Symbols\AbstractTypeParameterMap.cs" />
+    <Compile Include="Symbols\AccessibilityExtensions.cs" />
     <Compile Include="Symbols\AliasSymbol.cs" />
     <Compile Include="Symbols\AnonymousTypes\AnonymousTypeDescriptor.cs" />
     <Compile Include="Symbols\AnonymousTypes\AnonymousTypeField.cs" />

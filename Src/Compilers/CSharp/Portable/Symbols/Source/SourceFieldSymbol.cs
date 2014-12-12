@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected void ReportModifiersDiagnostics(DiagnosticBag diagnostics)
         {
-            if (containingType.IsSealed && (DeclaredAccessibility == Accessibility.Protected || DeclaredAccessibility == Accessibility.ProtectedOrInternal))
+            if (ContainingType.IsSealed && this.DeclaredAccessibility.HasProtected())
             {
                 diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(containingType), ErrorLocation, this);
             }

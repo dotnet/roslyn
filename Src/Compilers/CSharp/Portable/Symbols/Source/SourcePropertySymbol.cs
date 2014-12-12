@@ -772,10 +772,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_AbstractNotVirtual, location, this);
             }
-            else if (
-                ContainingType.IsSealed &&
-                (this.DeclaredAccessibility == Accessibility.Protected || this.DeclaredAccessibility == Accessibility.ProtectedOrInternal) &&
-                !this.IsOverride)
+            else if (ContainingType.IsSealed && this.DeclaredAccessibility.HasProtected() && !this.IsOverride)
             {
                 diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), location, this);
             }

@@ -76,16 +76,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.lazyIsVararg = (arglistToken.CSharpKind() == SyntaxKind.ArgListKeyword);
             this.lazyReturnType = bodyBinder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax);
 
+            var location = this.Locations[0];
             if (MethodKind == MethodKind.StaticConstructor && (lazyParameters.Length != 0))
             {
-                diagnostics.Add(ErrorCode.ERR_StaticConstParam, Locations[0], this);
+                diagnostics.Add(ErrorCode.ERR_StaticConstParam, location, this);
             }
 
             this.CheckEffectiveAccessibility(lazyReturnType, lazyParameters, diagnostics);
 
             if (this.lazyIsVararg && (IsGenericMethod || ContainingType.IsGenericType || this.lazyParameters.Length > 0 && this.lazyParameters[this.lazyParameters.Length - 1].IsParams))
             {
-                diagnostics.Add(ErrorCode.ERR_BadVarargs, Locations[0]);
+                diagnostics.Add(ErrorCode.ERR_BadVarargs, location);
             }
         }
 
@@ -153,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var defaultAccess = (methodKind == MethodKind.StaticConstructor) ? DeclarationModifiers.None : DeclarationModifiers.Private;
 
             // Check that the set of modifiers is allowed
-            var allowedModifiers =
+            const DeclarationModifiers allowedModifiers =
                 DeclarationModifiers.AccessibilityMask |
                 DeclarationModifiers.Static |
                 DeclarationModifiers.Extern |
@@ -183,6 +184,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (bodySyntaxReferenceOpt == null && !IsExtern)
             {
                 diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
+            }
+            else if (ContainingType.IsSealed && this.DeclaredAccessibility.HasProtected() && !this.IsOverride)
+            {
+                diagnostics.Add(AccessCheck.GetProtectedMemberInSealedTypeError(ContainingType), location, this);
             }
             else if (ContainingType.IsStatic && methodKind == MethodKind.Constructor)
             {
