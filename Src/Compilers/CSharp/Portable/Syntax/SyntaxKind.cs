@@ -191,6 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         NameOfKeyword = 8434,
         AsyncKeyword = 8435,
         AwaitKeyword = 8436,
+        WhenKeyword = 8437,
 
         // additional preprocessor keywords
         ElifKeyword = 8467,

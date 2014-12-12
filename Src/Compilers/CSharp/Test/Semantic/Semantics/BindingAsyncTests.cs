@@ -931,7 +931,7 @@ class Test
         try
         {
         }
-        catch if (await Task.Factory.StartNew(() => false))
+        catch when (await Task.Factory.StartNew(() => false))
         {
         }
         finally
@@ -941,8 +941,8 @@ class Test
 }";
             CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
                 // (11,19): error CS7094: Cannot await in the filter expression of a catch clause
-                //         catch if (await Task.Factory.StartNew(() => false))
-                Diagnostic(ErrorCode.ERR_BadAwaitInCatchFilter, "await Task.Factory.StartNew(() => false)").WithLocation(11, 19)
+                //         catch when (await Task.Factory.StartNew(() => false))
+                Diagnostic(ErrorCode.ERR_BadAwaitInCatchFilter, "await Task.Factory.StartNew(() => false)").WithLocation(11, 21)
                 );
         }
 

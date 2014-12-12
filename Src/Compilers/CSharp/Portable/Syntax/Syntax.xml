@@ -2108,8 +2108,8 @@
   </Node>
   <Node Name="CatchFilterClauseSyntax" Base="CSharpSyntaxNode">
     <Kind Name="CatchFilterClause"/>
-    <Field Name="IfKeyword" Type="SyntaxToken">
-      <Kind Name="IfKeyword"/>
+    <Field Name="WhenKeyword" Type="SyntaxToken">
+      <Kind Name="WhenKeyword"/>
     </Field>
     <Field Name="OpenParenToken" Type="SyntaxToken">
       <Kind Name="OpenParenToken"/>

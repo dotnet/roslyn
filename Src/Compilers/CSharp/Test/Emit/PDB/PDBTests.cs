@@ -2611,7 +2611,7 @@ class Test
         {
             throw new System.Exception();
         }
-        catch (System.Exception e) if (e.Message != null)
+        catch (System.Exception e) when (e.Message != null)
         { 
             System.Console.WriteLine();
         }
@@ -2636,7 +2636,7 @@ class Test
         <entry il_offset=""0x1"" start_row=""7"" start_column=""9"" end_row=""7"" end_column=""10"" file_ref=""0"" />
         <entry il_offset=""0x2"" start_row=""8"" start_column=""13"" end_row=""8"" end_column=""42"" file_ref=""0"" />
         <entry il_offset=""0x8"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x15"" start_row=""10"" start_column=""36"" end_row=""10"" end_column=""58"" file_ref=""0"" />
+        <entry il_offset=""0x15"" start_row=""10"" start_column=""36"" end_row=""10"" end_column=""60"" file_ref=""0"" />
         <entry il_offset=""0x23"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
         <entry il_offset=""0x24"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""10"" file_ref=""0"" />
         <entry il_offset=""0x25"" start_row=""12"" start_column=""13"" end_row=""12"" end_column=""40"" file_ref=""0"" />
@@ -2653,8 +2653,7 @@ class Test
       </scope>
     </method>
   </methods>
-</symbols>
-");
+</symbols>");
         }
 
         [Fact]
@@ -2669,7 +2668,7 @@ class Test
         {
             throw new System.Exception();
         }
-        catch if (F())
+        catch when (F())
         { 
             System.Console.WriteLine();
         }
@@ -2696,7 +2695,7 @@ class Test
         <entry il_offset=""0x1"" start_row=""7"" start_column=""9"" end_row=""7"" end_column=""10"" file_ref=""0"" />
         <entry il_offset=""0x2"" start_row=""8"" start_column=""13"" end_row=""8"" end_column=""42"" file_ref=""0"" />
         <entry il_offset=""0x8"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x15"" start_row=""10"" start_column=""15"" end_row=""10"" end_column=""23"" file_ref=""0"" />
+        <entry il_offset=""0x15"" start_row=""10"" start_column=""15"" end_row=""10"" end_column=""25"" file_ref=""0"" />
         <entry il_offset=""0x1f"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
         <entry il_offset=""0x20"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""10"" file_ref=""0"" />
         <entry il_offset=""0x21"" start_row=""12"" start_column=""13"" end_row=""12"" end_column=""40"" file_ref=""0"" />
@@ -2706,8 +2705,7 @@ class Test
       <locals />
     </method>
   </methods>
-</symbols>
-");
+</symbols>");
         }
 
         [WorkItem(778655, "DevDiv")]

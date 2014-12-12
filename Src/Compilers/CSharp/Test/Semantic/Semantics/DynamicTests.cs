@@ -3184,7 +3184,7 @@ class C
         try
         {
         }
-        catch (Exception e) if (d)  //-local: System.Exception
+        catch (Exception e) when (d)  //-local: System.Exception
                                     //-thisReference: C
                                     //-fieldAccess: dynamic
                                     //-unaryOperator: bool

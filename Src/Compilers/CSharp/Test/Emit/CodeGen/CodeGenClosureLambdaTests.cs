@@ -640,7 +640,7 @@ class Program
         {
             throw new Exception(""xxx"");
         }
-        catch (Exception e) if (new Func<Exception, bool>(x => x.Message == s)(e))
+        catch (Exception e) when (new Func<Exception, bool>(x => x.Message == s)(e))
         {
             Console.Write(""pass"");
         }
@@ -664,7 +664,7 @@ class Program
         {
             throw new Exception(""xxx"");
         }
-        catch (Exception e) if (new Func<Exception, bool>(x => x.Message == s)(e))
+        catch (Exception e) when (new Func<Exception, bool>(x => x.Message == s)(e))
         {
             Console.Write(s + ""pass"");
         }
@@ -752,7 +752,7 @@ class Program
         {
             throw new Exception(""fail"");
         }
-        catch (Exception ex) if (Foo(() => { ex = new Exception(""pass""); }))
+        catch (Exception ex) when (Foo(() => { ex = new Exception(""pass""); }))
         {
             Console.Write(ex.Message);
         }
@@ -828,11 +828,11 @@ class Program
         {
             throw new Exception(""fail"");
         }
-        catch (ArgumentException ex) if (Foo(() => { ex = new ArgumentException(""fail""); }))
+        catch (ArgumentException ex) when (Foo(() => { ex = new ArgumentException(""fail""); }))
         {
             Console.Write(ex.Message);
         }
-        catch (Exception ex) if (Foo(() => { ex = new Exception(""pass""); }))
+        catch (Exception ex) when (Foo(() => { ex = new Exception(""pass""); }))
         {
             Console.Write(ex.Message);
         }
@@ -855,7 +855,7 @@ class Program
         {
             throw new Exception(""xxx"");
         }
-        catch (Exception e) if (new Func<bool>(() => e.Message == ""xxx"")())
+        catch (Exception e) when (new Func<bool>(() => e.Message == ""xxx"")())
         {
             Console.Write(""pass"");
         }
@@ -929,7 +929,7 @@ class Program
             {
                 throw new IOException(""xxx"");
             }
-            catch (T e) if (e.Message == ""xxx"")
+            catch (T e) when (e.Message == ""xxx"")
             {
                 Console.Write(""pass"");
             }
@@ -1001,7 +1001,7 @@ class Program
             {
                 throw new IOException(""xy"");
             }
-            catch (T e) if (new Func<bool>(() => e.Message == x + y)())
+            catch (T e) when (new Func<bool>(() => e.Message == x + y)())
             {
                 Console.Write(""pass_"" + x + y);
             }
@@ -1099,7 +1099,7 @@ class Program
             {
                 throw new IOException(""a"");
             }
-            catch (T e1) if (new Func<bool>(() => 
+            catch (T e1) when (new Func<bool>(() => 
                 {
                     string z = ""z"";
 
@@ -1107,7 +1107,7 @@ class Program
                     {
                         throw new IOException(""xyz"");
                     }
-                    catch (T e2) if (e2.Message == x + y + z)
+                    catch (T e2) when (e2.Message == x + y + z)
                     {
                         return true;
                     }

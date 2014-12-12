@@ -2066,7 +2066,7 @@ class C
         try
         {
         }
-        catch (System.Exception e) if (e.Message == null)
+        catch (System.Exception e) when (e.Message == null)
         {
         }
     }
@@ -2086,7 +2086,7 @@ class C
         try
         {
         }
-        catch (System.Exception e) if (F())
+        catch (System.Exception e) when (F())
         {
         }
     }
@@ -2096,7 +2096,7 @@ class C
 ";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (9,33): warning CS0168: The variable 'e' is declared but never used
-                //         catch (System.Exception e) if (true)
+                //         catch (System.Exception e) when (true)
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "e").WithArguments("e").WithLocation(9, 33));
         }
 
@@ -2114,7 +2114,7 @@ class C
         try
         {
         }
-        catch (Exception e) if ((f = e) != null)
+        catch (Exception e) when ((f = e) != null)
         {
             Console.WriteLine(f);
         }
@@ -2138,7 +2138,7 @@ class C
         try
         {
         }
-        catch (Exception e) if (f == e)
+        catch (Exception e) when (f == e)
         {
         }
     }
@@ -2146,7 +2146,7 @@ class C
 ";
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (12,33): error CS0165: Use of unassigned local variable 'f'
-                //         catch (Exception e) if (f == e)
+                //         catch (Exception e) when (f == e)
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "f").WithArguments("f"));
         }
 
@@ -2164,10 +2164,10 @@ class C
         try
         {
         }
-        catch (Exception e) if ((f = e) != null)
+        catch (Exception e) when ((f = e) != null)
         {
         }
-        catch (Exception e) if (f == e)
+        catch (Exception e) when (f == e)
         {
         }
     }
@@ -2176,7 +2176,7 @@ class C
             // TODO (tomat): f is always gonna be assigned in subsequent filter expressions.
             CreateCompilationWithMscorlib(source).VerifyDiagnostics(
                 // (15,33): error CS0165: Use of unassigned local variable 'f'
-                //         catch (Exception e) if (f == e)
+                //         catch (Exception e) when (f == e)
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "f").WithArguments("f"));
         }
 
@@ -2194,7 +2194,7 @@ class C
         try
         {
         }
-        catch (Exception e) if ((f = e) != null)
+        catch (Exception e) when ((f = e) != null)
         {
             Console.WriteLine(f);
             Console.WriteLine(g);

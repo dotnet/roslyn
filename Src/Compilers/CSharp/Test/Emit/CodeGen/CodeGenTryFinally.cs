@@ -454,7 +454,7 @@ class Program
         {
             throw new Exception(""hello"");
         }
-        catch (Exception ex1) if (ex1.Message == null)
+        catch (Exception ex1) when (ex1.Message == null)
         {
         }
 
@@ -462,7 +462,7 @@ class Program
         {
             throw new Exception(""bye"");
         }
-        catch (Exception ex2) if (F(ex2, ex2))
+        catch (Exception ex2) when (F(ex2, ex2))
         {
         }
     }
@@ -548,7 +548,7 @@ class Program
         {
             throw new Exception(""bye"");
         }
-        catch (Exception ex) if (F(ex, ex))
+        catch (Exception ex) when (F(ex, ex))
         {
             Console.WriteLine(ex);
         }
@@ -614,7 +614,7 @@ class Program
         {
             throw new Exception(""bye"");
         }
-        catch (Exception ex) if (F(ref ex))
+        catch (Exception ex) when (F(ref ex))
         {
             Console.WriteLine(ex);
         }
@@ -679,7 +679,7 @@ class Program
         {
             throw new Exception(""bye"");
         }
-        catch (T ex) if (F(ex, ex))
+        catch (T ex) when (F(ex, ex))
         {
             Console.WriteLine(ex);
         }
@@ -779,7 +779,7 @@ class C
 		{
 			throw new IOException(""Hi"");
         }
-		catch (E e) if (new Func<bool>(() => e.Message != null)())
+		catch (E e) when (new Func<bool>(() => e.Message != null)())
 		{
 			( (Action) delegate { Console.WriteLine(e.Message); })();
 		}
@@ -1421,7 +1421,7 @@ class C
             Console.Write(""Try"");
             x = x / x;
         }
-        catch if (Filter())
+        catch when (Filter())
         {
             Console.Write(""Catch"");
         }
@@ -1500,12 +1500,12 @@ class C
             x = x / x;
         }
         catch (DivideByZeroException e)
-              if (e.Message == null)
+              when (e.Message == null)
         {
             Console.Write(""Catch1"");
         }
         catch (DivideByZeroException e)
-               if(e.Message != null)
+               when (e.Message != null)
         {
             Console.Write(""Catch2"" + e.Message.Length);
         }
@@ -1615,7 +1615,7 @@ class C
             Console.Write(""Try"");
             x = x / x;
         }
-        catch if (new Func<bool>(() => str.Length == 2)())
+        catch when (new Func<bool>(() => str.Length == 2)())
         {
             Console.Write(""Catch"" + str);
         }
@@ -1939,13 +1939,13 @@ class Program
         int a = 1;
         try { }
         catch (System.Exception) { }
-        catch if (a == 1) { }
+        catch when (a == 1) { }
     }
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (9,9): warning CS1058: A previous catch clause already catches all exceptions. All non-exceptions thrown will be wrapped in a System.Runtime.CompilerServices.RuntimeWrappedException.
-                //         catch if (a == 1) { }
+                //         catch when (a == 1) { }
                 Diagnostic(ErrorCode.WRN_UnreachableGeneralCatch, "catch").WithLocation(9, 9));
         }
 
@@ -1959,8 +1959,8 @@ class Program
     {
         int a = 1;
         try { }
-        catch if (a == 2) { }
-        catch (System.Exception) if (a == 3) { }
+        catch when (a == 2) { }
+        catch (System.Exception) when (a == 3) { }
         catch { }
     }
 }

@@ -25,7 +25,7 @@ class C
         try
         {
         }
-        catch (System.IO.IOException e) if (e.Message != null)
+        catch (System.IO.IOException e) when (e.Message != null)
         {
         }
     }

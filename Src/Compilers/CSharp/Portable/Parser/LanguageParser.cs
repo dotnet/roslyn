@@ -7194,16 +7194,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             CatchFilterClauseSyntax filter = null;
 
-            if (this.CurrentToken.Kind == SyntaxKind.IfKeyword)
+            if (this.CurrentToken.ContextualKind == SyntaxKind.WhenKeyword)
             {
-                var ifKeyword = CheckFeatureAvailability(this.EatToken(), MessageID.IDS_FeatureExceptionFilter);
+                var whenKeyword = this.EatContextualToken(SyntaxKind.WhenKeyword);
+                whenKeyword = CheckFeatureAvailability(whenKeyword, MessageID.IDS_FeatureExceptionFilter);
                 this.termState |= TerminatorState.IsEndOfilterClause;
                 var openParen = this.EatToken(SyntaxKind.OpenParenToken);
                 var filterExpression = this.ParseExpression();
 
                 this.termState = saveTerm;
                 var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
-                filter = syntaxFactory.CatchFilterClause(ifKeyword, openParen, filterExpression, closeParen);
+                filter = syntaxFactory.CatchFilterClause(whenKeyword, openParen, filterExpression, closeParen);
             }
 
             this.termState |= TerminatorState.IsEndOfCatchBlock;

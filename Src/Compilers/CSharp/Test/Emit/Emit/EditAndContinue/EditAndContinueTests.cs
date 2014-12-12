@@ -4762,7 +4762,7 @@ class B
         }
 
         /// Local names array (from PDB) may have fewer slots than method
-        /// signature (from metadata) if the trailing slots are unnamed.
+        /// signature (from metadata) when the trailing slots are unnamed.
         /// </summary>
         [WorkItem(782270, "DevDiv")]
         [Fact]

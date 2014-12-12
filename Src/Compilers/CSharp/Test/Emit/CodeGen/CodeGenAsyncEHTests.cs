@@ -1235,13 +1235,13 @@ class Test
             {
                 x = x / x;
             }
-            catch if(x != 0)
+            catch when(x != 0)
             {
                 x = await F();
                 throw;
             }
         }
-        catch(Exception ex) if(x == 0 && ((ex = new Exception(""hello"")) != null))
+        catch(Exception ex) when(x == 0 && ((ex = new Exception(""hello"")) != null))
         {
             x = await F();
             System.Console.WriteLine(ex.Message);
@@ -1294,12 +1294,12 @@ class Test
         {
             x = x / x;
         }
-        catch(Exception ex) if(T(()=>ex.Message == null, ref ex))
+        catch(Exception ex) when(T(()=>ex.Message == null, ref ex))
         {
             x = await F();
             System.Console.WriteLine(ex.Message);
         }
-        catch(Exception ex) if(T(()=>ex.Message != null, ref ex))
+        catch(Exception ex) when(T(()=>ex.Message != null, ref ex))
         {
             x = await F();
             System.Console.WriteLine(ex.Message);
@@ -1351,7 +1351,7 @@ class Test
                         {
                             x = x / await F(0);
                         }
-                        catch (DivideByZeroException) if (i < 3)
+                        catch (DivideByZeroException) when (i < 3)
                         {
                             await Task.Yield();
                             continue;
@@ -1434,7 +1434,7 @@ class Test
                             {
                                 x = x / await F(0);
                             }
-                            catch (DivideByZeroException) if (i < 3)
+                            catch (DivideByZeroException) when (i < 3)
                             {
                                 await Task.Yield();
                                 continue;

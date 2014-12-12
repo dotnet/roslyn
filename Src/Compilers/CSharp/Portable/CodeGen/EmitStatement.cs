@@ -759,7 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// {
         ///    TryBlock
         /// }
-        /// catch (ExceptionType ex) if (Condition)
+        /// catch (ExceptionType ex) when (Condition)
         /// {
         ///    Handler
         /// }

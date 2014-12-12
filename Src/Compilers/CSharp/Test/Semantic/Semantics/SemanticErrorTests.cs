@@ -5143,16 +5143,16 @@ class Program
     {
         int a = 1;
         try { }
-        catch if (a == 1) { }
-        catch (Exception e) if (e.Message == null) { }
+        catch when (a == 1) { }
+        catch (Exception e) when (e.Message == null) { }
         catch (A) { }
-        catch (B e) if (e.Message == null) { }
+        catch (B e) when (e.Message == null) { }
     }
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (15,16): error CS0160: A previous catch clause already catches all exceptions of this or of a super type ('A')
-                //         catch (B e) if (e.Message == null) { }
+                //         catch (B e) when (e.Message == null) { }
                 Diagnostic(ErrorCode.ERR_UnreachableCatch, "B").WithArguments("A").WithLocation(15, 16));
         }
 
@@ -5169,15 +5169,15 @@ class Program
     static void M()
     {
         try { }
-        catch (A) if (true) { }
+        catch (A) when (true) { }
         catch (B) { }
     }
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (11,23): warning CS7095: Filter expression is a constant, consider removing the filter
-                //         catch (A) if (true) { }
-                Diagnostic(ErrorCode.WRN_FilterIsConstant, "true").WithLocation(11, 23));
+                //         catch (A) when (true) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstant, "true").WithLocation(11, 25));
         }
 
         [Fact]
@@ -5192,19 +5192,19 @@ class Program
     static void M()
     {
         try { }
-        catch if (true) { }
+        catch when (true) { }
         catch (A) { }
-        catch if (false) { }
+        catch when (false) { }
     }
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (10,19): warning CS7095: Filter expression is a constant, consider removing the filter
-                //         catch if (true) { }
-                Diagnostic(ErrorCode.WRN_FilterIsConstant, "true").WithLocation(10, 19),
+                //         catch when (true) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstant, "true").WithLocation(10, 21),
                 // (12,19): warning CS7095: Filter expression is a constant, consider removing the filter
-                //         catch if (false) { }
-                Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(12, 19));
+                //         catch when (false) { }
+                Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(12, 21));
         }
 
         [Fact]
@@ -5220,7 +5220,7 @@ class Program
     static void M()
     {
         try { }
-        catch (A) if (false) 
+        catch (A) when (false) 
         {
             Console.WriteLine(1); 
         }
@@ -5229,9 +5229,10 @@ class Program
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (11,23): warning CS7095: Filter expression is a constant, consider removing the filter
-                //         catch (A) if (false) 
-                Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(11, 23));
+    // (11,25): warning CS7095: Filter expression is a constant, consider removing the filter
+    //         catch (A) when (false) 
+    Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(11, 25)
+                );
         }
 
         [Fact]
@@ -5246,7 +5247,7 @@ class Program
     {
         int x;
         try { }
-        catch (Exception) if (false) 
+        catch (Exception) when (false) 
         {
             Console.WriteLine(x);
         }
@@ -5258,12 +5259,13 @@ class Program
             // is to make conditional compilation easier. Such scenario doesn't apply to filters.
 
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (10,31): warning CS7095: Filter expression is a constant, consider removing the filter
-                //         catch (Exception) if (false) 
-                Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(10, 31),
-                // (12,31): error CS0165: Use of unassigned local variable 'x'
-                //             Console.WriteLine(x);
-                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(12, 31));
+    // (10,33): warning CS7095: Filter expression is a constant, consider removing the filter
+    //         catch (Exception) when (false) 
+    Diagnostic(ErrorCode.WRN_FilterIsConstant, "false").WithLocation(10, 33),
+    // (12,31): error CS0165: Use of unassigned local variable 'x'
+    //             Console.WriteLine(x);
+    Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(12, 31)
+                );
         }
 
         [Fact]
