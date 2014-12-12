@@ -61,7 +61,6 @@
     <OutDir>..\..\..\..\Binaries\Debug\amd64</OutDir>
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-    <DocumentationFile>E:\Roslyn\Binaries\Debug\Microsoft.CodeAnalysis.CSharp.xml</DocumentationFile>
     <NoWarn>1591</NoWarn>
     <DebugType>full</DebugType>
     <PlatformTarget>x64</PlatformTarget>
@@ -72,7 +71,6 @@
     <OutDir>..\..\..\..\Binaries\Release\amd64</OutDir>
     <DefineConstants>TRACE</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <DocumentationFile>E:\Roslyn\Binaries\Release\Microsoft.CodeAnalysis.CSharp.xml</DocumentationFile>
     <Optimize>true</Optimize>
     <NoWarn>1591</NoWarn>
     <DebugType>pdbonly</DebugType>

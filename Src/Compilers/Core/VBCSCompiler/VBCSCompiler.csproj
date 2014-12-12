@@ -63,7 +63,6 @@
     <OutDir>..\..\..\..\Binaries\Debug\amd64</OutDir>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-    <DocumentationFile>E:\Roslyn\Binaries\Debug\VBCSCompiler.xml</DocumentationFile>
     <NoWarn>1591</NoWarn>
     <DebugType>full</DebugType>
     <PlatformTarget>x64</PlatformTarget>
@@ -74,7 +73,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
     <OutDir>..\..\..\..\Binaries\Release\amd64</OutDir>
     <DefineConstants>TRACE</DefineConstants>
-    <DocumentationFile>E:\Roslyn\Binaries\Release\VBCSCompiler.xml</DocumentationFile>
     <Optimize>true</Optimize>
     <NoWarn>1591</NoWarn>
     <DebugType>pdbonly</DebugType>
