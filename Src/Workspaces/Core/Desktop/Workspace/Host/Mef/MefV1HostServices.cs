@@ -122,24 +122,5 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                 return Hash.Combine(this.MetadataTypeName.GetHashCode(), this.ExtensionTypeName.GetHashCode());
             }
         }
-
-        #region Defaults
-        private static MefV1HostServices defaultHost;
-
-        public static MefV1HostServices DefaultHost
-        {
-            get
-            {
-                if (defaultHost == null)
-                {
-                    var host = MefV1HostServices.Create(MefHostServices.DefaultAssemblies);
-                    Interlocked.CompareExchange(ref defaultHost, host, null);
-                }
-
-                return defaultHost;
-            }
-        }
-
-        #endregion
     }
 }
