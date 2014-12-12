@@ -58,8 +58,8 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup Label="File References">
-    <Reference Include="..\..\..\packages\System.Reflection.Metadata.1.0.17-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
-    <Reference Include="..\..\..\packages\System.Collections.Immutable.1.1.32-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
+    <Reference Include="..\..\..\packages\System.Reflection.Metadata.1.0.18-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
+    <Reference Include="..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
     <Reference Include="xunit.abstractions">
       <HintPath>..\..\..\packages\xunit.abstractions.2.0.0-alpha-build2576\lib\net35\xunit.abstractions.dll</HintPath>
     </Reference>
@@ -147,6 +147,7 @@
     <Compile Include="EventWaiter.cs" />
     <Compile Include="HostedRuntimeEnvironment.cs" />
     <Compile Include="ILBuilderVisualizer.cs" />
+    <Compile Include="ImmutableArrayInterop.cs" />
     <Compile Include="ImmutableArrayTestExtensions.cs" />
     <Compile Include="MarkupTestFile.cs" />
     <Compile Include="MetadataCacheTestHelpers.cs" />

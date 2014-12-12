@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 
@@ -14,7 +15,7 @@ namespace Roslyn.Test.Utilities
 
         public unsafe PinnedMetadata(ImmutableArray<byte> metadata)
         {
-            bytes = GCHandle.Alloc(ImmutableArrayInterop.DangerousGetUnderlyingArray(metadata), GCHandleType.Pinned);
+            bytes = GCHandle.Alloc(metadata.DangerousGetUnderlyingArray(), GCHandleType.Pinned);
             this.Reader = new MetadataReader((byte*)bytes.AddrOfPinnedObject(), metadata.Length, MetadataReaderOptions.None, null);
         }
 

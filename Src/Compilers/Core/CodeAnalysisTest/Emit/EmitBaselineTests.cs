@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Emit;
 using Xunit;
 using System.Reflection.Metadata;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Emit
 {
@@ -18,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
             var peReader = peModule.Module.PEReaderOpt;
 
             var mdBytes = peReader.GetMetadata().GetContent();
-            var mdBytesHandle = GCHandle.Alloc(ImmutableArrayInterop.DangerousGetUnderlyingArray(mdBytes), GCHandleType.Pinned);
+            var mdBytesHandle = GCHandle.Alloc(mdBytes.DangerousGetUnderlyingArray(), GCHandleType.Pinned);
             var mdModule = ModuleMetadata.CreateFromMetadata(mdBytesHandle.AddrOfPinnedObject(), mdBytes.Length);
 
             Assert.Throws<ArgumentNullException>(() => EmitBaseline.CreateInitialBaseline(null, provider));

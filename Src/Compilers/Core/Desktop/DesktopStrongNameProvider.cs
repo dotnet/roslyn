@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis
             {
                 ICLRStrongName strongName = GetStrongNameInterface();
 
-                fixed (byte* pinned = ImmutableArrayInterop.DangerousGetUnderlyingArray(keyPair))
+                fixed (byte* pinned = keyPair.ToArray())
                 {
                     int unused;
                     strongName.StrongNameSignatureGeneration(filePath, null, (IntPtr)pinned, keyPair.Length, null, out unused);

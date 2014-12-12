@@ -994,7 +994,7 @@ namespace Microsoft.Cci
                 byteArray[i++] = (byte)(ch >> 8);
             }
 
-            return this.GetBlobIndex(ImmutableArrayInterop.DangerousCreateFromUnderlyingArray(ref byteArray));
+            return this.GetBlobIndex(ImmutableArray.Create(byteArray));
         }
 
         private uint GetCustomAttributeSignatureIndex(ICustomAttribute customAttribute)
