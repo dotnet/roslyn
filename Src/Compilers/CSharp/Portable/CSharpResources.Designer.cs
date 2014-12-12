@@ -3806,6 +3806,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expression or declaration statement expected..
+        /// </summary>
+        internal static string ERR_ExpressionOrDeclarationExpected {
+            get {
+                return ResourceManager.GetString("ERR_ExpressionOrDeclarationExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An expression tree may not contain an anonymous method expression.
         /// </summary>
         internal static string ERR_ExpressionTreeContainsAnonymousMethod {

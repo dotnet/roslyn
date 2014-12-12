@@ -4022,4 +4022,7 @@
   <data name="ERR_ErrorInReferencedAssembly" xml:space="preserve">
     <value>There is an error in a referenced assembly '{0}'.</value>
   </data>
+  <data name="ERR_ExpressionOrDeclarationExpected" xml:space="preserve">
+    <value>Expression or declaration statement expected.</value>
+  </data>
 </root>

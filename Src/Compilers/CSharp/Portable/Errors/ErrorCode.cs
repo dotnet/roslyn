@@ -1304,5 +1304,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EmptyFormatSpecifier = 8089,
         ERR_ErrorInReferencedAssembly = 8090,
         ERR_ExternHasConstructorInitializer = 8091,
+        ERR_ExpressionOrDeclarationExpected = 8092,
     }
 }
