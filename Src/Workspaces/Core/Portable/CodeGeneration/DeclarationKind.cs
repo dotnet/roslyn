@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         Namespace,
         NamespaceImport,
         Parameter,
-        LocalVariable,
+        Variable,
         Attribute,
         LambdaExpression
     }

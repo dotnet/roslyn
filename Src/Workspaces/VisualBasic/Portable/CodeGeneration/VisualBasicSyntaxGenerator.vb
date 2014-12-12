@@ -1136,56 +1136,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return attr.WithTarget(Nothing)
         End Function
 
-        Public Overrides Function RemoveAllAttributes(declaration As SyntaxNode) As SyntaxNode
-            Return PreserveTrivia(declaration, Function(d) RemoveAttributes(d, GetAttributes(d).Concat(GetReturnAttributes(d))))
-        End Function
-
         Public Overrides Function GetAttributes(declaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
             Return GetAttributeLists(declaration)
         End Function
-
-        Public Overrides Function RemoveAttributes(declaration As SyntaxNode, attributes As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Return PreserveTrivia(declaration.TrackNodes(attributes), Function(d) RemoveAttributesInternal(d, attributes))
-        End Function
-
-        Private Function RemoveAttributesInternal(declaration As SyntaxNode, attributes As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            For Each attr In attributes
-                declaration = RemoveAttribute(declaration, declaration.GetCurrentNode(attr))
-            Next
-            Return declaration
-        End Function
-
-        Private Function RemoveAttribute(declaration As SyntaxNode, attribute As SyntaxNode) As SyntaxNode
-            Dim attrStmt = TryCast(attribute, AttributesStatementSyntax)
-            If attrStmt IsNot Nothing Then
-                Return declaration.RemoveNode(attrStmt, SyntaxRemoveOptions.KeepUnbalancedDirectives)
-            End If
-
-            Dim attrList = TryCast(attribute, AttributeListSyntax)
-            If attrList IsNot Nothing Then
-                attrStmt = TryCast(attrList.Parent, AttributesStatementSyntax)
-                If attrStmt IsNot Nothing AndAlso attrStmt.AttributeLists.Count = 1 Then
-                    ' remove entire statement if only the one list
-                    Return RemoveAttribute(declaration, attrStmt)
-                End If
-
-                Return declaration.RemoveNode(attrList, SyntaxRemoveOptions.KeepUnbalancedDirectives)
-            End If
-
-            Dim attr = TryCast(attribute, AttributeSyntax)
-            If attr IsNot Nothing Then
-                attrList = TryCast(attr.Parent, AttributeListSyntax)
-                If attrList IsNot Nothing AndAlso attrList.Attributes.Count = 1 Then
-                    ' remove entire list if only the one attribute
-                    Return RemoveAttribute(declaration, attrList)
-                End If
-
-                Return declaration.RemoveNode(attr, SyntaxRemoveOptions.KeepUnbalancedDirectives)
-            End If
-
-            Return declaration
-        End Function
-
 
         Public Overrides Function InsertAttributes(declaration As SyntaxNode, index As Integer, attributes As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Return PreserveTrivia(declaration, Function(d) InsertAttributesInternal(d, index, MyBase.ClearTrivia(attributes)))
@@ -1226,10 +1179,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Case Else
                     Return SpecializedCollections.EmptyReadOnlyList(Of SyntaxNode)
             End Select
-        End Function
-
-        Public Overrides Function RemoveReturnAttributes(declaration As SyntaxNode, attributes As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Return RemoveAttributes(declaration, attributes)
         End Function
 
         Public Overrides Function InsertReturnAttributes(methodDeclaration As SyntaxNode, index As Integer, attributes As IEnumerable(Of SyntaxNode)) As SyntaxNode
@@ -1442,7 +1391,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Case SyntaxKind.Parameter
                     Return DeclarationKind.Parameter
                 Case SyntaxKind.LocalDeclarationStatement
-                    Return DeclarationKind.LocalVariable
+                    Return DeclarationKind.Variable
             End Select
             Return DeclarationKind.None
         End Function
@@ -2799,6 +2748,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 eventStatement:=evStatement,
                 accessors:=SyntaxFactory.List(accessors),
                 endEventStatement:=SyntaxFactory.EndEventStatement())
+        End Function
+
+        Public Overrides Function GetAttributeArguments(attributeDeclaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
+            Throw New NotImplementedException()
+        End Function
+
+        Public Overrides Function InsertAttributeArguments(attributeDeclaration As SyntaxNode, index As Integer, attributeArguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Throw New NotImplementedException()
+        End Function
+
+        Public Overrides Function RemoveDeclaration(root As SyntaxNode, declaration As SyntaxNode) As SyntaxNode
+            Return PreserveTrivia(root.TrackNodes(declaration), Function(r) Me.RemoveDeclarationInternal(r, r.GetCurrentNode(declaration)))
+        End Function
+
+        Private Function RemoveDeclarationInternal(root As SyntaxNode, declaration As SyntaxNode) As SyntaxNode
+
+            ' special case handling for declarations that remove their parents too
+            Select Case declaration.VBKind
+                Case SyntaxKind.AttributeList
+                    Dim attrList = DirectCast(declaration, AttributeListSyntax)
+                    Dim attrStmt = TryCast(attrList.Parent, AttributesStatementSyntax)
+                    If attrStmt IsNot Nothing AndAlso attrStmt.AttributeLists.Count = 1 Then
+                        ' remove entire statement if only the one list
+                        Return RemoveDeclarationInternal(root, attrStmt)
+                    End If
+                Case SyntaxKind.Attribute
+                    Dim attrList = TryCast(declaration.Parent, AttributeListSyntax)
+                    If attrList IsNot Nothing AndAlso attrList.Attributes.Count = 1 Then
+                        ' remove entire list if only the one attribute
+                        Return RemoveDeclarationInternal(root, attrList)
+                    End If
+            End Select
+
+            ' do it the normal way
+            Return root.RemoveNode(declaration, DefaultRemoveOptions)
         End Function
     End Class
 End Namespace

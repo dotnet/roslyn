@@ -247,15 +247,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             var generator = SyntaxGenerator.GetGenerator(this.currentSolution.Workspace, declaration.Language);
             var newDecl = declarationEditor(declaration, generator);
 
-            SyntaxNode newRoot;
-            if (newDecl != null)
-            {
-                newRoot = root.ReplaceNode(declaration, newDecl);
-            }
-            else
-            {
-                newRoot = root.RemoveNode(declaration, SyntaxGenerator.DefaultRemoveOptions);
-            }
+            SyntaxNode newRoot = generator.ReplaceDeclaration(root, declaration, newDecl);
 
             var newDoc = doc.WithSyntaxRoot(newRoot);
             this.currentSolution = newDoc.Project.Solution;

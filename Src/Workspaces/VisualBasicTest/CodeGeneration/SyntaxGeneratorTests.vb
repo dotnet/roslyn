@@ -1694,7 +1694,7 @@ End Class ' end</x>.Value)
             Assert.Equal(DeclarationKind.CustomEvent, g.GetDeclarationKind(g.CustomEventDeclaration("ce", g.IdentifierName("t"))))
             Assert.Equal(DeclarationKind.Namespace, g.GetDeclarationKind(g.NamespaceDeclaration("n")))
             Assert.Equal(DeclarationKind.NamespaceImport, g.GetDeclarationKind(g.NamespaceImportDeclaration("u")))
-            Assert.Equal(DeclarationKind.LocalVariable, g.GetDeclarationKind(g.LocalDeclarationStatement(g.IdentifierName("t"), "loc")))
+            Assert.Equal(DeclarationKind.Variable, g.GetDeclarationKind(g.LocalDeclarationStatement(g.IdentifierName("t"), "loc")))
             Assert.Equal(DeclarationKind.Attribute, g.GetDeclarationKind(g.Attribute("a")))
         End Sub
 
@@ -2214,20 +2214,20 @@ End Function</x>.Value)
 
         <Fact>
         Public Sub TestRemoveMembers()
-            TestRemoveAllMembers(g.RemoveMembers(g.ClassDeclaration("d", members:={g.MethodDeclaration("m")})))
-            TestRemoveAllMembers(g.RemoveMembers(g.StructDeclaration("s", members:={g.MethodDeclaration("m")})))
-            TestRemoveAllMembers(g.RemoveMembers(g.InterfaceDeclaration("i", members:={g.MethodDeclaration("m")})))
-            TestRemoveAllMembers(g.RemoveMembers(g.EnumDeclaration("i", members:={g.EnumMember("v")})))
+            TestRemoveAllMembers(g.ClassDeclaration("d", members:={g.MethodDeclaration("m")}))
+            TestRemoveAllMembers(g.StructDeclaration("s", members:={g.MethodDeclaration("m")}))
+            TestRemoveAllMembers(g.InterfaceDeclaration("i", members:={g.MethodDeclaration("m")}))
+            TestRemoveAllMembers(g.EnumDeclaration("i", members:={g.EnumMember("v")}))
             TestRemoveAllMembers(g.AddMembers(g.NamespaceDeclaration("n", {g.NamespaceDeclaration("n1")})))
             TestRemoveAllMembers(g.AddMembers(g.CompilationUnit(declarations:={g.NamespaceDeclaration("n1")})))
         End Sub
 
         Private Sub TestRemoveAllMembers(declaration As SyntaxNode)
-            Assert.Equal(0, g.GetMembers(g.RemoveMembers(declaration, g.GetMembers(declaration))).Count)
+            Assert.Equal(0, g.GetMembers(g.RemoveDeclarations(declaration, g.GetMembers(declaration))).Count)
         End Sub
 
         Private Sub TestRemoveMember(declaration As SyntaxNode, name As String, remainingNames As String())
-            Dim newDecl = g.RemoveMembers(declaration, g.GetMembers(declaration).First(Function(m) g.GetName(m) = name))
+            Dim newDecl = g.RemoveDeclaration(declaration, g.GetMembers(declaration).First(Function(m) g.GetName(m) = name))
             AssertMemberNamesEqual(remainingNames, newDecl)
         End Sub
 

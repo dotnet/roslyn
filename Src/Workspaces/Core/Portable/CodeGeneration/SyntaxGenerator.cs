@@ -659,17 +659,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <summary>
         /// Removes all attributes from the declaration, including return attributes.
         /// </summary>
-        public abstract SyntaxNode RemoveAllAttributes(SyntaxNode declaration);
+        public SyntaxNode RemoveAllAttributes(SyntaxNode declaration)
+        {
+            return this.RemoveDeclarations(declaration, this.GetAttributes(declaration).Concat(this.GetReturnAttributes(declaration)));
+        }
 
         /// <summary>
         /// Gets the attributes of a declaration, not including the return attributes.
         /// </summary>
         public abstract IReadOnlyList<SyntaxNode> GetAttributes(SyntaxNode declaration);
-
-        /// <summary>
-        /// Removes specific attributes from the declaration.
-        /// </summary>
-        public abstract SyntaxNode RemoveAttributes(SyntaxNode declaration, IEnumerable<SyntaxNode> attributes);
 
         /// <summary>
         /// Creates a new instance of the declaration with the attributes inserted.
@@ -706,11 +704,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract IReadOnlyList<SyntaxNode> GetReturnAttributes(SyntaxNode declaration);
 
         /// <summary>
-        /// Removes the specified return attributes from the declaration.
-        /// </summary>
-        public abstract SyntaxNode RemoveReturnAttributes(SyntaxNode declaration, IEnumerable<SyntaxNode> attributes);
-
-        /// <summary>
         /// Creates a new instance of a method declaration with return attributes inserted.
         /// </summary>
         public abstract SyntaxNode InsertReturnAttributes(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> attributes);
@@ -737,6 +730,24 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public SyntaxNode AddReturnAttributes(SyntaxNode declaration, params SyntaxNode[] attributes)
         {
             return AddReturnAttributes(declaration, (IEnumerable<SyntaxNode>)attributes);
+        }
+
+        /// <summary>
+        /// Gets the attribute arguments for the attribute declaration.
+        /// </summary>
+        public abstract IReadOnlyList<SyntaxNode> GetAttributeArguments(SyntaxNode attributeDeclaration);
+
+        /// <summary>
+        /// Creates a new instance of the attribute with the arguments inserted.
+        /// </summary>
+        public abstract SyntaxNode InsertAttributeArguments(SyntaxNode attributeDeclaration, int index, IEnumerable<SyntaxNode> attributeArguments);
+
+        /// <summary>
+        /// Creates a new instance of the attribute with the arguments added.
+        /// </summary>
+        public SyntaxNode AddAttributeArguments(SyntaxNode attributeDeclaration, IEnumerable<SyntaxNode> attributeArguments)
+        {
+            return this.InsertAttributeArguments(attributeDeclaration, this.GetAttributeArguments(attributeDeclaration).Count, attributeArguments);
         }
 
         /// <summary>
@@ -774,41 +785,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         /// <summary>
-        /// Creates a new instance of the declaration with the specified namespace imports removed.
-        /// </summary>
-        public SyntaxNode RemoveNamespaceImports(SyntaxNode declaration, IEnumerable<SyntaxNode> imports)
-        {
-            return declaration.RemoveNodes(imports, DefaultRemoveOptions);
-        }
-
-        /// <summary>
-        /// Creates a new instance of the declaration with the specified namespace imports removed.
-        /// </summary>
-        public SyntaxNode RemoveNamespaceImports(SyntaxNode declaration, params SyntaxNode[] imports)
-        {
-            return this.RemoveNamespaceImports(declaration, (IEnumerable<SyntaxNode>)imports);
-        }
-
-        /// <summary>
         /// Gets the current members of the declaration.
         /// </summary>
         public abstract IReadOnlyList<SyntaxNode> GetMembers(SyntaxNode declaration);
-
-        /// <summary>
-        /// Creates a new instance of the declaration with the members removed.
-        /// </summary>
-        public SyntaxNode RemoveMembers(SyntaxNode declaration, IEnumerable<SyntaxNode> members)
-        {
-            return declaration.RemoveNodes(members, DefaultRemoveOptions);
-        }
-
-        /// <summary>
-        /// Creates a new instance of the declaration with the members removed.
-        /// </summary>
-        public SyntaxNode RemoveMembers(SyntaxNode declaration, params SyntaxNode[] members)
-        {
-            return this.RemoveMembers(declaration, (IEnumerable<SyntaxNode>)members);
-        }
 
         /// <summary>
         /// Creates a new instance of the declaration with the members inserted.
@@ -903,14 +882,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         /// <summary>
-        /// Removes the specified parameters from the declaration.
-        /// </summary>
-        public SyntaxNode RemoveParameters(SyntaxNode declaration, IEnumerable<SyntaxNode> parameters)
-        {
-            return declaration.RemoveNodes(parameters, DefaultRemoveOptions);
-        }
-
-        /// <summary>
         /// Gets the expression associated with the declaration.
         /// </summary>
         public abstract SyntaxNode GetExpression(SyntaxNode declaration);
@@ -949,6 +920,52 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// Changes the statements for the body of the set-accessor of the declaration.
         /// </summary>
         public abstract SyntaxNode WithSetAccessorStatements(SyntaxNode declaration, IEnumerable<SyntaxNode> statements);
+
+        /// <summary>
+        /// Replaces the declaration in the root's tree with the new declaration.
+        /// </summary>
+        public virtual SyntaxNode ReplaceDeclaration(SyntaxNode root, SyntaxNode declaration, SyntaxNode newDeclaration)
+        {
+            if (newDeclaration != null)
+            {
+                return root.ReplaceNode(declaration, newDeclaration);
+            }
+            else
+            {
+                return this.RemoveDeclaration(root, declaration);
+            }
+        }
+
+        /// <summary>
+        /// Inserts the new declarations before the specified declaration.
+        /// </summary>
+        public virtual SyntaxNode InsertDeclarationsBefore(SyntaxNode root, SyntaxNode declaration, IEnumerable<SyntaxNode> newDeclarations)
+        {
+            return root.InsertNodesBefore(declaration, newDeclarations);
+        }
+
+        /// <summary>
+        /// Removes the declaration from the sub tree starting at the root.
+        /// </summary>
+        public virtual SyntaxNode RemoveDeclaration(SyntaxNode root, SyntaxNode declaration)
+        {
+            return root.RemoveNode(declaration, DefaultRemoveOptions);
+        }
+
+        /// <summary>
+        /// Removes all the declarations form the sub tree starting at the root.
+        /// </summary>
+        public SyntaxNode RemoveDeclarations(SyntaxNode root, IEnumerable<SyntaxNode> declarations)
+        {
+            var newRoot = root.TrackNodes(declarations);
+
+            foreach (var decl in declarations)
+            {
+                newRoot = this.RemoveDeclaration(newRoot, newRoot.GetCurrentNode(decl));
+            }
+
+            return newRoot;
+        }
 
         #endregion
 
@@ -1002,6 +1019,50 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         protected abstract TNode ClearTrivia<TNode>(TNode node) where TNode : SyntaxNode;
+
+        protected int IndexOf<T>(IReadOnlyList<T> list, T element)
+        {
+            for (int i = 0, count = list.Count; i < count; i++)
+            {
+                if (EqualityComparer<T>.Default.Equals(list[i], element))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        protected static SyntaxNode ReplaceRange(SyntaxNode root, SyntaxNode node, IEnumerable<SyntaxNode> replacements)
+        {
+            var first = replacements.First();
+            var trackedFirst = first.TrackNodes(first);
+            var newRoot = root.ReplaceNode(node, trackedFirst);
+            var currentFirst = newRoot.GetCurrentNode(first);
+            return newRoot.InsertNodesAfter(currentFirst, replacements.Skip(1));
+        }
+
+        protected static SeparatedSyntaxList<TNode> RemoveRange<TNode>(SeparatedSyntaxList<TNode> list, int offset, int count)
+            where TNode : SyntaxNode
+        {
+            for (; count > 0 && offset < list.Count; count--)
+            {
+                list = list.RemoveAt(offset);
+            }
+
+            return list;
+        }
+
+        protected static SyntaxList<TNode> RemoveRange<TNode>(SyntaxList<TNode> list, int offset, int count)
+            where TNode : SyntaxNode
+        {
+            for (; count > 0 && offset < list.Count; count--)
+            {
+                list = list.RemoveAt(offset);
+            }
+
+            return list;
+        }
 
         #endregion
 

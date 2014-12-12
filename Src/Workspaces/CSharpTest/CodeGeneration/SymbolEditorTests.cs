@@ -671,5 +671,47 @@ partial class C
 
             Assert.Equal(expected, actual);
         }
+
+        [Fact]
+        public void TestRemoveFieldFromMultiFieldDeclaration()
+        {
+            var code =
+@"class C
+{
+    public int X, Y;
+}";
+
+            var expected =
+@"class C
+{
+    public int Y;
+}";
+
+            var expected2 =
+@"class C
+{
+}";
+
+            var solution = GetSolution(code);
+            var symbol = (INamedTypeSymbol)GetSymbols(solution, "C").First();
+            var symbolX = symbol.GetMembers("X").First();
+            var symbolY = symbol.GetMembers("Y").First();
+
+            var editor = new SymbolEditor(solution);
+
+            // remove X -- should remove only part of the field declaration.
+            var newSymbolX = (INamedTypeSymbol)editor.EditOneDeclarationAsync(symbolX, (d, g) => null).Result;
+            Assert.Null(newSymbolX);
+
+            var actual = GetActual(editor.GetChangedDocuments().First());
+            Assert.Equal(expected, actual);
+
+            // now remove Y -- should remove entire remaining field declaration
+            var newSymbolY = (INamedTypeSymbol)editor.EditOneDeclarationAsync(symbolY, (d, g) => null).Result;
+            Assert.Null(newSymbolY);
+
+            actual = GetActual(editor.GetChangedDocuments().First());
+            Assert.Equal(expected2, actual);
+        }
     }
 }
