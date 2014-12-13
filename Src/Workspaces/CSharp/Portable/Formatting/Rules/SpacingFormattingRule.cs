@@ -220,8 +220,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // Spacing before and after interpolated string tokens should be preserved.
             if (previousKind == SyntaxKind.InterpolatedStringStartToken ||
-                previousKind == SyntaxKind.InterpolatedStringMidToken ||
-                currentKind == SyntaxKind.InterpolatedStringMidToken ||
+                previousKind == SyntaxKind.InterpolatedStringTextToken ||
+                currentKind == SyntaxKind.InterpolatedStringTextToken ||
                 currentKind == SyntaxKind.InterpolatedStringEndToken)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.PreserveSpaces);

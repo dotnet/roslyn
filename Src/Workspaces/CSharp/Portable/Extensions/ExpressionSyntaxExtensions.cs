@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.DoStatement:
                 case SyntaxKind.ThrowStatement:
                 case SyntaxKind.SwitchStatement:
-                case SyntaxKind.InterpolatedStringInsert:
+                case SyntaxKind.InterpolatedStringExpression:
                 case SyntaxKind.ComplexElementInitializerExpression:
                     // Direct parent kind checks.
                     return true;

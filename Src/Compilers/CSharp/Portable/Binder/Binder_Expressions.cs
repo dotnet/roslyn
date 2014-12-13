@@ -575,8 +575,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // type cannot.
                     return BadExpression(node);
 
-                case SyntaxKind.InterpolatedString:
-                    return BindInterpolatedString((InterpolatedStringSyntax)node, diagnostics);
+                case SyntaxKind.InterpolatedStringExpression:
+                    return BindInterpolatedString((InterpolatedStringExpressionSyntax)node, diagnostics);
 
                 default:
                     // NOTE: We could probably throw an exception here, but it's conceivable

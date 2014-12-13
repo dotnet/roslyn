@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             return token.CSharpKind() == SyntaxKind.StringLiteralToken
                 || token.CSharpKind() == SyntaxKind.CharacterLiteralToken
                 || token.CSharpKind() == SyntaxKind.InterpolatedStringStartToken
-                || token.CSharpKind() == SyntaxKind.InterpolatedStringMidToken
+                || token.CSharpKind() == SyntaxKind.InterpolatedStringTextToken
                 || token.CSharpKind() == SyntaxKind.InterpolatedStringEndToken;
         }
 

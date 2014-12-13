@@ -190,7 +190,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.InterpolatedStringToken:
                 case SyntaxKind.InterpolatedStringStartToken:
-                case SyntaxKind.InterpolatedStringMidToken:
+                case SyntaxKind.InterpolatedVerbatimStringStartToken:
+                case SyntaxKind.InterpolatedStringTextToken:
                 case SyntaxKind.InterpolatedStringEndToken:
                     return true;
                 default:
@@ -1563,6 +1564,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "when";
                 case SyntaxKind.NameOfKeyword:
                     return "nameof";
+                case SyntaxKind.InterpolatedVerbatimStringStartToken:
+                    return "$@\"";
+                case SyntaxKind.InterpolatedStringStartToken:
+                    return "$\"";
+                case SyntaxKind.InterpolatedStringEndToken:
+                    return "\"";
                 default:
                     return string.Empty;
             }

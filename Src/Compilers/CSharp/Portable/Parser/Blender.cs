@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 parent != null;
                 parent = parent.Parent)
             {
-                if (parent.CSharpKind() == SyntaxKind.InterpolatedString)
+                if (parent.CSharpKind() == SyntaxKind.InterpolatedStringExpression)
                 {
                     return true;
                 }

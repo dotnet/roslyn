@@ -1526,6 +1526,64 @@
       <summary>Creates an OmittedArraySizeExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
+  <Node Name="InterpolatedStringExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="InterpolatedStringExpression"/>
+    <Field Name="StringStartToken" Type="SyntaxToken">
+      <Kind Name="InterpolatedStringStartToken"/>
+      <Kind Name="InterpolatedVerbatimStringStartToken"/>
+      <PropertyComment>
+        <summary>The first part of an interpolated string, $" or $@"</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="Contents" Type="SyntaxList&lt;InterpolatedStringContentSyntax&gt;" >
+      <PropertyComment>
+        <summary>List of parts of the interpolated string, each one is either a literal part or an interpolation.</summary>
+      </PropertyComment>
+    </Field>
+    <Field Name="StringEndToken" Type="SyntaxToken">
+      <Kind Name="InterpolatedStringEndToken"/>
+      <PropertyComment>
+        <summary>The closing quote of the interpolated string.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <AbstractNode Name="InterpolatedStringContentSyntax" Base="CSharpSyntaxNode" />
+  <Node Name="InterpolatedStringTextSyntax" Base="InterpolatedStringContentSyntax">
+    <Kind Name="InterpolatedStringText"/>
+    <Field Name="TextToken" Type="SyntaxToken">
+      <Kind Name="InterpolatedStringTextToken"/>
+      <PropertyComment>
+        <summary>The text contents of a part of the interpolated string.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
+  <Node Name="InterpolationSyntax" Base="InterpolatedStringContentSyntax">
+    <Kind Name="Interpolation"/>
+    <Field Name="OpenBraceToken" Type="SyntaxToken">
+      <Kind Name="OpenBraceToken"/>
+    </Field>
+    <Field Name="Expression" Type="ExpressionSyntax"/>
+    <Field Name="AlignmentClause" Type="InterpolationAlignmentClauseSyntax" Optional="true"/>
+    <Field Name="FormatClause" Type="InterpolationFormatClauseSyntax" Optional="true"/>
+    <Field Name="CloseBraceToken" Type="SyntaxToken">
+      <Kind Name="CloseBraceToken"/>
+    </Field>
+  </Node>
+  <Node Name="InterpolationAlignmentClauseSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="InterpolationAlignmentClause"/>
+    <Field Name="CommaToken" Type="SyntaxToken"/>
+    <Field Name="Value" Type="ExpressionSyntax"/>
+  </Node>
+  <Node Name="InterpolationFormatClauseSyntax" Base="CSharpSyntaxNode">
+    <Kind Name="InterpolationFormatClause"  Optional="true"/>
+    <Field Name="ColonToken" Type="SyntaxToken"/>
+    <Field Name="FormatStringToken" Type="SyntaxToken">
+      <Kind Name="InterpolatedStringTextToken"/>
+      <PropertyComment>
+        <summary>The text contents of the format specifier for an interpolation.</summary>
+      </PropertyComment>
+    </Field>
+  </Node>
   <!-- Statements -->
   <Node Name="GlobalStatementSyntax" Base="MemberDeclarationSyntax">
     <Kind Name="GlobalStatement"/>
@@ -3890,34 +3948,5 @@
       <Kind Name="EndOfDirectiveToken"/>
     </Field>
     <Field Name="IsActive" Type="bool" Override="true"/>
-  </Node>
-  <Node Name="InterpolatedStringSyntax" Base="ExpressionSyntax">
-    <Kind Name="InterpolatedString" />
-    <Field Name="StringStart" Type="SyntaxToken">
-      <Kind Name="InterpolatedStringStartToken" />
-      <PropertyComment>
-        <summary>The first part of an interpolated string, from the open quote to the open curly</summary>
-      </PropertyComment>
-    </Field>
-    <Field Name="InterpolatedInserts" Type="SeparatedSyntaxList&lt;InterpolatedStringInsertSyntax&gt;">
-      <PropertyComment>
-        <summary>List of inserted expressions, separated by InterpolatedStringMid tokens for additional }...{ string literal parts.</summary>
-      </PropertyComment>
-    </Field>
-    <Field Name="StringEnd" Type="SyntaxToken">
-      <Kind Name="InterpolatedStringEndToken" />
-      <PropertyComment>
-        <summary>The last part of an interpolated string, from the close curly to the close quote</summary>
-      </PropertyComment>
-    </Field>
-  </Node>
-  <Node Name="InterpolatedStringInsertSyntax" Base="CSharpSyntaxNode">
-    <Kind Name="InterpolatedStringInsert" />
-    <Field Name="Expression" Type="ExpressionSyntax" />
-    <!-- The following are optional format specifiers as per String.Format -->
-    <!-- TODO: Add "summary" documentation comments to these. -->
-    <Field Name="Comma" Type="SyntaxToken" Optional="true" />
-    <Field Name="Alignment" Type="ExpressionSyntax" Optional="true" />
-    <Field Name="Format" Type="SyntaxToken" Optional="true" />
   </Node>
 </Tree>

@@ -236,14 +236,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // [] brackets, and "" strings, including interpolated holes in the latter.
 
             SyntaxDiagnosticInfo error = null;
-            ScanInterpolatedStringLiteralTop(null, isVerbatim, ref info, ref error);
+            bool closeQuoteMissing;
+            ScanInterpolatedStringLiteralTop(null, isVerbatim, ref info, ref error, out closeQuoteMissing);
             this.AddError(error);
         }
 
-        internal void ScanInterpolatedStringLiteralTop(ArrayBuilder<Interpolation> interpolations, bool isVerbatim, ref TokenInfo info, ref SyntaxDiagnosticInfo error)
+        internal void ScanInterpolatedStringLiteralTop(ArrayBuilder<Interpolation> interpolations, bool isVerbatim, ref TokenInfo info, ref SyntaxDiagnosticInfo error, out bool closeQuoteMissing)
         {
             var subScanner = new InterpolatedStringScanner(this, isVerbatim);
-            subScanner.ScanInterpolatedStringLiteralTop(interpolations, ref info);
+            subScanner.ScanInterpolatedStringLiteralTop(interpolations, ref info, out closeQuoteMissing);
             error = subScanner.error;
             info.Text = TextWindow.GetText(false);
         }
@@ -266,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// </summary>
         /// <param name="interpolatedString"></param>
         /// <returns></returns>
-        static internal SyntaxToken RescanInterpolatedString(InterpolatedStringSyntax interpolatedString)
+        static internal SyntaxToken RescanInterpolatedString(InterpolatedStringExpressionSyntax interpolatedString)
         {
             var text = interpolatedString.ToString();
             var kind = SyntaxKind.InterpolatedStringToken;
@@ -308,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     (ch == SlidingTextWindow.InvalidCharacter && lexer.TextWindow.IsReallyAtEnd());
             }
 
-            internal void ScanInterpolatedStringLiteralTop(ArrayBuilder<Interpolation> interpolations, ref TokenInfo info)
+            internal void ScanInterpolatedStringLiteralTop(ArrayBuilder<Interpolation> interpolations, ref TokenInfo info, out bool closeQuoteMissing)
             {
                 Debug.Assert(lexer.TextWindow.PeekChar() == '$');
                 lexer.TextWindow.AdvanceChar(); // $
@@ -327,11 +328,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     {
                         error = lexer.MakeError(lexer.TextWindow.Position, 1, isVerbatim ? ErrorCode.ERR_UnterminatedStringLit : ErrorCode.ERR_NewlineInConst);
                     }
+                    closeQuoteMissing = true;
                 }
                 else
                 {
                     // found the closing quote
                     lexer.TextWindow.AdvanceChar(); // "
+                    closeQuoteMissing = false;
                 }
 
                 info.Kind = SyntaxKind.InterpolatedStringToken;
@@ -511,7 +514,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 {
                                     this.isVerbatim = isVerbatimSubstring;
                                     this.allowNewlines &= isVerbatim;
-                                    ScanInterpolatedStringLiteralTop(interpolations, ref info);
+                                    bool closeQuoteMissing;
+                                    ScanInterpolatedStringLiteralTop(interpolations, ref info, out closeQuoteMissing);
                                 }
                                 finally
                                 {

@@ -119,9 +119,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // do not break interpolated string nodes down into their constituent tokens, but
                 // instead replace the whole parsed interpolated string expression with its pre-parsed
                 // interpolated string token.
-                if (node.CSharpKind() == SyntaxKind.InterpolatedString)
+                if (node.CSharpKind() == SyntaxKind.InterpolatedStringExpression)
                 {
-                    var greenToken = Lexer.RescanInterpolatedString((InterpolatedStringSyntax)node.Green);
+                    var greenToken = Lexer.RescanInterpolatedString((InterpolatedStringExpressionSyntax)node.Green);
                     var redToken = new CodeAnalysis.SyntaxToken(node.Parent, greenToken, node.Position, this.indexInParent);
                     return new Cursor(redToken, this.indexInParent);
                 }

@@ -15,61 +15,61 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class Binder
     {
-        private BoundExpression BindInterpolatedString(InterpolatedStringSyntax node, DiagnosticBag diagnostics)
+        private BoundExpression BindInterpolatedString(InterpolatedStringExpressionSyntax node, DiagnosticBag diagnostics)
         {
             var builder = ArrayBuilder<BoundExpression>.GetInstance();
-            SyntaxToken stringStart = node.StringStart;
-            Debug.Assert(stringStart.CSharpKind() == SyntaxKind.InterpolatedStringStartToken);
             var stringType = GetSpecialType(SpecialType.System_String, diagnostics, node);
             var objectType = GetSpecialType(SpecialType.System_Object, diagnostics, node);
             var intType = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
-            builder.Add(new BoundLiteral(node, ConstantValue.Create(stringStart.ValueText, SpecialType.System_String), stringType));
-            var inserts = node.InterpolatedInserts.GetWithSeparators();
-            for (int i = 0; i < inserts.Count; i++)
+            foreach (var content in node.Contents)
             {
-                if (i % 2 == 0)
+                switch (content.Kind)
                 {
-                    // an expression hole
-                    var expr = (InterpolatedStringInsertSyntax)inserts[i].AsNode();
-                    var bound = GenerateConversionForAssignment(objectType, this.BindExpression(expr.Expression, diagnostics), diagnostics);
-                    BoundExpression alignment = null;
-                    if (expr.Alignment != null)
-                    {
-                        alignment = GenerateConversionForAssignment(intType, this.BindExpression(expr.Alignment, diagnostics), diagnostics);
-                        if (!alignment.HasErrors && alignment.ConstantValue == null)
+                    case SyntaxKind.Interpolation:
                         {
-                            diagnostics.Add(ErrorCode.ERR_ConstantExpected, expr.Alignment.Location);
-                        }
-                    }
+                            var interpolation = (InterpolationSyntax)content;
+                            var value = GenerateConversionForAssignment(objectType, this.BindExpression(interpolation.Expression, diagnostics), diagnostics);
+                            BoundExpression alignment = null, format = null;
+                            if (interpolation.AlignmentClause != null)
+                            {
+                                alignment = GenerateConversionForAssignment(intType, this.BindExpression(interpolation.AlignmentClause.Value, diagnostics), diagnostics);
+                                if (!alignment.HasErrors && alignment.ConstantValue == null)
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_ConstantExpected, interpolation.AlignmentClause.Value.Location);
+                                }
+                            }
+                            if (interpolation.FormatClause != null)
+                            {
+                                var text = interpolation.FormatClause.FormatStringToken.ValueText;
+                                char lastChar;
+                                bool hasErrors = false;
+                                if (text.Length == 0)
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_EmptyFormatSpecifier, interpolation.FormatClause.Location);
+                                    hasErrors = true;
+                                }
+                                else if (SyntaxFacts.IsWhitespace(lastChar = text[text.Length - 1]) || SyntaxFacts.IsNewLine(lastChar))
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_TrailingWhitespaceInFormatSpecifier, interpolation.FormatClause.Location);
+                                    hasErrors = true;
+                                }
 
-                    BoundExpression format = null;
-                    if (expr.Format != default(SyntaxToken))
-                    {
-                        switch (expr.Format.CSharpKind())
+                                format = new BoundLiteral(interpolation.FormatClause, ConstantValue.Create(text), stringType, hasErrors);
+                            }
+                            builder.Add(new BoundStringInsert(interpolation, value, alignment, format, null));
+                            continue;
+                        }
+                    case SyntaxKind.InterpolatedStringText:
                         {
-                            case SyntaxKind.IdentifierToken:
-                            case SyntaxKind.StringLiteralToken:
-                                format = new BoundLiteral(expr, ConstantValue.Create(expr.Format.ValueText), stringType);
-                                break;
-                            default:
-                                Debug.Assert(expr.HasErrors);
-                                break;
+                            var text = ((InterpolatedStringTextSyntax)content).TextToken.ValueText;
+                            builder.Add(new BoundLiteral(node, ConstantValue.Create(text, SpecialType.System_String), stringType));
+                            continue;
                         }
-                    }
-
-                    builder.Add(new BoundStringInsert(expr, bound, alignment, format, null));
-                }
-                else
-                {
-                    // the separator token, which is part of the string literal
-                    var token = inserts[i].AsToken();
-                    var bound = new BoundLiteral(node, ConstantValue.Create(token.ValueText, SpecialType.System_String), stringType);
-                    builder.Add(bound);
+                    default:
+                        throw ExceptionUtilities.Unreachable;
                 }
             }
 
-            SyntaxToken stringEnd = node.StringEnd;
-            builder.Add(new BoundLiteral(node, ConstantValue.Create(stringEnd.ValueText, SpecialType.System_String), stringType));
             return new BoundInterpolatedString(node, builder.ToImmutableAndFree(), stringType);
         }
     }

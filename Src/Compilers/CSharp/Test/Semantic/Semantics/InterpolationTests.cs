@@ -318,6 +318,27 @@ class Program
         }
 
         [Fact]
+        public void TrailingSpaceInFormatSpecifier02()
+        {
+            string source =
+@"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine( $@""{3:d
+}"" );
+    }
+}";
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+    // (6,33): error CS8088: A format specifier may not contain trailing whitespace.
+    //         Console.WriteLine( $@"{3:d
+    Diagnostic(ErrorCode.ERR_TrailingWhitespaceInFormatSpecifier, @":d
+").WithLocation(6, 33)
+                );
+        }
+
+        [Fact]
         public void MissingInterpolationExpression01()
         {
             string source =
@@ -353,6 +374,29 @@ class Program
                 //         Console.WriteLine( $@"{ }" );
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 33)
                 );
+        }
+
+        [Fact]
+        public void MissingInterpolationExpression03()
+        {
+            string source =
+@"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine( ";
+            var normal = "$\"";
+            var verbat = "$@\"";
+            // ensure reparsing of interpolated string token is precise in error scenarios (assertions do not fail)
+            CreateCompilationWithMscorlib45(source + normal).GetDiagnostics();
+            CreateCompilationWithMscorlib45(source + normal + " ").GetDiagnostics();
+            CreateCompilationWithMscorlib45(source + normal + "{").GetDiagnostics();
+            CreateCompilationWithMscorlib45(source + normal + "{ ").GetDiagnostics();
+            CreateCompilationWithMscorlib45(source + verbat).GetDiagnostics();
+            CreateCompilationWithMscorlib45(source + verbat + " ").GetDiagnostics();
+            CreateCompilationWithMscorlib45(source + verbat + "{").GetDiagnostics();
+            CreateCompilationWithMscorlib45(source + verbat + "{ ").GetDiagnostics();
         }
 
         [Fact]

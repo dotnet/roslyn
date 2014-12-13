@@ -210,6 +210,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         RestoreKeyword = 8480,
         ReferenceKeyword = 8481,
 
+        InterpolatedStringStartToken = 8482,            // $"
+        InterpolatedStringEndToken = 8483,              // "
+        InterpolatedVerbatimStringStartToken = 8484,    // $@"
+
         // Other
         OmittedTypeArgumentToken = 8492,
         OmittedArraySizeExpressionToken = 8493,
@@ -228,9 +232,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         XmlTextLiteralNewLineToken = 8514,
 
         InterpolatedStringToken = 8515,                 // terminal for a whole interpolated string $" ... { expr } ..."
-        InterpolatedStringStartToken = 8516,            // $"...{ or $@"...{
-        InterpolatedStringMidToken = 8517,              // }...{
-        InterpolatedStringEndToken = 8518,              // }..."
+                                                        // This only exists in transient form during parsing.
+        InterpolatedStringTextToken = 8517,             // literal text that is part of an interpolated string
 
         // trivia
         EndOfLineTrivia = 8539,
@@ -322,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ImplicitArrayCreationExpression = 8652,
         StackAllocArrayCreationExpression = 8653,
         OmittedArraySizeExpression = 8654,
-        InterpolatedString = 8655,
+        InterpolatedStringExpression = 8655,
         ImplicitElementAccess = 8656,
 
         // binary expressions
@@ -521,6 +524,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         TypeParameter = 8910,
         IncompleteMember = 8916,
         ArrowExpressionClause = 8917,
-        InterpolatedStringInsert = 8918,
+        Interpolation = 8918, // part of an interpolated string
+        InterpolatedStringText = 8919,
+        InterpolationAlignmentClause = 8920,
+        InterpolationFormatClause = 8921,
     }
 }
