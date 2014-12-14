@@ -114,49 +114,63 @@ namespace Microsoft.CodeAnalysis.Emit
             ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> previousMembers,
             ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> newMembers)
         {
+            if (newMembers.Count == 0)
+            {
+                return previousMembers;
+            }
+
+            if (previousMembers.Count == 0)
+            {
+                return newMembers;
+            }
+
             var synthesizedMembersBuilder = ImmutableDictionary.CreateBuilder<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>>();
 
             synthesizedMembersBuilder.AddRange(newMembers);
 
             foreach (var pair in previousMembers)
             {
-                var typeDef = pair.Key;
+                var previousContainer = pair.Key;
                 var memberDefs = pair.Value;
-                var mappedTypeDef = (Cci.ITypeDefinition)MapDefinition(typeDef);
 
-                if (mappedTypeDef != null)
+                var mappedContainer = (Cci.ITypeDefinition)MapDefinition(previousContainer);
+                if (mappedContainer == null)
                 {
-                    // If the matcher found a type in the current compilation corresponding to typeDef,
-                    // the type def has to be contained in newMembers.
-                    Debug.Assert(newMembers.ContainsKey(mappedTypeDef));
+                    // No update to any member of the container type.  
+                    synthesizedMembersBuilder.Add(previousContainer, memberDefs);
+                    continue;
+                }
 
-                    var memberBuilder = ArrayBuilder<Cci.ITypeDefinitionMember>.GetInstance();
+                ImmutableArray<Cci.ITypeDefinitionMember> newSynthesizedMembers;
+                if (!newMembers.TryGetValue(mappedContainer, out newSynthesizedMembers))
+                {
+                    // The container has been updated but the update didn't produce any synthesized members.
+                    synthesizedMembersBuilder.Add(mappedContainer, memberDefs);
+                    continue;
+                }
 
-                    // add existing members:
-                    memberBuilder.AddRange(newMembers[mappedTypeDef]);
+                // The container has been updated and synthesized members produced.
+                // They might be new or replacing existing ones. Merge existing with new.
+                var memberBuilder = ArrayBuilder<Cci.ITypeDefinitionMember>.GetInstance();
+                memberBuilder.AddRange(newSynthesizedMembers);
 
-                    foreach (var memberDef in memberDefs)
+                foreach (var memberDef in memberDefs)
+                {
+                    var mappedMemberDef = (Cci.ITypeDefinitionMember)MapDefinition(memberDef);
+                    if (mappedMemberDef != null)
                     {
-                        var mappedMemberDef = (Cci.ITypeDefinitionMember)MapDefinition(memberDef);
-                        if (mappedMemberDef != null)
-                        {
-                            // If the matcher found a member in the current compilation corresponding to memberDef,
-                            // the member def has to be contained in newMembers.
-                            Debug.Assert(newMembers[mappedTypeDef].Contains(mappedMemberDef));
-                        }
-                        else
-                        {
-                            memberBuilder.Add(memberDef);
-                        }
+                        // If the matcher found a member in the current compilation corresponding to previous memberDef,
+                        // then the member has to be synthesized and produced as a result of a method update 
+                        // and thus already contained in newSynthesizedMembers.
+                        Debug.Assert(newSynthesizedMembers.Contains(mappedMemberDef));
                     }
+                    else
+                    {
+                        memberBuilder.Add(memberDef);
+                    }
+                }
 
-                    // the type must already be present, update its list of members:
-                    synthesizedMembersBuilder[mappedTypeDef] = memberBuilder.ToImmutableAndFree();
-                }
-                else
-                {
-                    synthesizedMembersBuilder.Add(typeDef, memberDefs);
-                }
+                synthesizedMembersBuilder[mappedContainer] = memberBuilder.ToImmutableAndFree();
             }
 
             return synthesizedMembersBuilder.ToImmutable();
