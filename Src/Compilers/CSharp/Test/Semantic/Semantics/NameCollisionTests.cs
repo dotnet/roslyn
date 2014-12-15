@@ -1867,7 +1867,7 @@ class Program
                 );
         }
 
-        [Fact]
+        [Fact(Skip = "https://roslyn.codeplex.com/workitem/450")]
         [WorkItem(879811, "DevDiv")]
         public void Bug879811_1()
         {
