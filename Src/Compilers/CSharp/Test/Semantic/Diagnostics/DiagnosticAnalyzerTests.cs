@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             private readonly object[] arguments;
             private readonly DiagnosticDescriptor descriptor;
             private static readonly Location[] emptyLocations = new Location[0];
-            
+
             public TestDiagnostic(string id, string kind, DiagnosticSeverity severity, Location location, string message, params object[] arguments)
-                : this (new DiagnosticDescriptor(id, string.Empty, message, id, severity, isEnabledByDefault: true), kind, severity, location, message, arguments)
+                : this(new DiagnosticDescriptor(id, string.Empty, message, id, severity, isEnabledByDefault: true), kind, severity, location, message, arguments)
             {
             }
 
@@ -770,6 +770,47 @@ public class B
                     Diagnostic("PropertyExpressionBodyDiagnostic"),
                     Diagnostic("IndexerExpressionBodyDiagnostic"),
                     Diagnostic("MethodExpressionBodyDiagnostic"));
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        public class FieldDeclarationAnalyzer : DiagnosticAnalyzer
+        {
+            public const string DiagnosticId = "MyFieldDiagnostic";
+            internal const string Title = "MyFieldDiagnostic";
+            internal const string MessageFormat = "MyFieldDiagnostic";
+            internal const string Category = "Naming";
+
+            internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(DiagnosticId, Title, MessageFormat, Category, DiagnosticSeverity.Warning, isEnabledByDefault: true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(Rule); } }
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxNodeAction(AnalyzeFieldDeclaration, SyntaxKind.FieldDeclaration);
+            }
+
+            private static void AnalyzeFieldDeclaration(SyntaxNodeAnalysisContext context)
+            {
+                var fieldDeclaration = (FieldDeclarationSyntax)context.Node;
+                var diagnostic = CodeAnalysis.Diagnostic.Create(Rule, fieldDeclaration.GetLocation());
+                context.ReportDiagnostic(diagnostic);
+            }
+        }
+
+        [Fact]
+        void TestNoDuplicateCallbacksForFieldDeclaration()
+        {
+            string source = @"
+public class B
+{
+    public string field = ""field"";
+}";
+            var analyzers = new DiagnosticAnalyzer[] { new FieldDeclarationAnalyzer() };
+
+            CreateCompilationWithMscorlib45(source)
+                .VerifyDiagnostics()
+                .VerifyCSharpAnalyzerDiagnostics(analyzers, null, null,
+                     Diagnostic("MyFieldDiagnostic", @"public string field = ""field"";").WithLocation(4, 5));
         }
     }
 }

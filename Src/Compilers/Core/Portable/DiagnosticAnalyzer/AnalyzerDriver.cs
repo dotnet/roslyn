@@ -1194,8 +1194,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         continue;
                     }
 
+                    // Compute the topmost node representing the syntax declaration for the member that needs to be skipped.
+                    var declarationNodeToSkip = declInNode.DeclaredNode;
+                    var declaredSymbolOfDeclInNode = declInNode.DeclaredSymbol ?? semanticModel.GetDeclaredSymbol(declInNode.DeclaredNode, cancellationToken);
+                    if (declaredSymbolOfDeclInNode != null)
+                    {
+                        declarationNodeToSkip = semanticModel.GetTopmostNodeForDiagnosticAnalysis(declaredSymbolOfDeclInNode, declInNode.DeclaredNode);
+                    }
+
                     descendantDeclsToSkip = descendantDeclsToSkip ?? new HashSet<SyntaxNode>();
-                    descendantDeclsToSkip.Add(declInNode.DeclaredNode);
+                    descendantDeclsToSkip.Add(declarationNodeToSkip);
                 }
 
                 first = false;
