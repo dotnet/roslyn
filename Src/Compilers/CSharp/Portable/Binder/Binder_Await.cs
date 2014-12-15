@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bool hasErrors = false;
 
-            if (this.InUnsafeRegion)
+            if (this.InUnsafeRegion && !this.Flags.Includes(BinderFlags.AllowAwaitInUnsafeContext))
             {
                 Error(diagnostics, ErrorCode.ERR_AwaitInUnsafeContext, node);
                 hasErrors = true;

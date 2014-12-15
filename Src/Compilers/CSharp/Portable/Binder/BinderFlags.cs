@@ -77,6 +77,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         AllowManagedAddressOf = 1 << 24,
 
+        /// <summary>
+        /// In the debugger, the context is always unsafe, but one can still await.
+        /// </summary>
+        AllowAwaitInUnsafeContext = 1 << 25,
+
         // Groups
 
         AllClearedAtExecutableCodeBoundary = InLockBody | InCatchBlock | InCatchFilter | InFinallyBlock | InTryBlockOfTryCatch | InNestedFinallyBlock,
