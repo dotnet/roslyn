@@ -793,7 +793,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' can be reported at a later stage.
         ''' </summary>
         Friend Sub ReportDiagnosticsIfObsolete(diagnostics As DiagnosticBag, symbol As Symbol, node As VisualBasicSyntaxNode)
-            ReportDiagnosticsIfObsolete(diagnostics, Me.ContainingMember, symbol, node)
+            If Not Me.SuppressObsoleteDiagnostics Then
+                ReportDiagnosticsIfObsolete(diagnostics, Me.ContainingMember, symbol, node)
+            End If
         End Sub
 
         Friend Shared Sub ReportDiagnosticsIfObsolete(diagnostics As DiagnosticBag, context As Symbol, symbol As Symbol, node As VisualBasicSyntaxNode)
@@ -838,6 +840,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 diagnostics.Add(info, node.GetLocation())
             End If
         End Sub
+
+        Friend Overridable ReadOnly Property SuppressObsoleteDiagnostics As Boolean
+            Get
+                Return m_containingBinder.SuppressObsoleteDiagnostics
+            End Get
+        End Property
 
         ''' <summary>
         ''' Returns the type of construct being bound (BaseTypes, MethodSignature,

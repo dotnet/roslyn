@@ -4558,7 +4558,7 @@ lElseClause:
                                           resultType, hasErrors)
         End Function
 
-        Private Function DiagnosticBagHasErrorsOtherThanObsoleteOnes(bag As DiagnosticBag) As Boolean
+        Private Shared Function DiagnosticBagHasErrorsOtherThanObsoleteOnes(bag As DiagnosticBag) As Boolean
             If bag.IsEmptyWithoutResolution Then
                 Return False
             End If

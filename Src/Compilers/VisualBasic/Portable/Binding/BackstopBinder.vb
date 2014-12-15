@@ -288,6 +288,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property SuppressObsoleteDiagnostics As Boolean
+            Get
+                Return False
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property IsSemanticModelBinder As Boolean
             Get
                 Return False
