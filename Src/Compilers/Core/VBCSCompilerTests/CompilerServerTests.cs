@@ -1729,21 +1729,5 @@ class Hello
                 Assert.True(false, "Compiler server did not exit in time");
             }
         }
-
-        [ConditionalFact(typeof(RunKeepAliveTests))]
-        public async Task FirstClientCanOverrideDefaultTimeout()
-        {
-            var client = ProcessLauncher.StartProcess(CSharpCompilerClientExecutable, "/keepalive:1");
-            client.WaitForExit();
-            var server = GetProcessesByFullPath(CompilerServerExecutable).Single();
-            await Task.Delay(3000).ConfigureAwait(false); // Give 2s leeway
-
-            var exited = server.HasExited;
-            if (!exited)
-            {
-                server.Kill();
-                Assert.True(false, "Compiler server did not exit in time");
-            }
-        }
     }
 }

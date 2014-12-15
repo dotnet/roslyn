@@ -399,11 +399,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         public const uint ProtocolVersion = 1;
 
         /// <summary>
-        /// The name of the executable.
-        /// </summary>
-        public const string ServerExeName = "VBCSCompiler.exe";
-
-        /// <summary>
         /// The name of the named pipe. A process id is appended to the end.
         /// </summary>
         public const string PipeName = "VBCSCompiler";

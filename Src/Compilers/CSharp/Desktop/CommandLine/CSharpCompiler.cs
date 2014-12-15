@@ -17,31 +17,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal abstract class CSharpCompiler : CommonCompiler
     {
-        private static string responseFileName;
+        internal const string ResponseFileName = "csc.rsp";
+
+        private readonly string responseFile;
         private CommandLineDiagnosticFormatter diagnosticFormatter;
 
         protected CSharpCompiler(CSharpCommandLineParser parser, string responseFile, string[] args, string baseDirectory, string additionalReferencePaths)
             : base(parser, responseFile, args, baseDirectory, additionalReferencePaths)
         {
+            Debug.Assert(responseFile == null || Path.IsPathRooted(responseFile));
+            this.responseFile = responseFile;
             this.diagnosticFormatter = new CommandLineDiagnosticFormatter(baseDirectory, Arguments.PrintFullPaths, Arguments.ShouldIncludeErrorEndLocation);
         }
 
         public override DiagnosticFormatter DiagnosticFormatter { get { return this.diagnosticFormatter; } }
         protected internal new CSharpCommandLineArguments Arguments { get { return (CSharpCommandLineArguments)base.Arguments; } }
-
-        // Name of the response file to load by default (unless /noconfig is specified)
-        protected static string CSharpResponseFileName
-        {
-            get
-            {
-                if (String.IsNullOrEmpty(responseFileName))
-                {
-                    responseFileName = Path.Combine(ResponseFileDirectory, "csc.rsp");
-                }
-
-                return responseFileName;
-            }
-        }
 
         public override int Run(TextWriter consoleOutput, CancellationToken cancellationToken = default(CancellationToken))
         {

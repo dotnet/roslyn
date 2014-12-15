@@ -14,9 +14,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine
             MyBase.New(VisualBasicCommandLineParser.Default, responseFile, args, baseDirectory, Environment.GetEnvironmentVariable("LIB"))
         End Sub
 
-        Overloads Shared Function Run(args As String()) As Integer
+        Overloads Shared Function Run(responseFile As String, args As String()) As Integer
 
-            Dim compiler = New Vbc(BasicResponseFileName, Directory.GetCurrentDirectory(), args)
+            Dim compiler = New Vbc(responseFile, Directory.GetCurrentDirectory(), args)
 
             FatalError.Handler = AddressOf FailFast.OnFatalException
 

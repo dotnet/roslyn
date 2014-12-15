@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         protected TempDirectory(TempRoot root) 
             : this(CreateUniqueDirectory(TempRoot.Root), root)
-	    {
-	    }
+        {
+        }
 
         private TempDirectory(string path, TempRoot root)
         {

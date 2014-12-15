@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         }
 
         public static int RunCompiler(
+            string responseFileDirectory,
             string[] args,
             string baseDirectory,
             string libDirectory,
@@ -25,7 +26,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             CancellationToken cancellationToken,
             out bool utf8output)
         {
-            VisualBasicCompilerServer compiler = new VisualBasicCompilerServer(BasicResponseFileName, args, baseDirectory, libDirectory);
+            var responseFile = Path.Combine(responseFileDirectory, VisualBasicCompiler.ResponseFileName);
+            var compiler = new VisualBasicCompilerServer(responseFile, args, baseDirectory, libDirectory);
             utf8output = compiler.Arguments.Utf8Output;
             return compiler.Run(output, cancellationToken);
         }

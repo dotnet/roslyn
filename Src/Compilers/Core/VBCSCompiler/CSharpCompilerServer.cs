@@ -17,14 +17,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
         }
 
-        public static int RunCompiler(string[] args,
-                                      string baseDirectory,
-                                      string libDirectory,
-                                      TextWriter output,
-                                      CancellationToken cancellationToken,
-                                      out bool utf8output)
+        public static int RunCompiler(
+            string responseFileDirectory,
+            string[] args,
+            string baseDirectory,
+            string libDirectory,
+            TextWriter output,
+            CancellationToken cancellationToken,
+            out bool utf8output)
         {
-            CSharpCompiler compiler = new CSharpCompilerServer(CSharpResponseFileName, args, baseDirectory, libDirectory);
+            var responseFile = Path.Combine(responseFileDirectory, CSharpCompiler.ResponseFileName);
+            var compiler = new CSharpCompilerServer(responseFile, args, baseDirectory, libDirectory);
             utf8output = compiler.Arguments.Utf8Output;
             return compiler.Run(output, cancellationToken);
         }

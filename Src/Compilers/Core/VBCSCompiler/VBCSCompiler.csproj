@@ -100,6 +100,7 @@
     <Compile Include="CompilerRequestHandler.cs" />
     <Compile Include="CompilerServerLogger.cs" />
     <Compile Include="CSharpCompilerServer.cs" />
+    <Compile Include="DiagnosticListener.cs" />
     <Compile Include="IClientConnection.cs" />
     <Compile Include="MetadataCache.cs" />
     <Compile Include="NamedPipeClientConnection.cs" />

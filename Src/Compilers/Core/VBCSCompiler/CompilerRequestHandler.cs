@@ -33,6 +33,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
         }
 
+        private readonly string responseFileDirectory;
+
+        internal CompilerRequestHandler(string responseFileDirectory)
+        {
+            this.responseFileDirectory = responseFileDirectory;
+        }
+
         /// <summary>
         /// An incoming request as occurred. This is called on a new thread to handle
         /// the request.
@@ -118,6 +125,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             int returnCode = CSharpCompile(
                 currentDirectory,
                 libDirectory,
+                this.responseFileDirectory,
                 commandLineArguments,
                 output,
                 cancellationToken,
@@ -133,6 +141,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private int CSharpCompile(
             string currentDirectory,
             string libDirectory,
+            string responseFileDirectory,
             string[] commandLineArguments,
             TextWriter output,
             CancellationToken cancellationToken,
@@ -146,6 +155,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
 
             return CSharpCompilerServer.RunCompiler(
+                responseFileDirectory,
                 commandLineArguments,
                 currentDirectory,
                 libDirectory,
@@ -174,7 +184,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
             bool utf8output;
-            int returnCode = BasicCompile(currentDirectory,
+            int returnCode = BasicCompile(
+                this.responseFileDirectory,
+                currentDirectory,
                 libDirectory,
                 commandLineArguments,
                 output,
@@ -189,6 +201,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// to the given TextWriters.
         /// </summary>
         private int BasicCompile(
+            string responseFileDirectory,
             string currentDirectory,
             string libDirectory,
             string[] commandLineArguments,
@@ -204,6 +217,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
 
             return VisualBasicCompilerServer.RunCompiler(
+                responseFileDirectory,
                 commandLineArguments, 
                 currentDirectory, 
                 libDirectory, 

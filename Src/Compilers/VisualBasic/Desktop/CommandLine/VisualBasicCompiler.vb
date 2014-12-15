@@ -13,24 +13,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     Friend MustInherit Class VisualBasicCompiler
         Inherits CommonCompiler
 
+        Friend Const ResponseFileName As String = "vbc.rsp"
         Friend Const VbcCommandLinePrefix = "vbc : " 'Common prefix String For VB diagnostic output with no location.
         Private Shared p_responseFileName As String
+        Private ReadOnly m_responseFile As String
         Private ReadOnly m_diagnosticFormatter As CommandLineDiagnosticFormatter
 
         Protected Sub New(parser As VisualBasicCommandLineParser, responseFile As String, args As String(), baseDirectory As String, additionalReferencePaths As String)
             MyBase.New(parser, responseFile, args, baseDirectory, additionalReferencePaths)
-
+            Debug.Assert(responseFile Is Nothing OrElse Path.IsPathRooted(responseFile))
+            m_responseFile = responseFile
             m_diagnosticFormatter = New CommandLineDiagnosticFormatter(baseDirectory)
         End Sub
-
-        Protected Shared ReadOnly Property BasicResponseFileName As String
-            Get
-                If String.IsNullOrEmpty(p_responseFileName) Then
-                    p_responseFileName = Path.Combine(ResponseFileDirectory, "vbc.rsp")
-                End If
-                Return p_responseFileName
-            End Get
-        End Property
 
         Friend Overloads ReadOnly Property Arguments As VisualBasicCommandLineArguments
             Get

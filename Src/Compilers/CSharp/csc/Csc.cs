@@ -20,7 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine
 
             FatalError.Handler = FailFast.OnFatalException;
 
-            Csc compiler = new Csc(CSharpResponseFileName, Directory.GetCurrentDirectory(), args);
+            var responseFile = CommonCompiler.GetResponseFileFullPath(CSharpCompiler.ResponseFileName);
+            Csc compiler = new Csc(responseFile, Directory.GetCurrentDirectory(), args);
 
             // We store original encoding and restore it later to revert 
             // the changes that might be done by /utf8output options

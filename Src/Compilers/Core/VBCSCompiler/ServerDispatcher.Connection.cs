@@ -52,18 +52,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 this.handler = handler;
             }
 
-            public async Task<CompletionReason> ServeConnection(TaskCompletionSource<TimeSpan?> timeoutCompletionSource)
+            public async Task<CompletionReason> ServeConnection(TaskCompletionSource<TimeSpan?> timeoutCompletionSource = null, CancellationToken cancellationToken = default(CancellationToken))
             {
+                timeoutCompletionSource = timeoutCompletionSource ?? new TaskCompletionSource<TimeSpan?>();
                 try
                 {
                     BuildRequest request;
                     try
                     {
-                        // The use of default(CancellationToken) is intentional here.  The only method for a client request
-                        // to be cancelled is when the connection is broken.  The read here will fail directly in that
-                        // situation.
                         Log("Begin reading request.");
-                        request = await this.clientConnection.ReadBuildRequest(default(CancellationToken)).ConfigureAwait(false);
+                        request = await this.clientConnection.ReadBuildRequest(cancellationToken).ConfigureAwait(false);
                         Log("End reading request.");
                     }
                     catch (Exception e)
@@ -75,9 +73,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     CheckForNewKeepAlive(request, timeoutCompletionSource);
 
                     // Kick off both the compilation and a task to monitor the pipe for closing.  
-                    var cancellationTokenSource = new CancellationTokenSource();
-                    var compilationTask = ServeBuildRequest(request, cancellationTokenSource.Token);
-                    var monitorTask = this.clientConnection.CreateMonitorDisconnectTask(cancellationTokenSource.Token);
+                    var buildCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                    var compilationTask = ServeBuildRequest(request, buildCts.Token);
+                    var monitorTask = this.clientConnection.CreateMonitorDisconnectTask(buildCts.Token);
                     await Task.WhenAny(compilationTask, monitorTask).ConfigureAwait(false);
 
                     // Do an 'await' on the completed task, preference being compilation, to force
@@ -89,10 +87,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                         try
                         {
-                            // The use of default(CancellationToken) is again intentional for the same reasons in the call to
-                            // WriteBuildResponse.
                             Log("Begin writing response.");
-                            await this.clientConnection.WriteBuildResponse(response, default(CancellationToken)).ConfigureAwait(false);
+                            await this.clientConnection.WriteBuildResponse(response, cancellationToken).ConfigureAwait(false);
                             reason = CompletionReason.Completed;
                             Log("End writing response.");
                         }
@@ -108,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     }
 
                     // Begin the tear down of the Task which didn't complete. 
-                    cancellationTokenSource.Cancel();
+                    buildCts.Cancel();
                     return reason;
                 }
                 finally

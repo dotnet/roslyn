@@ -121,6 +121,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyAttributes.cs" />
+    <Compile Include="BuildProtocolTest.cs" />
     <Compile Include="CompilerServerApiTest.cs" />
     <Compile Include="CompilerServerTests.cs" />
     <Compile Include="RunKeepAliveTests.cs" />
