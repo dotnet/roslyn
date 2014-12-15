@@ -271,7 +271,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         formatString.Builder.AppendFormat(i == 0 ? "{{{{ {0} = {{{1}}}" : ", {0} = {{{1}}}", property.Name, i);
 
                         // build argument
-                        arguments[i] = F.Convert(manager.System_Object, F.Field(F.This(), property.BackingField), ConversionKind.Boxing);
+                        arguments[i] = F.Convert(manager.System_Object,
+                                                 new BoundConditionalAccess(F.Syntax, 
+                                                                            F.Field(F.This(), property.BackingField),
+                                                                            F.Call(new BoundConditionalReceiver(F.Syntax, property.BackingField.Type), manager.System_Object__ToString),
+                                                                            manager.System_String), 
+                                                 ConversionKind.ImplicitReference);
                     }
                     formatString.Builder.Append(" }}");
 
@@ -280,7 +285,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     //  Generate expression for return statement
                     //      retExpression <= System.String.Format(args)
-                    retExpression = F.StaticCall(manager.System_String, manager.System_String__Format, format, F.Array(manager.System_Object, arguments));
+                    var formatMethod = manager.System_String__Format_IFormatProvider;
+                    retExpression = F.StaticCall(manager.System_String, formatMethod, F.Null(formatMethod.Parameters[0].Type), format, F.Array(manager.System_Object, arguments));
                 }
                 else
                 {

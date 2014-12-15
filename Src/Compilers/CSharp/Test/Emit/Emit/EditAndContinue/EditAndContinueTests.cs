@@ -5525,7 +5525,7 @@ class C
                     var readers = new[] { reader0, reader1 };
                     CheckNames(readers, reader1.GetAssemblyRefNames(), "mscorlib");
                     CheckNames(readers, reader1.GetTypeDefNames(), "<>f__AnonymousType1`1");
-                    CheckNames(readers, reader1.GetTypeRefNames(), "CompilerGeneratedAttribute", "DebuggerDisplayAttribute", "Object", "DebuggerBrowsableState", "DebuggerBrowsableAttribute", "DebuggerHiddenAttribute", "EqualityComparer`1", "String");
+                    CheckNames(readers, reader1.GetTypeRefNames(), "CompilerGeneratedAttribute", "DebuggerDisplayAttribute", "Object", "DebuggerBrowsableState", "DebuggerBrowsableAttribute", "DebuggerHiddenAttribute", "EqualityComparer`1", "String", "IFormatProvider");
                     // Change method updated in generation 1.
                     var method2F = compilation2.GetMember<MethodSymbol>("C.F");
                     var diff2F = compilation2.EmitDifference(

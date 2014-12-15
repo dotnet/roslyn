@@ -2529,6 +2529,16 @@ namespace Microsoft.CodeAnalysis
                 (byte)WellKnownType.System_Runtime_GCLatencyMode,                                                           // DeclaringTypeId
                 0,                                                                                                          // Arity
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Runtime_GCLatencyMode,                   // Field Signature
+
+                // System_String__Format_IFormatProvider
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
+                (byte)SpecialType.System_String,                                                                            // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    3,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_IFormatProvider,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -2827,6 +2837,7 @@ namespace Microsoft.CodeAnalysis
                 "CurrentManagedThreadId",                   // System_Environment__CurrentManagedThreadId
                 ".ctor",                                    // System_ComponentModel_EditorBrowsableAttribute__ctor
                 "SustainedLowLatency",                      // System_Runtime_GCLatencyMode__SustainedLowLatency
+                "Format",                                   // System_String__Format_IFormatProvider
             };
 
             descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

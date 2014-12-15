@@ -288,8 +288,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If memberSymbol Is Nothing Then
                 Dim memberDescriptor As MemberDescriptor = SpecialMembers.GetDescriptor(sm)
-                Dim containingType As SpecialType = CType(memberDescriptor.DeclaringTypeId, SpecialType)
-                diagInfo = GetDiagnosticForMissingRuntimeHelper(containingType.GetMetadataName(), memberDescriptor.Name, CompilationState.Compilation.Options.EmbedVbCoreRuntime)
+                diagInfo = GetDiagnosticForMissingRuntimeHelper(memberDescriptor.DeclaringTypeMetadataName, memberDescriptor.Name, CompilationState.Compilation.Options.EmbedVbCoreRuntime)
             Else
                 diagInfo = If(memberSymbol.GetUseSiteErrorInfo(), memberSymbol.ContainingType.GetUseSiteErrorInfo())
             End If

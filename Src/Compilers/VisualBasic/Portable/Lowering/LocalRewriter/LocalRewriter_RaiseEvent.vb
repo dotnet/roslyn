@@ -149,10 +149,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim memberDescriptor As MemberDescriptor = WellKnownMembers.GetDescriptor(WellKnownMember.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T__InvocationList)
-                Dim containingType As WellKnownType = CType(memberDescriptor.DeclaringTypeId, WellKnownType)
                 ' isWinMd only matters for set accessors, we can safely say false here
                 Dim accessorName As String = Binder.GetAccessorName(invocationListProperty.Name, MethodKind.PropertyGet, isWinMd:=False)
-                Dim info = GetDiagnosticForMissingRuntimeHelper(containingType.GetMetadataName(), accessorName, compilationState.Compilation.Options.EmbedVbCoreRuntime)
+                Dim info = GetDiagnosticForMissingRuntimeHelper(memberDescriptor.DeclaringTypeMetadataName, accessorName, compilationState.Compilation.Options.EmbedVbCoreRuntime)
                 diagnostics.Add(info, syntax.GetLocation())
             End If
 

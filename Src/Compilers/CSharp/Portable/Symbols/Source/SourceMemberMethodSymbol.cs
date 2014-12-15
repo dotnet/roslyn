@@ -242,12 +242,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if ((object)attributeConstructor == null)
                     {
                         var memberDescriptor = WellKnownMembers.GetDescriptor(WellKnownMember.System_Runtime_CompilerServices_ExtensionAttribute__ctor);
-                        var attributeType = (WellKnownType)memberDescriptor.DeclaringTypeId;
                         // do not use Binder.ReportUseSiteErrorForAttributeCtor in this case, because we'll need to report a special error id, not a generic use site error.
                         diagnostics.Add(
                             ErrorCode.ERR_ExtensionAttrNotFound,
                             syntax.ParameterList.Parameters[0].Modifiers.FirstOrDefault(SyntaxKind.ThisKeyword).GetLocation(),
-                            attributeType.GetMetadataName());
+                            memberDescriptor.DeclaringTypeMetadataName);
                     }
                 }
             }

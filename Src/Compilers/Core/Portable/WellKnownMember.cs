@@ -356,6 +356,7 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_GCLatencyMode__SustainedLowLatency,
 
+        System_String__Format_IFormatProvider,
         Count
     }
 }

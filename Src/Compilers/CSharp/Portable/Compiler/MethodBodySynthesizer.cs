@@ -355,9 +355,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (updateMethod == null)
             {
                 MemberDescriptor memberDescriptor = SpecialMembers.GetDescriptor(updateMethodId);
-                SpecialType containingType = (SpecialType)memberDescriptor.DeclaringTypeId;
                 diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember,
-                                                                      ((SpecialType)memberDescriptor.DeclaringTypeId).GetMetadataName(), 
+                                                                      memberDescriptor.DeclaringTypeMetadataName, 
                                                                       memberDescriptor.Name), 
                                                                       syntax.Location));
 

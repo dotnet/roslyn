@@ -388,31 +388,32 @@ expectedOutput:=<![CDATA[
             VerifyIL("VB$AnonymousType_0(Of T0, T1, T2).ToString()",
                 <![CDATA[
 {
-  // Code size       59 (0x3b)
-  .maxstack  5
-  IL_0000:  ldstr      "{{ a = {0}, b = {1}, c = {2} }}"
-  IL_0005:  ldc.i4.3
-  IL_0006:  newarr     "Object"
-  IL_000b:  dup
-  IL_000c:  ldc.i4.0
-  IL_000d:  ldarg.0
-  IL_000e:  ldfld      "VB$AnonymousType_0(Of T0, T1, T2).$a As T0"
-  IL_0013:  box        "T0"
-  IL_0018:  stelem.ref
-  IL_0019:  dup
-  IL_001a:  ldc.i4.1
-  IL_001b:  ldarg.0
-  IL_001c:  ldfld      "VB$AnonymousType_0(Of T0, T1, T2).$b As T1"
-  IL_0021:  box        "T1"
-  IL_0026:  stelem.ref
-  IL_0027:  dup
-  IL_0028:  ldc.i4.2
-  IL_0029:  ldarg.0
-  IL_002a:  ldfld      "VB$AnonymousType_0(Of T0, T1, T2).$c As T2"
-  IL_002f:  box        "T2"
-  IL_0034:  stelem.ref
-  IL_0035:  call       "Function String.Format(String, ParamArray Object()) As String"
-  IL_003a:  ret
+  // Code size       60 (0x3c)
+  .maxstack  6
+  IL_0000:  ldnull
+  IL_0001:  ldstr      "{{ a = {0}, b = {1}, c = {2} }}"
+  IL_0006:  ldc.i4.3
+  IL_0007:  newarr     "Object"
+  IL_000c:  dup
+  IL_000d:  ldc.i4.0
+  IL_000e:  ldarg.0
+  IL_000f:  ldfld      "VB$AnonymousType_0(Of T0, T1, T2).$a As T0"
+  IL_0014:  box        "T0"
+  IL_0019:  stelem.ref
+  IL_001a:  dup
+  IL_001b:  ldc.i4.1
+  IL_001c:  ldarg.0
+  IL_001d:  ldfld      "VB$AnonymousType_0(Of T0, T1, T2).$b As T1"
+  IL_0022:  box        "T1"
+  IL_0027:  stelem.ref
+  IL_0028:  dup
+  IL_0029:  ldc.i4.2
+  IL_002a:  ldarg.0
+  IL_002b:  ldfld      "VB$AnonymousType_0(Of T0, T1, T2).$c As T2"
+  IL_0030:  box        "T2"
+  IL_0035:  stelem.ref
+  IL_0036:  call       "Function String.Format(System.IFormatProvider, String, ParamArray Object()) As String"
+  IL_003b:  ret
 }
 ]]>)
 

@@ -44,6 +44,16 @@ namespace Microsoft.CodeAnalysis.RuntimeMembers
         /// </summary>
         public readonly byte DeclaringTypeId;
 
+        public string DeclaringTypeMetadataName
+        {
+            get
+            {
+                return DeclaringTypeId <= (int)SpecialType.Count
+                           ? ((SpecialType)DeclaringTypeId).GetMetadataName()
+                           : ((WellKnownType)DeclaringTypeId).GetMetadataName();
+            }
+        }
+
         public readonly ushort Arity;
         public readonly string Name;
 

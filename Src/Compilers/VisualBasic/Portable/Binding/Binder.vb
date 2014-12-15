@@ -472,8 +472,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If specialMemberSymbol Is Nothing Then
                 Dim memberDescriptor As MemberDescriptor = SpecialMembers.GetDescriptor(member)
-                Dim containingType As SpecialType = CType(memberDescriptor.DeclaringTypeId, SpecialType)
-                useSiteError = ErrorFactory.ErrorInfo(ERRID.ERR_MissingRuntimeHelper, containingType.GetMetadataName() & "." & memberDescriptor.Name)
+                useSiteError = ErrorFactory.ErrorInfo(ERRID.ERR_MissingRuntimeHelper, memberDescriptor.DeclaringTypeMetadataName & "." & memberDescriptor.Name)
             Else
                 useSiteError = If(specialMemberSymbol.GetUseSiteErrorInfo(), specialMemberSymbol.ContainingType.GetUseSiteErrorInfo())
             End If
@@ -507,9 +506,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Shared Function GetUseSiteErrorForWellKnownTypeMember(memberSymbol As Symbol, member As WellKnownMember, embedVBRuntimeUsed As Boolean) As DiagnosticInfo
             If memberSymbol Is Nothing Then
                 Dim memberDescriptor As MemberDescriptor = WellKnownMembers.GetDescriptor(member)
-                Dim containingType As WellKnownType = CType(memberDescriptor.DeclaringTypeId, WellKnownType)
 
-                Return GetDiagnosticForMissingRuntimeHelper(containingType.GetMetadataName(), memberDescriptor.Name, embedVBRuntimeUsed)
+                Return GetDiagnosticForMissingRuntimeHelper(memberDescriptor.DeclaringTypeMetadataName, memberDescriptor.Name, embedVBRuntimeUsed)
             Else
                 Return If(memberSymbol.GetUseSiteErrorInfo(), memberSymbol.ContainingType.GetUseSiteErrorInfo())
             End If

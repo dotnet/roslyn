@@ -1024,8 +1024,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 MemberDescriptor memberDescriptor = SpecialMembers.GetDescriptor(member);
-                SpecialType containingType = (SpecialType)memberDescriptor.DeclaringTypeId;
-                diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, containingType.GetMetadataName(), memberDescriptor.Name), syntax.Location);
+                diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, memberDescriptor.DeclaringTypeMetadataName, memberDescriptor.Name), syntax.Location);
             }
 
             return memberSymbol;
@@ -1119,9 +1118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // member is missing
                 MemberDescriptor memberDescriptor = WellKnownMembers.GetDescriptor(member);
-                WellKnownType containingType = (WellKnownType)memberDescriptor.DeclaringTypeId;
-
-                diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, containingType.GetMetadataName(), memberDescriptor.Name);
+                diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, memberDescriptor.DeclaringTypeMetadataName, memberDescriptor.Name);
             }
             else
             {

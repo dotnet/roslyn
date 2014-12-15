@@ -257,8 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)symbol == null)
             {
                 MemberDescriptor descriptor = SpecialMembers.GetDescriptor(specialMember);
-                SpecialType type = (SpecialType)descriptor.DeclaringTypeId;
-                diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, syntax.Location, type.GetMetadataName(), descriptor.Name);
+                diagnostics.Add(ErrorCode.ERR_MissingPredefinedMember, syntax.Location, descriptor.DeclaringTypeMetadataName, descriptor.Name);
                 return false;
             }
             else

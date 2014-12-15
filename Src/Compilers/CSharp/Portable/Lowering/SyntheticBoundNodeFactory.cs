@@ -282,8 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (wellKnownMember == null && !isOptional)
             {
                 RuntimeMembers.MemberDescriptor memberDescriptor = WellKnownMembers.GetDescriptor(wm);
-                WellKnownType containingType = (WellKnownType)memberDescriptor.DeclaringTypeId;
-                var diagnostic = new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, containingType.GetMetadataName(), memberDescriptor.Name), Syntax.Location);
+                var diagnostic = new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, memberDescriptor.DeclaringTypeMetadataName, memberDescriptor.Name), Syntax.Location);
                 throw new MissingPredefinedMember(diagnostic);
             }
 
@@ -308,8 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (specialMember == null)
             {
                 RuntimeMembers.MemberDescriptor memberDescriptor = SpecialMembers.GetDescriptor(sm);
-                SpecialType containingType = (SpecialType)memberDescriptor.DeclaringTypeId;
-                var diagnostic = new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, containingType.GetMetadataName(), memberDescriptor.Name), Syntax.Location);
+                var diagnostic = new CSDiagnostic(new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, memberDescriptor.DeclaringTypeMetadataName, memberDescriptor.Name), Syntax.Location);
                 throw new MissingPredefinedMember(diagnostic);
             }
 
