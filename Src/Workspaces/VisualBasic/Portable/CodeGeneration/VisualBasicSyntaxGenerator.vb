@@ -898,7 +898,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function AsClassMember(node As SyntaxNode) As StatementSyntax
-            Return TryCast(node, StatementSyntax)
+            Return TryCast(AsIsolatedDeclaration(node), StatementSyntax)
         End Function
 
         Public Overrides Function StructDeclaration(
@@ -1051,10 +1051,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function CompilationUnit(declarations As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Return SyntaxFactory.CompilationUnit().WithImports(GetImports(declarations)).WithMembers(GetNamespaceMembers(declarations))
+            Return SyntaxFactory.CompilationUnit().WithImports(AsImports(declarations)).WithMembers(AsNamespaceMembers(declarations))
         End Function
 
-        Private Function GetImports(declarations As IEnumerable(Of SyntaxNode)) As SyntaxList(Of ImportsStatementSyntax)
+        Private Function AsImports(declarations As IEnumerable(Of SyntaxNode)) As SyntaxList(Of ImportsStatementSyntax)
             Return If(declarations Is Nothing, Nothing, SyntaxFactory.List(declarations.Select(AddressOf AsNamespaceImport).OfType(Of ImportsStatementSyntax)()))
         End Function
 
@@ -1066,7 +1066,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return TryCast(node, ImportsStatementSyntax)
         End Function
 
-        Private Function GetNamespaceMembers(declarations As IEnumerable(Of SyntaxNode)) As SyntaxList(Of StatementSyntax)
+        Private Function AsNamespaceMembers(declarations As IEnumerable(Of SyntaxNode)) As SyntaxList(Of StatementSyntax)
             Return If(declarations Is Nothing, Nothing, SyntaxFactory.List(declarations.OfType(Of StatementSyntax)().Where(Function(s) Not TypeOf s Is ImportsStatementSyntax)))
         End Function
 
@@ -1075,8 +1075,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function NamespaceDeclaration(name As SyntaxNode, nestedDeclarations As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Dim imps As IEnumerable(Of StatementSyntax) = GetImports(nestedDeclarations)
-            Dim members As IEnumerable(Of StatementSyntax) = GetNamespaceMembers(nestedDeclarations)
+            Dim imps As IEnumerable(Of StatementSyntax) = AsImports(nestedDeclarations)
+            Dim members As IEnumerable(Of StatementSyntax) = AsNamespaceMembers(nestedDeclarations)
 
             ' put imports at start
             Dim statements = imps.Concat(members)
@@ -1090,9 +1090,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim attr = SyntaxFactory.Attribute(
                 target:=Nothing,
                 name:=DirectCast(name, TypeSyntax),
-                argumentList:=If(attributeArguments IsNot Nothing, SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(attributeArguments.Select(AddressOf AsArgument))), Nothing))
+                argumentList:=AsArgumentList(attributeArguments))
 
             Return AsAttributeList(attr)
+        End Function
+
+        Private Function AsArgumentList(arguments As IEnumerable(Of SyntaxNode)) As ArgumentListSyntax
+            If arguments IsNot Nothing Then
+                Return SyntaxFactory.ArgumentList(SyntaxFactory.SeparatedList(MyBase.ClearTrivia(arguments).Select(AddressOf AsArgument)))
+            Else
+                Return Nothing
+            End If
         End Function
 
         Public Overrides Function AttributeArgument(name As String, expression As SyntaxNode) As SyntaxNode
@@ -1107,7 +1115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
         End Function
 
-        Private Function GetAttributeLists(attributes As IEnumerable(Of SyntaxNode)) As SyntaxList(Of AttributeListSyntax)
+        Private Function AsAttributeLists(attributes As IEnumerable(Of SyntaxNode)) As SyntaxList(Of AttributeListSyntax)
             If attributes IsNot Nothing Then
                 Return SyntaxFactory.List(attributes.Select(AddressOf AsAttributeList))
             Else
@@ -1137,15 +1145,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function GetAttributes(declaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
-            Return GetAttributeLists(declaration)
+            Return Me.Flatten(GetAttributeLists(declaration))
         End Function
 
         Public Overrides Function InsertAttributes(declaration As SyntaxNode, index As Integer, attributes As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Return PreserveTrivia(declaration, Function(d) InsertAttributesInternal(d, index, MyBase.ClearTrivia(attributes)))
+            Return Isolate(declaration, Function(d) InsertAttributesInternal(d, index, MyBase.ClearTrivia(attributes)))
         End Function
 
         Private Function InsertAttributesInternal(declaration As SyntaxNode, index As Integer, attributes As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Return Me.WithAttributeLists(declaration, GetAttributeLists(declaration).InsertRange(index, GetAttributeLists(attributes)))
+            Dim newAttributes = AsAttributeLists(MyBase.ClearTrivia(attributes))
+
+            Dim existingAttributes = Me.GetAttributes(declaration)
+            If index >= 0 AndAlso index < existingAttributes.Count Then
+                Return Me.InsertDeclarationsBefore(declaration, existingAttributes(index), newAttributes)
+            End If
+
+            Dim lists = Me.GetAttributeLists(declaration)
+            If index > 0 Then
+                index = lists.Count
+            End If
+
+            Return Me.WithAttributeLists(declaration, lists.InsertRange(index, AsAttributeLists(attributes)))
         End Function
 
         Private Shared Function HasAssemblyTarget(attr As AttributeSyntax) As Boolean
@@ -1169,45 +1189,79 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function GetReturnAttributes(declaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
-            Select Case declaration.VBKind()
-                Case SyntaxKind.FunctionBlock
-                    Return GetReturnAttributes(DirectCast(declaration, MethodBlockSyntax).Begin)
-                Case SyntaxKind.FunctionStatement
-                    Return DirectCast(declaration, MethodStatementSyntax).AsClause.AttributeLists
-                Case SyntaxKind.DelegateFunctionStatement
-                    Return DirectCast(declaration, DelegateStatementSyntax).AsClause.AttributeLists
+            Return Me.Flatten(GetReturnAttributeLists(declaration))
+        End Function
+
+        Public Overrides Function InsertReturnAttributes(declaration As SyntaxNode, index As Integer, attributes As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Select Case declaration.VBKind
+                Case SyntaxKind.FunctionBlock,
+                     SyntaxKind.FunctionStatement,
+                     SyntaxKind.DelegateFunctionStatement
+                    Return Isolate(declaration, Function(d) InsertReturnAttributesInternal(d, index, attributes))
                 Case Else
-                    Return SpecializedCollections.EmptyReadOnlyList(Of SyntaxNode)
+                    Return declaration
             End Select
         End Function
 
-        Public Overrides Function InsertReturnAttributes(methodDeclaration As SyntaxNode, index As Integer, attributes As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Dim lists = GetAttributeLists(MyBase.ClearTrivia(attributes))
+        Private Function InsertReturnAttributesInternal(declaration As SyntaxNode, index As Integer, attributes As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Dim newAttributes = AsAttributeLists(MyBase.ClearTrivia(attributes))
 
-            Dim methodBlock = TryCast(methodDeclaration, MethodBlockSyntax)
-            If (methodBlock IsNot Nothing) Then
-                Return methodBlock.WithBegin(methodBlock.Begin.WithAsClause(methodBlock.Begin.AsClause.WithAttributeLists(methodBlock.Begin.AttributeLists.InsertRange(index, lists))))
+            Dim existingReturnAttributes = Me.GetReturnAttributes(declaration)
+            If index >= 0 AndAlso index < existingReturnAttributes.Count Then
+                Return InsertDeclarationsBefore(declaration, existingReturnAttributes(index), newAttributes)
             End If
 
-            Dim method = TryCast(methodDeclaration, MethodStatementSyntax)
-            If method IsNot Nothing Then
-                Return method.WithAsClause(method.AsClause.WithAttributeLists(method.AttributeLists.InsertRange(index, lists)))
+            Dim lists = Me.GetReturnAttributeLists(declaration)
+            If index > 0 Then
+                index = lists.Count
             End If
 
-            Return methodDeclaration
+            Dim newLists = lists.InsertRange(index, newAttributes)
+            Return Me.WithReturnAttributeLists(declaration, newLists)
         End Function
 
-        Private Shared cuAttributes As New System.Runtime.CompilerServices.ConditionalWeakTable(Of SyntaxNode, IEnumerable(Of AttributeListSyntax))
+        Private Function GetReturnAttributeLists(declaration As SyntaxNode) As SyntaxList(Of AttributeListSyntax)
+            Dim asClause = GetAsClause(declaration)
+            If asClause IsNot Nothing Then
+                Select Case declaration.VBKind()
+                    Case SyntaxKind.FunctionBlock,
+                    SyntaxKind.FunctionStatement,
+                    SyntaxKind.DelegateFunctionStatement
+                        Return asClause.Attributes
+                End Select
+            End If
+            Return Nothing
+        End Function
+
+        Private Function WithReturnAttributeLists(declaration As SyntaxNode, lists As IEnumerable(Of AttributeListSyntax)) As SyntaxNode
+            If declaration Is Nothing Then
+                Return Nothing
+            End If
+
+            Select Case declaration.VBKind()
+                Case SyntaxKind.FunctionBlock
+                    Dim fb = DirectCast(declaration, MethodBlockSyntax)
+                    Dim asClause = DirectCast(WithReturnAttributeLists(GetAsClause(declaration), lists), SimpleAsClauseSyntax)
+                    Return fb.WithBegin(fb.Begin.WithAsClause(asClause))
+                Case SyntaxKind.FunctionStatement
+                    Dim ms = DirectCast(declaration, MethodStatementSyntax)
+                    Dim asClause = DirectCast(WithReturnAttributeLists(GetAsClause(declaration), lists), SimpleAsClauseSyntax)
+                    Return ms.WithAsClause(asClause)
+                Case SyntaxKind.DelegateFunctionStatement
+                    Dim df = DirectCast(declaration, DelegateStatementSyntax)
+                    Dim asClause = DirectCast(WithReturnAttributeLists(GetAsClause(declaration), lists), SimpleAsClauseSyntax)
+                    Return df.WithAsClause(asClause)
+                Case SyntaxKind.SimpleAsClause
+                    Return DirectCast(declaration, SimpleAsClauseSyntax).WithAttributeLists(SyntaxFactory.List(lists))
+                Case Else
+                    Return Nothing
+            End Select
+        End Function
 
         Private Function GetAttributeLists(node As SyntaxNode) As SyntaxList(Of AttributeListSyntax)
             Select Case node.VBKind
                 Case SyntaxKind.CompilationUnit
-                    ' get flattened list of from all attribute statements
-                    Dim list As IEnumerable(Of AttributeListSyntax) = Nothing
-                    If Not cuAttributes.TryGetValue(node, list) Then
-                        list = cuAttributes.GetValue(node, Function(d) SyntaxFactory.List(DirectCast(d, CompilationUnitSyntax).Attributes.SelectMany(Function(s) s.AttributeLists)))
-                    End If
-                    Return DirectCast(list, SyntaxList(Of AttributeListSyntax))
+                    Return SyntaxFactory.List(DirectCast(node, CompilationUnitSyntax).Attributes.SelectMany(Function(s) s.AttributeLists))
                 Case SyntaxKind.ClassBlock
                     Return DirectCast(node, ClassBlockSyntax).Begin.AttributeLists
                 Case SyntaxKind.ClassStatement
@@ -1330,10 +1384,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Return DeclarationKind.Namespace
                 Case SyntaxKind.ImportsStatement
                     Return DeclarationKind.NamespaceImport
-                Case SyntaxKind.Attribute,
-                     SyntaxKind.AttributeList,
-                     SyntaxKind.AttributesStatement
-                    Return DeclarationKind.Attribute
                 Case SyntaxKind.ClassBlock
                     Return DeclarationKind.Class
                 Case SyntaxKind.StructureBlock
@@ -1347,8 +1397,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Case SyntaxKind.DelegateFunctionStatement,
                      SyntaxKind.DelegateSubStatement
                     Return DeclarationKind.Delegate
-                Case SyntaxKind.FieldDeclaration
-                    Return DeclarationKind.Field
                 Case SyntaxKind.FunctionBlock,
                      SyntaxKind.SubBlock
                     Return DeclarationKind.Method
@@ -1390,14 +1438,152 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     End If
                 Case SyntaxKind.Parameter
                     Return DeclarationKind.Parameter
+
+                Case SyntaxKind.FieldDeclaration
+                    If GetDeclarationCount(declaration) = 1 Then
+                        Return DeclarationKind.Field
+                    End If
+
                 Case SyntaxKind.LocalDeclarationStatement
-                    Return DeclarationKind.Variable
+                    If GetDeclarationCount(declaration) = 1 Then
+                        Return DeclarationKind.Variable
+                    End If
+
+                Case SyntaxKind.ModifiedIdentifier
+                    If IsChildOf(declaration, SyntaxKind.VariableDeclarator) Then
+                        If IsChildOf(declaration.Parent, SyntaxKind.FieldDeclaration) And GetDeclarationCount(declaration.Parent.Parent) > 1 Then
+                            Return DeclarationKind.Field
+                        ElseIf IsChildOf(declaration.Parent, SyntaxKind.LocalDeclarationStatement) And GetDeclarationCount(declaration.Parent.Parent) > 1 Then
+                            Return DeclarationKind.Variable
+                        End If
+                    End If
+
+                Case SyntaxKind.Attribute
+                    Dim list = TryCast(declaration.Parent, AttributeListSyntax)
+                    If list Is Nothing OrElse list.Attributes.Count > 1 Then
+                        Return DeclarationKind.Attribute
+                    End If
+
+                Case SyntaxKind.AttributeList
+                    Dim list = DirectCast(declaration, AttributeListSyntax)
+                    If list.Attributes.Count = 1 Then
+                        Return DeclarationKind.Attribute
+                    End If
             End Select
             Return DeclarationKind.None
         End Function
 
+        Private Function GetDeclarationCount(nodes As IReadOnlyList(Of SyntaxNode)) As Integer
+            Dim count As Integer = 0
+            For i = 0 To nodes.Count - 1
+                count = count + GetDeclarationCount(nodes(i))
+            Next
+            Return count
+        End Function
+
+        Private Function GetDeclarationCount(node As SyntaxNode) As Integer
+            Select Case node.VBKind
+                Case SyntaxKind.FieldDeclaration
+                    Return GetDeclarationCount(DirectCast(node, FieldDeclarationSyntax).Declarators)
+                Case SyntaxKind.LocalDeclarationStatement
+                    Return GetDeclarationCount(DirectCast(node, LocalDeclarationStatementSyntax).Declarators)
+                Case SyntaxKind.VariableDeclarator
+                    Return DirectCast(node, VariableDeclaratorSyntax).Names.Count
+                Case SyntaxKind.AttributesStatement
+                    Return GetDeclarationCount(DirectCast(node, AttributesStatementSyntax).AttributeLists)
+                Case SyntaxKind.AttributeList
+                    Return DirectCast(node, AttributeListSyntax).Attributes.Count
+                Case SyntaxKind.ImportsStatement
+                    Return DirectCast(node, ImportsStatementSyntax).ImportsClauses.Count
+            End Select
+            Return 1
+        End Function
+
         Private Shared Function IsChildOf(node As SyntaxNode, kind As SyntaxKind) As Boolean
             Return node.Parent IsNot Nothing AndAlso node.Parent.IsKind(kind)
+        End Function
+
+        Private Shared Function IsChildOfVariableDeclaration(node As SyntaxNode) As Boolean
+            Return IsChildOf(node, SyntaxKind.FieldDeclaration) OrElse IsChildOf(node, SyntaxKind.LocalDeclarationStatement)
+        End Function
+
+        Private Function Isolate(declaration As SyntaxNode, editor As Func(Of SyntaxNode, SyntaxNode), Optional preserveTriva As Boolean = True) As SyntaxNode
+            Dim isolated = AsIsolatedDeclaration(declaration)
+
+            Dim result As SyntaxNode = Nothing
+
+            If preserveTriva Then
+                result = PreserveTrivia(isolated, editor)
+            Else
+                result = editor(isolated)
+            End If
+
+            If result Is isolated Then
+                Return isolated
+            Else
+                Return result
+            End If
+        End Function
+
+        Private Function GetFullDeclaration(declaration As SyntaxNode) As SyntaxNode
+            Select Case declaration.VBKind
+                Case SyntaxKind.ModifiedIdentifier
+                    If IsChildOf(declaration, SyntaxKind.VariableDeclarator) Then
+                        Return GetFullDeclaration(declaration.Parent)
+                    End If
+                Case SyntaxKind.VariableDeclarator
+                    If IsChildOfVariableDeclaration(declaration) Then
+                        Return declaration.Parent
+                    End If
+                Case SyntaxKind.Attribute
+                    If declaration.Parent IsNot Nothing Then
+                        Return declaration.Parent
+                    End If
+                Case SyntaxKind.SimpleImportsClause,
+                     SyntaxKind.XmlNamespaceImportsClause
+                    If declaration.Parent IsNot Nothing Then
+                        Return declaration.Parent
+                    End If
+            End Select
+            Return declaration
+        End Function
+
+        Private Function AsIsolatedDeclaration(declaration As SyntaxNode) As SyntaxNode
+            Select Case declaration.VBKind
+                Case SyntaxKind.ModifiedIdentifier
+                    Dim full = GetFullDeclaration(declaration)
+                    If full IsNot declaration Then
+                        Return WithSingleVariable(full, DirectCast(declaration, ModifiedIdentifierSyntax))
+                    End If
+                Case SyntaxKind.Attribute
+                    Dim list = TryCast(declaration.Parent, AttributeListSyntax)
+                    If list IsNot Nothing Then
+                        Return list.WithAttributes(SyntaxFactory.SingletonSeparatedList(DirectCast(declaration, AttributeSyntax)))
+                    End If
+                Case SyntaxKind.SimpleImportsClause,
+                     SyntaxKind.XmlNamespaceImportsClause
+                    Dim stmt = TryCast(declaration.Parent, ImportsStatementSyntax)
+                    If stmt IsNot Nothing Then
+                        Return stmt.WithImportsClauses(SyntaxFactory.SingletonSeparatedList(DirectCast(declaration, ImportsClauseSyntax)))
+                    End If
+            End Select
+            Return declaration
+        End Function
+
+        Private Function WithSingleVariable(declaration As SyntaxNode, variable As ModifiedIdentifierSyntax) As SyntaxNode
+            Select Case declaration.VBKind
+                Case SyntaxKind.FieldDeclaration
+                    Dim fd = DirectCast(declaration, FieldDeclarationSyntax)
+                    Return ReplaceWithTrivia(declaration, fd.Declarators(0), fd.Declarators(0).WithNames(SyntaxFactory.SingletonSeparatedList(variable)))
+                Case SyntaxKind.LocalDeclarationStatement
+                    Dim ld = DirectCast(declaration, LocalDeclarationStatementSyntax)
+                    Return ReplaceWithTrivia(declaration, ld.Declarators(0), ld.Declarators(0).WithNames(SyntaxFactory.SingletonSeparatedList(variable)))
+                Case SyntaxKind.VariableDeclarator
+                    Dim vd = DirectCast(declaration, VariableDeclaratorSyntax)
+                    Return vd.WithNames(SyntaxFactory.SingletonSeparatedList(variable))
+                Case Else
+                    Return declaration
+            End Select
         End Function
 
         Private Shared Function IsIndexer(declaration As SyntaxNode) As Boolean
@@ -1429,8 +1615,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Case SyntaxKind.DelegateFunctionStatement,
                      SyntaxKind.DelegateSubStatement
                     Return DirectCast(declaration, DelegateStatementSyntax).Identifier.ValueText
-                Case SyntaxKind.FieldDeclaration
-                    Return DirectCast(declaration, FieldDeclarationSyntax).Declarators(0).Names(0).Identifier.ValueText
                 Case SyntaxKind.FunctionBlock,
                      SyntaxKind.SubBlock
                     Return DirectCast(declaration, MethodBlockSyntax).Begin.Identifier.ValueText
@@ -1453,25 +1637,56 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Return DirectCast(declaration, EventStatementSyntax).Identifier.ValueText
                 Case SyntaxKind.Parameter
                     Return DirectCast(declaration, ParameterSyntax).Identifier.Identifier.ValueText
-                Case SyntaxKind.LocalDeclarationStatement
-                    Return DirectCast(declaration, LocalDeclarationStatementSyntax).Declarators(0).Names(0).Identifier.ValueText
                 Case SyntaxKind.NamespaceBlock
                     Return DirectCast(declaration, NamespaceBlockSyntax).NamespaceStatement.Name.ToString()
+
+                Case SyntaxKind.FieldDeclaration
+                    Dim fd = DirectCast(declaration, FieldDeclarationSyntax)
+                    If GetDeclarationCount(fd) = 1 Then
+                        Return fd.Declarators(0).Names(0).Identifier.ValueText
+                    End If
+
+                Case SyntaxKind.LocalDeclarationStatement
+                    Dim ld = DirectCast(declaration, LocalDeclarationStatementSyntax)
+                    If GetDeclarationCount(ld) = 1 Then
+                        Return ld.Declarators(0).Names(0).Identifier.ValueText
+                    End If
+
+                Case SyntaxKind.VariableDeclarator
+                    Dim vd = DirectCast(declaration, VariableDeclaratorSyntax)
+                    If vd.Names.Count = 1 Then
+                        Return vd.Names(0).Identifier.ValueText
+                    End If
+
+                Case SyntaxKind.ModifiedIdentifier
+                    Return DirectCast(declaration, ModifiedIdentifierSyntax).Identifier.ValueText
+
                 Case SyntaxKind.Attribute
                     Return DirectCast(declaration, AttributeSyntax).Name.ToString()
+
                 Case SyntaxKind.AttributeList
-                    Return DirectCast(declaration, AttributeListSyntax).Attributes(0).Name.ToString()
+                    Dim list = DirectCast(declaration, AttributeListSyntax)
+                    If list.Attributes.Count = 1 Then
+                        Return list.Attributes(0).Name.ToString()
+                    End If
+
                 Case SyntaxKind.ImportsStatement
-                    Dim clause = DirectCast(declaration, ImportsStatementSyntax).ImportsClauses(0)
-                    Select Case clause.VBKind
-                        Case SyntaxKind.SimpleImportsClause
-                            Return DirectCast(clause, SimpleImportsClauseSyntax).Name.ToString()
-                    End Select
+                    Dim stmt = DirectCast(declaration, ImportsStatementSyntax)
+                    If stmt.ImportsClauses.Count = 1 Then
+                        Return GetName(stmt.ImportsClauses(0))
+                    End If
+
+                Case SyntaxKind.SimpleImportsClause
+                    Return DirectCast(declaration, SimpleImportsClauseSyntax).Name.ToString()
             End Select
             Return String.Empty
         End Function
 
         Public Overrides Function WithName(declaration As SyntaxNode, name As String) As SyntaxNode
+            Return Isolate(declaration, Function(d) WithNameInternal(d, name))
+        End Function
+
+        Private Function WithNameInternal(declaration As SyntaxNode, name As String) As SyntaxNode
             Dim id = name.ToIdentifierToken()
 
             Select Case declaration.VBKind
@@ -1488,8 +1703,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Case SyntaxKind.DelegateFunctionStatement,
                      SyntaxKind.DelegateSubStatement
                     Return ReplaceWithTrivia(declaration, DirectCast(declaration, DelegateStatementSyntax).Identifier, id)
-                Case SyntaxKind.FieldDeclaration
-                    Return ReplaceWithTrivia(declaration, DirectCast(declaration, FieldDeclarationSyntax).Declarators(0).Names(0).Identifier, id)
                 Case SyntaxKind.FunctionBlock,
                      SyntaxKind.SubBlock
                     Return ReplaceWithTrivia(declaration, DirectCast(declaration, MethodBlockSyntax).Begin.Identifier, id)
@@ -1512,36 +1725,57 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Return ReplaceWithTrivia(declaration, DirectCast(declaration, EventStatementSyntax).Identifier, id)
                 Case SyntaxKind.Parameter
                     Return ReplaceWithTrivia(declaration, DirectCast(declaration, ParameterSyntax).Identifier.Identifier, id)
-                Case SyntaxKind.LocalDeclarationStatement
-                    Return ReplaceWithTrivia(declaration, DirectCast(declaration, LocalDeclarationStatementSyntax).Declarators(0).Names(0).Identifier, id)
                 Case SyntaxKind.NamespaceBlock
                     Return ReplaceWithTrivia(declaration, DirectCast(declaration, NamespaceBlockSyntax).NamespaceStatement.Name, Me.DottedName(name))
+                Case SyntaxKind.LocalDeclarationStatement
+                    Dim ld = DirectCast(declaration, LocalDeclarationStatementSyntax)
+                    If ld.Declarators.Count = 1 AndAlso ld.Declarators(0).Names.Count = 1 Then
+                        Return ReplaceWithTrivia(declaration, ld.Declarators(0).Names(0).Identifier, id)
+                    End If
+                Case SyntaxKind.FieldDeclaration
+                    Dim fd = DirectCast(declaration, FieldDeclarationSyntax)
+                    If fd.Declarators.Count = 1 AndAlso fd.Declarators(0).Names.Count = 1 Then
+                        Return ReplaceWithTrivia(declaration, fd.Declarators(0).Names(0).Identifier, id)
+                    End If
                 Case SyntaxKind.Attribute
                     Return ReplaceWithTrivia(declaration, DirectCast(declaration, AttributeSyntax).Name, Me.DottedName(name))
                 Case SyntaxKind.AttributeList
-                    Return ReplaceWithTrivia(declaration, DirectCast(declaration, AttributeListSyntax).Attributes(0).Name, Me.DottedName(name))
+                    Dim al = DirectCast(declaration, AttributeListSyntax)
+                    If al.Attributes.Count = 1 Then
+                        Return ReplaceWithTrivia(declaration, al.Attributes(0).Name, Me.DottedName(name))
+                    End If
                 Case SyntaxKind.ImportsStatement
-                    Dim clause = DirectCast(declaration, ImportsStatementSyntax).ImportsClauses(0)
-                    Select Case clause.VBKind
-                        Case SyntaxKind.SimpleImportsClause
-                            Return ReplaceWithTrivia(declaration, DirectCast(clause, SimpleImportsClauseSyntax).Name, Me.DottedName(name))
-                    End Select
+                    Dim stmt = DirectCast(declaration, ImportsStatementSyntax)
+                    If stmt.ImportsClauses.Count = 1 Then
+                        Dim clause = stmt.ImportsClauses(0)
+                        Select Case clause.VBKind
+                            Case SyntaxKind.SimpleImportsClause
+                                Return ReplaceWithTrivia(declaration, DirectCast(clause, SimpleImportsClauseSyntax).Name, Me.DottedName(name))
+                        End Select
+                    End If
             End Select
 
             Return declaration
         End Function
 
         Public Overrides Function [GetType](declaration As SyntaxNode) As SyntaxNode
-            Dim asClause = GetAsClause(declaration)
-            If asClause IsNot Nothing Then
-                Return asClause.Type
-            Else
-                Return Nothing
-            End If
+            Select Case declaration.VBKind
+                Case SyntaxKind.ModifiedIdentifier
+                    Dim vd = TryCast(declaration.Parent, VariableDeclaratorSyntax)
+                    If vd IsNot Nothing Then
+                        Return [GetType](vd)
+                    End If
+                Case Else
+                    Dim asClause = GetAsClause(declaration)
+                    If asClause IsNot Nothing Then
+                        Return asClause.Type
+                    End If
+            End Select
+            Return Nothing
         End Function
 
         Public Overrides Function WithType(declaration As SyntaxNode, type As SyntaxNode) As SyntaxNode
-            Return PreserveTrivia(declaration, Function(d) WithTypeInternal(d, type))
+            Return Isolate(declaration, Function(d) WithTypeInternal(d, type))
         End Function
 
         Private Function WithTypeInternal(declaration As SyntaxNode, type As SyntaxNode) As SyntaxNode
@@ -1582,8 +1816,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Select Case declaration.VBKind
                 Case SyntaxKind.DelegateFunctionStatement
                     Return DirectCast(declaration, DelegateStatementSyntax).AsClause
-                Case SyntaxKind.FieldDeclaration
-                    Return DirectCast(declaration, FieldDeclarationSyntax).Declarators(0).AsClause
                 Case SyntaxKind.FunctionBlock
                     Return DirectCast(declaration, MethodBlockSyntax).Begin.AsClause
                 Case SyntaxKind.FunctionStatement
@@ -1598,11 +1830,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Return DirectCast(declaration, EventStatementSyntax).AsClause
                 Case SyntaxKind.Parameter
                     Return DirectCast(declaration, ParameterSyntax).AsClause
+                Case SyntaxKind.FieldDeclaration
+                    Dim fd = DirectCast(declaration, FieldDeclarationSyntax)
+                    If fd.Declarators.Count = 1 Then
+                        Return fd.Declarators(0).AsClause
+                    End If
                 Case SyntaxKind.LocalDeclarationStatement
-                    Return DirectCast(declaration, LocalDeclarationStatementSyntax).Declarators(0).AsClause
-                Case Else
-                    Return Nothing
+                    Dim ld = DirectCast(declaration, LocalDeclarationStatementSyntax)
+                    If ld.Declarators.Count = 1 Then
+                        Return ld.Declarators(0).AsClause
+                    End If
+                Case SyntaxKind.VariableDeclarator
+                    Return DirectCast(declaration, VariableDeclaratorSyntax).AsClause
+                Case SyntaxKind.ModifiedIdentifier
+                    Dim vd = TryCast(declaration.Parent, VariableDeclaratorSyntax)
+                    If vd IsNot Nothing Then
+                        Return vd.AsClause
+                    End If
             End Select
+            Return Nothing
         End Function
 
         Private Function WithAsClause(declaration As SyntaxNode, asClause As AsClauseSyntax) As SyntaxNode
@@ -1610,8 +1856,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Case SyntaxKind.DelegateFunctionStatement
                     Return DirectCast(declaration, DelegateStatementSyntax).WithAsClause(DirectCast(asClause, SimpleAsClauseSyntax))
                 Case SyntaxKind.FieldDeclaration
-                    Dim d = DirectCast(declaration, FieldDeclarationSyntax).Declarators(0)
-                    Return declaration.ReplaceNode(d, d.WithAsClause(asClause))
+                    Dim fd = DirectCast(declaration, FieldDeclarationSyntax)
+                    If fd.Declarators.Count = 1 Then
+                        Return ReplaceWithTrivia(declaration, fd.Declarators(0), fd.Declarators(0).WithAsClause(asClause))
+                    End If
                 Case SyntaxKind.FunctionBlock
                     Return DirectCast(declaration, MethodBlockSyntax).WithBegin(DirectCast(declaration, MethodBlockSyntax).Begin.WithAsClause(DirectCast(asClause, SimpleAsClauseSyntax)))
                 Case SyntaxKind.FunctionStatement
@@ -1627,15 +1875,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Case SyntaxKind.Parameter
                     Return DirectCast(declaration, ParameterSyntax).WithAsClause(DirectCast(asClause, SimpleAsClauseSyntax))
                 Case SyntaxKind.LocalDeclarationStatement
-                    Dim ld = DirectCast(declaration, LocalDeclarationStatementSyntax).Declarators(0)
-                    Return declaration.ReplaceNode(ld, ld.WithAsClause(asClause))
-                Case Else
-                    Return declaration
+                    Dim ld = DirectCast(declaration, LocalDeclarationStatementSyntax)
+                    If ld.Declarators.Count = 1 Then
+                        Return ReplaceWithTrivia(declaration, ld.Declarators(0), ld.Declarators(0).WithAsClause(asClause))
+                    End If
+                Case SyntaxKind.VariableDeclarator
+                    Return DirectCast(declaration, VariableDeclaratorSyntax).WithAsClause(asClause)
             End Select
+            Return declaration
         End Function
 
         Private Function AsFunction(declaration As SyntaxNode) As SyntaxNode
-            Return PreserveTrivia(declaration, AddressOf AsFunctionInternal)
+            Return Isolate(declaration, AddressOf AsFunctionInternal)
         End Function
 
         Private Function AsFunctionInternal(declaration As SyntaxNode) As SyntaxNode
@@ -1720,7 +1971,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function AsSub(declaration As SyntaxNode) As SyntaxNode
-            Return PreserveTrivia(declaration, AddressOf AsSubInternal)
+            Return Isolate(declaration, AddressOf AsSubInternal)
         End Function
 
         Private Function AsSubInternal(declaration As SyntaxNode) As SyntaxNode
@@ -1814,7 +2065,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function WithModifiers(declaration As SyntaxNode, modifiers As DeclarationModifiers) As SyntaxNode
-            Return PreserveTrivia(declaration, Function(d) Me.WithModifiersInternal(d, modifiers))
+            Return Isolate(declaration, Function(d) Me.WithModifiersInternal(d, modifiers))
         End Function
 
         Private Function WithModifiersInternal(declaration As SyntaxNode, modifiers As DeclarationModifiers) As SyntaxNode
@@ -1883,6 +2134,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Return DirectCast(declaration, EventBlockSyntax).EventStatement.Modifiers
                 Case SyntaxKind.EventStatement
                     Return DirectCast(declaration, EventStatementSyntax).Modifiers
+                Case SyntaxKind.ModifiedIdentifier
+                    If IsChildOf(declaration, SyntaxKind.VariableDeclarator) Then
+                        Return GetModifierTokens(declaration.Parent)
+                    End If
+                Case SyntaxKind.VariableDeclarator
+                    If IsChildOfVariableDeclaration(declaration) Then
+                        Return GetModifierTokens(declaration.Parent)
+                    End If
                 Case Else
                     Return Nothing
             End Select
@@ -1948,7 +2207,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function WithAccessibility(declaration As SyntaxNode, accessibility As Accessibility) As SyntaxNode
-            Return PreserveTrivia(declaration, Function(d) Me.WithAccessibilityInternal(d, accessibility))
+            Return Isolate(declaration, Function(d) Me.WithAccessibilityInternal(d, accessibility))
         End Function
 
         Private Function WithAccessibilityInternal(declaration As SyntaxNode, accessibility As Accessibility) As SyntaxNode
@@ -2452,7 +2711,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function WithExpression(declaration As SyntaxNode, expression As SyntaxNode) As SyntaxNode
-            Return PreserveTrivia(declaration, Function(d) WithExpressionInternal(d, ClearTrivia(expression)))
+            Return Isolate(declaration, Function(d) WithExpressionInternal(d, ClearTrivia(expression)))
         End Function
 
         Private Function WithExpressionInternal(declaration As SyntaxNode, expression As SyntaxNode) As SyntaxNode
@@ -2499,14 +2758,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Case SyntaxKind.Parameter
                     Return DirectCast(declaration, ParameterSyntax).Default
                 Case SyntaxKind.LocalDeclarationStatement
-                    Dim d = DirectCast(declaration, LocalDeclarationStatementSyntax).Declarators(0)
-                    Return d.Initializer
+                    Dim ld = DirectCast(declaration, LocalDeclarationStatementSyntax)
+                    If ld.Declarators.Count = 1 Then
+                        Return ld.Declarators(0).Initializer
+                    End If
                 Case SyntaxKind.FieldDeclaration
-                    Dim d2 = DirectCast(declaration, FieldDeclarationSyntax).Declarators(0)
-                    Return d2.Initializer
-                Case Else
-                    Return Nothing
+                    Dim fd = DirectCast(declaration, FieldDeclarationSyntax)
+                    If fd.Declarators.Count = 1 Then
+                        Return fd.Declarators(0).Initializer
+                    End If
+                Case SyntaxKind.VariableDeclarator
+                    Return DirectCast(declaration, VariableDeclaratorSyntax).Initializer
             End Select
+            Return Nothing
         End Function
 
         Private Function WithEqualsValue(declaration As SyntaxNode, ev As EqualsValueSyntax) As SyntaxNode
@@ -2514,17 +2778,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Case SyntaxKind.Parameter
                     Return DirectCast(declaration, ParameterSyntax).WithDefault(ev)
                 Case SyntaxKind.LocalDeclarationStatement
-                    Dim d = DirectCast(declaration, LocalDeclarationStatementSyntax).Declarators(0)
-                    Return declaration.ReplaceNode(d, d.WithInitializer(ev))
+                    Dim ld = DirectCast(declaration, LocalDeclarationStatementSyntax)
+                    If ld.Declarators.Count = 1 Then
+                        Return ReplaceWithTrivia(declaration, ld.Declarators(0), ld.Declarators(0).WithInitializer(ev))
+                    End If
                 Case SyntaxKind.FieldDeclaration
-                    Dim d2 = DirectCast(declaration, FieldDeclarationSyntax).Declarators(0)
-                    Return declaration.ReplaceNode(d2, d2.WithInitializer(ev))
-                Case Else
-                    Return declaration
+                    Dim fd = DirectCast(declaration, FieldDeclarationSyntax)
+                    If fd.Declarators.Count = 1 Then
+                        Return ReplaceWithTrivia(declaration, fd.Declarators(0), fd.Declarators(0).WithInitializer(ev))
+                    End If
             End Select
+            Return declaration
         End Function
 
         Public Overrides Function GetNamespaceImports(declaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
+            Return Me.Flatten(Me.GetUnflattenedNamespaceImports(declaration))
+        End Function
+
+        Private Function GetUnflattenedNamespaceImports(declaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
             Select Case declaration.VBKind
                 Case SyntaxKind.CompilationUnit
                     Return DirectCast(declaration, CompilationUnitSyntax).Imports
@@ -2534,16 +2805,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function InsertNamespaceImports(declaration As SyntaxNode, index As Integer, [imports] As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Return Isolate(declaration, Function(d) InsertNamespaceImportsInternal(d, index, [imports]))
+        End Function
+
+        Private Function InsertNamespaceImportsInternal(declaration As SyntaxNode, index As Integer, [imports] As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Dim newImports = AsImports(MyBase.ClearTrivia([imports]))
+
+            Dim existingImports = Me.GetNamespaceImports(declaration)
+            If index >= 0 AndAlso index < existingImports.Count Then
+                Return Me.InsertDeclarationsBefore(declaration, existingImports(index), newImports)
+            End If
+
+            If index > 0 Then
+                index = Me.GetUnflattenedNamespaceImports(declaration).Count
+            End If
+
             Select Case declaration.VBKind
                 Case SyntaxKind.CompilationUnit
                     Dim cu = DirectCast(declaration, CompilationUnitSyntax)
-                    Return cu.WithImports(cu.Imports.InsertRange(index, GetImports(MyBase.ClearTrivia([imports]))))
+                    Return cu.WithImports(cu.Imports.InsertRange(index, newImports))
                 Case Else
                     Return declaration
             End Select
         End Function
 
         Public Overrides Function GetMembers(declaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
+            Return Flatten(GetUnflattenedMembers(declaration))
+        End Function
+
+        Private Function GetUnflattenedMembers(declaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
             Select Case declaration.VBKind
                 Case SyntaxKind.CompilationUnit
                     Return DirectCast(declaration, CompilationUnitSyntax).Members
@@ -2562,30 +2852,61 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End Select
         End Function
 
-        Public Overrides Function InsertMembers(declaration As SyntaxNode, index As Integer, declarations As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Return PreserveTrivia(declaration, Function(d) InsertMembersInternal(d, index, MyBase.ClearTrivia(declarations)))
+        Private Function AsMembersOf(declaration As SyntaxNode, members As IEnumerable(Of SyntaxNode)) As IEnumerable(Of SyntaxNode)
+            Select Case declaration.VBKind
+                Case SyntaxKind.CompilationUnit
+                    Return AsNamespaceMembers(members)
+                Case SyntaxKind.NamespaceBlock
+                    Return AsNamespaceMembers(members)
+                Case SyntaxKind.ClassBlock
+                    Return AsClassMembers(members)
+                Case SyntaxKind.StructureBlock
+                    Return AsClassMembers(members)
+                Case SyntaxKind.InterfaceBlock
+                    Return AsInterfaceMembers(members)
+                Case SyntaxKind.EnumBlock
+                    Return AsEnumMembers(members)
+                Case Else
+                    Return SpecializedCollections.EmptyEnumerable(Of SyntaxNode)
+            End Select
+
         End Function
 
-        Private Function InsertMembersInternal(declaration As SyntaxNode, index As Integer, declarations As IEnumerable(Of SyntaxNode)) As SyntaxNode
+        Public Overrides Function InsertMembers(declaration As SyntaxNode, index As Integer, members As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Return Isolate(declaration, Function(d) InsertMembersInternal(d, index, members))
+        End Function
+
+        Private Function InsertMembersInternal(declaration As SyntaxNode, index As Integer, members As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            members = Me.AsMembersOf(declaration, MyBase.ClearTrivia(members))
+
+            Dim existingMembers = Me.GetMembers(declaration)
+            If index >= 0 AndAlso index < existingMembers.Count Then
+                Return Me.InsertDeclarationsBefore(declaration, existingMembers(index), members)
+            End If
+
+            If index > 0 Then
+                index = Me.GetUnflattenedMembers(declaration).Count
+            End If
+
             Select Case declaration.VBKind
                 Case SyntaxKind.CompilationUnit
                     Dim cu = DirectCast(declaration, CompilationUnitSyntax)
-                    Return cu.WithMembers(cu.Members.InsertRange(index, GetNamespaceMembers(declarations)))
+                    Return cu.WithMembers(cu.Members.InsertRange(index, AsNamespaceMembers(members)))
                 Case SyntaxKind.NamespaceBlock
                     Dim ns = DirectCast(declaration, NamespaceBlockSyntax)
-                    Return ns.WithMembers(ns.Members.InsertRange(index, GetNamespaceMembers(declarations)))
+                    Return ns.WithMembers(ns.Members.InsertRange(index, AsNamespaceMembers(members)))
                 Case SyntaxKind.ClassBlock
                     Dim cb = DirectCast(declaration, ClassBlockSyntax)
-                    Return cb.WithMembers(cb.Members.InsertRange(index, AsClassMembers(declarations)))
+                    Return cb.WithMembers(cb.Members.InsertRange(index, AsClassMembers(members)))
                 Case SyntaxKind.StructureBlock
                     Dim sb = DirectCast(declaration, StructureBlockSyntax)
-                    Return sb.WithMembers(sb.Members.InsertRange(index, AsStructureMembers(declarations)))
+                    Return sb.WithMembers(sb.Members.InsertRange(index, AsStructureMembers(members)))
                 Case SyntaxKind.InterfaceBlock
                     Dim ib = DirectCast(declaration, InterfaceBlockSyntax)
-                    Return ib.WithMembers(ib.Members.InsertRange(index, AsInterfaceMembers(declarations)))
+                    Return ib.WithMembers(ib.Members.InsertRange(index, AsInterfaceMembers(members)))
                 Case SyntaxKind.EnumBlock
                     Dim eb = DirectCast(declaration, EnumBlockSyntax)
-                    Return eb.WithMembers(eb.Members.InsertRange(index, AsEnumMembers(declarations)))
+                    Return eb.WithMembers(eb.Members.InsertRange(index, AsEnumMembers(members)))
                 Case Else
                     Return declaration
             End Select
@@ -2607,7 +2928,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function WithStatements(declaration As SyntaxNode, statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Return PreserveTrivia(declaration, Function(d) WithStatementsInternal(d, statements))
+            Return Isolate(declaration, Function(d) WithStatementsInternal(d, statements))
         End Function
 
         Private Function WithStatementsInternal(declaration As SyntaxNode, statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
@@ -2750,39 +3071,295 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 endEventStatement:=SyntaxFactory.EndEventStatement())
         End Function
 
-        Public Overrides Function GetAttributeArguments(attributeDeclaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
-            Throw New NotImplementedException()
+        Public Overrides Function ReplaceDeclaration(root As SyntaxNode, declaration As SyntaxNode, newDeclaration As SyntaxNode) As SyntaxNode
+            If newDeclaration Is Nothing Then
+                Return Me.RemoveDeclaration(root, declaration)
+            End If
+
+            Dim newFullDecl = Me.AsIsolatedDeclaration(newDeclaration)
+            Dim fullDecl = Me.GetFullDeclaration(declaration)
+
+            ' special handling for replacing at location of a sub-declaration
+            If fullDecl IsNot declaration Then
+
+                ' try to replace inline if possible
+                If fullDecl.IsKind(newFullDecl.VBKind) AndAlso GetDeclarationCount(newFullDecl) = 1 Then
+                    Dim newSubDecl = Me.GetSubDeclarations(newFullDecl)(0)
+                    If AreInlineReplaceableSubDeclarations(declaration, newSubDecl) Then
+                        Return MyBase.ReplaceDeclaration(root, declaration, newSubDecl)
+                    End If
+                End If
+
+                ' otherwise replace by splitting full-declaration into two parts and inserting newDeclaration between them
+                Dim index = MyBase.IndexOf(Me.GetSubDeclarations(fullDecl), declaration)
+                Return Me.ReplaceSubDeclaration(root, fullDecl, index, newFullDecl)
+            End If
+
+            ' attempt normal replace
+            Return MyBase.ReplaceDeclaration(root, declaration, newFullDecl)
         End Function
 
-        Public Overrides Function InsertAttributeArguments(attributeDeclaration As SyntaxNode, index As Integer, attributeArguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Throw New NotImplementedException()
+        ' return true if one sub-declaration can be replaced in-line with another sub-declaration
+        Private Function AreInlineReplaceableSubDeclarations(decl1 As SyntaxNode, decl2 As SyntaxNode) As Boolean
+            Dim kind = decl1.VBKind
+            If Not decl2.IsKind(kind) Then
+                Return False
+            End If
+
+            Select Case kind
+                Case SyntaxKind.ModifiedIdentifier,
+                     SyntaxKind.Attribute,
+                     SyntaxKind.SimpleImportsClause,
+                     SyntaxKind.XmlNamespaceImportsClause
+                    Return AreSimilarExceptForSubDeclarations(decl1.Parent, decl2.Parent)
+            End Select
+
+            Return False
         End Function
+
+        Private Function AreSimilarExceptForSubDeclarations(decl1 As SyntaxNode, decl2 As SyntaxNode) As Boolean
+            If decl1 Is Nothing OrElse decl2 Is Nothing Then
+                Return False
+            End If
+
+            Dim kind = decl1.VBKind
+            If Not decl2.IsKind(kind) Then
+                Return False
+            End If
+
+            Select Case kind
+                Case SyntaxKind.FieldDeclaration
+                    Dim fd1 = DirectCast(decl1, FieldDeclarationSyntax)
+                    Dim fd2 = DirectCast(decl2, FieldDeclarationSyntax)
+                    Return SyntaxFactory.AreEquivalent(fd1.AttributeLists, fd2.AttributeLists) AndAlso SyntaxFactory.AreEquivalent(fd1.Modifiers, fd2.Modifiers)
+
+                Case SyntaxKind.LocalDeclarationStatement
+                    Dim ld1 = DirectCast(decl1, LocalDeclarationStatementSyntax)
+                    Dim ld2 = DirectCast(decl2, LocalDeclarationStatementSyntax)
+                    Return SyntaxFactory.AreEquivalent(ld1.Modifiers, ld2.Modifiers)
+
+                Case SyntaxKind.VariableDeclarator
+                    Dim vd1 = DirectCast(decl1, VariableDeclaratorSyntax)
+                    Dim vd2 = DirectCast(decl2, VariableDeclaratorSyntax)
+                    Return SyntaxFactory.AreEquivalent(vd1.AsClause, vd2.AsClause) AndAlso SyntaxFactory.AreEquivalent(vd2.Initializer, vd1.Initializer) AndAlso AreSimilarExceptForSubDeclarations(decl1.Parent, decl2.Parent)
+
+                Case SyntaxKind.AttributeList,
+                    SyntaxKind.ImportsStatement
+                    Return True
+            End Select
+
+            Return False
+        End Function
+
+        Public Overrides Function InsertDeclarationsBefore(root As SyntaxNode, declaration As SyntaxNode, newDeclarations As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Return Isolate(root.TrackNodes(declaration), Function(r) InsertDeclarationsBeforeInternal(r, r.GetCurrentNode(declaration), newDeclarations))
+        End Function
+
+        Private Function InsertDeclarationsBeforeInternal(root As SyntaxNode, declaration As SyntaxNode, newDeclarations As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Dim fullDecl = Me.GetFullDeclaration(declaration)
+            If fullDecl Is declaration OrElse GetDeclarationCount(fullDecl) = 1 Then
+                Return MyBase.InsertDeclarationsBefore(root, declaration, newDeclarations)
+            End If
+
+            Dim subDecls = Me.GetSubDeclarations(fullDecl)
+            Dim count = subDecls.Count
+            Dim index = MyBase.IndexOf(subDecls, declaration)
+
+            ' insert New declaration between full declaration split into two
+            If index > 0 Then
+                Dim newNodes = New List(Of SyntaxNode)()
+                newNodes.Add(Me.WithSubDeclarationsRemoved(fullDecl, index, count - index).WithTrailingTrivia(SyntaxFactory.ElasticSpace))
+                newNodes.AddRange(newDeclarations)
+                newNodes.Add(Me.WithSubDeclarationsRemoved(fullDecl, 0, index).WithLeadingTrivia(SyntaxFactory.ElasticSpace))
+                Return ReplaceRange(root, fullDecl, newNodes)
+            End If
+
+            Return MyBase.InsertDeclarationsBefore(root, fullDecl, newDeclarations)
+        End Function
+
+        ' replaces sub-declaration by splitting multi-part declaration first
+        Private Function ReplaceSubDeclaration(root As SyntaxNode, declaration As SyntaxNode, index As Integer, newDeclaration As SyntaxNode) As SyntaxNode
+            Dim newNodes = New List(Of SyntaxNode)()
+            Dim count = GetDeclarationCount(declaration)
+
+            If index >= 0 AndAlso index < count Then
+                If (index > 0) Then
+                    ' make a single declaration with only the sub-declarations before the sub-declaration being replaced
+                    newNodes.Add(Me.WithSubDeclarationsRemoved(declaration, index, count - index).WithTrailingTrivia(SyntaxFactory.ElasticSpace))
+                End If
+
+                newNodes.Add(newDeclaration)
+
+                If (index < count - 1) Then
+                    ' make a single declaration with only the sub-declarations after the sub-declaration being replaced
+                    newNodes.Add(Me.WithSubDeclarationsRemoved(declaration, 0, index + 1).WithLeadingTrivia(SyntaxFactory.ElasticSpace))
+                End If
+
+                ' replace declaration with multiple declarations
+                Return ReplaceRange(root, declaration, newNodes)
+            Else
+                Return root
+            End If
+        End Function
+
+        Private Function WithSubDeclarationsRemoved(declaration As SyntaxNode, index As Integer, count As Integer) As SyntaxNode
+            Return Me.RemoveDeclarations(declaration, Me.GetSubDeclarations(declaration).Skip(index).Take(count))
+        End Function
+
+        Private Function GetSubDeclarations(declaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
+            Select Case declaration.VBKind
+                Case SyntaxKind.FieldDeclaration
+                    Return DirectCast(declaration, FieldDeclarationSyntax).Declarators.SelectMany(Function(d) d.Names).ToImmutableReadOnlyListOrEmpty()
+                Case SyntaxKind.LocalDeclarationStatement
+                    Return DirectCast(declaration, LocalDeclarationStatementSyntax).Declarators.SelectMany(Function(d) d.Names).ToImmutableReadOnlyListOrEmpty()
+                Case SyntaxKind.AttributeList
+                    Return DirectCast(declaration, AttributeListSyntax).Attributes
+                Case SyntaxKind.ImportsStatement
+                    Return DirectCast(declaration, ImportsStatementSyntax).ImportsClauses
+                Case Else
+                    Return SpecializedCollections.EmptyReadOnlyList(Of SyntaxNode)
+            End Select
+        End Function
+
+        Private Function Flatten(members As IReadOnlyList(Of SyntaxNode)) As IReadOnlyList(Of SyntaxNode)
+            If members.Count = 0 OrElse Not members.Any(Function(m) GetDeclarationCount(m) > 1) Then
+                Return members
+            End If
+
+            Dim list = New List(Of SyntaxNode)
+            Flatten(members, list)
+            Return list.ToImmutableReadOnlyListOrEmpty()
+        End Function
+
+        Private Sub Flatten(members As IReadOnlyList(Of SyntaxNode), list As List(Of SyntaxNode))
+            For Each m In members
+                If GetDeclarationCount(m) > 1 Then
+                    Select Case m.VBKind
+                        Case SyntaxKind.FieldDeclaration
+                            Flatten(DirectCast(m, FieldDeclarationSyntax).Declarators, list)
+                        Case SyntaxKind.LocalDeclarationStatement
+                            Flatten(DirectCast(m, LocalDeclarationStatementSyntax).Declarators, list)
+                        Case SyntaxKind.VariableDeclarator
+                            Flatten(DirectCast(m, VariableDeclaratorSyntax).Names, list)
+                        Case SyntaxKind.AttributesStatement
+                            Flatten(DirectCast(m, AttributesStatementSyntax).AttributeLists, list)
+                        Case SyntaxKind.AttributeList
+                            Flatten(DirectCast(m, AttributeListSyntax).Attributes, list)
+                        Case SyntaxKind.ImportsStatement
+                            Flatten(DirectCast(m, ImportsStatementSyntax).ImportsClauses, list)
+                        Case Else
+                            list.Add(m)
+                    End Select
+                Else
+                    list.Add(m)
+                End If
+            Next
+        End Sub
 
         Public Overrides Function RemoveDeclaration(root As SyntaxNode, declaration As SyntaxNode) As SyntaxNode
-            Return PreserveTrivia(root.TrackNodes(declaration), Function(r) Me.RemoveDeclarationInternal(r, r.GetCurrentNode(declaration)))
+            Return Isolate(root.TrackNodes(declaration), Function(r) Me.RemoveDeclarationInternal(r, r.GetCurrentNode(declaration)))
         End Function
 
         Private Function RemoveDeclarationInternal(root As SyntaxNode, declaration As SyntaxNode) As SyntaxNode
 
             ' special case handling for declarations that remove their parents too
             Select Case declaration.VBKind
+                Case SyntaxKind.ModifiedIdentifier
+                    Dim vd = TryCast(declaration.Parent, VariableDeclaratorSyntax)
+                    If vd IsNot Nothing AndAlso vd.Names.Count = 1 Then
+                        ' remove entire variable declarator if only name
+                        Return RemoveDeclarationInternal(root, vd)
+                    End If
+                Case SyntaxKind.VariableDeclarator
+                    If IsChildOfVariableDeclaration(declaration) AndAlso GetDeclarationCount(declaration.Parent) = 1 Then
+                        ' remove entire parent declaration if this is the only declarator
+                        Return RemoveDeclarationInternal(root, declaration.Parent)
+                    End If
                 Case SyntaxKind.AttributeList
                     Dim attrList = DirectCast(declaration, AttributeListSyntax)
                     Dim attrStmt = TryCast(attrList.Parent, AttributesStatementSyntax)
                     If attrStmt IsNot Nothing AndAlso attrStmt.AttributeLists.Count = 1 Then
-                        ' remove entire statement if only the one list
+                        ' remove entire attribute statement if this is the only attribute list
                         Return RemoveDeclarationInternal(root, attrStmt)
                     End If
                 Case SyntaxKind.Attribute
                     Dim attrList = TryCast(declaration.Parent, AttributeListSyntax)
                     If attrList IsNot Nothing AndAlso attrList.Attributes.Count = 1 Then
-                        ' remove entire list if only the one attribute
+                        ' remove entire attribute list if this is the only attribute
                         Return RemoveDeclarationInternal(root, attrList)
+                    End If
+                Case SyntaxKind.SimpleArgument
+                    If IsChildOf(declaration, SyntaxKind.ArgumentList) AndAlso IsChildOf(declaration.Parent, SyntaxKind.Attribute) Then
+                        Dim argList = DirectCast(declaration.Parent, ArgumentListSyntax)
+                        If argList.Arguments.Count = 1 Then
+                            ' remove attribute's arg list if this is the only argument
+                            Return RemoveDeclarationInternal(root, argList)
+                        End If
+                    End If
+                Case SyntaxKind.SimpleImportsClause,
+                     SyntaxKind.XmlNamespaceImportsClause
+                    Dim imps = DirectCast(declaration.Parent, ImportsStatementSyntax)
+                    If imps.ImportsClauses.Count = 1 Then
+                        ' remove entire imports statement if this is the only clause
+                        Return RemoveDeclaration(root, declaration.Parent)
                     End If
             End Select
 
             ' do it the normal way
             Return root.RemoveNode(declaration, DefaultRemoveOptions)
         End Function
+
+        Public Overrides Function GetAttributeArguments(attributeDeclaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
+            Dim list = GetArgumentList(attributeDeclaration)
+            If list IsNot Nothing Then
+                Return list.Arguments
+            Else
+                Return SpecializedCollections.EmptyReadOnlyList(Of SyntaxNode)()
+            End If
+        End Function
+
+        Public Overrides Function InsertAttributeArguments(attributeDeclaration As SyntaxNode, index As Integer, attributeArguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Return Isolate(attributeDeclaration, Function(d) InsertAttributeArgumentsInternal(d, index, attributeArguments))
+        End Function
+
+        Private Function InsertAttributeArgumentsInternal(attributeDeclaration As SyntaxNode, index As Integer, attributeArguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Dim list = GetArgumentList(attributeDeclaration)
+            Dim newArguments = AsArgumentList(attributeArguments)
+
+            If list Is Nothing Then
+                list = newArguments
+            Else
+                list = list.WithArguments(list.Arguments.InsertRange(index, newArguments.Arguments))
+            End If
+
+            Return WithArgumentList(attributeDeclaration, list)
+        End Function
+
+        Private Function GetArgumentList(declaration As SyntaxNode) As ArgumentListSyntax
+            Select Case declaration.VBKind
+                Case SyntaxKind.AttributeList
+                    Dim al = DirectCast(declaration, AttributeListSyntax)
+                    If al.Attributes.Count = 1 Then
+                        Return al.Attributes(0).ArgumentList
+                    End If
+                Case SyntaxKind.Attribute
+                    Return DirectCast(declaration, AttributeSyntax).ArgumentList
+            End Select
+            Return Nothing
+        End Function
+
+        Private Function WithArgumentList(declaration As SyntaxNode, argumentList As ArgumentListSyntax) As SyntaxNode
+            Select Case declaration.VBKind
+                Case SyntaxKind.AttributeList
+                    Dim al = DirectCast(declaration, AttributeListSyntax)
+                    If al.Attributes.Count = 1 Then
+                        Return ReplaceWithTrivia(declaration, al.Attributes(0), al.Attributes(0).WithArgumentList(argumentList))
+                    End If
+                Case SyntaxKind.Attribute
+                    Return DirectCast(declaration, AttributeSyntax).WithArgumentList(argumentList)
+            End Select
+            Return declaration
+        End Function
+
     End Class
 End Namespace

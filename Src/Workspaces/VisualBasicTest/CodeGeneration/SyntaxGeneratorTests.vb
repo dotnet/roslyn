@@ -19,6 +19,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.CodeGeneration
             Me.ienumerableInt = emptyCompilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(emptyCompilation.GetSpecialType(SpecialType.System_Int32))
         End Sub
 
+        Public Function Compile(code As String) As Compilation
+            code = code.Replace(vbLf, vbCrLf)
+            Return VisualBasicCompilation.Create("test").AddReferences(TestReferences.NetFx.v4_0_30319.mscorlib).AddSyntaxTrees(SyntaxFactory.ParseSyntaxTree(code))
+        End Function
+
         Private Sub VerifySyntax(Of TSyntax As SyntaxNode)(type As SyntaxNode, expectedText As String)
             Assert.IsAssignableFrom(GetType(TSyntax), type)
             Dim normalized = type.NormalizeWhitespace().ToFullString()
@@ -2229,6 +2234,498 @@ End Function</x>.Value)
         Private Sub TestRemoveMember(declaration As SyntaxNode, name As String, remainingNames As String())
             Dim newDecl = g.RemoveDeclaration(declaration, g.GetMembers(declaration).First(Function(m) g.GetName(m) = name))
             AssertMemberNamesEqual(remainingNames, newDecl)
+        End Sub
+
+        <Fact>
+        Public Sub TestMultiFieldMembers()
+            Dim comp = Compile(
+<x>' Comment
+Public Class C
+    Public Shared X, Y, Z As Integer
+End Class</x>.Value)
+
+            Dim symbolC = DirectCast(comp.GlobalNamespace.GetMembers("C").First(), INamedTypeSymbol)
+            Dim symbolX = DirectCast(symbolC.GetMembers("X").First(), IFieldSymbol)
+            Dim symbolY = DirectCast(symbolC.GetMembers("Y").First(), IFieldSymbol)
+            Dim symbolZ = DirectCast(symbolC.GetMembers("Z").First(), IFieldSymbol)
+
+            Dim declC = g.GetDeclaration(symbolC.DeclaringSyntaxReferences.Select(Function(x) x.GetSyntax()).First())
+            Dim declX = g.GetDeclaration(symbolX.DeclaringSyntaxReferences.Select(Function(x) x.GetSyntax()).First())
+            Dim declY = g.GetDeclaration(symbolY.DeclaringSyntaxReferences.Select(Function(x) x.GetSyntax()).First())
+            Dim declZ = g.GetDeclaration(symbolZ.DeclaringSyntaxReferences.Select(Function(x) x.GetSyntax()).First())
+
+            Assert.Equal(SyntaxKind.ModifiedIdentifier, declX.VBKind)
+            Assert.Equal(SyntaxKind.ModifiedIdentifier, declY.VBKind)
+            Assert.Equal(SyntaxKind.ModifiedIdentifier, declZ.VBKind)
+
+            Assert.Equal(DeclarationKind.Field, g.GetDeclarationKind(declX))
+            Assert.Equal(DeclarationKind.Field, g.GetDeclarationKind(declY))
+            Assert.Equal(DeclarationKind.Field, g.GetDeclarationKind(declZ))
+
+            Assert.NotNull(g.GetType(declX))
+            Assert.Equal("Integer", g.GetType(declX).ToString())
+            Assert.Equal("X", g.GetName(declX))
+            Assert.Equal(Accessibility.Public, g.GetAccessibility(declX))
+            Assert.Equal(DeclarationModifiers.Static, g.GetModifiers(declX))
+
+            Assert.NotNull(g.GetType(declY))
+            Assert.Equal("Integer", g.GetType(declY).ToString())
+            Assert.Equal("Y", g.GetName(declY))
+            Assert.Equal(Accessibility.Public, g.GetAccessibility(declY))
+            Assert.Equal(DeclarationModifiers.Static, g.GetModifiers(declY))
+
+            Assert.NotNull(g.GetType(declZ))
+            Assert.Equal("Integer", g.GetType(declZ).ToString())
+            Assert.Equal("Z", g.GetName(declZ))
+            Assert.Equal(Accessibility.Public, g.GetAccessibility(declZ))
+            Assert.Equal(DeclarationModifiers.Static, g.GetModifiers(declZ))
+
+            Dim xTypedT = g.WithType(declX, g.IdentifierName("T"))
+            Assert.Equal(DeclarationKind.Field, g.GetDeclarationKind(xTypedT))
+            Assert.Equal(SyntaxKind.FieldDeclaration, xTypedT.VBKind)
+            Assert.Equal("T", g.GetType(xTypedT).ToString())
+
+            Dim xNamedQ = g.WithName(declX, "Q")
+            Assert.Equal(DeclarationKind.Field, g.GetDeclarationKind(xNamedQ))
+            Assert.Equal(SyntaxKind.FieldDeclaration, xNamedQ.VBKind)
+            Assert.Equal("Q", g.GetName(xNamedQ).ToString())
+
+            Dim xInitialized = g.WithExpression(declX, g.IdentifierName("e"))
+            Assert.Equal(DeclarationKind.Field, g.GetDeclarationKind(xInitialized))
+            Assert.Equal(SyntaxKind.FieldDeclaration, xInitialized.VBKind)
+            Assert.Equal("e", g.GetExpression(xInitialized).ToString())
+
+            Dim xPrivate = g.WithAccessibility(declX, Accessibility.Private)
+            Assert.Equal(DeclarationKind.Field, g.GetDeclarationKind(xPrivate))
+            Assert.Equal(SyntaxKind.FieldDeclaration, xPrivate.VBKind)
+            Assert.Equal(Accessibility.Private, g.GetAccessibility(xPrivate))
+
+            Dim xReadOnly = g.WithModifiers(declX, DeclarationModifiers.ReadOnly)
+            Assert.Equal(DeclarationKind.Field, g.GetDeclarationKind(xReadOnly))
+            Assert.Equal(SyntaxKind.FieldDeclaration, xReadOnly.VBKind)
+            Assert.Equal(DeclarationModifiers.ReadOnly, g.GetModifiers(xReadOnly))
+
+            Dim xAttributed = g.AddAttributes(declX, g.Attribute("A"))
+            Assert.Equal(DeclarationKind.Field, g.GetDeclarationKind(xAttributed))
+            Assert.Equal(SyntaxKind.FieldDeclaration, xAttributed.VBKind)
+            Assert.Equal(1, g.GetAttributes(xAttributed).Count)
+            Assert.Equal("<A>", g.GetAttributes(xAttributed)(0).ToString())
+
+            Dim membersC = g.GetMembers(declC)
+            Assert.Equal(3, membersC.Count)
+            Assert.Equal(declX, membersC(0))
+            Assert.Equal(declY, membersC(1))
+            Assert.Equal(declZ, membersC(2))
+
+            ' create new class from existing members, now appear as separate declarations
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.ClassDeclaration("C", members:={declX, declY}),
+<x>Class C
+
+    Public Shared X As Integer
+
+    Public Shared Y As Integer
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.InsertMembers(declC, 0, g.FieldDeclaration("A", g.IdentifierName("T"))),
+<x>' Comment
+Public Class C
+
+    Dim A As T
+
+    Public Shared X, Y, Z As Integer
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.InsertMembers(declC, 1, g.FieldDeclaration("A", g.IdentifierName("T"))),
+<x>' Comment
+Public Class C
+
+    Public Shared X As Integer
+
+    Dim A As T
+
+    Public Shared Y, Z As Integer
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.InsertMembers(declC, 2, g.FieldDeclaration("A", g.IdentifierName("T"))),
+<x>' Comment
+Public Class C
+
+    Public Shared X, Y As Integer
+
+    Dim A As T
+
+    Public Shared Z As Integer
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.InsertMembers(declC, 3, g.FieldDeclaration("A", g.IdentifierName("T"))),
+<x>' Comment
+Public Class C
+
+    Public Shared X, Y, Z As Integer
+
+    Dim A As T
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.ReplaceDeclaration(declC, declX, g.WithType(declX, g.IdentifierName("T"))),
+<x>' Comment
+Public Class C
+
+    Public Shared X As T
+
+    Public Shared Y, Z As Integer
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.ReplaceDeclaration(declC, declX, g.WithExpression(declX, g.IdentifierName("e"))),
+<x>' Comment
+Public Class C
+
+    Public Shared X As Integer = e
+
+    Public Shared Y, Z As Integer
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.ReplaceDeclaration(declC, declX, g.WithName(declX, "Q")),
+<x>' Comment
+Public Class C
+
+    Public Shared Q, Y, Z As Integer
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.ReplaceDeclaration(declC, declY, g.WithType(declY, g.IdentifierName("T"))),
+<x>' Comment
+Public Class C
+
+    Public Shared X As Integer
+
+    Public Shared Y As T
+
+    Public Shared Z As Integer
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.ReplaceDeclaration(declC, declZ, g.WithType(declZ, g.IdentifierName("T"))),
+<x>' Comment
+Public Class C
+
+    Public Shared X, Y As Integer
+
+    Public Shared Z As T
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.ReplaceDeclaration(declC, declX, declZ),
+<x>' Comment
+Public Class C
+
+    Public Shared Z, Y, Z As Integer
+End Class</x>.Value)
+
+            ' Removing 
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.RemoveDeclaration(declC, declX),
+<x>' Comment
+Public Class C
+
+    Public Shared Y, Z As Integer
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.RemoveDeclaration(declC, declY),
+<x>' Comment
+Public Class C
+
+    Public Shared X, Z As Integer
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.RemoveDeclaration(declC, declZ),
+<x>' Comment
+Public Class C
+
+    Public Shared X, Y As Integer
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.RemoveDeclarations(declC, {declX, declY}),
+<x>' Comment
+Public Class C
+
+    Public Shared Z As Integer
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.RemoveDeclarations(declC, {declX, declZ}),
+<x>' Comment
+Public Class C
+
+    Public Shared Y As Integer
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.RemoveDeclarations(declC, {declY, declZ}),
+<x>' Comment
+Public Class C
+
+    Public Shared X As Integer
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.RemoveDeclarations(declC, {declX, declY, declZ}),
+<x>' Comment
+Public Class C
+End Class</x>.Value)
+
+        End Sub
+
+        <Fact>
+        Public Sub TestMultiAttributes()
+            Dim comp = Compile(
+<x>' Comment
+&lt;X, Y, Z&gt;
+Public Class C
+End Class</x>.Value)
+
+            Dim symbolC = DirectCast(comp.GlobalNamespace.GetMembers("C").First(), INamedTypeSymbol)
+            Dim declC = g.GetDeclaration(symbolC.DeclaringSyntaxReferences.First().GetSyntax())
+
+            Dim attrs = g.GetAttributes(declC)
+            Assert.Equal(3, attrs.Count)
+            Dim declX = attrs(0)
+            Dim declY = attrs(1)
+            Dim declZ = attrs(2)
+            Assert.Equal(SyntaxKind.Attribute, declX.VBKind)
+            Assert.Equal(SyntaxKind.Attribute, declY.VBKind)
+            Assert.Equal(SyntaxKind.Attribute, declZ.VBKind)
+            Assert.Equal("X", g.GetName(declX))
+            Assert.Equal("Y", g.GetName(declY))
+            Assert.Equal("Z", g.GetName(declZ))
+
+            Dim xNamedQ = g.WithName(declX, "Q")
+            Assert.Equal(DeclarationKind.Attribute, g.GetDeclarationKind(xNamedQ))
+            Assert.Equal(SyntaxKind.AttributeList, xNamedQ.VBKind)
+            Assert.Equal("<Q>", xNamedQ.ToString())
+
+            Dim xWithArg = g.AddAttributeArguments(declX, {g.AttributeArgument(g.IdentifierName("e"))})
+            Assert.Equal(DeclarationKind.Attribute, g.GetDeclarationKind(xWithArg))
+            Assert.Equal(SyntaxKind.AttributeList, xWithArg.VBKind)
+            Assert.Equal("<X(e)>", xWithArg.ToString())
+
+            ' inserting
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.InsertAttributes(declC, 0, g.Attribute("A")),
+<x>' Comment
+&lt;A&gt;
+&lt;X, Y, Z&gt;
+Public Class C
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.InsertAttributes(declC, 1, g.Attribute("A")),
+<x>' Comment
+&lt;X&gt;
+&lt;A&gt;
+&lt;Y, Z&gt;
+Public Class C
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.InsertAttributes(declC, 2, g.Attribute("A")),
+<x>' Comment
+&lt;X, Y&gt;
+&lt;A&gt;
+&lt;Z&gt;
+Public Class C
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.InsertAttributes(declC, 3, g.Attribute("A")),
+<x>' Comment
+&lt;X, Y, Z&gt;
+&lt;A&gt;
+Public Class C
+End Class</x>.Value)
+
+            ' replacing
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.ReplaceDeclaration(declC, declX, g.Attribute("A")),
+<x>' Comment
+&lt;A, Y, Z&gt;
+Public Class C
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.ReplaceDeclaration(declC, declX, g.InsertAttributeArguments(declX, 0, {g.AttributeArgument(g.IdentifierName("e"))})),
+<x>' Comment
+&lt;X(e), Y, Z&gt;
+Public Class C
+End Class</x>.Value)
+
+            ' removing
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.RemoveDeclaration(declC, declX),
+<x>' Comment
+&lt;Y, Z&gt;
+Public Class C
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.RemoveDeclaration(declC, declY),
+<x>' Comment
+&lt;X, Z&gt;
+Public Class C
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.RemoveDeclaration(declC, declZ),
+<x>' Comment
+&lt;X, Y&gt;
+Public Class C
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.RemoveDeclarations(declC, {declX, declY}),
+<x>' Comment
+&lt;Z&gt;
+Public Class C
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.RemoveDeclarations(declC, {declX, declZ}),
+<x>' Comment
+&lt;Y&gt;
+Public Class C
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.RemoveDeclarations(declC, {declY, declZ}),
+<x>' Comment
+&lt;X&gt;
+Public Class C
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.RemoveDeclarations(declC, {declX, declY, declZ}),
+<x>' Comment
+Public Class C
+End Class</x>.Value)
+        End Sub
+
+        <Fact>
+        Public Sub TestMultiImports()
+            Dim comp = Compile(
+<x>' Comment
+Imports X, Y, Z
+</x>.Value)
+
+            Dim declCU = comp.SyntaxTrees.First().GetRoot()
+
+            Assert.Equal(SyntaxKind.CompilationUnit, declCU.VBKind)
+            Dim imps = g.GetNamespaceImports(declCU)
+            Assert.Equal(3, imps.Count)
+            Dim declX = imps(0)
+            Dim declY = imps(1)
+            Dim declZ = imps(2)
+
+            Dim xRenamedQ = g.WithName(declX, "Q")
+            Assert.Equal(DeclarationKind.NamespaceImport, g.GetDeclarationKind(xRenamedQ))
+            Assert.Equal(SyntaxKind.ImportsStatement, xRenamedQ.VBKind)
+            Assert.Equal("Imports Q", xRenamedQ.ToString())
+
+            ' inserting
+            VerifySyntax(Of CompilationUnitSyntax)(
+                g.InsertNamespaceImports(declCU, 0, g.NamespaceImportDeclaration("N")),
+<x>' Comment
+Imports N
+Imports X, Y, Z
+</x>.Value)
+
+            VerifySyntax(Of CompilationUnitSyntax)(
+                g.InsertNamespaceImports(declCU, 1, g.NamespaceImportDeclaration("N")),
+<x>' Comment
+Imports X
+Imports N
+Imports Y, Z
+</x>.Value)
+
+            VerifySyntax(Of CompilationUnitSyntax)(
+                g.InsertNamespaceImports(declCU, 2, g.NamespaceImportDeclaration("N")),
+<x>' Comment
+Imports X, Y
+Imports N
+Imports Z
+</x>.Value)
+
+            VerifySyntax(Of CompilationUnitSyntax)(
+                g.InsertNamespaceImports(declCU, 3, g.NamespaceImportDeclaration("N")),
+<x>' Comment
+Imports X, Y, Z
+Imports N
+</x>.Value)
+
+            ' Replacing
+            VerifySyntax(Of CompilationUnitSyntax)(
+                g.ReplaceDeclaration(declCU, declX, g.NamespaceImportDeclaration("N")),
+<x>' Comment
+Imports N, Y, Z
+</x>.Value)
+
+            ' Removing
+            VerifySyntax(Of CompilationUnitSyntax)(
+                g.RemoveDeclaration(declCU, declX),
+<x>' Comment
+Imports Y, Z
+</x>.Value)
+
+            ' Removing
+            VerifySyntax(Of CompilationUnitSyntax)(
+                g.RemoveDeclaration(declCU, declY),
+<x>' Comment
+Imports X, Z
+</x>.Value)
+
+            ' Removing
+            VerifySyntax(Of CompilationUnitSyntax)(
+                g.RemoveDeclaration(declCU, declZ),
+<x>' Comment
+Imports X, Y
+</x>.Value)
+
+            ' Removing
+            VerifySyntax(Of CompilationUnitSyntax)(
+                g.RemoveDeclarations(declCU, {declX, declY}),
+<x>' Comment
+Imports Z
+</x>.Value)
+
+            ' Removing
+            VerifySyntax(Of CompilationUnitSyntax)(
+                g.RemoveDeclarations(declCU, {declX, declZ}),
+<x>' Comment
+Imports Y
+</x>.Value)
+
+            ' Removing
+            VerifySyntax(Of CompilationUnitSyntax)(
+                g.RemoveDeclarations(declCU, {declY, declZ}),
+<x>' Comment
+Imports X
+</x>.Value)
+
+            ' Removing
+            VerifySyntax(Of CompilationUnitSyntax)(
+                g.RemoveDeclarations(declCU, {declX, declY, declZ}),
+<x>' Comment
+</x>.Value)
+
         End Sub
 
     End Class

@@ -713,7 +713,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// </summary>
         public SyntaxNode InsertReturnAttributes(SyntaxNode declaration, int index, params SyntaxNode[] attributes)
         {
-            return this.InsertReturnAttributes(declaration, index, attributes);
+            return this.InsertReturnAttributes(declaration, index, (IEnumerable<SyntaxNode>)attributes);
         }
 
         /// <summary>
@@ -765,7 +765,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// </summary>
         public SyntaxNode InsertNamespaceImports(SyntaxNode declaration, int index, params SyntaxNode[] imports)
         {
-            return this.InsertNamespaceImports(declaration, index, imports);
+            return this.InsertNamespaceImports(declaration, index, (IEnumerable<SyntaxNode>)imports);
         }
 
         /// <summary>
