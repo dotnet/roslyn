@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly _name As String
         Private ReadOnly _syntaxReference As SyntaxReference
 
-        Public Sub New(ordinal As Integer, name As String, syntax As IdentifierNameSyntax)
+        Public Sub New(ordinal As Integer, name As String, syntax As TypeSyntax)
             Me._ordinal = ordinal
             Me._name = name
             Me._syntaxReference = syntax.GetReference()

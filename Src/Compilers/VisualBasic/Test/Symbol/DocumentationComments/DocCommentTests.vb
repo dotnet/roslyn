@@ -12090,5 +12090,125 @@ xmlDoc)
         End Sub
 
 #End Region
+
+        <WorkItem(1087447, "DevDiv"), WorkItem(436, "CodePlex")>
+        <Fact>
+        Public Sub Bug1087447_01()
+            Dim compilation = CompileCheckDiagnosticsAndXmlDocument(
+<compilation name="EmptyCref">
+    <file name="a.vb">
+        <![CDATA[
+''' <summary>
+''' <see cref="C(Of Integer).f()"/>
+''' </summary>
+Class C(Of T)
+    Sub f()
+    End Sub
+End Class
+
+]]>
+    </file>
+</compilation>,
+<error><![CDATA[
+BC42309: XML comment has a tag with a 'cref' attribute 'C(Of Integer).f()' that could not be resolved.
+''' <see cref="C(Of Integer).f()"/>
+         ~~~~~~~~~~~~~~~~~~~~~~~~
+]]></error>,
+<xml>
+    <![CDATA[
+<?xml version="1.0"?>
+<doc>
+<assembly>
+<name>
+EmptyCref
+</name>
+</assembly>
+<members>
+<member name="T:C`1">
+ <summary>
+ <see cref="!:C(Of Integer).f()"/>
+ </summary>
+</member>
+</members>
+</doc>
+]]>
+</xml>)
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+
+            Dim node1 = tree.GetRoot().DescendantNodes(descendIntoTrivia:=True).OfType(Of IdentifierNameSyntax)().Where(Function(n) n.Identifier.ValueText = "f").Single()
+
+            Dim symbolInfo1 = model.GetSymbolInfo(node1.Parent)
+
+            Assert.Equal("Sub C(Of ?).f()", symbolInfo1.Symbol.ToTestDisplayString())
+
+            Dim node = tree.GetRoot().DescendantNodes(descendIntoTrivia:=True).OfType(Of TypeSyntax)().Where(Function(n) n.ToString() = "Integer").Single()
+
+            Dim symbolInfo = model.GetSymbolInfo(node)
+
+            Assert.Equal("?", symbolInfo.Symbol.ToTestDisplayString())
+
+        End Sub
+
+        <WorkItem(1087447, "DevDiv"), WorkItem(436, "CodePlex")>
+        <Fact>
+        Public Sub Bug1087447_02()
+            Dim compilation = CompileCheckDiagnosticsAndXmlDocument(
+<compilation name="EmptyCref">
+    <file name="a.vb">
+        <![CDATA[
+''' <summary>
+''' <see cref="C(Of System.Int32).f()"/>
+''' </summary>
+Class C(Of T)
+    Sub f()
+    End Sub
+End Class
+
+]]>
+    </file>
+</compilation>,
+<error><![CDATA[
+BC42309: XML comment has a tag with a 'cref' attribute 'C(Of System.Int32).f()' that could not be resolved.
+''' <see cref="C(Of System.Int32).f()"/>
+         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+]]></error>,
+<xml>
+    <![CDATA[
+<?xml version="1.0"?>
+<doc>
+<assembly>
+<name>
+EmptyCref
+</name>
+</assembly>
+<members>
+<member name="T:C`1">
+ <summary>
+ <see cref="!:C(Of System.Int32).f()"/>
+ </summary>
+</member>
+</members>
+</doc>
+]]>
+</xml>)
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+
+            Dim node1 = tree.GetRoot().DescendantNodes(descendIntoTrivia:=True).OfType(Of IdentifierNameSyntax)().Where(Function(n) n.Identifier.ValueText = "f").Single()
+
+            Dim symbolInfo1 = model.GetSymbolInfo(node1.Parent)
+
+            Assert.Equal("Sub C(Of ?).f()", symbolInfo1.Symbol.ToTestDisplayString())
+
+            Dim node = tree.GetRoot().DescendantNodes(descendIntoTrivia:=True).OfType(Of TypeSyntax)().Where(Function(n) n.ToString() = "System.Int32").Single()
+
+            Dim symbolInfo = model.GetSymbolInfo(node)
+
+            Assert.Equal("?", symbolInfo.Symbol.ToTestDisplayString())
+        End Sub
+
     End Class
 End Namespace

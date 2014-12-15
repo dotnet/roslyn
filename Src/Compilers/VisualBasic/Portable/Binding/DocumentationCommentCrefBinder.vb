@@ -293,7 +293,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 End If
 
                             Case Else
-                                Throw ExceptionUtilities.UnexpectedValue(typeSyntax.Kind)
+                                ' An error case
                         End Select
                     Next
                 End If
@@ -309,11 +309,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim parent As VisualBasicSyntaxNode = name.Parent
 
             ' Type parameter
-            If name.Kind = SyntaxKind.IdentifierName AndAlso parent IsNot Nothing AndAlso parent.Kind = SyntaxKind.TypeArgumentList Then
-                Dim identifier = DirectCast(name, IdentifierNameSyntax)
+            If parent IsNot Nothing AndAlso parent.Kind = SyntaxKind.TypeArgumentList Then
                 Dim ordinal As Integer = DirectCast(parent, TypeArgumentListSyntax).Arguments.IndexOf(name)
-                Return ImmutableArray.Create(Of Symbol)(
-                    New CrefTypeParameterSymbol(ordinal, identifier.Identifier.ValueText, identifier))
+
+                If name.Kind = SyntaxKind.IdentifierName Then
+                    Dim identifier = DirectCast(name, IdentifierNameSyntax)
+                    Return ImmutableArray.Create(Of Symbol)(New CrefTypeParameterSymbol(ordinal, identifier.Identifier.ValueText, identifier))
+                End If
+
+                ' An error case
+                Return ImmutableArray.Create(Of Symbol)(New CrefTypeParameterSymbol(ordinal, StringConstants.NamedSymbolErrorName, name))
             End If
 
             ' Names considered to be checked for color-color case are Identifier or Generic names which 
@@ -835,7 +840,9 @@ lAgain:
                         typeParameterSymbols(i) = created
 
                     Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(typeSyntax.Kind)
+                        ' An error case
+                        created = New CrefTypeParameterSymbol(i, StringConstants.NamedSymbolErrorName, typeSyntax)
+                        typeParameterSymbols(i) = created
                 End Select
 
                 typeParameters(created.Name) = created
