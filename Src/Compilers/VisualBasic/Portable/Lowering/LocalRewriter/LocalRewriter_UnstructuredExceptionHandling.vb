@@ -227,7 +227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Determine if the handler index is less than or equal to -2 (ActiveHandler_FirstOnErrorResumeNextIndex):
             ' If so, replace it with ActiveHandler_ResumeNext and jump to the switch.
             statements.Add(New BoundUnstructuredExceptionOnErrorSwitch(node.Syntax,
-                                                                       If(node.ResumeWithoutLabelOpt IsNot Nothing AndAlso Me.Compilation.Options.OptimizationLevel = OptimizationLevel.Debug,
+                                                                       If(node.ResumeWithoutLabelOpt IsNot Nothing AndAlso OptimizationLevelIsDebug,
                                                                           nodeFactory.Conditional(nodeFactory.Binary(BinaryOperatorKind.GreaterThan,
                                                                                                                      bool,
                                                                                                                      nodeFactory.Local(unstructuredExceptionHandling.ActiveHandlerTemporary, isLValue:=False),
@@ -347,7 +347,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     unstructuredExceptionHandling.ExceptionHandlers.Add(nodeFactory.Goto(node.LabelOpt, setWasCompilerGenerated:=False))
 
                 Case OnErrorStatementKind.ResumeNext
-                    If Compilation.Options.OptimizationLevel = OptimizationLevel.Debug Then
+                    If OptimizationLevelIsDebug Then
                         newErrorHandlerIndex = ActiveHandler_FirstOnErrorResumeNextIndex - unstructuredExceptionHandling.OnErrorResumeNextCount
                     Else
                         newErrorHandlerIndex = ActiveHandler_ResumeNext

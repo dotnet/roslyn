@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim asMultiline = DirectCast(syntax, MultiLineIfBlockSyntax)
                         conditionSyntax = asMultiline.IfStatement
                         newConsequence = InsertBlockEpilogue(newConsequence,
-                                                             If(generateUnstructuredExceptionHandlingResumeCode,
+                                                             If(generateUnstructuredExceptionHandlingResumeCode AndAlso (OptimizationLevelIsDebug OrElse finishConsequenceWithResumeTarget),
                                                                 RegisterUnstructuredExceptionHandlingNonThrowingResumeTarget(newConsequence.Syntax),
                                                                 Nothing),
                                                              asMultiline.EndIfStatement)
@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim asElseIfBlock = DirectCast(syntax, ElseIfBlockSyntax)
                         conditionSyntax = asElseIfBlock.ElseIfStatement
                         newConsequence = InsertBlockEpilogue(newConsequence,
-                                                             If(generateUnstructuredExceptionHandlingResumeCode,
+                                                             If(generateUnstructuredExceptionHandlingResumeCode AndAlso (OptimizationLevelIsDebug OrElse finishConsequenceWithResumeTarget),
                                                                 RegisterUnstructuredExceptionHandlingNonThrowingResumeTarget(newConsequence.Syntax),
                                                                 Nothing),
                                                              DirectCast(syntax.Parent, MultiLineIfBlockSyntax).EndIfStatement)
@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If asElse IsNot Nothing Then
                         ' Update the resume table to make sure that we are in the right scope when we Resume Next on [End If].
                         newAlternative = InsertBlockEpilogue(newAlternative,
-                                                             If(generateUnstructuredExceptionHandlingResumeCode,
+                                                             If(generateUnstructuredExceptionHandlingResumeCode AndAlso OptimizationLevelIsDebug,
                                                                 RegisterUnstructuredExceptionHandlingNonThrowingResumeTarget(newAlternative.Syntax),
                                                                 Nothing),
                                                              DirectCast(asElse.Parent, MultiLineIfBlockSyntax).EndIfStatement)

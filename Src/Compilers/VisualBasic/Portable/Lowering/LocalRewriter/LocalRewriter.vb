@@ -135,6 +135,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me.Flags = flags
         End Sub
 
+        Public ReadOnly Property OptimizationLevelIsDebug As Boolean
+            Get
+                Return Me.Compilation.Options.OptimizationLevel = OptimizationLevel.Debug
+            End Get
+        End Property
+
         Private Shared Function RewriteNode(node As BoundNode,
                                             topMethod As MethodSymbol,
                                             currentMethod As MethodSymbol,
