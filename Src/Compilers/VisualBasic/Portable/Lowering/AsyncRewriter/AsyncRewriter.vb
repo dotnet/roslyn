@@ -112,11 +112,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(TypeOf method Is SynthesizedLambdaMethod)
             Dim containingType As NamedTypeSymbol = method.ContainingType
             While containingType IsNot Nothing
-                Dim sourceNamedType = TryCast(containingType, SourceNamedTypeSymbol)
-                If sourceNamedType IsNot Nothing Then
-                    Return BinderBuilder.CreateBinderForType(DirectCast(sourceNamedType.ContainingModule, SourceModuleSymbol),
-                                                             sourceNamedType.SyntaxReferences(0).SyntaxTree,
-                                                             sourceNamedType)
+                Dim syntaxTree = containingType.Locations.FirstOrDefault()?.SourceTree
+                If syntaxTree IsNot Nothing Then
+                    Return BinderBuilder.CreateBinderForType(
+                        DirectCast(containingType.ContainingModule, SourceModuleSymbol),
+                        syntaxTree,
+                        containingType)
                 End If
                 containingType = containingType.ContainingType
             End While
