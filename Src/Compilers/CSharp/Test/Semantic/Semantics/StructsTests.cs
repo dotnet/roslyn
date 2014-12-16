@@ -38,6 +38,52 @@ public struct A
     );
         }
 
+        [WorkItem(1075325, "DevDiv"), WorkItem(343, "CodePlex")]
+        [Fact()]
+        public void TestInitEventStruct()
+        {
+            var text = @"
+struct S {
+    event System.Action E = null;
+
+    void M()
+    {
+        E();
+    }
+}
+";
+            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+    // (3,25): error CS0573: 'S': cannot have instance property or field initializers in structs
+    //     event System.Action E = null;
+    Diagnostic(ErrorCode.ERR_FieldInitializerInStruct, "E").WithArguments("S").WithLocation(3, 25)
+                );
+        }
+
+        [WorkItem(1075325, "DevDiv"), WorkItem(343, "CodePlex")]
+        [Fact()]
+        public void TestStaticInitInStruct()
+        {
+            var text = @"
+struct S {
+    static event System.Action E = M;
+    static int F = 10;
+    static int P {get; set;} = 20;
+
+    static void M()
+    {
+    }
+
+    static void Main()
+    {
+        System.Console.WriteLine(""{0} {1} {2}"", S.F, S.P, S.E == null);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(text, options: TestOptions.DebugExe);
+
+            CompileAndVerify(comp, expectedOutput: "10 20 False").VerifyDiagnostics();
+        }
+
         // Test constructor forwarding works for structs
         [WorkItem(540896, "DevDiv")]
         [Fact]

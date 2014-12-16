@@ -2648,28 +2648,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private void CheckForStructBadInitializers(MembersAndInitializersBuilder builder, DiagnosticBag diagnostics)
         {
             Debug.Assert(TypeKind == TypeKind.Struct);
-            if (builder.InstanceInitializers.Count > 0)
-            {
-                var members = builder.NonTypeNonIndexerMembers;
 
-                foreach (var s in members)
+            foreach (var initializers in builder.InstanceInitializers)
+            {
+                foreach (FieldOrPropertyInitializer initializer in initializers)
                 {
-                    var p = s as SourcePropertySymbol;
-                    if (p != null && !p.IsStatic && p.IsAutoProperty
-                        && p.BackingField.HasInitializer)
-                    {
-                        // '{0}': cannot have instance field initializers in structs
-                        diagnostics.Add(ErrorCode.ERR_FieldInitializerInStruct, p.Locations[0], this);
-                    }
-                    else
-                    {
-                        var f = s as SourceMemberFieldSymbol;
-                        if (f != null && !f.IsStatic && f.HasInitializer)
-                        {
-                            // '{0}': cannot have instance field initializers in structs
-                            diagnostics.Add(ErrorCode.ERR_FieldInitializerInStruct, f.Locations[0], this);
-                        }
-                    }
+                    // '{0}': cannot have instance field initializers in structs
+                    diagnostics.Add(ErrorCode.ERR_FieldInitializerInStruct, (initializer.Field.AssociatedSymbol ?? initializer.Field).Locations[0], this);
                 }
             }
         }
