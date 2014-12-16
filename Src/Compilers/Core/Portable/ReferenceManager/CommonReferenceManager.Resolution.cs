@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis
                     bool dummy = ((ModuleMetadata)newMetadata).Module.IsLinkedModule;
                 }
             }
-            catch (Exception e) if (e is BadImageFormatException || e is IOException)
+            catch (Exception e) when (e is BadImageFormatException || e is IOException)
             {
                 newDiagnostic = PortableExecutableReference.ExceptionToDiagnostic(e, messageProvider, location, peReference.Display, peReference.Properties.Kind);
                 newMetadata = null;

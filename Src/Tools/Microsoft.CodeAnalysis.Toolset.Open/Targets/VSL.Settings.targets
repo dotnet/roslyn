@@ -58,10 +58,10 @@
 
   <!-- Import the global NuGet packages -->
   <ImportGroup Label="GlobalNuGets">
-    <Import Project="$(NuGetPackagesPath)\Microsoft.Net.ToolsetCompilers.0.7.4101501-beta\build\Microsoft.Net.ToolsetCompilers.props"
-            Condition="Exists('$(NuGetPackagesPath)\Microsoft.Net.ToolsetCompilers.0.7.4101501-beta\build\Microsoft.Net.ToolsetCompilers.props')" />
-    <Import Project="$(NuGetPackagesPath)\Microsoft.Net.RoslynDiagnostics.0.7.4101501-beta\build\Microsoft.Net.RoslynDiagnostics.props"
-            Condition="(Exists('$(NuGetPackagesPath)\Microsoft.Net.RoslynDiagnostics.0.7.4101501-beta\build\Microsoft.Net.RoslynDiagnostics.props'))
+    <Import Project="$(NuGetPackagesPath)\Microsoft.Net.ToolsetCompilers.1.0.0-beta2-20141215-02\build\Microsoft.Net.ToolsetCompilers.props"
+            Condition="Exists('$(NuGetPackagesPath)\Microsoft.Net.ToolsetCompilers.1.0.0-beta2-20141215-02\build\Microsoft.Net.ToolsetCompilers.props')" />
+    <Import Project="$(NuGetPackagesPath)\Microsoft.Net.RoslynDiagnostics.1.0.0-beta2-20141215-02\build\Microsoft.Net.RoslynDiagnostics.props"
+            Condition="(Exists('$(NuGetPackagesPath)\Microsoft.Net.RoslynDiagnostics.1.0.0-beta2-20141215-02\build\Microsoft.Net.RoslynDiagnostics.props'))
                        And ('$(UseRoslynAnalyzers)' == 'true')" />
   </ImportGroup>
 

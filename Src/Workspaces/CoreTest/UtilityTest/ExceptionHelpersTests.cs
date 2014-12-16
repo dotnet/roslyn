@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     a();
                 }
-                catch (Exception e) if (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     {
                         a();
                     }
-                    catch (Exception e) if (FatalError.ReportUnlessCanceled(e))
+                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }

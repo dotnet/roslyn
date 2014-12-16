@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 analyzerAssembly = GetAssembly();
             }
-            catch (Exception e) if (e is IOException || e is BadImageFormatException || e is SecurityException || e is ArgumentException)
+            catch (Exception e) when (e is IOException || e is BadImageFormatException || e is SecurityException || e is ArgumentException)
             {
                 this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer, e, null));
                 return;
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         analyzer = (DiagnosticAnalyzer)Activator.CreateInstance(type);
                     }
                 }
-                catch (Exception e) if (e is TypeLoadException || e is BadImageFormatException || e is FileNotFoundException || e is FileLoadException ||
+                catch (Exception e) when (e is TypeLoadException || e is BadImageFormatException || e is FileNotFoundException || e is FileLoadException ||
                                         e is ArgumentException || e is NotSupportedException || e is TargetInvocationException || e is MemberAccessException)
                 {
                     this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, e, typeName));

@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis
                 services.Workspace.OnWorkspaceFailed(new DocumentDiagnostic(WorkspaceDiagnosticKind.Failure, e.Message, documentId));
                 return TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, documentId.GetDebuggerDisplay());
             }
-            catch (InvalidDataException) if (catchInvalidDataException)
+            catch (InvalidDataException) when (catchInvalidDataException)
             {
                 // For non-text additional files, create an empty text document.
                 // TODO: If we add support for non-text additional files in future, remove this catch clause.

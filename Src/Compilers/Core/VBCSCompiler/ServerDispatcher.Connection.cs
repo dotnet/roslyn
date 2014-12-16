@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         Log("End compilation");
                         return response;
                     }
-                    catch (Exception e) if (FatalError.Report(e))
+                    catch (Exception e) when (FatalError.Report(e))
                     {
                         throw ExceptionUtilities.Unreachable;
                     }

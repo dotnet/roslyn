@@ -10,7 +10,8 @@ using ProprietaryTestResources = Microsoft.CodeAnalysis.Test.Resources.Proprieta
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
-using Microsoft.CodeAnalysis.Test.Utilities.SharedResourceHelpers;
+
+using static Microsoft.CodeAnalysis.Test.Utilities.SharedResourceHelpers;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {

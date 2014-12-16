@@ -125,7 +125,7 @@ namespace Roslyn.Utilities
                 {
                     return continuationFunction(t);
                 }
-                catch (Exception e) if (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }

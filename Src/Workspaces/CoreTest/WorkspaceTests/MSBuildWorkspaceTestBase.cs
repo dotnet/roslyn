@@ -4,8 +4,9 @@ using System;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis.MSBuild;
-using Microsoft.CodeAnalysis.UnitTests.SolutionGeneration;
 using Xunit;
+
+using static Microsoft.CodeAnalysis.UnitTests.SolutionGeneration;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {

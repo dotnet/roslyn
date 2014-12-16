@@ -64,7 +64,7 @@ namespace Roslyn.Test.MetadataUtilities
 
         public void Visualize(int generation = -1)
         {
-            this.reader = (generation >= 0) ? readers[generation] : readers.Last();
+            this.reader = (generation >= 0) ? readers[generation] : readers[readers.Count-1];
 
             WriteModule();                  
             WriteTypeRef();                 

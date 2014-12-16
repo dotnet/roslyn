@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis
                 original.SetTarget(result);
                 return result;
             }
-            catch (Exception e) if (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis
                     return text.GetTextChanges(oldText).ToList();
                 }
             }
-            catch (Exception e) if (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
             }

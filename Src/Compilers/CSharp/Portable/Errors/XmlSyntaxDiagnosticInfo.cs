@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return r => new XmlSyntaxDiagnosticInfo(r);
         }
 
-        protected XmlSyntaxDiagnosticInfo(ObjectReader reader)
+        private XmlSyntaxDiagnosticInfo(ObjectReader reader)
             : base(reader)
         {
             this.xmlErrorCode = (XmlParseErrorCode)reader.ReadCompressedUInt();

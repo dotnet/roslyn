@@ -15,8 +15,6 @@ namespace Roslyn.Utilities
         public static EventHandler<TArgs> Create<TTarget>(TTarget target, Action<TTarget, object, TArgs> invoker)
             where TTarget : class
         {
-            System.Diagnostics.Debug.Assert(invoker.Target == null);
-
             WeakReference<TTarget> weakTarget = new WeakReference<TTarget>(target);
 
             return (sender, args) =>

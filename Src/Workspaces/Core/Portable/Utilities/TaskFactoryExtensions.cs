@@ -29,7 +29,7 @@ namespace Roslyn.Utilities
                 {
                     action();
                 }
-                catch (Exception e) if (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
@@ -57,7 +57,7 @@ namespace Roslyn.Utilities
                 {
                     return func();
                 }
-                catch (Exception e) if (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }

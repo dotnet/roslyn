@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis
             {
                 references = metadataResolver.ResolveReference(cmdReference.Reference, baseFilePath: null, properties: cmdReference.Properties);
             }
-            catch (Exception e) if (diagnosticsOpt != null && (e is BadImageFormatException || e is IOException))
+            catch (Exception e) when (diagnosticsOpt != null && (e is BadImageFormatException || e is IOException))
             {
                 var diagnostic = PortableExecutableReference.ExceptionToDiagnostic(e, messageProviderOpt, Location.None, cmdReference.Reference, cmdReference.Properties.Kind);
                 diagnosticsOpt.Add(((DiagnosticWithInfo)diagnostic).Info);

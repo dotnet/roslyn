@@ -396,12 +396,12 @@ namespace Roslyn.Utilities
                         requestToCompleteSynchronously.CompleteFromTaskSynchronously(task);
                     }
                 }
-                catch (Exception e) if (FatalError.ReportUnlessCanceled(e))
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
             }
-            catch (OperationCanceledException oce) if (CrashIfCanceledWithDifferentToken(oce, cancellationToken))
+            catch (OperationCanceledException oce) when (CrashIfCanceledWithDifferentToken(oce, cancellationToken))
             {
                 // As long as it's the right token, this means that our thread was the first thread
                 // to start an asynchronous computation, but the requestor cancelled as we were starting up

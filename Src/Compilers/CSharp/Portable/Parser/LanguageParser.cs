@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 {
                     this.ParseNamespaceBody(ref tmp, ref body, ref initialBadNodes, SyntaxKind.CompilationUnit);
                 }
-                catch (Exception ex) if (ex.GetType().Name == "InsufficientExecutionStackException")
+                catch (Exception ex) when (ex.GetType().Name == "InsufficientExecutionStackException")
                 {
                     hitStackBoundary = true;
                 }

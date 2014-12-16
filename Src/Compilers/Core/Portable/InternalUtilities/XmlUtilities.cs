@@ -104,7 +104,7 @@ namespace Roslyn.Utilities
                 errorMessage = e.Message;
                 return null;
             }
-            catch (Exception e) if (e.GetType().FullName == "System.Xml.XPath.XPathException")
+            catch (Exception e) when (e.GetType().FullName == "System.Xml.XPath.XPathException")
             {
                 errorMessage = e.Message;
                 invalidXPath = true;

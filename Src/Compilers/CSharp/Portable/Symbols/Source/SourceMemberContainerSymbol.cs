@@ -1993,13 +1993,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool All<T>(SyntaxList<T> list, Func<T, bool> predicate) where T : CSharpSyntaxNode
         {
-            foreach (var t in list) if (predicate(t)) return true;
+            foreach (var t in list) { if (predicate(t)) return true; };
             return false;
         }
 
         private static bool ContainsModifier(SyntaxTokenList modifiers, SyntaxKind modifier)
         {
-            foreach (var m in modifiers) if (m.CSharpKind() == modifier) return true;
+            foreach (var m in modifiers) { if (m.CSharpKind() == modifier) return true; };
             return false;
         }
 
