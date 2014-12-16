@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 
@@ -66,6 +67,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             // Cases:
+            //   $"{(x)}" -> $"{x}"
+            if (node.IsParentKind(SyntaxKind.Interpolation) &&
+                !RemovalMayIntroduceInterpolationAmbiguity(node))
+            {
+                return true;
+            }
+
+            // Cases:
             //   {(x)} -> {x}
             if (node.Parent is InitializerExpressionSyntax)
             {
@@ -108,7 +117,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // Operator precedence cases:
             // - If the parent is not an expression, do not remove parentheses
             // - Otherwise, parentheses may be removed if doing so does not change operator associations.
-            return parentExpression == null ? false : !RemovalChangesAssociation(node, expression, parentExpression);
+            return parentExpression != null
+                ? !RemovalChangesAssociation(node, expression, parentExpression)
+                : false;
+        }
+
+        private static bool RemovalMayIntroduceInterpolationAmbiguity(ParenthesizedExpressionSyntax node)
+        {
+            if (node.IsParentKind(SyntaxKind.Interpolation))
+            {
+                // Can't remove parentheses in this case:
+                //   $"{(true ? == 0 : 1):x"
+                var interpolation = (InterpolationSyntax)node.Parent;
+                if (node.Expression.IsKind(SyntaxKind.ConditionalExpression) &&
+                    interpolation.AlignmentClause == null &&
+                    interpolation.FormatClause != null &&
+                    !interpolation.FormatClause.ColonToken.IsMissing)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static bool RemovalChangesAssociation(ParenthesizedExpressionSyntax node, ExpressionSyntax expression, ExpressionSyntax parentExpression)
