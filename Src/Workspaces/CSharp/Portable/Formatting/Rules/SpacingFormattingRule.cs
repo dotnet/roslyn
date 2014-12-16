@@ -218,13 +218,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 }
             }
 
-            // Spacing before and after interpolated string tokens should be preserved.
+            // No space after $" and $@" at the start of an interpolated string
             if (previousKind == SyntaxKind.InterpolatedStringStartToken ||
-                previousKind == SyntaxKind.InterpolatedStringTextToken ||
-                currentKind == SyntaxKind.InterpolatedStringTextToken ||
-                currentKind == SyntaxKind.InterpolatedStringEndToken)
+                previousKind == SyntaxKind.InterpolatedVerbatimStringStartToken)
+            {
+                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
+            }
+
+            // No space before " at the end of an interpolated string
+            if (currentKind == SyntaxKind.InterpolatedStringEndToken)
+            {
+                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
+            }
+
+            // No space before { or after } in interpolations
+            if ((currentKind == SyntaxKind.OpenBraceToken && currentToken.Parent is InterpolationSyntax) ||
+                (previousKind == SyntaxKind.CloseBraceToken && previousToken.Parent is InterpolationSyntax))
+            {
+                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
+            }
+
+            // Preserve space after { or before } in interpolations (i.e. between the braces and the expression)
+            if ((previousKind == SyntaxKind.OpenBraceToken && previousToken.Parent is InterpolationSyntax) ||
+                (currentKind == SyntaxKind.CloseBraceToken && currentToken.Parent is InterpolationSyntax))
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.PreserveSpaces);
+            }
+
+            // No space before or after , in interpolation alignment clause
+            if ((previousKind == SyntaxKind.CommaToken && previousToken.Parent is InterpolationAlignmentClauseSyntax) ||
+                (currentKind == SyntaxKind.CommaToken && currentToken.Parent is InterpolationAlignmentClauseSyntax))
+            {
+                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
+            }
+
+            // No space before or after : in interpolation format clause
+            if ((previousKind == SyntaxKind.ColonToken && previousToken.Parent is InterpolationFormatClauseSyntax) ||
+                (currentKind == SyntaxKind.ColonToken && currentToken.Parent is InterpolationFormatClauseSyntax))
+            {
+                return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces);
             }
 
             return nextOperation.Invoke();

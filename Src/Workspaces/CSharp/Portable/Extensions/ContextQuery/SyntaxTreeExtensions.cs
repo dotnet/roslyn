@@ -2089,10 +2089,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 }
             }
 
-            // "\{ |
-            if (token.IsKind(SyntaxKind.InterpolatedStringStartToken, SyntaxKind.InterpolatedStringEndToken))
+            // $"{ |
+            // $@"{ |
+            // $"{x} { |
+            // $@"{x} { |
+            if (token.CSharpKind() == SyntaxKind.OpenBraceToken)
             {
-                return true;
+                return token.Parent.IsKind(SyntaxKind.Interpolation)
+                    && ((InterpolationSyntax)token.Parent).OpenBraceToken == token;
             }
 
             return false;

@@ -511,6 +511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.SwitchStatement:
                 case SyntaxKind.InterpolatedStringExpression:
                 case SyntaxKind.ComplexElementInitializerExpression:
+                case SyntaxKind.Interpolation:
                     // Direct parent kind checks.
                     return true;
             }

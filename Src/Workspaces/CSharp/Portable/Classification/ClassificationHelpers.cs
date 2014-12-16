@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
@@ -33,9 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 return GetClassificationForIdentifer(token);
             }
-            else if (IsStringLiteral(token))
+            else if (IsStringToken(token))
             {
-                return token.IsVerbatimStringLiteral()
+                return IsVerbatimStringToken(token)
                     ? ClassificationTypeNames.VerbatimStringLiteral
                     : ClassificationTypeNames.StringLiteral;
             }
@@ -47,13 +48,54 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             return null;
         }
 
-        private static bool IsStringLiteral(SyntaxToken token)
+        private static bool IsStringToken(SyntaxToken token)
         {
             return token.CSharpKind() == SyntaxKind.StringLiteralToken
                 || token.CSharpKind() == SyntaxKind.CharacterLiteralToken
                 || token.CSharpKind() == SyntaxKind.InterpolatedStringStartToken
+                || token.CSharpKind() == SyntaxKind.InterpolatedVerbatimStringStartToken
                 || token.CSharpKind() == SyntaxKind.InterpolatedStringTextToken
                 || token.CSharpKind() == SyntaxKind.InterpolatedStringEndToken;
+        }
+
+        private static bool IsVerbatimStringToken(SyntaxToken token)
+        {
+            if (token.IsVerbatimStringLiteral())
+            {
+                return true;
+            }
+
+            switch (token.CSharpKind())
+            {
+                case SyntaxKind.InterpolatedVerbatimStringStartToken:
+                    return true;
+                case SyntaxKind.InterpolatedStringStartToken:
+                    return false;
+
+                case SyntaxKind.InterpolatedStringEndToken:
+                    {
+                        var interpolatedString = token.Parent as InterpolatedStringExpressionSyntax;
+
+                        return interpolatedString != null
+                            && interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                    }
+
+                case SyntaxKind.InterpolatedStringTextToken:
+                    {
+                        var interpolatedStringText = token.Parent as InterpolatedStringTextSyntax;
+                        if (interpolatedStringText == null)
+                        {
+                            return false;
+                        }
+
+                        var interpolatedString = interpolatedStringText.Parent as InterpolatedStringExpressionSyntax;
+
+                        return interpolatedString != null
+                            && interpolatedString.StringStartToken.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken);
+                    }
+            }
+
+            return false;
         }
 
         private static string GetClassificationForIdentifer(SyntaxToken token)

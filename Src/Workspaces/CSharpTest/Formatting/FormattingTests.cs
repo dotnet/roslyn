@@ -5484,7 +5484,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void InterpolatingStrings1()
+        public void InterpolatedStrings1()
         {
             var code = @"
 class C
@@ -5492,7 +5492,7 @@ class C
     void M()
     {
         var a = ""World"";
-        var b = ""Hello, \{a}"";
+        var b = $""Hello, {a}"";
     }
 }";
 
@@ -5502,7 +5502,7 @@ class C
     void M()
     {
         var a = ""World"";
-        var b = ""Hello, \{a}"";
+        var b = $""Hello, {a}"";
     }
 }";
 
@@ -5510,7 +5510,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void InterpolatingStrings2()
+        public void InterpolatedStrings2()
         {
             var code = @"
 class C
@@ -5519,7 +5519,7 @@ class C
     {
         var a = ""Hello"";
         var b = ""World"";
-        var c = ""\{a}, \{b}"";
+        var c = $""{a}, {b}"";
     }
 }";
 
@@ -5530,7 +5530,7 @@ class C
     {
         var a = ""Hello"";
         var b = ""World"";
-        var c = ""\{a}, \{b}"";
+        var c = $""{a}, {b}"";
     }
 }";
 
@@ -5538,7 +5538,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void InterpolatingStrings3()
+        public void InterpolatedStrings3()
         {
             var code = @"
 class C
@@ -5546,7 +5546,7 @@ class C
     void M()
     {
         var a = ""World"";
-        var b = ""Hello, \{ a }"";
+        var b = $""Hello, { a }"";
     }
 }";
 
@@ -5556,7 +5556,7 @@ class C
     void M()
     {
         var a = ""World"";
-        var b = ""Hello, \{ a }"";
+        var b = $""Hello, { a }"";
     }
 }";
 
@@ -5564,7 +5564,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public void InterpolatingStrings4()
+        public void InterpolatedStrings4()
         {
             var code = @"
 class C
@@ -5573,7 +5573,7 @@ class C
     {
         var a = ""Hello"";
         var b = ""World"";
-        var c = ""\{ a }, \{ b }"";
+        var c = $""{ a }, { b }"";
     }
 }";
 
@@ -5584,7 +5584,165 @@ class C
     {
         var a = ""Hello"";
         var b = ""World"";
-        var c = ""\{ a }, \{ b }"";
+        var c = $""{ a }, { b }"";
+    }
+}";
+
+            AssertFormat(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void InterpolatedStrings5()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var a = ""World"";
+        var b = $@""Hello, {a}"";
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var a = ""World"";
+        var b = $@""Hello, {a}"";
+    }
+}";
+
+            AssertFormat(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void InterpolatedStrings6()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var a = ""Hello"";
+        var b = ""World"";
+        var c = $@""{a}, {b}"";
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var a = ""Hello"";
+        var b = ""World"";
+        var c = $@""{a}, {b}"";
+    }
+}";
+
+            AssertFormat(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void InterpolatedStrings7()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var a = ""World"";
+        var b = $@""Hello, { a }"";
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var a = ""World"";
+        var b = $@""Hello, { a }"";
+    }
+}";
+
+            AssertFormat(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void InterpolatedStrings8()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var a = ""Hello"";
+        var b = ""World"";
+        var c = $@""{ a }, { b }"";
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var a = ""Hello"";
+        var b = ""World"";
+        var c = $@""{ a }, { b }"";
+    }
+}";
+
+            AssertFormat(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void InterpolatedStrings9()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var a = ""Hello"";
+        var c = $""{ a }, World"";
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var a = ""Hello"";
+        var c = $""{ a }, World"";
+    }
+}";
+
+            AssertFormat(expected, code);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void InterpolatedStrings10()
+        {
+            var code = @"
+class C
+{
+    void M()
+    {
+        var s = $""{42 , -4 :x}"";
+    }
+}";
+
+            var expected = @"
+class C
+{
+    void M()
+    {
+        var s = $""{42,-4:x}"";
     }
 }";
 
