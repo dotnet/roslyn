@@ -1027,10 +1027,17 @@ End Module
 
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestReferences, options:=TestOptions.DebugDll)
 
-            ' kick-off method doesn't have any user code and hence doesn't need debug info
             compilation.VerifyPdb("Module1.F",
 <symbols>
-    <methods/>
+    <methods>
+        <method containingType="Module1" name="F" parameterNames="a">
+            <customDebugInfo version="4" count="1">
+                <forwardIterator version="4" kind="ForwardIterator" size="48" name="VB$StateMachine_1_F"/>
+            </customDebugInfo>
+            <sequencepoints total="0"/>
+            <locals/>
+        </method>
+    </methods>
 </symbols>)
 
             compilation.VerifyPdb("Module1+VB$StateMachine_1_F.MoveNext",
@@ -1072,10 +1079,17 @@ End Module
     </methods>
 </symbols>)
 
-            ' kick-off method doesn't have any user code and hence doesn't need debug info
             compilation.VerifyPdb("Module1.Test",
 <symbols>
-    <methods/>
+    <methods>
+        <method containingType="Module1" name="Test" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <forwardIterator version="4" kind="ForwardIterator" size="56" name="VB$StateMachine_1_Test"/>
+            </customDebugInfo>
+            <sequencepoints total="0"/>
+            <locals/>
+        </method>
+    </methods>
 </symbols>)
 
             compilation.VerifyPdb("Module1+VB$StateMachine_1_Test.MoveNext",
@@ -1141,7 +1155,15 @@ End Module
 
             compilation.VerifyPdb("Module1.S",
 <symbols>
-    <methods/>
+    <methods>
+        <method containingType="Module1" name="S" parameterNames="">
+            <customDebugInfo version="4" count="1">
+                <forwardIterator version="4" kind="ForwardIterator" size="48" name="VB$StateMachine_1_S"/>
+            </customDebugInfo>
+            <sequencepoints total="0"/>
+            <locals/>
+        </method>
+    </methods>
 </symbols>)
 
             compilation.VerifyPdb("Module1+VB$StateMachine_1_S.MoveNext",
@@ -7157,6 +7179,11 @@ End Class
                     source,
                     {MscorlibRef_v4_0_30316_17626, MsvbRef},
                     TestOptions.DebugDll)
+
+            compilation.VerifyPdb("C.Async_Lambda_Hoisted",
+<symbols>
+    <methods/>
+</symbols>)
 
             ' Goal: We're looking for the double-mangled name "$VB$ResumableLocal_$VB$Closure_2$1".
             compilation.VerifyPdb("C+VB$StateMachine_1_Async_Lambda_Hoisted.MoveNext",

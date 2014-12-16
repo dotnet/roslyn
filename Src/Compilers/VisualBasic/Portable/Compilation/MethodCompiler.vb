@@ -1434,7 +1434,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       hasDynamicLocalVariables:=False,
                                       namespaceScopes:=namespaceScopes,
                                       namespaceScopeEncoding:=Cci.NamespaceScopeEncoding.Forwarding,
-                                      stateMachineTypeNameOpt:=Nothing,
+                                      stateMachineTypeNameOpt:=stateMachineTypeOpt?.Name, ' TODO: remove or update AddedOrChangedMethodInfo
                                       stateMachineHoistedLocalScopes:=Nothing,
                                       stateMachineHoistedLocalSlots:=stateMachineHoistedLocalSlots,
                                       stateMachineAwaiterSlots:=stateMachineAwaiterSlots,

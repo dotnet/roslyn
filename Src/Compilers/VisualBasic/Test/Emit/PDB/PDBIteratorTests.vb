@@ -189,7 +189,7 @@ End Class
 
             Dim actual = PDBTests.GetPdbXml(compilation, "C+VB$StateMachine_1_Iterator_Lambda_Hoisted.MoveNext")
 
-            ' Goal: We're looking for the double-mangled name "$VB$ResumableLocal_$VB$Closure_2$1".
+            ' Goal: We're looking for the double-mangled name "$VB$ResumableLocal_$VB$Closure_$0".
             Dim expected =
 <symbols>
     <methods>
@@ -209,7 +209,7 @@ End Class
                 <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x19" il_end="0x97" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x98">
-                <importsforward declaringType="C" methodName="Iterator_Lambda_Hoisted" parameterNames=""/>
+                <importsforward declaringType="C+_Closure$__1" methodName="_Lambda$__2" parameterNames=""/>
                 <scope startOffset="0x19" endOffset="0x97">
                     <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x19" il_end="0x97" attributes="0"/>
                 </scope>
@@ -248,7 +248,7 @@ End Class
 
             Dim actual = PDBTests.GetPdbXml(compilation, "C+VB$StateMachine_1_Iterator_Lambda_NotHoisted.MoveNext")
 
-            ' Goal: We're looking for the single-mangled name "$VB$Closure_1".
+            ' Goal: We're looking for the single-mangled name "$VB$Closure_0".
             Dim expected =
 <symbols>
     <methods>
@@ -265,7 +265,7 @@ End Class
                 <local name="$VB$Closure_0" il_index="1" il_start="0x19" il_end="0x55" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x56">
-                <importsforward declaringType="C" methodName="Iterator_Lambda_NotHoisted" parameterNames=""/>
+                <importsforward declaringType="C+_Closure$__1" methodName="_Lambda$__2" parameterNames=""/>
                 <scope startOffset="0x19" endOffset="0x55">
                     <local name="$VB$Closure_0" il_index="1" il_start="0x19" il_end="0x55" attributes="0"/>
                 </scope>
@@ -303,7 +303,7 @@ End Class
 
             Dim actual = PDBTests.GetPdbXml(compilation, "C+VB$StateMachine_1_Iterator_NoLambda_Hoisted.MoveNext")
 
-            ' Goal: We're looking for the single-mangled names "$VB$ResumableLocal_x$1" and "$VB$ResumableLocal_y$2".
+            ' Goal: We're looking for the single-mangled names "$VB$ResumableLocal_x$0" and "$VB$ResumableLocal_y$1".
             Dim expected =
 <symbols>
     <methods>
@@ -322,7 +322,9 @@ End Class
                 <local name="$VB$ResumableLocal_y$1" il_index="1" il_start="0x19" il_end="0x67" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x68">
-                <importsforward declaringType="C" methodName="Iterator_NoLambda_Hoisted" parameterNames=""/>
+                <namespace name="System" importlevel="file"/>
+                <namespace name="System.Collections.Generic" importlevel="file"/>
+                <currentnamespace name=""/>
                 <scope startOffset="0x19" endOffset="0x67">
                     <local name="$VB$ResumableLocal_x$0" il_index="0" il_start="0x19" il_end="0x67" attributes="0"/>
                     <local name="$VB$ResumableLocal_y$1" il_index="1" il_start="0x19" il_end="0x67" attributes="0"/>
@@ -376,7 +378,9 @@ End Class
                 <local name="y" il_index="2" il_start="0x19" il_end="0x3b" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x3c">
-                <importsforward declaringType="C" methodName="Iterator_NoLambda_NotHoisted" parameterNames=""/>
+                <namespace name="System" importlevel="file"/>
+                <namespace name="System.Collections.Generic" importlevel="file"/>
+                <currentnamespace name=""/>
                 <scope startOffset="0x19" endOffset="0x3b">
                     <local name="x" il_index="1" il_start="0x19" il_end="0x3b" attributes="0"/>
                     <local name="y" il_index="2" il_start="0x19" il_end="0x3b" attributes="0"/>

@@ -16,6 +16,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class EditAndContinueTestBase
         Inherits BasicTestBase
 
+        ' PDB reader can only be accessed from a single thread, so avoid concurrent compilation:
+        Protected Shared ReadOnly ComSafeDebugDll As VisualBasicCompilationOptions = TestOptions.DebugDll.WithConcurrentBuild(False)
+
         Friend Shared ReadOnly EmptyLocalsProvider As Func(Of MethodDefinitionHandle, EditAndContinueMethodDebugInformation) = Function(token) Nothing
 
         Friend Function ToLocalInfo(local As Cci.ILocalDefinition) As ILVisualizer.LocalInfo
@@ -140,6 +143,49 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Friend Shared Sub CheckEncLog(reader As MetadataReader, ParamArray rows As EditAndContinueLogEntry())
             AssertEx.Equal(rows, reader.GetEditAndContinueLogEntries(), itemInspector:=AddressOf EncLogRowToString)
         End Sub
+
+        Friend Shared Sub CheckEncLogDefinitions(reader As MetadataReader, ParamArray rows As EditAndContinueLogEntry())
+            AssertEx.Equal(rows, reader.GetEditAndContinueLogEntries().Where(Function(entry) IsDefinition(entry)), itemInspector:=AddressOf EncLogRowToString)
+        End Sub
+
+        Friend Shared Function IsDefinition(entry As EditAndContinueLogEntry) As Boolean
+            Dim index As TableIndex
+            Assert.True(MetadataTokens.TryGetTableIndex(entry.Handle.Kind, index))
+
+            Select Case index
+                Case TableIndex.MethodDef,
+                     TableIndex.Field,
+                     TableIndex.Constant,
+                     TableIndex.GenericParam,
+                     TableIndex.GenericParamConstraint,
+                     TableIndex.[Event],
+                     TableIndex.CustomAttribute,
+                     TableIndex.DeclSecurity,
+                     TableIndex.Assembly,
+                     TableIndex.MethodImpl,
+                     TableIndex.Param,
+                     TableIndex.[Property],
+                     TableIndex.TypeDef,
+                     TableIndex.ExportedType,
+                     TableIndex.StandAloneSig,
+                     TableIndex.ClassLayout,
+                     TableIndex.FieldLayout,
+                     TableIndex.FieldMarshal,
+                     TableIndex.File,
+                     TableIndex.ImplMap,
+                     TableIndex.InterfaceImpl,
+                     TableIndex.ManifestResource,
+                     TableIndex.MethodSemantics,
+                     TableIndex.[Module],
+                     TableIndex.NestedClass,
+                     TableIndex.EventMap,
+                     TableIndex.PropertyMap
+                    Return True
+            End Select
+
+            Return False
+        End Function
+
 
         Friend Shared Sub CheckEncMap(reader As MetadataReader, ParamArray [handles] As Handle())
             AssertEx.Equal([handles], reader.GetEditAndContinueMapEntries(), itemInspector:=AddressOf EncMapRowToString)

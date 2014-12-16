@@ -161,6 +161,7 @@
     <Compile Include="CodeGen\WinRTCollectionTests.vb" />
     <Compile Include="Emit\CompilationEmitTests.vb" />
     <Compile Include="Emit\DeterministicTests.vb" />
+    <Compile Include="Emit\EditAndContinueStateMachineTests.vb" />
     <Compile Include="Emit\EditAndContinueTestBase.vb" />
     <Compile Include="Emit\EditAndContinueTests.vb" />
     <Compile Include="Emit\EmitCustomModifiers.vb" />
@@ -168,6 +169,7 @@
     <Compile Include="Emit\EmitMetadata.vb" />
     <Compile Include="Emit\EntryPointTests.vb" />
     <Compile Include="Emit\FieldInitializerTests.vb" />
+    <Compile Include="Emit\LocalSlotMappingTests.vb" />
     <Compile Include="Emit\NoPiaEmbedTypes.vb" />
     <Compile Include="Emit\OptionalArgumentsTests.vb" />
     <Compile Include="Emit\ResourceTests.vb" />

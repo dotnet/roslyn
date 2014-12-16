@@ -142,7 +142,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              "Dispose",
                                                              DebugAttributes.DebuggerNonUserCodeAttribute,
                                                              Accessibility.Private,
-                                                             False)
+                                                             generateDebugInfo:=False,
+                                                             hasMethodBodyDependency:=True)
 
             Dim debuggerHidden = IsDebuggerHidden(Me.Method)
             Dim moveNextAttrs As DebugAttributes = DebugAttributes.CompilerGeneratedAttribute
@@ -151,7 +152,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              "MoveNext",
                                                              moveNextAttrs,
                                                              Accessibility.Private,
-                                                             True)
+                                                             generateDebugInfo:=True,
+                                                             hasMethodBodyDependency:=True)
 
             GenerateMoveNextAndDispose(moveNextMethod, disposeMethod)
             F.CurrentMethod = moveNextMethod
@@ -176,7 +178,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                             "GetEnumerator",
                                                             DebugAttributes.DebuggerNonUserCodeAttribute,
                                                             Accessibility.Private,
-                                                            False)
+                                                            generateDebugInfo:=False,
+                                                            hasMethodBodyDependency:=False)
 
                 Dim bodyBuilder = ArrayBuilder(Of BoundStatement).GetInstance()
                 Dim resultVariable = F.SynthesizedLocal(StateMachineType)      ' iteratorClass result;
@@ -262,7 +265,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                             "IEnumerable.GetEnumerator",
                                             DebugAttributes.DebuggerNonUserCodeAttribute,
                                             Accessibility.Private,
-                                            False)
+                                            generateDebugInfo:=False,
+                                            hasMethodBodyDependency:=False)
                 F.CloseMethod(F.Return(F.Call(F.Me, getEnumeratorGeneric)))
             End If
 
@@ -273,7 +277,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                           DebugAttributes.DebuggerNonUserCodeAttribute,
                                           Accessibility.Private,
                                           False)
-
             F.CloseMethod(F.Return(F.Field(F.Me, currentField, False)))
 
             ' Add void IEnumerator.Reset()
@@ -281,7 +284,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         "Reset",
                                         DebugAttributes.DebuggerNonUserCodeAttribute,
                                         Accessibility.Private,
-                                        False)
+                                        generateDebugInfo:=False,
+                                        hasMethodBodyDependency:=False)
             F.CloseMethod(F.Throw(F.[New](F.WellKnownType(WellKnownType.System_NotSupportedException))))
 
             ' Add object IEnumerator.Current
