@@ -270,7 +270,7 @@ class Hello
         /// <summary>
         /// Ensure server respects keep alive and shuts down after processing a single connection.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "DevDiv 1095079")]
         public async Task KeepAliveAfterSingleConnection()
         {
             var keepAlive = TimeSpan.FromSeconds(1);
@@ -293,7 +293,7 @@ class Hello
         /// <summary>
         /// Ensure server respects keep alive and shuts down after processing multiple connections.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "DevDiv 1095079")]
         public async Task KeepAliveAfterMultipleConnection()
         {
             var keepAlive = TimeSpan.FromSeconds(1);
@@ -319,7 +319,7 @@ class Hello
         /// <summary>
         /// Ensure server respects keep alive and shuts down after processing simultaneous connections.
         /// </summary>
-        [Fact]
+        [Fact(Skip = "DevDiv 1095079")]
         public async Task KeepAliveAfterSimultaneousConnection()
         {
             var keepAlive = TimeSpan.FromSeconds(1);
