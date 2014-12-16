@@ -107,9 +107,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                     result.AddRange(DecomposeNameParts(dottedName.Left))
                     result.AddRange(DecomposeNameParts(SyntaxFactory.IdentifierName(dottedName.Right.Identifier)))
                     Return
-                Case Else
+                Case SyntaxKind.IdentifierName,
+                     SyntaxKind.GenericName
                     result.Add(name)
-                    Return
+                Case SyntaxKind.GlobalName
+                    Dim globalName = DirectCast(name, GlobalNameSyntax)
+                    result.Add(SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(globalName.GlobalKeyword.ToString())))
             End Select
         End Sub
 
