@@ -147,26 +147,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             switch (code)
             {
-                case ErrorCode.WRN_OldWarning_AccessibleReadonly:
-                case ErrorCode.WRN_OldWarning_DocFileGenAndIncr:
-                case ErrorCode.WRN_OldWarning_FeatureDefaultDeprecated:
-                case ErrorCode.WRN_OldWarning_MultipleTypeDefs:
-                case ErrorCode.WRN_OldWarning_ProtectedInternal:
-                case ErrorCode.WRN_OldWarning_ReservedIdentifier:
-                case ErrorCode.WRN_OldWarning_UnsafeProp:
-                    // Some old warnings which are unused, but we still need to retain them to suppress CS1691 when "/nowarn:code" is specified on the command line.
-                    return 4;
                 case ErrorCode.WRN_InvalidMainSig:
                 case ErrorCode.WRN_LowercaseEllSuffix:
                 case ErrorCode.WRN_NewNotRequired:
                 case ErrorCode.WRN_MainCantBeGeneric:
-                case ErrorCode.WRN_IncrSwitchObsolete:
-                case ErrorCode.WRN_UnreachableExpr:
                 case ErrorCode.WRN_ProtectedInSealed:
                 case ErrorCode.WRN_UnassignedInternalField:
                 case ErrorCode.WRN_MissingParamTag:
                 case ErrorCode.WRN_MissingXMLComment:
-                case ErrorCode.WRN_DeleteAutoResFailed:
                 case ErrorCode.WRN_MissingTypeParamTag:
                 case ErrorCode.WRN_InvalidVersionFormat:
                     return 4;
@@ -207,7 +195,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_SameFullNameThisAggAgg:
                 case ErrorCode.WRN_SameFullNameThisAggNs:
                 case ErrorCode.WRN_GlobalAliasDefn:
-                case ErrorCode.WRN_UnexpectedPredefTypeLoc:
                 case ErrorCode.WRN_AlwaysNull:
                 case ErrorCode.WRN_CmpAlwaysFalse:
                 case ErrorCode.WRN_AmbigLookupMeth:
@@ -244,7 +231,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_ByRefNonAgileField:
                 case ErrorCode.WRN_VolatileByRef:
                 case ErrorCode.WRN_FinalizeMethod:
-                case ErrorCode.WRN_FeatureDeprecated:
                 case ErrorCode.WRN_DeprecatedSymbol:
                 case ErrorCode.WRN_ExternMethodNoImplementation:
                 case ErrorCode.WRN_AttributeLocationOnBadDeclaration:
@@ -255,12 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_ExternCtorNoImplementation:
                 case ErrorCode.WRN_WarningDirective:
                 case ErrorCode.WRN_UnreachableGeneralCatch:
-                case ErrorCode.WRN_UninitializedField:
                 case ErrorCode.WRN_DefaultValueForUnconsumedLocation:
-                case ErrorCode.WRN_FeatureDeprecated2:
-                case ErrorCode.WRN_FeatureDeprecated3:
-                case ErrorCode.WRN_FeatureDeprecated4:
-                case ErrorCode.WRN_FeatureDeprecated5:
                 case ErrorCode.WRN_EmptySwitch:
                 case ErrorCode.WRN_XMLParseError:
                 case ErrorCode.WRN_BadXMLRef:
@@ -270,7 +251,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_FailedInclude:
                 case ErrorCode.WRN_InvalidInclude:
                 case ErrorCode.WRN_XMLParseIncludeError:
-                case ErrorCode.WRN_XMLParserNotFound:
                 case ErrorCode.WRN_ALinkWarn:
                 case ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden:
                 case ErrorCode.WRN_CmdOptionConflictsSource:
@@ -279,20 +259,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_BadRestoreNumber:
                 case ErrorCode.WRN_NonECMAFeature:
                 case ErrorCode.WRN_ErrorOverride:
-                case ErrorCode.WRN_MissingTypeNested:
-                case ErrorCode.WRN_MissingTypeInSource:
-                case ErrorCode.WRN_MissingTypeInAssembly:
                 case ErrorCode.WRN_MultiplePredefTypes:
                 case ErrorCode.WRN_TooManyLinesForDebugger:
                 case ErrorCode.WRN_CallOnNonAgileField:
-                case ErrorCode.WRN_BadWarningNumber:
                 case ErrorCode.WRN_InvalidNumber:
-                case ErrorCode.WRN_FileNameTooLong:
                 case ErrorCode.WRN_IllegalPPChecksum:
                 case ErrorCode.WRN_EndOfPPLineExpected:
                 case ErrorCode.WRN_ConflictingChecksum:
-                case ErrorCode.WRN_UseSwitchInsteadOfAttribute:
-                case ErrorCode.WRN_DelegateNewMethBind:
                 case ErrorCode.WRN_EmptyFileName:
                 case ErrorCode.WRN_DotOnDefault:
                 case ErrorCode.WRN_BadXMLRefTypeVar:
@@ -301,7 +274,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_MultipleRuntimeImplementationMatches:
                 case ErrorCode.WRN_MultipleRuntimeOverrideMatches:
                 case ErrorCode.WRN_FileAlreadyIncluded:
-                case ErrorCode.WRN_UseNewSwitch:
                 case ErrorCode.WRN_NoConfigNotOnCommandLine:
                 case ErrorCode.WRN_AnalyzerCannotBeCreated:
                 case ErrorCode.WRN_NoAnalyzerInAssembly:
@@ -311,7 +283,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CLS_BadArgType:
                 case ErrorCode.WRN_CLS_BadReturnType:
                 case ErrorCode.WRN_CLS_BadFieldPropType:
-                case ErrorCode.WRN_CLS_BadUnicode:
                 case ErrorCode.WRN_CLS_BadIdentifierCase:
                 case ErrorCode.WRN_CLS_OverloadRefOut:
                 case ErrorCode.WRN_CLS_OverloadUnnamed:

@@ -32,6 +32,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.CSharp
                     case InternalErrorCode.Unknown:
                         continue;
 
+                    case (int)ErrorCode.WRN_ALinkWarn:
+                        // We don't support configuring WRN_ALinkWarn. See comments in method "CSharpDiagnosticFilter.Filter" for more details.
+                        continue;
+
                     default:
                         builder.Add(errorCode);
                         break;

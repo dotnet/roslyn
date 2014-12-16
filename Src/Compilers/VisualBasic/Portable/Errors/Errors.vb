@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_None = 0
         ' ERR_InitError = 2000 unused in Roslyn
         ERR_FileNotFound = 2001
-        WRN_FileAlreadyIncluded = 2002  'unused in Roslyn but kept around to preserve legacy nowarn behavior
+        ' WRN_FileAlreadyIncluded = 2002  'unused in Roslyn.
         'ERR_DuplicateResponseFile = 2003   unused in Roslyn.
         'ERR_NoMemory = 2004
         ERR_ArgumentRequired = 2006
@@ -51,9 +51,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_IconFileAndWin32ResFile = 2023
         'WRN_ReservedReference = 2024       'unissued by native compiler due to bug. 
         WRN_NoConfigInResponseFile = 2025
-        WRN_InvalidWarningId = 2026
+        ' WRN_InvalidWarningId = 2026       ' unused in Roslyn.
         'ERR_WatsonSendNotOptedIn = 2027
-        WRN_SwitchNoBool = 2028     'unused in Roslyn but preserved to avoid giving BC2026 when this number is used with /nowarn
+        ' WRN_SwitchNoBool = 2028     'unused in Roslyn
         ERR_NoSourcesOut = 2029
         ERR_NeedModule = 2030
         ERR_InvalidAssemblyName = 2031
@@ -1732,7 +1732,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         WRN_UnimplementedCommandLineSwitch = 40998
 
-        WRN_DuplicateAssemblyAttribute1 = 41000   'unused in Roslyn
+        ' WRN_DuplicateAssemblyAttribute1 = 41000   'unused in Roslyn
         WRN_NoNonObsoleteConstructorOnBase3 = 41001
         WRN_NoNonObsoleteConstructorOnBase4 = 41002
         WRN_RequiredNonObsoleteNewCall3 = 41003
@@ -1794,14 +1794,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_DefAsgNoRetValPropRef1 = 42107
         WRN_DefAsgUseNullRefByRefStr = 42108
         WRN_DefAsgUseNullRefStr = 42109
-        WRN_FieldInForNotExplicit = 42110       'unused in Roslyn
+        ' WRN_FieldInForNotExplicit = 42110       'unused in Roslyn
         WRN_StaticLocalNoInference = 42111
 
         '// AVAILABLE                             42112 - 42202
-        WRN_SxSHigherIndirectRefEmitted4 = 42203    'unused in Roslyn
-        WRN_ReferencedAssembliesAmbiguous6 = 42204  'unused in Roslyn
-        WRN_ReferencedAssembliesAmbiguous4 = 42205  'unused in Roslyn
-        WRN_MaximumNumberOfWarnings = 42206     'unused in Roslyn
+        ' WRN_SxSHigherIndirectRefEmitted4 = 42203    'unused in Roslyn
+        ' WRN_ReferencedAssembliesAmbiguous6 = 42204  'unused in Roslyn
+        ' WRN_ReferencedAssembliesAmbiguous4 = 42205  'unused in Roslyn
+        ' WRN_MaximumNumberOfWarnings = 42206     'unused in Roslyn
         WRN_InvalidAssemblyName = 42207
 
         '// AVAILABLE                             42209 - 42299

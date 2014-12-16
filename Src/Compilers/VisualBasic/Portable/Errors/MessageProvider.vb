@@ -74,10 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim errorId = DirectCast(code, ERRID)
             If ErrorFacts.IsWarning(errorId) AndAlso
                code <> ERRID.WRN_BadSwitch AndAlso
-               code <> ERRID.WRN_FileAlreadyIncluded AndAlso
                code <> ERRID.WRN_NoConfigInResponseFile AndAlso
-               code <> ERRID.WRN_InvalidWarningId AndAlso
-               code <> ERRID.WRN_SwitchNoBool AndAlso
                code <> ERRID.WRN_IgnoreModuleManifest Then
                 Return 1
             ElseIf ErrorFacts.IsInfo(errorId) OrElse ErrorFacts.IsHidden(errorId)

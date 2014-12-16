@@ -282,32 +282,5 @@ blah
             Dim dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             errors.Verify(Diagnostic(ERRID.ERR_ProjectCCError1).WithArguments("Identifier expected.", " ^^ 'Blah' ^^ "))
         End Sub
-
-        <WorkItem(546536, "DevDiv")>
-        <Fact()>
-        Sub AllDev11WarningsAreStillWarnings()
-            ' the warning numbers have been taken from the Dev11 sources (vb\include\errors.inc)
-            Dim allDev11Warnings() As Integer = {40000, 40003, 40004, 40005, 40007, 40008, 40009, 40010, 40011, 40012, 40014, 40018, 40019, 40020, 40021,
-                                                 40022, 40023, 40024, 40025, 40026, 40027, 40028, 40029, 40030, 40031, 40032, 40033, 40034, 40035, 40038,
-                                                 40039, 40040, 40041, 40042, 40043, 40046, 40047, 40048, 40049, 40050, 40051, 40052, 40053, 40054, 40055,
-                                                 40056, 40057, 40059, 41000, 41001, 41002, 41003, 41004, 41005, 41007, 41008, 41998, 41999, 42000, 42001,
-                                                 42002, 42004, 42014, 42015, 42016, 42017, 42018, 42019, 42020, 42021, 42022, 42024, 42025, 42026, 42029,
-                                                 42030, 42031, 42032, 42033, 42034, 42035, 42036, 42037, 42038, 42099, 42101, 42102, 42104, 42105, 42106,
-                                                 42107, 42108, 42109, 42110, 42111, 42203, 42204, 42205, 42206, 42300, 42301, 42302, 42303, 42304, 42305,
-                                                 42306, 42307, 42308, 42309, 42310, 42311, 42312, 42313, 42314, 42315, 42316, 42317, 42318, 42319, 42320,
-                                                 42321, 42322, 42324, 42326, 42327, 42328, 42332, 42333, 42334, 42335, 42336, 42337, 42338, 42339, 42340,
-                                                 42341, 42342, 42343, 42344, 42345, 42346, 42347, 42348, 42349, 42350, 42351, 42352, 42353, 42354, 42355}
-
-            ' the command line warnings (vb\language\commandlineerrors.inc) 
-            Dim allDev11CommandLineWarnings() As Integer = {2002, 2007, 2025, 2028, 2034}   'note 2024 was never reachable in the native compiler
-
-            For Each warningNumber In allDev11Warnings
-                Assert.Equal(DiagnosticSeverity.Warning, Global.Microsoft.CodeAnalysis.VisualBasic.MessageProvider.Instance.GetSeverity(warningNumber))
-            Next
-
-            For Each warningNumber In allDev11CommandLineWarnings
-                Assert.Equal(DiagnosticSeverity.Warning, Global.Microsoft.CodeAnalysis.VisualBasic.MessageProvider.Instance.GetSeverity(warningNumber))
-            Next
-        End Sub
     End Class
 End Namespace

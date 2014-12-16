@@ -5946,12 +5946,9 @@ class Program
 
             for (int errorCode = startErrorCode; errorCode < endErrorCode; errorCode++)
             {
-                if (errorCode != (int)ErrorCode.WRN_BadWarningNumber)
-                {
-                    string pragmaDisableStr = @"#pragma warning disable " + errorCode.ToString() + @"
+                string pragmaDisableStr = @"#pragma warning disable " + errorCode.ToString() + @"
 ";
-                    pragmaDisableWarnings += pragmaDisableStr;
-                }
+                pragmaDisableWarnings += pragmaDisableStr;
             }
 
             return pragmaDisableWarnings + @"

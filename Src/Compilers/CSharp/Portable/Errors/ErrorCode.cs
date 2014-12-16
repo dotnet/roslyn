@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TooManyLocals = 204,
         ERR_AbstractBaseCall = 205,
         ERR_RefProperty = 206,
-        WRN_OldWarning_UnsafeProp = 207,    // This error code is unused, but we still need to retain it to suppress CS1691 when "/nowarn:207" is specified on the command line.
+        // WRN_OldWarning_UnsafeProp = 207,    // This error code is unused.
         ERR_ManagedAddr = 208,
         ERR_BadFixedInitType = 209,
         ERR_FixedMustInit = 210,
@@ -273,13 +273,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AbstractSealedStatic = 418,
         WRN_AmbiguousXMLReference = 419,
         WRN_VolatileByRef = 420,
-        WRN_IncrSwitchObsolete = 422,    // This error code is unused, but we still need to retain it to suppress CS1691 when "/nowarn" is specified on the command line.
+        // WRN_IncrSwitchObsolete = 422,    // This error code is unused.
         ERR_ComImportWithImpl = 423,
         ERR_ComImportWithBase = 424,
         ERR_ImplBadConstraints = 425,
         ERR_DottedTypeNameNotFoundInAgg = 426,
         ERR_MethGrpToNonDel = 428,
-        WRN_UnreachableExpr = 429,       // This error code is unused, but we still need to retain it to suppress CS1691 when "/nowarn" is specified on the command line.
+        // WRN_UnreachableExpr = 429,       // This error code is unused.
         ERR_BadExternAlias = 430,
         ERR_ColColWithTypeAlias = 431,
         ERR_AliasNotFound = 432,
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_SealedStaticClass = 441,
         ERR_PrivateAbstractAccessor = 442,
         ERR_ValueExpected = 443,
-        WRN_UnexpectedPredefTypeLoc = 444,  // This error code is unused, but we still need to retain it to suppress CS1691 when "/nowarn" is specified on the command line.
+        // WRN_UnexpectedPredefTypeLoc = 444,  // This error code is unused.
         ERR_UnboxNotLValue = 445,
         ERR_AnonMethGrpInForEach = 446,
         //ERR_AttrOnTypeArg = 447,      unused in Roslyn. The scenario for which this error exists should, and does generate a parse error.
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ComImportWithoutUuidAttribute = 596,
         ERR_InvalidNamedArgument = 599,
         ERR_DllImportOnInvalidMethod = 601,
-        WRN_FeatureDeprecated = 602,    // This error code is unused, but we still need to retain it to suppress CS1691 when "/nowarn:602" is specified on the command line.
+        // WRN_FeatureDeprecated = 602,    // This error code is unused.
         // ERR_NameAttributeOnOverride = 609, // removed in Roslyn
         ERR_FieldCantBeRefAny = 610,
         ERR_ArrayElementCantBeRefAny = 611,
@@ -463,8 +463,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_BitwiseOrSignExtend = 675,
         ERR_VolatileStruct = 677,
         ERR_VolatileAndReadonly = 678,
-        WRN_OldWarning_ProtectedInternal = 679,    // This error code is unused, but we still need to retain it to suppress CS1691 when "/nowarn:679" is specified on the command line.
-        WRN_OldWarning_AccessibleReadonly = 680,    // This error code is unused, but we still need to retain it to suppress CS1691 when "/nowarn:680" is specified on the command line.
+        // WRN_OldWarning_ProtectedInternal = 679,    // This error code is unused.
+        // WRN_OldWarning_AccessibleReadonly = 680,    // This error code is unused.
         ERR_AbstractField = 681,
         ERR_BogusExplicitImpl = 682,
         ERR_ExplicitMethodImplAccessor = 683,
@@ -632,7 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ProtectedInStatic = 1057,
         WRN_UnreachableGeneralCatch = 1058,
         ERR_IncrementLvalueExpected = 1059,
-        WRN_UninitializedField = 1060,  //unused in Roslyn but preserving for the purposes of not breaking users' /nowarn settings
+        // WRN_UninitializedField = 1060,  // unused in Roslyn.
         ERR_NoSuchMemberOrExtension = 1061,
         WRN_DeprecatedCollectionInitAddStr = 1062,
         ERR_DeprecatedCollectionInitAddStr = 1063,
@@ -663,12 +663,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExplicitExtension = 1112,
         ERR_ValueTypeExtDelegate = 1113,
         // unused 1114-1199
-        // Below five error codes are unused, but we still need to retain them to suppress CS1691 when "/nowarn:1200,1201,1202,1203,1204" is specified on the command line.
-        WRN_FeatureDeprecated2 = 1200,
-        WRN_FeatureDeprecated3 = 1201,
-        WRN_FeatureDeprecated4 = 1202,
-        WRN_FeatureDeprecated5 = 1203,
-        WRN_OldWarning_FeatureDefaultDeprecated = 1204,
+        // Below five error codes are unused.
+        // WRN_FeatureDeprecated2 = 1200,
+        // WRN_FeatureDeprecated3 = 1201,
+        // WRN_FeatureDeprecated4 = 1202,
+        // WRN_FeatureDeprecated5 = 1203,
+        // WRN_OldWarning_FeatureDefaultDeprecated = 1204,
         // unused 1205-1500
         ERR_BadArgCount = 1501,
         //ERR_BadArgTypes = 1502,
@@ -751,20 +751,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_XMLParseIncludeError = 1592,
         ERR_BadDelArgCount = 1593,
         //ERR_BadDelArgTypes = 1594,
-        WRN_OldWarning_MultipleTypeDefs = 1595,    // This error code is unused, but we still need to retain it to suppress CS1691 when "/nowarn:1595" is specified on the command line.
-        WRN_OldWarning_DocFileGenAndIncr = 1596,    // This error code is unused, but we still need to retain it to suppress CS1691 when "/nowarn:1596" is specified on the command line.
+        // WRN_OldWarning_MultipleTypeDefs = 1595,    // This error code is unused.
+        // WRN_OldWarning_DocFileGenAndIncr = 1596,    // This error code is unused.
         ERR_UnexpectedSemicolon = 1597,
-        WRN_XMLParserNotFound = 1598, // No longer used (though, conceivably, we could report it if Linq to Xml is missing at compile time).
+        // WRN_XMLParserNotFound = 1598, // No longer used (though, conceivably, we could report it if Linq to Xml is missing at compile time).
         ERR_MethodReturnCantBeRefAny = 1599,
         ERR_CompileCancelled = 1600,
         ERR_MethodArgCantBeRefAny = 1601,
         ERR_AssgReadonlyLocal = 1604,
         ERR_RefReadonlyLocal = 1605,
         //ERR_ALinkCloseFailed = 1606,
-        WRN_ALinkWarn = 1607,     // This error code is unused, but we still need to retain it to suppress CS1691 when "/nowarn:1607" is specified on the command line.
+        WRN_ALinkWarn = 1607,
         ERR_CantUseRequiredAttribute = 1608,
         ERR_NoModifiersOnAccessor = 1609,
-        WRN_DeleteAutoResFailed = 1610, // Unused but preserving for /nowarn
+        // WRN_DeleteAutoResFailed = 1610, // Unused.
         ERR_ParamsCantBeRefOut = 1611,
         ERR_ReturnNotLValue = 1612,
         ERR_MissingCoClass = 1613,
@@ -811,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AssgReadonlyLocalCause = 1656,
         ERR_RefReadonlyLocalCause = 1657,
         WRN_ErrorOverride = 1658,
-        WRN_OldWarning_ReservedIdentifier = 1659,    // This error code is unused, but we still need to retain it to suppress CS1691 when "/nowarn:1659" is specified on the command line.
+        // WRN_OldWarning_ReservedIdentifier = 1659,    // This error code is unused.
         ERR_AnonMethToNonDel = 1660,
         ERR_CantConvAnonMethParams = 1661,
         ERR_CantConvAnonMethReturns = 1662,
@@ -834,33 +834,32 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadExternIdentifier = 1679,
         ERR_AliasMissingFile = 1680,
         ERR_GlobalExternAlias = 1681,
-        WRN_MissingTypeNested = 1682,   //unused in Roslyn.
-        // 1683 and 1684 are unused warning codes, but we still need to retain them to suppress CS1691 when "/nowarn:1683" is specified on the command line.
+        // WRN_MissingTypeNested = 1682,   // unused in Roslyn.
         // In Roslyn, we generate errors ERR_MissingTypeInSource and ERR_MissingTypeInAssembly instead of warnings WRN_MissingTypeInSource and WRN_MissingTypeInAssembly respectively.
-        WRN_MissingTypeInSource = 1683,
-        WRN_MissingTypeInAssembly = 1684,
+        // WRN_MissingTypeInSource = 1683,
+        // WRN_MissingTypeInAssembly = 1684,
         WRN_MultiplePredefTypes = 1685,
         ERR_LocalCantBeFixedAndHoisted = 1686,
         WRN_TooManyLinesForDebugger = 1687,
         ERR_CantConvAnonMethNoParams = 1688,
         ERR_ConditionalOnNonAttributeClass = 1689,
         WRN_CallOnNonAgileField = 1690,
-        WRN_BadWarningNumber = 1691,
+        // WRN_BadWarningNumber = 1691,    // we no longer generate this warning for an unrecognized warning ID specified as an argument to /nowarn or /warnasserror.
         WRN_InvalidNumber = 1692,
-        WRN_FileNameTooLong = 1694, //unused but preserving for the sake of existing code using /nowarn:1694
+        // WRN_FileNameTooLong = 1694, //unused.
         WRN_IllegalPPChecksum = 1695,
         WRN_EndOfPPLineExpected = 1696,
         WRN_ConflictingChecksum = 1697,
         WRN_AssumedMatchThis = 1698,
-        WRN_UseSwitchInsteadOfAttribute = 1699,     // This error code is unused, but we still need to retain it to suppress CS1691 when "/nowarn:1699" is specified.
-        WRN_InvalidAssemblyName = 1700,             // This error code is unused, but we still need to retain it to suppress CS1691 when "/nowarn:1700" is specified.
+        // WRN_UseSwitchInsteadOfAttribute = 1699,     // This error code is unused.
+        WRN_InvalidAssemblyName = 1700,
         WRN_UnifyReferenceMajMin = 1701,
         WRN_UnifyReferenceBldRev = 1702,
         ERR_DuplicateImport = 1703,
         ERR_DuplicateImportSimple = 1704,
         ERR_AssemblyMatchBadVersion = 1705,
         //ERR_AnonMethNotAllowed = 1706,            Unused in Roslyn. Previously given when a lambda was supplied as an attribute argument.
-        WRN_DelegateNewMethBind = 1707,             // This error code is unused, but we still need to retain it to suppress CS1691 when "/nowarn:1707" is specified.
+        // WRN_DelegateNewMethBind = 1707,             // This error code is unused.
         ERR_FixedNeedsLvalue = 1708,
         WRN_EmptyFileName = 1709,
         WRN_DuplicateTypeParamTag = 1710,
@@ -1027,7 +1026,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_OpenResponseFile = 2011,
         ERR_CantOpenFileWrite = 2012,
         ERR_BadBaseNumber = 2013,
-        WRN_UseNewSwitch = 2014,    //unused but preserved to keep compat with /nowarn:2014
+        // WRN_UseNewSwitch = 2014,    //unused.
         ERR_BinaryFile = 2015,
         FTL_BadCodepage = 2016,
         ERR_NoMainOnDLL = 2017,
@@ -1060,7 +1059,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_CLS_BadArgType = 3001, // Requires SymbolDistinguisher.
         WRN_CLS_BadReturnType = 3002,
         WRN_CLS_BadFieldPropType = 3003,
-        WRN_CLS_BadUnicode = 3004, //unused but preserved to keep compat with /nowarn:3004
+        // WRN_CLS_BadUnicode = 3004, //unused
         WRN_CLS_BadIdentifierCase = 3005,
         WRN_CLS_OverloadRefOut = 3006,
         WRN_CLS_OverloadUnnamed = 3007,
