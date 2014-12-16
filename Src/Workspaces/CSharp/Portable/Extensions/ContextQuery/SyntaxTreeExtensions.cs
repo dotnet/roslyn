@@ -2069,7 +2069,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 return true;
             }
 
-            // (SometType) |
+            // when ( |
+            if (token.CSharpKind() == SyntaxKind.OpenParenToken &&
+                token.GetPreviousToken(includeSkipped: true).CSharpKind() == SyntaxKind.WhenKeyword)
+            {
+                return true;
+            }
+
+            // (SomeType) |
             if (token.IsAfterPossibleCast())
             {
                 return true;
