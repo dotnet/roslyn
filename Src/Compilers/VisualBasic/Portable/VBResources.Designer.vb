@@ -11929,11 +11929,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Conversion may be ambiguous..
+        '''</summary>
+        Friend ReadOnly Property WRN_AmbiguousCastConversion2_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_AmbiguousCastConversion2_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to An instance of analyzer {0} cannot be created from {1} : {2}..
         '''</summary>
         Friend ReadOnly Property WRN_AnalyzerCannotBeCreated() As String
             Get
                 Return ResourceManager.GetString("WRN_AnalyzerCannotBeCreated", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Instance of analyzer cannot be created..
+        '''</summary>
+        Friend ReadOnly Property WRN_AnalyzerCannotBeCreated_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_AnalyzerCannotBeCreated_Title", resourceCulture)
             End Get
         End Property
         
@@ -11947,11 +11965,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Cannot infer an element type..
+        '''</summary>
+        Friend ReadOnly Property WRN_ArrayInitNoTypeObjectAssumed_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_ArrayInitNoTypeObjectAssumed_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Cannot infer an element type because more than one type is possible; &apos;Object&apos; assumed..
         '''</summary>
         Friend ReadOnly Property WRN_ArrayInitTooManyTypesObjectAssumed() As String
             Get
                 Return ResourceManager.GetString("WRN_ArrayInitTooManyTypesObjectAssumed", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Cannot infer an element type because more than one type is possible..
+        '''</summary>
+        Friend ReadOnly Property WRN_ArrayInitTooManyTypesObjectAssumed_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_ArrayInitTooManyTypesObjectAssumed_Title", resourceCulture)
             End Get
         End Property
         
@@ -11965,11 +12001,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Method is not CLS-compliant because it overloads method which differs from it only by array of array parameter types or by the rank of the array parameter types..
+        '''</summary>
+        Friend ReadOnly Property WRN_ArrayOverloadsNonCLS2_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_ArrayOverloadsNonCLS2_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Attribute &apos;{0}&apos; from module &apos;{1}&apos; will be ignored in favor of the instance appearing in source..
         '''</summary>
         Friend ReadOnly Property WRN_AssemblyAttributeFromModuleIsOverridden() As String
             Get
                 Return ResourceManager.GetString("WRN_AssemblyAttributeFromModuleIsOverridden", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Attribute from module will be ignored in favor of the instance appearing in source..
+        '''</summary>
+        Friend ReadOnly Property WRN_AssemblyAttributeFromModuleIsOverridden_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_AssemblyAttributeFromModuleIsOverridden_Title", resourceCulture)
             End Get
         End Property
         
@@ -11983,11 +12037,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Possible problem detected while building assembly.
+        '''</summary>
+        Friend ReadOnly Property WRN_AssemblyGeneration0_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_AssemblyGeneration0_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Possible problem detected while building assembly &apos;{0}&apos;: {1}.
         '''</summary>
         Friend ReadOnly Property WRN_AssemblyGeneration1() As String
             Get
                 Return ResourceManager.GetString("WRN_AssemblyGeneration1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Possible problem detected while building assembly.
+        '''</summary>
+        Friend ReadOnly Property WRN_AssemblyGeneration1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_AssemblyGeneration1_Title", resourceCulture)
             End Get
         End Property
         
@@ -12001,11 +12073,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to This async method lacks &apos;Await&apos; operators and so will run synchronously..
+        '''</summary>
+        Friend ReadOnly Property WRN_AsyncLacksAwaits_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_AsyncLacksAwaits_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Some overloads here take an Async Function rather than an Async Sub. Consider either using an Async Function, or casting this Async Sub explicitly to the desired type..
         '''</summary>
         Friend ReadOnly Property WRN_AsyncSubCouldBeFunction() As String
             Get
                 Return ResourceManager.GetString("WRN_AsyncSubCouldBeFunction", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Some overloads here take an Async Function rather than an Async Sub..
+        '''</summary>
+        Friend ReadOnly Property WRN_AsyncSubCouldBeFunction_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_AsyncSubCouldBeFunction_Title", resourceCulture)
             End Get
         End Property
         
@@ -12019,11 +12109,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Bad checksum value, non hex digits or odd number of hex digits..
+        '''</summary>
+        Friend ReadOnly Property WRN_BadChecksumValExtChecksum_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_BadChecksumValExtChecksum_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Bad GUID format..
         '''</summary>
         Friend ReadOnly Property WRN_BadGUIDFormatExtChecksum() As String
             Get
                 Return ResourceManager.GetString("WRN_BadGUIDFormatExtChecksum", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Bad GUID format..
+        '''</summary>
+        Friend ReadOnly Property WRN_BadGUIDFormatExtChecksum_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_BadGUIDFormatExtChecksum_Title", resourceCulture)
             End Get
         End Property
         
@@ -12037,11 +12145,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Unrecognized command-line option.
+        '''</summary>
+        Friend ReadOnly Property WRN_BadSwitch_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_BadSwitch_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to The language name &apos;{0}&apos; is invalid..
         '''</summary>
         Friend ReadOnly Property WRN_BadUILang() As String
             Get
                 Return ResourceManager.GetString("WRN_BadUILang", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to The language name for /preferreduilang is invalid..
+        '''</summary>
+        Friend ReadOnly Property WRN_BadUILang_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_BadUILang_Title", resourceCulture)
             End Get
         End Property
         
@@ -12055,11 +12181,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Type is not CLS-compliant because it derives from base type that is not CLS-compliant..
+        '''</summary>
+        Friend ReadOnly Property WRN_BaseClassNotCLSCompliant2_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_BaseClassNotCLSCompliant2_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Could not find standard library &apos;{0}&apos;..
         '''</summary>
         Friend ReadOnly Property WRN_CannotFindStandardLibrary1() As String
             Get
                 Return ResourceManager.GetString("WRN_CannotFindStandardLibrary1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Could not find standard library..
+        '''</summary>
+        Friend ReadOnly Property WRN_CannotFindStandardLibrary1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_CannotFindStandardLibrary1_Title", resourceCulture)
             End Get
         End Property
         
@@ -12073,11 +12217,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to System.CLSCompliantAttribute cannot be applied to property &apos;Get&apos; or &apos;Set&apos;..
+        '''</summary>
+        Friend ReadOnly Property WRN_CLSAttrInvalidOnGetSet_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_CLSAttrInvalidOnGetSet_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;{0}&apos; method for event &apos;{1}&apos; cannot be marked CLS compliant because its containing type &apos;{2}&apos; is not CLS compliant..
         '''</summary>
         Friend ReadOnly Property WRN_CLSEventMethodInNonCLSType3() As String
             Get
                 Return ResourceManager.GetString("WRN_CLSEventMethodInNonCLSType3", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to AddHandler or RemoveHandler method for event cannot be marked CLS compliant because its containing type is not CLS compliant..
+        '''</summary>
+        Friend ReadOnly Property WRN_CLSEventMethodInNonCLSType3_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_CLSEventMethodInNonCLSType3_Title", resourceCulture)
             End Get
         End Property
         
@@ -12091,11 +12253,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Member cannot be marked CLS-compliant because its containing type is not CLS-compliant..
+        '''</summary>
+        Friend ReadOnly Property WRN_CLSMemberInNonCLSType3_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_CLSMemberInNonCLSType3_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;Microsoft.VisualBasic.ComClassAttribute&apos; on class &apos;{0}&apos; implicitly declares {1} &apos;{2}&apos;, which conflicts with a member of the same name in {3} &apos;{4}&apos;. Use &apos;Microsoft.VisualBasic.ComClassAttribute(InterfaceShadows:=True)&apos; if you want to hide the name on the base {4}..
         '''</summary>
         Friend ReadOnly Property WRN_ComClassInterfaceShadows5() As String
             Get
                 Return ResourceManager.GetString("WRN_ComClassInterfaceShadows5", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to &apos;Microsoft.VisualBasic.ComClassAttribute&apos; on class implicitly declares member, which conflicts with a member of the same name..
+        '''</summary>
+        Friend ReadOnly Property WRN_ComClassInterfaceShadows5_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_ComClassInterfaceShadows5_Title", resourceCulture)
             End Get
         End Property
         
@@ -12109,11 +12289,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to &apos;Microsoft.VisualBasic.ComClassAttribute&apos; is specified for class but class has no public members that can be exposed to COM..
+        '''</summary>
+        Friend ReadOnly Property WRN_ComClassNoMembers1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_ComClassNoMembers1_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;{0}&apos; cannot be exposed to COM as a property &apos;Let&apos;. You will not be able to assign non-object values (such as numbers or strings) to this property from Visual Basic 6.0 using a &apos;Let&apos; statement..
         '''</summary>
         Friend ReadOnly Property WRN_ComClassPropertySetObject1() As String
             Get
                 Return ResourceManager.GetString("WRN_ComClassPropertySetObject1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Property cannot be exposed to COM as a property &apos;Let&apos;..
+        '''</summary>
+        Friend ReadOnly Property WRN_ComClassPropertySetObject1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_ComClassPropertySetObject1_Title", resourceCulture)
             End Get
         End Property
         
@@ -12127,11 +12325,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Attribute &apos;Conditional&apos; is only valid on &apos;Sub&apos; declarations..
+        '''</summary>
+        Friend ReadOnly Property WRN_ConditionalNotValidOnFunction_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_ConditionalNotValidOnFunction_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Referenced assembly &apos;{0}&apos; targets a different processor..
         '''</summary>
         Friend ReadOnly Property WRN_ConflictingMachineAssembly() As String
             Get
                 Return ResourceManager.GetString("WRN_ConflictingMachineAssembly", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Referenced assembly targets a different processor..
+        '''</summary>
+        Friend ReadOnly Property WRN_ConflictingMachineAssembly_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_ConflictingMachineAssembly_Title", resourceCulture)
             End Get
         End Property
         
@@ -12145,11 +12361,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Type arguments inferred for method result in warnings..
+        '''</summary>
+        Friend ReadOnly Property WRN_ConstraintsFailedForInferredArgs2_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_ConstraintsFailedForInferredArgs2_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to System.Diagnostics.DebuggerHiddenAttribute does not affect &apos;Get&apos; or &apos;Set&apos; when applied to the Property definition.  Apply the attribute directly to the &apos;Get&apos; and &apos;Set&apos; procedures as appropriate..
         '''</summary>
         Friend ReadOnly Property WRN_DebuggerHiddenIgnoredOnProperties() As String
             Get
                 Return ResourceManager.GetString("WRN_DebuggerHiddenIgnoredOnProperties", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to System.Diagnostics.DebuggerHiddenAttribute does not affect &apos;Get&apos; or &apos;Set&apos; when applied to the Property definition..
+        '''</summary>
+        Friend ReadOnly Property WRN_DebuggerHiddenIgnoredOnProperties_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_DebuggerHiddenIgnoredOnProperties_Title", resourceCulture)
             End Get
         End Property
         
@@ -12163,11 +12397,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Function doesn&apos;t return a value on all code paths..
+        '''</summary>
+        Friend ReadOnly Property WRN_DefAsgNoRetValFuncRef1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_DefAsgNoRetValFuncRef1_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Function &apos;{0}&apos; doesn&apos;t return a value on all code paths. Are you missing a &apos;Return&apos; statement?.
         '''</summary>
         Friend ReadOnly Property WRN_DefAsgNoRetValFuncVal1() As String
             Get
                 Return ResourceManager.GetString("WRN_DefAsgNoRetValFuncVal1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Function doesn&apos;t return a value on all code paths..
+        '''</summary>
+        Friend ReadOnly Property WRN_DefAsgNoRetValFuncVal1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_DefAsgNoRetValFuncVal1_Title", resourceCulture)
             End Get
         End Property
         
@@ -12181,11 +12433,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Operator doesn&apos;t return a value on all code paths..
+        '''</summary>
+        Friend ReadOnly Property WRN_DefAsgNoRetValOpRef1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_DefAsgNoRetValOpRef1_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Operator &apos;{0}&apos; doesn&apos;t return a value on all code paths. Are you missing a &apos;Return&apos; statement?.
         '''</summary>
         Friend ReadOnly Property WRN_DefAsgNoRetValOpVal1() As String
             Get
                 Return ResourceManager.GetString("WRN_DefAsgNoRetValOpVal1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Operator doesn&apos;t return a value on all code paths..
+        '''</summary>
+        Friend ReadOnly Property WRN_DefAsgNoRetValOpVal1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_DefAsgNoRetValOpVal1_Title", resourceCulture)
             End Get
         End Property
         
@@ -12199,11 +12469,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Property doesn&apos;t return a value on all code paths..
+        '''</summary>
+        Friend ReadOnly Property WRN_DefAsgNoRetValPropRef1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_DefAsgNoRetValPropRef1_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Property &apos;{0}&apos; doesn&apos;t return a value on all code paths. Are you missing a &apos;Return&apos; statement?.
         '''</summary>
         Friend ReadOnly Property WRN_DefAsgNoRetValPropVal1() As String
             Get
                 Return ResourceManager.GetString("WRN_DefAsgNoRetValPropVal1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Property doesn&apos;t return a value on all code paths..
+        '''</summary>
+        Friend ReadOnly Property WRN_DefAsgNoRetValPropVal1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_DefAsgNoRetValPropVal1_Title", resourceCulture)
             End Get
         End Property
         
@@ -12217,11 +12505,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to The AddHandler for Windows Runtime event doesn&apos;t return a value on all code paths..
+        '''</summary>
+        Friend ReadOnly Property WRN_DefAsgNoRetValWinRtEventVal1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_DefAsgNoRetValWinRtEventVal1_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Variable &apos;{0}&apos; is used before it has been assigned a value. A null reference exception could result at runtime..
         '''</summary>
         Friend ReadOnly Property WRN_DefAsgUseNullRef() As String
             Get
                 Return ResourceManager.GetString("WRN_DefAsgUseNullRef", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Variable is used before it has been assigned a value..
+        '''</summary>
+        Friend ReadOnly Property WRN_DefAsgUseNullRef_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_DefAsgUseNullRef_Title", resourceCulture)
             End Get
         End Property
         
@@ -12235,11 +12541,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Variable is passed by reference before it has been assigned a value..
+        '''</summary>
+        Friend ReadOnly Property WRN_DefAsgUseNullRefByRef_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_DefAsgUseNullRefByRef_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Variable &apos;{0}&apos; is passed by reference before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use.
         '''</summary>
         Friend ReadOnly Property WRN_DefAsgUseNullRefByRefStr() As String
             Get
                 Return ResourceManager.GetString("WRN_DefAsgUseNullRefByRefStr", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Variable is passed by reference before it has been assigned a value..
+        '''</summary>
+        Friend ReadOnly Property WRN_DefAsgUseNullRefByRefStr_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_DefAsgUseNullRefByRefStr_Title", resourceCulture)
             End Get
         End Property
         
@@ -12253,11 +12577,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Variable is used before it has been assigned a value..
+        '''</summary>
+        Friend ReadOnly Property WRN_DefAsgUseNullRefStr_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_DefAsgUseNullRefStr_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Default property &apos;{0}&apos; conflicts with the default property &apos;{1}&apos; in the base {2} &apos;{3}&apos;. &apos;{0}&apos; will be the default property. &apos;{0}&apos; should be declared &apos;Shadows&apos;..
         '''</summary>
         Friend ReadOnly Property WRN_DefaultnessShadowed4() As String
             Get
                 Return ResourceManager.GetString("WRN_DefaultnessShadowed4", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Default property conflicts with the default property in the base type..
+        '''</summary>
+        Friend ReadOnly Property WRN_DefaultnessShadowed4_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_DefaultnessShadowed4_Title", resourceCulture)
             End Get
         End Property
         
@@ -12271,11 +12613,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Delay signing was specified and requires a public key, but no public key was specified..
+        '''</summary>
+        Friend ReadOnly Property WRN_DelaySignButNoKey_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_DelaySignButNoKey_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;Catch&apos; block never reached; &apos;{0}&apos; handled above in the same Try statement..
         '''</summary>
         Friend ReadOnly Property WRN_DuplicateCatch() As String
             Get
                 Return ResourceManager.GetString("WRN_DuplicateCatch", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to &apos;Catch&apos; block never reached; exception type handled above in the same Try statement..
+        '''</summary>
+        Friend ReadOnly Property WRN_DuplicateCatch_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_DuplicateCatch_Title", resourceCulture)
             End Get
         End Property
         
@@ -12289,11 +12649,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to The xmlns attribute has special meaning and should not be written with a prefix..
+        '''</summary>
+        Friend ReadOnly Property WRN_EmptyPrefixAndXmlnsLocalName_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_EmptyPrefixAndXmlnsLocalName_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Underlying type &apos;{0}&apos; of Enum is not CLS-compliant..
         '''</summary>
         Friend ReadOnly Property WRN_EnumUnderlyingTypeNotCLS1() As String
             Get
                 Return ResourceManager.GetString("WRN_EnumUnderlyingTypeNotCLS1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Underlying type of Enum is not CLS-compliant..
+        '''</summary>
+        Friend ReadOnly Property WRN_EnumUnderlyingTypeNotCLS1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_EnumUnderlyingTypeNotCLS1_Title", resourceCulture)
             End Get
         End Property
         
@@ -12307,11 +12685,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to This expression will always evaluate to Nothing..
+        '''</summary>
+        Friend ReadOnly Property WRN_EqualToLiteralNothing_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_EqualToLiteralNothing_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Delegate type &apos;{0}&apos; of event &apos;{1}&apos; is not CLS-compliant..
         '''</summary>
         Friend ReadOnly Property WRN_EventDelegateTypeNotCLSCompliant2() As String
             Get
                 Return ResourceManager.GetString("WRN_EventDelegateTypeNotCLSCompliant2", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Delegate type of event is not CLS-compliant..
+        '''</summary>
+        Friend ReadOnly Property WRN_EventDelegateTypeNotCLSCompliant2_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_EventDelegateTypeNotCLSCompliant2_Title", resourceCulture)
             End Get
         End Property
         
@@ -12325,11 +12721,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Constructor in designer-generated type should call InitializeComponent method..
+        '''</summary>
+        Friend ReadOnly Property WRN_ExpectedInitComponentCall2_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_ExpectedInitComponentCall2_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Type of member &apos;{0}&apos; is not CLS-compliant..
         '''</summary>
         Friend ReadOnly Property WRN_FieldNotCLSCompliant1() As String
             Get
                 Return ResourceManager.GetString("WRN_FieldNotCLSCompliant1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type of member is not CLS-compliant..
+        '''</summary>
+        Friend ReadOnly Property WRN_FieldNotCLSCompliant1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_FieldNotCLSCompliant1_Title", resourceCulture)
             End Get
         End Property
         
@@ -12343,11 +12757,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Source file specified multiple times.
+        '''</summary>
+        Friend ReadOnly Property WRN_FileAlreadyIncluded_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_FileAlreadyIncluded_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Generic parameter constraint type &apos;{0}&apos; is not CLS-compliant..
         '''</summary>
         Friend ReadOnly Property WRN_GenericConstraintNotCLSCompliant1() As String
             Get
                 Return ResourceManager.GetString("WRN_GenericConstraintNotCLSCompliant1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Generic parameter constraint type is not CLS-compliant..
+        '''</summary>
+        Friend ReadOnly Property WRN_GenericConstraintNotCLSCompliant1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_GenericConstraintNotCLSCompliant1_Title", resourceCulture)
             End Get
         End Property
         
@@ -12361,11 +12793,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Cannot infer a common type..
+        '''</summary>
+        Friend ReadOnly Property WRN_IfNoTypeObjectAssumed_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_IfNoTypeObjectAssumed_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Cannot infer a common type because more than one type is possible; &apos;Object&apos; assumed..
         '''</summary>
         Friend ReadOnly Property WRN_IfTooManyTypesObjectAssumed() As String
             Get
                 Return ResourceManager.GetString("WRN_IfTooManyTypesObjectAssumed", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Cannot infer a common type because more than one type is possible..
+        '''</summary>
+        Friend ReadOnly Property WRN_IfTooManyTypesObjectAssumed_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_IfTooManyTypesObjectAssumed_Title", resourceCulture)
             End Get
         End Property
         
@@ -12379,11 +12829,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Option /win32manifest ignored.
+        '''</summary>
+        Friend ReadOnly Property WRN_IgnoreModuleManifest_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_IgnoreModuleManifest_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Implicit conversion from &apos;{0}&apos; to &apos;{1}&apos;..
         '''</summary>
         Friend ReadOnly Property WRN_ImplicitConversion2() As String
             Get
                 Return ResourceManager.GetString("WRN_ImplicitConversion2", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Implicit conversion..
+        '''</summary>
+        Friend ReadOnly Property WRN_ImplicitConversion2_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_ImplicitConversion2_Title", resourceCulture)
             End Get
         End Property
         
@@ -12397,11 +12865,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Implicit conversion in copying the value of &apos;ByRef&apos; parameter back to the matching argument..
+        '''</summary>
+        Friend ReadOnly Property WRN_ImplicitConversionCopyBack_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_ImplicitConversionCopyBack_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to {0}.
         '''</summary>
         Friend ReadOnly Property WRN_ImplicitConversionSubst1() As String
             Get
                 Return ResourceManager.GetString("WRN_ImplicitConversionSubst1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Implicit conversion..
+        '''</summary>
+        Friend ReadOnly Property WRN_ImplicitConversionSubst1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_ImplicitConversionSubst1_Title", resourceCulture)
             End Get
         End Property
         
@@ -12415,11 +12901,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to A reference was created to embedded interop assembly because of an indirect reference to that assembly..
+        '''</summary>
+        Friend ReadOnly Property WRN_IndirectRefToLinkedAssembly2_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_IndirectRefToLinkedAssembly2_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;{0}&apos; is not CLS-compliant because the interface &apos;{1}&apos; it inherits from is not CLS-compliant..
         '''</summary>
         Friend ReadOnly Property WRN_InheritedInterfaceNotCLSCompliant2() As String
             Get
                 Return ResourceManager.GetString("WRN_InheritedInterfaceNotCLSCompliant2", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type is not CLS-compliant because the interface it inherits from is not CLS-compliant..
+        '''</summary>
+        Friend ReadOnly Property WRN_InheritedInterfaceNotCLSCompliant2_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_InheritedInterfaceNotCLSCompliant2_Title", resourceCulture)
             End Get
         End Property
         
@@ -12433,11 +12937,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Runtime errors might occur when converting to or from interface type..
+        '''</summary>
+        Friend ReadOnly Property WRN_InterfaceConversion2_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_InterfaceConversion2_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Assembly reference &apos;{0}&apos; is invalid and cannot be resolved..
         '''</summary>
         Friend ReadOnly Property WRN_InvalidAssemblyName() As String
             Get
                 Return ResourceManager.GetString("WRN_InvalidAssemblyName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Assembly reference is invalid and cannot be resolved..
+        '''</summary>
+        Friend ReadOnly Property WRN_InvalidAssemblyName_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_InvalidAssemblyName_Title", resourceCulture)
             End Get
         End Property
         
@@ -12451,11 +12973,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to The specified version string does not conform to the recommended format..
+        '''</summary>
+        Friend ReadOnly Property WRN_InvalidVersionFormat_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_InvalidVersionFormat_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to warning number &apos;{0}&apos; for the option &apos;{1}&apos; is either not configurable or not valid.
         '''</summary>
         Friend ReadOnly Property WRN_InvalidWarningId() As String
             Get
                 Return ResourceManager.GetString("WRN_InvalidWarningId", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Warning number is either not configurable or not valid.
+        '''</summary>
+        Friend ReadOnly Property WRN_InvalidWarningId_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_InvalidWarningId_Title", resourceCulture)
             End Get
         End Property
         
@@ -12469,11 +13009,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Cannot infer a return type..
+        '''</summary>
+        Friend ReadOnly Property WRN_LambdaNoTypeObjectAssumed_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_LambdaNoTypeObjectAssumed_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Lambda expression will not be removed from this event handler. Assign the lambda expression to a variable and use the variable to add and remove the event..
         '''</summary>
         Friend ReadOnly Property WRN_LambdaPassedToRemoveHandler() As String
             Get
                 Return ResourceManager.GetString("WRN_LambdaPassedToRemoveHandler", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Lambda expression will not be removed from this event handler..
+        '''</summary>
+        Friend ReadOnly Property WRN_LambdaPassedToRemoveHandler_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_LambdaPassedToRemoveHandler_Title", resourceCulture)
             End Get
         End Property
         
@@ -12487,11 +13045,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Cannot infer a return type because more than one type is possible..
+        '''</summary>
+        Friend ReadOnly Property WRN_LambdaTooManyTypesObjectAssumed_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_LambdaTooManyTypesObjectAssumed_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Late bound resolution; runtime errors could occur..
         '''</summary>
         Friend ReadOnly Property WRN_LateBindingResolution() As String
             Get
                 Return ResourceManager.GetString("WRN_LateBindingResolution", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Late bound resolution..
+        '''</summary>
+        Friend ReadOnly Property WRN_LateBindingResolution_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_LateBindingResolution_Title", resourceCulture)
             End Get
         End Property
         
@@ -12505,11 +13081,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Using the iteration variable in a lambda expression may have unexpected results..
+        '''</summary>
+        Friend ReadOnly Property WRN_LiftControlVariableLambda_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_LiftControlVariableLambda_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Using the iteration variable in a query expression may have unexpected results.  Instead, create a local variable within the loop and assign it the value of the iteration variable..
         '''</summary>
         Friend ReadOnly Property WRN_LiftControlVariableQuery() As String
             Get
                 Return ResourceManager.GetString("WRN_LiftControlVariableQuery", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Using the iteration variable in a query expression may have unexpected results..
+        '''</summary>
+        Friend ReadOnly Property WRN_LiftControlVariableQuery_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_LiftControlVariableQuery_Title", resourceCulture)
             End Get
         End Property
         
@@ -12523,11 +13117,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to The entry point of the program is global script code; ignoring entry point..
+        '''</summary>
+        Friend ReadOnly Property WRN_MainIgnored_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_MainIgnored_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to {0} &apos;{1}&apos; conflicts with a member implicitly declared for {2} &apos;{3}&apos; in the base {4} &apos;{5}&apos; and should be declared &apos;Shadows&apos;..
         '''</summary>
         Friend ReadOnly Property WRN_MemberShadowsSynthMember6() As String
             Get
                 Return ResourceManager.GetString("WRN_MemberShadowsSynthMember6", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Member conflicts with a member implicitly declared for property or event in the base type..
+        '''</summary>
+        Friend ReadOnly Property WRN_MemberShadowsSynthMember6_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_MemberShadowsSynthMember6_Title", resourceCulture)
             End Get
         End Property
         
@@ -12541,11 +13153,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Function without an &apos;As&apos; clause..
+        '''</summary>
+        Friend ReadOnly Property WRN_MissingAsClauseinFunction_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_MissingAsClauseinFunction_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Operator without an &apos;As&apos; clause; type of Object assumed..
         '''</summary>
         Friend ReadOnly Property WRN_MissingAsClauseinOperator() As String
             Get
                 Return ResourceManager.GetString("WRN_MissingAsClauseinOperator", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Operator without an &apos;As&apos; clause..
+        '''</summary>
+        Friend ReadOnly Property WRN_MissingAsClauseinOperator_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_MissingAsClauseinOperator_Title", resourceCulture)
             End Get
         End Property
         
@@ -12559,11 +13189,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Property without an &apos;As&apos; clause..
+        '''</summary>
+        Friend ReadOnly Property WRN_MissingAsClauseinProperty_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_MissingAsClauseinProperty_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Variable declaration without an &apos;As&apos; clause; type of Object assumed..
         '''</summary>
         Friend ReadOnly Property WRN_MissingAsClauseinVarDecl() As String
             Get
                 Return ResourceManager.GetString("WRN_MissingAsClauseinVarDecl", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Variable declaration without an &apos;As&apos; clause..
+        '''</summary>
+        Friend ReadOnly Property WRN_MissingAsClauseinVarDecl_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_MissingAsClauseinVarDecl_Title", resourceCulture)
             End Get
         End Property
         
@@ -12577,11 +13225,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to File name already declared with a different GUID and checksum value..
+        '''</summary>
+        Friend ReadOnly Property WRN_MultipleDeclFileExtChecksum_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_MultipleDeclFileExtChecksum_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to {0} &apos;{1}&apos; shadows an overloadable member declared in the base {2} &apos;{3}&apos;.  If you want to overload the base method, this method must be declared &apos;Overloads&apos;..
         '''</summary>
         Friend ReadOnly Property WRN_MustOverloadBase4() As String
             Get
                 Return ResourceManager.GetString("WRN_MustOverloadBase4", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Member shadows an overloadable member declared in the base type..
+        '''</summary>
+        Friend ReadOnly Property WRN_MustOverloadBase4_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_MustOverloadBase4_Title", resourceCulture)
             End Get
         End Property
         
@@ -12595,11 +13261,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Member shadows an overridable method in the base type..
+        '''</summary>
+        Friend ReadOnly Property WRN_MustOverride2_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_MustOverride2_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to {0} &apos;{1}&apos; conflicts with other members of the same name across the inheritance hierarchy and so should be declared &apos;Shadows&apos;..
         '''</summary>
         Friend ReadOnly Property WRN_MustShadowOnMultipleInheritance2() As String
             Get
                 Return ResourceManager.GetString("WRN_MustShadowOnMultipleInheritance2", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Method conflicts with other members of the same name across the inheritance hierarchy and so should be declared &apos;Shadows&apos;..
+        '''</summary>
+        Friend ReadOnly Property WRN_MustShadowOnMultipleInheritance2_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_MustShadowOnMultipleInheritance2_Title", resourceCulture)
             End Get
         End Property
         
@@ -12613,11 +13297,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Local variable declared by Using statement is read-only and its type may be a structure..
+        '''</summary>
+        Friend ReadOnly Property WRN_MutableGenericStructureInUsing_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_MutableGenericStructureInUsing_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Local variable &apos;{0}&apos; is read-only and its type is a structure. Invoking its members or passing it ByRef does not change its content and might lead to unexpected results. Consider declaring this variable outside of the &apos;Using&apos; block..
         '''</summary>
         Friend ReadOnly Property WRN_MutableStructureInUsing() As String
             Get
                 Return ResourceManager.GetString("WRN_MutableStructureInUsing", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Local variable declared by Using statement is read-only and its type is a structure..
+        '''</summary>
+        Friend ReadOnly Property WRN_MutableStructureInUsing_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_MutableStructureInUsing_Title", resourceCulture)
             End Get
         End Property
         
@@ -12631,11 +13333,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Name is not CLS-compliant..
+        '''</summary>
+        Friend ReadOnly Property WRN_NameNotCLSCompliant1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_NameNotCLSCompliant1_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Casing of namespace name &apos;{0}&apos; does not match casing of namespace name &apos;{1}&apos; in &apos;{2}&apos;..
         '''</summary>
         Friend ReadOnly Property WRN_NamespaceCaseMismatch3() As String
             Get
                 Return ResourceManager.GetString("WRN_NamespaceCaseMismatch3", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Casing of namespace name does not match..
+        '''</summary>
+        Friend ReadOnly Property WRN_NamespaceCaseMismatch3_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_NamespaceCaseMismatch3_Title", resourceCulture)
             End Get
         End Property
         
@@ -12649,11 +13369,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Assembly does not contain any analyzers..
+        '''</summary>
+        Friend ReadOnly Property WRN_NoAnalyzerInAssembly_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_NoAnalyzerInAssembly_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to ignoring /noconfig option because it was specified in a response file.
         '''</summary>
         Friend ReadOnly Property WRN_NoConfigInResponseFile() As String
             Get
                 Return ResourceManager.GetString("WRN_NoConfigInResponseFile", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Ignoring /noconfig option because it was specified in a response file.
+        '''</summary>
+        Friend ReadOnly Property WRN_NoConfigInResponseFile_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_NoConfigInResponseFile_Title", resourceCulture)
             End Get
         End Property
         
@@ -12667,11 +13405,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Non CLS-compliant &apos;Mustoverride&apos; member is not allowed in CLS-compliant type &apos;{0}&apos;..
+        '''  Looks up a localized string similar to Non CLS-compliant member is not allowed in a CLS-compliant interface..
+        '''</summary>
+        Friend ReadOnly Property WRN_NonCLSMemberInCLSInterface1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_NonCLSMemberInCLSInterface1_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Non CLS-compliant &apos;MustOverride&apos; member is not allowed in CLS-compliant type &apos;{0}&apos;..
         '''</summary>
         Friend ReadOnly Property WRN_NonCLSMustOverrideInCLSType1() As String
             Get
                 Return ResourceManager.GetString("WRN_NonCLSMustOverrideInCLSType1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Non CLS-compliant &apos;MustOverride&apos; member is not allowed in CLS-compliant type..
+        '''</summary>
+        Friend ReadOnly Property WRN_NonCLSMustOverrideInCLSType1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_NonCLSMustOverrideInCLSType1_Title", resourceCulture)
             End Get
         End Property
         
@@ -12685,11 +13441,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Class should declare a &apos;Sub New&apos; because the constructor in its base class is marked obsolete..
+        '''</summary>
+        Friend ReadOnly Property WRN_NoNonObsoleteConstructorOnBase3_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_NoNonObsoleteConstructorOnBase3_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Class &apos;{0}&apos; should declare a &apos;Sub New&apos; because the &apos;{1}&apos; in its base class &apos;{2}&apos; is marked obsolete: &apos;{3}&apos;..
         '''</summary>
         Friend ReadOnly Property WRN_NoNonObsoleteConstructorOnBase4() As String
             Get
                 Return ResourceManager.GetString("WRN_NoNonObsoleteConstructorOnBase4", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Class should declare a &apos;Sub New&apos; because the constructor in its base class is marked obsolete..
+        '''</summary>
+        Friend ReadOnly Property WRN_NoNonObsoleteConstructorOnBase4_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_NoNonObsoleteConstructorOnBase4_Title", resourceCulture)
             End Get
         End Property
         
@@ -12703,11 +13477,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to This expression will always evaluate to Nothing..
+        '''</summary>
+        Friend ReadOnly Property WRN_NotEqualToLiteralNothing_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_NotEqualToLiteralNothing_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to {0}.
         '''</summary>
         Friend ReadOnly Property WRN_ObjectAssumed1() As String
             Get
                 Return ResourceManager.GetString("WRN_ObjectAssumed1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Function without an &apos;As&apos; clause..
+        '''</summary>
+        Friend ReadOnly Property WRN_ObjectAssumed1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_ObjectAssumed1_Title", resourceCulture)
             End Get
         End Property
         
@@ -12721,11 +13513,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Property without an &apos;As&apos; clause..
+        '''</summary>
+        Friend ReadOnly Property WRN_ObjectAssumedProperty1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_ObjectAssumedProperty1_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to {0}.
         '''</summary>
         Friend ReadOnly Property WRN_ObjectAssumedVar1() As String
             Get
                 Return ResourceManager.GetString("WRN_ObjectAssumedVar1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Variable declaration without an &apos;As&apos; clause..
+        '''</summary>
+        Friend ReadOnly Property WRN_ObjectAssumedVar1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_ObjectAssumedVar1_Title", resourceCulture)
             End Get
         End Property
         
@@ -12739,11 +13549,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Operands of type Object used for operator..
+        '''</summary>
+        Friend ReadOnly Property WRN_ObjectMath1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_ObjectMath1_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Operands of type Object used for operator &apos;{0}&apos;; use the &apos;IsNot&apos; operator to test object identity..
         '''</summary>
         Friend ReadOnly Property WRN_ObjectMath1Not() As String
             Get
                 Return ResourceManager.GetString("WRN_ObjectMath1Not", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Operands of type Object used for operator &lt;&gt;..
+        '''</summary>
+        Friend ReadOnly Property WRN_ObjectMath1Not_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_ObjectMath1Not_Title", resourceCulture)
             End Get
         End Property
         
@@ -12757,11 +13585,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Operands of type Object used for operator..
+        '''</summary>
+        Friend ReadOnly Property WRN_ObjectMath2_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_ObjectMath2_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Operands of type Object used in expressions for &apos;Select&apos;, &apos;Case&apos; statements; runtime errors could occur..
         '''</summary>
         Friend ReadOnly Property WRN_ObjectMathSelectCase() As String
             Get
                 Return ResourceManager.GetString("WRN_ObjectMathSelectCase", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Operands of type Object used in expressions for &apos;Select&apos;, &apos;Case&apos; statements..
+        '''</summary>
+        Friend ReadOnly Property WRN_ObjectMathSelectCase_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_ObjectMathSelectCase_Title", resourceCulture)
             End Get
         End Property
         
@@ -12775,11 +13621,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Using DirectCast operator to cast a value-type to the same type is obsolete..
+        '''</summary>
+        Friend ReadOnly Property WRN_ObsoleteIdentityDirectCastForValueType_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_ObsoleteIdentityDirectCastForValueType_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Type of optional value for optional parameter &apos;{0}&apos; is not CLS-compliant..
         '''</summary>
         Friend ReadOnly Property WRN_OptionalValueNotCLSCompliant1() As String
             Get
                 Return ResourceManager.GetString("WRN_OptionalValueNotCLSCompliant1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type of optional value for optional parameter is not CLS-compliant..
+        '''</summary>
+        Friend ReadOnly Property WRN_OptionalValueNotCLSCompliant1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_OptionalValueNotCLSCompliant1_Title", resourceCulture)
             End Get
         End Property
         
@@ -12793,11 +13657,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to &apos;Catch&apos; block never reached; exception type&apos;s base type handled above in the same Try statement..
+        '''</summary>
+        Friend ReadOnly Property WRN_OverlapingCatch_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_OverlapingCatch_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to {0} &apos;{1}&apos; conflicts with {2} &apos;{1}&apos; in the base {3} &apos;{4}&apos; and should be declared &apos;Shadows&apos;..
         '''</summary>
         Friend ReadOnly Property WRN_OverrideType5() As String
             Get
                 Return ResourceManager.GetString("WRN_OverrideType5", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Member conflicts with member in the base type and should be declared &apos;Shadows&apos;..
+        '''</summary>
+        Friend ReadOnly Property WRN_OverrideType5_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_OverrideType5_Title", resourceCulture)
             End Get
         End Property
         
@@ -12811,11 +13693,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Type of parameter is not CLS-compliant..
+        '''</summary>
+        Friend ReadOnly Property WRN_ParamNotCLSCompliant1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_ParamNotCLSCompliant1_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Local name &apos;{0}&apos; is too long for PDB.  Consider shortening or compiling without /debug..
         '''</summary>
         Friend ReadOnly Property WRN_PdbLocalNameTooLong() As String
             Get
                 Return ResourceManager.GetString("WRN_PdbLocalNameTooLong", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Local name is too long for PDB..
+        '''</summary>
+        Friend ReadOnly Property WRN_PdbLocalNameTooLong_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_PdbLocalNameTooLong_Title", resourceCulture)
             End Get
         End Property
         
@@ -12829,11 +13729,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Import string is too long for PDB..
+        '''</summary>
+        Friend ReadOnly Property WRN_PdbUsingNameTooLong_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_PdbUsingNameTooLong_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to It is not recommended to have attributes named xmlns. Did you mean to write &apos;xmlns:{0}&apos; to define a prefix named &apos;{0}&apos;?.
         '''</summary>
         Friend ReadOnly Property WRN_PrefixAndXmlnsLocalName() As String
             Get
                 Return ResourceManager.GetString("WRN_PrefixAndXmlnsLocalName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to It is not recommended to have attributes named xmlns..
+        '''</summary>
+        Friend ReadOnly Property WRN_PrefixAndXmlnsLocalName_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_PrefixAndXmlnsLocalName_Title", resourceCulture)
             End Get
         End Property
         
@@ -12847,11 +13765,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Return type of function is not CLS-compliant..
+        '''</summary>
+        Friend ReadOnly Property WRN_ProcTypeNotCLSCompliant1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_ProcTypeNotCLSCompliant1_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Range variable is assumed to be of type Object because its type cannot be inferred. Use an &apos;As&apos; clause to specify a different type..
         '''</summary>
         Friend ReadOnly Property WRN_QueryMissingAsClauseinVarDecl() As String
             Get
                 Return ResourceManager.GetString("WRN_QueryMissingAsClauseinVarDecl", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Range variable is assumed to be of type Object because its type cannot be inferred..
+        '''</summary>
+        Friend ReadOnly Property WRN_QueryMissingAsClauseinVarDecl_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_QueryMissingAsClauseinVarDecl_Title", resourceCulture)
             End Get
         End Property
         
@@ -12865,11 +13801,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Statement recursively calls the event&apos;s containing AddHandler..
+        '''</summary>
+        Friend ReadOnly Property WRN_RecursiveAddHandlerCall_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_RecursiveAddHandlerCall_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Expression recursively calls the containing Operator &apos;{0}&apos;..
         '''</summary>
         Friend ReadOnly Property WRN_RecursiveOperatorCall() As String
             Get
                 Return ResourceManager.GetString("WRN_RecursiveOperatorCall", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Expression recursively calls the containing Operator..
+        '''</summary>
+        Friend ReadOnly Property WRN_RecursiveOperatorCall_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_RecursiveOperatorCall_Title", resourceCulture)
             End Get
         End Property
         
@@ -12883,11 +13837,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Expression recursively calls the containing property..
+        '''</summary>
+        Friend ReadOnly Property WRN_RecursivePropertyCall_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_RecursivePropertyCall_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Referenced assembly &apos;{0}&apos; has different culture setting of &apos;{1}&apos;..
         '''</summary>
         Friend ReadOnly Property WRN_RefCultureMismatch() As String
             Get
                 Return ResourceManager.GetString("WRN_RefCultureMismatch", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Referenced assembly has different culture setting..
+        '''</summary>
+        Friend ReadOnly Property WRN_RefCultureMismatch_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_RefCultureMismatch_Title", resourceCulture)
             End Get
         End Property
         
@@ -12901,11 +13873,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Referenced assembly does not have a strong name..
+        '''</summary>
+        Friend ReadOnly Property WRN_ReferencedAssemblyDoesNotHaveStrongName_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_ReferencedAssemblyDoesNotHaveStrongName_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to The &apos;AddressOf&apos; expression has no effect in this context because the method argument to &apos;AddressOf&apos; requires a relaxed conversion to the delegate type of the event. Assign the &apos;AddressOf&apos; expression to a variable, and use the variable to add or remove the method as the handler..
         '''</summary>
         Friend ReadOnly Property WRN_RelDelegatePassedToRemoveHandler() As String
             Get
                 Return ResourceManager.GetString("WRN_RelDelegatePassedToRemoveHandler", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to The &apos;AddressOf&apos; expression has no effect in this context because the method argument to &apos;AddressOf&apos; requires a relaxed conversion to the delegate type of the event..
+        '''</summary>
+        Friend ReadOnly Property WRN_RelDelegatePassedToRemoveHandler_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_RelDelegatePassedToRemoveHandler_Title", resourceCulture)
             End Get
         End Property
         
@@ -12919,11 +13909,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to First statement of this &apos;Sub New&apos; should be an explicit call to &apos;MyBase.New&apos; or &apos;MyClass.New&apos; because the constructor in the base class is marked obsolete..
+        '''</summary>
+        Friend ReadOnly Property WRN_RequiredNonObsoleteNewCall3_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_RequiredNonObsoleteNewCall3_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to First statement of this &apos;Sub New&apos; should be an explicit call to &apos;MyBase.New&apos; or &apos;MyClass.New&apos; because the &apos;{0}&apos; in the base class &apos;{1}&apos; of &apos;{2}&apos; is marked obsolete: &apos;{3}&apos;.
         '''</summary>
         Friend ReadOnly Property WRN_RequiredNonObsoleteNewCall4() As String
             Get
                 Return ResourceManager.GetString("WRN_RequiredNonObsoleteNewCall4", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to First statement of this &apos;Sub New&apos; should be an explicit call to &apos;MyBase.New&apos; or &apos;MyClass.New&apos; because the constructor in the base class is marked obsolete..
+        '''</summary>
+        Friend ReadOnly Property WRN_RequiredNonObsoleteNewCall4_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_RequiredNonObsoleteNewCall4_Title", resourceCulture)
             End Get
         End Property
         
@@ -12937,11 +13945,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Attributes applied on a return type of a WriteOnly Property have no effect..
+        '''</summary>
+        Friend ReadOnly Property WRN_ReturnTypeAttributeOnWriteOnlyProperty_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_ReturnTypeAttributeOnWriteOnlyProperty_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Root namespace &apos;{0}&apos; is not CLS-compliant..
         '''</summary>
         Friend ReadOnly Property WRN_RootNamespaceNotCLSCompliant1() As String
             Get
                 Return ResourceManager.GetString("WRN_RootNamespaceNotCLSCompliant1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Root namespace is not CLS-compliant..
+        '''</summary>
+        Friend ReadOnly Property WRN_RootNamespaceNotCLSCompliant1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_RootNamespaceNotCLSCompliant1_Title", resourceCulture)
             End Get
         End Property
         
@@ -12955,11 +13981,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Part of the root namespace is not CLS-compliant..
+        '''</summary>
+        Friend ReadOnly Property WRN_RootNamespaceNotCLSCompliant2_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_RootNamespaceNotCLSCompliant2_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Range specified for &apos;Case&apos; statement is not valid. Make sure that the lower bound is less than or equal to the upper bound..
         '''</summary>
         Friend ReadOnly Property WRN_SelectCaseInvalidRange() As String
             Get
                 Return ResourceManager.GetString("WRN_SelectCaseInvalidRange", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Range specified for &apos;Case&apos; statement is not valid..
+        '''</summary>
+        Friend ReadOnly Property WRN_SelectCaseInvalidRange_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_SelectCaseInvalidRange_Title", resourceCulture)
             End Get
         End Property
         
@@ -12973,11 +14017,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Type parameter has the same name as a type parameter of an enclosing type..
+        '''</summary>
+        Friend ReadOnly Property WRN_ShadowingGenericParamWithParam1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_ShadowingGenericParamWithParam1_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated..
         '''</summary>
         Friend ReadOnly Property WRN_SharedMemberThroughInstance() As String
             Get
                 Return ResourceManager.GetString("WRN_SharedMemberThroughInstance", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Access of shared member, constant member, enum member or nested type through an instance..
+        '''</summary>
+        Friend ReadOnly Property WRN_SharedMemberThroughInstance_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_SharedMemberThroughInstance_Title", resourceCulture)
             End Get
         End Property
         
@@ -12991,11 +14053,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Static variable declared without an &apos;As&apos; clause..
+        '''</summary>
+        Friend ReadOnly Property WRN_StaticLocalNoInference_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_StaticLocalNoInference_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to {0} &apos;{1}&apos; implicitly declares &apos;{2}&apos;, which conflicts with a member in the base {3} &apos;{4}&apos;, and so the {0} should be declared &apos;Shadows&apos;..
         '''</summary>
         Friend ReadOnly Property WRN_SynthMemberShadowsMember5() As String
             Get
                 Return ResourceManager.GetString("WRN_SynthMemberShadowsMember5", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Property or event implicitly declares type or member that conflicts with a member in the base type..
+        '''</summary>
+        Friend ReadOnly Property WRN_SynthMemberShadowsMember5_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_SynthMemberShadowsMember5_Title", resourceCulture)
             End Get
         End Property
         
@@ -13009,11 +14089,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Property or event implicitly declares member, which conflicts with a member implicitly declared for property or event in the base type..
+        '''</summary>
+        Friend ReadOnly Property WRN_SynthMemberShadowsSynthMember7_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_SynthMemberShadowsSynthMember7_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to {0} &apos;{1}&apos; and partial {2} &apos;{3}&apos; conflict in {4} &apos;{5}&apos;, but are being merged because one of them is declared partial..
         '''</summary>
         Friend ReadOnly Property WRN_TypeConflictButMerged6() As String
             Get
                 Return ResourceManager.GetString("WRN_TypeConflictButMerged6", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type and partial type conflict, but are being merged because one of them is declared partial..
+        '''</summary>
+        Friend ReadOnly Property WRN_TypeConflictButMerged6_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_TypeConflictButMerged6_Title", resourceCulture)
             End Get
         End Property
         
@@ -13027,11 +14125,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Data type could not be inferred..
+        '''</summary>
+        Friend ReadOnly Property WRN_TypeInferenceAssumed3_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_TypeInferenceAssumed3_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Type &apos;{0}&apos; is not CLS-compliant..
         '''</summary>
         Friend ReadOnly Property WRN_TypeNotCLSCompliant1() As String
             Get
                 Return ResourceManager.GetString("WRN_TypeNotCLSCompliant1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type is not CLS-compliant..
+        '''</summary>
+        Friend ReadOnly Property WRN_TypeNotCLSCompliant1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_TypeNotCLSCompliant1_Title", resourceCulture)
             End Get
         End Property
         
@@ -13045,11 +14161,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Unable to load analyzer assembly..
+        '''</summary>
+        Friend ReadOnly Property WRN_UnableToLoadAnalyzer_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_UnableToLoadAnalyzer_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Namespace or type specified in the Imports &apos;{0}&apos; doesn&apos;t contain any public member or cannot be found. Make sure the namespace or the type is defined and contains at least one public member. Make sure the imported element name doesn&apos;t use any aliases..
         '''</summary>
         Friend ReadOnly Property WRN_UndefinedOrEmptyNamespaceOrClass1() As String
             Get
                 Return ResourceManager.GetString("WRN_UndefinedOrEmptyNamespaceOrClass1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Namespace or type specified in Imports statement doesn&apos;t contain any public member or cannot be found..
+        '''</summary>
+        Friend ReadOnly Property WRN_UndefinedOrEmptyNamespaceOrClass1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_UndefinedOrEmptyNamespaceOrClass1_Title", resourceCulture)
             End Get
         End Property
         
@@ -13063,11 +14197,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to The command line switch &apos;{0}&apos; is not yet implemented in Roslyn and was ignored..
+        '''  Looks up a localized string similar to Namespace or type imported at project level doesn&apos;t contain any public member or cannot be found..
+        '''</summary>
+        Friend ReadOnly Property WRN_UndefinedOrEmpyProjectNamespaceOrClass1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_UndefinedOrEmpyProjectNamespaceOrClass1_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to The command line switch &apos;{0}&apos; is not yet implemented and was ignored..
         '''</summary>
         Friend ReadOnly Property WRN_UnimplementedCommandLineSwitch() As String
             Get
                 Return ResourceManager.GetString("WRN_UnimplementedCommandLineSwitch", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Command line switch is not yet implemented..
+        '''</summary>
+        Friend ReadOnly Property WRN_UnimplementedCommandLineSwitch_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_UnimplementedCommandLineSwitch_Title", resourceCulture)
             End Get
         End Property
         
@@ -13081,11 +14233,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to The Task returned from this Async Function will be dropped, and any exceptions in it ignored..
+        '''</summary>
+        Friend ReadOnly Property WRN_UnobservedAwaitableDelegate_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_UnobservedAwaitableDelegate_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the Await operator to the result of the call..
         '''</summary>
         Friend ReadOnly Property WRN_UnobservedAwaitableExpression() As String
             Get
                 Return ResourceManager.GetString("WRN_UnobservedAwaitableExpression", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Because this call is not awaited, execution of the current method continues before the call is completed..
+        '''</summary>
+        Friend ReadOnly Property WRN_UnobservedAwaitableExpression_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_UnobservedAwaitableExpression_Title", resourceCulture)
             End Get
         End Property
         
@@ -13099,11 +14269,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Unreachable code detected..
+        '''</summary>
+        Friend ReadOnly Property WRN_UnreachableCode_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_UnreachableCode_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Unused local variable: &apos;{0}&apos;..
         '''</summary>
         Friend ReadOnly Property WRN_UnusedLocal() As String
             Get
                 Return ResourceManager.GetString("WRN_UnusedLocal", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Unused local variable..
+        '''</summary>
+        Friend ReadOnly Property WRN_UnusedLocal_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_UnusedLocal_Title", resourceCulture)
             End Get
         End Property
         
@@ -13117,11 +14305,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Unused local constant..
+        '''</summary>
+        Friend ReadOnly Property WRN_UnusedLocalConst_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_UnusedLocalConst_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;{0}&apos; accessor of &apos;{1}&apos; is obsolete..
         '''</summary>
         Friend ReadOnly Property WRN_UseOfObsoletePropertyAccessor2() As String
             Get
                 Return ResourceManager.GetString("WRN_UseOfObsoletePropertyAccessor2", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Property accessor is obsolete..
+        '''</summary>
+        Friend ReadOnly Property WRN_UseOfObsoletePropertyAccessor2_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_UseOfObsoletePropertyAccessor2_Title", resourceCulture)
             End Get
         End Property
         
@@ -13135,11 +14341,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Property accessor is obsolete..
+        '''</summary>
+        Friend ReadOnly Property WRN_UseOfObsoletePropertyAccessor3_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_UseOfObsoletePropertyAccessor3_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;{0}&apos; is obsolete: &apos;{1}&apos;..
         '''</summary>
         Friend ReadOnly Property WRN_UseOfObsoleteSymbol2() As String
             Get
                 Return ResourceManager.GetString("WRN_UseOfObsoleteSymbol2", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type or member is obsolete..
+        '''</summary>
+        Friend ReadOnly Property WRN_UseOfObsoleteSymbol2_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_UseOfObsoleteSymbol2_Title", resourceCulture)
             End Get
         End Property
         
@@ -13153,11 +14377,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Type or member is obsolete..
+        '''</summary>
+        Friend ReadOnly Property WRN_UseOfObsoleteSymbolNoMessage1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_UseOfObsoleteSymbolNoMessage1_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Use command-line option &apos;{0}&apos; or appropriate project settings instead of &apos;{1}&apos;..
         '''</summary>
         Friend ReadOnly Property WRN_UseSwitchInsteadOfAttribute() As String
             Get
                 Return ResourceManager.GetString("WRN_UseSwitchInsteadOfAttribute", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Use command-line option /keyfile, /keycontainer, or /delaysign instead of AssemblyKeyFileAttribute, AssemblyKeyNameAttribute, or AssemblyDelaySignAttribute..
+        '''</summary>
+        Friend ReadOnly Property WRN_UseSwitchInsteadOfAttribute_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_UseSwitchInsteadOfAttribute_Title", resourceCulture)
             End Get
         End Property
         
@@ -13171,11 +14413,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Cannot convert IEnumerable(Of XElement) to String.
+        '''</summary>
+        Friend ReadOnly Property WRN_UseValueForXmlExpression3_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_UseValueForXmlExpression3_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Implicit conversion from &apos;{4}&apos; to &apos;{5}&apos;; this conversion may fail because &apos;{0}&apos; is not derived from &apos;{1}&apos;, as required for the &apos;In&apos; generic parameter &apos;{2}&apos; in &apos;{3}&apos;..
         '''</summary>
         Friend ReadOnly Property WRN_VarianceConversionFailedIn6() As String
             Get
                 Return ResourceManager.GetString("WRN_VarianceConversionFailedIn6", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Implicit conversion; this conversion may fail because the target type is not derived from the source type, as required for &apos;In&apos; generic parameter..
+        '''</summary>
+        Friend ReadOnly Property WRN_VarianceConversionFailedIn6_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_VarianceConversionFailedIn6_Title", resourceCulture)
             End Get
         End Property
         
@@ -13189,11 +14449,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Implicit conversion; this conversion may fail because the target type is not derived from the source type, as required for &apos;Out&apos; generic parameter..
+        '''</summary>
+        Friend ReadOnly Property WRN_VarianceConversionFailedOut6_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_VarianceConversionFailedOut6_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;{0}&apos; cannot be converted to &apos;{1}&apos;. Consider changing the &apos;{2}&apos; in the definition of &apos;{3}&apos; to an In type parameter, &apos;In {2}&apos;..
         '''</summary>
         Friend ReadOnly Property WRN_VarianceConversionFailedTryIn4() As String
             Get
                 Return ResourceManager.GetString("WRN_VarianceConversionFailedTryIn4", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type cannot be converted to target type..
+        '''</summary>
+        Friend ReadOnly Property WRN_VarianceConversionFailedTryIn4_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_VarianceConversionFailedTryIn4_Title", resourceCulture)
             End Get
         End Property
         
@@ -13207,11 +14485,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Type cannot be converted to target type..
+        '''</summary>
+        Friend ReadOnly Property WRN_VarianceConversionFailedTryOut4_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_VarianceConversionFailedTryOut4_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Interface &apos;{0}&apos; is ambiguous with another implemented interface &apos;{1}&apos; due to the &apos;In&apos; and &apos;Out&apos; parameters in &apos;{2}&apos;..
         '''</summary>
         Friend ReadOnly Property WRN_VarianceDeclarationAmbiguous3() As String
             Get
                 Return ResourceManager.GetString("WRN_VarianceDeclarationAmbiguous3", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Interface is ambiguous with another implemented interface due to &apos;In&apos; and &apos;Out&apos; parameters..
+        '''</summary>
+        Friend ReadOnly Property WRN_VarianceDeclarationAmbiguous3_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_VarianceDeclarationAmbiguous3_Title", resourceCulture)
             End Get
         End Property
         
@@ -13225,11 +14521,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Type cannot be converted to target collection type..
+        '''</summary>
+        Friend ReadOnly Property WRN_VarianceIEnumerableSuggestion3_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_VarianceIEnumerableSuggestion3_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Unable to create XML documentation file &apos;{0}&apos;: {1}.
         '''</summary>
         Friend ReadOnly Property WRN_XMLCannotWriteToXMLDocFile2() As String
             Get
                 Return ResourceManager.GetString("WRN_XMLCannotWriteToXMLDocFile2", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Unable to create XML documentation file..
+        '''</summary>
+        Friend ReadOnly Property WRN_XMLCannotWriteToXMLDocFile2_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_XMLCannotWriteToXMLDocFile2_Title", resourceCulture)
             End Get
         End Property
         
@@ -13243,11 +14557,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Unable to include XML fragment..
+        '''</summary>
+        Friend ReadOnly Property WRN_XMLDocBadFormedXML_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_XMLDocBadFormedXML_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to XML comment type parameter &apos;{0}&apos; does not match a type parameter on the corresponding &apos;{1}&apos; statement..
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocBadGenericParamTag2() As String
             Get
                 Return ResourceManager.GetString("WRN_XMLDocBadGenericParamTag2", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to XML comment type parameter does not match a type parameter on the corresponding declaration statement..
+        '''</summary>
+        Friend ReadOnly Property WRN_XMLDocBadGenericParamTag2_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_XMLDocBadGenericParamTag2_Title", resourceCulture)
             End Get
         End Property
         
@@ -13261,11 +14593,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to XML comment parameter does not match a parameter on the corresponding declaration statement..
+        '''</summary>
+        Friend ReadOnly Property WRN_XMLDocBadParamTag2_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_XMLDocBadParamTag2_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to XML comment block must immediately precede the language element to which it applies. XML comment will be ignored..
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocBadXMLLine() As String
             Get
                 Return ResourceManager.GetString("WRN_XMLDocBadXMLLine", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to XML comment block must immediately precede the language element to which it applies..
+        '''</summary>
+        Friend ReadOnly Property WRN_XMLDocBadXMLLine_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_XMLDocBadXMLLine_Title", resourceCulture)
             End Get
         End Property
         
@@ -13279,11 +14629,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to XML comment has a tag with a &apos;cref&apos; attribute that could not be resolved..
+        '''</summary>
+        Friend ReadOnly Property WRN_XMLDocCrefAttributeNotFound1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_XMLDocCrefAttributeNotFound1_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to XML comment has a tag with a &apos;cref&apos; attribute &apos;{0}&apos; that bound to a type parameter.  Use the &lt;typeparamref&gt; tag instead..
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocCrefToTypeParameter() As String
             Get
                 Return ResourceManager.GetString("WRN_XMLDocCrefToTypeParameter", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to XML comment has a tag with a &apos;cref&apos; attribute that bound to a type parameter..
+        '''</summary>
+        Friend ReadOnly Property WRN_XMLDocCrefToTypeParameter_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_XMLDocCrefToTypeParameter_Title", resourceCulture)
             End Get
         End Property
         
@@ -13297,11 +14665,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to XML comment tag appears with identical attributes more than once in the same XML comment block..
+        '''</summary>
+        Friend ReadOnly Property WRN_XMLDocDuplicateXMLNode1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_XMLDocDuplicateXMLNode1_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to XML comment exception must have a &apos;cref&apos; attribute..
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocExceptionTagWithoutCRef() As String
             Get
                 Return ResourceManager.GetString("WRN_XMLDocExceptionTagWithoutCRef", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to XML comment exception must have a &apos;cref&apos; attribute..
+        '''</summary>
+        Friend ReadOnly Property WRN_XMLDocExceptionTagWithoutCRef_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_XMLDocExceptionTagWithoutCRef_Title", resourceCulture)
             End Get
         End Property
         
@@ -13315,11 +14701,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to XML comment type parameter must have a &apos;name&apos; attribute..
+        '''</summary>
+        Friend ReadOnly Property WRN_XMLDocGenericParamTagWithoutName_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_XMLDocGenericParamTagWithoutName_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to XML comment tag &apos;{0}&apos; is not permitted on a &apos;{1}&apos; language element..
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocIllegalTagOnElement2() As String
             Get
                 Return ResourceManager.GetString("WRN_XMLDocIllegalTagOnElement2", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to XML comment tag is not permitted on language element..
+        '''</summary>
+        Friend ReadOnly Property WRN_XMLDocIllegalTagOnElement2_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_XMLDocIllegalTagOnElement2_Title", resourceCulture)
             End Get
         End Property
         
@@ -13333,11 +14737,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to XML comment cannot appear within a method or a property..
+        '''</summary>
+        Friend ReadOnly Property WRN_XMLDocInsideMethod_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_XMLDocInsideMethod_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Unable to include XML fragment &apos;{0}&apos; of file &apos;{1}&apos;..
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocInvalidXMLFragment() As String
             Get
                 Return ResourceManager.GetString("WRN_XMLDocInvalidXMLFragment", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Unable to include XML fragment..
+        '''</summary>
+        Friend ReadOnly Property WRN_XMLDocInvalidXMLFragment_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_XMLDocInvalidXMLFragment_Title", resourceCulture)
             End Get
         End Property
         
@@ -13351,11 +14773,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Only one XML comment block is allowed per language element..
+        '''</summary>
+        Friend ReadOnly Property WRN_XMLDocMoreThanOneCommentBlock_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_XMLDocMoreThanOneCommentBlock_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to XML comment must be the first statement on a line. XML comment will be ignored..
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocNotFirstOnLine() As String
             Get
                 Return ResourceManager.GetString("WRN_XMLDocNotFirstOnLine", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to XML comment must be the first statement on a line..
+        '''</summary>
+        Friend ReadOnly Property WRN_XMLDocNotFirstOnLine_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_XMLDocNotFirstOnLine_Title", resourceCulture)
             End Get
         End Property
         
@@ -13369,11 +14809,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to XML comment cannot be applied more than once on a partial type..
+        '''</summary>
+        Friend ReadOnly Property WRN_XMLDocOnAPartialType_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_XMLDocOnAPartialType_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to XML comment parameter must have a &apos;name&apos; attribute..
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocParamTagWithoutName() As String
             Get
                 Return ResourceManager.GetString("WRN_XMLDocParamTagWithoutName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to XML comment parameter must have a &apos;name&apos; attribute..
+        '''</summary>
+        Friend ReadOnly Property WRN_XMLDocParamTagWithoutName_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_XMLDocParamTagWithoutName_Title", resourceCulture)
             End Get
         End Property
         
@@ -13387,11 +14845,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to XML documentation parse error..
+        '''</summary>
+        Friend ReadOnly Property WRN_XMLDocParseError1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_XMLDocParseError1_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to XML comment tag &apos;returns&apos; is not permitted on a &apos;declare sub&apos; language element..
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocReturnsOnADeclareSub() As String
             Get
                 Return ResourceManager.GetString("WRN_XMLDocReturnsOnADeclareSub", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to XML comment tag &apos;returns&apos; is not permitted on a &apos;declare sub&apos; language element..
+        '''</summary>
+        Friend ReadOnly Property WRN_XMLDocReturnsOnADeclareSub_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_XMLDocReturnsOnADeclareSub_Title", resourceCulture)
             End Get
         End Property
         
@@ -13405,11 +14881,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to XML comment tag &apos;returns&apos; is not permitted on a &apos;WriteOnly&apos; Property..
+        '''</summary>
+        Friend ReadOnly Property WRN_XMLDocReturnsOnWriteOnlyProperty_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_XMLDocReturnsOnWriteOnlyProperty_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to XML documentation parse error: Start tag &apos;{0}&apos; doesn&apos;t have a matching end tag. XML comment will be ignored..
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocStartTagWithNoEndTag() As String
             Get
                 Return ResourceManager.GetString("WRN_XMLDocStartTagWithNoEndTag", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to XML documentation parse error: Start tag doesn&apos;t have a matching end tag..
+        '''</summary>
+        Friend ReadOnly Property WRN_XMLDocStartTagWithNoEndTag_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_XMLDocStartTagWithNoEndTag_Title", resourceCulture)
             End Get
         End Property
         
@@ -13423,11 +14917,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to XML documentation comments must precede member or type declarations..
+        '''</summary>
+        Friend ReadOnly Property WRN_XMLDocWithoutLanguageElement_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_XMLDocWithoutLanguageElement_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to XML comment tag &apos;include&apos; must have a &apos;{0}&apos; attribute. XML comment will be ignored..
         '''</summary>
         Friend ReadOnly Property WRN_XMLMissingFileOrPathAttribute1() As String
             Get
                 Return ResourceManager.GetString("WRN_XMLMissingFileOrPathAttribute1", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to XML comment tag &apos;include&apos; must have &apos;file&apos; and &apos;path&apos; attributes..
+        '''</summary>
+        Friend ReadOnly Property WRN_XMLMissingFileOrPathAttribute1_Title() As String
+            Get
+                Return ResourceManager.GetString("WRN_XMLMissingFileOrPathAttribute1_Title", resourceCulture)
             End Get
         End Property
         

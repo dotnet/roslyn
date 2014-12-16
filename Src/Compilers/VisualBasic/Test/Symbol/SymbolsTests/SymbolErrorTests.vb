@@ -18958,13 +18958,13 @@ BC40033: Non CLS-compliant 'Sub Sub4()' is not allowed in a CLS-compliant interf
         ]]></file>
     </compilation>)
             Dim expectedErrors1 = <errors><![CDATA[
-BC40034: Non CLS-compliant 'Mustoverride' member is not allowed in CLS-compliant type 'QuiteCompliant'.
+BC40034: Non CLS-compliant 'MustOverride' member is not allowed in CLS-compliant type 'QuiteCompliant'.
                 <CLSCompliant(False)> Public MustOverride Sub Sub1()
                                                               ~~~~
-BC40034: Non CLS-compliant 'Mustoverride' member is not allowed in CLS-compliant type 'QuiteCompliant'.
+BC40034: Non CLS-compliant 'MustOverride' member is not allowed in CLS-compliant type 'QuiteCompliant'.
                 <CLSCompliant(False)> Protected MustOverride Function Fun2() As Integer
                                                                       ~~~~
-BC40034: Non CLS-compliant 'Mustoverride' member is not allowed in CLS-compliant type 'QuiteCompliant'.
+BC40034: Non CLS-compliant 'MustOverride' member is not allowed in CLS-compliant type 'QuiteCompliant'.
                 <CLSCompliant(False)> Protected Friend MustOverride Sub Sub3()
                                                                         ~~~~
                  ]]></errors>

@@ -605,13 +605,13 @@ End Class
 BC40027: Return type of function 'M1' is not CLS-compliant.
     Public MustOverride Function M1() As Bad
                                  ~~
-BC40034: Non CLS-compliant 'Mustoverride' member is not allowed in CLS-compliant type 'A'.
+BC40034: Non CLS-compliant 'MustOverride' member is not allowed in CLS-compliant type 'A'.
     Public MustOverride Sub M2()
                             ~~
-BC40034: Non CLS-compliant 'Mustoverride' member is not allowed in CLS-compliant type 'Kinds'.
+BC40034: Non CLS-compliant 'MustOverride' member is not allowed in CLS-compliant type 'Kinds'.
     Public MustOverride Sub M()
                             ~
-BC40034: Non CLS-compliant 'Mustoverride' member is not allowed in CLS-compliant type 'Kinds'.
+BC40034: Non CLS-compliant 'MustOverride' member is not allowed in CLS-compliant type 'Kinds'.
     Public MustOverride Property P()
                                  ~
 ]]></errors>)
@@ -655,13 +655,13 @@ BC40033: Non CLS-compliant 'Event EV3(i3 As Integer)' is not allowed in a CLS-co
 BC40033: Non CLS-compliant 'Sub Sub4()' is not allowed in a CLS-compliant interface.
     <CLSCompliant(False)> Sub Sub4()
                               ~~~~
-BC40034: Non CLS-compliant 'Mustoverride' member is not allowed in CLS-compliant type 'QuiteCompliant'.
+BC40034: Non CLS-compliant 'MustOverride' member is not allowed in CLS-compliant type 'QuiteCompliant'.
     <CLSCompliant(False)> Public MustOverride Sub Sub1()
                                                   ~~~~
-BC40034: Non CLS-compliant 'Mustoverride' member is not allowed in CLS-compliant type 'QuiteCompliant'.
+BC40034: Non CLS-compliant 'MustOverride' member is not allowed in CLS-compliant type 'QuiteCompliant'.
     <CLSCompliant(False)> Protected MustOverride Function Fun2() As Integer
                                                           ~~~~
-BC40034: Non CLS-compliant 'Mustoverride' member is not allowed in CLS-compliant type 'QuiteCompliant'.
+BC40034: Non CLS-compliant 'MustOverride' member is not allowed in CLS-compliant type 'QuiteCompliant'.
     <CLSCompliant(False)> Protected Friend MustOverride Sub Sub3()
                                                             ~~~~
 ]]></errors>)

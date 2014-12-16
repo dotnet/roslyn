@@ -414,6 +414,9 @@
   <data name="WRN_InvalidMainSig" xml:space="preserve">
     <value>'{0}' has the wrong signature to be an entry point</value>
   </data>
+  <data name="WRN_InvalidMainSig_Title" xml:space="preserve">
+    <value>Method has the wrong signature to be an entry point</value>
+  </data>
   <data name="ERR_NoImplicitConv" xml:space="preserve">
     <value>Cannot implicitly convert type '{0}' to '{1}'</value>
   </data>
@@ -486,6 +489,9 @@
   <data name="WRN_UnreferencedEvent" xml:space="preserve">
     <value>The event '{0}' is never used</value>
   </data>
+  <data name="WRN_UnreferencedEvent_Title" xml:space="preserve">
+    <value>Event is never used</value>
+  </data>
   <data name="ERR_InterfaceEventInitializer" xml:space="preserve">
     <value>'{0}': event in interface cannot have initializer</value>
   </data>
@@ -518,6 +524,9 @@
   </data>
   <data name="WRN_LowercaseEllSuffix" xml:space="preserve">
     <value>The 'l' suffix is easily confused with the digit '1' -- use 'L' for clarity</value>
+  </data>
+  <data name="WRN_LowercaseEllSuffix_Title" xml:space="preserve">
+    <value>The 'l' suffix is easily confused with the digit '1'</value>
   </data>
   <data name="ERR_BadEventUsageNoField" xml:space="preserve">
     <value>The event '{0}' can only appear on the left hand side of += or -=</value>
@@ -552,6 +561,9 @@
   <data name="WRN_DuplicateUsing" xml:space="preserve">
     <value>The using directive for '{0}' appeared previously in this namespace</value>
   </data>
+  <data name="WRN_DuplicateUsing_Title" xml:space="preserve">
+    <value>Using directive appeared previously in this namespace</value>
+  </data>
   <data name="ERR_BadMemberFlag" xml:space="preserve">
     <value>The modifier '{0}' is not valid for this item</value>
   </data>
@@ -561,8 +573,17 @@
   <data name="WRN_NewRequired" xml:space="preserve">
     <value>'{0}' hides inherited member '{1}'. Use the new keyword if hiding was intended.</value>
   </data>
+  <data name="WRN_NewRequired_Title" xml:space="preserve">
+    <value>Member hides inherited member; missing new keyword</value>
+  </data>
+  <data name="WRN_NewRequired_Description" xml:space="preserve">
+    <value>A variable was declared with the same name as a variable in a base class. However, the new keyword was not used. This warning informs you that you should use new; the variable is declared as if new had been used in the declaration.</value>
+  </data>
   <data name="WRN_NewNotRequired" xml:space="preserve">
     <value>The member '{0}' does not hide an inherited member. The new keyword is not required.</value>
+  </data>
+  <data name="WRN_NewNotRequired_Title" xml:space="preserve">
+    <value>Member does not hide an inherited member; new keyword is not required</value>
   </data>
   <data name="ERR_CircConstValue" xml:space="preserve">
     <value>The evaluation of the constant value for '{0}' involves a circular definition</value>
@@ -578,6 +599,9 @@
   </data>
   <data name="WRN_NewOrOverrideExpected" xml:space="preserve">
     <value>'{0}' hides inherited member '{1}'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword.</value>
+  </data>
+  <data name="WRN_NewOrOverrideExpected_Title" xml:space="preserve">
+    <value>Member hides inherited member; missing override keyword</value>
   </data>
   <data name="ERR_OverrideNotExpected" xml:space="preserve">
     <value>'{0}': no suitable method found to override</value>
@@ -702,10 +726,16 @@
   <data name="WRN_FilterIsConstant" xml:space="preserve">
     <value>Filter expression is a constant, consider removing the filter</value>
   </data>
+  <data name="WRN_FilterIsConstant_Title" xml:space="preserve">
+    <value>Filter expression is a constant</value>
+  </data>
   <data name="ERR_ReturnExpected" xml:space="preserve">
     <value>'{0}': not all code paths return a value</value>
   </data>
   <data name="WRN_UnreachableCode" xml:space="preserve">
+    <value>Unreachable code detected</value>
+  </data>
+  <data name="WRN_UnreachableCode_Title" xml:space="preserve">
     <value>Unreachable code detected</value>
   </data>
   <data name="ERR_SwitchFallThrough" xml:space="preserve">
@@ -714,14 +744,23 @@
   <data name="WRN_UnreferencedLabel" xml:space="preserve">
     <value>This label has not been referenced</value>
   </data>
+  <data name="WRN_UnreferencedLabel_Title" xml:space="preserve">
+    <value>This label has not been referenced</value>
+  </data>
   <data name="ERR_UseDefViolation" xml:space="preserve">
     <value>Use of unassigned local variable '{0}'</value>
   </data>
   <data name="WRN_UnreferencedVar" xml:space="preserve">
     <value>The variable '{0}' is declared but never used</value>
   </data>
+  <data name="WRN_UnreferencedVar_Title" xml:space="preserve">
+    <value>Variable is declared but never used</value>
+  </data>
   <data name="WRN_UnreferencedField" xml:space="preserve">
     <value>The field '{0}' is never used</value>
+  </data>
+  <data name="WRN_UnreferencedField_Title" xml:space="preserve">
+    <value>Field is never used</value>
   </data>
   <data name="ERR_UseDefViolationField" xml:space="preserve">
     <value>Use of possibly unassigned field '{0}'</value>
@@ -774,8 +813,14 @@
   <data name="WRN_IsAlwaysTrue" xml:space="preserve">
     <value>The given expression is always of the provided ('{0}') type</value>
   </data>
+  <data name="WRN_IsAlwaysTrue_Title" xml:space="preserve">
+    <value>'is' expression's given expression is always of the provided type</value>
+  </data>
   <data name="WRN_IsAlwaysFalse" xml:space="preserve">
     <value>The given expression is never of the provided ('{0}') type</value>
+  </data>
+  <data name="WRN_IsAlwaysFalse_Title" xml:space="preserve">
+    <value>'is' expression's given expression is never of the provided type</value>
   </data>
   <data name="ERR_LockNeedsReference" xml:space="preserve">
     <value>'{0}' is not a reference type as required by the lock statement</value>
@@ -803,6 +848,9 @@
   </data>
   <data name="WRN_ByRefNonAgileField" xml:space="preserve">
     <value>Passing '{0}' as ref or out or taking its address may cause a runtime exception because it is a field of a marshal-by-reference class</value>
+  </data>
+  <data name="WRN_ByRefNonAgileField_Title" xml:space="preserve">
+    <value>Passing a field of a marshal-by-reference class as ref or out or taking its address may cause a runtime exception</value>
   </data>
   <data name="ERR_AssgReadonlyStatic" xml:space="preserve">
     <value>A static readonly field cannot be assigned to (except in a static constructor or a variable initializer)</value>
@@ -863,6 +911,9 @@
   </data>
   <data name="WRN_UnreferencedVarAssg" xml:space="preserve">
     <value>The variable '{0}' is assigned but its value is never used</value>
+  </data>
+  <data name="WRN_UnreferencedVarAssg_Title" xml:space="preserve">
+    <value>Variable is assigned but its value is never used</value>
   </data>
   <data name="ERR_CheckedOverflow" xml:space="preserve">
     <value>The operation overflows at compile time in checked mode</value>
@@ -936,11 +987,20 @@
   <data name="WRN_NegativeArrayIndex" xml:space="preserve">
     <value>Indexing an array with a negative index (array indices always start at zero)</value>
   </data>
+  <data name="WRN_NegativeArrayIndex_Title" xml:space="preserve">
+    <value>Indexing an array with a negative index</value>
+  </data>
   <data name="WRN_BadRefCompareLeft" xml:space="preserve">
     <value>Possible unintended reference comparison; to get a value comparison, cast the left hand side to type '{0}'</value>
   </data>
+  <data name="WRN_BadRefCompareLeft_Title" xml:space="preserve">
+    <value>Possible unintended reference comparison; left hand side needs cast</value>
+  </data>
   <data name="WRN_BadRefCompareRight" xml:space="preserve">
     <value>Possible unintended reference comparison; to get a value comparison, cast the right hand side to type '{0}'</value>
+  </data>
+  <data name="WRN_BadRefCompareRight_Title" xml:space="preserve">
+    <value>Possible unintended reference comparison; right hand side needs cast</value>
   </data>
   <data name="ERR_BadCastInFixed" xml:space="preserve">
     <value>The right hand side of a fixed statement assignment may not be a cast expression</value>
@@ -1008,11 +1068,20 @@
   <data name="WRN_PatternIsAmbiguous" xml:space="preserve">
     <value>'{0}' does not implement the '{1}' pattern. '{2}' is ambiguous with '{3}'.</value>
   </data>
+  <data name="WRN_PatternIsAmbiguous_Title" xml:space="preserve">
+    <value>Type does not implement the collection pattern; members are ambiguous</value>
+  </data>
   <data name="WRN_PatternStaticOrInaccessible" xml:space="preserve">
     <value>'{0}' does not implement the '{1}' pattern. '{2}' is either static or not public.</value>
   </data>
+  <data name="WRN_PatternStaticOrInaccessible_Title" xml:space="preserve">
+    <value>Type does not implement the collection pattern; member is either static or not public</value>
+  </data>
   <data name="WRN_PatternBadSignature" xml:space="preserve">
     <value>'{0}' does not implement the '{1}' pattern. '{2}' has the wrong signature.</value>
+  </data>
+  <data name="WRN_PatternBadSignature_Title" xml:space="preserve">
+    <value>Type does not implement the collection pattern; member has the wrong signature</value>
   </data>
   <data name="ERR_FriendRefNotEqualToThis" xml:space="preserve">
     <value>Friend access was granted by '{0}', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</value>
@@ -1022,6 +1091,9 @@
   </data>
   <data name="WRN_SequentialOnPartialClass" xml:space="preserve">
     <value>There is no defined ordering between fields in multiple declarations of partial struct '{0}'. To specify an ordering, all instance fields must be in the same declaration.</value>
+  </data>
+  <data name="WRN_SequentialOnPartialClass_Title" xml:space="preserve">
+    <value>There is no defined ordering between fields in multiple declarations of partial struct</value>
   </data>
   <data name="ERR_BadConstType" xml:space="preserve">
     <value>The type '{0}' cannot be declared const</value>
@@ -1071,6 +1143,9 @@
   <data name="WRN_MainCantBeGeneric" xml:space="preserve">
     <value>'{0}': an entry point cannot be generic or in a generic type</value>
   </data>
+  <data name="WRN_MainCantBeGeneric_Title" xml:space="preserve">
+    <value>An entry point cannot be generic or in a generic type</value>
+  </data>
   <data name="ERR_TypeVarCantBeNull" xml:space="preserve">
     <value>Cannot convert null to type parameter '{0}' because it could be a non-nullable value type. Consider using 'default({0})' instead.</value>
   </data>
@@ -1101,6 +1176,9 @@
   <data name="WRN_UnreferencedFieldAssg" xml:space="preserve">
     <value>The field '{0}' is assigned but its value is never used</value>
   </data>
+  <data name="WRN_UnreferencedFieldAssg_Title" xml:space="preserve">
+    <value>Field is assigned but its value is never used</value>
+  </data>
   <data name="ERR_BadIndexerNameAttr" xml:space="preserve">
     <value>The '{0}' attribute is valid only on an indexer that is not an explicit interface member declaration</value>
   </data>
@@ -1116,8 +1194,17 @@
   <data name="WRN_AmbiguousXMLReference" xml:space="preserve">
     <value>Ambiguous reference in cref attribute: '{0}'. Assuming '{1}', but could have also matched other overloads including '{2}'.</value>
   </data>
+  <data name="WRN_AmbiguousXMLReference_Title" xml:space="preserve">
+    <value>Ambiguous reference in cref attribute</value>
+  </data>
   <data name="WRN_VolatileByRef" xml:space="preserve">
     <value>'{0}': a reference to a volatile field will not be treated as volatile</value>
+  </data>
+  <data name="WRN_VolatileByRef_Title" xml:space="preserve">
+    <value>A reference to a volatile field will not be treated as volatile</value>
+  </data>
+  <data name="WRN_VolatileByRef_Description" xml:space="preserve">
+    <value>A volatile field should not normally be passed using a ref or out parameter, since it will not be treated as volatile within the scope of the function. There are exceptions to this, such as when calling an interlocked API.</value>
   </data>
   <data name="ERR_ComImportWithImpl" xml:space="preserve">
     <value>Since '{1}' has the ComImport attribute, '{0}' must be extern or abstract</value>
@@ -1152,11 +1239,20 @@
   <data name="WRN_SameFullNameThisNsAgg" xml:space="preserve">
     <value>The namespace '{1}' in '{0}' conflicts with the imported type '{3}' in '{2}'. Using the namespace defined in '{0}'.</value>
   </data>
+  <data name="WRN_SameFullNameThisNsAgg_Title" xml:space="preserve">
+    <value>Namespace conflicts with imported type</value>
+  </data>
   <data name="WRN_SameFullNameThisAggAgg" xml:space="preserve">
     <value>The type '{1}' in '{0}' conflicts with the imported type '{3}' in '{2}'. Using the type defined in '{0}'.</value>
   </data>
+  <data name="WRN_SameFullNameThisAggAgg_Title" xml:space="preserve">
+    <value>Type conflicts with imported type</value>
+  </data>
   <data name="WRN_SameFullNameThisAggNs" xml:space="preserve">
     <value>The type '{1}' in '{0}' conflicts with the imported namespace '{3}' in '{2}'. Using the type defined in '{0}'.</value>
+  </data>
+  <data name="WRN_SameFullNameThisAggNs_Title" xml:space="preserve">
+    <value>Type conflicts with imported namespace</value>
   </data>
   <data name="ERR_SameFullNameThisAggThisNs" xml:space="preserve">
     <value>The type '{1}' in '{0}' conflicts with the namespace '{3}' in '{2}'</value>
@@ -1166,6 +1262,9 @@
   </data>
   <data name="WRN_GlobalAliasDefn" xml:space="preserve">
     <value>Defining an alias named 'global' is ill-advised since 'global::' always references the global namespace and not an alias</value>
+  </data>
+  <data name="WRN_GlobalAliasDefn_Title" xml:space="preserve">
+    <value>Defining an alias named 'global' is ill-advised</value>
   </data>
   <data name="ERR_SealedStaticClass" xml:space="preserve">
     <value>'{0}': a class cannot be both static and sealed</value>
@@ -1215,6 +1314,9 @@
   <data name="WRN_AlwaysNull" xml:space="preserve">
     <value>The result of the expression is always 'null' of type '{0}'</value>
   </data>
+  <data name="WRN_AlwaysNull_Title" xml:space="preserve">
+    <value>The result of the expression is always 'null'</value>
+  </data>
   <data name="ERR_AddrOnReadOnlyLocal" xml:space="preserve">
     <value>Cannot take the address of a read-only local variable</value>
   </data>
@@ -1230,8 +1332,19 @@
   <data name="WRN_CmpAlwaysFalse" xml:space="preserve">
     <value>Comparing with null of type '{0}' always produces 'false'</value>
   </data>
+  <data name="WRN_CmpAlwaysFalse_Title" xml:space="preserve">
+    <value>Comparing with null of struct type always produces 'false'</value>
+  </data>
   <data name="WRN_FinalizeMethod" xml:space="preserve">
     <value>Introducing a 'Finalize' method can interfere with destructor invocation. Did you intend to declare a destructor?</value>
+  </data>
+  <data name="WRN_FinalizeMethod_Title" xml:space="preserve">
+    <value>Introducing a 'Finalize' method can interfere with destructor invocation</value>
+  </data>
+  <data name="WRN_FinalizeMethod_Description" xml:space="preserve">
+    <value>This warning occurs when you create a class with a method whose signature is public virtual void Finalize.
+
+If such a class is used as a base class and if the deriving class defines a destructor, the destructor will override the base class Finalize method, not Finalize.</value>
   </data>
   <data name="ERR_ExplicitImplParams" xml:space="preserve">
     <value>'{0}' should not have a params parameter since '{1}' does not</value>
@@ -1239,17 +1352,29 @@
   <data name="WRN_GotoCaseShouldConvert" xml:space="preserve">
     <value>The 'goto case' value is not implicitly convertible to type '{0}'</value>
   </data>
+  <data name="WRN_GotoCaseShouldConvert_Title" xml:space="preserve">
+    <value>The 'goto case' value is not implicitly convertible to the switch type</value>
+  </data>
   <data name="ERR_MethodImplementingAccessor" xml:space="preserve">
     <value>Method '{0}' cannot implement interface accessor '{1}' for type '{2}'. Use an explicit interface implementation.</value>
   </data>
   <data name="WRN_NubExprIsConstBool" xml:space="preserve">
     <value>The result of the expression is always '{0}' since a value of type '{1}' is never equal to 'null' of type '{2}'</value>
   </data>
+  <data name="WRN_NubExprIsConstBool_Title" xml:space="preserve">
+    <value>The result of the expression is always the same since a value of this type is never equal to 'null'</value>
+  </data>
   <data name="WRN_NubExprIsConstBool2" xml:space="preserve">
     <value>The result of the expression is always '{0}' since a value of type '{1}' is never equal to 'null' of type '{2}'</value>
   </data>
+  <data name="WRN_NubExprIsConstBool2_Title" xml:space="preserve">
+    <value>The result of the expression is always the same since a value of this type is never equal to 'null'</value>
+  </data>
   <data name="WRN_ExplicitImplCollision" xml:space="preserve">
     <value>Explicit interface implementation '{0}' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.</value>
+  </data>
+  <data name="WRN_ExplicitImplCollision_Title" xml:space="preserve">
+    <value>Explicit interface implementation matches more than one interface member</value>
   </data>
   <data name="ERR_AbstractHasBody" xml:space="preserve">
     <value>'{0}' cannot declare a body because it is marked abstract</value>
@@ -1518,6 +1643,9 @@
   <data name="WRN_DeprecatedSymbol" xml:space="preserve">
     <value>'{0}' is obsolete</value>
   </data>
+  <data name="WRN_DeprecatedSymbol_Title" xml:space="preserve">
+    <value>Type or member is obsolete</value>
+  </data>
   <data name="ERR_NotAnAttributeClass" xml:space="preserve">
     <value>'{0}' is not an attribute class</value>
   </data>
@@ -1526,6 +1654,9 @@
   </data>
   <data name="WRN_DeprecatedSymbolStr" xml:space="preserve">
     <value>'{0}' is obsolete: '{1}'</value>
+  </data>
+  <data name="WRN_DeprecatedSymbolStr_Title" xml:space="preserve">
+    <value>Type or member is obsolete</value>
   </data>
   <data name="ERR_DeprecatedSymbolStr" xml:space="preserve">
     <value>'{0}' is obsolete: '{1}'</value>
@@ -1548,8 +1679,14 @@
   <data name="WRN_ExternMethodNoImplementation" xml:space="preserve">
     <value>Method, operator, or accessor '{0}' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.</value>
   </data>
+  <data name="WRN_ExternMethodNoImplementation_Title" xml:space="preserve">
+    <value>Method, operator, or accessor is marked external and has no attributes on it</value>
+  </data>
   <data name="WRN_ProtectedInSealed" xml:space="preserve">
     <value>'{0}': new protected member declared in sealed class</value>
+  </data>
+  <data name="WRN_ProtectedInSealed_Title" xml:space="preserve">
+    <value>New protected member declared in sealed class</value>
   </data>
   <data name="ERR_InterfaceImplementedByConditional" xml:space="preserve">
     <value>Conditional member '{0}' cannot implement interface member '{1}' in type '{2}'</value>
@@ -1572,6 +1709,9 @@
   <data name="WRN_PossibleMistakenNullStatement" xml:space="preserve">
     <value>Possible mistaken empty statement</value>
   </data>
+  <data name="WRN_PossibleMistakenNullStatement_Title" xml:space="preserve">
+    <value>Possible mistaken empty statement</value>
+  </data>
   <data name="ERR_DuplicateNamedAttributeArgument" xml:space="preserve">
     <value>'{0}' duplicate named attribute argument</value>
   </data>
@@ -1587,11 +1727,17 @@
   <data name="WRN_UnassignedInternalField" xml:space="preserve">
     <value>Field '{0}' is never assigned to, and will always have its default value {1}</value>
   </data>
+  <data name="WRN_UnassignedInternalField_Title" xml:space="preserve">
+    <value>Field is never assigned to, and will always have its default value</value>
+  </data>
   <data name="ERR_CStyleArray" xml:space="preserve">
     <value>Bad array declarator: To declare a managed array the rank specifier precedes the variable's identifier. To declare a fixed size buffer field, use the fixed keyword before the field type.</value>
   </data>
   <data name="WRN_VacuousIntegralComp" xml:space="preserve">
     <value>Comparison to integral constant is useless; the constant is outside the range of type '{0}'</value>
+  </data>
+  <data name="WRN_VacuousIntegralComp_Title" xml:space="preserve">
+    <value>Comparison to integral constant is useless; the constant is outside the range of the type</value>
   </data>
   <data name="ERR_AbstractAttributeClass" xml:space="preserve">
     <value>Cannot apply attribute class '{0}' because it is abstract</value>
@@ -1605,17 +1751,32 @@
   <data name="WRN_AttributeLocationOnBadDeclaration" xml:space="preserve">
     <value>'{0}' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are '{1}'. All attributes in this block will be ignored.</value>
   </data>
+  <data name="WRN_AttributeLocationOnBadDeclaration_Title" xml:space="preserve">
+    <value>Not a valid attribute location for this declaration</value>
+  </data>
   <data name="WRN_InvalidAttributeLocation" xml:space="preserve">
     <value>'{0}' is not a recognized attribute location. All attributes in this block will be ignored.</value>
+  </data>
+  <data name="WRN_InvalidAttributeLocation_Title" xml:space="preserve">
+    <value>Not a recognized attribute location</value>
   </data>
   <data name="WRN_EqualsWithoutGetHashCode" xml:space="preserve">
     <value>'{0}' overrides Object.Equals(object o) but does not override Object.GetHashCode()</value>
   </data>
+  <data name="WRN_EqualsWithoutGetHashCode_Title" xml:space="preserve">
+    <value>Type overrides Object.Equals(object o) but does not override Object.GetHashCode()</value>
+  </data>
   <data name="WRN_EqualityOpWithoutEquals" xml:space="preserve">
     <value>'{0}' defines operator == or operator != but does not override Object.Equals(object o)</value>
   </data>
+  <data name="WRN_EqualityOpWithoutEquals_Type" xml:space="preserve">
+    <value>Type defines operator == or operator != but does not override Object.Equals(object o)</value>
+  </data>
   <data name="WRN_EqualityOpWithoutGetHashCode" xml:space="preserve">
     <value>'{0}' defines operator == or operator != but does not override Object.GetHashCode()</value>
+  </data>
+  <data name="WRN_EqualityOpWithoutGetHashCode_Title" xml:space="preserve">
+    <value>Type defines operator == or operator != but does not override Object.GetHashCode()</value>
   </data>
   <data name="ERR_OutAttrOnRefParam" xml:space="preserve">
     <value>Cannot specify only Out attribute on a ref parameter. Use both In and Out attributes, or neither.</value>
@@ -1628,6 +1789,9 @@
   </data>
   <data name="WRN_IncorrectBooleanAssg" xml:space="preserve">
     <value>Assignment in conditional expression is always constant; did you mean to use == instead of = ?</value>
+  </data>
+  <data name="WRN_IncorrectBooleanAssg_Title" xml:space="preserve">
+    <value>Assignment in conditional expression is always constant</value>
   </data>
   <data name="ERR_ProtectedInStruct" xml:space="preserve">
     <value>'{0}': new protected member declared in struct</value>
@@ -1644,6 +1808,9 @@
   <data name="WRN_NonObsoleteOverridingObsolete" xml:space="preserve">
     <value>Member '{0}' overrides obsolete member '{1}'. Add the Obsolete attribute to '{0}'.</value>
   </data>
+  <data name="WRN_NonObsoleteOverridingObsolete_Title" xml:space="preserve">
+    <value>Member overrides obsolete member</value>
+  </data>
   <data name="ERR_SystemVoid" xml:space="preserve">
     <value>System.Void cannot be used from C# -- use typeof(void) to get the void type object</value>
   </data>
@@ -1652,6 +1819,12 @@
   </data>
   <data name="WRN_BitwiseOrSignExtend" xml:space="preserve">
     <value>Bitwise-or operator used on a sign-extended operand; consider casting to a smaller unsigned type first</value>
+  </data>
+  <data name="WRN_BitwiseOrSignExtend_Title" xml:space="preserve">
+    <value>Bitwise-or operator used on a sign-extended operand</value>
+  </data>
+  <data name="WRN_BitwiseOrSignExtend_Description" xml:space="preserve">
+    <value>The compiler implicitly widened and sign-extended a variable, and then used the resulting value in a bitwise OR operation. This can result in unexpected behavior.</value>
   </data>
   <data name="ERR_VolatileStruct" xml:space="preserve">
     <value>'{0}': a volatile field cannot be of the type '{1}'</value>
@@ -1671,6 +1844,9 @@
   <data name="WRN_CoClassWithoutComImport" xml:space="preserve">
     <value>'{0}' interface marked with 'CoClassAttribute' not marked with 'ComImportAttribute'</value>
   </data>
+  <data name="WRN_CoClassWithoutComImport_Title" xml:space="preserve">
+    <value>Interface marked with 'CoClassAttribute' not marked with 'ComImportAttribute'</value>
+  </data>
   <data name="ERR_ConditionalWithOutParam" xml:space="preserve">
     <value>Conditional member '{0}' cannot have an out parameter</value>
   </data>
@@ -1688,6 +1864,9 @@
   </data>
   <data name="WRN_TypeParameterSameAsOuterTypeParameter" xml:space="preserve">
     <value>Type parameter '{0}' has the same name as the type parameter from outer type '{1}'</value>
+  </data>
+  <data name="WRN_TypeParameterSameAsOuterTypeParameter_Title" xml:space="preserve">
+    <value>Type parameter has the same name as the type parameter from outer type</value>
   </data>
   <data name="ERR_TypeVariableSameAsParent" xml:space="preserve">
     <value>Type parameter '{0}' has the same name as the containing type, or method</value>
@@ -1772,6 +1951,9 @@
   </data>
   <data name="WRN_AssignmentToLockOrDispose" xml:space="preserve">
     <value>Possibly incorrect assignment to local '{0}' which is the argument to a using or lock statement. The Dispose call or unlocking will happen on the original value of the local.</value>
+  </data>
+  <data name="WRN_AssignmentToLockOrDispose_Title" xml:space="preserve">
+    <value>Possibly incorrect assignment to local which is the argument to a using or lock statement</value>
   </data>
   <data name="ERR_ForwardedTypeInThisAssembly" xml:space="preserve">
     <value>Type '{0}' is defined in this assembly, but a type forwarder is specified for it</value>
@@ -1875,8 +2057,14 @@
   <data name="WRN_ObsoleteOverridingNonObsolete" xml:space="preserve">
     <value>Obsolete member '{0}' overrides non-obsolete member '{1}'</value>
   </data>
+  <data name="WRN_ObsoleteOverridingNonObsolete_Title" xml:space="preserve">
+    <value>Obsolete member overrides non-obsolete member</value>
+  </data>
   <data name="WRN_DebugFullNameTooLong" xml:space="preserve">
     <value>The fully qualified name for '{0}' is too long for debug information. Compile without '/debug' option.</value>
+  </data>
+  <data name="WRN_DebugFullNameTooLong_Title" xml:space="preserve">
+    <value>Fully qualified name is too long for debug information</value>
   </data>
   <data name="ERR_ImplicitlyTypedVariableAssignedBadValue" xml:space="preserve">
     <value>Cannot assign {0} to an implicitly-typed variable</value>
@@ -1898,6 +2086,9 @@
   </data>
   <data name="WRN_ExternCtorNoImplementation" xml:space="preserve">
     <value>Constructor '{0}' is marked external</value>
+  </data>
+  <data name="WRN_ExternCtorNoImplementation_Title" xml:space="preserve">
+    <value>Constructor is marked external</value>
   </data>
   <data name="ERR_TypeVarNotFound" xml:space="preserve">
     <value>The contextual keyword 'var' may only appear within a local variable declaration or in script code</value>
@@ -2040,6 +2231,9 @@
   <data name="WRN_WarningDirective" xml:space="preserve">
     <value>#warning: '{0}'</value>
   </data>
+  <data name="WRN_WarningDirective_Title" xml:space="preserve">
+    <value>#warning directive</value>
+  </data>
   <data name="ERR_TypeExpected" xml:space="preserve">
     <value>Type expected</value>
   </data>
@@ -2084,6 +2278,14 @@
   </data>
   <data name="WRN_UnreachableGeneralCatch" xml:space="preserve">
     <value>A previous catch clause already catches all exceptions. All non-exceptions thrown will be wrapped in a System.Runtime.CompilerServices.RuntimeWrappedException.</value>
+  </data>
+  <data name="WRN_UnreachableGeneralCatch_Title" xml:space="preserve">
+    <value>A previous catch clause already catches all exceptions</value>
+  </data>
+  <data name="WRN_UnreachableGeneralCatch_Description" xml:space="preserve">
+    <value>This warning is caused when a catch() block has no specified exception type after a catch (System.Exception e) block. The warning advises that the catch() block will not catch any exceptions.
+
+A catch() block after a catch (System.Exception e) block can catch non-CLS exceptions if the RuntimeCompatibilityAttribute is set to false in the AssemblyInfo.cs file: [assembly: RuntimeCompatibilityAttribute(WrapNonExceptionThrows = false)]. If this attribute is not set explicitly to false, all thrown non-CLS exceptions are wrapped as Exceptions and the catch (System.Exception e) block catches them.</value>
   </data>
   <data name="ERR_IncrementLvalueExpected" xml:space="preserve">
     <value>The operand of an increment or decrement operator must be a variable, property or indexer</value>
@@ -2193,6 +2395,9 @@
   <data name="WRN_EmptySwitch" xml:space="preserve">
     <value>Empty switch block</value>
   </data>
+  <data name="WRN_EmptySwitch_Title" xml:space="preserve">
+    <value>Empty switch block</value>
+  </data>
   <data name="ERR_ExpectedEndTry" xml:space="preserve">
     <value>Expected catch or finally</value>
   </data>
@@ -2274,20 +2479,38 @@
   <data name="WRN_XMLParseError" xml:space="preserve">
     <value>XML comment has badly formed XML -- '{0}'</value>
   </data>
+  <data name="WRN_XMLParseError_Title" xml:space="preserve">
+    <value>XML comment has badly formed XML</value>
+  </data>
   <data name="WRN_DuplicateParamTag" xml:space="preserve">
     <value>XML comment has a duplicate param tag for '{0}'</value>
+  </data>
+  <data name="WRN_DuplicateParamTag_Title" xml:space="preserve">
+    <value>XML comment has a duplicate param tag</value>
   </data>
   <data name="WRN_UnmatchedParamTag" xml:space="preserve">
     <value>XML comment has a param tag for '{0}', but there is no parameter by that name</value>
   </data>
+  <data name="WRN_UnmatchedParamTag_Title" xml:space="preserve">
+    <value>XML comment has a param tag, but there is no parameter by that name</value>
+  </data>
   <data name="WRN_UnmatchedParamRefTag" xml:space="preserve">
     <value>XML comment on '{1}' has a paramref tag for '{0}', but there is no parameter by that name</value>
+  </data>
+  <data name="WRN_UnmatchedParamRefTag_Title" xml:space="preserve">
+    <value>XML comment has a paramref tag, but there is no parameter by that name</value>
   </data>
   <data name="WRN_MissingParamTag" xml:space="preserve">
     <value>Parameter '{0}' has no matching param tag in the XML comment for '{1}' (but other parameters do)</value>
   </data>
+  <data name="WRN_MissingParamTag_Title" xml:space="preserve">
+    <value>Parameter has no matching param tag in the XML comment (but other parameters do)</value>
+  </data>
   <data name="WRN_BadXMLRef" xml:space="preserve">
     <value>XML comment has cref attribute '{0}' that could not be resolved</value>
+  </data>
+  <data name="WRN_BadXMLRef_Title" xml:space="preserve">
+    <value>XML comment has cref attribute that could not be resolved</value>
   </data>
   <data name="ERR_BadStackAllocExpr" xml:space="preserve">
     <value>A stackalloc expression requires [] after type</value>
@@ -2310,7 +2533,13 @@
   <data name="WRN_BadXMLRefParamType" xml:space="preserve">
     <value>Invalid type for parameter {0} in XML comment cref attribute: '{1}'</value>
   </data>
+  <data name="WRN_BadXMLRefParamType_Title" xml:space="preserve">
+    <value>Invalid type for parameter in XML comment cref attribute</value>
+  </data>
   <data name="WRN_BadXMLRefReturnType" xml:space="preserve">
+    <value>Invalid return type in XML comment cref attribute</value>
+  </data>
+  <data name="WRN_BadXMLRefReturnType_Title" xml:space="preserve">
     <value>Invalid return type in XML comment cref attribute</value>
   </data>
   <data name="ERR_BadWin32Res" xml:space="preserve">
@@ -2318,6 +2547,9 @@
   </data>
   <data name="WRN_BadXMLRefSyntax" xml:space="preserve">
     <value>XML comment has syntactically incorrect cref attribute '{0}'</value>
+  </data>
+  <data name="WRN_BadXMLRefSyntax_Title" xml:space="preserve">
+    <value>XML comment has syntactically incorrect cref attribute</value>
   </data>
   <data name="ERR_BadModifierLocation" xml:space="preserve">
     <value>Member modifier '{0}' must precede the member type and name</value>
@@ -2328,17 +2560,35 @@
   <data name="WRN_UnprocessedXMLComment" xml:space="preserve">
     <value>XML comment is not placed on a valid language element</value>
   </data>
+  <data name="WRN_UnprocessedXMLComment_Title" xml:space="preserve">
+    <value>XML comment is not placed on a valid language element</value>
+  </data>
   <data name="WRN_FailedInclude" xml:space="preserve">
     <value>Unable to include XML fragment '{1}' of file '{0}' -- {2}</value>
+  </data>
+  <data name="WRN_FailedInclude_Title" xml:space="preserve">
+    <value>Unable to include XML fragment</value>
   </data>
   <data name="WRN_InvalidInclude" xml:space="preserve">
     <value>Invalid XML include element -- {0}</value>
   </data>
+  <data name="WRN_InvalidInclude_Title" xml:space="preserve">
+    <value>Invalid XML include element</value>
+  </data>
   <data name="WRN_MissingXMLComment" xml:space="preserve">
     <value>Missing XML comment for publicly visible type or member '{0}'</value>
   </data>
+  <data name="WRN_MissingXMLComment_Title" xml:space="preserve">
+    <value>Missing XML comment for publicly visible type or member</value>
+  </data>
+  <data name="WRN_MissingXMLComment_Description" xml:space="preserve">
+    <value>The /doc compiler option was specified, but one or more constructs did not have comments.</value>
+  </data>
   <data name="WRN_XMLParseIncludeError" xml:space="preserve">
     <value>Badly formed XML in included comments file -- '{0}'</value>
+  </data>
+  <data name="WRN_XMLParseIncludeError_Title" xml:space="preserve">
+    <value>Badly formed XML in included comments file</value>
   </data>
   <data name="ERR_BadDelArgCount" xml:space="preserve">
     <value>Delegate '{0}' does not take {1} arguments</value>
@@ -2384,6 +2634,12 @@
   </data>
   <data name="WRN_CmdOptionConflictsSource" xml:space="preserve">
     <value>Option '{0}' overrides attribute '{1}' given in a source file or added module</value>
+  </data>
+  <data name="WRN_CmdOptionConflictsSource_Title" xml:space="preserve">
+    <value>Option overrides attribute given in a source file or added module</value>
+  </data>
+  <data name="WRN_CmdOptionConflictsSource_Description" xml:space="preserve">
+    <value>This warning occurs if the assembly attributes AssemblyKeyFileAttribute or AssemblyKeyNameAttribute found in source conflict with the /keyfile or /keycontainer command line option or key file name or key container specified in the Project Properties.</value>
   </data>
   <data name="ERR_BadCompatMode" xml:space="preserve">
     <value>Invalid option '{0}' for /langversion; must be ISO-1, ISO-2, Default or an integer in range 1 to 6.</value>
@@ -2433,11 +2689,20 @@
   <data name="WRN_IllegalPragma" xml:space="preserve">
     <value>Unrecognized #pragma directive</value>
   </data>
+  <data name="WRN_IllegalPragma_Title" xml:space="preserve">
+    <value>Unrecognized #pragma directive</value>
+  </data>
   <data name="WRN_IllegalPPWarning" xml:space="preserve">
     <value>Expected disable or restore</value>
   </data>
+  <data name="WRN_IllegalPPWarning_Title" xml:space="preserve">
+    <value>Expected disable or restore after #pragma warning</value>
+  </data>
   <data name="WRN_BadRestoreNumber" xml:space="preserve">
     <value>Cannot restore warning 'CS{0}' because it was disabled globally</value>
+  </data>
+  <data name="WRN_BadRestoreNumber_Title" xml:space="preserve">
+    <value>Cannot restore warning because it was disabled globally</value>
   </data>
   <data name="ERR_VarargsIterator" xml:space="preserve">
     <value>__arglist is not allowed in the parameter list of iterators</value>
@@ -2462,6 +2727,9 @@
   </data>
   <data name="WRN_NonECMAFeature" xml:space="preserve">
     <value>Feature '{0}' is not part of the standardized ISO C# language specification, and may not be accepted by other compilers</value>
+  </data>
+  <data name="WRN_NonECMAFeature_Title" xml:space="preserve">
+    <value>Feature is not part of the standardized ISO C# language specification, and may not be accepted by other compilers</value>
   </data>
   <data name="ERR_ExpectedVerbatimLiteral" xml:space="preserve">
     <value>Keyword, identifier, or string expected after verbatim specifier: @</value>
@@ -2492,6 +2760,12 @@
   </data>
   <data name="WRN_ErrorOverride" xml:space="preserve">
     <value>{0}. See also error CS{1}.</value>
+  </data>
+  <data name="WRN_ErrorOverride_Title" xml:space="preserve">
+    <value>Warning is overriding an error</value>
+  </data>
+  <data name="WRN_ErrorOverride_Description" xml:space="preserve">
+    <value>The compiler emits this warning when it overrides an error with a warning. For information about the problem, search for the error code mentioned.</value>
   </data>
   <data name="ERR_AnonMethToNonDel" xml:space="preserve">
     <value>Cannot convert {0} to type '{1}' because it is not a delegate type</value>
@@ -2525,6 +2799,9 @@
   </data>
   <data name="WRN_InvalidSearchPathDir" xml:space="preserve">
     <value>Invalid search path '{0}' specified in '{1}' -- '{2}'</value>
+  </data>
+  <data name="WRN_InvalidSearchPathDir_Title" xml:space="preserve">
+    <value>Invalid search path specified</value>
   </data>
   <data name="ERR_IllegalVarArgs" xml:space="preserve">
     <value>__arglist is not valid in this context</value>
@@ -2571,10 +2848,19 @@
   <data name="WRN_MultiplePredefTypes" xml:space="preserve">
     <value>The predefined type '{0}' is defined in multiple assemblies in the global alias; using definition from '{1}'</value>
   </data>
+  <data name="WRN_MultiplePredefTypes_Title" xml:space="preserve">
+    <value>Predefined type is defined in multiple assemblies in the global alias</value>
+  </data>
+  <data name="WRN_MultiplePredefTypes_Description" xml:space="preserve">
+    <value>This error occurs when a predefined system type such as System.Int32 is found in two assemblies. One way this can happen is if you are referencing mscorlib or System.Runtime.dll from two different places, such as trying to run two versions of the .NET Framework side-by-side.</value>
+  </data>
   <data name="ERR_LocalCantBeFixedAndHoisted" xml:space="preserve">
     <value>Local '{0}' or its members cannot have their address taken and be used inside an anonymous method or lambda expression</value>
   </data>
   <data name="WRN_TooManyLinesForDebugger" xml:space="preserve">
+    <value>Source file has exceeded the limit of 16,707,565 lines representable in the PDB; debug information will be incorrect</value>
+  </data>
+  <data name="WRN_TooManyLinesForDebugger_Title" xml:space="preserve">
     <value>Source file has exceeded the limit of 16,707,565 lines representable in the PDB; debug information will be incorrect</value>
   </data>
   <data name="ERR_CantConvAnonMethNoParams" xml:space="preserve">
@@ -2586,32 +2872,77 @@
   <data name="WRN_CallOnNonAgileField" xml:space="preserve">
     <value>Accessing a member on '{0}' may cause a runtime exception because it is a field of a marshal-by-reference class</value>
   </data>
+  <data name="WRN_CallOnNonAgileField_Title" xml:space="preserve">
+    <value>Accessing a member on a field of a marshal-by-reference class may cause a runtime exception</value>
+  </data>
+  <data name="WRN_CallOnNonAgileField_Description" xml:space="preserve">
+    <value>This warning occurs when you try to call a method, property, or indexer on a member of a class that derives from MarshalByRefObject, and the member is a value type. Objects that inherit from MarshalByRefObject are typically intended to be marshaled by reference across an application domain. If any code ever attempts to directly access the value-type member of such an object across an application domain, a runtime exception will occur. To resolve the warning, first copy the member into a local variable and call the method on that variable.</value>
+  </data>
   <data name="WRN_BadWarningNumber" xml:space="preserve">
     <value>'{0}' is not a valid warning number</value>
   </data>
+  <data name="WRN_BadWarningNumber_Title" xml:space="preserve">
+    <value>Not a valid warning number</value>
+  </data>
+  <data name="WRN_BadWarningNumber_Description" xml:space="preserve">
+    <value>A number that was passed to the #pragma warning preprocessor directive was not a valid warning number. Verify that the number represents a warning, not an error.</value>
+  </data>
   <data name="WRN_InvalidNumber" xml:space="preserve">
+    <value>Invalid number</value>
+  </data>
+  <data name="WRN_InvalidNumber_Title" xml:space="preserve">
     <value>Invalid number</value>
   </data>
   <data name="WRN_FileNameTooLong" xml:space="preserve">
     <value>Invalid filename specified for preprocessor directive. Filename is too long or not a valid filename.</value>
   </data>
+  <data name="WRN_FileNameTooLong_Title" xml:space="preserve">
+    <value>Invalid filename specified for preprocessor directive</value>
+  </data>
   <data name="WRN_IllegalPPChecksum" xml:space="preserve">
     <value>Invalid #pragma checksum syntax; should be #pragma checksum "filename" "{XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX}" "XXXX..."</value>
+  </data>
+  <data name="WRN_IllegalPPChecksum_Title" xml:space="preserve">
+    <value>Invalid #pragma checksum syntax</value>
   </data>
   <data name="WRN_EndOfPPLineExpected" xml:space="preserve">
     <value>Single-line comment or end-of-line expected</value>
   </data>
+  <data name="WRN_EndOfPPLineExpected_Title" xml:space="preserve">
+    <value>Single-line comment or end-of-line expected after #pragma directive</value>
+  </data>
   <data name="WRN_ConflictingChecksum" xml:space="preserve">
     <value>Different checksum values given for '{0}'</value>
+  </data>
+  <data name="WRN_ConflictingChecksum_Title" xml:space="preserve">
+    <value>Different #pragma checksum values given</value>
   </data>
   <data name="WRN_InvalidAssemblyName" xml:space="preserve">
     <value>Assembly reference '{0}' is invalid and cannot be resolved</value>
   </data>
+  <data name="WRN_InvalidAssemblyName_Title" xml:space="preserve">
+    <value>Assembly reference is invalid and cannot be resolved</value>
+  </data>
+  <data name="WRN_InvalidAssemblyName_Description" xml:space="preserve">
+     <value>This warning indicates that an attribute, such as InternalsVisibleToAttribute, was not specified correctly.</value>
+  </data>
   <data name="WRN_UnifyReferenceMajMin" xml:space="preserve">
     <value>Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy</value>
   </data>
+  <data name="WRN_UnifyReferenceMajMin_Title" xml:space="preserve">
+    <value>Assuming assembly reference matches identity</value>
+  </data>
+  <data name="WRN_UnifyReferenceMajMin_Description" xml:space="preserve">
+    <value>The two assemblies differ in release and/or version number. For unification to occur, you must specify directives in the application's .config file, and you must provide the correct strong name of an assembly.</value>
+  </data>
   <data name="WRN_UnifyReferenceBldRev" xml:space="preserve">
     <value>Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy</value>
+  </data>
+  <data name="WRN_UnifyReferenceBldRev_Title" xml:space="preserve">
+    <value>Assuming assembly reference matches identity</value>
+  </data>
+  <data name="WRN_UnifyReferenceBldRev_Description" xml:space="preserve">
+    <value>The two assemblies differ in release and/or version number. For unification to occur, you must specify directives in the application's .config file, and you must provide the correct strong name of an assembly.</value>
   </data>
   <data name="ERR_DuplicateImport" xml:space="preserve">
     <value>Multiple assemblies with equivalent identity have been imported: '{0}' and '{1}'. Remove one of the duplicate references.</value>
@@ -2628,14 +2959,26 @@
   <data name="WRN_DuplicateTypeParamTag" xml:space="preserve">
     <value>XML comment has a duplicate typeparam tag for '{0}'</value>
   </data>
+  <data name="WRN_DuplicateTypeParamTag_Title" xml:space="preserve">
+    <value>XML comment has a duplicate typeparam tag</value>
+  </data>
   <data name="WRN_UnmatchedTypeParamTag" xml:space="preserve">
     <value>XML comment has a typeparam tag for '{0}', but there is no type parameter by that name</value>
+  </data>
+  <data name="WRN_UnmatchedTypeParamTag_Title" xml:space="preserve">
+    <value>XML comment has a typeparam tag, but there is no type parameter by that name</value>
   </data>
   <data name="WRN_UnmatchedTypeParamRefTag" xml:space="preserve">
     <value>XML comment on '{1}' has a typeparamref tag for '{0}', but there is no type parameter by that name</value>
   </data>
+  <data name="WRN_UnmatchedTypeParamRefTag_Title" xml:space="preserve">
+    <value>XML comment has a typeparamref tag, but there is no type parameter by that name</value>
+  </data>
   <data name="WRN_MissingTypeParamTag" xml:space="preserve">
     <value>Type parameter '{0}' has no matching typeparam tag in the XML comment on '{1}' (but other type parameters do)</value>
+  </data>
+  <data name="WRN_MissingTypeParamTag_Title" xml:space="preserve">
+    <value>Type parameter has no matching typeparam tag in the XML comment (but other type parameters do)</value>
   </data>
   <data name="ERR_CantChangeTypeOnOverride" xml:space="preserve">
     <value>'{0}': type must be '{2}' to match overridden member '{1}'</value>
@@ -2646,14 +2989,23 @@
   <data name="WRN_AssignmentToSelf" xml:space="preserve">
     <value>Assignment made to same variable; did you mean to assign something else?</value>
   </data>
+  <data name="WRN_AssignmentToSelf_Title" xml:space="preserve">
+    <value>Assignment made to same variable</value>
+  </data>
   <data name="WRN_ComparisonToSelf" xml:space="preserve">
     <value>Comparison made to same variable; did you mean to compare something else?</value>
+  </data>
+  <data name="WRN_ComparisonToSelf_Title" xml:space="preserve">
+    <value>Comparison made to same variable</value>
   </data>
   <data name="ERR_CantOpenWin32Res" xml:space="preserve">
     <value>Error opening Win32 resource file '{0}' -- '{1}'</value>
   </data>
   <data name="WRN_DotOnDefault" xml:space="preserve">
     <value>Expression will always cause a System.NullReferenceException because the default value of '{0}' is null</value>
+  </data>
+  <data name="WRN_DotOnDefault_Title" xml:space="preserve">
+    <value>Expression will always cause a System.NullReferenceException because the type's default value is null</value>
   </data>
   <data name="ERR_NoMultipleInheritance" xml:space="preserve">
     <value>Class '{0}' cannot have multiple base classes: '{1}' and '{2}'</value>
@@ -2663,6 +3015,9 @@
   </data>
   <data name="WRN_BadXMLRefTypeVar" xml:space="preserve">
     <value>XML comment has cref attribute '{0}' that refers to a type parameter</value>
+  </data>
+  <data name="WRN_BadXMLRefTypeVar_Title" xml:space="preserve">
+    <value>XML comment has cref attribute that refers to a type parameter</value>
   </data>
   <data name="ERR_FriendAssemblyBadArgs" xml:space="preserve">
     <value>Friend assembly reference '{0}' is invalid. InternalsVisibleTo declarations cannot have a version, culture, public key token, or processor architecture specified.</value>
@@ -2734,6 +3089,9 @@
     <value>Error reading Win32 manifest file '{0}' -- '{1}'</value>
   </data>
   <data name="WRN_CantHaveManifestForModule" xml:space="preserve">
+    <value>Ignoring /win32manifest for module because it only applies to assemblies</value>
+  </data>
+  <data name="WRN_CantHaveManifestForModule_Title" xml:space="preserve">
     <value>Ignoring /win32manifest for module because it only applies to assemblies</value>
   </data>
   <data name="ERR_BadExtensionArgTypes" xml:space="preserve">
@@ -2820,8 +3178,21 @@
   <data name="WRN_MultipleRuntimeImplementationMatches" xml:space="preserve">
     <value>Member '{0}' implements interface member '{1}' in type '{2}'. There are multiple matches for the interface member at run-time. It is implementation dependent which method will be called.</value>
   </data>
+  <data name="WRN_MultipleRuntimeImplementationMatches_Title" xml:space="preserve">
+    <value>Member implements interface member with multiple matches at run-time</value>
+  </data>
+  <data name="WRN_MultipleRuntimeImplementationMatches_Description" xml:space="preserve">
+    <value>This warning can be generated when two interface methods are differentiated only by whether a particular parameter is marked with ref or with out. It is best to change your code to avoid this warning because it is not obvious or guaranteed which method is called at runtime.
+
+Although C# distinguishes between out and ref, the CLR sees them as the same. When deciding which method implements the interface, the CLR just picks one.
+
+Give the compiler some way to differentiate the methods. For example, you can give them different names or provide an additional parameter on one of them.</value>
+  </data>
   <data name="WRN_MultipleRuntimeOverrideMatches" xml:space="preserve">
     <value>Member '{1}' overrides '{0}'. There are multiple override candidates at run-time. It is implementation dependent which method will be called.</value>
+  </data>
+  <data name="WRN_MultipleRuntimeOverrideMatches_Title" xml:space="preserve">
+    <value>Member overrides base member with multiple override candidates at run-time</value>
   </data>
   <data name="ERR_ObjectOrCollectionInitializerWithDelegateCreation" xml:space="preserve">
     <value>Object and collection initializer expressions may not be applied to a delegate creation expression</value>
@@ -2835,6 +3206,9 @@
   <data name="WRN_FileAlreadyIncluded" xml:space="preserve">
     <value>Source file '{0}' specified multiple times</value>
   </data>
+  <data name="WRN_FileAlreadyIncluded_Title" xml:space="preserve">
+    <value>Source file specified multiple times</value>
+  </data>
   <data name="ERR_NoFileSpec" xml:space="preserve">
     <value>Missing file specification for '{0}' option</value>
   </data>
@@ -2845,6 +3219,9 @@
     <value>Unrecognized option: '{0}'</value>
   </data>
   <data name="WRN_NoSources" xml:space="preserve">
+    <value>No source files specified.</value>
+  </data>
+  <data name="WRN_NoSources_Title" xml:space="preserve">
     <value>No source files specified.</value>
   </data>
   <data name="ERR_NoScriptsSpecified" xml:space="preserve">
@@ -2880,6 +3257,9 @@
   <data name="WRN_NoConfigNotOnCommandLine" xml:space="preserve">
     <value>Ignoring /noconfig option because it was specified in a response file</value>
   </data>
+  <data name="WRN_NoConfigNotOnCommandLine_Title" xml:space="preserve">
+    <value>Ignoring /noconfig option because it was specified in a response file</value>
+  </data>
   <data name="ERR_InvalidFileAlignment" xml:space="preserve">
     <value>Invalid file section alignment '{0}'</value>
   </data>
@@ -2894,6 +3274,9 @@
   </data>
   <data name="WRN_DefineIdentifierRequired" xml:space="preserve">
     <value>Invalid value for '/define'; '{0}' is not a valid identifier</value>
+  </data>
+  <data name="WRN_DefineIdentifierRequired_Title" xml:space="preserve">
+    <value>Invalid value for '/define'; not a valid identifier</value>
   </data>
   <data name="FTL_OutputFileExists" xml:space="preserve">
     <value>Cannot create short filename '{0}' when a long filename with the same short filename already exists</value>
@@ -2919,77 +3302,161 @@
   <data name="WRN_CLS_NoVarArgs" xml:space="preserve">
     <value>Methods with variable arguments are not CLS-compliant</value>
   </data>
+  <data name="WRN_CLS_NoVarArgs_Title" xml:space="preserve">
+    <value>Methods with variable arguments are not CLS-compliant</value>
+  </data>
   <data name="WRN_CLS_BadArgType" xml:space="preserve">
     <value>Argument type '{0}' is not CLS-compliant</value>
+  </data>
+  <data name="WRN_CLS_BadArgType_Title" xml:space="preserve">
+    <value>Argument type is not CLS-compliant</value>
   </data>
   <data name="WRN_CLS_BadReturnType" xml:space="preserve">
     <value>Return type of '{0}' is not CLS-compliant</value>
   </data>
+  <data name="WRN_CLS_BadReturnType_Title" xml:space="preserve">
+    <value>Return type is not CLS-compliant</value>
+  </data>
   <data name="WRN_CLS_BadFieldPropType" xml:space="preserve">
     <value>Type of '{0}' is not CLS-compliant</value>
+  </data>
+  <data name="WRN_CLS_BadFieldPropType_Title" xml:space="preserve">
+    <value>Type is not CLS-compliant</value>
+  </data>
+  <data name="WRN_CLS_BadFieldPropType_Description" xml:space="preserve">
+    <value>A public, protected, or protected internal variable must be of a type that is compliant with the Common Language Specification (CLS).</value>
   </data>
   <data name="WRN_CLS_BadIdentifierCase" xml:space="preserve">
     <value>Identifier '{0}' differing only in case is not CLS-compliant</value>
   </data>
+  <data name="WRN_CLS_BadIdentifierCase_Title" xml:space="preserve">
+    <value>Identifier differing only in case is not CLS-compliant</value>
+  </data>
   <data name="WRN_CLS_OverloadRefOut" xml:space="preserve">
     <value>Overloaded method '{0}' differing only in ref or out, or in array rank, is not CLS-compliant</value>
+  </data>
+  <data name="WRN_CLS_OverloadRefOut_Title" xml:space="preserve">
+    <value>Overloaded method differing only in ref or out, or in array rank, is not CLS-compliant</value>
   </data>
   <data name="WRN_CLS_OverloadUnnamed" xml:space="preserve">
     <value>Overloaded method '{0}' differing only by unnamed array types is not CLS-compliant</value>
   </data>
+  <data name="WRN_CLS_OverloadUnnamed_Title" xml:space="preserve">
+    <value>Overloaded method differing only by unnamed array types is not CLS-compliant</value>
+  </data>
+  <data name="WRN_CLS_OverloadUnnamed_Description" xml:space="preserve">
+    <value>This error occurs if you have an overloaded method that takes a jagged array and the only difference between the method signatures is the element type of the array. To avoid this error, consider using a rectangular array rather than a jagged array; use an additional parameter to disambiguate the function call; rename one or more of the overloaded methods; or, if CLS Compliance is not needed, remove the CLSCompliantAttribute attribute.</value>
+  </data>
   <data name="WRN_CLS_BadIdentifier" xml:space="preserve">
     <value>Identifier '{0}' is not CLS-compliant</value>
+  </data>
+  <data name="WRN_CLS_BadIdentifier_Title" xml:space="preserve">
+    <value>Identifier is not CLS-compliant</value>
   </data>
   <data name="WRN_CLS_BadBase" xml:space="preserve">
     <value>'{0}': base type '{1}' is not CLS-compliant</value>
   </data>
+  <data name="WRN_CLS_BadBase_Title" xml:space="preserve">
+    <value>'Base type is not CLS-compliant</value>
+  </data>
+  <data name="WRN_CLS_BadBase_Description" xml:space="preserve">
+    <value>A base type was marked as not having to be compliant with the Common Language Specification (CLS) in an assembly that was marked as being CLS compliant. Either remove the attribute that specifies the assembly is CLS compliant or remove the attribute that indicates the type is not CLS compliant.</value>
+  </data>
   <data name="WRN_CLS_BadInterfaceMember" xml:space="preserve">
     <value>'{0}': CLS-compliant interfaces must have only CLS-compliant members</value>
+  </data>
+  <data name="WRN_CLS_BadInterfaceMember_Title" xml:space="preserve">
+    <value>CLS-compliant interfaces must have only CLS-compliant members</value>
   </data>
   <data name="WRN_CLS_NoAbstractMembers" xml:space="preserve">
     <value>'{0}': only CLS-compliant members can be abstract</value>
   </data>
+  <data name="WRN_CLS_NoAbstractMembers_Title" xml:space="preserve">
+    <value>Only CLS-compliant members can be abstract</value>
+  </data>
   <data name="WRN_CLS_NotOnModules" xml:space="preserve">
+    <value>You must specify the CLSCompliant attribute on the assembly, not the module, to enable CLS compliance checking</value>
+  </data>
+  <data name="WRN_CLS_NotOnModules_Title" xml:space="preserve">
     <value>You must specify the CLSCompliant attribute on the assembly, not the module, to enable CLS compliance checking</value>
   </data>
   <data name="WRN_CLS_ModuleMissingCLS" xml:space="preserve">
     <value>Added modules must be marked with the CLSCompliant attribute to match the assembly</value>
   </data>
+  <data name="WRN_CLS_ModuleMissingCLS_Title" xml:space="preserve">
+    <value>Added modules must be marked with the CLSCompliant attribute to match the assembly</value>
+  </data>
   <data name="WRN_CLS_AssemblyNotCLS" xml:space="preserve">
     <value>'{0}' cannot be marked as CLS-compliant because the assembly does not have a CLSCompliant attribute</value>
+  </data>
+  <data name="WRN_CLS_AssemblyNotCLS_Title" xml:space="preserve">
+    <value>Type or member cannot be marked as CLS-compliant because the assembly does not have a CLSCompliant attribute</value>
   </data>
   <data name="WRN_CLS_BadAttributeType" xml:space="preserve">
     <value>'{0}' has no accessible constructors which use only CLS-compliant types</value>
   </data>
+  <data name="WRN_CLS_BadAttributeType_Title" xml:space="preserve">
+    <value>Type has no accessible constructors which use only CLS-compliant types</value>
+  </data>
   <data name="WRN_CLS_ArrayArgumentToAttribute" xml:space="preserve">
+    <value>Arrays as attribute arguments is not CLS-compliant</value>
+  </data>
+  <data name="WRN_CLS_ArrayArgumentToAttribute_Title" xml:space="preserve">
     <value>Arrays as attribute arguments is not CLS-compliant</value>
   </data>
   <data name="WRN_CLS_NotOnModules2" xml:space="preserve">
     <value>You cannot specify the CLSCompliant attribute on a module that differs from the CLSCompliant attribute on the assembly</value>
   </data>
+  <data name="WRN_CLS_NotOnModules2_Title" xml:space="preserve">
+    <value>You cannot specify the CLSCompliant attribute on a module that differs from the CLSCompliant attribute on the assembly</value>
+  </data>
   <data name="WRN_CLS_IllegalTrueInFalse" xml:space="preserve">
     <value>'{0}' cannot be marked as CLS-compliant because it is a member of non-CLS-compliant type '{1}'</value>
+  </data>
+  <data name="WRN_CLS_IllegalTrueInFalse_Title" xml:space="preserve">
+    <value>Type cannot be marked as CLS-compliant because it is a member of non-CLS-compliant type</value>
   </data>
   <data name="WRN_CLS_MeaninglessOnPrivateType" xml:space="preserve">
     <value>CLS compliance checking will not be performed on '{0}' because it is not visible from outside this assembly</value>
   </data>
+  <data name="WRN_CLS_MeaninglessOnPrivateType_Title" xml:space="preserve">
+    <value>CLS compliance checking will not be performed because it is not visible from outside this assembly</value>
+  </data>
   <data name="WRN_CLS_AssemblyNotCLS2" xml:space="preserve">
     <value>'{0}' does not need a CLSCompliant attribute because the assembly does not have a CLSCompliant attribute</value>
+  </data>
+  <data name="WRN_CLS_AssemblyNotCLS2_Title" xml:space="preserve">
+    <value>Type or member does not need a CLSCompliant attribute because the assembly does not have a CLSCompliant attribute</value>
   </data>
   <data name="WRN_CLS_MeaninglessOnParam" xml:space="preserve">
     <value>CLSCompliant attribute has no meaning when applied to parameters. Try putting it on the method instead.</value>
   </data>
+  <data name="WRN_CLS_MeaninglessOnParam_Title" xml:space="preserve">
+    <value>CLSCompliant attribute has no meaning when applied to parameters</value>
+  </data>
   <data name="WRN_CLS_MeaninglessOnReturn" xml:space="preserve">
     <value>CLSCompliant attribute has no meaning when applied to return types. Try putting it on the method instead.</value>
+  </data>
+  <data name="WRN_CLS_MeaninglessOnReturn_Title" xml:space="preserve">
+    <value>CLSCompliant attribute has no meaning when applied to return types</value>
   </data>
   <data name="WRN_CLS_BadTypeVar" xml:space="preserve">
     <value>Constraint type '{0}' is not CLS-compliant</value>
   </data>
+  <data name="WRN_CLS_BadTypeVar_Title" xml:space="preserve">
+    <value>Constraint type is not CLS-compliant</value>
+  </data>
   <data name="WRN_CLS_VolatileField" xml:space="preserve">
     <value>CLS-compliant field '{0}' cannot be volatile</value>
   </data>
+  <data name="WRN_CLS_VolatileField_Title" xml:space="preserve">
+    <value>CLS-compliant field cannot be volatile</value>
+  </data>
   <data name="WRN_CLS_BadInterface" xml:space="preserve">
     <value>'{0}' is not CLS-compliant because base interface '{1}' is not CLS-compliant</value>
+  </data>
+  <data name="WRN_CLS_BadInterface_Title" xml:space="preserve">
+    <value>Type is not CLS-compliant because base interface is not CLS-compliant</value>
   </data>
   <data name="ERR_BadAwaitArg" xml:space="preserve">
     <value>'await' requires that the type {0} have a suitable GetAwaiter method</value>
@@ -3081,8 +3548,23 @@
   <data name="WRN_AsyncLacksAwaits" xml:space="preserve">
     <value>This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.</value>
   </data>
+  <data name="WRN_AsyncLacksAwaits_Title" xml:space="preserve">
+    <value>Async method lacks 'await' operators and will run synchronously</value>
+  </data>
   <data name="WRN_UnobservedAwaitableExpression" xml:space="preserve">
     <value>Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.</value>
+  </data>
+  <data name="WRN_UnobservedAwaitableExpression_Title" xml:space="preserve">
+    <value>Because this call is not awaited, execution of the current method continues before the call is completed</value>
+  </data>
+  <data name="WRN_UnobservedAwaitableExpression_Description" xml:space="preserve">
+    <value>The current method calls an async method that returns a Task or a Task&lt;TResult&gt; and doesn’t apply the await operator to the result. The call to the async method starts an asynchronous task. However, because no await operator is applied, the program continues without waiting for the task to complete. In most cases, that behavior isn't what you expect. Usually other aspects of the calling method depend on the results of the call or, minimally, the called method is expected to complete before you return from the method that contains the call.
+
+An equally important issue is what happens to exceptions that are raised in the called async method. An exception that's raised in a method that returns a Task or Task&lt;TResult&gt; is stored in the returned task. If you don't await the task or explicitly check for exceptions, the exception is lost. If you await the task, its exception is rethrown.
+
+As a best practice, you should always await the call.
+
+You should consider suppressing the warning only if you're sure that you don't want to wait for the asynchronous call to complete and that the called method won't raise any exceptions. In that case, you can suppress the warning by assigning the task result of the call to a variable.</value>
   </data>
   <data name="ERR_SynchronizedAsyncMethod" xml:space="preserve">
     <value>'MethodImplOptions.Synchronized' cannot be applied to an async method</value>
@@ -3108,11 +3590,20 @@
   <data name="WRN_CallerLineNumberParamForUnconsumedLocation" xml:space="preserve">
     <value>The CallerLineNumberAttribute applied to parameter '{0}' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
   </data>
+  <data name="WRN_CallerLineNumberParamForUnconsumedLocation_Title" xml:space="preserve">
+    <value>The CallerLineNumberAttribute will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
+  </data>
   <data name="WRN_CallerFilePathParamForUnconsumedLocation" xml:space="preserve">
     <value>The CalleFilePathAttribute applied to parameter '{0}' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
   </data>
+  <data name="WRN_CallerFilePathParamForUnconsumedLocation_Title" xml:space="preserve">
+    <value>The CalleFilePathAttribute will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
+  </data>
   <data name="WRN_CallerMemberNameParamForUnconsumedLocation" xml:space="preserve">
     <value>The CallerMemberNameAttribute applied to parameter '{0}' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
+  </data>
+  <data name="WRN_CallerMemberNameParamForUnconsumedLocation_Title" xml:space="preserve">
+    <value>The CallerMemberNameAttribute will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
   </data>
   <data name="ERR_NoEntryPoint" xml:space="preserve">
     <value>Program does not contain a static 'Main' method suitable for an entry point</value>
@@ -3142,7 +3633,7 @@
     <value>An array access may not have a named argument specifier</value>
   </data>
   <data name="ERR_NotYetImplementedInRoslyn" xml:space="preserve">
-    <value>This language feature ('{0}') is not yet implemented in Roslyn.</value>
+    <value>This language feature ('{0}') is not yet implemented.</value>
   </data>
   <data name="ERR_DefaultValueNotAllowed" xml:space="preserve">
     <value>Default values are not valid in this context.</value>
@@ -3195,6 +3686,9 @@
   <data name="WRN_IsDynamicIsConfusing" xml:space="preserve">
     <value>Using '{0}' to test compatibility with '{1}' is essentially identical to testing compatibility with '{2}' and will succeed for all non-null values</value>
   </data>
+  <data name="WRN_IsDynamicIsConfusing_Title" xml:space="preserve">
+    <value>Using 'is' to test compatibility with 'dynamic' is essentially identical to testing compatibility with 'Object'</value>
+  </data>
   <data name="ERR_OverloadRefOutCtor" xml:space="preserve">
     <value>Cannot define overloaded constructor '{0}' because it differs from another constructor only on ref and out</value>
   </data>
@@ -3212,6 +3706,9 @@
   </data>
   <data name="WRN_MainIgnored" xml:space="preserve">
     <value>The entry point of the program is global script code; ignoring '{0}' entry point.</value>
+  </data>
+  <data name="WRN_MainIgnored_Title" xml:space="preserve">
+    <value>The entry point of the program is global script code; ignoring entry point.</value>
   </data>
   <data name="ERR_StaticInAsOrIs" xml:space="preserve">
     <value>The second operand of an 'is' or 'as' operator may not be static type '{0}'</value>
@@ -3261,6 +3758,9 @@
   <data name="WRN_DefaultValueForUnconsumedLocation" xml:space="preserve">
     <value>The default value specified for parameter '{0}' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
   </data>
+  <data name="WRN_DefaultValueForUnconsumedLocation_Title" xml:space="preserve">
+    <value>The default value specified will have no effect because it applies to a member that is used in contexts that do not allow optional arguments</value>
+  </data>
   <data name="ERR_PublicKeyFileFailure" xml:space="preserve">
     <value>Error signing output with public key from file '{0}' -- {1}</value>
   </data>
@@ -3288,6 +3788,9 @@
   <data name="WRN_DelaySignButNoKey" xml:space="preserve">
     <value>Delay signing was specified and requires a public key, but no public key was specified</value>
   </data>
+  <data name="WRN_DelaySignButNoKey_Title" xml:space="preserve">
+    <value>Delay signing was specified and requires a public key, but no public key was specified</value>
+  </data>
   <data name="ERR_InvalidVersionFormat" xml:space="preserve">
     <value>The specified version string does not conform to the required format - major[.minor[.build[.revision]]]</value>
   </data>
@@ -3297,6 +3800,9 @@
   <data name="WRN_InvalidVersionFormat" xml:space="preserve">
     <value>The specified version string does not conform to the recommended format - major.minor.build.revision</value>
   </data>
+  <data name="WRN_InvalidVersionFormat_Title" xml:space="preserve">
+    <value>The specified version string does not conform to the recommended format - major.minor.build.revision</value>
+  </data>
   <data name="ERR_InvalidAssemblyCultureForExe" xml:space="preserve">
     <value>Executables cannot be satellite assemblies; culture should always be empty</value>
   </data>
@@ -3304,7 +3810,10 @@
     <value>There is no argument given that corresponds to the required formal parameter '{0}' of '{1}'</value>
   </data>
   <data name="WRN_UnimplementedCommandLineSwitch" xml:space="preserve">
-    <value>The command line switch '{0}' is not yet implemented in Roslyn and was ignored.</value>
+    <value>The command line switch '{0}' is not yet implemented and was ignored.</value>
+  </data>
+  <data name="WRN_UnimplementedCommandLineSwitch_Title" xml:space="preserve">
+    <value>Command line switch is not yet implemented</value>
   </data>
   <data name="ERR_ModuleEmitFailure" xml:space="preserve">
     <value>Failed to emit module '{0}'.</value>
@@ -3375,8 +3884,14 @@
   <data name="WRN_DeprecatedCollectionInitAdd" xml:space="preserve">
     <value>The best overloaded Add method '{0}' for the collection initializer element is obsolete.</value>
   </data>
+  <data name="WRN_DeprecatedCollectionInitAdd_Title" xml:space="preserve">
+    <value>The best overloaded Add method for the collection initializer element is obsolete</value>
+  </data>
   <data name="WRN_DeprecatedCollectionInitAddStr" xml:space="preserve">
     <value>The best overloaded Add method '{0}' for the collection initializer element is obsolete. {1}</value>
+  </data>
+  <data name="WRN_DeprecatedCollectionInitAddStr_Title" xml:space="preserve">
+    <value>The best overloaded Add method for the collection initializer element is obsolete</value>
   </data>
   <data name="ERR_DeprecatedCollectionInitAddStr" xml:space="preserve">
     <value>The best overloaded Add method '{0}' for the collection initializer element is obsolete. {1}</value>
@@ -3408,17 +3923,29 @@
   <data name="WRN_DynamicDispatchToConditionalMethod" xml:space="preserve">
     <value>The dynamically dispatched call to method '{0}' may fail at runtime because one or more applicable overloads are conditional methods.</value>
   </data>
+  <data name="WRN_DynamicDispatchToConditionalMethod_Title" xml:space="preserve">
+    <value>Dynamically dispatched call may fail at runtime because one or more applicable overloads are conditional methods</value>
+  </data>
   <data name="ERR_BadArgTypeDynamicExtension" xml:space="preserve">
     <value>'{0}' has no applicable method named '{1}' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.</value>
   </data>
   <data name="WRN_CallerFilePathPreferredOverCallerMemberName" xml:space="preserve">
     <value>The CallerMemberNameAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerFilePathAttribute.</value>
   </data>
+  <data name="WRN_CallerFilePathPreferredOverCallerMemberName_Title" xml:space="preserve">
+    <value>The CallerMemberNameAttribute will have no effect; it is overridden by the CallerFilePathAttribute</value>
+  </data>
   <data name="WRN_CallerLineNumberPreferredOverCallerMemberName" xml:space="preserve">
     <value>The CallerMemberNameAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerLineNumberAttribute.</value>
   </data>
+  <data name="WRN_CallerLineNumberPreferredOverCallerMemberName_Title" xml:space="preserve">
+    <value>The CallerMemberNameAttribute will have no effect; it is overridden by the CallerLineNumberAttribute</value>
+  </data>
   <data name="WRN_CallerLineNumberPreferredOverCallerFilePath" xml:space="preserve">
     <value>The CallerFilePathAttribute applied to parameter '{0}' will have no effect. It is overridden by the CallerLineNumberAttribute.</value>
+  </data>
+  <data name="WRN_CallerLineNumberPreferredOverCallerFilePath_Title" xml:space="preserve">
+    <value>The CallerFilePathAttribute will have no effect; it is overridden by the CallerLineNumberAttribute</value>
   </data>
   <data name="ERR_InvalidDynamicCondition" xml:space="preserve">
     <value>Expression must be implicitly convertible to Boolean or its type '{0}' must define operator '{1}'.</value>
@@ -3429,11 +3956,20 @@
   <data name="WRN_CA2000_DisposeObjectsBeforeLosingScope1" xml:space="preserve">
     <value>Call System.IDisposable.Dispose() on allocated instance of {0} before all references to it are out of scope.</value>
   </data>
+  <data name="WRN_CA2000_DisposeObjectsBeforeLosingScope1_Title" xml:space="preserve">
+    <value>Call System.IDisposable.Dispose() on allocated instance before all references to it are out of scope</value>
+  </data>
   <data name="WRN_CA2000_DisposeObjectsBeforeLosingScope2" xml:space="preserve">
     <value>Allocated instance of {0} is not disposed along all exception paths.  Call System.IDisposable.Dispose() before all references to it are out of scope.</value>
   </data>
+  <data name="WRN_CA2000_DisposeObjectsBeforeLosingScope2_Title" xml:space="preserve">
+    <value>Allocated instance is not disposed along all exception paths</value>
+  </data>
   <data name="WRN_CA2202_DoNotDisposeObjectsMultipleTimes" xml:space="preserve">
     <value>Object '{0}' can be disposed more than once.</value>
+  </data>
+  <data name="WRN_CA2202_DoNotDisposeObjectsMultipleTimes_Title" xml:space="preserve">
+    <value>Object can be disposed more than once</value>
   </data>
   <data name="ERR_NewCoClassOnLink" xml:space="preserve">
     <value>Interop type '{0}' cannot be embedded. Use the applicable interface instead.</value>
@@ -3474,6 +4010,16 @@
   <data name="WRN_ReferencedAssemblyReferencesLinkedPIA" xml:space="preserve">
     <value>A reference was created to embedded interop assembly '{0}' because of an indirect reference to that assembly created by assembly '{1}'. Consider changing the 'Embed Interop Types' property on either assembly.</value>
   </data>
+  <data name="WRN_ReferencedAssemblyReferencesLinkedPIA_Title" xml:space="preserve">
+    <value>A reference was created to embedded interop assembly because of an indirect assembly reference</value>
+  </data>
+  <data name="WRN_ReferencedAssemblyReferencesLinkedPIA_Description" xml:space="preserve">
+    <value>You have added a reference to an assembly using /link (Embed Interop Types property set to True). This instructs the compiler to embed interop type information from that assembly. However, the compiler cannot embed interop type information from that assembly because another assembly that you have referenced also references that assembly using /reference (Embed Interop Types property set to False).
+
+To embed interop type information for both assemblies, use /link for references to each assembly (set the Embed Interop Types property to True).
+
+To remove the warning, you can use /reference instead (set the Embed Interop Types property to False). In this case, a primary interop assembly (PIA) provides interop type information.</value>
+  </data>
   <data name="ERR_GenericsUsedAcrossAssemblies" xml:space="preserve">
     <value>Type '{0}' from assembly '{1}' cannot be used across assembly boundaries because it has a generic type parameter that is an embedded interop type.</value>
   </data>
@@ -3498,6 +4044,9 @@
   <data name="WRN_AssemblyAttributeFromModuleIsOverridden" xml:space="preserve">
     <value>Attribute '{0}' from module '{1}' will be ignored in favor of the instance appearing in source</value>
   </data>
+  <data name="WRN_AssemblyAttributeFromModuleIsOverridden_Title" xml:space="preserve">
+    <value>Attribute will be ignored in favor of the instance appearing in source</value>
+  </data>
   <data name="ERR_CmdOptionConflictsSource" xml:space="preserve">
     <value>Attribute '{0}' given in a source file conflicts with option '{1}'.</value>
   </data>
@@ -3506,6 +4055,9 @@
   </data>
   <data name="WRN_ReferencedAssemblyDoesNotHaveStrongName" xml:space="preserve">
     <value>Referenced assembly '{0}' does not have a strong name.</value>
+  </data>
+  <data name="WRN_ReferencedAssemblyDoesNotHaveStrongName_Title" xml:space="preserve">
+    <value>Referenced assembly does not have a strong name</value>
   </data>
   <data name="ERR_InvalidSignaturePublicKey" xml:space="preserve">
     <value>Invalid signature public key specified in AssemblySignatureKeyAttribute.</value>
@@ -3528,6 +4080,9 @@
   <data name="WRN_RefCultureMismatch" xml:space="preserve">
     <value>Referenced assembly '{0}' has different culture setting of '{1}'.</value>
   </data>
+  <data name="WRN_RefCultureMismatch_Title" xml:space="preserve">
+    <value>Referenced assembly has different culture setting</value>
+  </data>
   <data name="ERR_AgnosticToMachineModule" xml:space="preserve">
     <value>Agnostic assembly cannot have a processor specific module '{0}'.</value>
   </data>
@@ -3536,6 +4091,9 @@
   </data>
   <data name="WRN_ConflictingMachineAssembly" xml:space="preserve">
     <value>Referenced assembly '{0}' targets a different processor.</value>
+  </data>
+  <data name="WRN_ConflictingMachineAssembly_Title" xml:space="preserve">
+    <value>Referenced assembly targets a different processor</value>
   </data>
   <data name="ERR_CryptoHashFailed" xml:space="preserve">
     <value>Cryptographic failure while creating hashes.</value>
@@ -3687,6 +4245,9 @@
   <data name="WRN_BadUILang" xml:space="preserve">
     <value>The language name '{0}' is invalid.</value>
   </data>
+  <data name="WRN_BadUILang_Title" xml:space="preserve">
+    <value>The language name is invalid</value>
+  </data>
   <data name="ERR_UnsupportedTransparentIdentifierAccess" xml:space="preserve">
     <value>Transparent identifier member access failed for field '{0}' of '{1}'.  Does the data being queried implement the query pattern?</value>
   </data>
@@ -3698,6 +4259,9 @@
   </data>
   <data name="WRN_UnqualifiedNestedTypeInCref" xml:space="preserve">
     <value>Within cref attributes, nested types of generic types should be qualified.</value>
+  </data>
+  <data name="WRN_UnqualifiedNestedTypeInCref_Title" xml:space="preserve">
+    <value>Within cref attributes, nested types of generic types should be qualified</value>
   </data>
   <data name="NotACSharpSymbol" xml:space="preserve">
     <value>Not a C# symbol.</value>
@@ -3728,6 +4292,9 @@
   </data>
   <data name="WRN_NoRuntimeMetadataVersion" xml:space="preserve">
     <value>No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.</value>
+  </data>
+  <data name="WRN_NoRuntimeMetadataVersion_Title" xml:space="preserve">
+    <value>No value for RuntimeMetadataVersion found</value>
   </data>
   <data name="WrongSemanticModelType" xml:space="preserve">
     <value>Expected a {0} SemanticModel.</value>
@@ -3902,6 +4469,9 @@
   <data name="WRN_PdbLocalNameTooLong" xml:space="preserve">
     <value>Local name '{0}' is too long for PDB.  Consider shortening or compiling without /debug.</value>
   </data>
+  <data name="WRN_PdbLocalNameTooLong_Title" xml:space="preserve">
+    <value>Local name is too long for PDB</value>
+  </data>
   <data name="ERR_RetNoObjectRequiredLambda" xml:space="preserve">
     <value>Anonymous function converted to a void returning delegate cannot return a value</value>
   </data>
@@ -3911,11 +4481,20 @@
   <data name="WRN_AnalyzerCannotBeCreated" xml:space="preserve">
     <value>An instance of analyzer {0} cannot be created from {1} : {2}.</value>
   </data>
+  <data name="WRN_AnalyzerCannotBeCreated_Title" xml:space="preserve">
+    <value>An analyzer instance cannot be created</value>
+  </data>
   <data name="WRN_NoAnalyzerInAssembly" xml:space="preserve">
     <value>The assembly {0} does not contain any analyzers.</value>
   </data>
+  <data name="WRN_NoAnalyzerInAssembly_Title" xml:space="preserve">
+    <value>Assembly does not contain any analyzers</value>
+  </data>
   <data name="WRN_UnableToLoadAnalyzer" xml:space="preserve">
     <value>Unable to load Analyzer assembly {0} : {1}</value>
+  </data>
+  <data name="WRN_UnableToLoadAnalyzer_Title" xml:space="preserve">
+    <value>Unable to load Analyzer assembly</value>
   </data>
   <data name="INF_UnableToLoadSomeTypesInAnalyzer" xml:space="preserve">
     <value>Skipping some types in analyzer assembly {0} due to a ReflectionTypeLoadException : {1}.</value>
@@ -3928,6 +4507,9 @@
   </data>
   <data name="WRN_IdentifierOrNumericLiteralExpected" xml:space="preserve">
     <value>Expected identifier or numeric literal.</value>
+  </data>
+  <data name="WRN_IdentifierOrNumericLiteralExpected_Title" xml:space="preserve">
+    <value>Expected identifier or numeric literal</value>
   </data>
   <data name="ERR_InitializerOnNonAutoProperty" xml:space="preserve">
     <value>Only auto-implemented properties can have initializers.</value>
