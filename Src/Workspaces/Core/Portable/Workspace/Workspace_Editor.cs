@@ -256,8 +256,6 @@ namespace Microsoft.CodeAnalysis
         /// Gets the id for the document associated with the given text container in its current context.
         /// Documents are normally associated with a text container when the documents are opened.
         /// </summary>
-        /// <param name="container"></param>
-        /// <returns></returns>
         public virtual DocumentId GetDocumentIdInCurrentContext(SourceTextContainer container)
         {
             if (container == null)
@@ -267,19 +265,47 @@ namespace Microsoft.CodeAnalysis
 
             using (this.stateLock.DisposableWait())
             {
-                DocumentId docId;
-                bool foundValue = this.bufferToDocumentInCurrentContextMap.TryGetValue(container, out docId);
+                return GetDocumentIdInCurrentContext_NoLock(container);
+            }
+        }
 
-                if (foundValue)
-                {
-                    return docId;
-                }
-                else
-                {
-                    Debug.Assert(!this.bufferToDocumentIdMap.ContainsKey(container) ||
-                                 !this.bufferToDocumentIdMap[container].Any());
-                    return null;
-                }
+        /// <summary>
+        /// Finds the <see cref="DocumentId"/> related to the given <see cref="DocumentId"/> that
+        /// is in the current context. If the <see cref="DocumentId"/> is currently closed, then 
+        /// it is returned directly. If it is open, then this returns the same result that 
+        /// <see cref="GetDocumentIdInCurrentContext(SourceTextContainer)"/> would return for the
+        /// <see cref="SourceTextContainer"/>. Hosts can override this method to provide more 
+        /// customized behaviors (e.g. special handling of documents in Shared Projects).
+        /// </summary>
+        internal virtual DocumentId GetDocumentIdInCurrentContext(DocumentId documentId)
+        {
+            if (documentId == null)
+            {
+                throw new ArgumentNullException(nameof(documentId));
+            }
+
+            SourceTextContainer container = null;
+            using (this.stateLock.DisposableWait())
+            {
+                container = bufferToDocumentIdMap.Where(kvp => kvp.Value.Contains(documentId)).Select(kvp => kvp.Key).FirstOrDefault();
+                return container != null ? GetDocumentIdInCurrentContext_NoLock(container) : documentId;
+            }
+        }
+
+        private DocumentId GetDocumentIdInCurrentContext_NoLock(SourceTextContainer container)
+        {
+            DocumentId docId;
+            bool foundValue = this.bufferToDocumentInCurrentContextMap.TryGetValue(container, out docId);
+
+            if (foundValue)
+            {
+                return docId;
+            }
+            else
+            {
+                Debug.Assert(!this.bufferToDocumentIdMap.ContainsKey(container) ||
+                             !this.bufferToDocumentIdMap[container].Any());
+                return null;
             }
         }
 
