@@ -3210,16 +3210,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     aggregateLength += syntaxRef.Span.Length
                 Next
-
-                Throw ExceptionUtilities.Unreachable
             End If
 
-            'Dim initializerStart As Integer = 0
-            'If TryFindDeclaringInitializerStart(localPosition, localTree, isShared, initializerStart, aggregateLength) Then
-            '    Return -aggregateLength + (localPosition - initializerStart)
-            'End If
-
-            Throw ExceptionUtilities.Unreachable
+            Return -1
         End Function
 
         Public Overrides ReadOnly Property MightContainExtensionMethods As Boolean

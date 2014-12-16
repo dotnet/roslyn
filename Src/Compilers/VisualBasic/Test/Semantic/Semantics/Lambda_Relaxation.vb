@@ -2995,5 +2995,29 @@ End Module
             Dim verifier = CompileAndVerify(compilation)
         End Sub
 
+        <WorkItem(1096576, "DevDiv")>
+        <Fact()>
+        Public Sub Bug1096576()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb"><![CDATA[
+Imports System
+
+Class Thing
+    Sub Foo()
+    End Sub
+ 
+    Public t As New Thing
+    Public tcb As AsyncCallback = AddressOf t.Foo
+End Class
+    ]]></file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(compilationDef, TestOptions.DebugDll)
+
+            Dim verifier = CompileAndVerify(compilation).VerifyDiagnostics()
+        End Sub
+
     End Class
 End Namespace
