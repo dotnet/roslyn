@@ -6236,30 +6236,33 @@ notColorColor:
             return memberAccess;
         }
 
-        private BoundExpression GetReceiverForConditionalBinding(ExpressionSyntax binding, DiagnosticBag diagnostics)
+        private CSharpSyntaxNode GetConditionalReceiverSyntax(ConditionalAccessExpressionSyntax node)
         {
-            BoundExpression receiver = null;
+            Debug.Assert(node != null);
+            Debug.Assert(node.Expression != null);
 
-            CSharpSyntaxNode conditionalAccessNode = SyntaxFactory.FindConditionalAccessNodeForBinding(binding);
-
-            var currentBinder = this;
-            while (currentBinder != null)
+            var receiver = node.Expression;
+            while (receiver.CSharpKind() == SyntaxKind.ParenthesizedExpression)
             {
-                var conditionalAccessBinder = currentBinder as BinderWithConditionalReceiver;
-                if (conditionalAccessBinder != null)
-                {
-                    receiver = conditionalAccessBinder.receiverExpression;
-                    break;
-                }
-                currentBinder = currentBinder.Next;
+                receiver = ((ParenthesizedExpressionSyntax)receiver).Expression;
+                Debug.Assert(receiver != null);
             }
 
-            if (receiver == null || receiver.Syntax != ((ConditionalAccessExpressionSyntax)conditionalAccessNode).Expression)
+            return receiver;
+        }
+
+        private BoundExpression GetReceiverForConditionalBinding(ExpressionSyntax binding, DiagnosticBag diagnostics)
+        {
+            var conditionalAccessNode = SyntaxFactory.FindConditionalAccessNodeForBinding(binding);
+            Debug.Assert(conditionalAccessNode != null);
+
+            BoundExpression receiver = this.ConditionalReceiverExpression;
+            if (receiver?.Syntax != GetConditionalReceiverSyntax(conditionalAccessNode))
             {
                 // this can happen when semantic model binds parts of a Call or a broken access expression. 
                 // We may not have receiver available in such cases.
                 // Not a problem - we only need receiver to get its type and we can bind it here.
-                receiver = BindConditionalAccessReceiver((ConditionalAccessExpressionSyntax)conditionalAccessNode, diagnostics);
+                receiver = BindConditionalAccessReceiver(conditionalAccessNode, diagnostics);
             }
 
             if (receiver.HasAnyErrors)
@@ -6269,12 +6272,12 @@ notColorColor:
 
             // create surrogate receiver
             var receiverType = receiver.Type;
-            if (receiverType != null && receiverType.IsNullableType())
+            if (receiverType?.IsNullableType() == true)
             {
                 receiverType = receiverType.GetNullableUnderlyingType();
             }
 
-            receiver = new BoundConditionalReceiver(receiver.Syntax, receiverType);
+            receiver = new BoundConditionalReceiver(receiver.Syntax, receiverType) { WasCompilerGenerated = true };
             return receiver;
         }
 

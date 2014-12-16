@@ -24,17 +24,13 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static IList<INamedTypeSymbol> GetAllInterfacesIncludingThis(this ITypeSymbol type)
         {
             var allInterfaces = type.AllInterfaces;
-            if (type is INamedTypeSymbol)
+            var namedType = type as INamedTypeSymbol;
+            if (namedType != null && namedType.TypeKind == TypeKind.Interface && !allInterfaces.Contains(namedType))
             {
-                var namedType = (INamedTypeSymbol)type;
-                if (namedType.TypeKind == TypeKind.Interface &&
-                    !allInterfaces.Contains(namedType))
-                {
-                    var result = new List<INamedTypeSymbol>() { namedType };
-
-                    result.AddRange(allInterfaces);
-                    return result;
-                }
+                var result = new List<INamedTypeSymbol>(allInterfaces.Length + 1);
+                result.Add(namedType);
+                result.AddRange(allInterfaces);
+                return result;
             }
 
             return allInterfaces;
@@ -53,6 +49,31 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsNullable(this ITypeSymbol symbol)
         {
             return symbol?.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T;
+        }
+
+        public static bool IsErrorType(this ITypeSymbol symbol)
+        {
+            return symbol?.TypeKind == TypeKind.Error;
+        }
+
+        public static bool IsModuleType(this ITypeSymbol symbol)
+        {
+            return symbol?.TypeKind == TypeKind.Module;
+        }
+
+        public static bool IsInterfaceType(this ITypeSymbol symbol)
+        {
+            return symbol?.TypeKind == TypeKind.Interface;
+        }
+
+        public static bool IsDelegateType(this ITypeSymbol symbol)
+        {
+            return symbol?.TypeKind == TypeKind.Delegate;
+        }
+
+        public static bool IsAnonymousType(this INamedTypeSymbol symbol)
+        {
+            return symbol?.IsAnonymousType == true;
         }
 
         public static ITypeSymbol RemoveNullableIfPresent(this ITypeSymbol symbol)
@@ -352,9 +373,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Compilation compilation,
             IEnumerable<ITypeParameterSymbol> availableTypeParameters)
         {
-            return type == null
-                ? null
-                : type.RemoveUnavailableTypeParameters(compilation, availableTypeParameters.Select(t => t.Name).ToSet());
+            return type?.RemoveUnavailableTypeParameters(compilation, availableTypeParameters.Select(t => t.Name).ToSet());
         }
 
         private static ITypeSymbol RemoveUnavailableTypeParameters(
@@ -362,18 +381,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Compilation compilation,
             ISet<string> availableTypeParameterNames)
         {
-            return type == null
-                ? null
-                : type.Accept(new UnavailableTypeParameterRemover(compilation, availableTypeParameterNames));
+            return type?.Accept(new UnavailableTypeParameterRemover(compilation, availableTypeParameterNames));
         }
 
         public static ITypeSymbol RemoveAnonymousTypes(
             this ITypeSymbol type,
             Compilation compilation)
         {
-            return type == null
-                ? null
-                : type.Accept(new AnonymousTypeRemover(compilation));
+            return type?.Accept(new AnonymousTypeRemover(compilation));
         }
 
         public static ITypeSymbol ReplaceTypeParametersBasedOnTypeConstraints(
@@ -383,29 +398,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Solution solution,
             CancellationToken cancellationToken)
         {
-            return type == null
-                ? null
-                : type.Accept(new ReplaceTypeParameterBasedOnTypeConstraintVisitor(compilation, availableTypeParameters.Select(t => t.Name).ToSet(), solution, cancellationToken));
+            return type?.Accept(new ReplaceTypeParameterBasedOnTypeConstraintVisitor(compilation, availableTypeParameters.Select(t => t.Name).ToSet(), solution, cancellationToken));
         }
 
         public static ITypeSymbol RemoveUnnamedErrorTypes(
             this ITypeSymbol type,
             Compilation compilation)
         {
-            return type == null
-                ? null
-                : type.Accept(new UnnamedErrorTypeRemover(compilation));
+            return type?.Accept(new UnnamedErrorTypeRemover(compilation));
         }
 
         public static IList<ITypeParameterSymbol> GetReferencedMethodTypeParameters(
             this ITypeSymbol type, IList<ITypeParameterSymbol> result = null)
         {
             result = result ?? new List<ITypeParameterSymbol>();
-            if (type != null)
-            {
-                type.Accept(new CollectTypeParameterSymbolsVisitor(result, onlyMethodTypeParameters: true));
-            }
-
+            type?.Accept(new CollectTypeParameterSymbolsVisitor(result, onlyMethodTypeParameters: true));
             return result;
         }
 
@@ -413,11 +420,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             this ITypeSymbol type, IList<ITypeParameterSymbol> result = null)
         {
             result = result ?? new List<ITypeParameterSymbol>();
-            if (type != null)
-            {
-                type.Accept(new CollectTypeParameterSymbolsVisitor(result, onlyMethodTypeParameters: false));
-            }
-
+            type?.Accept(new CollectTypeParameterSymbolsVisitor(result, onlyMethodTypeParameters: false));
             return result;
         }
 
@@ -438,22 +441,34 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             where TType1 : ITypeSymbol
             where TType2 : ITypeSymbol
         {
-            return type == null
-                ? null
-                : type.Accept(new SubstituteTypesVisitor<TType1, TType2>(mapping, typeGenerator));
+            return type?.Accept(new SubstituteTypesVisitor<TType1, TType2>(mapping, typeGenerator));
         }
 
         public static bool IsUnexpressableTypeParameterConstraint(this ITypeSymbol typeSymbol)
         {
-            return typeSymbol.IsSealed ||
-                   typeSymbol.IsValueType ||
-                   typeSymbol.TypeKind == TypeKind.Array ||
-                   typeSymbol.TypeKind == TypeKind.Delegate ||
-                   typeSymbol.SpecialType == SpecialType.System_Array ||
-                   typeSymbol.SpecialType == SpecialType.System_Delegate ||
-                   typeSymbol.SpecialType == SpecialType.System_MulticastDelegate ||
-                   typeSymbol.SpecialType == SpecialType.System_Enum ||
-                   typeSymbol.SpecialType == SpecialType.System_ValueType;
+            if (typeSymbol.IsSealed || typeSymbol.IsValueType)
+            {
+                return true;
+            }
+
+            switch (typeSymbol.TypeKind)
+            {
+                case TypeKind.Array:
+                case TypeKind.Delegate:
+                    return true;
+            }
+
+            switch (typeSymbol.SpecialType)
+            {
+                case SpecialType.System_Array:
+                case SpecialType.System_Delegate:
+                case SpecialType.System_MulticastDelegate:
+                case SpecialType.System_Enum:
+                case SpecialType.System_ValueType:
+                    return true;
+            }
+
+            return false;
         }
 
         public static bool IsNumericType(this ITypeSymbol type)

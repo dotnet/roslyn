@@ -150,35 +150,27 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsErrorType(this ISymbol symbol)
         {
-            return
-                symbol is ITypeSymbol &&
-                ((ITypeSymbol)symbol).TypeKind == TypeKind.Error;
+            return (symbol as ITypeSymbol)?.IsErrorType() == true;
         }
 
         public static bool IsModuleType(this ISymbol symbol)
         {
-            return
-                symbol is ITypeSymbol &&
-                ((ITypeSymbol)symbol).TypeKind == TypeKind.Module;
+            return (symbol as ITypeSymbol)?.IsModuleType() == true;
         }
 
         public static bool IsInterfaceType(this ISymbol symbol)
         {
-            return
-                symbol is ITypeSymbol &&
-                ((ITypeSymbol)symbol).TypeKind == TypeKind.Interface;
+            return (symbol as ITypeSymbol)?.IsInterfaceType() == true;
         }
 
         public static bool IsArrayType(this ISymbol symbol)
         {
-            return
-                symbol != null &&
-                symbol.Kind == SymbolKind.ArrayType;
+            return symbol?.Kind == SymbolKind.ArrayType;
         }
 
         public static bool IsAnonymousFunction(this ISymbol symbol)
         {
-            return symbol is IMethodSymbol && ((IMethodSymbol)symbol).MethodKind == MethodKind.AnonymousFunction;
+            return (symbol as IMethodSymbol)?.MethodKind == MethodKind.AnonymousFunction;
         }
 
         public static bool IsKind(this ISymbol symbol, SymbolKind kind)
@@ -188,8 +180,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool MatchesKind(this ISymbol symbol, SymbolKind kind)
         {
-            return symbol != null
-                && symbol.Kind == kind;
+            return symbol?.Kind == kind;
         }
 
         public static bool MatchesKind(this ISymbol symbol, SymbolKind kind1, SymbolKind kind2)
@@ -227,32 +218,32 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsConstructor(this ISymbol symbol)
         {
-            return symbol is IMethodSymbol && ((IMethodSymbol)symbol).MethodKind == MethodKind.Constructor;
+            return (symbol as IMethodSymbol)?.MethodKind == MethodKind.Constructor;
         }
 
         public static bool IsStaticConstructor(this ISymbol symbol)
         {
-            return symbol is IMethodSymbol && ((IMethodSymbol)symbol).MethodKind == MethodKind.StaticConstructor;
+            return (symbol as IMethodSymbol)?.MethodKind == MethodKind.StaticConstructor;
         }
 
         public static bool IsDestructor(this ISymbol symbol)
         {
-            return symbol is IMethodSymbol && ((IMethodSymbol)symbol).MethodKind == MethodKind.Destructor;
+            return (symbol as IMethodSymbol)?.MethodKind == MethodKind.Destructor;
         }
 
         public static bool IsUserDefinedOperator(this ISymbol symbol)
         {
-            return symbol is IMethodSymbol && ((IMethodSymbol)symbol).MethodKind == MethodKind.UserDefinedOperator;
+            return (symbol as IMethodSymbol)?.MethodKind == MethodKind.UserDefinedOperator;
         }
 
         public static bool IsConversion(this ISymbol symbol)
         {
-            return symbol is IMethodSymbol && ((IMethodSymbol)symbol).MethodKind == MethodKind.Conversion;
+            return (symbol as IMethodSymbol)?.MethodKind == MethodKind.Conversion;
         }
 
         public static bool IsOrdinaryMethod(this ISymbol symbol)
         {
-            return symbol is IMethodSymbol && ((IMethodSymbol)symbol).MethodKind == MethodKind.Ordinary;
+            return (symbol as IMethodSymbol)?.MethodKind == MethodKind.Ordinary;
         }
 
         public static bool IsDelegateType(this ISymbol symbol)
@@ -282,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsIndexer(this ISymbol symbol)
         {
-            return symbol is IPropertySymbol && ((IPropertySymbol)symbol).IsIndexer;
+            return (symbol as IPropertySymbol)?.IsIndexer == true;
         }
 
         public static bool IsWriteableFieldOrProperty(this ISymbol symbol)
@@ -360,20 +351,17 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return symbol;
             }
 
-            if (symbol is IParameterSymbol)
+            var parameter = symbol as IParameterSymbol;
+            if (parameter != null)
             {
-                var parameter = (IParameterSymbol)symbol;
-                if (parameter.ContainingSymbol is IMethodSymbol)
+                var method = parameter.ContainingSymbol as IMethodSymbol;
+                if (method?.IsReducedExtension() == true)
                 {
-                    var method = (IMethodSymbol)parameter.ContainingSymbol;
-                    if (method.IsReducedExtension())
-                    {
-                        symbol = method.GetConstructedReducedFrom().Parameters[parameter.Ordinal + 1];
-                    }
+                    symbol = method.GetConstructedReducedFrom().Parameters[parameter.Ordinal + 1];
                 }
             }
 
-            return symbol == null ? null : symbol.OriginalDefinition;
+            return symbol?.OriginalDefinition;
         }
 
         public static bool IsFunctionValue(this ISymbol symbol)
@@ -399,7 +387,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsParams(this ISymbol symbol)
         {
             var parameters = symbol.GetParameters();
-            return parameters.Length > 0 && parameters.Last().IsParams;
+            return parameters.Length > 0 && parameters[parameters.Length - 1].IsParams;
         }
 
         public static ImmutableArray<IParameterSymbol> GetParameters(this ISymbol symbol)
@@ -444,11 +432,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsAttribute(this ISymbol symbol)
         {
-            var typeSymbol = symbol as ITypeSymbol;
-
-            return typeSymbol != null
-                ? typeSymbol.IsAttribute()
-                : false;
+            return (symbol as ITypeSymbol)?.IsAttribute() == true;
         }
 
         /// <summary>
@@ -458,7 +442,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static bool IsUnsafe(this ISymbol member)
         {
             // TODO(cyrusn): Defer to compiler code to handle this once it can.
-            return member != null && member.Accept(new IsUnsafeVisitor());
+            return member?.Accept(new IsUnsafeVisitor()) == true;
         }
 
         public static ITypeSymbol ConvertToType(
@@ -466,69 +450,67 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             Compilation compilation,
             bool extensionUsedAsInstance = false)
         {
-            if (symbol is ITypeSymbol)
+            var type = symbol as ITypeSymbol;
+            if (type != null)
             {
-                return (ITypeSymbol)symbol;
+                return type;
             }
-            else if (symbol is IMethodSymbol)
+
+            var method = (IMethodSymbol)symbol;
+            if (method != null && !method.Parameters.Any(p => p.RefKind != RefKind.None))
             {
                 // Convert the symbol to Func<...> or Action<...>
-
-                var method = (IMethodSymbol)symbol;
-                if (!method.Parameters.Any(p => p.RefKind != RefKind.None))
+                if (method.ReturnsVoid)
                 {
-                    if (method.ReturnsVoid)
+                    var count = extensionUsedAsInstance ? method.Parameters.Length - 1 : method.Parameters.Length;
+                    var skip = extensionUsedAsInstance ? 1 : 0;
+                    count = Math.Max(0, count);
+                    if (count == 0)
                     {
-                        var count = extensionUsedAsInstance ? method.Parameters.Length - 1 : method.Parameters.Length;
-                        var skip = extensionUsedAsInstance ? 1 : 0;
-                        count = Math.Max(0, count);
-                        if (count == 0)
-                        {
-                            // Action
-                            return compilation.ActionType();
-                        }
-                        else
-                        {
-                            // Action<TArg1, ..., TArgN>
-                            var actionName = "System.Action`" + count;
-                            var actionType = compilation.GetTypeByMetadataName(actionName);
-
-                            if (actionType != null)
-                            {
-                                var types = method.Parameters
-                                    .Skip(skip)
-                                    .Select(p =>
-                                        (object)p.Type == null ?
-                                        compilation.GetSpecialType(SpecialType.System_Object) :
-                                        p.Type)
-                                    .ToArray();
-                                return actionType.Construct(types);
-                            }
-                        }
+                        // Action
+                        return compilation.ActionType();
                     }
                     else
                     {
-                        // Func<TArg1,...,TArgN,TReturn>
-                        //
-                        // +1 for the return type.
-                        var count = extensionUsedAsInstance ? method.Parameters.Length - 1 : method.Parameters.Length;
-                        var skip = extensionUsedAsInstance ? 1 : 0;
-                        var functionName = "System.Func`" + (count + 1);
-                        var functionType = compilation.GetTypeByMetadataName(functionName);
+                        // Action<TArg1, ..., TArgN>
+                        var actionName = "System.Action`" + count;
+                        var actionType = compilation.GetTypeByMetadataName(actionName);
 
-                        if (functionType != null)
+                        if (actionType != null)
                         {
                             var types = method.Parameters
                                 .Skip(skip)
-                                .Select(p => p.Type)
-                                .Concat(method.ReturnType)
-                                .Select(t =>
-                                    (object)t == null ?
+                                .Select(p =>
+                                    (object)p.Type == null ?
                                     compilation.GetSpecialType(SpecialType.System_Object) :
-                                    t)
+                                    p.Type)
                                 .ToArray();
-                            return functionType.Construct(types);
+                            return actionType.Construct(types);
                         }
+                    }
+                }
+                else
+                {
+                    // Func<TArg1,...,TArgN,TReturn>
+                    //
+                    // +1 for the return type.
+                    var count = extensionUsedAsInstance ? method.Parameters.Length - 1 : method.Parameters.Length;
+                    var skip = extensionUsedAsInstance ? 1 : 0;
+                    var functionName = "System.Func`" + (count + 1);
+                    var functionType = compilation.GetTypeByMetadataName(functionName);
+
+                    if (functionType != null)
+                    {
+                        var types = method.Parameters
+                            .Skip(skip)
+                            .Select(p => p.Type)
+                            .Concat(method.ReturnType)
+                            .Select(t =>
+                                (object)t == null ?
+                                compilation.GetSpecialType(SpecialType.System_Object) :
+                                t)
+                            .ToArray();
+                        return functionType.Construct(types);
                     }
                 }
             }
@@ -550,7 +532,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsNamespace(this ISymbol symbol)
         {
-            return symbol != null && symbol.Kind == SymbolKind.Namespace;
+            return symbol?.Kind == SymbolKind.Namespace;
         }
 
         public static bool IsOrContainsAccessibleAttribute(this ISymbol symbol, ISymbol withinType, IAssemblySymbol withinAssembly)
@@ -835,8 +817,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static bool IsPropertyAccessor(this ISymbol symbol)
         {
-            var method = symbol as IMethodSymbol;
-            return method != null && method.MethodKind.IsPropertyAccessor();
+            return (symbol as IMethodSymbol)?.MethodKind.IsPropertyAccessor() == true;
         }
 
         public static bool IsEventAccessor(this ISymbol symbol)

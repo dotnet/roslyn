@@ -18,12 +18,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal BinderWithContainingMemberOrLambda(Binder next, Symbol containingMemberOrLambda)
                 : base(next)
             {
+                Debug.Assert(containingMemberOrLambda != null);
+
                 this.containingMemberOrLambda = containingMemberOrLambda;
             }
 
             internal BinderWithContainingMemberOrLambda(Binder next, BinderFlags flags, Symbol containingMemberOrLambda)
                 : base(next, flags)
             {
+                Debug.Assert(containingMemberOrLambda != null);
+
                 this.containingMemberOrLambda = containingMemberOrLambda;
             }
 
@@ -39,12 +43,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private sealed class BinderWithConditionalReceiver : Binder
         {
-            internal readonly BoundExpression receiverExpression;
+            private readonly BoundExpression receiverExpression;
 
             internal BinderWithConditionalReceiver(Binder next, BoundExpression receiverExpression)
                 : base(next)
             {
+                Debug.Assert(receiverExpression != null);
+
                 this.receiverExpression = receiverExpression;
+            }
+
+            internal override BoundExpression ConditionalReceiverExpression
+            {
+                get { return this.receiverExpression; }
             }
         }
 

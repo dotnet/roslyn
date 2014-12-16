@@ -339,6 +339,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal virtual BoundExpression ConditionalReceiverExpression
+        {
+            get
+            {
+                return this.Next.ConditionalReceiverExpression;
+            }
+        }
+
         Conversions lazyConversions;
         internal Conversions Conversions
         {

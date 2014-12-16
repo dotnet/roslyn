@@ -1556,24 +1556,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var bindableParent = this.GetBindableSyntaxNode(parent);
             Debug.Assert(bindableParent != null);
 
-            // if node is a part of conditional access, expand to the actual conditional access.
-            switch (bindableParent.Kind)
-            {
-                case SyntaxKind.MemberBindingExpression:
-                case SyntaxKind.ElementBindingExpression:
-                    return SyntaxFactory.FindConditionalAccessNodeForBinding(bindableParent);
-
-                case SyntaxKind.SimpleMemberAccessExpression:
-                case SyntaxKind.ElementAccessExpression:
-                case SyntaxKind.InvocationExpression:
-                    var enclosingConditional = TryGetEnclosingConditionalAccess(bindableParent);
-                    if (enclosingConditional != null)
-                    {
-                        return enclosingConditional;
-                    }
-                    break;
-            }
-
             // If the parent is a member used for a method invocation, then
             // the node is the instance associated with the method invocation.
             // In that case, return the invocation expression so that any conversion
@@ -1588,35 +1570,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return bindableParent;
-        }
-
-        private CSharpSyntaxNode TryGetEnclosingConditionalAccess(CSharpSyntaxNode node)
-        {
-            while (node != null)
-            {
-                switch (node.Kind)
-                {
-                    case SyntaxKind.SimpleMemberAccessExpression:
-                        node = ((MemberAccessExpressionSyntax)node).Expression;
-                        continue;
-
-                    case SyntaxKind.ElementAccessExpression:
-                        node = ((ElementAccessExpressionSyntax)node).Expression;
-                        continue;
-
-                    case SyntaxKind.InvocationExpression:
-                        node = ((InvocationExpressionSyntax)node).Expression;
-                        continue;
-
-                    case SyntaxKind.MemberBindingExpression:
-                    case SyntaxKind.ElementBindingExpression:
-                        return SyntaxFactory.FindConditionalAccessNodeForBinding(node);
-
-                    default:
-                        return null;
-                }
-            }
-            return null;
         }
 
         /// <summary>

@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                         // We should not remove the cast to "float?".
                         // However, cast to "int?" is unnecessary and should be removable.
-                        return expressionToCastType.IsImplicit && ((ITypeSymbol)expressionType.OriginalDefinition).SpecialType != SpecialType.System_Nullable_T;
+                        return expressionToCastType.IsImplicit && !((ITypeSymbol)expressionType).IsNullable();
                     }
                     else if (expressionToCastType.IsImplicit && expressionToCastType.IsNumeric && !castToOuterType.IsIdentity)
                     {

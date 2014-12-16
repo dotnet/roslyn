@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             else if (node.CSharpKind() == SyntaxKind.MemberBindingExpression)
             {
                 var parentConditionalAccess = node.GetAncestor<ConditionalAccessExpressionSyntax>();
-                return GetSymbolsOffOfExpression(context, parentConditionalAccess.Expression, cancellationToken);
+                return GetSymbolsOffOfConditionalReceiver(context, parentConditionalAccess.Expression, cancellationToken);
             }
             else
             {
@@ -349,12 +349,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             var leftHandBinding = context.SemanticModel.GetSymbolInfo(expression, cancellationToken);
             var container = context.SemanticModel.GetTypeInfo(expression, cancellationToken).Type;
 
-            // TODO remove this when 531549 which causes GetTypeInfo to return an error type is fixed
-            if (container.IsErrorType())
-            {
-                container = leftHandBinding.Symbol.GetSymbolType() as ITypeSymbol;
-            }
-
             var normalSymbols = GetSymbolsOffOfBoundExpression(context, originalExpression, expression, leftHandBinding, container, cancellationToken);
 
             // Check for the Color Color case.
@@ -384,6 +378,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 container = ((IPointerTypeSymbol)container).PointedAtType;
             }
 
+            return GetSymbolsOffOfBoundExpression(context, originalExpression, expression, leftHandBinding, container, cancellationToken);
+        }
+
+        private static IEnumerable<ISymbol> GetSymbolsOffOfConditionalReceiver(
+            CSharpSyntaxContext context,
+            ExpressionSyntax originalExpression,
+            CancellationToken cancellationToken)
+        {
+            // Given ((T?)t)?.|, the '.' will behave as if the expression was actually ((T)t).|. More plainly,
+            // a member access off of a conitional receiver of nullable type binds to the unwrapped nullable
+            // type. This is not exposed via the binding information for the LHS, so repeat this work here.
+
+            var expression = originalExpression.WalkDownParentheses();
+            var leftHandBinding = context.SemanticModel.GetSymbolInfo(expression, cancellationToken);
+            var container = context.SemanticModel.GetTypeInfo(expression, cancellationToken).Type.RemoveNullableIfPresent();
             return GetSymbolsOffOfBoundExpression(context, originalExpression, expression, leftHandBinding, container, cancellationToken);
         }
 

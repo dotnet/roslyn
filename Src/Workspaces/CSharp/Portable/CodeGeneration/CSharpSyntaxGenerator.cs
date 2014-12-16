@@ -2969,7 +2969,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             // Also, if it's a nullable type, then we can use "null".
             if (type.IsReferenceType ||
                 type.IsPointerType() ||
-                type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+                type.IsNullable())
             {
                 return SyntaxFactory.LiteralExpression(SyntaxKind.NullLiteralExpression);
             }

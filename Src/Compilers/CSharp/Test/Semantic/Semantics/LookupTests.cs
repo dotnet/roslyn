@@ -1810,6 +1810,123 @@ class C
             Assert.True(symbols.Any(s => s.Kind == SymbolKind.TypeParameter));
         }
 
+        [Fact, WorkItem(1091936, "DevDiv")]
+        public void Bug1091936_1()
+        {
+            const string source = @"
+class Program
+{
+    static object M(long l) { return null; }
+    static object M(int i) { return null; }
+
+    static void Main(string[] args)
+    {
+        (M(0))?.ToString();
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            comp.VerifyDiagnostics();
+
+            var ms = comp.GlobalNamespace.GetTypeMembers("Program").Single().GetMembers("M").OfType<MethodSymbol>();
+            var m = ms.Where(mm => mm.Parameters[0].Type.SpecialType == SpecialType.System_Int32).Single();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var call = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().First();
+
+            var symbolInfo = model.GetSymbolInfo(call.Expression);
+            Assert.NotNull(symbolInfo);
+            Assert.Equal(symbolInfo.Symbol, m);
+        }
+
+        [Fact, WorkItem(1091936, "DevDiv")]
+        public void Bug1091936_2()
+        {
+            const string source = @"
+class Program
+{
+    static object M = null;
+
+    static void Main(string[] args)
+    {
+        M?.ToString();
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            comp.VerifyDiagnostics();
+
+            var m = comp.GlobalNamespace.GetTypeMembers("Program").Single().GetMembers("M").Single();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().Single().Expression;
+
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.NotNull(symbolInfo);
+            Assert.Equal(symbolInfo.Symbol, m);
+        }
+
+        [Fact, WorkItem(1091936, "DevDiv")]
+        public void Bug1091936_3()
+        {
+            const string source = @"
+class Program
+{
+    object M = null;
+
+    static void Main(string[] args)
+    {
+        (new Program()).M?.ToString();
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            comp.VerifyDiagnostics();
+
+            var m = comp.GlobalNamespace.GetTypeMembers("Program").Single().GetMembers("M").Single();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().Single().Expression;
+
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.NotNull(symbolInfo);
+            Assert.Equal(symbolInfo.Symbol, m);
+        }
+
+        [Fact, WorkItem(1091936, "DevDiv")]
+        public void Bug1091936_4()
+        {
+            const string source = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        var y = (System.Linq.Enumerable.Select<string, int>(args, s => int.Parse(s)))?.ToString();
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<GenericNameSyntax>().Single();
+
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.NotNull(symbolInfo);
+            Assert.NotNull(symbolInfo.Symbol);
+        }
 
         #endregion
     }

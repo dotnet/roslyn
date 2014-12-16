@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 
@@ -114,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("Object"));
                 }
 
-                if (symbol.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+                if (symbol.IsNullable())
                 {
                     // Can't have a nullable of a pointer type.  i.e. "int*?" is illegal.
                     var innerType = symbol.TypeArguments.First();

@@ -899,9 +899,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var leftTypes = GetTypes(coalesceExpression.Left);
                     return leftTypes
-                        .Select(x => x.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T
-                        ? ((INamedTypeSymbol)x).TypeArguments[0] // nullableExpr ?? Foo()
-                        : x); // normalExpr ?? Foo() 
+                        .Select(x => x.IsNullable()
+                            ? ((INamedTypeSymbol)x).TypeArguments[0] // nullableExpr ?? Foo()
+                            : x); // normalExpr ?? Foo() 
                 }
 
                 var rightTypes = GetTypes(coalesceExpression.Right);

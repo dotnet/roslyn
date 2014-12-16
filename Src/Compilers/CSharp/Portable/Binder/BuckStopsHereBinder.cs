@@ -115,6 +115,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal override BoundExpression ConditionalReceiverExpression
+        {
+            get
+            {
+                return null;
+            }
+        }
+
         // This should only be called in the context of syntactically incorrect programs.  In other
         // contexts statements are surrounded by some enclosing method or lambda.
         internal override TypeSymbol GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)

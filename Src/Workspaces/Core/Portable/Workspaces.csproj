@@ -659,7 +659,9 @@
     <Compile Include="Shared\Extensions\IParameterSymbolExtensions.cs" />
     <Compile Include="Shared\Extensions\IPropertySymbolExtensions.cs" />
     <Compile Include="Shared\Extensions\ISolutionExtensions.cs" />
-    <Compile Include="Shared\Extensions\ISymbolExtensions.cs" />
+    <Compile Include="Shared\Extensions\ISymbolExtensions.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
     <Compile Include="Shared\Extensions\ISymbolExtensions.IsUnsafeVisitor.cs" />
     <Compile Include="Shared\Extensions\ISymbolExtensions_2.cs" />
     <Compile Include="Shared\Extensions\ISymbolExtensions_Accessibility.cs" />

@@ -1318,10 +1318,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     if (!name.IsVar && (symbol.Kind == SymbolKind.NamedType) && !name.IsLeftSideOfQualifiedName())
                     {
                         var type = (INamedTypeSymbol)symbol;
-                        if ((!type.IsUnboundGenericType) && // Don't rewrite unbound generic type "Nullable<>"
-                            (type.OriginalDefinition != null) &&
-                            (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T) &&
-                            (aliasInfo == null))
+                        if (!type.IsUnboundGenericType && // Don't rewrite unbound generic type "Nullable<>"
+                            type.IsNullable() && 
+                            aliasInfo == null)
                         {
                             GenericNameSyntax genericName;
                             if (name.CSharpKind() == SyntaxKind.QualifiedName)
