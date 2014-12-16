@@ -4228,10 +4228,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     TypeSymbol leftType;
                     switch (leftSymbol.Kind)
                     {
+                        case SymbolKind.Field:
                         case SymbolKind.Local:
                         case SymbolKind.Parameter:
-                        case SymbolKind.Field:
                         case SymbolKind.Property:
+                        case SymbolKind.RangeVariable:
                             leftType = boundValue.Type;
                             break;
 

@@ -2664,5 +2664,40 @@ End Namespace
 
             AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
+
+        <Fact()>
+        Public Sub RangeVariableColorColor()
+            Dim source = _
+<compilation>
+    <file name="a.vb">
+Imports System.Linq
+
+Class Program
+    Shared Sub Main()
+        Dim q = From X As X In New X() { New X() }
+                Where X.S()
+                Where X.I()
+                Select 42
+        System.Console.Write(q.Single())
+    End Sub
+End Class
+
+Class X
+    Public Shared Function S() As Boolean
+        Return True
+    End Function
+
+    Public Shared Function I() As Boolean
+        Return True
+    End Function
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, { SystemCoreRef }, options:=TestOptions.ReleaseExe)
+            AssertTheseDiagnostics(compilation, <expected></expected>)
+
+            CompileAndVerify(compilation, expectedOutput:="42")
+        End Sub
     End Class
 End Namespace

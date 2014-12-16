@@ -1698,6 +1698,37 @@ namespace Foo
                 Diagnostic(ErrorCode.WRN_SameFullNameThisAggAgg, "A").WithArguments("", "Foo.A", refIdentity, "Foo.A").WithLocation(8, 39));
         }
 
+        [WorkItem(1095020, "DevDiv")]
+        [Fact]
+        public void RangeVariableColorColor()
+        {
+            const string source = @"
+using System.Linq;
+using System.Collections.Generic;
+ 
+class Program
+{
+    static void Main()
+    {
+        var q = from X X in new List<X> { new X() }
+                where X.Static() // error CS0176: Member 'X.Static()' cannot be accessed with an instance reference; qualify it with a type name instead
+                where X.Instance()
+                select 42;
+        System.Console.Write(q.Single());
+    }
+}
+  
+class X
+{
+    public static bool Static() { return true; }
+    public bool Instance() { return true; }
+}";
+
+            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "42");
+        }
 
         #endregion Regression cases
 
