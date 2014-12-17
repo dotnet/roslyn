@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                     statements: new[] { throwStatement });
 
                 var editor = new SymbolEditor(document.Project.Solution);
-                await editor.EditOneDeclarationAsync(typeSymbol, nodeToFix.GetLocation(), (d, g) => g.AddMembers(d, new[] { ctorDecl }), cancellationToken);
+                await editor.EditOneDeclarationAsync(typeSymbol, nodeToFix.GetLocation(), (e, d) => e.AddMembers(d, new[] { ctorDecl }), cancellationToken);
                 return editor.GetChangedDocuments().First();
             }
             else if (symbol.Kind == SymbolKind.Method)

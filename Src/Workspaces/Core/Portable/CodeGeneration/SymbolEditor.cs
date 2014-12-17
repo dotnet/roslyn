@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -211,12 +213,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// Partial types and methods may have more than one declaration.
         /// </summary>
         /// <param name="symbol">The symbol to edit.</param>
-        /// <param name="declarationEditor">The function that produces the changed declaration.</param>
+        /// <param name="editAction">The action that makes edits to the declaration.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/>.</param>
         /// <returns>The new symbol including the changes.</returns>
         public async Task<ISymbol> EditOneDeclarationAsync(
             ISymbol symbol,
-            Func<SyntaxNode, SyntaxGenerator, SyntaxNode> declarationEditor,
+            DeclarationEditAction editAction,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             var currentSymbol = await this.GetCurrentSymbolAsync(symbol, cancellationToken).ConfigureAwait(false);
@@ -226,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             SyntaxNode declaration;
             if (TryGetBestDeclarationForSingleEdit(currentSymbol, out declaration))
             {
-                return await this.EditDeclarationAsync(currentSymbol, declaration, declarationEditor, cancellationToken).ConfigureAwait(false);
+                return await this.EditDeclarationAsync(currentSymbol, declaration, editAction, cancellationToken).ConfigureAwait(false);
             }
 
             return null;
@@ -240,14 +242,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        private async Task<ISymbol> EditDeclarationAsync(ISymbol currentSymbol, SyntaxNode declaration, Func<SyntaxNode, SyntaxGenerator, SyntaxNode> declarationEditor, CancellationToken cancellationToken)
+        private async Task<ISymbol> EditDeclarationAsync(ISymbol currentSymbol, SyntaxNode declaration, DeclarationEditAction editAction, CancellationToken cancellationToken)
         {
             var doc = this.currentSolution.GetDocument(declaration.SyntaxTree);
             var root = declaration.SyntaxTree.GetRoot();
-            var generator = SyntaxGenerator.GetGenerator(this.currentSolution.Workspace, declaration.Language);
-            var newDecl = declarationEditor(declaration, generator);
+            var editor = SyntaxEditor.Create(this.currentSolution.Workspace, root);
 
-            SyntaxNode newRoot = generator.ReplaceDeclaration(root, declaration, newDecl);
+            editAction(editor, declaration);
+
+            var newRoot = editor.GetChangedRoot();
+            var newDecl = newRoot.GetCurrentNode(declaration);
 
             var newDoc = doc.WithSyntaxRoot(newRoot);
             this.currentSolution = newDoc.Project.Solution;
@@ -268,13 +272,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// </summary>
         /// <param name="symbol">The symbol to edit.</param>
         /// <param name="location">A location within one of the symbol's declarations.</param>
-        /// <param name="declarationEditor">The function that produces the changed declaration.</param>
+        /// <param name="editAction">The action that makes edits to the declaration.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/>.</param>
         /// <returns>The new symbol including the changes.</returns>
         public async Task<ISymbol> EditOneDeclarationAsync(
             ISymbol symbol,
             Location location,
-            Func<SyntaxNode, SyntaxGenerator, SyntaxNode> declarationEditor,
+            DeclarationEditAction editAction,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             var sourceTree = location.SourceTree;
@@ -282,13 +286,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             var doc = this.currentSolution.GetDocument(sourceTree);
             if (doc != null)
             {
-                return await this.EditOneDeclarationAsync(symbol, doc.Id, location.SourceSpan.Start, declarationEditor, cancellationToken).ConfigureAwait(false);
+                return await this.EditOneDeclarationAsync(symbol, doc.Id, location.SourceSpan.Start, editAction, cancellationToken).ConfigureAwait(false);
             }
 
             doc = this.originalSolution.GetDocument(sourceTree);
             if (doc != null)
             {
-                return await this.EditOneDeclarationAsync(symbol, doc.Id, location.SourceSpan.Start, declarationEditor, cancellationToken).ConfigureAwait(false);
+                return await this.EditOneDeclarationAsync(symbol, doc.Id, location.SourceSpan.Start, editAction, cancellationToken).ConfigureAwait(false);
             }
 
             throw new ArgumentException("The location specified is not part of the solution.", nameof(location));
@@ -298,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ISymbol symbol,
             DocumentId documentId,
             int position,
-            Func<SyntaxNode, SyntaxGenerator, SyntaxNode> declarationEditor,
+            DeclarationEditAction editAction,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             var currentSymbol = await this.GetCurrentSymbolAsync(symbol, cancellationToken).ConfigureAwait(false);
@@ -315,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 throw new ArgumentNullException("The position is not within the symbol's declaration".NeedsLocalization(), nameof(position));
             }
 
-            return await this.EditDeclarationAsync(currentSymbol, decl, declarationEditor, cancellationToken).ConfigureAwait(false);
+            return await this.EditDeclarationAsync(currentSymbol, decl, editAction, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -324,13 +328,13 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// </summary>
         /// <param name="symbol">The symbol to edit.</param>
         /// <param name="member">A symbol whose declaration is contained within one of the primary symbol's declarations.</param>
-        /// <param name="declarationEditor">The function that produces the changed declaration.</param>
+        /// <param name="editAction">The action that makes edits to the declaration.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/>.</param>
         /// <returns>The new symbol including the changes.</returns>
         public async Task<ISymbol> EditOneDeclarationAsync(
             ISymbol symbol,
             ISymbol member,
-            Func<SyntaxNode, SyntaxGenerator, SyntaxNode> declarationEditor,
+            DeclarationEditAction editAction,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             var currentSymbol = await this.GetCurrentSymbolAsync(symbol, cancellationToken).ConfigureAwait(false);
@@ -348,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 throw new ArgumentException(string.Format("The member '{0}' is not declared within the declaration of the symbol.".NeedsLocalization(), member.Name));
             }
 
-            return await this.EditDeclarationAsync(currentSymbol, declaration, declarationEditor, cancellationToken).ConfigureAwait(false);
+            return await this.EditDeclarationAsync(currentSymbol, declaration, editAction, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -356,10 +360,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// Partial types and methods may have more than one declaration.
         /// </summary>
         /// <param name="symbol">The symbol to be editted.</param>
-        /// <param name="declarationEditor">The function that produces a changed declaration.</param>
+        /// <param name="editAction">The action that makes edits to the declaration.</param>
         /// <param name="cancellationToken">An optional <see cref="CancellationToken"/>.</param>
         /// <returns>The new symbol including the changes.</returns>
-        public async Task<ISymbol> EditAllDeclarationsAsync(ISymbol symbol, Func<SyntaxNode, SyntaxGenerator, SyntaxNode> declarationEditor, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<ISymbol> EditAllDeclarationsAsync(ISymbol symbol, DeclarationEditAction editAction, CancellationToken cancellationToken = default(CancellationToken))
         {
             var currentSymbol = await this.GetCurrentSymbolAsync(symbol, cancellationToken).ConfigureAwait(false);
 
@@ -373,13 +377,22 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
                 var root = decls.Key.GetRoot();
 
-                var generator = SyntaxGenerator.GetGenerator(doc);
-                var changes = decls.Select(d => new KeyValuePair<SyntaxNode, SyntaxNode>(d, declarationEditor(d, generator)));
-                changeMap.AddRange(changes);
+                var editor = SyntaxEditor.Create(this.currentSolution.Workspace, root);
 
-                var newRoot = root.ReplaceNodes(decls, (original, rewritten) => changeMap[original]);
+                foreach (var decl in decls)
+                {
+                    editAction(editor, decl);
+                }
+
+                var newRoot = editor.GetChangedRoot();
+
+                foreach (var decl in decls)
+                {
+                    var newDecl = newRoot.GetCurrentNode(decl);
+                    changeMap.Add(decl, newDecl);
+                }
+
                 var newDoc = doc.WithSyntaxRoot(newRoot);
-
                 this.currentSolution = newDoc.Project.Solution;
             }
 

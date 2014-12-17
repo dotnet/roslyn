@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                 {
                     if (makeNextFieldExplicit)
                     {
-                        await editor.EditOneDeclarationAsync(field, (d, g) => GetExplicitlyAssignedField(field, d, g), cancellationToken);
+                        await editor.EditOneDeclarationAsync(field, (e, d) => e.ReplaceNode(d, GetExplicitlyAssignedField(field, d, e.Generator)), cancellationToken);
                         makeNextFieldExplicit = false;
                     }
 
@@ -93,14 +93,14 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                 }
                 else
                 {
-                    await editor.EditOneDeclarationAsync(field, (d, g) => null); // removes the field declaration
+                    await editor.EditOneDeclarationAsync(field, (e, d) => e.RemoveNode(d)); // removes the field declaration
                     makeNextFieldExplicit = true;
                 }
             }
 
             if (needsNewZeroValuedNoneField)
             {
-                await editor.EditOneDeclarationAsync(enumType, (d, g) => g.InsertMembers(d, 0, g.EnumMember("None")), cancellationToken);
+                await editor.EditOneDeclarationAsync(enumType, (e, d) => e.InsertMembers(d, 0, new[] { e.Generator.EnumMember("None") }), cancellationToken);
             }
         }
 
@@ -111,12 +111,12 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             {
                 if (CA1008DiagnosticAnalyzer.IsMemberNamedNone(field))
                 {
-                    await editor.EditOneDeclarationAsync(field, (d, g) => null); 
+                    await editor.EditOneDeclarationAsync(field, (e, d) => e.RemoveNode(d)); 
                 }
             }
 
             // insert zero-valued member 'None' to top
-            await editor.EditOneDeclarationAsync(enumType, (d, g) => g.InsertMembers(d, 0, g.EnumMember("None")), cancellationToken);
+            await editor.EditOneDeclarationAsync(enumType, (e, d) => e.InsertMembers(d, 0, new[] { e.Generator.EnumMember("None") }), cancellationToken);
         }
 
         protected virtual SyntaxNode GetParentNodeOrSelfToFix(SyntaxNode nodeToFix)

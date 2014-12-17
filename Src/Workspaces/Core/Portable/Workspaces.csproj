@@ -329,7 +329,10 @@
     <Compile Include="CodeGeneration\ICodeGenerationService.cs" />
     <Compile Include="CodeGeneration\INamedTypeSymbolExtensions.cs" />
     <Compile Include="CodeGeneration\LiteralSpecialValues.cs" />
+    <Compile Include="CodeGeneration\SymbolDeclarationEditor.cs" />
     <Compile Include="CodeGeneration\SymbolEditor.cs" />
+    <Compile Include="CodeGeneration\SyntaxEditor.cs" />
+    <Compile Include="CodeGeneration\SyntaxEditorExtensions.cs" />
     <Compile Include="CodeGeneration\SyntaxGenerator.cs" />
     <Compile Include="CodeGeneration\DeclarationModifiers.cs" />
     <Compile Include="CodeGeneration\Symbols\CodeGenerationAbstractMethodSymbol.cs" />
