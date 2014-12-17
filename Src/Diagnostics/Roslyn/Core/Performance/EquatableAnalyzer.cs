@@ -61,7 +61,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             var methodSymbol = namedType
                 .GetMembers("Equals")
-                .Cast<IMethodSymbol>()
+                .OfType<IMethodSymbol>()
                 .Where(m => IsObjectEqualsOverride(m, objectType))
                 .FirstOrDefault();
             var overridesObjectEquals = methodSymbol != null;
