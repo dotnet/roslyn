@@ -2316,5 +2316,43 @@ class C1
             Assert.Equal(new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true), text.Encoding);
             Assert.Equal("//“", text.ToString());
         }
+
+        [WorkItem(981208)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void DisposeMSBuildWorkspaceAndServicesCollected()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles());
+
+            var sol = MSBuildWorkspace.Create().OpenSolutionAsync(GetSolutionFileName("TestSolution.sln")).Result;
+            var workspace = sol.Workspace;
+            var project = sol.Projects.First();
+            var document = project.Documents.First();
+            var tree = document.GetSyntaxTreeAsync().Result;
+            var type = tree.GetRoot().DescendantTokens().First(t => t.ToString() == "class").Parent;
+            var compilation = document.GetSemanticModelAsync().WaitAndGetResult(CancellationToken.None);
+            Assert.NotNull(type);
+            Assert.Equal(true, type.ToString().StartsWith("public class CSharpClass"));
+            Assert.NotNull(compilation);
+
+            var cacheService = new WeakReference(sol.Workspace.CurrentSolution.Services.CacheService);
+            var weakSolution = new WeakReference(sol);
+            var weakCompilation = new WeakReference(compilation);
+
+            sol.Workspace.Dispose();
+            project = null;
+            document = null;
+            tree = null;
+            type = null;
+            sol = null;
+            compilation = null;
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+
+            Assert.False(cacheService.IsAlive);
+            Assert.False(weakSolution.IsAlive);
+            Assert.False(weakCompilation.IsAlive);
+        }
     }
 }
