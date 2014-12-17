@@ -128,6 +128,29 @@ namespace Microsoft.CodeAnalysis.UnitTests
             });
         }
 
+        [Fact(Skip = "1094411")]
+        public static void FindDeclarationsAsync_Metadata()
+        {
+            var solution = CreateSolution();
+            var csharpId = ProjectId.CreateNewId();
+            solution = solution
+                .AddProject(csharpId, "CSharp", "CSharp", LanguageNames.CSharp)
+                .AddMetadataReference(csharpId, MscorlibRef);
+
+            var vbId = ProjectId.CreateNewId();
+            solution = solution
+                .AddProject(vbId, "VB", "VB", LanguageNames.VisualBasic)
+                .AddMetadataReference(vbId, MscorlibRef);
+
+            var csharpResult = SymbolFinder.FindDeclarationsAsync(solution.GetProject(csharpId), "BackgroundColor", ignoreCase: false).Result;
+            Assert.True(csharpResult.Count() > 0);
+
+            // var rest = solution.GetProject(vbId).GetCompilationAsync().Result.GlobalNamespace.GetMembers("System").SelectMany(g => g.GetMembers("Console")).OfType<ITypeSymbol>().SelectMany(t => t.GetMembers("BackgroundColor")).ToList();
+
+            var vbResult = SymbolFinder.FindDeclarationsAsync(solution.GetProject(vbId), "BackgroundColor", ignoreCase: true).Result;
+            Assert.True(vbResult.Count() > 0);
+        }
+
         #endregion
 
         #region FindSourceDeclarationsAsync_Project
