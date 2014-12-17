@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis
 
         internal abstract GreenNode GetSlot(int index);
 
-        // for slot count's >= byte.MaxValue
+        // for slot counts >= byte.MaxValue
         protected virtual int GetSlotCount()
         {
             return this.slotCount;
