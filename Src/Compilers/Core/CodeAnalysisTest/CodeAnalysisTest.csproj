@@ -22,6 +22,7 @@
       <Link>FusionAssemblyIdentity.cs</Link>
     </Compile>
     <Compile Include="AnalyzerFileReferenceTests.cs" />
+    <Compile Include="AsyncQueueTests.cs" />
     <Compile Include="Diagnostics\DiagnosticLocalizationTests.cs" />
     <Compile Include="Emit\EmitOptionsTests.cs" />
     <Compile Include="Emit\CustomDebugInfoReaderTests.cs" />

@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private sealed class TaskCompletionSourceWithCancellation<T> : TaskCompletionSource<T>
         {
             private readonly Action<object> OnCancelled = 
-                (tcs) => ((TaskCompletionSourceWithCancellation<T>)tcs).SetCanceled();
+                (tcs) => ((TaskCompletionSourceWithCancellation<T>)tcs).TrySetCanceled();
 
             private CancellationTokenRegistration cancellationTokenRegistration;
 
