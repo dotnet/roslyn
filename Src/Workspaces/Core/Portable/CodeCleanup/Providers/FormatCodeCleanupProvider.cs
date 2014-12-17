@@ -22,7 +22,13 @@ namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             if (document.TryGetText(out oldText))
             {
                 var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                var newText = oldText.WithChanges(Formatter.GetFormattedTextChanges(root, spans, document.Project.Solution.Workspace, cancellationToken: cancellationToken));
+                var textChanges = Formatter.GetFormattedTextChanges(root, spans, document.Project.Solution.Workspace, cancellationToken: cancellationToken);
+                if (textChanges.Count == 0)
+                {
+                    return document;
+                }
+
+                var newText = oldText.WithChanges(textChanges);
                 return document.WithText(newText);
             }
 
