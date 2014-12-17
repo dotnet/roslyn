@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Dim slotIndex As Integer
 
                     Select Case GeneratedNames.GetKind(name)
-                        Case GeneratedNameKind.AwaiterField
+                        Case GeneratedNameKind.StateMachineAwaiterField
                             If GeneratedNames.TryParseSlotIndex(name, slotIndex) Then
                                 Dim field = TryCast(member, IFieldSymbol)
 
@@ -130,8 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                                 End If
                             End If
 
-                        Case GeneratedNameKind.HoistedLocalField,
-                             GeneratedNameKind.HoistedSynthesizedLocalField
+                        Case GeneratedNameKind.HoistedSynthesizedLocalField
                             If GeneratedNames.TryParseSlotIndex(name, slotIndex) Then
                                 Dim field = TryCast(member, IFieldSymbol)
                                 If slotIndex >= localSlotDebugInfo.Length Then

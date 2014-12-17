@@ -54,7 +54,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Const HoistedSpecialVariablePrefix As String = "$VB$NonLocal_" ' prefixes Me and Closure variables when hoisted
         Friend Const HoistedWithLocalPrefix As String = "$W"
         Friend Const StateMachineHoistedUserVariablePrefix As String = "$VB$ResumableLocal_"
-        Friend Const StateMachineHoistedUserVariablePrefixMask As String = StateMachineHoistedUserVariablePrefix & "{0}${1}"
         Friend Const ClosureVariablePrefix As String = "$VB$Closure_"
 
         Friend Const DisplayClassPrefix As String = "_Closure$__"

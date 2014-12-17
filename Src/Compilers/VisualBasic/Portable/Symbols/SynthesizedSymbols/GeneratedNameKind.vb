@@ -7,17 +7,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
     Friend Enum GeneratedNameKind
         None = 0
-        AwaiterField
-        HoistedLocalField
+        HoistedMeField
         HoistedSynthesizedLocalField
+        HoistedUserVariableField
+        IteratorCurrentField
+        IteratorInitialThreadIdField
+        IteratorParameterProxyField
+        StateMachineAwaiterField
+        StateMachineHoistedUserVariableField
     End Enum
 
     Partial Friend Class GeneratedNames
         Friend Shared Function GetKind(name As String) As GeneratedNameKind
-            If name.Contains(StringConstants.StateMachineAwaiterFieldPrefix) Then
-                Return GeneratedNameKind.AwaiterField
-            ElseIf name.Contains(StringConstants.HoistedSynthesizedLocalPrefix) Then
-                Return GeneratedNameKind.HoistedLocalField
+            If name.StartsWith(StringConstants.HoistedMeName, StringComparison.Ordinal) Then
+                Return GeneratedNameKind.HoistedMeField
+            ElseIf name.StartsWith(StringConstants.HoistedSynthesizedLocalPrefix, StringComparison.Ordinal) Then
+                Return GeneratedNameKind.HoistedSynthesizedLocalField
+            ElseIf name.StartsWith(StringConstants.HoistedUserVariablePrefix, StringComparison.Ordinal) Then
+                Return GeneratedNameKind.HoistedUserVariableField
+            ElseIf name.StartsWith(StringConstants.IteratorCurrentFieldName, StringComparison.Ordinal) Then
+                Return GeneratedNameKind.IteratorCurrentField
+            ElseIf name.StartsWith(StringConstants.IteratorInitialThreadIdName, StringComparison.Ordinal)
+                Return GeneratedNameKind.IteratorInitialThreadIdField
+            ElseIf name.StartsWith(StringConstants.IteratorParameterProxyPrefix, StringComparison.Ordinal) Then
+                Return GeneratedNameKind.IteratorParameterProxyField
+            ElseIf name.StartsWith(StringConstants.StateMachineAwaiterFieldPrefix, StringComparison.Ordinal) Then
+                Return GeneratedNameKind.StateMachineAwaiterField
+            ElseIf name.StartsWith(StringConstants.StateMachineHoistedUserVariablePrefix, StringComparison.Ordinal) Then
+                Return GeneratedNameKind.StateMachineHoistedUserVariableField
             End If
 
             Return GeneratedNameKind.None

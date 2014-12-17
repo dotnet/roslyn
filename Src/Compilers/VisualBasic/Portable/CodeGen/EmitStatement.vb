@@ -1416,7 +1416,7 @@ OtherExpressions:
             For Each field In scope.Fields
                 Dim name As String = Nothing
                 Dim index As Integer = 0
-                Dim parsedOk As Boolean = GeneratedNames.TryParseStateMachineLocalName(field.Name, name, index)
+                Dim parsedOk As Boolean = GeneratedNames.TryParseStateMachineHoistedUserVariableName(field.Name, name, index)
                 Debug.Assert(parsedOk)
                 Debug.Assert(index >= 0)
                 If parsedOk Then
