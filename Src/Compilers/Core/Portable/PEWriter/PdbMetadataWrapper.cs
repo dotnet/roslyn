@@ -237,11 +237,12 @@ namespace Microsoft.Cci
             pointerClass = 0;
             pointerClass = this.writer.GetTypeToken(m.GetContainingType(this.writer.Context));
             string methName = m.Name;
-            pchMethod = (uint)methName.Length;
-            if (pchMethod > cchMethod)
-            {
-                pchMethod = cchMethod - 1;
-            }
+
+            // if the buffer is too small to fit the name, truncate the name
+            uint nameLengthIncludingNull = Math.Min((uint)methName.Length + 1, cchMethod);
+
+            // we shall return the length of the name not including NUL
+            pchMethod = nameLengthIncludingNull - 1;
 
             char* pointerMethName = (char*)stringMethod.ToPointer();
             for (int i = 0; i < pchMethod; i++)

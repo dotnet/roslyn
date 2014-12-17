@@ -46,7 +46,7 @@ End Class
             Dim mftData As String
             Try
                 [lib] = LoadLibraryEx(exe.Path, IntPtr.Zero, &H2)
-                If [lib].ToInt32() = 0 Then
+                If [lib] = IntPtr.Zero Then
                     Throw New Win32Exception(Marshal.GetLastWin32Error())
                 End If
 
@@ -133,7 +133,7 @@ End Class
             Dim versionData As String
             Try
                 [lib] = LoadLibraryEx(exe.Path, IntPtr.Zero, &H2)
-                If [lib].ToInt32() = 0 Then
+                If [lib] = IntPtr.Zero Then
                     Throw New Win32Exception(Marshal.GetLastWin32Error())
                 End If
 

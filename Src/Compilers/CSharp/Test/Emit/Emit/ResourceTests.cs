@@ -51,7 +51,7 @@ public class Maine
             try
             {
                 lib = LoadLibraryEx(exe.Path, IntPtr.Zero, 0x00000002);
-                if (lib.ToInt32() == 0)
+                if (lib == IntPtr.Zero)
                     throw new Win32Exception(Marshal.GetLastWin32Error());
 
                 //the manifest and version primitives are tested elsewhere. This is to test that the default
@@ -141,7 +141,7 @@ class C
             try
             {
                 lib = LoadLibraryEx(exe.Path, IntPtr.Zero, 0x00000002);
-                if (lib.ToInt32() == 0)
+                if (lib == IntPtr.Zero)
                     throw new Win32Exception(Marshal.GetLastWin32Error());
 
                 //the manifest and version primitives are tested elsewhere. This is to test that the resources
