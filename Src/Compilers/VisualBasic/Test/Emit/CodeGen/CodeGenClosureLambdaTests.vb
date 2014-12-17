@@ -1081,6 +1081,28 @@ End Module
         End Sub
 
         <Fact>
+        Public Sub StaticClosureSerializable()
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Module M1
+    Public Sub Main()
+        Dim x as Func(of Integer) = Function() 42
+        System.Console.Write(x.Target.GetType().IsSerializable())
+
+        Dim y as Func(of Integer) = Function() x()
+        System.Console.WriteLine(y.Target.GetType().IsSerializable())
+    End Sub
+End Module
+    </file>
+</compilation>, expectedOutput:="TrueFalse")
+
+        End Sub
+
+
+        <Fact>
         Public Sub SimpleGenericClosure()
             CompileAndVerify(
 <compilation>

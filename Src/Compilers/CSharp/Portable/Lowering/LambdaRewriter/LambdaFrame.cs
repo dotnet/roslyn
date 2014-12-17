@@ -159,6 +159,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return this.singletonCache; }
         }
 
+        // display classes for static lambdas do not have any data and can be serialized.
+        internal override bool IsSerializable
+        {
+            get { return (object)this.singletonCache != null;}
+        }
+
         public override Symbol ContainingSymbol
         {
             get { return topLevelMethod.ContainingSymbol; }

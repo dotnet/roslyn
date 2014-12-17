@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend NotOverridable Overrides ReadOnly Property IsSerializable As Boolean
+        Friend Overrides ReadOnly Property IsSerializable As Boolean
             Get
                 Return False
             End Get

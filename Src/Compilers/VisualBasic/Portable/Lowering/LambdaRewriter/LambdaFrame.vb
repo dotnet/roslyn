@@ -121,6 +121,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Friend Overrides ReadOnly Property IsSerializable As Boolean
+            Get
+                Return m_singletonCache IsNot Nothing
+            End Get
+        End Property
+
+
         Friend Overrides Function GetFieldsToEmit() As IEnumerable(Of FieldSymbol)
             If m_singletonCache Is Nothing Then
                 Return m_captured_locals
