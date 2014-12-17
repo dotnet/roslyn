@@ -107,34 +107,45 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Create a temp and assign it with the object creation expression.
             BoundAssignmentOperator boundAssignmentToTemp;
-            BoundLocal boundTemp = this.factory.StoreToTemp(rewrittenObjectCreation, out boundAssignmentToTemp);
+            BoundLocal value = this.factory.StoreToTemp(rewrittenObjectCreation, out boundAssignmentToTemp);
 
             // Rewrite object/collection initializer expressions
             ArrayBuilder<BoundExpression> dynamicSiteInitializers = null;
+            ArrayBuilder<LocalSymbol> temps = null;
             ArrayBuilder<BoundExpression> loweredInitializers = ArrayBuilder<BoundExpression>.GetInstance();
 
-            AddObjectOrCollectionInitializers(ref dynamicSiteInitializers, loweredInitializers, boundTemp, initializerExpression);
+            AddObjectOrCollectionInitializers(ref dynamicSiteInitializers, ref temps, loweredInitializers, value, initializerExpression);
 
-            int dynamicSiteCount = (dynamicSiteInitializers != null) ? dynamicSiteInitializers.Count : 0;
-
-            var sideEffects = new BoundExpression[1 + dynamicSiteCount + loweredInitializers.Count];
-            sideEffects[0] = boundAssignmentToTemp;
+            int dynamicSiteCount = dynamicSiteInitializers?.Count ?? 0;
+            var sideEffects = ArrayBuilder<BoundExpression>.GetInstance(1 + dynamicSiteCount + loweredInitializers.Count);
+            sideEffects.Add(boundAssignmentToTemp);
 
             if (dynamicSiteCount > 0)
             {
-                dynamicSiteInitializers.CopyTo(sideEffects, 1);
+                sideEffects.AddRange(dynamicSiteInitializers);
                 dynamicSiteInitializers.Free();
             }
 
-            loweredInitializers.CopyTo(sideEffects, 1 + dynamicSiteCount);
+            sideEffects.AddRange(loweredInitializers);
             loweredInitializers.Free();
 
+            ImmutableArray<LocalSymbol> locals;
+            if (temps == null)
+            {
+                locals = ImmutableArray.Create(value.LocalSymbol);
+            }
+            else
+            {
+                temps.Insert(0, value.LocalSymbol);
+                locals = temps.ToImmutableAndFree();
+            }
+
             return new BoundSequence(
-                syntax: syntax,
-                locals: ImmutableArray.Create(boundTemp.LocalSymbol),
-                sideEffects: sideEffects.AsImmutableOrNull(),
-                value: boundTemp,
-                type: type);
+                syntax,
+                locals,
+                sideEffects.ToImmutableAndFree(),
+                value,
+                type);
         }
 
         public override BoundNode VisitNewT(BoundNewT node)

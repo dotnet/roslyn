@@ -909,6 +909,874 @@ class Program
         }
 
         [Fact]
+        public void DictionaryInitializerTestSideeffects001()
+        {
+            var source = @"
+using System;
+ 
+class A
+{
+    A this[int x]
+    {
+        get
+        {
+            Console.WriteLine(x);
+            return new A();
+        }
+    }
+ 
+    int X, Y, Z;
+ 
+    static void Main()
+    {
+        int x = 1;
+        new A {[x: x++] = { X = 1, Y = 1, Z = 1 } };
+        Console.WriteLine('-');
+        new A {[x++] = { } };
+        Console.WriteLine('-');
+        Console.WriteLine(x);
+    }
+}
+
+";
+            string expectedOutput = @"
+1
+1
+1
+-
+-
+3";
+
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("A.Main()", @"
+{
+  // Code size       86 (0x56)
+  .maxstack  3
+  .locals init (int V_0, //x
+                A V_1,
+                int V_2)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  newobj     ""A..ctor()""
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.0
+  IL_0009:  dup
+  IL_000a:  ldc.i4.1
+  IL_000b:  add
+  IL_000c:  stloc.0
+  IL_000d:  stloc.2
+  IL_000e:  ldloc.1
+  IL_000f:  ldloc.2
+  IL_0010:  callvirt   ""A A.this[int].get""
+  IL_0015:  ldc.i4.1
+  IL_0016:  stfld      ""int A.X""
+  IL_001b:  ldloc.1
+  IL_001c:  ldloc.2
+  IL_001d:  callvirt   ""A A.this[int].get""
+  IL_0022:  ldc.i4.1
+  IL_0023:  stfld      ""int A.Y""
+  IL_0028:  ldloc.1
+  IL_0029:  ldloc.2
+  IL_002a:  callvirt   ""A A.this[int].get""
+  IL_002f:  ldc.i4.1
+  IL_0030:  stfld      ""int A.Z""
+  IL_0035:  ldc.i4.s   45
+  IL_0037:  call       ""void System.Console.WriteLine(char)""
+  IL_003c:  newobj     ""A..ctor()""
+  IL_0041:  pop
+  IL_0042:  ldloc.0
+  IL_0043:  dup
+  IL_0044:  ldc.i4.1
+  IL_0045:  add
+  IL_0046:  stloc.0
+  IL_0047:  pop
+  IL_0048:  ldc.i4.s   45
+  IL_004a:  call       ""void System.Console.WriteLine(char)""
+  IL_004f:  ldloc.0
+  IL_0050:  call       ""void System.Console.WriteLine(int)""
+  IL_0055:  ret
+}
+");
+        }
+
+        [Fact]
+        public void DictionaryInitializerTestSideeffects001param()
+        {
+            var source = @"
+using System;
+ 
+class A
+{
+    A this[params int[] x]
+    {
+        get
+        {
+            Console.WriteLine(x[0]);
+            x[0] = 12345;
+            return new A();
+        }
+    }
+ 
+    int X, Y, Z;
+ 
+    static void Main()
+    {
+        int x = 1;
+        new A {[x++] = { X = 1, Y = 1, Z = 1 } };
+        Console.WriteLine('-');
+        new A {[x++] = { } };
+        Console.WriteLine('-');
+        Console.WriteLine(x);
+    }
+}
+
+";
+            string expectedOutput = @"
+1
+1
+1
+-
+-
+3";
+
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("A.Main()", @"
+{
+  // Code size      113 (0x71)
+  .maxstack  5
+  .locals init (int V_0, //x
+                A V_1,
+                int V_2)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  newobj     ""A..ctor()""
+  IL_0007:  stloc.1
+  IL_0008:  ldloc.0
+  IL_0009:  dup
+  IL_000a:  ldc.i4.1
+  IL_000b:  add
+  IL_000c:  stloc.0
+  IL_000d:  stloc.2
+  IL_000e:  ldloc.1
+  IL_000f:  ldc.i4.1
+  IL_0010:  newarr     ""int""
+  IL_0015:  dup
+  IL_0016:  ldc.i4.0
+  IL_0017:  ldloc.2
+  IL_0018:  stelem.i4
+  IL_0019:  callvirt   ""A A.this[params int[]].get""
+  IL_001e:  ldc.i4.1
+  IL_001f:  stfld      ""int A.X""
+  IL_0024:  ldloc.1
+  IL_0025:  ldc.i4.1
+  IL_0026:  newarr     ""int""
+  IL_002b:  dup
+  IL_002c:  ldc.i4.0
+  IL_002d:  ldloc.2
+  IL_002e:  stelem.i4
+  IL_002f:  callvirt   ""A A.this[params int[]].get""
+  IL_0034:  ldc.i4.1
+  IL_0035:  stfld      ""int A.Y""
+  IL_003a:  ldloc.1
+  IL_003b:  ldc.i4.1
+  IL_003c:  newarr     ""int""
+  IL_0041:  dup
+  IL_0042:  ldc.i4.0
+  IL_0043:  ldloc.2
+  IL_0044:  stelem.i4
+  IL_0045:  callvirt   ""A A.this[params int[]].get""
+  IL_004a:  ldc.i4.1
+  IL_004b:  stfld      ""int A.Z""
+  IL_0050:  ldc.i4.s   45
+  IL_0052:  call       ""void System.Console.WriteLine(char)""
+  IL_0057:  newobj     ""A..ctor()""
+  IL_005c:  pop
+  IL_005d:  ldloc.0
+  IL_005e:  dup
+  IL_005f:  ldc.i4.1
+  IL_0060:  add
+  IL_0061:  stloc.0
+  IL_0062:  pop
+  IL_0063:  ldc.i4.s   45
+  IL_0065:  call       ""void System.Console.WriteLine(char)""
+  IL_006a:  ldloc.0
+  IL_006b:  call       ""void System.Console.WriteLine(int)""
+  IL_0070:  ret
+}
+");
+        }
+
+        [Fact]
+        public void DictionaryInitializerTestSideeffects001named()
+        {
+            var source = @"
+using System;
+
+class A
+{
+    A this[int x, int y]
+    {
+        get
+        {
+            Console.WriteLine(x);
+            Console.WriteLine(y);
+            return new A();
+        }
+    }
+
+    int X, Y, Z;
+
+    static void Main()
+    {
+        int x = 1;
+        new A {[y: x++, x: x++] = { X = 1, Y = 1, Z = 1 } };
+        Console.WriteLine('-');
+        new A {[y: x++, x: x++] = { } };
+        Console.WriteLine('-');
+        Console.WriteLine(x);
+    }
+}
+
+";
+            string expectedOutput = @"
+2
+1
+2
+1
+2
+1
+-
+-
+5";
+
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+
+        }
+
+        [Fact]
+        public void DictionaryInitializerTestSideeffects001namedAsync()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+class A
+{
+    A this[int x, int y]
+    {
+        get
+        {
+            Console.WriteLine(x);
+            Console.WriteLine(y);
+            return new A();
+        }
+    }
+
+    int X, Y, Z;
+
+    static void Main()
+    {
+        Test().Wait();
+    }
+
+    private static async Task<int> Test()
+    {
+        int x = 1;
+        new A {[y: await F(x++), x: await F(x++)] = { X = 1, Y = await F(1), Z = 1 } };
+        Console.WriteLine('-');
+        new A {[y: x++, x: x++] = { } };
+        Console.WriteLine('-');
+        Console.WriteLine(x);
+
+        return 42;
+    }
+
+    private static async Task<int> F(int x)
+    {
+        await Task.Yield();
+        return x;
+    }
+}
+
+";
+            string expectedOutput = @"
+2
+1
+2
+1
+2
+1
+-
+-
+5";
+
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+        }
+
+
+        [Fact]
+        public void DictionaryInitializerTestSideeffects001dyn()
+        {
+            var source = @"
+using System;
+ 
+class A
+{
+    dynamic this[int x]
+    {
+        get
+        {
+            Console.WriteLine(x);
+            return new A();
+        }
+    }
+ 
+    int X, Y, Z;
+ 
+    static void Main()
+    {
+        int x = 1;
+        new A {[x++] = { X = 1, Y = 1, Z = 1 } };
+        Console.WriteLine('-');
+        new A {[x++] = { } };
+        Console.WriteLine('-');
+        Console.WriteLine(x);
+    }
+}
+
+";
+            string expectedOutput = @"
+1
+1
+1
+-
+-
+3";
+
+            var compVerifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef },expectedOutput: expectedOutput);
+        }
+
+        [Fact]
+        public void DictionaryInitializerTestSideeffects001namedDynamic()
+        {
+            var source = @"
+using System;
+
+class A
+{
+    dynamic this[int x, int y]
+    {
+        get
+        {
+            Console.WriteLine(x);
+            Console.WriteLine(y);
+            return new A();
+        }
+    }
+
+    dynamic this[string x, string y]
+    {
+        get
+        {
+            throw null;
+        }
+    }
+
+    int X, Y, Z;
+
+    static void Main()
+    {
+        dynamic x = 1;
+        new A {[y: x++, x: x++] = { X = 1, Y = 1, Z = 1 } };
+        Console.WriteLine('-');
+        new A {[y: x++, x: x++] = { } };
+        Console.WriteLine('-');
+        Console.WriteLine(x);
+    }
+}
+
+";
+            string expectedOutput = @"
+2
+1
+2
+1
+2
+1
+-
+-
+5";
+
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+        }
+
+
+        [Fact]
+        public void DictionaryInitializerTestSideeffects001a()
+        {
+            var source = @"
+using System;
+
+struct A
+{
+    public A[] arr;
+
+    int X, Y, Z;
+
+    public A(int x)
+    {
+        X = 0; Y = 0; Z = 0;
+        arr = new A[x];
+    }
+
+    static void Main()
+    {
+        int x = 1;
+        var v = new A(3) {arr = {[x++] = { X = 1, Y = x, Z = 3 },[x++] = { X = 1, Y = x, Z = 3 }} };
+
+        System.Console.WriteLine(v.arr[0].Y);
+        System.Console.WriteLine(v.arr[1].Y);     
+        System.Console.WriteLine(v.arr[2].Y);     
+    }
+}
+
+";
+            string expectedOutput = @"
+0
+2
+3";
+
+            var compVerifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("A.Main()", @"
+{
+  // Code size      194 (0xc2)
+  .maxstack  4
+  .locals init (int V_0, //x
+                int V_1,
+                int V_2)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.3
+  IL_0003:  newobj     ""A..ctor(int)""
+  IL_0008:  ldloc.0
+  IL_0009:  dup
+  IL_000a:  ldc.i4.1
+  IL_000b:  add
+  IL_000c:  stloc.0
+  IL_000d:  stloc.1
+  IL_000e:  dup
+  IL_000f:  ldfld      ""A[] A.arr""
+  IL_0014:  ldloc.1
+  IL_0015:  ldelema    ""A""
+  IL_001a:  ldc.i4.1
+  IL_001b:  stfld      ""int A.X""
+  IL_0020:  dup
+  IL_0021:  ldfld      ""A[] A.arr""
+  IL_0026:  ldloc.1
+  IL_0027:  ldelema    ""A""
+  IL_002c:  ldloc.0
+  IL_002d:  stfld      ""int A.Y""
+  IL_0032:  dup
+  IL_0033:  ldfld      ""A[] A.arr""
+  IL_0038:  ldloc.1
+  IL_0039:  ldelema    ""A""
+  IL_003e:  ldc.i4.3
+  IL_003f:  stfld      ""int A.Z""
+  IL_0044:  ldloc.0
+  IL_0045:  dup
+  IL_0046:  ldc.i4.1
+  IL_0047:  add
+  IL_0048:  stloc.0
+  IL_0049:  stloc.2
+  IL_004a:  dup
+  IL_004b:  ldfld      ""A[] A.arr""
+  IL_0050:  ldloc.2
+  IL_0051:  ldelema    ""A""
+  IL_0056:  ldc.i4.1
+  IL_0057:  stfld      ""int A.X""
+  IL_005c:  dup
+  IL_005d:  ldfld      ""A[] A.arr""
+  IL_0062:  ldloc.2
+  IL_0063:  ldelema    ""A""
+  IL_0068:  ldloc.0
+  IL_0069:  stfld      ""int A.Y""
+  IL_006e:  dup
+  IL_006f:  ldfld      ""A[] A.arr""
+  IL_0074:  ldloc.2
+  IL_0075:  ldelema    ""A""
+  IL_007a:  ldc.i4.3
+  IL_007b:  stfld      ""int A.Z""
+  IL_0080:  dup
+  IL_0081:  ldfld      ""A[] A.arr""
+  IL_0086:  ldc.i4.0
+  IL_0087:  ldelema    ""A""
+  IL_008c:  ldfld      ""int A.Y""
+  IL_0091:  call       ""void System.Console.WriteLine(int)""
+  IL_0096:  dup
+  IL_0097:  ldfld      ""A[] A.arr""
+  IL_009c:  ldc.i4.1
+  IL_009d:  ldelema    ""A""
+  IL_00a2:  ldfld      ""int A.Y""
+  IL_00a7:  call       ""void System.Console.WriteLine(int)""
+  IL_00ac:  ldfld      ""A[] A.arr""
+  IL_00b1:  ldc.i4.2
+  IL_00b2:  ldelema    ""A""
+  IL_00b7:  ldfld      ""int A.Y""
+  IL_00bc:  call       ""void System.Console.WriteLine(int)""
+  IL_00c1:  ret
+}
+");
+        }
+
+        [Fact]
+        public void DictionaryInitializerTestSideeffects001a1()
+        {
+            var source = @"
+using System;
+
+struct A
+{
+    private A[] _arr;
+
+    public A[] arr
+    {
+        get
+        { 
+            System.Console.WriteLine(""get"");
+            return _arr;
+        }
+    }
+
+    int X, Y, Z;
+
+    public A(int x)
+    {
+        X = 0; Y = 0; Z = 0;
+        _arr = new A[x];
+    }
+
+    static void Main()
+    {
+        int x = 1;
+        var v = new A(3) {arr = {[x++] = { X = 1, Y = x, Z = 3 },[x++] = { X = 1, Y = x, Z = 3 }} };
+        
+        System.Console.WriteLine(""======="");
+
+        System.Console.WriteLine(v.arr[0].Y);
+        System.Console.WriteLine(v.arr[1].Y);     
+        System.Console.WriteLine(v.arr[2].Y);     
+    }
+}
+
+";
+            string expectedOutput = @"
+get
+get
+get
+get
+get
+get
+=======
+get
+0
+get
+2
+get
+3";
+
+            var compVerifier = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("A.Main()", @"
+{
+  // Code size      222 (0xde)
+  .maxstack  3
+  .locals init (int V_0, //x
+                A V_1, //v
+                A V_2,
+                int V_3,
+                int V_4)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_2
+  IL_0004:  ldc.i4.3
+  IL_0005:  call       ""A..ctor(int)""
+  IL_000a:  ldloc.0
+  IL_000b:  dup
+  IL_000c:  ldc.i4.1
+  IL_000d:  add
+  IL_000e:  stloc.0
+  IL_000f:  stloc.3
+  IL_0010:  ldloca.s   V_2
+  IL_0012:  call       ""A[] A.arr.get""
+  IL_0017:  ldloc.3
+  IL_0018:  ldelema    ""A""
+  IL_001d:  ldc.i4.1
+  IL_001e:  stfld      ""int A.X""
+  IL_0023:  ldloca.s   V_2
+  IL_0025:  call       ""A[] A.arr.get""
+  IL_002a:  ldloc.3
+  IL_002b:  ldelema    ""A""
+  IL_0030:  ldloc.0
+  IL_0031:  stfld      ""int A.Y""
+  IL_0036:  ldloca.s   V_2
+  IL_0038:  call       ""A[] A.arr.get""
+  IL_003d:  ldloc.3
+  IL_003e:  ldelema    ""A""
+  IL_0043:  ldc.i4.3
+  IL_0044:  stfld      ""int A.Z""
+  IL_0049:  ldloc.0
+  IL_004a:  dup
+  IL_004b:  ldc.i4.1
+  IL_004c:  add
+  IL_004d:  stloc.0
+  IL_004e:  stloc.s    V_4
+  IL_0050:  ldloca.s   V_2
+  IL_0052:  call       ""A[] A.arr.get""
+  IL_0057:  ldloc.s    V_4
+  IL_0059:  ldelema    ""A""
+  IL_005e:  ldc.i4.1
+  IL_005f:  stfld      ""int A.X""
+  IL_0064:  ldloca.s   V_2
+  IL_0066:  call       ""A[] A.arr.get""
+  IL_006b:  ldloc.s    V_4
+  IL_006d:  ldelema    ""A""
+  IL_0072:  ldloc.0
+  IL_0073:  stfld      ""int A.Y""
+  IL_0078:  ldloca.s   V_2
+  IL_007a:  call       ""A[] A.arr.get""
+  IL_007f:  ldloc.s    V_4
+  IL_0081:  ldelema    ""A""
+  IL_0086:  ldc.i4.3
+  IL_0087:  stfld      ""int A.Z""
+  IL_008c:  ldloc.2
+  IL_008d:  stloc.1
+  IL_008e:  ldstr      ""=======""
+  IL_0093:  call       ""void System.Console.WriteLine(string)""
+  IL_0098:  ldloca.s   V_1
+  IL_009a:  call       ""A[] A.arr.get""
+  IL_009f:  ldc.i4.0
+  IL_00a0:  ldelema    ""A""
+  IL_00a5:  ldfld      ""int A.Y""
+  IL_00aa:  call       ""void System.Console.WriteLine(int)""
+  IL_00af:  ldloca.s   V_1
+  IL_00b1:  call       ""A[] A.arr.get""
+  IL_00b6:  ldc.i4.1
+  IL_00b7:  ldelema    ""A""
+  IL_00bc:  ldfld      ""int A.Y""
+  IL_00c1:  call       ""void System.Console.WriteLine(int)""
+  IL_00c6:  ldloca.s   V_1
+  IL_00c8:  call       ""A[] A.arr.get""
+  IL_00cd:  ldc.i4.2
+  IL_00ce:  ldelema    ""A""
+  IL_00d3:  ldfld      ""int A.Y""
+  IL_00d8:  call       ""void System.Console.WriteLine(int)""
+  IL_00dd:  ret
+}
+");
+        }
+
+        [Fact]
+        public void DictionaryInitializerTestSideeffects001async()
+        {
+            var source = @"
+using System;
+using System.Threading.Tasks;
+
+struct A
+{
+    private A[] _arr;
+
+    public A[] arr
+    {
+        get
+        {
+            System.Console.WriteLine(""get"");
+            return _arr;
+        }
+    }
+
+    int X, Y, Z;
+
+    public A(int x)
+    {
+        X = 0; Y = 0; Z = 0;
+        _arr = new A[x];
+    }
+
+    static void Main()
+    {
+        Test().Wait();
+    }
+
+    private static async Task<int> Test()
+    {
+        int x = 1;
+        var v = new A(3) { arr = {[x++] = { X = 1, Y = await F(x), Z = 3 },[await F(x++)] = { X = 1, Y = x, Z = await F(3) } } };
+
+        System.Console.WriteLine(""======="");
+
+        System.Console.WriteLine(v.arr[0].Y);
+        System.Console.WriteLine(v.arr[1].Y);
+        System.Console.WriteLine(v.arr[2].Y);
+
+        return 42;
+    }
+
+    private static async Task<int> F(int x)
+    {
+        await Task.Yield();
+        return x;
+    }
+
+}
+";
+            string expectedOutput = @"
+get
+get
+get
+get
+get
+get
+=======
+get
+0
+get
+2
+get
+3";
+
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput);
+        }
+
+
+        [Fact]
+        public void DictionaryInitializerTestSideeffects002()
+        {
+            var source = @"
+using System;
+ 
+class A
+{
+    A this[int x, int y]
+    {
+        get
+        {
+            Console.Write(x);
+            Console.WriteLine(y);
+            return new A();
+        }
+    }
+
+    A this[int x, int y, int z]
+    {
+        get
+        {
+            Console.Write(x);
+            Console.Write(y);
+            Console.WriteLine(z);
+            return new A();
+        }
+    }
+ 
+    int X, Y, Z;
+ 
+    static void Main()
+    {
+        int x = 1;
+        new A {[x++, 5] = { X = 1, Y = 1, Z = 1 } , [x++, 7, x++] = { X = 1, Y = 1, Z = 1 } };
+        Console.WriteLine(x);
+    }
+}
+
+";
+            string expectedOutput = @"
+15
+15
+15
+273
+273
+273
+4";
+
+            var compVerifier = CompileAndVerify(source, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("A.Main()", @"
+{
+  // Code size      118 (0x76)
+  .maxstack  5
+  .locals init (int V_0, //x
+                int V_1,
+                int V_2,
+                int V_3)
+  IL_0000:  ldc.i4.1
+  IL_0001:  stloc.0
+  IL_0002:  newobj     ""A..ctor()""
+  IL_0007:  ldloc.0
+  IL_0008:  dup
+  IL_0009:  ldc.i4.1
+  IL_000a:  add
+  IL_000b:  stloc.0
+  IL_000c:  stloc.1
+  IL_000d:  dup
+  IL_000e:  ldloc.1
+  IL_000f:  ldc.i4.5
+  IL_0010:  callvirt   ""A A.this[int, int].get""
+  IL_0015:  ldc.i4.1
+  IL_0016:  stfld      ""int A.X""
+  IL_001b:  dup
+  IL_001c:  ldloc.1
+  IL_001d:  ldc.i4.5
+  IL_001e:  callvirt   ""A A.this[int, int].get""
+  IL_0023:  ldc.i4.1
+  IL_0024:  stfld      ""int A.Y""
+  IL_0029:  dup
+  IL_002a:  ldloc.1
+  IL_002b:  ldc.i4.5
+  IL_002c:  callvirt   ""A A.this[int, int].get""
+  IL_0031:  ldc.i4.1
+  IL_0032:  stfld      ""int A.Z""
+  IL_0037:  ldloc.0
+  IL_0038:  dup
+  IL_0039:  ldc.i4.1
+  IL_003a:  add
+  IL_003b:  stloc.0
+  IL_003c:  stloc.2
+  IL_003d:  ldloc.0
+  IL_003e:  dup
+  IL_003f:  ldc.i4.1
+  IL_0040:  add
+  IL_0041:  stloc.0
+  IL_0042:  stloc.3
+  IL_0043:  dup
+  IL_0044:  ldloc.2
+  IL_0045:  ldc.i4.7
+  IL_0046:  ldloc.3
+  IL_0047:  callvirt   ""A A.this[int, int, int].get""
+  IL_004c:  ldc.i4.1
+  IL_004d:  stfld      ""int A.X""
+  IL_0052:  dup
+  IL_0053:  ldloc.2
+  IL_0054:  ldc.i4.7
+  IL_0055:  ldloc.3
+  IL_0056:  callvirt   ""A A.this[int, int, int].get""
+  IL_005b:  ldc.i4.1
+  IL_005c:  stfld      ""int A.Y""
+  IL_0061:  ldloc.2
+  IL_0062:  ldc.i4.7
+  IL_0063:  ldloc.3
+  IL_0064:  callvirt   ""A A.this[int, int, int].get""
+  IL_0069:  ldc.i4.1
+  IL_006a:  stfld      ""int A.Z""
+  IL_006f:  ldloc.0
+  IL_0070:  call       ""void System.Console.WriteLine(int)""
+  IL_0075:  ret
+}
+");
+        }
+
+
+        [Fact]
         public void DictionaryInitializerTest002()
         {
             var source = @"

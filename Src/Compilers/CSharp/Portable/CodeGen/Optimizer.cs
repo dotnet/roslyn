@@ -1620,7 +1620,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 if (CanScheduleToStack(local))
                 {
-                    this.locals.Add(local, new LocalDefUseInfo(stack));
+                    LocalDefUseInfo info;
+                    if (!locals.TryGetValue(local, out info))
+                    {
+                        this.locals.Add(local, new LocalDefUseInfo(stack));
+                    }
+                    else
+                    {
+                        Debug.Assert(local.SynthesizedKind == SynthesizedLocalKind.LoweringTemp, "only lowering temps may be sometimes reused");
+                        if(info.stackAtDeclaration != stack)
+                        {
+                            info.ShouldNotSchedule();
+                        }
+                    }
                 }
             }
         }

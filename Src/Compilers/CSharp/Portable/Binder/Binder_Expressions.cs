@@ -3105,6 +3105,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BindValueKind valueKind = isRhsNestedInitializer ? BindValueKind.RValue : BindValueKind.Assignment;
 
             ImmutableArray<BoundExpression> arguments = ImmutableArray<BoundExpression>.Empty;
+            ImmutableArray<string> argumentNamesOpt = default(ImmutableArray<string>);
+            ImmutableArray<int> argsToParamsOpt = default(ImmutableArray<int>);
+            ImmutableArray<RefKind> argumentRefKindsOpt = default(ImmutableArray<RefKind>);
+            bool expanded = false;
+
             switch (boundMemberKind)
             {
                 case BoundKind.FieldAccess:
@@ -3132,12 +3137,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.IndexerAccess:
-                    hasErrors |= isRhsNestedInitializer && !CheckNestedObjectInitializerPropertySymbol(((BoundIndexerAccess)boundMember).Indexer, namedAssignment.Left, diagnostics, hasErrors, ref resultKind);
-                    arguments = ((BoundIndexerAccess)boundMember).Arguments;
-                    break;
+                    {
+                        var indexer = (BoundIndexerAccess)boundMember;
+                        hasErrors |= isRhsNestedInitializer && !CheckNestedObjectInitializerPropertySymbol(indexer.Indexer, namedAssignment.Left, diagnostics, hasErrors, ref resultKind);
+                        arguments = indexer.Arguments;
+                        argumentNamesOpt = indexer.ArgumentNamesOpt;
+                        argsToParamsOpt = indexer.ArgsToParamsOpt;
+                        argumentRefKindsOpt = indexer.ArgumentRefKindsOpt;
+                        expanded = indexer.Expanded;
+
+                        break;
+                    }
 
                 case BoundKind.DynamicIndexerAccess:
-                    arguments = ((BoundDynamicIndexerAccess)boundMember).Arguments;
+                    {
+                        var indexer = (BoundDynamicIndexerAccess)boundMember;
+                        arguments = indexer.Arguments;
+                        argumentNamesOpt = indexer.ArgumentNamesOpt;
+                        argumentRefKindsOpt = indexer.ArgumentRefKindsOpt;
+                    }
+
                     break;
 
                 case BoundKind.ArrayAccess:
@@ -3161,7 +3180,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return new BoundObjectInitializerMember(namedAssignment.Left, boundMember.ExpressionSymbol, arguments, resultKind, boundMember.Type, hasErrors);
+            return new BoundObjectInitializerMember(
+                namedAssignment.Left, 
+                boundMember.ExpressionSymbol, 
+                arguments, 
+                argumentNamesOpt, 
+                argumentRefKindsOpt,
+                expanded, 
+                argsToParamsOpt, 
+                resultKind, 
+                boundMember.Type, 
+                hasErrors);
         }
 
         private bool CheckNestedObjectInitializerPropertySymbol(

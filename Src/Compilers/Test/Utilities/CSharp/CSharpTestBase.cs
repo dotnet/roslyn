@@ -429,6 +429,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return CreateCompilation(new[] { Parse(text, sourceFileName, TestOptions.ExperimentalParseOptions) }, refs, options, assemblyName);
         }
 
+        public static CSharpCompilation CreateCompilationWithMscorlib45AndCSruntime(
+            string text,
+            CSharpCompilationOptions options = null)
+        {
+            var refs = new List<MetadataReference>() {MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef};
+
+            return CreateCompilation(new[] { Parse(text) }, refs, options);
+        }
+
+
         public static CSharpCompilation CreateCompilationWithMscorlib(
             IEnumerable<string> sources,
             IEnumerable<MetadataReference> references = null,
