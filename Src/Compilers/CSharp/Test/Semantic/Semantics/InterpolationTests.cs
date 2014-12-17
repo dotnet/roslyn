@@ -1,9 +1,5 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -547,6 +543,21 @@ class Program
         }
 
         [Fact]
+        public void NoFillIns()
+        {
+            string source =
+@"class Program
+{
+    static void Main()
+    {
+        System.Console.WriteLine($""{{ x }}"");
+    }
+}";
+            string expectedOutput = @"{ x }";
+            CompileAndVerify(source, expectedOutput: expectedOutput);
+        }
+
+        [Fact]
         public void BadAlignment()
         {
             string source =
@@ -581,5 +592,244 @@ class Program
             string expectedOutput = @"1";
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
+
+        // Since the platform type System.FormattableString is not yet in our platforms (at the
+        // time of writing), we explicitly include the required platform types into the sources under test.
+        const string formattableString = @"
+// ==++==
+// 
+//   Copyright (c) Microsoft Corporation.  All rights reserved.
+// 
+// ==--==
+/*============================================================
+**
+** Class:  FormattableString
+**
+**
+** Purpose: implementation of the FormattableString
+** class.
+**
+===========================================================*/
+namespace System
+{
+    /// <summary>
+    /// A composite format string along with the arguments to be formatted. An instance of this
+    /// type may result from the use of the C# or VB language primitive ""interpolated string"".
+    /// </summary>
+    public abstract class FormattableString : IFormattable
+    {
+        /// <summary>
+        /// The composite format string.
+        /// </summary>
+        public abstract string Format { get; }
+
+        /// <summary>
+        /// Returns an object array that contains zero or more objects to format. Clients should not
+        /// mutate the contents of the array.
+        /// </summary>
+        public abstract object[] GetArguments();
+
+        /// <summary>
+        /// The number of arguments to be formatted.
+        /// </summary>
+        public abstract int ArgumentCount { get; }
+
+        /// <summary>
+        /// Returns one argument to be formatted from argument position <paramref name=""index""/>.
+        /// </summary>
+        public abstract object GetArgument(int index);
+
+        /// <summary>
+        /// Format to a string using the given culture.
+        /// </summary>
+        public abstract string ToString(IFormatProvider formatProvider);
+
+        string IFormattable.ToString(string ignored, IFormatProvider formatProvider)
+        {
+            return ToString(formatProvider);
+        }
+
+        /// <summary>
+        /// Format the given object in the invariant culture. This static method may be
+        /// imported in C# by
+        /// <code>
+        /// using static System.FormattableString;
+        /// </code>.
+        /// Within the scope
+        /// of that import directive an interpolated string may be formatted in the
+        /// invariant culture by writing, for example,
+        /// <code>
+        /// Invariant($""{{ lat = {latitude}; lon = {longitude} }}"")
+        /// </code>
+        /// </summary>
+        public static string Invariant(FormattableString formattable)
+        {
+            if (formattable == null)
+            {
+                throw new ArgumentNullException(""formattable"");
+            }
+
+            return formattable.ToString(Globalization.CultureInfo.InvariantCulture);
+        }
+
+        public override string ToString()
+        {
+            return ToString(Globalization.CultureInfo.CurrentCulture);
+        }
+    }
+}
+
+
+// ==++==
+// 
+//   Copyright (c) Microsoft Corporation.  All rights reserved.
+// 
+// ==--==
+/*============================================================
+**
+** Class:  FormattableStringFactory
+**
+**
+** Purpose: implementation of the FormattableStringFactory
+** class.
+**
+===========================================================*/
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>
+    /// A factory type used by compilers to create instances of the type <see cref=""FormattableString""/>.
+    /// </summary>
+    public static class FormattableStringFactory
+    {
+        /// <summary>
+        /// Create a <see cref=""FormattableString""/> from a composite format string and object
+        /// array containing zero or more objects to format.
+        /// </summary>
+        public static FormattableString Create(string format, params object[] arguments)
+        {
+            if (format == null)
+            {
+                throw new ArgumentNullException(""format"");
+            }
+
+            if (arguments == null)
+            {
+                throw new ArgumentNullException(""arguments"");
+            }
+
+            return new ConcreteFormattableString(format, arguments);
+        }
+
+        private sealed class ConcreteFormattableString : FormattableString
+        {
+            private readonly string _format;
+            private readonly object[] _arguments;
+
+            internal ConcreteFormattableString(string format, object[] arguments)
+            {
+                _format = format;
+                _arguments = arguments;
+            }
+
+            public override string Format { get { return _format; } }
+            public override object[] GetArguments() { return _arguments; }
+            public override int ArgumentCount { get { return _arguments.Length; } }
+            public override object GetArgument(int index) { return _arguments[index]; }
+            public override string ToString(IFormatProvider formatProvider) { return string.Format(formatProvider, Format, _arguments); }
+        }
+    }
+}
+";
+
+        [Fact]
+        public void TargetType01()
+        {
+            string source =
+@"using System;
+class Program {
+    public static void Main(string[] args)
+    {
+        IFormattable f = $""test"";
+        Console.Write(f is System.FormattableString);
+    }
+}";
+            CompileAndVerify(source + formattableString, expectedOutput: "True");
+        }
+
+        [Fact]
+        public void TargetType02()
+        {
+            string source =
+@"using System;
+interface I1 { void M(String s); }
+interface I2 { void M(FormattableString s); }
+interface I3 { void M(IFormattable s); }
+interface I4 : I1, I2 {}
+interface I5 : I1, I3 {}
+interface I6 : I2, I3 {}
+interface I7 : I1, I2, I3 {}
+class C : I1, I2, I3, I4, I5, I6, I7
+{
+    public void M(String s) { Console.Write(1); }
+    public void M(FormattableString s) { Console.Write(2); }
+    public void M(IFormattable s) { Console.Write(3); }
+}
+class Program {
+    public static void Main(string[] args)
+    {
+        C c = new C();
+        ((I1)c).M($"""");
+        ((I2)c).M($"""");
+        ((I3)c).M($"""");
+        ((I4)c).M($"""");
+        ((I5)c).M($"""");
+        ((I6)c).M($"""");
+        ((I7)c).M($"""");
+        ((C)c).M($"""");
+    }
+}";
+            CompileAndVerify(source + formattableString, expectedOutput: "12311211");
+        }
+
+        [Fact]
+        public void MissingHelper()
+        {
+            string source =
+@"using System;
+class Program {
+    public static void Main(string[] args)
+    {
+        IFormattable f = $""test"";
+    }
+}";
+            CreateCompilationWithMscorlib(source).VerifyEmitDiagnostics(
+                // (5,26): error CS0518: Predefined type 'System.Runtime.CompilerServices.FormattableStringFactory' is not defined or imported
+                //         IFormattable f = $"test";
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"$""test""").WithArguments("System.Runtime.CompilerServices.FormattableStringFactory").WithLocation(5, 26)
+                );
+        }
+
+        [Fact]
+        public void AsyncInterp()
+        {
+            string source =
+@"using System;
+using System.Threading.Tasks;
+class Program {
+    public static void Main(string[] args)
+    {
+        Task<string> hello = Task.FromResult(""Hello"");
+        Task<string> world = Task.FromResult(""world"");
+        M(hello, world).Wait();
+    }
+    public static async Task M(Task<string> hello, Task<string> world)
+    {
+        Console.WriteLine($""{ await hello }, { await world }!"");
+    }
+}";
+            CompileAndVerify(
+                source, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 }, expectedOutput: "Hello, world!");
+        }
+
     }
 }

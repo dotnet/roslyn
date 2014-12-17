@@ -498,6 +498,9 @@ End Namespace
                     Case WellKnownType.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators
                         ' Only present when embedding VB Core.
                         Continue For
+                    Case WellKnownType.System_FormattableString, WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory
+                        ' Not available on all platforms.
+                        Continue For
                 End Select
 
                 Dim symbol = comp.GetWellKnownType(wkt)
@@ -522,6 +525,9 @@ End Namespace
                          WellKnownType.Microsoft_VisualBasic_Information,
                          WellKnownType.Microsoft_VisualBasic_Interaction
                         ' Not embedded, so not available.
+                        Continue For
+                    Case WellKnownType.System_FormattableString, WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory
+                        ' Not available on all platforms.
                         Continue For
                 End Select
 

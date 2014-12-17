@@ -556,6 +556,10 @@ namespace System
                     case WellKnownType.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators:
                         // Not applicable in C#.
                         continue;
+                    case WellKnownType.System_FormattableString:
+                    case WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory:
+                        // Not yet in the platform.
+                        continue;
                 }
 
                 var symbol = comp.GetWellKnownType(wkt);

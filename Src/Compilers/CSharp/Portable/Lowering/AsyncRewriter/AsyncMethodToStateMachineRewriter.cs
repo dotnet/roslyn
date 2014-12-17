@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_INotifyCompletion),
                 null);
 
-            LocalSymbol thisTemp = (F.CurrentClass.TypeKind == TypeKind.Class) ? F.SynthesizedLocal(F.CurrentClass) : null;
+            LocalSymbol thisTemp = (F.CurrentType.TypeKind == TypeKind.Class) ? F.SynthesizedLocal(F.CurrentType) : null;
 
             var blockBuilder = ArrayBuilder<BoundStatement>.GetInstance();
 
@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //    or
             // this.builder.AwaitOnCompleted<TAwaiter,TSM>(ref $awaiterArrayTemp[0], ref this)
 
-            LocalSymbol thisTemp = (F.CurrentClass.TypeKind == TypeKind.Class) ? F.SynthesizedLocal(F.CurrentClass) : null;
+            LocalSymbol thisTemp = (F.CurrentType.TypeKind == TypeKind.Class) ? F.SynthesizedLocal(F.CurrentType) : null;
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             var useUnsafeOnCompleted = F.Compilation.Conversions.ClassifyImplicitConversion(

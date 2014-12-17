@@ -5309,24 +5309,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Runtime library method &apos;{0}.{1}&apos; not found..
-        /// </summary>
-        internal static string ERR_LibraryMethodNotFound {
-            get {
-                return ResourceManager.GetString("ERR_LibraryMethodNotFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to More than one candidate found for library invocation &apos;{0}.{1}&apos;..
-        /// </summary>
-        internal static string ERR_LibraryMethodNotUnique {
-            get {
-                return ResourceManager.GetString("ERR_LibraryMethodNotUnique", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Linked netmodule metadata must provide a full PE image: &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_LinkedNetmoduleMetadataMustProvideFullPEImage {

@@ -36,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.MethodGroup:
                 case ConversionKind.PointerToVoid:
                 case ConversionKind.NullToPointer:
+                case ConversionKind.InterpolatedString:
                     return true;
 
                 case ConversionKind.ExplicitNumeric:

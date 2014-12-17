@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.diagnostics = diagnostics;
 
             this.F = new SyntheticBoundNodeFactory(method, body.Syntax, compilationState, diagnostics);
-            Debug.Assert(F.CurrentClass == method.ContainingType);
+            Debug.Assert(F.CurrentType == method.ContainingType);
             Debug.Assert(F.Syntax == body.Syntax);
         }
 
@@ -278,8 +278,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool generateDebugInfo = true,
             bool hasMethodBodyDependency = false)
         {
-            var result = new SynthesizedStateMachineMethod(methodName, methodToImplement, (StateMachineTypeSymbol)F.CurrentClass, null, debuggerHidden, generateDebugInfo, hasMethodBodyDependency);
-            F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentClass, result);
+            var result = new SynthesizedStateMachineMethod(methodName, methodToImplement, (StateMachineTypeSymbol)F.CurrentType, null, debuggerHidden, generateDebugInfo, hasMethodBodyDependency);
+            F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, result);
             F.CurrentMethod = result;
             return result;
         }
@@ -289,11 +289,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool debuggerHidden = false,
             bool hasMethodBodyDependency = false)
         {
-            var prop = new SynthesizedStateMachineProperty(getterToImplement, (StateMachineTypeSymbol)F.CurrentClass, debuggerHidden, hasMethodBodyDependency);
-            F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentClass, prop);
+            var prop = new SynthesizedStateMachineProperty(getterToImplement, (StateMachineTypeSymbol)F.CurrentType, debuggerHidden, hasMethodBodyDependency);
+            F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, prop);
 
             var getter = prop.GetMethod;
-            F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentClass, getter);
+            F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, getter);
 
             F.CurrentMethod = getter;
             return getter;

@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Generic;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -28,6 +29,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override Conversion GetMethodGroupConversion(BoundMethodGroup source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // Conversions involving method groups require a Binder.
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        protected override Conversion GetInterpolatedStringConversion(BoundInterpolatedString source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            // Conversions involving interpolated strings require a Binder.
             throw ExceptionUtilities.Unreachable;
         }
     }

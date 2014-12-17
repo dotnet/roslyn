@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override TypeMap TypeMap
         {
-            get { return ((SynthesizedContainer)F.CurrentClass).TypeMap; }
+            get { return ((SynthesizedContainer)F.CurrentType).TypeMap; }
         }
 
         protected override MethodSymbol CurrentMethod

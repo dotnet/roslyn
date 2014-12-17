@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ExpressionLambdaRewriter(TypeCompilationState compilationState, TypeMap typeMap, CSharpSyntaxNode node, DiagnosticBag diagnostics)
         {
-            Bound = new SyntheticBoundNodeFactory(null, null, node, compilationState, diagnostics);
+            Bound = new SyntheticBoundNodeFactory(null, compilationState.Type, node, compilationState, diagnostics);
             Int32Type = Bound.SpecialType(SpecialType.System_Int32);
             ObjectType = Bound.SpecialType(SpecialType.System_Object);
             NullableType = Bound.SpecialType(SpecialType.System_Nullable_T);

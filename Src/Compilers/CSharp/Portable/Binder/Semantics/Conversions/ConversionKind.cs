@@ -35,5 +35,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         // The IntPtr conversions are not described by the specification but we must
         // implement them for compatibility with the native compiler.
         IntPtr,
+        InterpolatedString, // a conversion from an interpolated string to IFormattable or FormattableString
     }
 }

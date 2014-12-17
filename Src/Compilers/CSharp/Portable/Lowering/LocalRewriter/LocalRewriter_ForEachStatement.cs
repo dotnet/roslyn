@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Binder.ReportDiagnosticsIfObsolete(diagnostics, disposeMethod, forEachSyntax,
                                                    hasBaseReceiver: false,
                                                    containingMember: this.factory.CurrentMethod,
-                                                   containingType: this.factory.CurrentClass,
+                                                   containingType: this.factory.CurrentType,
                                                    location: enumeratorInfo.Location);
 
                 BoundBlock finallyBlockOpt;

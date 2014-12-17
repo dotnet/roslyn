@@ -3821,12 +3821,6 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="ERR_FixedLocalInLambda" xml:space="preserve">
     <value>Cannot use fixed local '{0}' inside an anonymous method, lambda expression, or query expression</value>
   </data>
-  <data name="ERR_LibraryMethodNotFound" xml:space="preserve">
-    <value>Runtime library method '{0}.{1}' not found.</value>
-  </data>
-  <data name="ERR_LibraryMethodNotUnique" xml:space="preserve">
-    <value>More than one candidate found for library invocation '{0}.{1}'.</value>
-  </data>
   <data name="ERR_ExpressionTreeContainsNamedArgument" xml:space="preserve">
     <value>An expression tree may not contain a named argument specification</value>
   </data>

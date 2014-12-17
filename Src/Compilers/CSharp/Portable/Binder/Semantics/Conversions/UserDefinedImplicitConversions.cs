@@ -527,6 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.MethodGroup:
                 case ConversionKind.AnonymousFunction:
                 case ConversionKind.ImplicitDynamic:
+                case ConversionKind.InterpolatedString:
 
                 // DELIBERATE SPEC VIOLATION: 
                 // We do not support an encompassing implicit conversion from a zero constant

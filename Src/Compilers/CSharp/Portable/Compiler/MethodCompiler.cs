@@ -549,21 +549,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CompileSynthesizedMethods(ImmutableArray<NamedTypeSymbol> additionalTypes, DiagnosticBag diagnostics)
         {
-            TypeCompilationState compilationState = new TypeCompilationState(null, compilation, moduleBeingBuiltOpt);
             foreach (var additionalType in additionalTypes)
             {
+                TypeCompilationState compilationState = new TypeCompilationState(additionalType, compilation, moduleBeingBuiltOpt);
                 foreach (var method in additionalType.GetMethodsToEmit())
                 {
                     method.GenerateMethodBody(compilationState, diagnostics);
                 }
-            }
 
-            if (!diagnostics.HasAnyErrors())
-            {
-                CompileSynthesizedMethods(compilationState);
-            }
+                if (!diagnostics.HasAnyErrors())
+                {
+                    CompileSynthesizedMethods(compilationState);
+                }
 
-            compilationState.Free();
+                compilationState.Free();
+            }
         }
 
         private void CompileSynthesizedMethods(TypeCompilationState compilationState)

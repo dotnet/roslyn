@@ -392,12 +392,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this NamedTypeSymbol type,
             ConversionsBase conversions,
             CSharpSyntaxNode typeSyntax,
-            SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax,
+            SeparatedSyntaxList<TypeSyntax> typeArgumentsSyntax, // may be omitted in synthesized invocations
             Compilation currentCompilation,
             ConsList<Symbol> basesBeingResolved,
             DiagnosticBag diagnostics)
         {
-            Debug.Assert(typeArgumentsSyntax.Count == type.Arity);
+            Debug.Assert(typeArgumentsSyntax.Count == 0 /*omitted*/ || typeArgumentsSyntax.Count == type.Arity);
             if (!RequiresChecking(type))
             {
                 return true;
@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var pair in diagnosticsBuilder)
             {
                 int ordinal = pair.TypeParameter.Ordinal;
-                var location = new SourceLocation(typeArgumentsSyntax[ordinal]);
+                var location = new SourceLocation(ordinal < typeArgumentsSyntax.Count ? typeArgumentsSyntax[ordinal] : typeSyntax);
                 diagnostics.Add(new CSDiagnostic(pair.DiagnosticInfo, location));
             }
 

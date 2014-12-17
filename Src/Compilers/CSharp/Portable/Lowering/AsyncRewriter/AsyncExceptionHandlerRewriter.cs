@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.compilation = compilation;
             this.F = factory;
             this.F.CurrentMethod = containingMethod;
-            Debug.Assert(factory.CurrentClass == (containingType ?? containingMethod.ContainingType));
+            Debug.Assert(factory.CurrentType == (containingType ?? containingMethod.ContainingType));
             this.diagnostics = diagnostics;
             this.analysis = analysis;
         }

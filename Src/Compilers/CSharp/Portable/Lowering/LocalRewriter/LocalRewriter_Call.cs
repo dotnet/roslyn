@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else if (hasImplicitReceiver && factory.TopLevelMethod.IsStatic)
                     {
                         // Calling a static method defined on the current class via its simple name.
-                        loweredReceiver = new BoundTypeExpression(node.Syntax, null, factory.CurrentClass);
+                        loweredReceiver = new BoundTypeExpression(node.Syntax, null, factory.CurrentType);
                     }
                     else
                     {

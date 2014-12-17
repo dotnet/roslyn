@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private IteratorFinallyMethodSymbol MakeSynthesizedFinally(int state)
         {
-            var stateMachineType = (IteratorStateMachine)F.CurrentClass;
+            var stateMachineType = (IteratorStateMachine)F.CurrentType;
             var finallyMethod = new IteratorFinallyMethodSymbol(stateMachineType, GeneratedNames.MakeIteratorFinallyMethodName(state));
 
             F.ModuleBuilderOpt.AddSynthesizedDefinition(stateMachineType, finallyMethod);

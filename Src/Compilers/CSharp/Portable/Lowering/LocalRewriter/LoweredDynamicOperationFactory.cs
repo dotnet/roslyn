@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 factory.Typeof(resultType),
 
                 // context:
-                factory.Typeof(factory.CurrentClass)
+                factory.Typeof(factory.CurrentType)
             });
 
             return MakeDynamicOperation(binderConstruction, null, RefKind.None, loweredArguments, ImmutableArray<RefKind>.Empty, null, resultType);
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 factory.Literal((int)operatorKind.ToExpressionType()),
 
                 // context:
-                factory.Typeof(factory.CurrentClass),
+                factory.Typeof(factory.CurrentType),
 
                 // argument infos:
                 MakeCallSiteArgumentInfos(argumentInfoFactory, loweredArguments)
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 factory.Literal((int)operatorKind.ToExpressionType(isCompoundAssignment)),
 
                 // context:
-                factory.Typeof(factory.CurrentClass),
+                factory.Typeof(factory.CurrentType),
 
                 // argument infos:
                 MakeCallSiteArgumentInfos(argumentInfoFactory, loweredArguments)
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     factory.Array(factory.WellKnownType(WellKnownType.System_Type), factory.TypeOfs(typeArguments)),
 
                 // context:
-                factory.Typeof(factory.CurrentClass),
+                factory.Typeof(factory.CurrentType),
 
                 // argument infos:
                 MakeCallSiteArgumentInfos(argumentInfoFactory, loweredArguments, argumentNames, refKinds, loweredReceiver, receiverRefKind, receiverIsStaticType)
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 factory.Null(factory.WellKnownArrayType(WellKnownType.System_Type)),
 
                 // context:
-                factory.Typeof(factory.CurrentClass),
+                factory.Typeof(factory.CurrentType),
 
                 // argument infos:
                 MakeCallSiteArgumentInfos(argumentInfoFactory, loweredArguments, loweredReceiver: loweredReceiver, loweredRight: loweredHandler)
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 factory.Literal((int)binderFlags),
 
                 // context:
-                factory.Typeof(factory.CurrentClass),
+                factory.Typeof(factory.CurrentType),
 
                 // argument infos:
                 MakeCallSiteArgumentInfos(argumentInfoFactory, loweredArguments, argumentNames, refKinds, loweredReceiver)
@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 factory.Literal(0),
 
                 // context:
-                factory.Typeof(factory.CurrentClass),
+                factory.Typeof(factory.CurrentType),
 
                 // argument infos:
                 MakeCallSiteArgumentInfos(argumentInfoFactory, loweredArguments, argumentNames, refKinds, loweredReceiver, receiverIsStaticType: true)
@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 factory.Literal(name),
 
                 // context:
-                factory.Typeof(factory.CurrentClass),
+                factory.Typeof(factory.CurrentType),
 
                 // argument infos:
                 MakeCallSiteArgumentInfos(argumentInfoFactory, loweredArguments, loweredReceiver: loweredReceiver)
@@ -412,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 factory.Literal(name),
 
                 // context:
-                factory.Typeof(factory.CurrentClass),
+                factory.Typeof(factory.CurrentType),
 
                 // argument infos:
                 MakeCallSiteArgumentInfos(argumentInfoFactory, loweredArguments, loweredReceiver: loweredReceiver, loweredRight: loweredRight)
@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 factory.Literal((int)CSharpBinderFlags.None),
 
                 // context:
-                factory.Typeof(factory.CurrentClass),
+                factory.Typeof(factory.CurrentType),
 
                 // argument infos:
                 MakeCallSiteArgumentInfos(argumentInfoFactory, loweredArguments, argumentNames, refKinds, loweredReceiver: loweredReceiver)
@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 factory.Literal((int)binderFlags),
 
                 // context:
-                factory.Typeof(factory.CurrentClass),
+                factory.Typeof(factory.CurrentType),
 
                 // argument infos:
                 MakeCallSiteArgumentInfos(argumentInfoFactory, loweredArguments, argumentNames, refKinds, loweredReceiver, loweredReceiverRefKind, loweredRight: loweredRight)
@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 factory.Literal(name),
 
                 // context:
-                factory.Typeof(factory.CurrentClass)
+                factory.Typeof(factory.CurrentType)
             });
 
             return MakeDynamicOperation(binderConstruction, loweredReceiver, RefKind.None, ImmutableArray<BoundExpression>.Empty, ImmutableArray<RefKind>.Empty, null, resultType);

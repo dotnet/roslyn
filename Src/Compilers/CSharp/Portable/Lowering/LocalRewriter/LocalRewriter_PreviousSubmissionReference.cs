@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var syntax = node.Syntax;
             var targetScriptReference = previousSubmissionFields.GetOrMakeField(targetType);
-            var thisReference = new BoundThisReference(syntax, factory.CurrentClass);
+            var thisReference = new BoundThisReference(syntax, factory.CurrentType);
             return new BoundFieldAccess(syntax, thisReference, targetScriptReference, ConstantValue.NotAvailable);
         }
 

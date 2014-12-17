@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static readonly Conversion ExplicitNumeric = new Conversion(ConversionKind.ExplicitNumeric);
         internal static readonly Conversion ImplicitDynamic = new Conversion(ConversionKind.ImplicitDynamic);
         internal static readonly Conversion ExplicitDynamic = new Conversion(ConversionKind.ExplicitDynamic);
+        internal static readonly Conversion InterpolatedString = new Conversion(ConversionKind.InterpolatedString);
 
         private readonly MethodSymbol methodGroupConversionMethod;
         private readonly UserDefinedConversionResult conversionResult; //no effect on Equals/GetHashCode
@@ -202,6 +203,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return Kind == ConversionKind.ImplicitEnumeration || Kind == ConversionKind.ExplicitEnumeration;
+            }
+        }
+
+        // TODO: update the language reference section number below.
+        /// <summary>
+        /// Returns true if the conversion is an interpolated string conversion.
+        /// </summary>
+        /// <remarks>
+        /// The interpolated string conversion described in section 6.1.N of the C# language specification.
+        /// </remarks>
+        public bool IsInterpolatedString
+        {
+            get
+            {
+                return Kind == ConversionKind.InterpolatedString;
             }
         }
 

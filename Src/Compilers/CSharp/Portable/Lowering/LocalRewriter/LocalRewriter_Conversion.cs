@@ -14,8 +14,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitConversion(BoundConversion node)
         {
             var rewrittenType = VisitType(node.Type);
+            if (node.ConversionKind == ConversionKind.InterpolatedString)
+            {
+                return RewriteInterpolatedStringConversion(node);
+            }
+
             bool wasInExpressionLambda = inExpressionLambda;
-            if (node.ConversionKind == ConversionKind.AnonymousFunction && !wasInExpressionLambda && rewrittenType.IsExpressionTree()) inExpressionLambda = true;
+            inExpressionLambda = inExpressionLambda || (node.ConversionKind == ConversionKind.AnonymousFunction && !wasInExpressionLambda && rewrittenType.IsExpressionTree());
             var rewrittenOperand = VisitExpression(node.Operand);
             inExpressionLambda = wasInExpressionLambda;
 

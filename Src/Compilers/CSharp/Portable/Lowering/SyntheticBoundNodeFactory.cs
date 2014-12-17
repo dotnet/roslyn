@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Symbols;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -44,14 +45,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public TypeCompilationState CompilationState { get; private set; }
 
         // Current enclosing type, or null if not available.
-        private NamedTypeSymbol currentClass;
-        public NamedTypeSymbol CurrentClass
+        private NamedTypeSymbol currentType;
+        public NamedTypeSymbol CurrentType
         {
-            get { return currentClass; }
+            get { return currentType; }
             set
             {
-                currentClass = value;
-                CheckCurrentClass();
+                currentType = value;
+                CheckCurrentType();
             }
         }
 
@@ -66,9 +67,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)value != null && value.MethodKind != MethodKind.AnonymousFunction)
                 {
                     topLevelMethod = value;
-                    currentClass = value.ContainingType;
+                    currentType = value.ContainingType;
                 }
-                CheckCurrentClass();
+                CheckCurrentType();
             }
         }
 
@@ -80,7 +81,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             private set
             {
                 topLevelMethod = value;
-                CheckCurrentClass();
+                CheckCurrentType();
+            }
+        }
+
+        /// <summary>
+        /// A binder suitable for performing overload resolution to synthesize a call to a helper method.
+        /// </summary>
+        private SyntheticBinderImpl SyntheticBinder
+        {
+            get
+            {
+                if (binder == null) binder = new SyntheticBinderImpl(this);
+                return binder;
+            }
+        }
+        private SyntheticBinderImpl binder;
+
+        /// <summary>
+        /// A binder used only for performing overload resolution of runtime helper methods.
+        /// </summary>
+        private sealed class SyntheticBinderImpl : BuckStopsHereBinder
+        {
+            private readonly SyntheticBoundNodeFactory factory;
+            internal SyntheticBinderImpl(SyntheticBoundNodeFactory factory) : base(factory.Compilation)
+            {
+                this.factory = factory;
+            }
+
+            internal override Symbol ContainingMemberOrLambda { get { return factory.CurrentMethod; } }
+            internal override bool IsAccessible(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved = null)
+            {
+                return AccessCheck.IsSymbolAccessible(symbol, factory.CurrentType, accessThroughType, out failedThroughTypeCheck, ref useSiteDiagnostics, basesBeingResolved);
+            }
+            internal BoundExpression MakeInvocationExpression(
+                CSharpSyntaxNode node,
+                BoundExpression receiver,
+                string methodName,
+                ImmutableArray<BoundExpression> args,
+                DiagnosticBag diagnostics,
+                ImmutableArray<TypeSymbol> typeArgs = default(ImmutableArray<TypeSymbol>))
+            {
+                return MakeInvocationExpression(node, receiver, methodName, args, diagnostics, typeArgs: typeArgs, allowFieldsAndProperties: false);
             }
         }
 
@@ -110,17 +152,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.CompilationState = compilationState;
             this.TopLevelMethod = topLevelMethodOpt;
-            this.CurrentClass = currentClassOpt;
+            this.CurrentType = currentClassOpt;
             this.Syntax = node;
             this.Diagnostics = diagnostics;
         }
 
         [Conditional("DEBUG")]
-        private void CheckCurrentClass()
+        private void CheckCurrentType()
         {
-            if ((object)CurrentClass != null)
+            if ((object)CurrentType != null)
             {
-                Debug.Assert((object)TopLevelMethod == null || TopLevelMethod.ContainingType == CurrentClass);
+                Debug.Assert((object)TopLevelMethod == null || TopLevelMethod.ContainingType == CurrentType);
 
                 // In EE scenarios, lambdas are considered to be contained by the user-defined methods,
                 // rather than the EE-defined methods for which we are generating bound nodes.  This is
@@ -128,13 +170,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // which we need to the user-defined types.
                 Debug.Assert((object)CurrentMethod == null || 
                     CurrentMethod.MethodKind == MethodKind.AnonymousFunction || 
-                    CurrentMethod.ContainingType == CurrentClass);
+                    CurrentMethod.ContainingType == CurrentType);
             }
         }
 
         public void AddNestedType(NamedTypeSymbol nestedType)
         {
-            ModuleBuilderOpt.AddSynthesizedDefinition(CurrentClass, nestedType);
+            ModuleBuilderOpt.AddSynthesizedDefinition(CurrentType, nestedType);
         }
 
         public void OpenNestedType(NamedTypeSymbol nestedType)
@@ -145,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddNestedType(nestedType);
             CurrentMethod = null;
             TopLevelMethod = null;
-            CurrentClass = nestedType;
+            CurrentType = nestedType;
         }
 
         public BoundHoistedFieldAccess HoistedField(FieldSymbol field)
@@ -155,22 +197,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public StateMachineFieldSymbol StateMachineField(TypeSymbol type, string name, bool isPublic = false)
         {
-            var result = new StateMachineFieldSymbol(CurrentClass, type, name, isPublic);
-            AddField(CurrentClass, result);
+            var result = new StateMachineFieldSymbol(CurrentType, type, name, isPublic);
+            AddField(CurrentType, result);
             return result;
         }
 
         public StateMachineFieldSymbol StateMachineField(TypeSymbol type, string name, SynthesizedLocalKind synthesizedKind, int slotIndex)
         {
-            var result = new StateMachineFieldSymbol(CurrentClass, type, name, synthesizedKind, slotIndex, isPublic: false);
-            AddField(CurrentClass, result);
+            var result = new StateMachineFieldSymbol(CurrentType, type, name, synthesizedKind, slotIndex, isPublic: false);
+            AddField(CurrentType, result);
             return result;
         }
 
         public StateMachineFieldSymbol StateMachineField(TypeSymbol type, string name, LocalSlotDebugInfo slotDebugInfo, int slotIndex)
         {
-            var result = new StateMachineFieldSymbol(CurrentClass, type, name, slotDebugInfo, slotIndex, isPublic: false);
-            AddField(CurrentClass, result);
+            var result = new StateMachineFieldSymbol(CurrentType, type, name, slotDebugInfo, slotIndex, isPublic: false);
+            AddField(CurrentType, result);
             return result;
         }
 
@@ -486,12 +528,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression StaticCall(TypeSymbol receiver, string name, params BoundExpression[] args)
         {
-            return StaticCall(receiver, name, ImmutableArray<TypeSymbol>.Empty, args);
+            return SyntheticBinder.MakeInvocationExpression(this.Syntax, this.Type(receiver), name, args.ToImmutableArray(), this.Diagnostics);
+        }
+
+        public BoundExpression StaticCall(TypeSymbol receiver, string name, ImmutableArray<BoundExpression> args)
+        {
+            return SyntheticBinder.MakeInvocationExpression(this.Syntax, this.Type(receiver), name, args, this.Diagnostics);
         }
 
         public BoundExpression StaticCall(TypeSymbol receiver, string name, ImmutableArray<TypeSymbol> typeArgs, params BoundExpression[] args)
         {
-            return StaticCall(receiver, FindMethod(receiver, name, typeArgs, args.AsImmutableOrNull()), args);
+            return SyntheticBinder.MakeInvocationExpression(this.Syntax, this.Type(receiver), name, args.ToImmutableArray(), this.Diagnostics, typeArgs);
         }
 
         public BoundExpression StaticCall(TypeSymbol receiver, MethodSymbol method, params BoundExpression[] args)
@@ -503,86 +550,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return Call(null, method, args);
         }
-
-        private MethodSymbol FindMethod(TypeSymbol receiver, string name, ImmutableArray<TypeSymbol> typeArgs, ImmutableArray<BoundExpression> args)
-        {
-            MethodSymbol found = null;
-            bool ambiguous = false;
-            ImmutableArray<Symbol> candidates = receiver.GetMembers(name);
-            foreach (var candidate in candidates)
-            {
-                var method = candidate as MethodSymbol;
-                if ((object)method == null || method.Arity != typeArgs.Length || method.ParameterCount != args.Length) continue;
-                if (method.Arity != 0) method = method.Construct(typeArgs);
-                var parameters = method.Parameters;
-                bool exact = true;
-
-                for (int i = 0; i < args.Length; i++)
-                {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    if (parameters[i].RefKind != RefKind.None ||
-                        !((object)args[i].Type == null && parameters[i].Type.IsReferenceType ||
-                        Compilation.Conversions.ClassifyConversion(args[i].Type, parameters[i].Type, ref useSiteDiagnostics).IsImplicit))
-                    {
-                        Debug.Assert(useSiteDiagnostics.IsNullOrEmpty());
-                        goto nextCandidate;
-                    }
-
-                    Debug.Assert(useSiteDiagnostics.IsNullOrEmpty());
-                    exact = exact && args[i].Type == parameters[i].Type;
-                }
-
-                if (exact) return method;
-                if ((object)found != null)
-                {
-                    ambiguous = true;
-                }
-                found = method;
-
-                nextCandidate: ;
-            }
-
-            if (ambiguous) ReportLibraryProblem(ErrorCode.ERR_LibraryMethodNotUnique, receiver, name, typeArgs, args);
-            else if ((object)found == null) ReportLibraryProblem(ErrorCode.ERR_LibraryMethodNotFound, receiver, name, typeArgs, args);
-            return found;
-        }
-
-        MethodSymbol ReportLibraryProblem(ErrorCode code, TypeSymbol receiver, string name, ImmutableArray<TypeSymbol> typeArgs, ImmutableArray<BoundExpression> args)
-        {
-            var methodSig = new StringBuilder();
-            methodSig.Append(name);
-            if (!typeArgs.IsEmpty)
-            {
-                methodSig.Append("<");
-                bool wasFirst = true;
-                foreach (var t in typeArgs)
-                {
-                    if (!wasFirst) methodSig.Append(", ");
-                    methodSig.Append(t.ToDisplayString());
-                    wasFirst = false;
-                }
-                methodSig.Append(">");
-            }
-            {
-                methodSig.Append("(");
-                bool wasFirst = true;
-                foreach (var a in args)
-                {
-                    if (!wasFirst) methodSig.Append(", ");
-                    methodSig.Append(a.Type.ToDisplayString());
-                    wasFirst = false;
-                }
-                methodSig.Append(")");
-            }
-
-            Diagnostics.Add(code, Syntax.Location, receiver, methodSig.ToString());
-            return null;
-        }
-
-        ////public BoundCall Call(BoundExpression receiver, WellKnownMember method, params BoundExpression[] args)
-        ////{
-        ////    return Call(receiver, (MethodSymbol)Compilation.GetWellKnownTypeMember(method), args);
-        ////}
 
         public BoundCall Call(BoundExpression receiver, MethodSymbol method)
         {
@@ -611,16 +578,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Syntax, receiver, method, args,
                 ImmutableArray<String>.Empty, ImmutableArray<RefKind>.Empty, false, false, false,
                 ImmutableArray<int>.Empty, LookupResultKind.Viable, method.ReturnType) { WasCompilerGenerated = true };
-        }
-
-        public BoundCall Call(BoundExpression receiver, TypeSymbol declaringType, string methodName, ImmutableArray<BoundExpression> args)
-        {
-            return Call(receiver, FindMethod(declaringType, methodName, ImmutableArray<TypeSymbol>.Empty, args), args);
-        }
-
-        public BoundCall Call(BoundExpression receiver, TypeSymbol declaringType, string methodName, ImmutableArray<TypeSymbol> typeArgs, ImmutableArray<BoundExpression> args)
-        {
-            return Call(receiver, FindMethod(declaringType, methodName, typeArgs, args), args);
         }
 
         public BoundExpression Conditional(BoundExpression condition, BoundExpression consequence, BoundExpression alternative, TypeSymbol type)

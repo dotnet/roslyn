@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.compilation = compilation;
             this.factory = factory;
             this.factory.CurrentMethod = containingMethod;
-            Debug.Assert(factory.CurrentClass == (containingType ?? containingMethod.ContainingType));
+            Debug.Assert(factory.CurrentType == (containingType ?? containingMethod.ContainingType));
             this.dynamicFactory = new LoweredDynamicOperationFactory(factory);
             this.previousSubmissionFields = previousSubmissionFields;
             this.allowOmissionOfConditionalCalls = allowOmissionOfConditionalCalls;

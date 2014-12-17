@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SetStateMachine is used to initialize the underlying AsyncMethodBuilder's reference to the boxed copy of the state machine.
             // If the state machine is a class there is no copy made and thus the initialization is not necessary. 
             // In fact it is an error to reinitialize the builder since it already is initialized.
-            if (F.CurrentClass.TypeKind == TypeKind.Class)
+            if (F.CurrentType.TypeKind == TypeKind.Class)
             {
                 F.CloseMethod(F.Return());
             }

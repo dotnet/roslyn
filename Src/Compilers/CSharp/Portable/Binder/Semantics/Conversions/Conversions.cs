@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -137,24 +138,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new Conversion(kind);
             }
 
-            kind = ClassifyNullLiteralConversion(sourceExpression, destination);
-            if (kind != ConversionKind.NoConversion)
+            switch (sourceExpression.Kind)
             {
-                return new Conversion(kind);
-            }
+                case BoundKind.Literal:
+                    kind = ClassifyNullLiteralConversion(sourceExpression, destination);
+                    if (kind != ConversionKind.NoConversion)
+                    {
+                        return new Conversion(kind);
+                    }
+                    break;
 
-            if (HasAnonymousFunctionConversion(sourceExpression, destination))
-            {
-                return Conversion.AnonymousFunction;
-            }
+                case BoundKind.UnboundLambda:
+                    if (HasAnonymousFunctionConversion(sourceExpression, destination))
+                    {
+                        return Conversion.AnonymousFunction;
+                    }
+                    break;
 
-            if (sourceExpression.Kind == BoundKind.MethodGroup)
-            {
-                Conversion methodGroupConversion = GetMethodGroupConversion((BoundMethodGroup)sourceExpression, destination, ref useSiteDiagnostics);
-                if (methodGroupConversion.Exists)
-                {
-                    return methodGroupConversion;
-                }
+                case BoundKind.MethodGroup:
+                    Conversion methodGroupConversion = GetMethodGroupConversion((BoundMethodGroup)sourceExpression, destination, ref useSiteDiagnostics);
+                    if (methodGroupConversion.Exists)
+                    {
+                        return methodGroupConversion;
+                    }
+                    break;
+
+                case BoundKind.InterpolatedString:
+                    Conversion interpolatedStringConversion = GetInterpolatedStringConversion((BoundInterpolatedString)sourceExpression, destination, ref useSiteDiagnostics);
+                    if (interpolatedStringConversion.Exists)
+                    {
+                        return interpolatedStringConversion;
+                    }
+                    break;
             }
 
             return Conversion.NoConversion;
@@ -623,6 +638,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new Conversions(this.binder, currentRecursionDepth);
         }
 
+        private CSharpCompilation Compilation { get { return binder.Compilation; } }
+
         public override Conversion GetMethodGroupConversion(BoundMethodGroup source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // Must be a bona fide delegate type, not an expression tree type.
@@ -643,6 +660,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, (NamedTypeSymbol)destination);
             resolution.Free();
             return conversion;
+        }
+
+        protected override Conversion GetInterpolatedStringConversion(BoundInterpolatedString source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            // An interpolated string expression may be converted to the types
+            // System.IFormattable and System.FormattableString
+            return (destination == Compilation.GetWellKnownType(WellKnownType.System_IFormattable) ||
+                    destination == Compilation.GetWellKnownType(WellKnownType.System_FormattableString))
+                ? Conversion.InterpolatedString : Conversion.NoConversion;
         }
 
         /// <summary>
@@ -775,7 +801,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert((object)delegateType.DelegateInvokeMethod != null && !delegateType.DelegateInvokeMethod.HasUseSiteError,
                          "This method should only be called for valid delegate types");
-            GetDelegateArguments(syntax, analyzedArguments, delegateType.DelegateInvokeMethod.Parameters, binder.Compilation);
+            GetDelegateArguments(syntax, analyzedArguments, delegateType.DelegateInvokeMethod.Parameters, Compilation);
             this.binder.OverloadResolution.MethodInvocationOverloadResolution(
                 methodGroup.Methods, methodGroup.TypeArguments, analyzedArguments, result, ref useSiteDiagnostics, isMethodGroupConversion: true);
             var conversion = ToConversion(result, methodGroup, delegateType);
