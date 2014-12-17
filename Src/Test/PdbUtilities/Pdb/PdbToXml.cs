@@ -224,6 +224,7 @@ namespace Roslyn.Test.PdbUtilities
                 // TODO (tomat): Ideally this would be done in a separate test helper, not in PdbToXml.
                 // verify ISymUnmanagedMethod APIs:
                 ISymUnmanagedMethod rawMethod = pdbReader.RawSymbolReader.GetBaselineMethod(token);
+                Debug.Assert(rawMethod != null, "How did we get an ISymbolMethod without a backing ISymUnmanagedMethod?");
 
                 var expectedSlotNames = new Dictionary<int, ImmutableArray<string>>();
                 WriteLocals(rawMethod, expectedSlotNames);
