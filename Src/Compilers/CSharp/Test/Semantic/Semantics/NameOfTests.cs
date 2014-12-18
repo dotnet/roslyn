@@ -1110,5 +1110,36 @@ public class Program
                 );
         }
 
+        [Fact]
+        [WorkItem(1077150, "DevDiv")]
+        public void SymbolInfoForMethodGroup06()
+        {
+            var source =
+@"public class A
+{
+}
+public static class X1
+{
+    public static string Extension(this A a) { return null; }
+}
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        Use(nameof(X1.Extension));
+    }
+    private static void Use(object o) {}
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            compilation.VerifyDiagnostics();
+            var tree = compilation.SyntaxTrees[0];
+            var model = compilation.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "X1.Extension").OfType<ExpressionSyntax>().First();
+            var symbolInfo = model.GetSymbolInfo(node, default(CancellationToken));
+            Assert.Null(symbolInfo.Symbol);
+            Assert.Equal(CandidateReason.MemberGroup, symbolInfo.CandidateReason);
+            Assert.Equal(1, symbolInfo.CandidateSymbols.Length);
+        }
+
     }
 }
