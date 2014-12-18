@@ -207,4 +207,7 @@
   <data name="DoNotUseLinqOnIndexableCollectionDescription" xml:space="preserve">
     <value>This collection is directly indexable.  Going through LINQ here causes unnecessary allocations and CPU work.</value>
   </data>
+  <data name="UseProperCrefTagsTitle" xml:space="preserve">
+    <value>Avoid using cref tags with a prefix</value>
+  </data>
 </root>

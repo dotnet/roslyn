@@ -295,6 +295,15 @@ namespace Roslyn.Diagnostics.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Avoid using cref tags with a prefix.
+        /// </summary>
+        internal static string UseProperCrefTagsTitle {
+            get {
+                return ResourceManager.GetString("UseProperCrefTagsTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use SpecializedCollections.SingletonEnumerable&lt;T&gt;().
         /// </summary>
         internal static string UseSingletonEnumerableDescription {

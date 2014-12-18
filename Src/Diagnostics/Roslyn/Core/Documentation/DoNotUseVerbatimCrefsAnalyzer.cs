@@ -13,12 +13,13 @@ namespace Roslyn.Diagnostics.Analyzers.Documentation
     {
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             RoslynDiagnosticIds.DoNotUseVerbatimCrefsRuleId,
-            RoslynDiagnosticsResources.UseProperCrefTagsDescription,
-            RoslynDiagnosticsResources.UseProperCrefTagsMessage,
-            "Documentation",
-            DiagnosticSeverity.Warning,
+            title: RoslynDiagnosticsResources.UseProperCrefTagsTitle,
+            messageFormat: RoslynDiagnosticsResources.UseProperCrefTagsMessage,
+            category: "Documentation",
+            defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            customTags: WellKnownDiagnosticTags.Telemetry);
+            customTags: WellKnownDiagnosticTags.Telemetry,
+            description: RoslynDiagnosticsResources.UseProperCrefTagsDescription);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
