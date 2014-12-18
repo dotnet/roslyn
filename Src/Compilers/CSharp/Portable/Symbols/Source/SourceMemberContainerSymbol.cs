@@ -1999,7 +1999,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool ContainsModifier(SyntaxTokenList modifiers, SyntaxKind modifier)
         {
-            foreach (var m in modifiers) { if (m.IsKind(modifier)) return true; };
+            foreach (var m in modifiers) { if (m.CSharpKind() == modifier) return true; };
             return false;
         }
 
@@ -2176,7 +2176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 var syntax = decl.SyntaxReference.GetSyntax();
 
-                switch (syntax.Kind())
+                switch (syntax.CSharpKind())
                 {
                     case SyntaxKind.EnumDeclaration:
                         AddEnumMembers(builder, (EnumDeclarationSyntax)syntax, diagnostics);
@@ -2210,7 +2210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
+                        throw ExceptionUtilities.UnexpectedValue(syntax.CSharpKind());
                 }
             }
         }
@@ -2650,10 +2650,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(TypeKind == TypeKind.Struct);
 
             foreach (var initializers in builder.InstanceInitializers)
-                {
+            {
                 foreach (FieldOrPropertyInitializer initializer in initializers)
-                        {
-                            // '{0}': cannot have instance field initializers in structs
+                {
+                    // '{0}': cannot have instance field initializers in structs
                     diagnostics.Add(ErrorCode.ERR_FieldInitializerInStruct, (initializer.Field.AssociatedSymbol ?? initializer.Field).Locations[0], this);
                 }
             }

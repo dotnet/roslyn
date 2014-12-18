@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             var currentNode = name;
             while (true)
             {
-                if (currentNode.Kind() == SyntaxKind.QualifiedName)
+                if (currentNode.CSharpKind() == SyntaxKind.QualifiedName)
                 {
                     var qualifiedName = currentNode as QualifiedNameSyntax;
                     nodes.AddFirst(qualifiedName.Right);

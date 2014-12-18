@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var signatureBinder = withTypeParamsBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
 
             this.lazyParameters = ParameterHelpers.MakeParameters(signatureBinder, this, syntax.ParameterList, true, out arglistToken, diagnostics);
-            this.lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
+            this.lazyIsVararg = (arglistToken.CSharpKind() == SyntaxKind.ArgListKeyword);
             this.lazyReturnType = signatureBinder.BindType(syntax.ReturnType, diagnostics);
 
             if (this.lazyReturnType.IsRestrictedType())

@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 SyntaxToken arglistToken;
                 var parameters = ParameterHelpers.MakeParameters(binder, this, syntax.ParameterList, true, out arglistToken, diagnostics);
-                if (arglistToken.Kind() == SyntaxKind.ArgListKeyword)
+                if (arglistToken.CSharpKind() == SyntaxKind.ArgListKeyword)
                 {
                     // This is a parse-time error in the native compiler; it is a semantic analysis error in Roslyn.
 

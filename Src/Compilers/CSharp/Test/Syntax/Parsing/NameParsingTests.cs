@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(name.IsMissing);
             Assert.Equal(SyntaxKind.AliasQualifiedName, name.Kind);
             var an = (AliasQualifiedNameSyntax)name;
-            Assert.Equal(SyntaxKind.GlobalKeyword, an.Alias.Identifier.Kind());
+            Assert.Equal(SyntaxKind.GlobalKeyword, an.Alias.Identifier.CSharpKind());
             Assert.Equal(0, name.Errors().Length);
             Assert.Equal(text, name.ToString());
         }
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.PredefinedType, tname.Kind);
             Assert.Equal(text, tname.ToString());
             var tok = ((PredefinedTypeSyntax)tname).Keyword;
-            Assert.Equal(kind, tok.Kind());
+            Assert.Equal(kind, tok.CSharpKind());
         }
 
         [Fact]

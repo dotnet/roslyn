@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             issueSpan = default(TextSpan);
 
             // Currently Qualified Cref is the only CrefSyntax We are handling separately
-            if (crefSyntax.Kind() != SyntaxKind.QualifiedCref)
+            if (crefSyntax.CSharpKind() != SyntaxKind.QualifiedCref)
             {
                 return false;
             }
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             // Currently we are dealing with only the NameMemberCrefs
             if (optionSet.GetOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.CSharp) &&
-                (memberCref.Kind() == SyntaxKind.NameMemberCref))
+                (memberCref.CSharpKind() == SyntaxKind.NameMemberCref))
             {
                 var nameMemberCref = ((NameMemberCrefSyntax)memberCref).Name;
                 var symbolInfo = semanticModel.GetSymbolInfo(nameMemberCref);

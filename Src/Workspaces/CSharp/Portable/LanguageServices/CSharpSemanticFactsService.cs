@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool TryGetSpeculativeSemanticModel(SemanticModel oldSemanticModel, SyntaxNode oldNode, SyntaxNode newNode, out SemanticModel speculativeModel)
         {
-            Contract.Requires(oldNode.Kind() == newNode.Kind());
+            Contract.Requires(oldNode.CSharpKind() == newNode.CSharpKind());
 
             var model = oldSemanticModel;
 

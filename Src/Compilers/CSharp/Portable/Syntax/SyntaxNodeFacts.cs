@@ -18,12 +18,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool IsAttributeName(SyntaxNode node)
         {
             var parent = node.Parent;
-            if (parent == null || !IsName(node.Kind()))
+            if (parent == null || !IsName(node.CSharpKind()))
             {
                 return false;
             }
 
-            switch (parent.Kind())
+            switch (parent.CSharpKind())
             {
                 case SyntaxKind.QualifiedName:
                 var qn = (QualifiedNameSyntax)parent;
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (parent4 == null)
                 return false;
 
-            switch (parent4.Kind())
+            switch (parent4.CSharpKind())
             {
                 case SyntaxKind.InvocationExpression:
                 case SyntaxKind.ObjectCreationExpression:
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            switch (parent.Kind())
+            switch (parent.CSharpKind())
             {
                 case SyntaxKind.ParenthesizedLambdaExpression:
                 case SyntaxKind.SimpleLambdaExpression:

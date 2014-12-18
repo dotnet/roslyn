@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private void ClassifyXmlNode(XmlNodeSyntax node)
         {
-            switch (node.Kind())
+            switch (node.CSharpKind())
             {
                 case SyntaxKind.XmlElement:
                     ClassifyXmlElement((XmlElementSyntax)node);
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         {
             foreach (var t in triviaList)
             {
-                switch (t.Kind())
+                switch (t.CSharpKind())
                 {
                     case SyntaxKind.DocumentationCommentExteriorTrivia:
                         ClassifyExteriorTrivia(t);
@@ -160,13 +160,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private void ClassifyXmlTextToken(SyntaxToken token)
         {
-            if (token.Kind() == SyntaxKind.XmlEntityLiteralToken)
+            if (token.CSharpKind() == SyntaxKind.XmlEntityLiteralToken)
             {
                 AddClassification(token, ClassificationTypeNames.XmlDocCommentEntityReference);
             }
-            else if (token.Kind() != SyntaxKind.XmlTextLiteralNewLineToken)
+            else if (token.CSharpKind() != SyntaxKind.XmlTextLiteralNewLineToken)
             {
-                switch (token.Parent.Kind())
+                switch (token.Parent.CSharpKind())
                 {
                     case SyntaxKind.XmlText:
                         AddClassification(token, ClassificationTypeNames.XmlDocCommentText);
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             AddXmlClassification(attribute.EqualsToken, ClassificationTypeNames.XmlDocCommentDelimiter);
             AddXmlClassification(attribute.StartQuoteToken, ClassificationTypeNames.XmlDocCommentAttributeQuotes);
 
-            switch (attribute.Kind())
+            switch (attribute.CSharpKind())
             {
                 case SyntaxKind.XmlTextAttribute:
                     ClassifyXmlTextTokens(((XmlTextAttributeSyntax)attribute).TextTokens);

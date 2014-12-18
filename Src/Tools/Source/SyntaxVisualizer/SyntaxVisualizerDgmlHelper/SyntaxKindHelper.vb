@@ -25,9 +25,9 @@ Friend Module SyntaxKindHelper
         Dim kind = String.Empty
 
         If node.Language = LanguageNames.CSharp Then
-            kind = CSharp.CSharpExtensions.Kind(node).ToString()
+            kind = node.CSharpKind().ToString()
         Else
-            kind = VisualBasic.VisualBasicExtensions.Kind(node).ToString()
+            kind = node.VBKind().ToString()
         End If
 
         Return kind
@@ -38,9 +38,9 @@ Friend Module SyntaxKindHelper
         Dim kind = String.Empty
 
         If token.Language = LanguageNames.CSharp Then
-            kind = CSharp.CSharpExtensions.Kind(token).ToString()
+            kind = token.CSharpKind().ToString()
         Else
-            kind = VisualBasic.VisualBasicExtensions.Kind(token).ToString()
+            kind = token.VBKind().ToString()
         End If
 
         Return kind
@@ -51,9 +51,9 @@ Friend Module SyntaxKindHelper
         Dim kind = String.Empty
 
         If trivia.Language = LanguageNames.CSharp Then
-            kind = CSharp.CSharpExtensions.Kind(trivia).ToString()
+            kind = trivia.CSharpKind().ToString()
         Else
-            kind = VisualBasic.VisualBasicExtensions.Kind(trivia).ToString()
+            kind = trivia.VBKind().ToString()
         End If
 
         Return kind

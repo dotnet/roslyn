@@ -52,9 +52,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
             {
                 foreach (SyntaxKind kind in kinds) 
                 {
-                    if (newNode.IsKind(kind))
+                    if (newNode.CSharpKind() == kind)
                     {
-                        return method0.DeclaringSyntaxReferences.Single().SyntaxTree.GetRoot().DescendantNodes().Single(n => n.IsKind(kind));
+                        return method0.DeclaringSyntaxReferences.Single().SyntaxTree.GetRoot().DescendantNodes().Single(n => n.CSharpKind() == kind);
                     }
                 }
 
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         internal static string GetLocalName(SyntaxNode node)
         {
-            switch (node.Kind())
+            switch (node.CSharpKind())
             {
                 case SyntaxKind.VariableDeclarator:
                     return ((VariableDeclaratorSyntax)node).Identifier.ToString();

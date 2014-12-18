@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
 
         Private Sub ClassifyTrivia(trivia As SyntaxTrivia)
             If trivia.HasStructure Then
-                Select Case trivia.GetStructure().Kind
+                Select Case trivia.GetStructure().VBKind
                     Case SyntaxKind.DocumentationCommentTrivia
                         _docCommentClassifier.Classify(DirectCast(trivia.GetStructure(), DocumentationCommentTriviaSyntax))
                     Case SyntaxKind.IfDirectiveTrivia,
@@ -151,13 +151,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                     Case SyntaxKind.SkippedTokensTrivia
                         ClassifySkippedTokens(DirectCast(trivia.GetStructure(), SkippedTokensTriviaSyntax))
                 End Select
-            ElseIf trivia.Kind = SyntaxKind.CommentTrivia Then
+            ElseIf trivia.VBKind = SyntaxKind.CommentTrivia Then
                 AddClassification(trivia, ClassificationTypeNames.Comment)
-            ElseIf trivia.Kind = SyntaxKind.DisabledTextTrivia Then
+            ElseIf trivia.VBKind = SyntaxKind.DisabledTextTrivia Then
                 AddClassification(trivia, ClassificationTypeNames.ExcludedCode)
-            ElseIf trivia.Kind = SyntaxKind.ColonTrivia Then
+            ElseIf trivia.VBKind = SyntaxKind.ColonTrivia Then
                 AddClassification(trivia, ClassificationTypeNames.Punctuation)
-            ElseIf trivia.Kind = SyntaxKind.LineContinuationTrivia Then
+            ElseIf trivia.VBKind = SyntaxKind.LineContinuationTrivia Then
                 AddClassification(New TextSpan(trivia.SpanStart, 1), ClassificationTypeNames.Punctuation)
             End If
         End Sub
@@ -180,7 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
 
             For Each child As SyntaxNodeOrToken In directiveSyntax.ChildNodesAndTokens()
                 If child.IsToken Then
-                    Select Case child.Kind()
+                    Select Case child.VBKind()
                         Case SyntaxKind.HashToken,
                              SyntaxKind.IfKeyword,
                              SyntaxKind.EndKeyword,

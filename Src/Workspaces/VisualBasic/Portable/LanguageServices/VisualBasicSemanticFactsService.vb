@@ -159,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         Public Function TryGetSpeculativeSemanticModel(oldSemanticModel As SemanticModel, oldNode As SyntaxNode, newNode As SyntaxNode, <Out> ByRef speculativeModel As SemanticModel) As Boolean Implements ISemanticFactsService.TryGetSpeculativeSemanticModel
-            Contract.Requires(oldNode.Kind = newNode.Kind)
+            Contract.Requires(oldNode.VBKind = newNode.VBKind)
 
             Dim model = oldSemanticModel
 

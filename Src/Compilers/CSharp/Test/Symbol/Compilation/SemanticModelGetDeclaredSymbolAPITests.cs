@@ -3308,7 +3308,7 @@ class Program
             var model = compilation.GetSemanticModel(tree);
             var symbol = model.GetDeclaredSymbol(node);
 
-            Assert.Equal(SyntaxKind.IncompleteMember, node.Kind());
+            Assert.Equal(SyntaxKind.IncompleteMember, node.CSharpKind());
             Assert.Null(symbol);
         }
 
@@ -3397,7 +3397,7 @@ class C
 
             // Get the foreach syntax node from the SyntaxTree
             var foreachNode = tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToFullString().IndexOf("aaa")).Parent;
-            Assert.Equal(SyntaxKind.ForEachStatement, foreachNode.Kind());
+            Assert.Equal(SyntaxKind.ForEachStatement, foreachNode.CSharpKind());
 
             var model = compilation.GetSemanticModel(tree);
             var symbol = model.GetDeclaredSymbol(foreachNode);
@@ -3421,7 +3421,7 @@ class C
 
             // Get the foreach syntax node from the SyntaxTree
             var foreachNode = tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToFullString().IndexOf("aaa")).Parent;
-            Assert.Equal(SyntaxKind.ForEachStatement, foreachNode.Kind());
+            Assert.Equal(SyntaxKind.ForEachStatement, foreachNode.CSharpKind());
 
             var symbol = model.GetDeclaredSymbol(foreachNode);
             Assert.Equal("aaa", symbol.Name);
@@ -3448,13 +3448,13 @@ namespace N
             var model = compilation.GetSemanticModel(tree);
 
             var foreachNode1 = tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToFullString().IndexOf("aaa")).Parent;
-            Assert.Equal(SyntaxKind.ForEachStatement, foreachNode1.Kind());
+            Assert.Equal(SyntaxKind.ForEachStatement, foreachNode1.CSharpKind());
 
             var symbol1 = model.GetDeclaredSymbol(foreachNode1);
             Assert.Equal("aaa", symbol1.Name);
 
             var foreachNode2 = tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToFullString().IndexOf("bbb")).Parent;
-            Assert.Equal(SyntaxKind.ForEachStatement, foreachNode2.Kind());
+            Assert.Equal(SyntaxKind.ForEachStatement, foreachNode2.CSharpKind());
 
             var symbol2 = model.GetDeclaredSymbol(foreachNode2);
             Assert.Equal("bbb", symbol2.Name);
@@ -3485,7 +3485,7 @@ class C
             var model = compilation.GetSemanticModel(tree);
 
             var catchDeclaration = tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToFullString().IndexOf("aaa")).Parent;
-            Assert.Equal(SyntaxKind.CatchDeclaration, catchDeclaration.Kind());
+            Assert.Equal(SyntaxKind.CatchDeclaration, catchDeclaration.CSharpKind());
 
             var symbol = model.GetDeclaredSymbol(catchDeclaration);
             Assert.Equal("aaa", symbol.Name);
@@ -3506,7 +3506,7 @@ class void Foo()
             var model = compilation.GetSemanticModel(tree);
 
             var methodDecl = tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToFullString().IndexOf("Foo")).Parent;
-            Assert.Equal(SyntaxKind.MethodDeclaration, methodDecl.Kind());
+            Assert.Equal(SyntaxKind.MethodDeclaration, methodDecl.CSharpKind());
 
             var symbol = model.GetDeclaredSymbol(methodDecl);
             Assert.Equal(SymbolKind.Method, symbol.Kind);
@@ -3531,7 +3531,7 @@ namespace N
             var model = compilation.GetSemanticModel(tree);
 
             var methodDecl = tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToFullString().IndexOf("Foo")).Parent;
-            Assert.Equal(SyntaxKind.MethodDeclaration, methodDecl.Kind());
+            Assert.Equal(SyntaxKind.MethodDeclaration, methodDecl.CSharpKind());
 
             var symbol = model.GetDeclaredSymbol(methodDecl);
             Assert.Equal(SymbolKind.Method, symbol.Kind);
@@ -4720,10 +4720,10 @@ public class S
 
             var model = compilation.GetSemanticModel(tree);
             var symbol = model.GetDeclaredSymbol(node);
-            Assert.Equal(SyntaxKind.IncompleteMember, node.Kind());
+            Assert.Equal(SyntaxKind.IncompleteMember, node.CSharpKind());
 
             var x = tree.FindNodeOrTokenByKind(SyntaxKind.IncompleteMember);
-            Assert.Equal(SyntaxKind.IncompleteMember, x.Kind());
+            Assert.Equal(SyntaxKind.IncompleteMember, x.CSharpKind());
             Assert.Equal("C#", x.Language);
             Assert.Equal(1, x.Width);
 

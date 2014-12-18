@@ -30,9 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var ea = file.Externs[0];
 
             Assert.NotNull(ea.ExternKeyword);
-            Assert.Equal(SyntaxKind.ExternKeyword, ea.ExternKeyword.Kind());
+            Assert.Equal(SyntaxKind.ExternKeyword, ea.ExternKeyword.CSharpKind());
             Assert.NotNull(ea.AliasKeyword);
-            Assert.Equal(SyntaxKind.AliasKeyword, ea.AliasKeyword.Kind());
+            Assert.Equal(SyntaxKind.AliasKeyword, ea.AliasKeyword.CSharpKind());
             Assert.False(ea.AliasKeyword.IsMissing);
             Assert.NotNull(ea.Identifier);
             Assert.Equal("a", ea.Identifier.ToString());
@@ -55,9 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var ea = file.Externs[0];
 
             Assert.NotNull(ea.ExternKeyword);
-            Assert.Equal(SyntaxKind.ExternKeyword, ea.ExternKeyword.Kind());
+            Assert.Equal(SyntaxKind.ExternKeyword, ea.ExternKeyword.CSharpKind());
             Assert.NotNull(ea.AliasKeyword);
-            Assert.Equal(SyntaxKind.AliasKeyword, ea.AliasKeyword.Kind());
+            Assert.Equal(SyntaxKind.AliasKeyword, ea.AliasKeyword.CSharpKind());
             Assert.True(ea.AliasKeyword.IsMissing);
             Assert.NotNull(ea.Identifier);
             Assert.Equal("a", ea.Identifier.ToString());
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var ud = file.Usings[0];
 
             Assert.NotNull(ud.UsingKeyword);
-            Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.Kind());
+            Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.CSharpKind());
             Assert.Null(ud.Alias);
             Assert.True(ud.StaticKeyword == default(SyntaxToken));
             Assert.NotNull(ud.Name);
@@ -100,8 +100,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var ud = file.Usings[0];
 
             Assert.NotNull(ud.UsingKeyword);
-            Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.Kind());
-            Assert.Equal(SyntaxKind.StaticKeyword, ud.StaticKeyword.Kind());
+            Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.CSharpKind());
+            Assert.Equal(SyntaxKind.StaticKeyword, ud.StaticKeyword.CSharpKind());
             Assert.Null(ud.Alias);
             Assert.NotNull(ud.Name);
             Assert.Equal("a", ud.Name.ToString());
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var ud = file.Usings[0];
 
             Assert.NotNull(ud.UsingKeyword);
-            Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.Kind());
+            Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.CSharpKind());
             Assert.True(ud.StaticKeyword == default(SyntaxToken));
             Assert.Null(ud.Alias);
             Assert.NotNull(ud.Name);
@@ -189,8 +189,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var ud = file.Usings[0];
 
             Assert.NotNull(ud.UsingKeyword);
-            Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.Kind());
-            Assert.Equal(SyntaxKind.StaticKeyword, ud.StaticKeyword.Kind());
+            Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.CSharpKind());
+            Assert.Equal(SyntaxKind.StaticKeyword, ud.StaticKeyword.CSharpKind());
             Assert.Null(ud.Alias);
             Assert.NotNull(ud.Name);
             Assert.Equal("a.b", ud.Name.ToString());
@@ -211,8 +211,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var ud = file.Usings[0];
 
             Assert.NotNull(ud.UsingKeyword);
-            Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.Kind());
-            Assert.Equal(SyntaxKind.StaticKeyword, ud.StaticKeyword.Kind());
+            Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.CSharpKind());
+            Assert.Equal(SyntaxKind.StaticKeyword, ud.StaticKeyword.CSharpKind());
             Assert.Null(ud.Alias);
             Assert.NotNull(ud.Name);
             Assert.Equal("a<int?>", ud.Name.ToString());
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var ud = file.Usings[0];
 
             Assert.NotNull(ud.UsingKeyword);
-            Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.Kind());
+            Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.CSharpKind());
             Assert.NotNull(ud.Alias);
             Assert.NotNull(ud.Alias.Name);
             Assert.Equal("a", ud.Alias.Name.ToString());
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var ud = file.Usings[0];
 
             Assert.NotNull(ud.UsingKeyword);
-            Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.Kind());
+            Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.CSharpKind());
             Assert.NotNull(ud.Alias);
             Assert.NotNull(ud.Alias.Name);
             Assert.Equal("a", ud.Alias.Name.ToString());
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(ad.Target.Identifier);
             Assert.Equal("@assembly", ad.Target.Identifier.ToString());
             Assert.Equal("assembly", ad.Target.Identifier.ValueText);
-            Assert.Equal(SyntaxKind.IdentifierToken, ad.Target.Identifier.Kind());
+            Assert.Equal(SyntaxKind.IdentifierToken, ad.Target.Identifier.CSharpKind());
             Assert.Equal(AttributeLocation.Assembly, ad.Target.Identifier.ToAttributeLocation());
             Assert.NotNull(ad.Target.ColonToken);
             Assert.Equal(1, ad.Attributes.Count);
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(ad.Target.Identifier);
             Assert.Equal(@"as\u0073embly", ad.Target.Identifier.ToString());
             Assert.Equal("assembly", ad.Target.Identifier.ValueText);
-            Assert.Equal(SyntaxKind.IdentifierToken, ad.Target.Identifier.Kind());
+            Assert.Equal(SyntaxKind.IdentifierToken, ad.Target.Identifier.CSharpKind());
             Assert.Equal(AttributeLocation.Assembly, ad.Target.Identifier.ToAttributeLocation());
             Assert.NotNull(ad.Target.ColonToken);
             Assert.Equal(1, ad.Attributes.Count);
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(ad.Target);
             Assert.NotNull(ad.Target.Identifier);
             Assert.Equal("module", ad.Target.Identifier.ToString());
-            Assert.Equal(SyntaxKind.ModuleKeyword, ad.Target.Identifier.Kind());
+            Assert.Equal(SyntaxKind.ModuleKeyword, ad.Target.Identifier.CSharpKind());
             Assert.NotNull(ad.Target.ColonToken);
             Assert.Equal(1, ad.Attributes.Count);
             Assert.NotNull(ad.Attributes[0].Name);
@@ -396,7 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(ad.Target);
             Assert.NotNull(ad.Target.Identifier);
             Assert.Equal("@module", ad.Target.Identifier.ToString());
-            Assert.Equal(SyntaxKind.IdentifierToken, ad.Target.Identifier.Kind());
+            Assert.Equal(SyntaxKind.IdentifierToken, ad.Target.Identifier.CSharpKind());
             Assert.Equal(AttributeLocation.Module, ad.Target.Identifier.ToAttributeLocation());
             Assert.NotNull(ad.Target.ColonToken);
             Assert.Equal(1, ad.Attributes.Count);
@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(ad.Target);
             Assert.NotNull(ad.Target.Identifier);
             Assert.Equal("assembly", ad.Target.Identifier.ToString());
-            Assert.Equal(SyntaxKind.AssemblyKeyword, ad.Target.Identifier.Kind());
+            Assert.Equal(SyntaxKind.AssemblyKeyword, ad.Target.Identifier.CSharpKind());
             Assert.NotNull(ad.Target.ColonToken);
             Assert.Equal(1, ad.Attributes.Count);
             Assert.NotNull(ad.Attributes[0].Name);
@@ -733,7 +733,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -758,9 +758,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
-            Assert.Equal(SyntaxKind.PublicKeyword, cs.Modifiers[0].Kind());
+            Assert.Equal(SyntaxKind.PublicKeyword, cs.Modifiers[0].CSharpKind());
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -785,9 +785,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
-            Assert.Equal(SyntaxKind.InternalKeyword, cs.Modifiers[0].Kind());
+            Assert.Equal(SyntaxKind.InternalKeyword, cs.Modifiers[0].CSharpKind());
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -812,9 +812,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
-            Assert.Equal(SyntaxKind.StaticKeyword, cs.Modifiers[0].Kind());
+            Assert.Equal(SyntaxKind.StaticKeyword, cs.Modifiers[0].CSharpKind());
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -839,9 +839,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
-            Assert.Equal(SyntaxKind.SealedKeyword, cs.Modifiers[0].Kind());
+            Assert.Equal(SyntaxKind.SealedKeyword, cs.Modifiers[0].CSharpKind());
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -866,9 +866,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
-            Assert.Equal(SyntaxKind.AbstractKeyword, cs.Modifiers[0].Kind());
+            Assert.Equal(SyntaxKind.AbstractKeyword, cs.Modifiers[0].CSharpKind());
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -893,9 +893,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
-            Assert.Equal(SyntaxKind.PartialKeyword, cs.Modifiers[0].Kind());
+            Assert.Equal(SyntaxKind.PartialKeyword, cs.Modifiers[0].CSharpKind());
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -922,7 +922,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("[attr]", cs.AttributeLists[0].ToString());
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -950,7 +950,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("[attr2]", cs.AttributeLists[1].ToString());
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -977,7 +977,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("[attr1, attr2]", cs.AttributeLists[0].ToString());
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -1003,7 +1003,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
 
@@ -1034,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
 
@@ -1066,7 +1066,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Equal("<b>", cs.TypeParameterList.ToString());
@@ -1108,7 +1108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
 
@@ -1147,7 +1147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Equal("<b>", cs.TypeParameterList.ToString());
@@ -1191,7 +1191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Equal("<b>", cs.TypeParameterList.ToString());
@@ -1209,7 +1209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var bound = (ClassOrStructConstraintSyntax)cs.ConstraintClauses[0].Constraints[0];
             Assert.NotNull(bound.ClassOrStructKeyword);
             Assert.False(bound.ClassOrStructKeyword.IsMissing);
-            Assert.Equal(SyntaxKind.ClassKeyword, bound.ClassOrStructKeyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, bound.ClassOrStructKeyword.CSharpKind());
 
             Assert.NotNull(cs.OpenBraceToken);
             Assert.Equal(0, cs.Members.Count);
@@ -1232,7 +1232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Equal("<b>", cs.TypeParameterList.ToString());
@@ -1250,7 +1250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var bound = (ClassOrStructConstraintSyntax)cs.ConstraintClauses[0].Constraints[0];
             Assert.NotNull(bound.ClassOrStructKeyword);
             Assert.False(bound.ClassOrStructKeyword.IsMissing);
-            Assert.Equal(SyntaxKind.StructKeyword, bound.ClassOrStructKeyword.Kind());
+            Assert.Equal(SyntaxKind.StructKeyword, bound.ClassOrStructKeyword.CSharpKind());
 
             Assert.NotNull(cs.OpenBraceToken);
             Assert.Equal(0, cs.Members.Count);
@@ -1273,7 +1273,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Equal("<b>", cs.TypeParameterList.ToString());
@@ -1292,7 +1292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var classBound = (ClassOrStructConstraintSyntax)cs.ConstraintClauses[0].Constraints[0];
             Assert.NotNull(classBound.ClassOrStructKeyword);
             Assert.False(classBound.ClassOrStructKeyword.IsMissing);
-            Assert.Equal(SyntaxKind.ClassKeyword, classBound.ClassOrStructKeyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, classBound.ClassOrStructKeyword.CSharpKind());
 
             Assert.Equal(SyntaxKind.TypeConstraint, cs.ConstraintClauses[0].Constraints[1].Kind);
             var typeBound = (TypeConstraintSyntax)cs.ConstraintClauses[0].Constraints[1];
@@ -1329,7 +1329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("<b>", cs.TypeParameterList.ToString());
 
@@ -1384,7 +1384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("<b>", cs.TypeParameterList.ToString());
 
@@ -1430,7 +1430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("<b>", cs.TypeParameterList.ToString());
 
@@ -1474,7 +1474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Equal("<b>", cs.TypeParameterList.ToString());
@@ -1497,7 +1497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var classBound = (ClassOrStructConstraintSyntax)cs.ConstraintClauses[0].Constraints[0];
             Assert.NotNull(classBound.ClassOrStructKeyword);
             Assert.False(classBound.ClassOrStructKeyword.IsMissing);
-            Assert.Equal(SyntaxKind.ClassKeyword, classBound.ClassOrStructKeyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, classBound.ClassOrStructKeyword.CSharpKind());
 
             Assert.Equal(SyntaxKind.TypeConstraint, cs.ConstraintClauses[0].Constraints[1].Kind);
             var typeBound = (TypeConstraintSyntax)cs.ConstraintClauses[0].Constraints[1];
@@ -1534,7 +1534,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.InterfaceKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.InterfaceKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -1559,13 +1559,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.InterfaceKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.InterfaceKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             var gn = cs.TypeParameterList;
             Assert.Equal("<B>", gn.ToString());
             Assert.Equal("A", cs.Identifier.ToString());
             Assert.Equal(0, gn.Parameters[0].AttributeLists.Count);
-            Assert.Equal(SyntaxKind.None, gn.Parameters[0].VarianceKeyword.Kind());
+            Assert.Equal(SyntaxKind.None, gn.Parameters[0].VarianceKeyword.CSharpKind());
             Assert.Equal("B", gn.Parameters[0].Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
@@ -1589,7 +1589,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.InterfaceKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.InterfaceKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
 
             var gn = cs.TypeParameterList;
@@ -1598,7 +1598,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(1, gn.Parameters[0].AttributeLists.Count);
             Assert.Equal("B", gn.Parameters[0].AttributeLists[0].Attributes[0].Name.ToString());
             Assert.NotNull(gn.Parameters[0].VarianceKeyword);
-            Assert.Equal(SyntaxKind.OutKeyword, gn.Parameters[0].VarianceKeyword.Kind());
+            Assert.Equal(SyntaxKind.OutKeyword, gn.Parameters[0].VarianceKeyword.CSharpKind());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
             Assert.NotNull(cs.OpenBraceToken);
@@ -1621,7 +1621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.StructKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.StructKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -1646,7 +1646,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -1661,7 +1661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("b", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -1686,7 +1686,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -1700,9 +1700,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             cs = (TypeDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
-            Assert.Equal(SyntaxKind.PrivateKeyword, cs.Modifiers[0].Kind());
+            Assert.Equal(SyntaxKind.PrivateKeyword, cs.Modifiers[0].CSharpKind());
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("b", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -1727,7 +1727,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -1741,9 +1741,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             cs = (TypeDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
-            Assert.Equal(SyntaxKind.ProtectedKeyword, cs.Modifiers[0].Kind());
+            Assert.Equal(SyntaxKind.ProtectedKeyword, cs.Modifiers[0].CSharpKind());
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("b", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -1768,7 +1768,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -1782,10 +1782,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             cs = (TypeDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(2, cs.Modifiers.Count);
-            Assert.Equal(SyntaxKind.ProtectedKeyword, cs.Modifiers[0].Kind());
-            Assert.Equal(SyntaxKind.InternalKeyword, cs.Modifiers[1].Kind());
+            Assert.Equal(SyntaxKind.ProtectedKeyword, cs.Modifiers[0].CSharpKind());
+            Assert.Equal(SyntaxKind.InternalKeyword, cs.Modifiers[1].CSharpKind());
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("b", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -1810,7 +1810,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -1824,10 +1824,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             cs = (TypeDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(2, cs.Modifiers.Count);
-            Assert.Equal(SyntaxKind.InternalKeyword, cs.Modifiers[0].Kind());
-            Assert.Equal(SyntaxKind.ProtectedKeyword, cs.Modifiers[1].Kind());
+            Assert.Equal(SyntaxKind.InternalKeyword, cs.Modifiers[0].CSharpKind());
+            Assert.Equal(SyntaxKind.ProtectedKeyword, cs.Modifiers[1].CSharpKind());
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("b", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -1852,7 +1852,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -1866,9 +1866,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             cs = (TypeDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
-            Assert.Equal(SyntaxKind.PublicKeyword, cs.Modifiers[0].Kind());
+            Assert.Equal(SyntaxKind.PublicKeyword, cs.Modifiers[0].CSharpKind());
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("b", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -1893,7 +1893,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -1907,9 +1907,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             cs = (TypeDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
-            Assert.Equal(SyntaxKind.InternalKeyword, cs.Modifiers[0].Kind());
+            Assert.Equal(SyntaxKind.InternalKeyword, cs.Modifiers[0].CSharpKind());
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("b", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -2147,7 +2147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(1, ds.ParameterList.Parameters.Count);
             Assert.Equal(0, ds.ParameterList.Parameters[0].AttributeLists.Count);
             Assert.Equal(1, ds.ParameterList.Parameters[0].Modifiers.Count);
-            Assert.Equal(SyntaxKind.RefKeyword, ds.ParameterList.Parameters[0].Modifiers[0].Kind());
+            Assert.Equal(SyntaxKind.RefKeyword, ds.ParameterList.Parameters[0].Modifiers[0].CSharpKind());
             Assert.NotNull(ds.ParameterList.Parameters[0].Type);
             Assert.Equal("c", ds.ParameterList.Parameters[0].Type.ToString());
             Assert.NotNull(ds.ParameterList.Parameters[0].Identifier);
@@ -2183,7 +2183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(1, ds.ParameterList.Parameters.Count);
             Assert.Equal(0, ds.ParameterList.Parameters[0].AttributeLists.Count);
             Assert.Equal(1, ds.ParameterList.Parameters[0].Modifiers.Count);
-            Assert.Equal(SyntaxKind.OutKeyword, ds.ParameterList.Parameters[0].Modifiers[0].Kind());
+            Assert.Equal(SyntaxKind.OutKeyword, ds.ParameterList.Parameters[0].Modifiers[0].CSharpKind());
             Assert.NotNull(ds.ParameterList.Parameters[0].Type);
             Assert.Equal("c", ds.ParameterList.Parameters[0].Type.ToString());
             Assert.NotNull(ds.ParameterList.Parameters[0].Identifier);
@@ -2219,7 +2219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(1, ds.ParameterList.Parameters.Count);
             Assert.Equal(0, ds.ParameterList.Parameters[0].AttributeLists.Count);
             Assert.Equal(1, ds.ParameterList.Parameters[0].Modifiers.Count);
-            Assert.Equal(SyntaxKind.ParamsKeyword, ds.ParameterList.Parameters[0].Modifiers[0].Kind());
+            Assert.Equal(SyntaxKind.ParamsKeyword, ds.ParameterList.Parameters[0].Modifiers[0].CSharpKind());
             Assert.NotNull(ds.ParameterList.Parameters[0].Type);
             Assert.Equal("c", ds.ParameterList.Parameters[0].Type.ToString());
             Assert.NotNull(ds.ParameterList.Parameters[0].Identifier);
@@ -2317,7 +2317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -2359,7 +2359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -2384,9 +2384,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, ms.ConstraintClauses.Count);
             Assert.NotNull(ms.Body);
-            Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.Kind());
-            Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.Kind());
-            Assert.Equal(SyntaxKind.None, ms.SemicolonToken.Kind());
+            Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.CSharpKind());
+            Assert.Equal(SyntaxKind.None, ms.SemicolonToken.CSharpKind());
         }
 
         private void TestClassMethodModifiers(params SyntaxKind[] modifiers)
@@ -2404,7 +2404,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -2420,7 +2420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(modifiers.Length, ms.Modifiers.Count);
             for (int i = 0; i < modifiers.Length; ++i)
             {
-                Assert.Equal(modifiers[i], ms.Modifiers[i].Kind());
+                Assert.Equal(modifiers[i], ms.Modifiers[i].CSharpKind());
             }
             Assert.NotNull(ms.ReturnType);
             Assert.Equal("b", ms.ReturnType.ToString());
@@ -2433,9 +2433,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, ms.ConstraintClauses.Count);
             Assert.NotNull(ms.Body);
-            Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.Kind());
-            Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.Kind());
-            Assert.Equal(SyntaxKind.None, ms.SemicolonToken.Kind());
+            Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.CSharpKind());
+            Assert.Equal(SyntaxKind.None, ms.SemicolonToken.CSharpKind());
         }
 
         [Fact]
@@ -2472,7 +2472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -2486,7 +2486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var ms = (MethodDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ms.AttributeLists.Count);
             Assert.Equal(1, ms.Modifiers.Count);
-            Assert.Equal(SyntaxKind.PartialKeyword, ms.Modifiers[0].Kind());
+            Assert.Equal(SyntaxKind.PartialKeyword, ms.Modifiers[0].CSharpKind());
             Assert.NotNull(ms.ReturnType);
             Assert.Equal("void", ms.ReturnType.ToString());
             Assert.NotNull(ms.Identifier);
@@ -2498,9 +2498,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, ms.ConstraintClauses.Count);
             Assert.NotNull(ms.Body);
-            Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.Kind());
-            Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.Kind());
-            Assert.Equal(SyntaxKind.None, ms.SemicolonToken.Kind());
+            Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.CSharpKind());
+            Assert.Equal(SyntaxKind.None, ms.SemicolonToken.CSharpKind());
         }
 
         [Fact]
@@ -2519,7 +2519,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -2550,9 +2550,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, ms.ConstraintClauses.Count);
             Assert.NotNull(ms.Body);
-            Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.Kind());
-            Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.Kind());
-            Assert.Equal(SyntaxKind.None, ms.SemicolonToken.Kind());
+            Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.CSharpKind());
+            Assert.Equal(SyntaxKind.None, ms.SemicolonToken.CSharpKind());
         }
 
         [Fact]
@@ -2571,7 +2571,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -2612,9 +2612,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, ms.ConstraintClauses.Count);
             Assert.NotNull(ms.Body);
-            Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.Kind());
-            Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.Kind());
-            Assert.Equal(SyntaxKind.None, ms.SemicolonToken.Kind());
+            Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.CSharpKind());
+            Assert.Equal(SyntaxKind.None, ms.SemicolonToken.CSharpKind());
         }
 
         private void TestClassMethodWithParameterModifier(SyntaxKind mod)
@@ -2632,7 +2632,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -2657,7 +2657,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(0, ms.ParameterList.Parameters[0].AttributeLists.Count);
             Assert.Equal(1, ms.ParameterList.Parameters[0].Modifiers.Count);
-            Assert.Equal(mod, ms.ParameterList.Parameters[0].Modifiers[0].Kind());
+            Assert.Equal(mod, ms.ParameterList.Parameters[0].Modifiers[0].CSharpKind());
             Assert.NotNull(ms.ParameterList.Parameters[0].Type);
             Assert.Equal("c", ms.ParameterList.Parameters[0].Type.ToString());
             Assert.NotNull(ms.ParameterList.Parameters[0].Identifier);
@@ -2667,9 +2667,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, ms.ConstraintClauses.Count);
             Assert.NotNull(ms.Body);
-            Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.Kind());
-            Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.Kind());
-            Assert.Equal(SyntaxKind.None, ms.SemicolonToken.Kind());
+            Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.CSharpKind());
+            Assert.Equal(SyntaxKind.None, ms.SemicolonToken.CSharpKind());
         }
 
         [Fact]
@@ -2697,7 +2697,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -2724,15 +2724,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, ms.ParameterList.Parameters[0].Modifiers.Count);
             Assert.Null(ms.ParameterList.Parameters[0].Type);
             Assert.NotNull(ms.ParameterList.Parameters[0].Identifier);
-            Assert.Equal(SyntaxKind.ArgListKeyword, ms.ParameterList.Parameters[0].Identifier.Kind());
+            Assert.Equal(SyntaxKind.ArgListKeyword, ms.ParameterList.Parameters[0].Identifier.CSharpKind());
 
             Assert.NotNull(ms.ParameterList.CloseParenToken);
             Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, ms.ConstraintClauses.Count);
             Assert.NotNull(ms.Body);
-            Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.Kind());
-            Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.Kind());
-            Assert.Equal(SyntaxKind.None, ms.SemicolonToken.Kind());
+            Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.CSharpKind());
+            Assert.Equal(SyntaxKind.None, ms.SemicolonToken.CSharpKind());
         }
 
         [Fact]
@@ -2771,7 +2771,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -2796,9 +2796,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, ms.ConstraintClauses.Count);
             Assert.NotNull(ms.Body);
-            Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.Kind());
-            Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.Kind());
-            Assert.Equal(SyntaxKind.None, ms.SemicolonToken.Kind());
+            Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.CSharpKind());
+            Assert.Equal(SyntaxKind.None, ms.SemicolonToken.CSharpKind());
         }
 
         [Fact]
@@ -2836,7 +2836,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -2867,9 +2867,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, ms.ConstraintClauses.Count);
             Assert.NotNull(ms.Body);
-            Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.Kind());
-            Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.Kind());
-            Assert.Equal(SyntaxKind.None, ms.SemicolonToken.Kind());
+            Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.CSharpKind());
+            Assert.Equal(SyntaxKind.None, ms.SemicolonToken.CSharpKind());
         }
 
         [Fact]
@@ -2888,7 +2888,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -2913,9 +2913,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(ms.ParameterList.CloseParenToken.IsMissing);
             Assert.Equal(0, ms.ConstraintClauses.Count);
             Assert.NotNull(ms.Body);
-            Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.Kind());
-            Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.Kind());
-            Assert.Equal(SyntaxKind.None, ms.SemicolonToken.Kind());
+            Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.CSharpKind());
+            Assert.Equal(SyntaxKind.None, ms.SemicolonToken.CSharpKind());
         }
 
         [Fact]
@@ -2934,7 +2934,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -2973,9 +2973,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal("d", typeBound.Type.ToString());
 
             Assert.NotNull(ms.Body);
-            Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.Kind());
-            Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.Kind());
-            Assert.Equal(SyntaxKind.None, ms.SemicolonToken.Kind());
+            Assert.NotEqual(SyntaxKind.None, ms.Body.OpenBraceToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ms.Body.CloseBraceToken.CSharpKind());
+            Assert.Equal(SyntaxKind.None, ms.SemicolonToken.CSharpKind());
         }
 
         [WorkItem(899685, "DevDiv/Personal")]
@@ -3015,14 +3015,14 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotEqual(SyntaxKind.None, cs.OpenBraceToken.Kind());
-            Assert.NotEqual(SyntaxKind.None, cs.CloseBraceToken.Kind());
-            Assert.Equal(SyntaxKind.None, cs.SemicolonToken.Kind());
+            Assert.NotEqual(SyntaxKind.None, cs.OpenBraceToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, cs.CloseBraceToken.CSharpKind());
+            Assert.Equal(SyntaxKind.None, cs.SemicolonToken.CSharpKind());
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -3050,14 +3050,14 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotEqual(SyntaxKind.None, cs.OpenBraceToken.Kind());
-            Assert.NotEqual(SyntaxKind.None, cs.CloseBraceToken.Kind());
-            Assert.Equal(SyntaxKind.None, cs.SemicolonToken.Kind());
+            Assert.NotEqual(SyntaxKind.None, cs.OpenBraceToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, cs.CloseBraceToken.CSharpKind());
+            Assert.Equal(SyntaxKind.None, cs.SemicolonToken.CSharpKind());
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -3065,7 +3065,7 @@ class Class1<T>{
             var cn = (ConstructorDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, cn.AttributeLists.Count);
             Assert.Equal(1, cn.Modifiers.Count);
-            Assert.Equal(mod, cn.Modifiers[0].Kind());
+            Assert.Equal(mod, cn.Modifiers[0].CSharpKind());
             Assert.NotNull(cn.Body);
             Assert.NotNull(cn.Body.OpenBraceToken);
             Assert.NotNull(cn.Body.CloseBraceToken);
@@ -3097,14 +3097,14 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
             Assert.Equal(0, cs.ConstraintClauses.Count);
-            Assert.NotEqual(SyntaxKind.None, cs.OpenBraceToken.Kind());
-            Assert.NotEqual(SyntaxKind.None, cs.CloseBraceToken.Kind());
-            Assert.Equal(SyntaxKind.None, cs.SemicolonToken.Kind());
+            Assert.NotEqual(SyntaxKind.None, cs.OpenBraceToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, cs.CloseBraceToken.CSharpKind());
+            Assert.Equal(SyntaxKind.None, cs.SemicolonToken.CSharpKind());
 
             Assert.Equal(1, cs.Members.Count);
 
@@ -3134,7 +3134,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -3194,7 +3194,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -3234,7 +3234,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -3248,7 +3248,7 @@ class Class1<T>{
             var fs = (FieldDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, fs.AttributeLists.Count);
             Assert.Equal(1, fs.Modifiers.Count);
-            Assert.Equal(mod, fs.Modifiers[0].Kind());
+            Assert.Equal(mod, fs.Modifiers[0].CSharpKind());
             Assert.NotNull(fs.Declaration.Type);
             Assert.Equal("b", fs.Declaration.Type.ToString());
             Assert.Equal(1, fs.Declaration.Variables.Count);
@@ -3288,7 +3288,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -3302,7 +3302,7 @@ class Class1<T>{
             var fs = (EventFieldDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, fs.AttributeLists.Count);
             Assert.Equal(1, fs.Modifiers.Count);
-            Assert.Equal(mod, fs.Modifiers[0].Kind());
+            Assert.Equal(mod, fs.Modifiers[0].CSharpKind());
             Assert.NotNull(fs.EventKeyword);
             Assert.NotNull(fs.Declaration.Type);
             Assert.Equal("b", fs.Declaration.Type.ToString());
@@ -3344,7 +3344,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -3358,7 +3358,7 @@ class Class1<T>{
             var fs = (FieldDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, fs.AttributeLists.Count);
             Assert.Equal(1, fs.Modifiers.Count);
-            Assert.Equal(SyntaxKind.ConstKeyword, fs.Modifiers[0].Kind());
+            Assert.Equal(SyntaxKind.ConstKeyword, fs.Modifiers[0].CSharpKind());
             Assert.NotNull(fs.Declaration.Type);
             Assert.Equal("b", fs.Declaration.Type.ToString());
             Assert.Equal(1, fs.Declaration.Variables.Count);
@@ -3389,7 +3389,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -3433,7 +3433,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -3478,7 +3478,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -3532,7 +3532,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -3595,7 +3595,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -3609,7 +3609,7 @@ class Class1<T>{
             var fs = (FieldDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, fs.AttributeLists.Count);
             Assert.Equal(1, fs.Modifiers.Count);
-            Assert.Equal(SyntaxKind.FixedKeyword, fs.Modifiers[0].Kind());
+            Assert.Equal(SyntaxKind.FixedKeyword, fs.Modifiers[0].CSharpKind());
             Assert.NotNull(fs.Declaration.Type);
             Assert.Equal("b", fs.Declaration.Type.ToString());
             Assert.Equal(1, fs.Declaration.Variables.Count);
@@ -3641,7 +3641,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -3667,14 +3667,14 @@ class Class1<T>{
             Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
             Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
-            Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
+            Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.CSharpKind());
             Assert.Null(ps.AccessorList.Accessors[0].Body);
             Assert.NotNull(ps.AccessorList.Accessors[0].SemicolonToken);
 
             Assert.Equal(0, ps.AccessorList.Accessors[1].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[1].Modifiers.Count);
             Assert.NotNull(ps.AccessorList.Accessors[1].Keyword);
-            Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.Kind());
+            Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.CSharpKind());
             Assert.Null(ps.AccessorList.Accessors[1].Body);
             Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
         }
@@ -3714,7 +3714,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -3740,14 +3740,14 @@ class Class1<T>{
             Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
             Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
-            Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
+            Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.CSharpKind());
             Assert.Null(ps.AccessorList.Accessors[0].Body);
             Assert.NotNull(ps.AccessorList.Accessors[0].SemicolonToken);
 
             Assert.Equal(0, ps.AccessorList.Accessors[1].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[1].Modifiers.Count);
             Assert.NotNull(ps.AccessorList.Accessors[1].Keyword);
-            Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.Kind());
+            Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.CSharpKind());
             Assert.Null(ps.AccessorList.Accessors[1].Body);
             Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
         }
@@ -3768,7 +3768,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -3794,16 +3794,16 @@ class Class1<T>{
             Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
             Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
-            Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
+            Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.CSharpKind());
             Assert.NotNull(ps.AccessorList.Accessors[0].Body);
-            Assert.Equal(SyntaxKind.None, ps.AccessorList.Accessors[0].SemicolonToken.Kind());
+            Assert.Equal(SyntaxKind.None, ps.AccessorList.Accessors[0].SemicolonToken.CSharpKind());
 
             Assert.Equal(0, ps.AccessorList.Accessors[1].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[1].Modifiers.Count);
             Assert.NotNull(ps.AccessorList.Accessors[1].Keyword);
-            Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.Kind());
+            Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.CSharpKind());
             Assert.NotNull(ps.AccessorList.Accessors[1].Body);
-            Assert.Equal(SyntaxKind.None, ps.AccessorList.Accessors[1].SemicolonToken.Kind());
+            Assert.Equal(SyntaxKind.None, ps.AccessorList.Accessors[1].SemicolonToken.CSharpKind());
         }
 
         [Fact]
@@ -3822,7 +3822,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -3848,13 +3848,13 @@ class Class1<T>{
             Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
             Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
-            Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
+            Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.CSharpKind());
             Assert.Null(ps.AccessorList.Accessors[0].Body);
 
             Assert.Equal(0, ps.AccessorList.Accessors[1].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[1].Modifiers.Count);
             Assert.NotNull(ps.AccessorList.Accessors[1].Keyword);
-            Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.Kind());
+            Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.CSharpKind());
             Assert.Null(ps.AccessorList.Accessors[1].Body);
 
             Assert.NotNull(ps.Initializer);
@@ -3906,7 +3906,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -3933,8 +3933,8 @@ class Class1<T>{
             Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
             Assert.Equal(accessorKind, ps.AccessorList.Accessors[0].Kind);
             Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
-            Assert.Equal(accessorKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
-            Assert.Equal(SyntaxKind.None, ps.AccessorList.Accessors[0].SemicolonToken.Kind());
+            Assert.Equal(accessorKeyword, ps.AccessorList.Accessors[0].Keyword.CSharpKind());
+            Assert.Equal(SyntaxKind.None, ps.AccessorList.Accessors[0].SemicolonToken.CSharpKind());
             var body = ps.AccessorList.Accessors[0].Body;
             Assert.NotNull(body);
             Assert.Equal(1, body.Statements.Count);
@@ -3944,7 +3944,7 @@ class Class1<T>{
             Assert.Equal(SyntaxKind.SimpleAssignmentExpression, es.Expression.Kind);
             var bx = (AssignmentExpressionSyntax)es.Expression;
             Assert.Equal(SyntaxKind.IdentifierName, bx.Right.Kind);
-            Assert.Equal(tokenKind, ((IdentifierNameSyntax)bx.Right).Identifier.Kind());
+            Assert.Equal(tokenKind, ((IdentifierNameSyntax)bx.Right).Identifier.CSharpKind());
         }
 
         public void TestClassEventWithValue(SyntaxKind accessorKind, SyntaxKind accessorKeyword, SyntaxKind tokenKind)
@@ -3962,7 +3962,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -3989,8 +3989,8 @@ class Class1<T>{
             Assert.Equal(0, es.AccessorList.Accessors[0].Modifiers.Count);
             Assert.Equal(accessorKind, es.AccessorList.Accessors[0].Kind);
             Assert.NotNull(es.AccessorList.Accessors[0].Keyword);
-            Assert.Equal(accessorKeyword, es.AccessorList.Accessors[0].Keyword.Kind());
-            Assert.Equal(SyntaxKind.None, es.AccessorList.Accessors[0].SemicolonToken.Kind());
+            Assert.Equal(accessorKeyword, es.AccessorList.Accessors[0].Keyword.CSharpKind());
+            Assert.Equal(SyntaxKind.None, es.AccessorList.Accessors[0].SemicolonToken.CSharpKind());
             var body = es.AccessorList.Accessors[0].Body;
             Assert.NotNull(body);
             Assert.Equal(1, body.Statements.Count);
@@ -4000,7 +4000,7 @@ class Class1<T>{
             Assert.Equal(SyntaxKind.SimpleAssignmentExpression, xs.Expression.Kind);
             var bx = (AssignmentExpressionSyntax)xs.Expression;
             Assert.Equal(SyntaxKind.IdentifierName, bx.Right.Kind);
-            Assert.Equal(tokenKind, ((IdentifierNameSyntax)bx.Right).Identifier.Kind());
+            Assert.Equal(tokenKind, ((IdentifierNameSyntax)bx.Right).Identifier.CSharpKind());
         }
 
         private void TestClassPropertyWithModifier(SyntaxKind mod)
@@ -4018,7 +4018,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -4032,7 +4032,7 @@ class Class1<T>{
             var ps = (PropertyDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ps.AttributeLists.Count);
             Assert.Equal(1, ps.Modifiers.Count);
-            Assert.Equal(mod, ps.Modifiers[0].Kind());
+            Assert.Equal(mod, ps.Modifiers[0].CSharpKind());
             Assert.NotNull(ps.Type);
             Assert.Equal("b", ps.Type.ToString());
             Assert.NotNull(ps.Identifier);
@@ -4045,14 +4045,14 @@ class Class1<T>{
             Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
             Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
-            Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
+            Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.CSharpKind());
             Assert.Null(ps.AccessorList.Accessors[0].Body);
             Assert.NotNull(ps.AccessorList.Accessors[0].SemicolonToken);
 
             Assert.Equal(0, ps.AccessorList.Accessors[1].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[1].Modifiers.Count);
             Assert.NotNull(ps.AccessorList.Accessors[1].Keyword);
-            Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.Kind());
+            Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.CSharpKind());
             Assert.Null(ps.AccessorList.Accessors[1].Body);
             Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
         }
@@ -4087,7 +4087,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -4113,11 +4113,11 @@ class Class1<T>{
 
             Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(1, ps.AccessorList.Accessors[0].Modifiers.Count);
-            Assert.Equal(mod, ps.AccessorList.Accessors[0].Modifiers[0].Kind());
+            Assert.Equal(mod, ps.AccessorList.Accessors[0].Modifiers[0].CSharpKind());
             Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
-            Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
+            Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.CSharpKind());
             Assert.NotNull(ps.AccessorList.Accessors[0].Body);
-            Assert.Equal(SyntaxKind.None, ps.AccessorList.Accessors[0].SemicolonToken.Kind());
+            Assert.Equal(SyntaxKind.None, ps.AccessorList.Accessors[0].SemicolonToken.CSharpKind());
         }
 
         [Fact]
@@ -4150,7 +4150,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -4178,14 +4178,14 @@ class Class1<T>{
             Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
             Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
-            Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
+            Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.CSharpKind());
             Assert.Null(ps.AccessorList.Accessors[0].Body);
             Assert.NotNull(ps.AccessorList.Accessors[0].SemicolonToken);
 
             Assert.Equal(0, ps.AccessorList.Accessors[1].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[1].Modifiers.Count);
             Assert.NotNull(ps.AccessorList.Accessors[1].Keyword);
-            Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.Kind());
+            Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.CSharpKind());
             Assert.Null(ps.AccessorList.Accessors[1].Body);
             Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
         }
@@ -4206,7 +4206,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -4233,16 +4233,16 @@ class Class1<T>{
             Assert.Equal(0, es.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, es.AccessorList.Accessors[0].Modifiers.Count);
             Assert.NotNull(es.AccessorList.Accessors[0].Keyword);
-            Assert.Equal(SyntaxKind.AddKeyword, es.AccessorList.Accessors[0].Keyword.Kind());
+            Assert.Equal(SyntaxKind.AddKeyword, es.AccessorList.Accessors[0].Keyword.CSharpKind());
             Assert.NotNull(es.AccessorList.Accessors[0].Body);
-            Assert.Equal(SyntaxKind.None, es.AccessorList.Accessors[0].SemicolonToken.Kind());
+            Assert.Equal(SyntaxKind.None, es.AccessorList.Accessors[0].SemicolonToken.CSharpKind());
 
             Assert.Equal(0, es.AccessorList.Accessors[1].AttributeLists.Count);
             Assert.Equal(0, es.AccessorList.Accessors[1].Modifiers.Count);
             Assert.NotNull(es.AccessorList.Accessors[1].Keyword);
-            Assert.Equal(SyntaxKind.RemoveKeyword, es.AccessorList.Accessors[1].Keyword.Kind());
+            Assert.Equal(SyntaxKind.RemoveKeyword, es.AccessorList.Accessors[1].Keyword.CSharpKind());
             Assert.NotNull(es.AccessorList.Accessors[1].Body);
-            Assert.Equal(SyntaxKind.None, es.AccessorList.Accessors[1].SemicolonToken.Kind());
+            Assert.Equal(SyntaxKind.None, es.AccessorList.Accessors[1].SemicolonToken.CSharpKind());
         }
 
         private void TestClassEventPropertyWithModifier(SyntaxKind mod)
@@ -4260,7 +4260,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -4274,7 +4274,7 @@ class Class1<T>{
             var es = (EventDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, es.AttributeLists.Count);
             Assert.Equal(1, es.Modifiers.Count);
-            Assert.Equal(mod, es.Modifiers[0].Kind());
+            Assert.Equal(mod, es.Modifiers[0].CSharpKind());
             Assert.NotNull(es.EventKeyword);
             Assert.NotNull(es.Type);
             Assert.Equal("b", es.Type.ToString());
@@ -4288,16 +4288,16 @@ class Class1<T>{
             Assert.Equal(0, es.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, es.AccessorList.Accessors[0].Modifiers.Count);
             Assert.NotNull(es.AccessorList.Accessors[0].Keyword);
-            Assert.Equal(SyntaxKind.AddKeyword, es.AccessorList.Accessors[0].Keyword.Kind());
+            Assert.Equal(SyntaxKind.AddKeyword, es.AccessorList.Accessors[0].Keyword.CSharpKind());
             Assert.NotNull(es.AccessorList.Accessors[0].Body);
-            Assert.Equal(SyntaxKind.None, es.AccessorList.Accessors[0].SemicolonToken.Kind());
+            Assert.Equal(SyntaxKind.None, es.AccessorList.Accessors[0].SemicolonToken.CSharpKind());
 
             Assert.Equal(0, es.AccessorList.Accessors[1].AttributeLists.Count);
             Assert.Equal(0, es.AccessorList.Accessors[1].Modifiers.Count);
             Assert.NotNull(es.AccessorList.Accessors[1].Keyword);
-            Assert.Equal(SyntaxKind.RemoveKeyword, es.AccessorList.Accessors[1].Keyword.Kind());
+            Assert.Equal(SyntaxKind.RemoveKeyword, es.AccessorList.Accessors[1].Keyword.CSharpKind());
             Assert.NotNull(es.AccessorList.Accessors[1].Body);
-            Assert.Equal(SyntaxKind.None, es.AccessorList.Accessors[1].SemicolonToken.Kind());
+            Assert.Equal(SyntaxKind.None, es.AccessorList.Accessors[1].SemicolonToken.CSharpKind());
         }
 
         [Fact]
@@ -4328,7 +4328,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -4342,7 +4342,7 @@ class Class1<T>{
             var ps = (PropertyDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ps.AttributeLists.Count);
             Assert.Equal(1, ps.Modifiers.Count);
-            Assert.Equal(SyntaxKind.EventKeyword, ps.Modifiers[0].Kind());
+            Assert.Equal(SyntaxKind.EventKeyword, ps.Modifiers[0].CSharpKind());
             Assert.NotNull(ps.Type);
             Assert.Equal("b", ps.Type.ToString());
             Assert.NotNull(ps.Identifier);
@@ -4355,11 +4355,11 @@ class Class1<T>{
 
             Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(1, ps.AccessorList.Accessors[0].Modifiers.Count);
-            Assert.Equal(mod, ps.AccessorList.Accessors[0].Modifiers[0].Kind());
+            Assert.Equal(mod, ps.AccessorList.Accessors[0].Modifiers[0].CSharpKind());
             Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
-            Assert.Equal(SyntaxKind.AddKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
+            Assert.Equal(SyntaxKind.AddKeyword, ps.AccessorList.Accessors[0].Keyword.CSharpKind());
             Assert.NotNull(ps.AccessorList.Accessors[0].Body);
-            Assert.Equal(SyntaxKind.None, ps.AccessorList.Accessors[0].SemicolonToken.Kind());
+            Assert.Equal(SyntaxKind.None, ps.AccessorList.Accessors[0].SemicolonToken.CSharpKind());
         }
 
         [Fact]
@@ -4392,7 +4392,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -4421,16 +4421,16 @@ class Class1<T>{
             Assert.Equal(0, es.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, es.AccessorList.Accessors[0].Modifiers.Count);
             Assert.NotNull(es.AccessorList.Accessors[0].Keyword);
-            Assert.Equal(SyntaxKind.AddKeyword, es.AccessorList.Accessors[0].Keyword.Kind());
+            Assert.Equal(SyntaxKind.AddKeyword, es.AccessorList.Accessors[0].Keyword.CSharpKind());
             Assert.NotNull(es.AccessorList.Accessors[0].Body);
-            Assert.Equal(SyntaxKind.None, es.AccessorList.Accessors[0].SemicolonToken.Kind());
+            Assert.Equal(SyntaxKind.None, es.AccessorList.Accessors[0].SemicolonToken.CSharpKind());
 
             Assert.Equal(0, es.AccessorList.Accessors[1].AttributeLists.Count);
             Assert.Equal(0, es.AccessorList.Accessors[1].Modifiers.Count);
             Assert.NotNull(es.AccessorList.Accessors[1].Keyword);
-            Assert.Equal(SyntaxKind.RemoveKeyword, es.AccessorList.Accessors[1].Keyword.Kind());
+            Assert.Equal(SyntaxKind.RemoveKeyword, es.AccessorList.Accessors[1].Keyword.CSharpKind());
             Assert.NotNull(es.AccessorList.Accessors[1].Body);
-            Assert.Equal(SyntaxKind.None, es.AccessorList.Accessors[1].SemicolonToken.Kind());
+            Assert.Equal(SyntaxKind.None, es.AccessorList.Accessors[1].SemicolonToken.CSharpKind());
         }
 
         [Fact]
@@ -4449,7 +4449,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -4470,9 +4470,9 @@ class Class1<T>{
 
             Assert.NotNull(ps.ParameterList); // used with indexer property
             Assert.NotNull(ps.ParameterList.OpenBracketToken);
-            Assert.Equal(SyntaxKind.OpenBracketToken, ps.ParameterList.OpenBracketToken.Kind());
+            Assert.Equal(SyntaxKind.OpenBracketToken, ps.ParameterList.OpenBracketToken.CSharpKind());
             Assert.NotNull(ps.ParameterList.CloseBracketToken);
-            Assert.Equal(SyntaxKind.CloseBracketToken, ps.ParameterList.CloseBracketToken.Kind());
+            Assert.Equal(SyntaxKind.CloseBracketToken, ps.ParameterList.CloseBracketToken.CSharpKind());
             Assert.Equal(1, ps.ParameterList.Parameters.Count);
             Assert.Equal(0, ps.ParameterList.Parameters[0].AttributeLists.Count);
             Assert.Equal(0, ps.ParameterList.Parameters[0].Modifiers.Count);
@@ -4488,14 +4488,14 @@ class Class1<T>{
             Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
             Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
-            Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
+            Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.CSharpKind());
             Assert.Null(ps.AccessorList.Accessors[0].Body);
             Assert.NotNull(ps.AccessorList.Accessors[0].SemicolonToken);
 
             Assert.Equal(0, ps.AccessorList.Accessors[1].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[1].Modifiers.Count);
             Assert.NotNull(ps.AccessorList.Accessors[1].Keyword);
-            Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.Kind());
+            Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.CSharpKind());
             Assert.Null(ps.AccessorList.Accessors[1].Body);
             Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
         }
@@ -4516,7 +4516,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -4537,9 +4537,9 @@ class Class1<T>{
 
             Assert.NotNull(ps.ParameterList); // used with indexer property
             Assert.NotNull(ps.ParameterList.OpenBracketToken);
-            Assert.Equal(SyntaxKind.OpenBracketToken, ps.ParameterList.OpenBracketToken.Kind());
+            Assert.Equal(SyntaxKind.OpenBracketToken, ps.ParameterList.OpenBracketToken.CSharpKind());
             Assert.NotNull(ps.ParameterList.CloseBracketToken);
-            Assert.Equal(SyntaxKind.CloseBracketToken, ps.ParameterList.CloseBracketToken.Kind());
+            Assert.Equal(SyntaxKind.CloseBracketToken, ps.ParameterList.CloseBracketToken.CSharpKind());
 
             Assert.Equal(2, ps.ParameterList.Parameters.Count);
 
@@ -4564,14 +4564,14 @@ class Class1<T>{
             Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
             Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
-            Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
+            Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.CSharpKind());
             Assert.Null(ps.AccessorList.Accessors[0].Body);
             Assert.NotNull(ps.AccessorList.Accessors[0].SemicolonToken);
 
             Assert.Equal(0, ps.AccessorList.Accessors[1].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[1].Modifiers.Count);
             Assert.NotNull(ps.AccessorList.Accessors[1].Keyword);
-            Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.Kind());
+            Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.CSharpKind());
             Assert.Null(ps.AccessorList.Accessors[1].Body);
             Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
         }
@@ -4592,7 +4592,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -4615,9 +4615,9 @@ class Class1<T>{
 
             Assert.NotNull(ps.ParameterList); // used with indexer property
             Assert.NotNull(ps.ParameterList.OpenBracketToken);
-            Assert.Equal(SyntaxKind.OpenBracketToken, ps.ParameterList.OpenBracketToken.Kind());
+            Assert.Equal(SyntaxKind.OpenBracketToken, ps.ParameterList.OpenBracketToken.CSharpKind());
             Assert.NotNull(ps.ParameterList.CloseBracketToken);
-            Assert.Equal(SyntaxKind.CloseBracketToken, ps.ParameterList.CloseBracketToken.Kind());
+            Assert.Equal(SyntaxKind.CloseBracketToken, ps.ParameterList.CloseBracketToken.CSharpKind());
             Assert.Equal(1, ps.ParameterList.Parameters.Count);
             Assert.Equal(0, ps.ParameterList.Parameters[0].AttributeLists.Count);
             Assert.Equal(0, ps.ParameterList.Parameters[0].Modifiers.Count);
@@ -4633,14 +4633,14 @@ class Class1<T>{
             Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
             Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
-            Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
+            Assert.Equal(SyntaxKind.GetKeyword, ps.AccessorList.Accessors[0].Keyword.CSharpKind());
             Assert.Null(ps.AccessorList.Accessors[0].Body);
             Assert.NotNull(ps.AccessorList.Accessors[0].SemicolonToken);
 
             Assert.Equal(0, ps.AccessorList.Accessors[1].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[1].Modifiers.Count);
             Assert.NotNull(ps.AccessorList.Accessors[1].Keyword);
-            Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.Kind());
+            Assert.Equal(SyntaxKind.SetKeyword, ps.AccessorList.Accessors[1].Keyword.CSharpKind());
             Assert.Null(ps.AccessorList.Accessors[1].Body);
             Assert.NotNull(ps.AccessorList.Accessors[1].SemicolonToken);
         }
@@ -4660,7 +4660,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -4677,9 +4677,9 @@ class Class1<T>{
             Assert.NotNull(ps.ReturnType);
             Assert.Equal("b", ps.ReturnType.ToString());
             Assert.NotNull(ps.OperatorKeyword);
-            Assert.Equal(SyntaxKind.OperatorKeyword, ps.OperatorKeyword.Kind());
+            Assert.Equal(SyntaxKind.OperatorKeyword, ps.OperatorKeyword.CSharpKind());
             Assert.NotNull(ps.OperatorToken);
-            Assert.Equal(op1, ps.OperatorToken.Kind());
+            Assert.Equal(op1, ps.OperatorToken.CSharpKind());
             Assert.NotNull(ps.ParameterList.OpenParenToken);
             Assert.NotNull(ps.ParameterList.CloseParenToken);
             Assert.NotNull(ps.Body);
@@ -4740,7 +4740,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -4757,9 +4757,9 @@ class Class1<T>{
             Assert.NotNull(ps.ReturnType);
             Assert.Equal("b", ps.ReturnType.ToString());
             Assert.NotNull(ps.OperatorKeyword);
-            Assert.Equal(SyntaxKind.OperatorKeyword, ps.OperatorKeyword.Kind());
+            Assert.Equal(SyntaxKind.OperatorKeyword, ps.OperatorKeyword.CSharpKind());
             Assert.NotNull(ps.OperatorToken);
-            Assert.Equal(SyntaxKind.GreaterThanGreaterThanToken, ps.OperatorToken.Kind());
+            Assert.Equal(SyntaxKind.GreaterThanGreaterThanToken, ps.OperatorToken.CSharpKind());
             Assert.NotNull(ps.ParameterList.OpenParenToken);
             Assert.NotNull(ps.ParameterList.CloseParenToken);
             Assert.NotNull(ps.Body);
@@ -4796,7 +4796,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -4813,9 +4813,9 @@ class Class1<T>{
             Assert.NotNull(ps.ReturnType);
             Assert.Equal("b", ps.ReturnType.ToString());
             Assert.NotNull(ps.OperatorKeyword);
-            Assert.Equal(SyntaxKind.OperatorKeyword, ps.OperatorKeyword.Kind());
+            Assert.Equal(SyntaxKind.OperatorKeyword, ps.OperatorKeyword.CSharpKind());
             Assert.NotNull(ps.OperatorToken);
-            Assert.Equal(op1, ps.OperatorToken.Kind());
+            Assert.Equal(op1, ps.OperatorToken.CSharpKind());
             Assert.NotNull(ps.ParameterList.OpenParenToken);
             Assert.NotNull(ps.ParameterList.CloseParenToken);
             Assert.NotNull(ps.Body);
@@ -4859,7 +4859,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -4874,9 +4874,9 @@ class Class1<T>{
             Assert.Equal(0, ms.AttributeLists.Count);
             Assert.Equal(0, ms.Modifiers.Count);
             Assert.NotNull(ms.ImplicitOrExplicitKeyword);
-            Assert.Equal(SyntaxKind.ImplicitKeyword, ms.ImplicitOrExplicitKeyword.Kind());
+            Assert.Equal(SyntaxKind.ImplicitKeyword, ms.ImplicitOrExplicitKeyword.CSharpKind());
             Assert.NotNull(ms.OperatorKeyword);
-            Assert.Equal(SyntaxKind.OperatorKeyword, ms.OperatorKeyword.Kind());
+            Assert.Equal(SyntaxKind.OperatorKeyword, ms.OperatorKeyword.CSharpKind());
             Assert.NotNull(ms.Type);
             Assert.Equal("b", ms.Type.ToString());
             Assert.NotNull(ms.ParameterList.OpenParenToken);
@@ -4907,7 +4907,7 @@ class Class1<T>{
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
             Assert.NotNull(cs.Keyword);
-            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, cs.Keyword.CSharpKind());
             Assert.NotNull(cs.Identifier);
             Assert.Equal("a", cs.Identifier.ToString());
             Assert.Null(cs.BaseList);
@@ -4922,9 +4922,9 @@ class Class1<T>{
             Assert.Equal(0, ms.AttributeLists.Count);
             Assert.Equal(0, ms.Modifiers.Count);
             Assert.NotNull(ms.ImplicitOrExplicitKeyword);
-            Assert.Equal(SyntaxKind.ExplicitKeyword, ms.ImplicitOrExplicitKeyword.Kind());
+            Assert.Equal(SyntaxKind.ExplicitKeyword, ms.ImplicitOrExplicitKeyword.CSharpKind());
             Assert.NotNull(ms.OperatorKeyword);
-            Assert.Equal(SyntaxKind.OperatorKeyword, ms.OperatorKeyword.Kind());
+            Assert.Equal(SyntaxKind.OperatorKeyword, ms.OperatorKeyword.CSharpKind());
             Assert.NotNull(ms.Type);
             Assert.Equal("b", ms.Type.ToString());
             Assert.NotNull(ms.ParameterList.OpenParenToken);

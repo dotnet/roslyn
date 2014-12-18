@@ -123,7 +123,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        [Obsolete("To be removed, use Kind() instead.")]
         public SyntaxKind CSharpKind()
         {
             return (SyntaxKind)this.Green.RawKind;
@@ -575,7 +574,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             while (true)
             {
-                Debug.Assert(curNode.Kind() != SyntaxKind.None);
+                Debug.Assert(curNode.CSharpKind() != SyntaxKind.None);
                 Debug.Assert(curNode.FullSpan.Contains(position));
 
                 var node = curNode.AsNode();
@@ -698,7 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             SyntaxTrivia trivia = GetTriviaFromSyntaxToken(position, nonTriviaToken);
 
-            if (!SyntaxFacts.IsDocumentationCommentTrivia(trivia.Kind()))
+            if (!SyntaxFacts.IsDocumentationCommentTrivia(trivia.CSharpKind()))
             {
                 return nonTriviaToken;
             }

@@ -72,13 +72,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 SyntaxToken constToken = default(SyntaxToken);
                 foreach (var modifier in fieldSyntax.Modifiers)
                 {
-                    if (modifier.Kind() == SyntaxKind.ConstKeyword)
+                    if (modifier.CSharpKind() == SyntaxKind.ConstKeyword)
                     {
                         constToken = modifier;
                         break;
                     }
                 }
-                Debug.Assert(constToken.Kind() == SyntaxKind.ConstKeyword);
+                Debug.Assert(constToken.CSharpKind() == SyntaxKind.ConstKeyword);
 
                 diagnostics.Add(ErrorCode.ERR_BadConstType, constToken.GetLocation(), type);
             }

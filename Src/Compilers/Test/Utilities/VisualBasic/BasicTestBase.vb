@@ -789,7 +789,7 @@ Public MustInherit Class BasicTestBaseBase
         End Sub
 
         Public Overrides Sub DefaultVisit(node As SyntaxNode)
-            If node IsNot Nothing AndAlso Me._kinds.Contains(node.Kind) Then
+            If node IsNot Nothing AndAlso Me._kinds.Contains(node.VBKind) Then
                 Me._nodes.Add(node)
             End If
 

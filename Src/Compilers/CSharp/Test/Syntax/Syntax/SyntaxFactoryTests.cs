@@ -41,13 +41,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(n.NamespaceKeyword.IsMissing);
             Assert.Equal(9, n.NamespaceKeyword.Width);
             Assert.False(n.OpenBraceToken.IsMissing);
-            Assert.Equal(SyntaxKind.OpenBraceToken, n.OpenBraceToken.Kind());
+            Assert.Equal(SyntaxKind.OpenBraceToken, n.OpenBraceToken.CSharpKind());
             Assert.Equal(1, n.OpenBraceToken.Width);
             Assert.Equal(0, n.Members.Count);
             Assert.False(n.CloseBraceToken.IsMissing);
-            Assert.Equal(SyntaxKind.CloseBraceToken, n.CloseBraceToken.Kind());
+            Assert.Equal(SyntaxKind.CloseBraceToken, n.CloseBraceToken.CSharpKind());
             Assert.Equal(1, n.CloseBraceToken.Width);
-            Assert.Equal(SyntaxKind.None, n.SemicolonToken.Kind());
+            Assert.Equal(SyntaxKind.None, n.SemicolonToken.CSharpKind());
         }
 
         [Fact]
@@ -58,16 +58,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, c.AttributeLists.Count);
             Assert.Equal(0, c.Modifiers.Count);
             Assert.Equal(5, c.Keyword.Width);
-            Assert.Equal(SyntaxKind.ClassKeyword, c.Keyword.Kind());
+            Assert.Equal(SyntaxKind.ClassKeyword, c.Keyword.CSharpKind());
             Assert.Equal(0, c.ConstraintClauses.Count);
             Assert.False(c.OpenBraceToken.IsMissing);
-            Assert.Equal(SyntaxKind.OpenBraceToken, c.OpenBraceToken.Kind());
+            Assert.Equal(SyntaxKind.OpenBraceToken, c.OpenBraceToken.CSharpKind());
             Assert.Equal(1, c.OpenBraceToken.Width);
             Assert.Equal(0, c.Members.Count);
             Assert.False(c.CloseBraceToken.IsMissing);
-            Assert.Equal(SyntaxKind.CloseBraceToken, c.CloseBraceToken.Kind());
+            Assert.Equal(SyntaxKind.CloseBraceToken, c.CloseBraceToken.CSharpKind());
             Assert.Equal(1, c.CloseBraceToken.Width);
-            Assert.Equal(SyntaxKind.None, c.SemicolonToken.Kind());
+            Assert.Equal(SyntaxKind.None, c.SemicolonToken.CSharpKind());
         }
 
         [WorkItem(528399, "DevDiv")]
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                 var token = SyntaxFactory.Token(SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker), kind, text, valueText, SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker));
 
-                Assert.Equal(kind, token.Kind());
+                Assert.Equal(kind, token.CSharpKind());
                 Assert.Equal(text, token.Text);
                 Assert.Equal(valueText, token.ValueText);
 

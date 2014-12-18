@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override void DefaultVisit(SyntaxNode node)
             {
-                SyntaxKind nodeKind = node.Kind();
+                SyntaxKind nodeKind = node.CSharpKind();
                 bool diagnose = node.SyntaxTree.ReportDocumentationCommentDiagnostics();
 
                 if (nodeKind == SyntaxKind.XmlCrefAttribute)

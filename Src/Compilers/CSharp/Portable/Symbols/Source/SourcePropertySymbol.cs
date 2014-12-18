@@ -719,7 +719,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxToken arglistToken;
             var parameters = ParameterHelpers.MakeParameters(binder, owner, parameterSyntaxOpt, false, out arglistToken, diagnostics);
 
-            if (arglistToken.Kind() != SyntaxKind.None)
+            if (arglistToken.CSharpKind() != SyntaxKind.None)
             {
                 diagnostics.Add(ErrorCode.ERR_IllegalVarArgs, arglistToken.GetLocation());
             }

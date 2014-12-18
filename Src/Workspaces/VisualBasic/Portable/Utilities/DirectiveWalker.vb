@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 Do
                     Dim poppedDirective = _ifStack.Pop()
                     condDirectives.Add(poppedDirective)
-                    If poppedDirective.Kind = SyntaxKind.IfDirectiveTrivia Then
+                    If poppedDirective.VBKind = SyntaxKind.IfDirectiveTrivia Then
                         Exit Do
                     End If
                 Loop Until _ifStack.IsEmpty()
@@ -88,9 +88,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
 
                 ' #If should be the first one in sorted order
                 Dim ifDirective = condDirectives.First()
-                Contract.Assert(ifDirective.Kind = SyntaxKind.IfDirectiveTrivia OrElse
-                            ifDirective.Kind = SyntaxKind.ElseIfDirectiveTrivia OrElse
-                            ifDirective.Kind = SyntaxKind.ElseDirectiveTrivia)
+                Contract.Assert(ifDirective.VBKind = SyntaxKind.IfDirectiveTrivia OrElse
+                            ifDirective.VBKind = SyntaxKind.ElseIfDirectiveTrivia OrElse
+                            ifDirective.VBKind = SyntaxKind.ElseDirectiveTrivia)
 
                 _startEndMap.Add(directive, ifDirective)
                 _startEndMap.Add(ifDirective, directive)

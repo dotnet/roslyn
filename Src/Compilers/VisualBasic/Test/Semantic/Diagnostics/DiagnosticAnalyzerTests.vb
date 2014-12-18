@@ -485,7 +485,7 @@ End Class
 
             Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
                 Dim location As Location = Nothing
-                Select Case context.Node.Kind
+                Select Case context.Node.VBKind
                     Case SyntaxKind.NamespaceBlock
                         location = DirectCast(context.Node, NamespaceBlockSyntax).NamespaceStatement.Name.GetLocation
                     Case SyntaxKind.ClassBlock

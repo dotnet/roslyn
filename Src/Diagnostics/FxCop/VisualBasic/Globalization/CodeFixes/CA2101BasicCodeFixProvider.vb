@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Globalization
 
             ' return the unchanged root if no fix is available
             Dim newRoot = root
-            Select Case nodeToFix.Kind()
+            Select Case nodeToFix.VBKind()
                 Case SyntaxKind.Attribute
                     ' could be either a <DllImport> Or <MarshalAs> attribute
                     Dim attribute = CType(nodeToFix, AttributeSyntax)

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             this BaseParameterListSyntax parameterList,
             SeparatedSyntaxList<ParameterSyntax> parameters)
         {
-            switch (parameterList.Kind())
+            switch (parameterList.CSharpKind())
             {
                 case SyntaxKind.BracketedParameterList:
                     return ((BracketedParameterListSyntax)parameterList).WithParameters(parameters);

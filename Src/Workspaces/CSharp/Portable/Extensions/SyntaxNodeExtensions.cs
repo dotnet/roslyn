@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            var csharpKind = node.Kind();
+            var csharpKind = node.CSharpKind();
             return csharpKind == kind1 || csharpKind == kind2;
         }
 
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            var csharpKind = node.Kind();
+            var csharpKind = node.CSharpKind();
             return csharpKind == kind1 || csharpKind == kind2 || csharpKind == kind3;
         }
 
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            var csharpKind = node.Kind();
+            var csharpKind = node.CSharpKind();
             return csharpKind == kind1 || csharpKind == kind2 || csharpKind == kind3 || csharpKind == kind4;
         }
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            var csharpKind = node.Kind();
+            var csharpKind = node.CSharpKind();
             return csharpKind == kind1 || csharpKind == kind2 || csharpKind == kind3 || csharpKind == kind4 || csharpKind == kind5;
         }
 
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            switch (memberDeclaration.Kind())
+            switch (memberDeclaration.CSharpKind())
             {
                 case SyntaxKind.MethodDeclaration:
                 case SyntaxKind.ConstructorDeclaration:
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static Matcher<SyntaxTrivia> Match(SyntaxKind kind, string description)
         {
-            return Matcher.Single<SyntaxTrivia>(t => t.Kind() == kind, description);
+            return Matcher.Single<SyntaxTrivia>(t => t.CSharpKind() == kind, description);
         }
 
         /// <summary>
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static IEnumerable<SyntaxTrivia> GetAllPrecedingTriviaToPreviousToken(this SyntaxToken token)
         {
             var prevToken = token.GetPreviousToken(includeSkipped: true);
-            if (prevToken.Kind() == SyntaxKind.None)
+            if (prevToken.CSharpKind() == SyntaxKind.None)
             {
                 return token.LeadingTrivia;
             }
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsBreakableConstruct(this SyntaxNode node)
         {
-            switch (node.Kind())
+            switch (node.CSharpKind())
             {
                 case SyntaxKind.DoStatement:
                 case SyntaxKind.WhileStatement:
@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsContinuableConstruct(this SyntaxNode node)
         {
-            switch (node.Kind())
+            switch (node.CSharpKind())
             {
                 case SyntaxKind.DoStatement:
                 case SyntaxKind.WhileStatement:
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsReturnableConstruct(this SyntaxNode node)
         {
-            switch (node.Kind())
+            switch (node.CSharpKind())
             {
                 case SyntaxKind.AnonymousMethodExpression:
                 case SyntaxKind.SimpleLambdaExpression:
@@ -525,7 +525,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             foreach (var node in nodes)
             {
                 var hasUnmatchedInteriorDirective = node.ContainsInterleavedDirective(cancellationToken);
-                var hasLeadingDirective = node.GetLeadingTrivia().Any(t => SyntaxFacts.IsPreprocessorDirective(t.Kind()));
+                var hasLeadingDirective = node.GetLeadingTrivia().Any(t => SyntaxFacts.IsPreprocessorDirective(t.CSharpKind()));
 
                 if (hasUnmatchedInteriorDirective)
                 {
@@ -647,7 +647,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             int ppIndex = -1;
             for (int i = leadingTrivia.Count - 1; i >= 0; i--)
             {
-                if (SyntaxFacts.IsPreprocessorDirective(leadingTrivia[i].Kind()))
+                if (SyntaxFacts.IsPreprocessorDirective(leadingTrivia[i].CSharpKind()))
                 {
                     ppIndex = i;
                     break;
@@ -682,12 +682,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsAnyAssignExpression(this SyntaxNode node)
         {
-            return SyntaxFacts.IsAssignmentExpression(node.Kind());
+            return SyntaxFacts.IsAssignmentExpression(node.CSharpKind());
         }
 
         public static bool IsCompoundAssignExpression(this SyntaxNode node)
         {
-            switch (node.Kind())
+            switch (node.CSharpKind())
             {
                 case SyntaxKind.AddAssignmentExpression:
                 case SyntaxKind.SubtractAssignmentExpression:
@@ -963,7 +963,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (member != null)
             {
-                switch (member.Kind())
+                switch (member.CSharpKind())
                 {
                     case SyntaxKind.EnumDeclaration:
                         return ((EnumDeclarationSyntax)member).Modifiers;
@@ -1008,7 +1008,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (member != null)
             {
-                switch (member.Kind())
+                switch (member.CSharpKind())
                 {
                     case SyntaxKind.EnumDeclaration:
                         return ((EnumDeclarationSyntax)member).WithModifiers(modifiers);

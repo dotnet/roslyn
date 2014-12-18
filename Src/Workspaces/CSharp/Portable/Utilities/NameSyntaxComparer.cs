@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
         private void DecomposeNameParts(NameSyntax name, List<SimpleNameSyntax> result)
         {
-            switch (name.Kind())
+            switch (name.CSharpKind())
             {
                 case SyntaxKind.QualifiedName:
                     var dottedName = (QualifiedNameSyntax)name;

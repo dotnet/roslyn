@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shadows Function FindTrivia(textPosition As Integer, Optional findInsideTrivia As Boolean = False) As SyntaxTrivia
             Dim tk = FindToken(textPosition, findInsideTrivia)
-            If tk.Kind = SyntaxKind.None Then
+            If tk.VBKind = SyntaxKind.None Then
                 Return Nothing  ' no tokens or trivia at this position
             End If
 

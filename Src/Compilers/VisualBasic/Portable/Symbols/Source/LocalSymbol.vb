@@ -445,7 +445,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                            type As TypeSymbol)
                 MyBase.New(containingSymbol, type)
 
-                Debug.Assert(identifierToken.Kind <> SyntaxKind.None)
+                Debug.Assert(identifierToken.VBKind <> SyntaxKind.None)
                 Debug.Assert(declarationKind <> LocalDeclarationKind.None)
                 Debug.Assert(binder IsNot Nothing)
 

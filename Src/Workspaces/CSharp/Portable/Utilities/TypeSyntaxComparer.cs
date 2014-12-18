@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             while (true)
             {
-                switch (type.Kind())
+                switch (type.CSharpKind())
                 {
                     case SyntaxKind.ArrayType:
                         type = ((ArrayTypeSyntax)type).ElementType;

@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return null;
             }
 
-            switch (node.Kind())
+            switch (node.CSharpKind())
             {
                 case SyntaxKind.MethodDeclaration:
                     var methodDeclaration = (MethodDeclarationSyntax)node;
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return null;
             }
 
-            switch (statement.Kind())
+            switch (statement.CSharpKind())
             {
                 case SyntaxKind.Block:
                     return CreateSpanForBlock((BlockSyntax)statement, position);
@@ -503,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         private static TextSpan? TryCreateSpanForVariableDeclaration(VariableDeclarationSyntax declaration, int position)
         {
-            switch (declaration.Parent.Kind())
+            switch (declaration.Parent.CSharpKind())
             {
                 case SyntaxKind.LocalDeclarationStatement:
                 case SyntaxKind.EventFieldDeclaration:
@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             var parent = expression.Parent;
-            switch (parent.Kind())
+            switch (parent.CSharpKind())
             {
                 case SyntaxKind.ArrowExpressionClause:
                     Debug.Assert(((ArrowExpressionClauseSyntax)parent).Expression == expression);

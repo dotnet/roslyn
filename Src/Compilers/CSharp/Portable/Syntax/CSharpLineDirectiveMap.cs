@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             SyntaxToken lineToken = directive.Line;
             if (!lineToken.IsMissing)
             {
-                switch (lineToken.Kind())
+                switch (lineToken.CSharpKind())
                 {
                     case SyntaxKind.HiddenKeyword:
                         state = PositionState.Hidden;
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                                 mappedLine = ((int)value) - 1;
                             }
 
-                            if (directive.File.Kind() == SyntaxKind.StringLiteralToken)
+                            if (directive.File.CSharpKind() == SyntaxKind.StringLiteralToken)
                             {
                                 mappedPathOpt = (string)directive.File.Value;
                             }

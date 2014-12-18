@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 members.Add(member);
             }
-            else if (members.LastOrDefault().Kind() == SyntaxKind.CommaToken)
+            else if (members.LastOrDefault().CSharpKind() == SyntaxKind.CommaToken)
             {
                 members.Add(member);
                 members.Add(SyntaxFactory.Token(SyntaxKind.CommaToken));
@@ -109,11 +109,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     if (lastMember != null)
                     {
                         var lastExpression = lastMember.EqualsValue.Value;
-                        if (lastExpression.Kind() == SyntaxKind.LeftShiftExpression &&
+                        if (lastExpression.CSharpKind() == SyntaxKind.LeftShiftExpression &&
                             IntegerUtilities.HasOneBitSet(value))
                         {
                             var binaryExpression = (BinaryExpressionSyntax)lastExpression;
-                            if (binaryExpression.Left.Kind() == SyntaxKind.NumericLiteralExpression)
+                            if (binaryExpression.Left.CSharpKind() == SyntaxKind.NumericLiteralExpression)
                             {
                                 var numericLiteral = (LiteralExpressionSyntax)binaryExpression.Left;
                                 if (numericLiteral.Token.ValueText == "1")
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                                 }
                             }
                         }
-                        else if (lastExpression.Kind() == SyntaxKind.NumericLiteralExpression)
+                        else if (lastExpression.CSharpKind() == SyntaxKind.NumericLiteralExpression)
                         {
                             var numericLiteral = (LiteralExpressionSyntax)lastExpression;
                             var numericToken = numericLiteral.Token;

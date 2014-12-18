@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 var trivia = triviaList[i];
 
-                if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
+                if (trivia.CSharpKind() == SyntaxKind.EndOfLineTrivia)
                 {
                     return i;
                 }

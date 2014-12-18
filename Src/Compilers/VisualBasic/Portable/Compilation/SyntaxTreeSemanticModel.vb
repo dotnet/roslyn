@@ -561,12 +561,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(isCrefAttribute OrElse attributeNode.Kind = SyntaxKind.XmlNameAttribute)
 
             Dim trivia As SyntaxTrivia = DirectCast(parent, DocumentationCommentTriviaSyntax).ParentTrivia
-            If trivia.Kind = SyntaxKind.None Then
+            If trivia.VBKind = SyntaxKind.None Then
                 Return Nothing
             End If
 
             Dim token As SyntaxToken = CType(trivia.Token, SyntaxToken)
-            If token.Kind = SyntaxKind.None Then
+            If token.VBKind = SyntaxKind.None Then
                 Return Nothing
             End If
 
@@ -1660,7 +1660,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     Dim localDeclSyntax = TryCast(parent.Parent, LocalDeclarationStatementSyntax)
                                     If localDeclSyntax IsNot Nothing Then
                                         For Each modifier In localDeclSyntax.Modifiers
-                                            Select Case modifier.Kind
+                                            Select Case modifier.VBKind
                                                 Case SyntaxKind.ConstKeyword
                                                     Return False
                                             End Select

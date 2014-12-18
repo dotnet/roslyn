@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             // We want to collect any labels and add them all at once for this scope
             foreach (var statement in node.Statements)
             {
-                if (statement.Kind() == SyntaxKind.LabeledStatement)
+                if (statement.CSharpKind() == SyntaxKind.LabeledStatement)
                 {
                     var declarationStatement = (LabeledStatementSyntax)statement;
                     tokens.Add(declarationStatement.Identifier);

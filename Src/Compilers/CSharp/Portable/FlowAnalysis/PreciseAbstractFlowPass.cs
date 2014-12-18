@@ -1633,7 +1633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     foreach (var boundSwitchLabel in section.BoundSwitchLabels)
                     {
                         var label = boundSwitchLabel.Label;
-                        hasDefaultLabel = hasDefaultLabel || label.IdentifierNodeOrToken.Kind() == SyntaxKind.DefaultSwitchLabel;
+                        hasDefaultLabel = hasDefaultLabel || label.IdentifierNodeOrToken.CSharpKind() == SyntaxKind.DefaultSwitchLabel;
                         SetState(breakState.Clone());
                         var simulatedGoto = new BoundGotoStatement(node.Syntax, label);
                         VisitGotoStatement(simulatedGoto);

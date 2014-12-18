@@ -46,7 +46,7 @@ namespace Roslyn.Diagnostics.Analyzers.CSharp
 
                 foreach (var expression in expressionsToAnalyze)
                 {
-                    switch (expression.Kind())
+                    switch (expression.CSharpKind())
                     {
                         case SyntaxKind.ArrayCreationExpression:
                             AnalyzeArrayCreationExpression((ArrayCreationExpressionSyntax)expression, context.ReportDiagnostic);
@@ -63,7 +63,7 @@ namespace Roslyn.Diagnostics.Analyzers.CSharp
 
             private bool ShouldAnalyzeExpression(SyntaxNode expression, SemanticModel semanticModel)
             {
-                switch (expression.Kind())
+                switch (expression.CSharpKind())
                 {
                     case SyntaxKind.ArrayCreationExpression:
                     case SyntaxKind.ImplicitArrayCreationExpression:
@@ -82,7 +82,7 @@ namespace Roslyn.Diagnostics.Analyzers.CSharp
                 {
                     // Check for explicit specification of empty or singleton array
                     var literalRankSpecifier = arrayType.RankSpecifiers[0].ChildNodes()
-                        .SingleOrDefault(n => n.Kind() == SyntaxKind.NumericLiteralExpression)
+                        .SingleOrDefault(n => n.CSharpKind() == SyntaxKind.NumericLiteralExpression)
                         as LiteralExpressionSyntax;
 
                     if (literalRankSpecifier != null)

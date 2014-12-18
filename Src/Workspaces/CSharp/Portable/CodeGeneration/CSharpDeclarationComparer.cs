@@ -63,11 +63,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public int Compare(SyntaxNode x, SyntaxNode y)
         {
-            if (x.Kind() != y.Kind())
+            if (x.CSharpKind() != y.CSharpKind())
             {
                 int xPrecedence, yPrecedence;
-                if (!kindPrecedenceMap.TryGetValue(x.Kind(), out xPrecedence) ||
-                    !kindPrecedenceMap.TryGetValue(y.Kind(), out yPrecedence))
+                if (!kindPrecedenceMap.TryGetValue(x.CSharpKind(), out xPrecedence) ||
+                    !kindPrecedenceMap.TryGetValue(y.CSharpKind(), out yPrecedence))
                 {
                     // The containing declaration is malformed and contains a node kind we did not expect.
                     // Ignore comparisons with those unexpected nodes and sort them to the end of the declaration.
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return xPrecedence < yPrecedence ? -1 : 1;
             }
 
-            switch (x.Kind())
+            switch (x.CSharpKind())
             {
                 case SyntaxKind.DelegateDeclaration:
                     return Compare((DelegateDeclarationSyntax)x, (DelegateDeclarationSyntax)y);
@@ -188,9 +188,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private static int Compare(ConversionOperatorDeclarationSyntax x, ConversionOperatorDeclarationSyntax y)
         {
             int result;
-            if (x.ImplicitOrExplicitKeyword.Kind() != y.ImplicitOrExplicitKeyword.Kind())
+            if (x.ImplicitOrExplicitKeyword.CSharpKind() != y.ImplicitOrExplicitKeyword.CSharpKind())
             {
-                return x.ImplicitOrExplicitKeyword.Kind() == SyntaxKind.ImplicitKeyword ? -1 : 1;
+                return x.ImplicitOrExplicitKeyword.CSharpKind() == SyntaxKind.ImplicitKeyword ? -1 : 1;
             }
 
             EqualParameterCount(x.ParameterList, y.ParameterList, out result);
@@ -263,14 +263,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 EqualAccessibility(x, x.Modifiers, y, y.Modifiers, out result) &&
                 EqualIdentifierName(x.Identifier, y.Identifier, out result))
             {
-                if (x.Kind() == SyntaxKind.ClassDeclaration)
+                if (x.CSharpKind() == SyntaxKind.ClassDeclaration)
                 {
                     EqualTypeParameterCount(
                         ((ClassDeclarationSyntax)x).TypeParameterList,
                         ((ClassDeclarationSyntax)y).TypeParameterList,
                         out result);
                 }
-                else if (x.Kind() == SyntaxKind.StructDeclaration)
+                else if (x.CSharpKind() == SyntaxKind.StructDeclaration)
                 {
                     EqualTypeParameterCount(
                         ((StructDeclarationSyntax)x).TypeParameterList,
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static bool ContainsToken(SyntaxTokenList list, SyntaxKind kind)
         {
-            return list.Contains(token => token.Kind() == kind);
+            return list.Contains(token => token.CSharpKind() == kind);
         }
 
         private enum Accessibility
@@ -358,12 +358,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             // the syntax tree and don't find a containing named type.
             for (var node = parent; node != null; node = node.Parent)
             {
-                if (node.Kind() == SyntaxKind.InterfaceDeclaration)
+                if (node.CSharpKind() == SyntaxKind.InterfaceDeclaration)
                 {
                     // All interface members are public
                     return (int)Accessibility.Public;
                 }
-                else if (node.Kind() == SyntaxKind.StructDeclaration || node.Kind() == SyntaxKind.ClassDeclaration)
+                else if (node.CSharpKind() == SyntaxKind.StructDeclaration || node.CSharpKind() == SyntaxKind.ClassDeclaration)
                 {
                     // Members and nested types default to private
                     return (int)Accessibility.Private;
@@ -423,8 +423,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             {
                 int xPrecedence = 0;
                 int yPrecedence = 0;
-                operatorPrecedenceMap.TryGetValue(x.Kind(), out xPrecedence);
-                operatorPrecedenceMap.TryGetValue(y.Kind(), out yPrecedence);
+                operatorPrecedenceMap.TryGetValue(x.CSharpKind(), out xPrecedence);
+                operatorPrecedenceMap.TryGetValue(y.CSharpKind(), out yPrecedence);
 
                 comparisonResult = xPrecedence - yPrecedence;
             }

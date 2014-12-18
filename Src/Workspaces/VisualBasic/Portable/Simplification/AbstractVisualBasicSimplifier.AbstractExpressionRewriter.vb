@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 simplifyFunc As Func(Of SyntaxToken, SemanticModel, OptionSet, CancellationToken, SyntaxToken)
             ) As SyntaxToken
 
-                If token.Kind = SyntaxKind.None Then
+                If token.VBKind = SyntaxKind.None Then
                     Return newToken
                 End If
 

@@ -2089,7 +2089,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function AnalyzerForLanguage(analyzers As ImmutableArray(Of DiagnosticAnalyzer), options As AnalyzerOptions, cancellationToken As CancellationToken) As AnalyzerDriver
-            Dim getKind As Func(Of SyntaxNode, SyntaxKind) = Function(node As SyntaxNode) node.Kind
+            Dim getKind As Func(Of SyntaxNode, SyntaxKind) = Function(node As SyntaxNode) node.VBKind
             Return New AnalyzerDriver(Of SyntaxKind)(analyzers, getKind, options, cancellationToken)
         End Function
 

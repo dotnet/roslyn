@@ -1887,32 +1887,32 @@ public class C { } // end").Members[0];
 
             var xTypedT = g.WithType(declX, g.IdentifierName("T"));
             Assert.Equal(DeclarationKind.Field, g.GetDeclarationKind(xTypedT));
-            Assert.Equal(SyntaxKind.FieldDeclaration, xTypedT.Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, xTypedT.CSharpKind());
             Assert.Equal("T", g.GetType(xTypedT).ToString());
 
             var xNamedQ = g.WithName(declX, "Q");
             Assert.Equal(DeclarationKind.Field, g.GetDeclarationKind(xNamedQ));
-            Assert.Equal(SyntaxKind.FieldDeclaration, xNamedQ.Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, xNamedQ.CSharpKind());
             Assert.Equal("Q", g.GetName(xNamedQ).ToString());
 
             var xInitialized = g.WithExpression(declX, g.IdentifierName("e"));
             Assert.Equal(DeclarationKind.Field, g.GetDeclarationKind(xInitialized));
-            Assert.Equal(SyntaxKind.FieldDeclaration, xInitialized.Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, xInitialized.CSharpKind());
             Assert.Equal("e", g.GetExpression(xInitialized).ToString());
 
             var xPrivate = g.WithAccessibility(declX, Accessibility.Private);
             Assert.Equal(DeclarationKind.Field, g.GetDeclarationKind(xPrivate));
-            Assert.Equal(SyntaxKind.FieldDeclaration, xPrivate.Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, xPrivate.CSharpKind());
             Assert.Equal(Accessibility.Private, g.GetAccessibility(xPrivate));
 
             var xReadOnly = g.WithModifiers(declX, DeclarationModifiers.ReadOnly);
             Assert.Equal(DeclarationKind.Field, g.GetDeclarationKind(xReadOnly));
-            Assert.Equal(SyntaxKind.FieldDeclaration, xReadOnly.Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, xReadOnly.CSharpKind());
             Assert.Equal(DeclarationModifiers.ReadOnly, g.GetModifiers(xReadOnly));
 
             var xAttributed = g.AddAttributes(declX, g.Attribute("A"));
             Assert.Equal(DeclarationKind.Field, g.GetDeclarationKind(xAttributed));
-            Assert.Equal(SyntaxKind.FieldDeclaration, xAttributed.Kind());
+            Assert.Equal(SyntaxKind.FieldDeclaration, xAttributed.CSharpKind());
             Assert.Equal(1, g.GetAttributes(xAttributed).Count);
             Assert.Equal("[A]", g.GetAttributes(xAttributed)[0].ToString());
 
@@ -2042,12 +2042,12 @@ public class C
 
             var xNamedQ = g.WithName(attrX, "Q");
             Assert.Equal(DeclarationKind.Attribute, g.GetDeclarationKind(xNamedQ));
-            Assert.Equal(SyntaxKind.AttributeList, xNamedQ.Kind());
+            Assert.Equal(SyntaxKind.AttributeList, xNamedQ.CSharpKind());
             Assert.Equal("[Q]", xNamedQ.ToString());
 
             var xWithArg = g.AddAttributeArguments(attrX, new[] { g.AttributeArgument(g.IdentifierName("e")) });
             Assert.Equal(DeclarationKind.Attribute, g.GetDeclarationKind(xWithArg));
-            Assert.Equal(SyntaxKind.AttributeList, xWithArg.Kind());
+            Assert.Equal(SyntaxKind.AttributeList, xWithArg.CSharpKind());
             Assert.Equal("[X(e)]", xWithArg.ToString());
 
             // Inserting new attributes
@@ -2193,12 +2193,12 @@ public class C
 
             var xNamedQ = g.WithName(attrX, "Q");
             Assert.Equal(DeclarationKind.Attribute, g.GetDeclarationKind(xNamedQ));
-            Assert.Equal(SyntaxKind.AttributeList, xNamedQ.Kind());
+            Assert.Equal(SyntaxKind.AttributeList, xNamedQ.CSharpKind());
             Assert.Equal("[Q]", xNamedQ.ToString());
 
             var xWithArg = g.AddAttributeArguments(attrX, new[] { g.AttributeArgument(g.IdentifierName("e")) });
             Assert.Equal(DeclarationKind.Attribute, g.GetDeclarationKind(xWithArg));
-            Assert.Equal(SyntaxKind.AttributeList, xWithArg.Kind());
+            Assert.Equal(SyntaxKind.AttributeList, xWithArg.CSharpKind());
             Assert.Equal("[X(e)]", xWithArg.ToString());
 
             // Inserting new attributes
@@ -2276,38 +2276,38 @@ public void M()
 
             var attrX = attrs[0];
             Assert.Equal("X", g.GetName(attrX));
-            Assert.Equal(SyntaxKind.AttributeList, attrX.Kind());
+            Assert.Equal(SyntaxKind.AttributeList, attrX.CSharpKind());
 
             var attrY = attrs[1];
             Assert.Equal("Y", g.GetName(attrY));
-            Assert.Equal(SyntaxKind.Attribute, attrY.Kind());
+            Assert.Equal(SyntaxKind.Attribute, attrY.CSharpKind());
 
             var attrZ = attrs[2];
             Assert.Equal("Z", g.GetName(attrZ));
-            Assert.Equal(SyntaxKind.Attribute, attrZ.Kind());
+            Assert.Equal(SyntaxKind.Attribute, attrZ.CSharpKind());
 
             var attrP = attrs[3];
             Assert.Equal("P", g.GetName(attrP));
-            Assert.Equal(SyntaxKind.AttributeList, attrP.Kind());
+            Assert.Equal(SyntaxKind.AttributeList, attrP.CSharpKind());
 
             var rattrs = g.GetReturnAttributes(declM);
             Assert.Equal(4, rattrs.Count);
 
             var attrA = rattrs[0];
             Assert.Equal("A", g.GetName(attrA));
-            Assert.Equal(SyntaxKind.AttributeList, attrA.Kind());
+            Assert.Equal(SyntaxKind.AttributeList, attrA.CSharpKind());
 
             var attrB = rattrs[1];
             Assert.Equal("B", g.GetName(attrB));
-            Assert.Equal(SyntaxKind.Attribute, attrB.Kind());
+            Assert.Equal(SyntaxKind.Attribute, attrB.CSharpKind());
 
             var attrC = rattrs[2];
             Assert.Equal("C", g.GetName(attrC));
-            Assert.Equal(SyntaxKind.Attribute, attrC.Kind());
+            Assert.Equal(SyntaxKind.Attribute, attrC.CSharpKind());
 
             var attrD = rattrs[3];
             Assert.Equal("D", g.GetName(attrD));
-            Assert.Equal(SyntaxKind.Attribute, attrD.Kind());
+            Assert.Equal(SyntaxKind.Attribute, attrD.CSharpKind());
 
             // inserting
             VerifySyntax<MethodDeclarationSyntax>(

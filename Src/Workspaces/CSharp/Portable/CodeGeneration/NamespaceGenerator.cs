@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static SyntaxNode RemoveAllMembers(SyntaxNode declaration)
         {
-            switch (declaration.Kind())
+            switch (declaration.CSharpKind())
             {
                 case SyntaxKind.CompilationUnit:
                     return ((CompilationUnitSyntax)declaration).WithMembers(default(SyntaxList<MemberDeclarationSyntax>));

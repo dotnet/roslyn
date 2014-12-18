@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Globalization
 
             public void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
-                var kind = context.Node.Kind();
+                var kind = context.Node.CSharpKind();
                 if (kind == SyntaxKind.InvocationExpression)
                 {
                     AnalyzeInvocationExpression((InvocationExpressionSyntax)context.Node, context.SemanticModel, context.ReportDiagnostic);
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Globalization
 
             private void AnalyzeInvocationExpression(InvocationExpressionSyntax node, SemanticModel model, Action<Diagnostic> reportDiagnostic)
             {
-                if (node.Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
+                if (node.Expression.CSharpKind() == SyntaxKind.SimpleMemberAccessExpression)
                 {
                     var memberAccess = (MemberAccessExpressionSyntax)node.Expression;
                     if (memberAccess.Name != null && IsEqualsOrCompare(memberAccess.Name.Identifier.ValueText))

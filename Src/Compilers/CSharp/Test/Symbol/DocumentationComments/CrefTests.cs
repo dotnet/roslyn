@@ -4499,7 +4499,7 @@ class C<T, op_Explicit, op_Division>
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var crefSyntax = (NameMemberCrefSyntax)GetCrefSyntaxes(compilation).Single();
 
-            Assert.Equal(SyntaxKind.EndOfFileToken, crefSyntax.Ancestors().First(n => n.IsStructuredTrivia).ParentTrivia.Token.Kind());
+            Assert.Equal(SyntaxKind.EndOfFileToken, crefSyntax.Ancestors().First(n => n.IsStructuredTrivia).ParentTrivia.Token.CSharpKind());
             Assert.DoesNotThrow(() => model.GetSymbolInfo(crefSyntax));
         }
 

@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var syntaxRef = decl.SyntaxReference;
                 var typeDecl = syntaxRef.GetSyntax();
                 SyntaxList<AttributeListSyntax> attributesSyntaxList;
-                switch (typeDecl.Kind())
+                switch (typeDecl.CSharpKind())
                 {
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.StructDeclaration:
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
 
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(typeDecl.Kind());
+                        throw ExceptionUtilities.UnexpectedValue(typeDecl.CSharpKind());
                 }
 
                 attributeSyntaxListBuilder.Add(attributesSyntaxList);

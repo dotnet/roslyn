@@ -303,7 +303,7 @@ lAgain:
             End If
 
             Dim type As SpecialType
-            Select Case node.Keyword.Kind
+            Select Case node.Keyword.VBKind
                 Case SyntaxKind.ObjectKeyword
                     type = SpecialType.System_Object
                 Case SyntaxKind.BooleanKeyword
@@ -337,7 +337,7 @@ lAgain:
                 Case SyntaxKind.DoubleKeyword
                     type = SpecialType.System_Double
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(node.Keyword.Kind)
+                    Throw ExceptionUtilities.UnexpectedValue(node.Keyword.VBKind)
             End Select
 
             ' We discard diagnostics in case 

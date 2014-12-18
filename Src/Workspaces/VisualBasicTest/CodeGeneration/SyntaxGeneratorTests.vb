@@ -2254,9 +2254,9 @@ End Class</x>.Value)
             Dim declY = g.GetDeclaration(symbolY.DeclaringSyntaxReferences.Select(Function(x) x.GetSyntax()).First())
             Dim declZ = g.GetDeclaration(symbolZ.DeclaringSyntaxReferences.Select(Function(x) x.GetSyntax()).First())
 
-            Assert.Equal(SyntaxKind.ModifiedIdentifier, declX.Kind)
-            Assert.Equal(SyntaxKind.ModifiedIdentifier, declY.Kind)
-            Assert.Equal(SyntaxKind.ModifiedIdentifier, declZ.Kind)
+            Assert.Equal(SyntaxKind.ModifiedIdentifier, declX.VBKind)
+            Assert.Equal(SyntaxKind.ModifiedIdentifier, declY.VBKind)
+            Assert.Equal(SyntaxKind.ModifiedIdentifier, declZ.VBKind)
 
             Assert.Equal(DeclarationKind.Field, g.GetDeclarationKind(declX))
             Assert.Equal(DeclarationKind.Field, g.GetDeclarationKind(declY))
@@ -2282,32 +2282,32 @@ End Class</x>.Value)
 
             Dim xTypedT = g.WithType(declX, g.IdentifierName("T"))
             Assert.Equal(DeclarationKind.Field, g.GetDeclarationKind(xTypedT))
-            Assert.Equal(SyntaxKind.FieldDeclaration, xTypedT.Kind)
+            Assert.Equal(SyntaxKind.FieldDeclaration, xTypedT.VBKind)
             Assert.Equal("T", g.GetType(xTypedT).ToString())
 
             Dim xNamedQ = g.WithName(declX, "Q")
             Assert.Equal(DeclarationKind.Field, g.GetDeclarationKind(xNamedQ))
-            Assert.Equal(SyntaxKind.FieldDeclaration, xNamedQ.Kind)
+            Assert.Equal(SyntaxKind.FieldDeclaration, xNamedQ.VBKind)
             Assert.Equal("Q", g.GetName(xNamedQ).ToString())
 
             Dim xInitialized = g.WithExpression(declX, g.IdentifierName("e"))
             Assert.Equal(DeclarationKind.Field, g.GetDeclarationKind(xInitialized))
-            Assert.Equal(SyntaxKind.FieldDeclaration, xInitialized.Kind)
+            Assert.Equal(SyntaxKind.FieldDeclaration, xInitialized.VBKind)
             Assert.Equal("e", g.GetExpression(xInitialized).ToString())
 
             Dim xPrivate = g.WithAccessibility(declX, Accessibility.Private)
             Assert.Equal(DeclarationKind.Field, g.GetDeclarationKind(xPrivate))
-            Assert.Equal(SyntaxKind.FieldDeclaration, xPrivate.Kind)
+            Assert.Equal(SyntaxKind.FieldDeclaration, xPrivate.VBKind)
             Assert.Equal(Accessibility.Private, g.GetAccessibility(xPrivate))
 
             Dim xReadOnly = g.WithModifiers(declX, DeclarationModifiers.ReadOnly)
             Assert.Equal(DeclarationKind.Field, g.GetDeclarationKind(xReadOnly))
-            Assert.Equal(SyntaxKind.FieldDeclaration, xReadOnly.Kind)
+            Assert.Equal(SyntaxKind.FieldDeclaration, xReadOnly.VBKind)
             Assert.Equal(DeclarationModifiers.ReadOnly, g.GetModifiers(xReadOnly))
 
             Dim xAttributed = g.AddAttributes(declX, g.Attribute("A"))
             Assert.Equal(DeclarationKind.Field, g.GetDeclarationKind(xAttributed))
-            Assert.Equal(SyntaxKind.FieldDeclaration, xAttributed.Kind)
+            Assert.Equal(SyntaxKind.FieldDeclaration, xAttributed.VBKind)
             Assert.Equal(1, g.GetAttributes(xAttributed).Count)
             Assert.Equal("<A>", g.GetAttributes(xAttributed)(0).ToString())
 
@@ -2502,21 +2502,21 @@ End Class</x>.Value)
             Dim declX = attrs(0)
             Dim declY = attrs(1)
             Dim declZ = attrs(2)
-            Assert.Equal(SyntaxKind.Attribute, declX.Kind)
-            Assert.Equal(SyntaxKind.Attribute, declY.Kind)
-            Assert.Equal(SyntaxKind.Attribute, declZ.Kind)
+            Assert.Equal(SyntaxKind.Attribute, declX.VBKind)
+            Assert.Equal(SyntaxKind.Attribute, declY.VBKind)
+            Assert.Equal(SyntaxKind.Attribute, declZ.VBKind)
             Assert.Equal("X", g.GetName(declX))
             Assert.Equal("Y", g.GetName(declY))
             Assert.Equal("Z", g.GetName(declZ))
 
             Dim xNamedQ = g.WithName(declX, "Q")
             Assert.Equal(DeclarationKind.Attribute, g.GetDeclarationKind(xNamedQ))
-            Assert.Equal(SyntaxKind.AttributeList, xNamedQ.Kind)
+            Assert.Equal(SyntaxKind.AttributeList, xNamedQ.VBKind)
             Assert.Equal("<Q>", xNamedQ.ToString())
 
             Dim xWithArg = g.AddAttributeArguments(declX, {g.AttributeArgument(g.IdentifierName("e"))})
             Assert.Equal(DeclarationKind.Attribute, g.GetDeclarationKind(xWithArg))
-            Assert.Equal(SyntaxKind.AttributeList, xWithArg.Kind)
+            Assert.Equal(SyntaxKind.AttributeList, xWithArg.VBKind)
             Assert.Equal("<X(e)>", xWithArg.ToString())
 
             ' inserting
@@ -2628,7 +2628,7 @@ Imports X, Y, Z
 
             Dim declCU = comp.SyntaxTrees.First().GetRoot()
 
-            Assert.Equal(SyntaxKind.CompilationUnit, declCU.Kind)
+            Assert.Equal(SyntaxKind.CompilationUnit, declCU.VBKind)
             Dim imps = g.GetNamespaceImports(declCU)
             Assert.Equal(3, imps.Count)
             Dim declX = imps(0)
@@ -2637,7 +2637,7 @@ Imports X, Y, Z
 
             Dim xRenamedQ = g.WithName(declX, "Q")
             Assert.Equal(DeclarationKind.NamespaceImport, g.GetDeclarationKind(xRenamedQ))
-            Assert.Equal(SyntaxKind.ImportsStatement, xRenamedQ.Kind)
+            Assert.Equal(SyntaxKind.ImportsStatement, xRenamedQ.VBKind)
             Assert.Equal("Imports Q", xRenamedQ.ToString())
 
             ' inserting

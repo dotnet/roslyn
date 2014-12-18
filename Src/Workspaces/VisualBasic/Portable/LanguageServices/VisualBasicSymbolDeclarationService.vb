@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim begin As SyntaxNode = Nothing
 
             If parent IsNot Nothing Then
-                Select Case parent.Kind
+                Select Case parent.VBKind
                     Case SyntaxKind.NamespaceBlock
                         begin = DirectCast(parent, NamespaceBlockSyntax).NamespaceStatement
 

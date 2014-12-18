@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasSignature = true;
                     var simple = (SimpleLambdaExpressionSyntax)syntax;
                     namesBuilder.Add(simple.Parameter.Identifier.ValueText);
-                    isAsync = (simple.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword);
+                    isAsync = (simple.AsyncKeyword.CSharpKind() == SyntaxKind.AsyncKeyword);
                     break;
                 case SyntaxKind.ParenthesizedLambdaExpression:
                     // (T x, U y) => ...
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasSignature = true;
                     var paren = (ParenthesizedLambdaExpressionSyntax)syntax;
                     parameterSyntaxList = paren.ParameterList.Parameters;
-                    isAsync = (paren.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword);
+                    isAsync = (paren.AsyncKeyword.CSharpKind() == SyntaxKind.AsyncKeyword);
                     break;
                 case SyntaxKind.AnonymousMethodExpression:
                     // delegate (int x) { }
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         parameterSyntaxList = anon.ParameterList.Parameters;
                     }
-                    isAsync = (anon.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword);
+                    isAsync = (anon.AsyncKeyword.CSharpKind() == SyntaxKind.AsyncKeyword);
                     break;
             }
 
@@ -113,19 +113,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         type = BindType(typeSyntax, diagnostics);
                         foreach (var modifier in p.Modifiers)
                         {
-                            if (modifier.Kind() == SyntaxKind.RefKeyword)
+                            if (modifier.CSharpKind() == SyntaxKind.RefKeyword)
                             {
                                 refKind = RefKind.Ref;
                                 allValue = false;
                                 break;
                             }
-                            else if (modifier.Kind() == SyntaxKind.OutKeyword)
+                            else if (modifier.CSharpKind() == SyntaxKind.OutKeyword)
                             {
                                 refKind = RefKind.Out;
                                 allValue = false;
                                 break;
                             }
-                            else if (modifier.Kind() == SyntaxKind.ParamsKeyword)
+                            else if (modifier.CSharpKind() == SyntaxKind.ParamsKeyword)
                             {
                                 // This was a parse error in the native compiler; 
                                 // it is a semantic analysis error in Roslyn. See comments to

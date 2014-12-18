@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var nodes = expression.ChildNodes().ToList();
             Assert.Equal(2, nodes.Count);
-            Assert.Equal(SyntaxKind.IdentifierName, nodes[0].Kind());
-            Assert.Equal(SyntaxKind.ArgumentList, nodes[1].Kind());
+            Assert.Equal(SyntaxKind.IdentifierName, nodes[0].CSharpKind());
+            Assert.Equal(SyntaxKind.ArgumentList, nodes[1].CSharpKind());
         }
 
         [Fact]
@@ -52,13 +52,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var nodes = e.Ancestors().ToList();
             Assert.Equal(7, nodes.Count);
-            Assert.Equal(SyntaxKind.DivideExpression, nodes[0].Kind());
-            Assert.Equal(SyntaxKind.ParenthesizedExpression, nodes[1].Kind());
-            Assert.Equal(SyntaxKind.MultiplyExpression, nodes[2].Kind());
-            Assert.Equal(SyntaxKind.ParenthesizedExpression, nodes[3].Kind());
-            Assert.Equal(SyntaxKind.SubtractExpression, nodes[4].Kind());
-            Assert.Equal(SyntaxKind.ParenthesizedExpression, nodes[5].Kind());
-            Assert.Equal(SyntaxKind.AddExpression, nodes[6].Kind());
+            Assert.Equal(SyntaxKind.DivideExpression, nodes[0].CSharpKind());
+            Assert.Equal(SyntaxKind.ParenthesizedExpression, nodes[1].CSharpKind());
+            Assert.Equal(SyntaxKind.MultiplyExpression, nodes[2].CSharpKind());
+            Assert.Equal(SyntaxKind.ParenthesizedExpression, nodes[3].CSharpKind());
+            Assert.Equal(SyntaxKind.SubtractExpression, nodes[4].CSharpKind());
+            Assert.Equal(SyntaxKind.ParenthesizedExpression, nodes[5].CSharpKind());
+            Assert.Equal(SyntaxKind.AddExpression, nodes[6].CSharpKind());
         }
 
         [Fact]
@@ -70,14 +70,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var nodes = e.AncestorsAndSelf().ToList();
             Assert.Equal(8, nodes.Count);
-            Assert.Equal(SyntaxKind.IdentifierName, nodes[0].Kind());
-            Assert.Equal(SyntaxKind.DivideExpression, nodes[1].Kind());
-            Assert.Equal(SyntaxKind.ParenthesizedExpression, nodes[2].Kind());
-            Assert.Equal(SyntaxKind.MultiplyExpression, nodes[3].Kind());
-            Assert.Equal(SyntaxKind.ParenthesizedExpression, nodes[4].Kind());
-            Assert.Equal(SyntaxKind.SubtractExpression, nodes[5].Kind());
-            Assert.Equal(SyntaxKind.ParenthesizedExpression, nodes[6].Kind());
-            Assert.Equal(SyntaxKind.AddExpression, nodes[7].Kind());
+            Assert.Equal(SyntaxKind.IdentifierName, nodes[0].CSharpKind());
+            Assert.Equal(SyntaxKind.DivideExpression, nodes[1].CSharpKind());
+            Assert.Equal(SyntaxKind.ParenthesizedExpression, nodes[2].CSharpKind());
+            Assert.Equal(SyntaxKind.MultiplyExpression, nodes[3].CSharpKind());
+            Assert.Equal(SyntaxKind.ParenthesizedExpression, nodes[4].CSharpKind());
+            Assert.Equal(SyntaxKind.SubtractExpression, nodes[5].CSharpKind());
+            Assert.Equal(SyntaxKind.ParenthesizedExpression, nodes[6].CSharpKind());
+            Assert.Equal(SyntaxKind.AddExpression, nodes[7].CSharpKind());
         }
 
         [Fact]
@@ -100,42 +100,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var nodes = statement.DescendantNodes().ToList();
             Assert.Equal(1, nodes.Count);
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[0].Kind());
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[0].CSharpKind());
 
             nodes = statement.DescendantNodes(descendIntoTrivia: true).ToList();
             Assert.Equal(3, nodes.Count);
-            Assert.Equal(SyntaxKind.IfDirectiveTrivia, nodes[0].Kind());
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[1].Kind());
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[2].Kind());
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, nodes[0].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[1].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[2].CSharpKind());
 
             nodes = statement.DescendantNodes(n => n is StatementSyntax).ToList();
             Assert.Equal(1, nodes.Count);
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[0].Kind());
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[0].CSharpKind());
 
             nodes = statement.DescendantNodes(n => n is StatementSyntax, descendIntoTrivia: true).ToList();
             Assert.Equal(2, nodes.Count);
-            Assert.Equal(SyntaxKind.IfDirectiveTrivia, nodes[0].Kind());
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[1].Kind());
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, nodes[0].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[1].CSharpKind());
 
             // all over again with spans
             nodes = statement.DescendantNodes(statement.FullSpan).ToList();
             Assert.Equal(1, nodes.Count);
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[0].Kind());
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[0].CSharpKind());
 
             nodes = statement.DescendantNodes(statement.FullSpan, descendIntoTrivia: true).ToList();
             Assert.Equal(3, nodes.Count);
-            Assert.Equal(SyntaxKind.IfDirectiveTrivia, nodes[0].Kind());
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[1].Kind());
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[2].Kind());
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, nodes[0].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[1].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[2].CSharpKind());
 
             nodes = statement.DescendantNodes(statement.FullSpan, n => n is StatementSyntax).ToList();
             Assert.Equal(1, nodes.Count);
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[0].Kind());
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[0].CSharpKind());
 
             nodes = statement.DescendantNodes(statement.FullSpan, n => n is StatementSyntax, descendIntoTrivia: true).ToList();
             Assert.Equal(2, nodes.Count);
-            Assert.Equal(SyntaxKind.IfDirectiveTrivia, nodes[0].Kind());
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[1].Kind());
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, nodes[0].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[1].CSharpKind());
         }
 
         [Fact]
@@ -146,50 +146,50 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var nodes = statement.DescendantNodesAndSelf().ToList();
             Assert.Equal(2, nodes.Count);
-            Assert.Equal(SyntaxKind.ReturnStatement, nodes[0].Kind());
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[1].Kind());
+            Assert.Equal(SyntaxKind.ReturnStatement, nodes[0].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[1].CSharpKind());
 
             nodes = statement.DescendantNodesAndSelf(descendIntoTrivia: true).ToList();
             Assert.Equal(4, nodes.Count);
-            Assert.Equal(SyntaxKind.ReturnStatement, nodes[0].Kind());
-            Assert.Equal(SyntaxKind.IfDirectiveTrivia, nodes[1].Kind());
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[2].Kind());
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[3].Kind());
+            Assert.Equal(SyntaxKind.ReturnStatement, nodes[0].CSharpKind());
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, nodes[1].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[2].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[3].CSharpKind());
 
             nodes = statement.DescendantNodesAndSelf(n => n is StatementSyntax).ToList();
             Assert.Equal(2, nodes.Count);
-            Assert.Equal(SyntaxKind.ReturnStatement, nodes[0].Kind());
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[1].Kind());
+            Assert.Equal(SyntaxKind.ReturnStatement, nodes[0].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[1].CSharpKind());
 
             nodes = statement.DescendantNodesAndSelf(n => n is StatementSyntax, descendIntoTrivia: true).ToList();
             Assert.Equal(3, nodes.Count);
-            Assert.Equal(SyntaxKind.ReturnStatement, nodes[0].Kind());
-            Assert.Equal(SyntaxKind.IfDirectiveTrivia, nodes[1].Kind());
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[2].Kind());
+            Assert.Equal(SyntaxKind.ReturnStatement, nodes[0].CSharpKind());
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, nodes[1].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[2].CSharpKind());
 
             // all over again with spans
             nodes = statement.DescendantNodesAndSelf(statement.FullSpan).ToList();
             Assert.Equal(2, nodes.Count);
-            Assert.Equal(SyntaxKind.ReturnStatement, nodes[0].Kind());
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[1].Kind());
+            Assert.Equal(SyntaxKind.ReturnStatement, nodes[0].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[1].CSharpKind());
 
             nodes = statement.DescendantNodesAndSelf(statement.FullSpan, descendIntoTrivia: true).ToList();
             Assert.Equal(4, nodes.Count);
-            Assert.Equal(SyntaxKind.ReturnStatement, nodes[0].Kind());
-            Assert.Equal(SyntaxKind.IfDirectiveTrivia, nodes[1].Kind());
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[2].Kind());
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[3].Kind());
+            Assert.Equal(SyntaxKind.ReturnStatement, nodes[0].CSharpKind());
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, nodes[1].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[2].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[3].CSharpKind());
 
             nodes = statement.DescendantNodesAndSelf(statement.FullSpan, n => n is StatementSyntax).ToList();
             Assert.Equal(2, nodes.Count);
-            Assert.Equal(SyntaxKind.ReturnStatement, nodes[0].Kind());
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[1].Kind());
+            Assert.Equal(SyntaxKind.ReturnStatement, nodes[0].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[1].CSharpKind());
 
             nodes = statement.DescendantNodesAndSelf(statement.FullSpan, n => n is StatementSyntax, descendIntoTrivia: true).ToList();
             Assert.Equal(3, nodes.Count);
-            Assert.Equal(SyntaxKind.ReturnStatement, nodes[0].Kind());
-            Assert.Equal(SyntaxKind.IfDirectiveTrivia, nodes[1].Kind());
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[2].Kind());
+            Assert.Equal(SyntaxKind.ReturnStatement, nodes[0].CSharpKind());
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, nodes[1].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodes[2].CSharpKind());
         }
 
         [Fact]
@@ -200,31 +200,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var nodesAndTokens = statement.DescendantNodesAndTokens().ToList();
             Assert.Equal(4, nodesAndTokens.Count);
-            Assert.Equal(SyntaxKind.ReturnKeyword, nodesAndTokens[0].Kind());
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodesAndTokens[1].Kind());
-            Assert.Equal(SyntaxKind.TrueKeyword, nodesAndTokens[2].Kind());
-            Assert.Equal(SyntaxKind.SemicolonToken, nodesAndTokens[3].Kind());
+            Assert.Equal(SyntaxKind.ReturnKeyword, nodesAndTokens[0].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodesAndTokens[1].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueKeyword, nodesAndTokens[2].CSharpKind());
+            Assert.Equal(SyntaxKind.SemicolonToken, nodesAndTokens[3].CSharpKind());
 
             nodesAndTokens = statement.DescendantNodesAndTokens(descendIntoTrivia: true).ToList();
             Assert.Equal(10, nodesAndTokens.Count);
-            Assert.Equal(SyntaxKind.IfDirectiveTrivia, nodesAndTokens[0].Kind());
-            Assert.Equal(SyntaxKind.HashToken, nodesAndTokens[1].Kind());
-            Assert.Equal(SyntaxKind.IfKeyword, nodesAndTokens[2].Kind());
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodesAndTokens[3].Kind());
-            Assert.Equal(SyntaxKind.TrueKeyword, nodesAndTokens[4].Kind());
-            Assert.Equal(SyntaxKind.EndOfDirectiveToken, nodesAndTokens[5].Kind());
-            Assert.Equal(SyntaxKind.ReturnKeyword, nodesAndTokens[6].Kind());
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodesAndTokens[7].Kind());
-            Assert.Equal(SyntaxKind.TrueKeyword, nodesAndTokens[8].Kind());
-            Assert.Equal(SyntaxKind.SemicolonToken, nodesAndTokens[9].Kind());
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, nodesAndTokens[0].CSharpKind());
+            Assert.Equal(SyntaxKind.HashToken, nodesAndTokens[1].CSharpKind());
+            Assert.Equal(SyntaxKind.IfKeyword, nodesAndTokens[2].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodesAndTokens[3].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueKeyword, nodesAndTokens[4].CSharpKind());
+            Assert.Equal(SyntaxKind.EndOfDirectiveToken, nodesAndTokens[5].CSharpKind());
+            Assert.Equal(SyntaxKind.ReturnKeyword, nodesAndTokens[6].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodesAndTokens[7].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueKeyword, nodesAndTokens[8].CSharpKind());
+            Assert.Equal(SyntaxKind.SemicolonToken, nodesAndTokens[9].CSharpKind());
 
             // with span
             nodesAndTokens = statement.DescendantNodesAndTokens(statement.FullSpan).ToList();
             Assert.Equal(4, nodesAndTokens.Count);
-            Assert.Equal(SyntaxKind.ReturnKeyword, nodesAndTokens[0].Kind());
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodesAndTokens[1].Kind());
-            Assert.Equal(SyntaxKind.TrueKeyword, nodesAndTokens[2].Kind());
-            Assert.Equal(SyntaxKind.SemicolonToken, nodesAndTokens[3].Kind());
+            Assert.Equal(SyntaxKind.ReturnKeyword, nodesAndTokens[0].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodesAndTokens[1].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueKeyword, nodesAndTokens[2].CSharpKind());
+            Assert.Equal(SyntaxKind.SemicolonToken, nodesAndTokens[3].CSharpKind());
         }
 
         [Fact]
@@ -235,34 +235,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var nodesAndTokens = statement.DescendantNodesAndTokensAndSelf().ToList();
             Assert.Equal(5, nodesAndTokens.Count);
-            Assert.Equal(SyntaxKind.ReturnStatement, nodesAndTokens[0].Kind());
-            Assert.Equal(SyntaxKind.ReturnKeyword, nodesAndTokens[1].Kind());
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodesAndTokens[2].Kind());
-            Assert.Equal(SyntaxKind.TrueKeyword, nodesAndTokens[3].Kind());
-            Assert.Equal(SyntaxKind.SemicolonToken, nodesAndTokens[4].Kind());
+            Assert.Equal(SyntaxKind.ReturnStatement, nodesAndTokens[0].CSharpKind());
+            Assert.Equal(SyntaxKind.ReturnKeyword, nodesAndTokens[1].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodesAndTokens[2].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueKeyword, nodesAndTokens[3].CSharpKind());
+            Assert.Equal(SyntaxKind.SemicolonToken, nodesAndTokens[4].CSharpKind());
 
             nodesAndTokens = statement.DescendantNodesAndTokensAndSelf(descendIntoTrivia: true).ToList();
             Assert.Equal(11, nodesAndTokens.Count);
-            Assert.Equal(SyntaxKind.ReturnStatement, nodesAndTokens[0].Kind());
-            Assert.Equal(SyntaxKind.IfDirectiveTrivia, nodesAndTokens[1].Kind());
-            Assert.Equal(SyntaxKind.HashToken, nodesAndTokens[2].Kind());
-            Assert.Equal(SyntaxKind.IfKeyword, nodesAndTokens[3].Kind());
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodesAndTokens[4].Kind());
-            Assert.Equal(SyntaxKind.TrueKeyword, nodesAndTokens[5].Kind());
-            Assert.Equal(SyntaxKind.EndOfDirectiveToken, nodesAndTokens[6].Kind());
-            Assert.Equal(SyntaxKind.ReturnKeyword, nodesAndTokens[7].Kind());
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodesAndTokens[8].Kind());
-            Assert.Equal(SyntaxKind.TrueKeyword, nodesAndTokens[9].Kind());
-            Assert.Equal(SyntaxKind.SemicolonToken, nodesAndTokens[10].Kind());
+            Assert.Equal(SyntaxKind.ReturnStatement, nodesAndTokens[0].CSharpKind());
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, nodesAndTokens[1].CSharpKind());
+            Assert.Equal(SyntaxKind.HashToken, nodesAndTokens[2].CSharpKind());
+            Assert.Equal(SyntaxKind.IfKeyword, nodesAndTokens[3].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodesAndTokens[4].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueKeyword, nodesAndTokens[5].CSharpKind());
+            Assert.Equal(SyntaxKind.EndOfDirectiveToken, nodesAndTokens[6].CSharpKind());
+            Assert.Equal(SyntaxKind.ReturnKeyword, nodesAndTokens[7].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodesAndTokens[8].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueKeyword, nodesAndTokens[9].CSharpKind());
+            Assert.Equal(SyntaxKind.SemicolonToken, nodesAndTokens[10].CSharpKind());
 
             // with span
             nodesAndTokens = statement.DescendantNodesAndTokensAndSelf(statement.FullSpan).ToList();
             Assert.Equal(5, nodesAndTokens.Count);
-            Assert.Equal(SyntaxKind.ReturnStatement, nodesAndTokens[0].Kind());
-            Assert.Equal(SyntaxKind.ReturnKeyword, nodesAndTokens[1].Kind());
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodesAndTokens[2].Kind());
-            Assert.Equal(SyntaxKind.TrueKeyword, nodesAndTokens[3].Kind());
-            Assert.Equal(SyntaxKind.SemicolonToken, nodesAndTokens[4].Kind());
+            Assert.Equal(SyntaxKind.ReturnStatement, nodesAndTokens[0].CSharpKind());
+            Assert.Equal(SyntaxKind.ReturnKeyword, nodesAndTokens[1].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, nodesAndTokens[2].CSharpKind());
+            Assert.Equal(SyntaxKind.TrueKeyword, nodesAndTokens[3].CSharpKind());
+            Assert.Equal(SyntaxKind.SemicolonToken, nodesAndTokens[4].CSharpKind());
         }
 
         [Fact]
@@ -272,8 +272,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var cu = SyntaxFactory.ParseCompilationUnit(text);
             var nodesAndTokens = cu.DescendantNodesAndTokensAndSelf().ToList();
             Assert.Equal(2, nodesAndTokens.Count);
-            Assert.Equal(SyntaxKind.CompilationUnit, nodesAndTokens[0].Kind());
-            Assert.Equal(SyntaxKind.EndOfFileToken, nodesAndTokens[1].Kind());
+            Assert.Equal(SyntaxKind.CompilationUnit, nodesAndTokens[0].CSharpKind());
+            Assert.Equal(SyntaxKind.EndOfFileToken, nodesAndTokens[1].CSharpKind());
         }
 
         [Fact]
@@ -284,13 +284,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var nodesAndTokens = expr.DescendantNodesAndTokensAndSelf(descendIntoTrivia: true).ToList();
             Assert.Equal(7, nodesAndTokens.Count);
-            Assert.Equal(SyntaxKind.IdentifierName, nodesAndTokens[0].Kind());
-            Assert.Equal(SyntaxKind.SingleLineDocumentationCommentTrivia, nodesAndTokens[1].Kind());
-            Assert.Equal(SyntaxKind.XmlText, nodesAndTokens[2].Kind());
-            Assert.Equal(SyntaxKind.XmlTextLiteralToken, nodesAndTokens[3].Kind());
-            Assert.Equal(SyntaxKind.XmlTextLiteralNewLineToken, nodesAndTokens[4].Kind());
-            Assert.Equal(SyntaxKind.EndOfDocumentationCommentToken, nodesAndTokens[5].Kind());
-            Assert.Equal(SyntaxKind.IdentifierToken, nodesAndTokens[6].Kind());
+            Assert.Equal(SyntaxKind.IdentifierName, nodesAndTokens[0].CSharpKind());
+            Assert.Equal(SyntaxKind.SingleLineDocumentationCommentTrivia, nodesAndTokens[1].CSharpKind());
+            Assert.Equal(SyntaxKind.XmlText, nodesAndTokens[2].CSharpKind());
+            Assert.Equal(SyntaxKind.XmlTextLiteralToken, nodesAndTokens[3].CSharpKind());
+            Assert.Equal(SyntaxKind.XmlTextLiteralNewLineToken, nodesAndTokens[4].CSharpKind());
+            Assert.Equal(SyntaxKind.EndOfDocumentationCommentToken, nodesAndTokens[5].CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, nodesAndTokens[6].CSharpKind());
         }
 
         [Fact]
@@ -337,10 +337,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var t1 = SyntaxFactory.ParseSyntaxTree(s1);
             var tokens = t1.GetCompilationUnitRoot().DescendantTokens().ToList();
             Assert.Equal(4, tokens.Count);
-            Assert.Equal(SyntaxKind.UsingKeyword, tokens[0].Kind());
-            Assert.Equal(SyntaxKind.IdentifierToken, tokens[1].Kind());
-            Assert.Equal(SyntaxKind.SemicolonToken, tokens[2].Kind());
-            Assert.Equal(SyntaxKind.EndOfFileToken, tokens[3].Kind());
+            Assert.Equal(SyntaxKind.UsingKeyword, tokens[0].CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, tokens[1].CSharpKind());
+            Assert.Equal(SyntaxKind.SemicolonToken, tokens[2].CSharpKind());
+            Assert.Equal(SyntaxKind.EndOfFileToken, tokens[3].CSharpKind());
         }
 
         [Fact]
@@ -350,10 +350,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var t1 = SyntaxFactory.ParseSyntaxTree(s1);
             var tokens = t1.GetCompilationUnitRoot().DescendantTokens().ToList();
             Assert.Equal(4, tokens.Count);
-            Assert.Equal(SyntaxKind.UsingKeyword, tokens[0].Kind());
-            Assert.Equal(SyntaxKind.IdentifierToken, tokens[1].Kind());
-            Assert.Equal(SyntaxKind.SemicolonToken, tokens[2].Kind());
-            Assert.Equal(SyntaxKind.EndOfFileToken, tokens[3].Kind());
+            Assert.Equal(SyntaxKind.UsingKeyword, tokens[0].CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, tokens[1].CSharpKind());
+            Assert.Equal(SyntaxKind.SemicolonToken, tokens[2].CSharpKind());
+            Assert.Equal(SyntaxKind.EndOfFileToken, tokens[3].CSharpKind());
         }
 
         [Fact]
@@ -363,14 +363,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var t1 = SyntaxFactory.ParseSyntaxTree(s1);
             var tokens = t1.GetCompilationUnitRoot().DescendantTokens().ToList();
             Assert.Equal(8, tokens.Count);
-            Assert.Equal(SyntaxKind.ExternKeyword, tokens[0].Kind());
-            Assert.Equal(SyntaxKind.AliasKeyword, tokens[1].Kind());
-            Assert.Equal(SyntaxKind.IdentifierToken, tokens[2].Kind());
-            Assert.Equal(SyntaxKind.SemicolonToken, tokens[3].Kind());
-            Assert.Equal(SyntaxKind.UsingKeyword, tokens[4].Kind());
-            Assert.Equal(SyntaxKind.IdentifierToken, tokens[5].Kind());
-            Assert.Equal(SyntaxKind.SemicolonToken, tokens[6].Kind());
-            Assert.Equal(SyntaxKind.EndOfFileToken, tokens[7].Kind());
+            Assert.Equal(SyntaxKind.ExternKeyword, tokens[0].CSharpKind());
+            Assert.Equal(SyntaxKind.AliasKeyword, tokens[1].CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, tokens[2].CSharpKind());
+            Assert.Equal(SyntaxKind.SemicolonToken, tokens[3].CSharpKind());
+            Assert.Equal(SyntaxKind.UsingKeyword, tokens[4].CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, tokens[5].CSharpKind());
+            Assert.Equal(SyntaxKind.SemicolonToken, tokens[6].CSharpKind());
+            Assert.Equal(SyntaxKind.EndOfFileToken, tokens[7].CSharpKind());
         }
 
         [Fact]
@@ -380,9 +380,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var t1 = SyntaxFactory.ParseSyntaxTree(s1);
             var tokens = t1.GetCompilationUnitRoot().DescendantTokens(new TextSpan(0, 16)).ToList();
             Assert.Equal(3, tokens.Count);
-            Assert.Equal(SyntaxKind.ExternKeyword, tokens[0].Kind());
-            Assert.Equal(SyntaxKind.AliasKeyword, tokens[1].Kind());
-            Assert.Equal(SyntaxKind.IdentifierToken, tokens[2].Kind());
+            Assert.Equal(SyntaxKind.ExternKeyword, tokens[0].CSharpKind());
+            Assert.Equal(SyntaxKind.AliasKeyword, tokens[1].CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, tokens[2].CSharpKind());
         }
 
         [Fact]
@@ -392,9 +392,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var t1 = SyntaxFactory.ParseSyntaxTree(s1);
             var tokens = t1.GetCompilationUnitRoot().DescendantTokens(new TextSpan(1, 14)).ToList();
             Assert.Equal(3, tokens.Count);
-            Assert.Equal(SyntaxKind.ExternKeyword, tokens[0].Kind());
-            Assert.Equal(SyntaxKind.AliasKeyword, tokens[1].Kind());
-            Assert.Equal(SyntaxKind.IdentifierToken, tokens[2].Kind());
+            Assert.Equal(SyntaxKind.ExternKeyword, tokens[0].CSharpKind());
+            Assert.Equal(SyntaxKind.AliasKeyword, tokens[1].CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, tokens[2].CSharpKind());
         }
 
         [Fact]
@@ -404,10 +404,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var t1 = SyntaxFactory.ParseSyntaxTree(s1);
             var tokens = t1.GetCompilationUnitRoot().DescendantTokens(new TextSpan(7, 17)).ToList();
             Assert.Equal(4, tokens.Count);
-            Assert.Equal(SyntaxKind.AliasKeyword, tokens[0].Kind());
-            Assert.Equal(SyntaxKind.IdentifierToken, tokens[1].Kind());
-            Assert.Equal(SyntaxKind.SemicolonToken, tokens[2].Kind());
-            Assert.Equal(SyntaxKind.UsingKeyword, tokens[3].Kind());
+            Assert.Equal(SyntaxKind.AliasKeyword, tokens[0].CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, tokens[1].CSharpKind());
+            Assert.Equal(SyntaxKind.SemicolonToken, tokens[2].CSharpKind());
+            Assert.Equal(SyntaxKind.UsingKeyword, tokens[3].CSharpKind());
         }
 
         [Fact]
@@ -417,10 +417,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var t1 = SyntaxFactory.ParseSyntaxTree(s1);
             var tokens = t1.GetCompilationUnitRoot().DescendantTokens(new TextSpan(8, 15)).ToList();
             Assert.Equal(4, tokens.Count);
-            Assert.Equal(SyntaxKind.AliasKeyword, tokens[0].Kind());
-            Assert.Equal(SyntaxKind.IdentifierToken, tokens[1].Kind());
-            Assert.Equal(SyntaxKind.SemicolonToken, tokens[2].Kind());
-            Assert.Equal(SyntaxKind.UsingKeyword, tokens[3].Kind());
+            Assert.Equal(SyntaxKind.AliasKeyword, tokens[0].CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, tokens[1].CSharpKind());
+            Assert.Equal(SyntaxKind.SemicolonToken, tokens[2].CSharpKind());
+            Assert.Equal(SyntaxKind.UsingKeyword, tokens[3].CSharpKind());
         }
 
         [Fact]
@@ -431,10 +431,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var list = expr.DescendantTrivia().ToList();
             Assert.Equal(4, list.Count);
-            Assert.Equal(SyntaxKind.SingleLineCommentTrivia, list[0].Kind());
-            Assert.Equal(SyntaxKind.EndOfLineTrivia, list[1].Kind());
-            Assert.Equal(SyntaxKind.WhitespaceTrivia, list[2].Kind());
-            Assert.Equal(SyntaxKind.WhitespaceTrivia, list[3].Kind());
+            Assert.Equal(SyntaxKind.SingleLineCommentTrivia, list[0].CSharpKind());
+            Assert.Equal(SyntaxKind.EndOfLineTrivia, list[1].CSharpKind());
+            Assert.Equal(SyntaxKind.WhitespaceTrivia, list[2].CSharpKind());
+            Assert.Equal(SyntaxKind.WhitespaceTrivia, list[3].CSharpKind());
         }
 
         [Fact]
@@ -448,13 +448,13 @@ a + b";
 
             var list = expr.DescendantTrivia(descendIntoTrivia: true).ToList();
             Assert.Equal(7, list.Count);
-            Assert.Equal(SyntaxKind.EndOfLineTrivia, list[0].Kind());
-            Assert.Equal(SyntaxKind.SingleLineDocumentationCommentTrivia, list[1].Kind());
-            Assert.Equal(SyntaxKind.DocumentationCommentExteriorTrivia, list[2].Kind());
-            Assert.Equal(SyntaxKind.WhitespaceTrivia, list[3].Kind());
-            Assert.Equal(SyntaxKind.DocumentationCommentExteriorTrivia, list[4].Kind());
-            Assert.Equal(SyntaxKind.WhitespaceTrivia, list[5].Kind());
-            Assert.Equal(SyntaxKind.WhitespaceTrivia, list[6].Kind());
+            Assert.Equal(SyntaxKind.EndOfLineTrivia, list[0].CSharpKind());
+            Assert.Equal(SyntaxKind.SingleLineDocumentationCommentTrivia, list[1].CSharpKind());
+            Assert.Equal(SyntaxKind.DocumentationCommentExteriorTrivia, list[2].CSharpKind());
+            Assert.Equal(SyntaxKind.WhitespaceTrivia, list[3].CSharpKind());
+            Assert.Equal(SyntaxKind.DocumentationCommentExteriorTrivia, list[4].CSharpKind());
+            Assert.Equal(SyntaxKind.WhitespaceTrivia, list[5].CSharpKind());
+            Assert.Equal(SyntaxKind.WhitespaceTrivia, list[6].CSharpKind());
         }
 
         [Fact]
@@ -475,10 +475,10 @@ a + b";
             var tree = SyntaxFactory.ParseSyntaxTree(text);
 
             var token = tree.GetCompilationUnitRoot().FindToken("class\n #i".Length);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
             Assert.Equal("foo", token.ToString());
             token = tree.GetCompilationUnitRoot().FindToken("class\n #i".Length, findInsideTrivia: true);
-            Assert.Equal(SyntaxKind.IfKeyword, token.Kind());
+            Assert.Equal(SyntaxKind.IfKeyword, token.CSharpKind());
         }
 
         [WorkItem(755236, "DevDiv")]
@@ -551,7 +551,7 @@ a + b";
             // position points to the closing parenthesis on the line that has "void Bar()"
             // There should be no trivia at this position
             var trivia = tree.GetCompilationUnitRoot().FindTrivia(position);
-            Assert.Equal(SyntaxKind.None, trivia.Kind());
+            Assert.Equal(SyntaxKind.None, trivia.CSharpKind());
             Assert.Equal(0, trivia.SpanStart);
             Assert.Equal(0, trivia.Span.End);
             Assert.Equal(default(SyntaxTrivia), trivia);
@@ -642,7 +642,7 @@ a + b";
         {
             var tree = SyntaxFactory.ParseSyntaxTree("public static class foo { }");
             var first = tree.GetCompilationUnitRoot().GetFirstToken();
-            Assert.Equal(SyntaxKind.PublicKeyword, first.Kind());
+            Assert.Equal(SyntaxKind.PublicKeyword, first.CSharpKind());
         }
 
         [Fact]
@@ -650,7 +650,7 @@ a + b";
         {
             var tree = SyntaxFactory.ParseSyntaxTree("public static class foo { }");
             var first = tree.GetCompilationUnitRoot().GetFirstToken(includeZeroWidth: true);
-            Assert.Equal(SyntaxKind.PublicKeyword, first.Kind());
+            Assert.Equal(SyntaxKind.PublicKeyword, first.CSharpKind());
         }
 
         [Fact]
@@ -658,7 +658,7 @@ a + b";
         {
             var tree = SyntaxFactory.ParseSyntaxTree("public static class foo { }");
             var last = tree.GetCompilationUnitRoot().GetLastToken();
-            Assert.Equal(SyntaxKind.CloseBraceToken, last.Kind());
+            Assert.Equal(SyntaxKind.CloseBraceToken, last.CSharpKind());
         }
 
         [Fact]
@@ -666,10 +666,10 @@ a + b";
         {
             var tree = SyntaxFactory.ParseSyntaxTree("public static class foo { ");
             var last = tree.GetCompilationUnitRoot().GetLastToken(includeZeroWidth: true);
-            Assert.Equal(SyntaxKind.EndOfFileToken, last.Kind());
+            Assert.Equal(SyntaxKind.EndOfFileToken, last.CSharpKind());
 
             last = tree.GetCompilationUnitRoot().Members[0].GetLastToken(includeZeroWidth: true);
-            Assert.Equal(SyntaxKind.CloseBraceToken, last.Kind());
+            Assert.Equal(SyntaxKind.CloseBraceToken, last.CSharpKind());
             Assert.True(last.IsMissing);
             Assert.Equal(26, last.FullSpan.Start);
         }
@@ -705,7 +705,7 @@ a + b";
 
             var list = new List<SyntaxToken>();
             var token = tree.GetCompilationUnitRoot().GetFirstToken(includeSkipped: true);
-            while (token.Kind() != SyntaxKind.None)
+            while (token.CSharpKind() != SyntaxKind.None)
             {
                 list.Add(token);
                 token = token.GetNextToken(includeSkipped: true);
@@ -735,7 +735,7 @@ using foo.bar;
 
             var list = new List<SyntaxToken>(tokens.Count);
             var token = tree.GetCompilationUnitRoot().GetFirstToken(includeSkipped: true);
-            while (token.Kind() != SyntaxKind.None)
+            while (token.CSharpKind() != SyntaxKind.None)
             {
                 list.Add(token);
                 token = token.GetNextToken(includeSkipped: true);
@@ -760,7 +760,7 @@ using foo.bar;
 
             var list = new List<SyntaxToken>(tokens.Count);
             var token = tree.GetCompilationUnitRoot().GetFirstToken(includeSkipped: false);
-            while (token.Kind() != SyntaxKind.None)
+            while (token.CSharpKind() != SyntaxKind.None)
             {
                 list.Add(token);
                 token = token.GetNextToken(includeSkipped: false);
@@ -804,7 +804,7 @@ using foo.bar;
 
             var list = new List<SyntaxToken>();
             var token = tree.GetCompilationUnitRoot().GetLastToken(); // skip EOF
-            while (token.Kind() != SyntaxKind.None)
+            while (token.CSharpKind() != SyntaxKind.None)
             {
                 list.Add(token);
                 token = token.GetPreviousToken();
@@ -835,7 +835,7 @@ using foo.bar;
 
             var list = new List<SyntaxToken>(tokens.Count);
             var token = tree.GetCompilationUnitRoot().GetLastToken(includeSkipped: true);
-            while (token.Kind() != SyntaxKind.None)
+            while (token.CSharpKind() != SyntaxKind.None)
             {
                 list.Add(token);
                 token = token.GetPreviousToken(includeSkipped: true);
@@ -864,7 +864,7 @@ using foo.bar;
 
             var list = new List<SyntaxToken>(tokens.Count);
             var token = tree.GetCompilationUnitRoot().GetLastToken(includeSkipped: false);
-            while (token.Kind() != SyntaxKind.None)
+            while (token.CSharpKind() != SyntaxKind.None)
             {
                 list.Add(token);
                 token = token.GetPreviousToken(includeSkipped: false);
@@ -911,7 +911,7 @@ using foo.bar;
 
             var list = new List<SyntaxToken>();
             var token = tree.GetCompilationUnitRoot().GetFirstToken(includeZeroWidth: true);
-            while (token.Kind() != SyntaxKind.None)
+            while (token.CSharpKind() != SyntaxKind.None)
             {
                 list.Add(token);
                 token = token.GetNextToken(includeZeroWidth: true);
@@ -953,7 +953,7 @@ using foo.bar;
 
             var list = new List<SyntaxToken>();
             var token = tree.GetCompilationUnitRoot().EndOfFileToken.GetPreviousToken(includeZeroWidth: true);
-            while (token.Kind() != SyntaxKind.None)
+            while (token.CSharpKind() != SyntaxKind.None)
             {
                 list.Add(token);
                 token = token.GetPreviousToken(includeZeroWidth: true);
@@ -998,7 +998,7 @@ using foo.bar;
             var tree = SyntaxFactory.ParseSyntaxTree("public static class foo { }");
             var children = tree.GetCompilationUnitRoot().Members[0].ChildNodesAndTokens().ToList();
             var list = new List<SyntaxNodeOrToken>();
-            for (var child = children[0]; child.Kind() != SyntaxKind.None; child = child.GetNextSibling())
+            for (var child = children[0]; child.CSharpKind() != SyntaxKind.None; child = child.GetNextSibling())
             {
                 list.Add(child);
             }
@@ -1017,7 +1017,7 @@ using foo.bar;
             var children = tree.GetCompilationUnitRoot().Members[0].ChildNodesAndTokens().ToList();
             var reversed = children.AsEnumerable().Reverse().ToList();
             var list = new List<SyntaxNodeOrToken>();
-            for (var child = children[children.Count - 1]; child.Kind() != SyntaxKind.None; child = child.GetPreviousSibling())
+            for (var child = children[children.Count - 1]; child.CSharpKind() != SyntaxKind.None; child = child.GetPreviousSibling())
             {
                 list.Add(child);
             }
@@ -1051,7 +1051,7 @@ using foo.bar;
         {
             var tree = SyntaxFactory.ParseSyntaxTree("#define FOO");
             var trivia = tree.GetCompilationUnitRoot().EndOfFileToken.GetLeadingTrivia()[0];
-            Assert.Equal(SyntaxKind.DefineDirectiveTrivia, trivia.Kind());
+            Assert.Equal(SyntaxKind.DefineDirectiveTrivia, trivia.CSharpKind());
             Assert.True(trivia.HasStructure);
             Assert.NotNull(trivia.GetStructure());
             Assert.Null(trivia.GetStructure().Parent);
@@ -1062,11 +1062,11 @@ using foo.bar;
         {
             var tree = SyntaxFactory.ParseSyntaxTree("#define FOO");
             var trivia = tree.GetCompilationUnitRoot().EndOfFileToken.GetLeadingTrivia()[0];
-            Assert.Equal(SyntaxKind.DefineDirectiveTrivia, trivia.Kind());
+            Assert.Equal(SyntaxKind.DefineDirectiveTrivia, trivia.CSharpKind());
             Assert.True(trivia.HasStructure);
             Assert.NotNull(trivia.GetStructure());
             var parentTrivia = trivia.GetStructure().ParentTrivia;
-            Assert.NotEqual(SyntaxKind.None, parentTrivia.Kind());
+            Assert.NotEqual(SyntaxKind.None, parentTrivia.CSharpKind());
             Assert.Equal(trivia, parentTrivia);
         }
 
@@ -1665,7 +1665,7 @@ class Test
 ");
 
             // Verify the kind of the CSharpSyntaxNode "int IX.FOO" is MethodDeclaration and NOT FieldDeclaration
-            Assert.Equal(SyntaxKind.MethodDeclaration, tree.GetCompilationUnitRoot().ChildNodesAndTokens()[0].ChildNodesAndTokens()[3].Kind());
+            Assert.Equal(SyntaxKind.MethodDeclaration, tree.GetCompilationUnitRoot().ChildNodesAndTokens()[0].ChildNodesAndTokens()[3].CSharpKind());
         }
 
         [WorkItem(538360, "DevDiv")]
@@ -1686,7 +1686,7 @@ class Test
             };
 
             Assert.Equal(expectedTokenKinds.Count(), actualTokens.Count()); //redundant but helps debug
-            Assert.True(expectedTokenKinds.SequenceEqual(actualTokens.Select(t => t.Kind())));
+            Assert.True(expectedTokenKinds.SequenceEqual(actualTokens.Select(t => t.CSharpKind())));
         }
 
         [WorkItem(538360, "DevDiv")]
@@ -1982,7 +1982,7 @@ class Test
 
             var token = expr.DescendantTokens().First(t => t.IsMissing);
 
-            var expr2 = expr.ReplaceToken(token, SyntaxFactory.Token(token.Kind()));
+            var expr2 = expr.ReplaceToken(token, SyntaxFactory.Token(token.CSharpKind()));
             var text2 = expr2.ToFullString();
 
             Assert.Equal("return x;", text2);
@@ -1995,9 +1995,9 @@ class Test
             var expr = SyntaxFactory.ParseStatement(text);
 
             var tokens = expr.DescendantTokens(descendIntoTrivia: true).ToList();
-            var token = tokens.First(t => t.Kind() == SyntaxKind.EndOfDocumentationCommentToken);
+            var token = tokens.First(t => t.CSharpKind() == SyntaxKind.EndOfDocumentationCommentToken);
 
-            var expr2 = expr.ReplaceToken(token, SyntaxFactory.Token(SyntaxTriviaList.Create(SyntaxFactory.Whitespace("garbage")), token.Kind(), default(SyntaxTriviaList)));
+            var expr2 = expr.ReplaceToken(token, SyntaxFactory.Token(SyntaxTriviaList.Create(SyntaxFactory.Whitespace("garbage")), token.CSharpKind(), default(SyntaxTriviaList)));
             var text2 = expr2.ToFullString();
 
             Assert.Equal("/// Foo\r\ngarbage return x;", text2);
@@ -2008,9 +2008,9 @@ class Test
         {
             var text = "";
             var cu = SyntaxFactory.ParseCompilationUnit(text);
-            var token = cu.DescendantTokens().Single(t => t.Kind() == SyntaxKind.EndOfFileToken);
+            var token = cu.DescendantTokens().Single(t => t.CSharpKind() == SyntaxKind.EndOfFileToken);
 
-            var cu2 = cu.ReplaceToken(token, SyntaxFactory.Token(SyntaxTriviaList.Create(SyntaxFactory.Whitespace("  ")), token.Kind(), default(SyntaxTriviaList)));
+            var cu2 = cu.ReplaceToken(token, SyntaxFactory.Token(SyntaxTriviaList.Create(SyntaxFactory.Whitespace("  ")), token.CSharpKind(), default(SyntaxTriviaList)));
             var text2 = cu2.ToFullString();
 
             Assert.Equal("  ", text2);
@@ -2022,7 +2022,7 @@ class Test
             var expr = SyntaxFactory.ParseExpression("#if true\r\na + \r\n#endif\r\n + b");
 
             // get whitespace trivia inside structured directive trivia
-            var deepTrivia = expr.GetDirectives().SelectMany(d => d.DescendantTrivia().Where(tr => tr.Kind() == SyntaxKind.WhitespaceTrivia)).ToList();
+            var deepTrivia = expr.GetDirectives().SelectMany(d => d.DescendantTrivia().Where(tr => tr.CSharpKind() == SyntaxKind.WhitespaceTrivia)).ToList();
 
             // replace deep trivia with double-whitespace trivia
             var twoSpace = SyntaxFactory.Whitespace("  ");
@@ -2058,7 +2058,7 @@ class Test
             var leadingTrivia = ex.GetLeadingTrivia();
             Assert.Equal(2, leadingTrivia.Count);
             var comment1 = leadingTrivia[0];
-            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, comment1.Kind());
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, comment1.CSharpKind());
 
             var newComment1 = SyntaxFactory.ParseLeadingTrivia("/* a */")[0];
             var newComment2 = SyntaxFactory.ParseLeadingTrivia("/* b */")[0];
@@ -2080,7 +2080,7 @@ class Test
             var leadingTrivia = ex.GetLeadingTrivia();
             Assert.Equal(2, leadingTrivia.Count);
             var comment1 = leadingTrivia[0];
-            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, comment1.Kind());
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, comment1.CSharpKind());
 
             var newComment1 = SyntaxFactory.ParseLeadingTrivia("/* a */")[0];
             var newComment2 = SyntaxFactory.ParseLeadingTrivia("/* b */")[0];
@@ -2346,8 +2346,8 @@ class C
 
             var list = (SeparatedSyntaxList<ParameterSyntax>)method.ParameterList.Parameters;
 
-            Assert.Equal(((SyntaxToken)list.GetSeparator(0)).Kind(), SyntaxKind.CommaToken);
-            Assert.Equal(((SyntaxToken)list.GetSeparator(1)).Kind(), SyntaxKind.CommaToken);
+            Assert.Equal(((SyntaxToken)list.GetSeparator(0)).CSharpKind(), SyntaxKind.CommaToken);
+            Assert.Equal(((SyntaxToken)list.GetSeparator(1)).CSharpKind(), SyntaxKind.CommaToken);
 
             foreach (var index in new int[] { -1, 2 })
             {
@@ -2367,8 +2367,8 @@ class C
             var internalParameters = internalParameterList.Parameters;
 
             Assert.Equal(internalParameters.SeparatorCount, 2);
-            Assert.Equal((new SyntaxToken(internalParameters.GetSeparator(0))).Kind(), SyntaxKind.CommaToken);
-            Assert.Equal((new SyntaxToken(internalParameters.GetSeparator(1))).Kind(), SyntaxKind.CommaToken);
+            Assert.Equal((new SyntaxToken(internalParameters.GetSeparator(0))).CSharpKind(), SyntaxKind.CommaToken);
+            Assert.Equal((new SyntaxToken(internalParameters.GetSeparator(1))).CSharpKind(), SyntaxKind.CommaToken);
 
             Assert.Equal(internalParameters.Count, 3);
             Assert.Equal(internalParameters[0].Identifier.ValueText, "a");
@@ -2505,7 +2505,7 @@ public class Test1
 
             // For (non-EOF) tokens, IsMissing is true if and only if Width is 0.
             Assert.True(compilationUnit.DescendantTokens(node => true).
-                Where(token => token.Kind() != SyntaxKind.EndOfFileToken).
+                Where(token => token.CSharpKind() != SyntaxKind.EndOfFileToken).
                 All(token => token.IsMissing == (token.Width == 0)));
 
             // For non-terminals, Is true if Width is 0, but the converse may not hold.
@@ -2531,8 +2531,8 @@ class Program
             var newModifiers = method.Modifiers.Add(SyntaxFactory.Token(default(SyntaxTriviaList), SyntaxKind.UnsafeKeyword, SyntaxFactory.TriviaList(SyntaxFactory.Space)));
             Assert.Equal("    static unsafe ", newModifiers.ToFullString());
             Assert.Equal(2, newModifiers.Count);
-            Assert.Equal(SyntaxKind.StaticKeyword, newModifiers[0].Kind());
-            Assert.Equal(SyntaxKind.UnsafeKeyword, newModifiers[1].Kind());
+            Assert.Equal(SyntaxKind.StaticKeyword, newModifiers[0].CSharpKind());
+            Assert.Equal(SyntaxKind.UnsafeKeyword, newModifiers[1].CSharpKind());
         }
 
         [Fact]

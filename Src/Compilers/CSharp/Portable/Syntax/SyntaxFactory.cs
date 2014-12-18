@@ -1794,7 +1794,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // expression statement terminating semicolon might be missing in interactive code:
                 if (tree.Options.Kind != SourceCodeKind.Interactive ||
                     globalStatement.Statement.Kind != SyntaxKind.ExpressionStatement ||
-                    token.Kind() != SyntaxKind.SemicolonToken)
+                    token.CSharpKind() != SyntaxKind.SemicolonToken)
                 {
                     return false;
                 }
@@ -1830,7 +1830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var trivia in triviaList)
             {
-                if (trivia.ContainsDiagnostics && trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
+                if (trivia.ContainsDiagnostics && trivia.CSharpKind() == SyntaxKind.MultiLineCommentTrivia)
                 {
                     return true;
                 }

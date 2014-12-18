@@ -29,19 +29,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             while (true)
             {
-                if (nameSyntax.Kind() == SyntaxKind.IdentifierName)
+                if (nameSyntax.CSharpKind() == SyntaxKind.IdentifierName)
                 {
                     return ((IdentifierNameSyntax)nameSyntax).Identifier;
                 }
-                else if (nameSyntax.Kind() == SyntaxKind.QualifiedName)
+                else if (nameSyntax.CSharpKind() == SyntaxKind.QualifiedName)
                 {
                     nameSyntax = ((QualifiedNameSyntax)nameSyntax).Right;
                 }
-                else if (nameSyntax.Kind() == SyntaxKind.GenericName)
+                else if (nameSyntax.CSharpKind() == SyntaxKind.GenericName)
                 {
                     return ((GenericNameSyntax)nameSyntax).Identifier;
                 }
-                else if (nameSyntax.Kind() == SyntaxKind.AliasQualifiedName)
+                else if (nameSyntax.CSharpKind() == SyntaxKind.AliasQualifiedName)
                 {
                     nameSyntax = ((AliasQualifiedNameSyntax)nameSyntax).Name;
                 }

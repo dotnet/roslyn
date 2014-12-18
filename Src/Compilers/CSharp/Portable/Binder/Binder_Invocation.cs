@@ -850,7 +850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node != expression)
             {
-                switch (expression.Kind)
+                switch (expression.CSharpKind())
                 {
                     case SyntaxKind.QualifiedName:
                         return ((QualifiedNameSyntax)expression).Right.GetLocation();

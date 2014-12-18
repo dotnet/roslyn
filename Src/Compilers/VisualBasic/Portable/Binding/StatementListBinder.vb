@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim declarationKind As LocalDeclarationKind = LocalDeclarationKind.Variable
 
                     For Each modifier In localDeclSyntax.Modifiers
-                        Select Case modifier.Kind
+                        Select Case modifier.VBKind
                             Case SyntaxKind.ConstKeyword
                                 declarationKind = LocalDeclarationKind.Constant
                                 Exit For

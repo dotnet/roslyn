@@ -3503,7 +3503,7 @@ _Default:
 
             Dim newLevel = DecrementLevel(levelsToCompute)
 
-            Select Case node.Kind()
+            Select Case node.VBKind()
                 Case SyntaxKind.NamespaceBlock
                     Dim ns = CType(node, NamespaceBlockSyntax)
                     For Each decl In ns.Members

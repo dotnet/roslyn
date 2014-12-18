@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private static MemberDeclarationSyntax RemoveAllMembers(MemberDeclarationSyntax declaration)
         {
-            switch (declaration.Kind())
+            switch (declaration.CSharpKind())
             {
                 case SyntaxKind.EnumDeclaration:
                     return ((EnumDeclarationSyntax)declaration).WithMembers(default(SeparatedSyntaxList<EnumMemberDeclarationSyntax>));

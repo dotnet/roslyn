@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE: Prefer binary to unary, unless there is exactly one parameter.
             // CONSIDER: we're following dev11 by never using a binary operator name if there's
             // exactly one parameter, but doing so would allow us to match single-parameter constructors.
-            SyntaxKind operatorTokenKind = syntax.OperatorToken.Kind();
+            SyntaxKind operatorTokenKind = syntax.OperatorToken.CSharpKind();
             string memberName = parameterListSyntax != null && parameterListSyntax.Parameters.Count == 1
                 ? null
                 : OperatorFacts.BinaryOperatorNameFromSyntaxKindIfAny(operatorTokenKind);
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             const int arity = 0;
 
-            string memberName = syntax.ImplicitOrExplicitKeyword.Kind() == SyntaxKind.ImplicitKeyword
+            string memberName = syntax.ImplicitOrExplicitKeyword.CSharpKind() == SyntaxKind.ImplicitKeyword
                 ? WellKnownMemberNames.ImplicitConversionName
                 : WellKnownMemberNames.ExplicitConversionName;
 
@@ -869,7 +869,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (CrefParameterSyntax parameter in parameterListSyntax.Parameters)
             {
-                RefKind refKind = parameter.RefOrOutKeyword.Kind().GetRefKind();
+                RefKind refKind = parameter.RefOrOutKeyword.CSharpKind().GetRefKind();
 
                 TypeSymbol type = BindCrefParameterOrReturnType(parameter.Type, (MemberCrefSyntax)parameterListSyntax.Parent, diagnostics);
 

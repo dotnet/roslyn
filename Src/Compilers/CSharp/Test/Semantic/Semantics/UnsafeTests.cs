@@ -4709,7 +4709,7 @@ unsafe struct S
 
             compilation.VerifyDiagnostics();
 
-            foreach (var nullSyntax in tree.GetCompilationUnitRoot().DescendantTokens().Where(token => token.IsKind(SyntaxKind.NullKeyword)))
+            foreach (var nullSyntax in tree.GetCompilationUnitRoot().DescendantTokens().Where(token => token.CSharpKind() == SyntaxKind.NullKeyword))
             {
                 var node = (ExpressionSyntax)nullSyntax.Parent;
                 var typeInfo = model.GetTypeInfo(node);
@@ -4745,7 +4745,7 @@ unsafe struct S
 
             compilation.VerifyDiagnostics();
 
-            foreach (var declarationSyntax in tree.GetCompilationUnitRoot().DescendantTokens().OfType<VariableDeclarationSyntax>().Where(syntax => syntax.GetFirstToken().IsKind(SyntaxKind.VoidKeyword)))
+            foreach (var declarationSyntax in tree.GetCompilationUnitRoot().DescendantTokens().OfType<VariableDeclarationSyntax>().Where(syntax => syntax.GetFirstToken().CSharpKind() == SyntaxKind.VoidKeyword))
             {
                 var value = declarationSyntax.Variables.Single().Initializer.Value;
                 var typeInfo = model.GetTypeInfo(value);

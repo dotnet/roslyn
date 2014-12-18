@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 var currentDirective = directiveList[index];
 
                 // Compute the directive state (either Disable or Restore)
-                var directiveState = currentDirective.DisableOrRestoreKeyword.Kind() == SyntaxKind.DisableKeyword ? ReportDiagnostic.Suppress : ReportDiagnostic.Default;
+                var directiveState = currentDirective.DisableOrRestoreKeyword.CSharpKind() == SyntaxKind.DisableKeyword ? ReportDiagnostic.Suppress : ReportDiagnostic.Default;
 
                 // Check if this directive applies for all (e.g., #pragma warning disable)
                 if (currentDirective.ErrorCodes.Count == 0)

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             SyntaxList<MemberDeclarationSyntax> members,
             MemberDeclarationSyntax eventDeclaration)
         {
-            if (eventDeclaration.Kind() == SyntaxKind.EventFieldDeclaration)
+            if (eventDeclaration.CSharpKind() == SyntaxKind.EventFieldDeclaration)
             {
                 // Field style events go after the last field event, or after the last field.
                 var lastEvent = members.LastOrDefault(m => m is EventFieldDeclarationSyntax);
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return lastEvent ?? LastField(members);
             }
 
-            if (eventDeclaration.Kind() == SyntaxKind.EventDeclaration)
+            if (eventDeclaration.CSharpKind() == SyntaxKind.EventDeclaration)
             {
                 // Property style events go after existing events, then after existing constructors.
                 var lastEvent = members.LastOrDefault(m => m is EventDeclarationSyntax);
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             // If it's a field style event, then it goes before everything else if we don't have any
             // existing fields/events.
-            if (eventDeclaration.Kind() == SyntaxKind.FieldDeclaration)
+            if (eventDeclaration.CSharpKind() == SyntaxKind.FieldDeclaration)
             {
                 return members.FirstOrDefault();
             }

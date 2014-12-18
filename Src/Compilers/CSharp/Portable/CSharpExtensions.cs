@@ -15,57 +15,53 @@ namespace Microsoft.CodeAnalysis
     {
         public static bool IsKind(this SyntaxToken token, SyntaxKind kind)
         {
-            return token.Kind() == kind;
+            return token.CSharpKind() == kind;
         }
 
-        internal static bool IsContextualKind(this SyntaxToken token, SyntaxKind kind)
+        public static bool IsContextualKind(this SyntaxToken token, SyntaxKind kind)
         {
             return token.CSharpContextualKind() == kind;
         }
 
-        internal static SyntaxKind CSharpContextualKind(this SyntaxToken token)
-        {
-            return (object)token.Language == (object)LanguageNames.CSharp ? (SyntaxKind)token.RawContextualKind : SyntaxKind.None;
-        }
-
         public static bool IsKind(this SyntaxTrivia trivia, SyntaxKind kind)
         {
-            return trivia.Kind() == kind;
+            return trivia.CSharpKind() == kind;
         }
 
         public static bool IsKind(this SyntaxNode node, SyntaxKind kind)
         {
             return node != null
-                && node.Kind() == kind;
+                && node.CSharpKind() == kind;
         }
 
         public static bool IsKind(this SyntaxNodeOrToken nodeOrToken, SyntaxKind kind)
         {
-            return nodeOrToken.Kind() == kind;
+            return nodeOrToken.CSharpKind() == kind;
         }
 
-        [Obsolete("To be removed, use Kind() or IsKind() instead.", true)]
         public static SyntaxKind CSharpKind(this SyntaxToken token)
         {
-            return token.Kind();
+            return (object)token.Language == (object)LanguageNames.CSharp ? (SyntaxKind)token.RawKind : SyntaxKind.None;
         }
 
-        [Obsolete("To be removed, use Kind() or IsKind() instead.", true)]
+        public static SyntaxKind CSharpContextualKind(this SyntaxToken token)
+        {
+            return (object)token.Language == (object)LanguageNames.CSharp ? (SyntaxKind)token.RawContextualKind : SyntaxKind.None;
+        }
+
         public static SyntaxKind CSharpKind(this SyntaxTrivia trivia)
         {
-            return trivia.Kind();
+            return (object)trivia.Language == (object)LanguageNames.CSharp ? (SyntaxKind)trivia.RawKind : SyntaxKind.None;
         }
 
-        [Obsolete("To be removed, use Kind() or IsKind() instead.", true)]
         public static SyntaxKind CSharpKind(this SyntaxNode node)
         {
-            return node.Kind();
+            return (object)node.Language == (object)LanguageNames.CSharp ? (SyntaxKind)node.RawKind : SyntaxKind.None;
         }
 
-        [Obsolete("To be removed, use Kind() or IsKind() instead.", true)]
         public static SyntaxKind CSharpKind(this SyntaxNodeOrToken nodeOrToken)
         {
-            return nodeOrToken.Kind();
+            return (object)nodeOrToken.Language == (object)LanguageNames.CSharp ? (SyntaxKind)nodeOrToken.RawKind : SyntaxKind.None;
         }
 
         /// <summary>
@@ -163,39 +159,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     public static class CSharpExtensions
     {
-        public static SyntaxKind Kind(this SyntaxToken token)
-        {
-            return (object)token.Language == (object)LanguageNames.CSharp ? (SyntaxKind)token.RawKind : SyntaxKind.None;
-        }
-
-        public static SyntaxKind Kind(this SyntaxTrivia trivia)
-        {
-            return (object)trivia.Language == (object)LanguageNames.CSharp ? (SyntaxKind)trivia.RawKind : SyntaxKind.None;
-        }
-
-        public static SyntaxKind Kind(this SyntaxNode node)
-        {
-            return (object)node.Language == (object)LanguageNames.CSharp ? (SyntaxKind)node.RawKind : SyntaxKind.None;
-        }
-
-        public static SyntaxKind Kind(this SyntaxNodeOrToken nodeOrToken)
-        {
-            return (object)nodeOrToken.Language == (object)LanguageNames.CSharp ? (SyntaxKind)nodeOrToken.RawKind : SyntaxKind.None;
-        }
-
         public static bool IsKeyword(this SyntaxToken token)
         {
-            return SyntaxFacts.IsKeywordKind(token.Kind());
+            return SyntaxFacts.IsKeywordKind(token.CSharpKind());
         }
 
         public static bool IsContextualKeyword(this SyntaxToken token)
         {
-            return SyntaxFacts.IsContextualKeyword(token.Kind());
+            return SyntaxFacts.IsContextualKeyword(token.CSharpKind());
         }
 
         public static bool IsReservedKeyword(this SyntaxToken token)
         {
-            return SyntaxFacts.IsReservedKeyword(token.Kind());
+            return SyntaxFacts.IsReservedKeyword(token.CSharpKind());
         }
 
         public static bool IsVerbatimStringLiteral(this SyntaxToken token)
@@ -210,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static VarianceKind VarianceKindFromToken(this SyntaxToken node)
         {
-            switch (node.Kind())
+            switch (node.CSharpKind())
             {
                 case SyntaxKind.OutKeyword: return VarianceKind.Out;
                 case SyntaxKind.InKeyword: return VarianceKind.In;

@@ -349,7 +349,7 @@ public class C
 
             private void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
-                switch (context.Node.Kind())
+                switch (context.Node.CSharpKind())
                 {
                     case SyntaxKind.Attribute:
                         var diag1 = CodeAnalysis.Diagnostic.Create(descriptor, context.Node.GetLocation(), "Attribute");
@@ -687,7 +687,7 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
                         (context) =>
                         {
                             DiagnosticDescriptor descriptor;
-                            switch (context.Node.Parent.Kind())
+                            switch (context.Node.Parent.CSharpKind())
                             {
                                 case SyntaxKind.PropertyDeclaration:
                                     descriptor = Desciptor4;

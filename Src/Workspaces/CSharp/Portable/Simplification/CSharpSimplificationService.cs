@@ -87,14 +87,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             }
 
             var parent = parentOfToken.Parent;
-            if (parentOfToken is SimpleNameSyntax && parent.Kind() == SyntaxKind.XmlNameAttribute)
+            if (parentOfToken is SimpleNameSyntax && parent.CSharpKind() == SyntaxKind.XmlNameAttribute)
             {
                 // do not try to escape XML name attributes
                 return syntaxToken;
             }
 
             // do not escape global in a namespace qualified name
-            if (parent.Kind() == SyntaxKind.AliasQualifiedName &&
+            if (parent.CSharpKind() == SyntaxKind.AliasQualifiedName &&
                 syntaxToken.ValueText == "global")
             {
                 return syntaxToken;

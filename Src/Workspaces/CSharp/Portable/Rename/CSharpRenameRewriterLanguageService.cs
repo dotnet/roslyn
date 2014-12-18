@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
                 while (expressionOfInvocation != null)
                 {
-                    switch (expressionOfInvocation.Kind())
+                    switch (expressionOfInvocation.CSharpKind())
                     {
                         case SyntaxKind.IdentifierName:
                         case SyntaxKind.GenericName:
@@ -562,7 +562,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 else
                 {
                     var parsedIdentifier = (IdentifierNameSyntax)SyntaxFactory.ParseName(currentNewIdentifier);
-                    Debug.Assert(parsedIdentifier.Kind() == SyntaxKind.IdentifierName);
+                    Debug.Assert(parsedIdentifier.CSharpKind() == SyntaxKind.IdentifierName);
                     valueText = parsedIdentifier.Identifier.ValueText;
                 }
 
@@ -694,8 +694,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
         {
             if (token.Parent.IsKind(SyntaxKind.IdentifierName) &&
                 token.Parent.IsParentKind(SyntaxKind.InvocationExpression) &&
-                token.GetPreviousToken().Kind() != SyntaxKind.DotToken &&
-                token.GetNextToken().Kind() != SyntaxKind.DotToken)
+                token.GetPreviousToken().CSharpKind() != SyntaxKind.DotToken &&
+                token.GetNextToken().CSharpKind() != SyntaxKind.DotToken)
             {
                 var expression = (ExpressionSyntax)token.Parent;
                 var enclosingMemberDeclaration = expression.FirstAncestorOrSelf<MemberDeclarationSyntax>();
@@ -790,7 +790,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 var token = location.SourceTree.GetTouchingToken(location.SourceSpan.Start, cancellationToken, findInsideTrivia: true);
                 var currentUsing = (UsingDirectiveSyntax)token.Parent.Parent.Parent;
 
-                var namespaceDecl = token.Parent.GetAncestorsOrThis(n => n.Kind() == SyntaxKind.NamespaceDeclaration).FirstOrDefault();
+                var namespaceDecl = token.Parent.GetAncestorsOrThis(n => n.CSharpKind() == SyntaxKind.NamespaceDeclaration).FirstOrDefault();
                 SyntaxList<UsingDirectiveSyntax> usings;
                 if (namespaceDecl != null)
                 {
@@ -798,7 +798,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 }
                 else
                 {
-                    var compilationUnit = (CompilationUnitSyntax)token.Parent.GetAncestorsOrThis(n => n.Kind() == SyntaxKind.CompilationUnit).Single();
+                    var compilationUnit = (CompilationUnitSyntax)token.Parent.GetAncestorsOrThis(n => n.CSharpKind() == SyntaxKind.CompilationUnit).Single();
                     usings = compilationUnit.Usings;
                 }
 
@@ -900,7 +900,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                     {
                         var token = implicitReferenceLocation.Location.SourceTree.GetTouchingToken(implicitReferenceLocation.Location.SourceSpan.Start, cancellationToken, false);
 
-                        switch (token.Kind())
+                        switch (token.CSharpKind())
                         {
                             case SyntaxKind.ForEachKeyword:
                                 return SpecializedCollections.SingletonEnumerable<Location>(((ForEachStatementSyntax)token.Parent).Expression.GetLocation());
@@ -1015,7 +1015,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             else
             {
                 var name = SyntaxFactory.ParseName(replacementText);
-                if (name.Kind() == SyntaxKind.IdentifierName)
+                if (name.CSharpKind() == SyntaxKind.IdentifierName)
                 {
                     valueText = ((IdentifierNameSyntax)name).Identifier.ValueText;
                 }

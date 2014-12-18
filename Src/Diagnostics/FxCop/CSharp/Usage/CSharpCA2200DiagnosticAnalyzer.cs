@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 
             for (SyntaxNode syntax = throwStatement; syntax != null; syntax = syntax.Parent)
             {
-                switch (syntax.Kind())
+                switch (syntax.CSharpKind())
                 {
                     case SyntaxKind.CatchClause:
                         {

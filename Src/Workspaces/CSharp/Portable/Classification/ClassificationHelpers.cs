@@ -22,15 +22,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
         /// <returns>The correct syntactic classification for the token.</returns>
         public static string GetClassification(SyntaxToken token)
         {
-            if (SyntaxFacts.IsKeywordKind(token.Kind()))
+            if (SyntaxFacts.IsKeywordKind(token.CSharpKind()))
             {
                 return ClassificationTypeNames.Keyword;
             }
-            else if (SyntaxFacts.IsPunctuation(token.Kind()))
+            else if (SyntaxFacts.IsPunctuation(token.CSharpKind()))
             {
                 return GetClassificationForPunctuation(token);
             }
-            else if (token.Kind() == SyntaxKind.IdentifierToken)
+            else if (token.CSharpKind() == SyntaxKind.IdentifierToken)
             {
                 return GetClassificationForIdentifer(token);
             }
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                     ? ClassificationTypeNames.VerbatimStringLiteral
                     : ClassificationTypeNames.StringLiteral;
             }
-            else if (token.Kind() == SyntaxKind.NumericLiteralToken)
+            else if (token.CSharpKind() == SyntaxKind.NumericLiteralToken)
             {
                 return ClassificationTypeNames.NumericLiteral;
             }
@@ -50,12 +50,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private static bool IsStringToken(SyntaxToken token)
         {
-            return token.IsKind(SyntaxKind.StringLiteralToken)
-                || token.IsKind(SyntaxKind.CharacterLiteralToken)
-                || token.IsKind(SyntaxKind.InterpolatedStringStartToken)
-                || token.IsKind(SyntaxKind.InterpolatedVerbatimStringStartToken)
-                || token.IsKind(SyntaxKind.InterpolatedStringTextToken)
-                || token.IsKind(SyntaxKind.InterpolatedStringEndToken);
+            return token.CSharpKind() == SyntaxKind.StringLiteralToken
+                || token.CSharpKind() == SyntaxKind.CharacterLiteralToken
+                || token.CSharpKind() == SyntaxKind.InterpolatedStringStartToken
+                || token.CSharpKind() == SyntaxKind.InterpolatedVerbatimStringStartToken
+                || token.CSharpKind() == SyntaxKind.InterpolatedStringTextToken
+                || token.CSharpKind() == SyntaxKind.InterpolatedStringEndToken;
         }
 
         private static bool IsVerbatimStringToken(SyntaxToken token)
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 return true;
             }
 
-            switch (token.Kind())
+            switch (token.CSharpKind())
             {
                 case SyntaxKind.InterpolatedVerbatimStringStartToken:
                     return true;
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private static string GetClassificationForTypeDeclarationIdentifier(SyntaxToken identifier)
         {
-            switch (identifier.Parent.Kind())
+            switch (identifier.Parent.CSharpKind())
             {
                 case SyntaxKind.ClassDeclaration:
                     return ClassificationTypeNames.ClassName;
@@ -143,10 +143,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private static string GetClassificationForPunctuation(SyntaxToken token)
         {
-            if (token.Kind().IsOperator())
+            if (token.CSharpKind().IsOperator())
             {
                 // special cases...
-                switch (token.Kind())
+                switch (token.CSharpKind())
                 {
                     case SyntaxKind.LessThanToken:
                     case SyntaxKind.GreaterThanToken:
@@ -154,8 +154,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                         // punctuation; otherwise, they're operators.
                         if (token.Parent != null)
                         {
-                            if (token.Parent.Kind() == SyntaxKind.TypeParameterList ||
-                                token.Parent.Kind() == SyntaxKind.TypeArgumentList)
+                            if (token.Parent.CSharpKind() == SyntaxKind.TypeParameterList ||
+                                token.Parent.CSharpKind() == SyntaxKind.TypeArgumentList)
                             {
                                 return ClassificationTypeNames.Punctuation;
                             }
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                         // punctuation; otherwise, it's from a conditional operator.
                         if (token.Parent != null)
                         {
-                            if (token.Parent.Kind() != SyntaxKind.ConditionalExpression)
+                            if (token.Parent.CSharpKind() != SyntaxKind.ConditionalExpression)
                             {
                                 return ClassificationTypeNames.Punctuation;
                             }
@@ -345,12 +345,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                     // know if we're in the right context for them to be identifiers or keywords.
                     // So, we base on decision on what they were before.  i.e. if we had a keyword
                     // before, then assume it stays a keyword if we see 'var' or 'dynamic.
-                    var isKeyword = SyntaxFacts.IsKeywordKind(token.Kind())
+                    var isKeyword = SyntaxFacts.IsKeywordKind(token.CSharpKind())
                         || (wasKeyword && SyntaxFacts.GetContextualKeywordKind(text) != SyntaxKind.None)
                         || (wasKeyword && token.ToString() == "var")
                         || (wasKeyword && token.ToString() == "dynamic");
 
-                    var isIdentifier = token.Kind() == SyntaxKind.IdentifierToken;
+                    var isIdentifier = token.CSharpKind() == SyntaxKind.IdentifierToken;
 
                     // We only do this for identifiers/keywords.
                     if (isKeyword || isIdentifier)

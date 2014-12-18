@@ -106,23 +106,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // Ensure that we have the correct token in A.B| case
             var node = context.TargetToken.Parent;
 
-            if (node.Kind() == SyntaxKind.SimpleMemberAccessExpression)
+            if (node.CSharpKind() == SyntaxKind.SimpleMemberAccessExpression)
             {
                 return GetSymbolsOffOfExpression(context, ((MemberAccessExpressionSyntax)node).Expression, cancellationToken);
             }
-            else if (node.Kind() == SyntaxKind.PointerMemberAccessExpression)
+            else if (node.CSharpKind() == SyntaxKind.PointerMemberAccessExpression)
             {
                 return GetSymbolsOffOfDereferencedExpression(context, ((MemberAccessExpressionSyntax)node).Expression, cancellationToken);
             }
-            else if (node.Kind() == SyntaxKind.QualifiedName)
+            else if (node.CSharpKind() == SyntaxKind.QualifiedName)
             {
                 return GetSymbolsOffOfName(context, ((QualifiedNameSyntax)node).Left, cancellationToken);
             }
-            else if (node.Kind() == SyntaxKind.AliasQualifiedName)
+            else if (node.CSharpKind() == SyntaxKind.AliasQualifiedName)
             {
                 return GetSymbolsOffOffAlias(context, ((AliasQualifiedNameSyntax)node).Alias, cancellationToken);
             }
-            else if (node.Kind() == SyntaxKind.MemberBindingExpression)
+            else if (node.CSharpKind() == SyntaxKind.MemberBindingExpression)
             {
                 var parentConditionalAccess = node.GetAncestor<ConditionalAccessExpressionSyntax>();
                 return GetSymbolsOffOfConditionalReceiver(context, parentConditionalAccess.Expression, cancellationToken);
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             // using System;
             // |
 
-            if (token.Kind() == SyntaxKind.SemicolonToken &&
+            if (token.CSharpKind() == SyntaxKind.SemicolonToken &&
                 token.Parent.IsKind(SyntaxKind.UsingDirective) &&
                 position >= token.Span.End)
             {

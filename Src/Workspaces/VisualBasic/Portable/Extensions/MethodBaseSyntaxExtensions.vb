@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Friend Module MethodBaseSyntaxExtensions
         <Extension>
         Public Function WithParameterList(method As MethodBaseSyntax, parameterList As ParameterListSyntax) As MethodBaseSyntax
-            Select Case method.Kind
+            Select Case method.VBKind
                 Case SyntaxKind.SubNewStatement
                     Return DirectCast(method, SubNewStatementSyntax).WithParameterList(parameterList)
                 Case SyntaxKind.OperatorStatement

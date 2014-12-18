@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return nextOperation.Invoke();
             }
 
-            switch (currentToken.Kind())
+            switch (currentToken.CSharpKind())
             {
                 case SyntaxKind.FromKeyword:
                 case SyntaxKind.WhereKeyword:

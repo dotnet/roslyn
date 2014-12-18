@@ -789,7 +789,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             For Each modifier In modifiers
                 Dim bit As DeclarationModifiers = 0
-                Select Case modifier.Kind
+                Select Case modifier.VBKind
                     Case SyntaxKind.MustInheritKeyword : bit = DeclarationModifiers.MustInherit
                     Case SyntaxKind.NotInheritableKeyword : bit = DeclarationModifiers.NotInheritable
                     Case SyntaxKind.PartialKeyword : bit = DeclarationModifiers.Partial
@@ -821,7 +821,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Case SyntaxKind.IteratorKeyword : bit = DeclarationModifiers.Iterator
 
                     Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(modifier.Kind)
+                        Throw ExceptionUtilities.UnexpectedValue(modifier.VBKind)
                 End Select
 
                 result = result Or bit

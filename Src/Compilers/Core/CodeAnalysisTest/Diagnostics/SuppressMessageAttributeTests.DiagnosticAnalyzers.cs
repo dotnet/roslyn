@@ -198,9 +198,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                         {
                              var comments = context.Tree.GetRoot().DescendantTrivia()
                                 .Where(t =>
-                                    t.IsKind(SyntaxKind.SingleLineCommentTrivia) ||
-                                    t.IsKind(SyntaxKind.MultiLineCommentTrivia) ||
-                                    t.IsKind(VisualBasic.SyntaxKind.CommentTrivia));
+                                    t.CSharpKind() == CSharp.SyntaxKind.SingleLineCommentTrivia ||
+                                    t.CSharpKind() == CSharp.SyntaxKind.MultiLineCommentTrivia ||
+                                    t.VBKind() == VisualBasic.SyntaxKind.CommentTrivia);
 
                             foreach (var comment in comments)
                             {

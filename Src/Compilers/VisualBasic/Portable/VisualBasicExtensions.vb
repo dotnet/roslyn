@@ -15,34 +15,44 @@ Namespace Microsoft.CodeAnalysis
     ''' Addition Visual Basic syntax extension methods.
     ''' </summary>
     Public Module VisualBasicExtensions
-
-        <Extension, Obsolete("To be removed, use Kind() or IsKind() instead.", True)>
+        ''' <summary>
+        ''' Returns SyntaxKind for SyntaxTrivia nodes.
+        ''' </summary> 
+        <Extension>
         Public Function VBKind(trivia As SyntaxTrivia) As SyntaxKind
-            Return Kind(trivia)
+            Return If(trivia.Language Is LanguageNames.VisualBasic, CType(trivia.RawKind, SyntaxKind), SyntaxKind.None)
         End Function
 
-        <Extension, Obsolete("To be removed, use Kind() or IsKind() instead.", True)>
+        ''' <summary>
+        ''' Returns SyntaxKind for SyntaxToken from RawKind property.
+        ''' </summary>       
+        <Extension>
         Public Function VBKind(token As SyntaxToken) As SyntaxKind
-            Return Kind(token)
+            Return If(token.Language Is LanguageNames.VisualBasic, CType(token.RawKind, SyntaxKind), SyntaxKind.None)
         End Function
 
         ''' <summary>
         ''' Returns SyntaxKind for SyntaxToken from RawContextualKind.
         ''' </summary>
         <Extension>
-        Friend Function VisualBasicContextualKind(token As SyntaxToken) As SyntaxKind
+        Public Function VisualBasicContextualKind(token As SyntaxToken) As SyntaxKind
             Return If(token.Language Is LanguageNames.VisualBasic, CType(token.RawContextualKind, SyntaxKind), SyntaxKind.None)
         End Function
 
-        <Extension, Obsolete("To be removed, use Kind() or IsKind() instead.", True)>
+        ''' <summary>
+        ''' Returns SyntaxKind for SyntaxNode from RawKind property.
+        ''' </summary>
+        <Extension>
         Public Function VBKind(node As SyntaxNode) As SyntaxKind
-            Return Kind(node)
+            Return If(node.Language Is LanguageNames.VisualBasic, CType(node.RawKind, SyntaxKind), SyntaxKind.None)
         End Function
 
-
-        <Extension, Obsolete("To be removed, use Kind() or IsKind() instead.", True)>
+        ''' <summary>
+        ''' Returns SyntaxKind for SyntaxNodeOrToken from RawKind property.
+        ''' </summary>        
+        <Extension>
         Public Function VBKind(nodeOrToken As SyntaxNodeOrToken) As SyntaxKind
-            Return Kind(nodeOrToken)
+            Return If(nodeOrToken.Language Is LanguageNames.VisualBasic, CType(nodeOrToken.RawKind, SyntaxKind), SyntaxKind.None)
         End Function
 
         ''' <summary>
@@ -52,7 +62,7 @@ Namespace Microsoft.CodeAnalysis
         ''' <param name="kind">The SyntaxKind to test for.</param>
         <Extension>
         Public Function IsKind(trivia As SyntaxTrivia, kind As SyntaxKind) As Boolean
-            Return trivia.Kind = kind
+            Return trivia.VBKind = kind
         End Function
 
         ''' <summary>
@@ -62,7 +72,7 @@ Namespace Microsoft.CodeAnalysis
         ''' <param name="kind">The SyntaxKind to test for.</param>
         <Extension>
         Public Function IsKind(token As SyntaxToken, kind As SyntaxKind) As Boolean
-            Return token.Kind = kind
+            Return token.VBKind = kind
         End Function
 
         ''' <summary>
@@ -72,7 +82,7 @@ Namespace Microsoft.CodeAnalysis
         ''' <param name="kind">The SyntaxKind to test for.</param>
         ''' <returns>A boolean value if token is of specified kind; otherwise false.</returns>
         <Extension>
-        Friend Function IsContextualKind(token As SyntaxToken, kind As SyntaxKind) As Boolean
+        Public Function IsContextualKind(token As SyntaxToken, kind As SyntaxKind) As Boolean
             Return token.VisualBasicContextualKind = kind
         End Function
 
@@ -84,7 +94,7 @@ Namespace Microsoft.CodeAnalysis
         ''' <returns>A boolean value if node is of specified kind; otherwise false.</returns>
         <Extension>
         Public Function IsKind(node As SyntaxNode, kind As SyntaxKind) As Boolean
-            Return node IsNot Nothing AndAlso node.Kind = kind
+            Return node IsNot Nothing AndAlso node.VBKind = kind
         End Function
 
         ''' <summary>
@@ -95,7 +105,7 @@ Namespace Microsoft.CodeAnalysis
         ''' <returns>A boolean value if nodeoOrToken is of specified kind; otherwise false.</returns>
         <Extension>
         Public Function IsKind(nodeOrToken As SyntaxNodeOrToken, kind As SyntaxKind) As Boolean
-            Return nodeOrToken.Kind = kind
+            Return nodeOrToken.VBKind = kind
         End Function
 
         ''' <summary>
@@ -202,38 +212,6 @@ End Namespace
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Public Module VisualBasicExtensions
 
-        ''' <summary>
-        ''' Returns <see cref="SyntaxKind"/> for <see cref="SyntaxTrivia"/> nodes.
-        ''' </summary> 
-        <Extension>
-        Public Function Kind(trivia As SyntaxTrivia) As SyntaxKind
-            Return If(trivia.Language Is LanguageNames.VisualBasic, CType(trivia.RawKind, SyntaxKind), SyntaxKind.None)
-        End Function
-
-        ''' <summary>
-        ''' Returns <see cref="SyntaxKind"/> for <see cref="SyntaxToken"/> from <see cref="SyntaxToken.RawKind"/> property.
-        ''' </summary>       
-        <Extension>
-        Public Function Kind(token As SyntaxToken) As SyntaxKind
-            Return If(token.Language Is LanguageNames.VisualBasic, CType(token.RawKind, SyntaxKind), SyntaxKind.None)
-        End Function
-
-        ''' <summary>
-        ''' Returns <see cref="SyntaxKind"/> for <see cref="SyntaxNode"/> from <see cref="SyntaxToken.RawKind"/> property.
-        ''' </summary>
-        <Extension>
-        Public Function Kind(node As SyntaxNode) As SyntaxKind
-            Return If(node.Language Is LanguageNames.VisualBasic, CType(node.RawKind, SyntaxKind), SyntaxKind.None)
-        End Function
-
-        ''' <summary>
-        ''' Returns <see cref="SyntaxKind"/> for <see cref="SyntaxNodeOrToken"/> from <see cref="SyntaxToken.RawKind"/> property.
-        ''' </summary>        
-        <Extension>
-        Public Function Kind(nodeOrToken As SyntaxNodeOrToken) As SyntaxKind
-            Return If(nodeOrToken.Language Is LanguageNames.VisualBasic, CType(nodeOrToken.RawKind, SyntaxKind), SyntaxKind.None)
-        End Function
-
         <Extension>
         Friend Function GetLocation(syntaxReference As SyntaxReference) As Location
             Dim tree = TryCast(syntaxReference.SyntaxTree, VisualBasicSyntaxTree)
@@ -323,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A type character used for the specific Internal Syntax Token Types.</returns>
         <Extension>
         Public Function GetTypeCharacter(token As SyntaxToken) As TypeCharacter
-            Select Case token.Kind()
+            Select Case token.VBKind()
                 Case SyntaxKind.IdentifierToken
                     Dim id = DirectCast(token.Node, InternalSyntax.IdentifierTokenSyntax)
                     Return id.TypeCharacter
@@ -365,7 +343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A boolean value True if token is a keyword.</returns>
         <Extension>
         Public Function IsKeyword(token As SyntaxToken) As Boolean
-            Return SyntaxFacts.IsKeywordKind(token.Kind())
+            Return SyntaxFacts.IsKeywordKind(token.VBKind())
         End Function
 
         ''' <summary>
@@ -375,7 +353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A boolean value True if token is a reserved keyword.</returns>
         <Extension>
         Public Function IsReservedKeyword(token As SyntaxToken) As Boolean
-            Return SyntaxFacts.IsReservedKeyword(token.Kind())
+            Return SyntaxFacts.IsReservedKeyword(token.VBKind())
         End Function
 
         ''' <summary>
@@ -384,7 +362,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns>A boolean value True if token is a contextual keyword.</returns>
         <Extension>
         Public Function IsContextualKeyword(token As SyntaxToken) As Boolean
-            Return SyntaxFacts.IsContextualKeyword(token.Kind())
+            Return SyntaxFacts.IsContextualKeyword(token.VBKind())
         End Function
 
         ''' <summary>
@@ -394,7 +372,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <returns> A boolean value True if token is a pre processor keyword.</returns>
         <Extension>
         Public Function IsPreprocessorKeyword(token As SyntaxToken) As Boolean
-            Return SyntaxFacts.IsPreprocessorKeyword(token.Kind())
+            Return SyntaxFacts.IsPreprocessorKeyword(token.VBKind())
         End Function
 
         ''' <summary>
