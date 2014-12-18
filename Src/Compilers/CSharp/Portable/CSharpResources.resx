@@ -4601,4 +4601,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExpressionOrDeclarationExpected" xml:space="preserve">
     <value>Expression or declaration statement expected.</value>
   </data>
+  <data name="ERR_NameofExtensionMethod" xml:space="preserve">
+    <value>Extension method groups are not allowed as an argument to 'nameof'.</value>
+  </data>
 </root>

@@ -760,7 +760,11 @@ public class Program
     private static void Use(object o) {}
 }";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (13,20): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
+                //         Use(nameof(a.Extension));
+                Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "a.Extension").WithLocation(13, 20)
+                );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "a.Extension").OfType<ExpressionSyntax>().First();
@@ -803,7 +807,11 @@ namespace N1
     }
 }";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (22,28): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
+                //                 Use(nameof(a.Extension));
+                Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "a.Extension").WithLocation(22, 28)
+                );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "a.Extension").OfType<ExpressionSyntax>().First();
@@ -918,7 +926,11 @@ namespace N1
     }
 }";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
-            compilation.VerifyDiagnostics();
+            compilation.VerifyDiagnostics(
+                // (21,28): error CS8093: Extension method groups are not allowed as an argument to 'nameof'.
+                //                 Use(nameof(A.Extension));
+                Diagnostic(ErrorCode.ERR_NameofExtensionMethod, "A.Extension").WithLocation(21, 28)
+                );
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var node = tree.GetRoot().DescendantNodes().Where(n => n.ToString() == "A.Extension").OfType<ExpressionSyntax>().First();

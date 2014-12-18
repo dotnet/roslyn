@@ -1303,5 +1303,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ErrorInReferencedAssembly = 8090,
         ERR_ExternHasConstructorInitializer = 8091,
         ERR_ExpressionOrDeclarationExpected = 8092,
+        ERR_NameofExtensionMethod = 8093,
     }
 }

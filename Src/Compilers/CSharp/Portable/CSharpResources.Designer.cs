@@ -5831,6 +5831,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Extension method groups are not allowed as an argument to &apos;nameof&apos;..
+        /// </summary>
+        internal static string ERR_NameofExtensionMethod {
+            get {
+                return ResourceManager.GetString("ERR_NameofExtensionMethod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Type parameters are not allowed on a method group as an argument to &apos;nameof&apos;..
         /// </summary>
         internal static string ERR_NameofMethodGroupWithTypeParameters {

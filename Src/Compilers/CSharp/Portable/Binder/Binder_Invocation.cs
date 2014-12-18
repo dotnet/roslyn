@@ -1106,6 +1106,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var resolution = ResolveMethodGroup(methodGroup, analyzedArguments: null, isMethodGroupConversion: false, useSiteDiagnostics: ref useSiteDiagnostics);
             diagnostics.Add(methodGroup.Syntax, useSiteDiagnostics);
             diagnostics.AddRange(resolution.Diagnostics);
+            if (resolution.IsExtensionMethodGroup)
+            {
+                diagnostics.Add(ErrorCode.ERR_NameofExtensionMethod, methodGroup.Syntax.Location);
+            }
         }
 
         /// <summary>
