@@ -84,6 +84,18 @@ Module Extensions
     End Function
 
     <Extension>
+    Friend Function GetFieldNames(this As ModuleSymbol, qualifiedTypeName As String) As String()
+        Dim type = DirectCast(this.GlobalNamespace.GetMember(qualifiedName:=qualifiedTypeName), NamedTypeSymbol)
+        Return type.GetMembers().OfType(Of FieldSymbol)().Select(Of String)(Function(f) f.Name).ToArray()
+    End Function
+
+    <Extension>
+    Friend Function GetFieldNamesAndTypes(this As ModuleSymbol, qualifiedTypeName As String) As String()
+        Dim type = DirectCast(this.GlobalNamespace.GetMember(qualifiedName:=qualifiedTypeName), NamedTypeSymbol)
+        Return type.GetMembers().OfType(Of FieldSymbol)().Select(Of String)(Function(f) f.Name + ": " + f.Type.ToDisplayString(SymbolDisplayFormat.TestFormat)).ToArray()
+    End Function
+
+    <Extension>
     Friend Function GetAttribute(this As Symbol, c As NamedTypeSymbol) As VisualBasicAttributeData
         Return this.GetAttributes().Where(Function(a) a.AttributeClass = c).First()
     End Function

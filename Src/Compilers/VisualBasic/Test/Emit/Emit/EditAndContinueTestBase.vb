@@ -84,6 +84,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Throw New NotImplementedException()
         End Function
 
+        Friend Shared Function GetSyntaxMapByKind(method As MethodSymbol, ParamArray kinds As SyntaxKind()) As Func(Of SyntaxNode, SyntaxNode)
+            Return Function(node As SyntaxNode)
+                       For Each kind In kinds
+                           If node.VBKind() = kind Then
+                               Return method.DeclaringSyntaxReferences.Single().SyntaxTree.GetRoot().DescendantNodes().Single(Function(n) n.VBKind() = kind)
+                           End If
+                       Next
+
+                       Return Nothing
+                   End Function
+        End Function
+
         Friend Shared Function GetEquivalentNodesMap(method1 As MethodSymbol, method0 As MethodSymbol) As Func(Of SyntaxNode, SyntaxNode)
             Dim tree1 = method1.Locations(0).SourceTree
             Dim tree0 = method0.Locations(0).SourceTree
