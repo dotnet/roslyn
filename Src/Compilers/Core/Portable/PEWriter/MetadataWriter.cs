@@ -1706,8 +1706,6 @@ namespace Microsoft.Cci
 
         private StringIdx GetStringIndex(string str)
         {
-            Debug.Assert(str.Length == 0 || MetadataHelpers.IsValidMetadataIdentifier(str));
-
             uint index = 0;
             if (str.Length > 0 && !this.stringIndex.TryGetValue(str, out index))
             {

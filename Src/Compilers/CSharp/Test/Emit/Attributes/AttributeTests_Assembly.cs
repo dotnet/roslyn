@@ -201,12 +201,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_InvalidAssemblyCultureForExe, @"""pt-BR""").WithLocation(1, 46));
         }
 
-        [Fact(Skip = "Bug 1032718"), WorkItem(1032718)]
+        [Fact, WorkItem(1032718)]
         public void MismatchedSurrogateInAssemblyCultureAttribute()
         {
             string s = @"[assembly: System.Reflection.AssemblyCultureAttribute(""\uD800"")]";
             var comp = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll);
-            comp.Emit(Stream.Null);
+
+            CompileAndVerify(comp, emitOptions: TestEmitters.RefEmitBug, verify: false, symbolValidator: m =>
+                                                        {
+                                                            var utf8 = new System.Text.UTF8Encoding(false, false);
+                                                            Assert.True(utf8.GetString(utf8.GetBytes("\uD800")) == m.ContainingAssembly.Identity.CultureName);
+                                                        });
         }
 
         [Fact, WorkItem(1034455)]
