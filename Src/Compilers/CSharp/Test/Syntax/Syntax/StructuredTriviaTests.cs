@@ -70,11 +70,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             // make sure FindLeaf digs into the structured trivia.
             var result = identExpr.FindToken(3, true);
-            Assert.Equal(SyntaxKind.IdentifierToken, result.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, result.Kind());
             Assert.Equal("foo", result.ToString());
 
             var trResult = identExpr.FindTrivia(6, SyntaxTrivia.Any);
-            Assert.Equal(SyntaxKind.WhitespaceTrivia, trResult.CSharpKind());
+            Assert.Equal(SyntaxKind.WhitespaceTrivia, trResult.Kind());
             Assert.Equal(" ", trResult.ToString());
 
             var foundDocComment = result.Parent.Parent.Parent.Parent;
@@ -159,8 +159,8 @@ class Program
 }
 ");
 
-            var trivia = tree.GetCompilationUnitRoot().DescendantTrivia().Single(t => t.CSharpKind() == SyntaxKind.SingleLineDocumentationCommentTrivia);
-            Assert.Equal(SyntaxKind.StaticKeyword, trivia.Token.CSharpKind());
+            var trivia = tree.GetCompilationUnitRoot().DescendantTrivia().Single(t => t.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia);
+            Assert.Equal(SyntaxKind.StaticKeyword, trivia.Token.Kind());
         }
 
         [WorkItem(546207, "DevDiv")]
@@ -175,8 +175,8 @@ class Program
 }
 ");
 
-            var trivia = tree.GetCompilationUnitRoot().DescendantTrivia().Single(t => t.CSharpKind() == SyntaxKind.MultiLineDocumentationCommentTrivia);
-            Assert.Equal(SyntaxKind.StaticKeyword, trivia.Token.CSharpKind());
+            var trivia = tree.GetCompilationUnitRoot().DescendantTrivia().Single(t => t.Kind() == SyntaxKind.MultiLineDocumentationCommentTrivia);
+            Assert.Equal(SyntaxKind.StaticKeyword, trivia.Token.Kind());
         }
 
         [Fact]

@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.OperatorDeclaration:
                         return OperatorFacts.OperatorNameFromDeclaration((OperatorDeclarationSyntax)baseMethodDeclarationSyntax);
                     case SyntaxKind.ConversionOperatorDeclaration:
-                        return ((ConversionOperatorDeclarationSyntax)baseMethodDeclarationSyntax).ImplicitOrExplicitKeyword.CSharpKind() == SyntaxKind.ImplicitKeyword
+                        return ((ConversionOperatorDeclarationSyntax)baseMethodDeclarationSyntax).ImplicitOrExplicitKeyword.Kind() == SyntaxKind.ImplicitKeyword
                             ? WellKnownMemberNames.ImplicitConversionName
                             : WellKnownMemberNames.ExplicitConversionName;
                     case SyntaxKind.MethodDeclaration:

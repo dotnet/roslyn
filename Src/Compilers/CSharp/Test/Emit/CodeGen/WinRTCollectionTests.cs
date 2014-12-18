@@ -7449,7 +7449,7 @@ public class Class1
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
-            var add = tree.GetRoot().DescendantNodes().Where(n => n.CSharpKind() == SyntaxKind.IdentifierName && ((IdentifierNameSyntax)n).Identifier.ValueText == "Add").Single();
+            var add = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "Add").Single();
             var addMethod = model.GetSymbolInfo(add).Symbol;
             Assert.Equal("void System.Collections.Generic.IDictionary<System.String, Windows.Data.Json.IJsonValue>.Add(System.String key, Windows.Data.Json.IJsonValue value)", addMethod.ToTestDisplayString());
 

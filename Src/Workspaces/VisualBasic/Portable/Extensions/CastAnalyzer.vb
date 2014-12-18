@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             Dim parentAssignmentStatement = TryCast(nodeWalkUpParenthesesParent, AssignmentStatementSyntax)
-            If parentAssignmentStatement IsNot Nothing AndAlso nodeWalkUpParenthesesParent.VBKind = SyntaxKind.SimpleAssignmentStatement Then
+            If parentAssignmentStatement IsNot Nothing AndAlso nodeWalkUpParenthesesParent.Kind = SyntaxKind.SimpleAssignmentStatement Then
                 Return semanticModel.GetTypeInfo(parentAssignmentStatement.Left).Type
             End If
 
@@ -191,7 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             Dim castExpressionType As ITypeSymbol
 
-            If _castExpressionNode.VBKind = SyntaxKind.CollectionInitializer Then
+            If _castExpressionNode.Kind = SyntaxKind.CollectionInitializer Then
                 ' Get type of the array literal in context without the target type
                 castExpressionType = _semanticModel.GetSpeculativeTypeInfo(_castExpressionNode.SpanStart, _castExpressionNode, SpeculativeBindingOption.BindAsExpression).ConvertedType
             Else
@@ -255,7 +255,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
 
                 If (expressionToOuterType.IsIdentity OrElse
-                      (_castExpressionNode.VBKind = SyntaxKind.CollectionInitializer AndAlso expressionToOuterType.IsWidening AndAlso speculatedExpressionOuterType.IsArrayType())) AndAlso
+                      (_castExpressionNode.Kind = SyntaxKind.CollectionInitializer AndAlso expressionToOuterType.IsWidening AndAlso speculatedExpressionOuterType.IsArrayType())) AndAlso
                    expressionToCastType.IsWidening Then
                     Return True
                 End If

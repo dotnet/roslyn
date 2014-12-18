@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Friend Module TypeBlockSyntaxExtensions
         <Extension>
         Public Function WithInherits(node As TypeBlockSyntax, list As SyntaxList(Of InheritsStatementSyntax)) As TypeBlockSyntax
-            Select Case node.VBKind
+            Select Case node.Kind
                 Case SyntaxKind.ModuleBlock
                     Return DirectCast(node, ModuleBlockSyntax).WithInherits(list)
                 Case SyntaxKind.InterfaceBlock
@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension>
         Public Function WithImplements(node As TypeBlockSyntax, list As SyntaxList(Of ImplementsStatementSyntax)) As TypeBlockSyntax
-            Select Case node.VBKind
+            Select Case node.Kind
                 Case SyntaxKind.ModuleBlock
                     Return DirectCast(node, ModuleBlockSyntax).WithImplements(list)
                 Case SyntaxKind.InterfaceBlock
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension>
         Public Function AddMembers(node As TypeBlockSyntax, ParamArray members As StatementSyntax()) As TypeBlockSyntax
-            Select Case node.VBKind
+            Select Case node.Kind
                 Case SyntaxKind.ModuleBlock
                     Return DirectCast(node, ModuleBlockSyntax).AddMembers(members)
                 Case SyntaxKind.InterfaceBlock
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension>
         Public Function WithMembers(node As TypeBlockSyntax, members As SyntaxList(Of StatementSyntax)) As TypeBlockSyntax
-            Select Case node.VBKind
+            Select Case node.Kind
                 Case SyntaxKind.ModuleBlock
                     Return DirectCast(node, ModuleBlockSyntax).WithMembers(members)
                 Case SyntaxKind.InterfaceBlock
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension>
         Public Function WithBegin(node As TypeBlockSyntax, [begin] As TypeStatementSyntax) As TypeBlockSyntax
-            Select Case node.VBKind
+            Select Case node.Kind
                 Case SyntaxKind.ModuleBlock
                     Return DirectCast(node, ModuleBlockSyntax).WithBegin(DirectCast([begin], ModuleStatementSyntax))
                 Case SyntaxKind.InterfaceBlock
@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension>
         Public Function WithEnd(node As TypeBlockSyntax, [end] As EndBlockStatementSyntax) As TypeBlockSyntax
-            Select Case node.VBKind
+            Select Case node.Kind
                 Case SyntaxKind.ModuleBlock
                     Return DirectCast(node, ModuleBlockSyntax).WithEnd([end])
                 Case SyntaxKind.InterfaceBlock
@@ -136,15 +136,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         Private Function ReplaceTrailingColonToEndOfLineTrivia(Of TNode As SyntaxNode)(node As TNode) As TNode
-            Return node.WithTrailingTrivia(node.GetTrailingTrivia().Select(Function(t) If(t.VBKind = SyntaxKind.ColonTrivia, SyntaxFactory.CarriageReturnLineFeed, t)))
+            Return node.WithTrailingTrivia(node.GetTrailingTrivia().Select(Function(t) If(t.Kind = SyntaxKind.ColonTrivia, SyntaxFactory.CarriageReturnLineFeed, t)))
         End Function
 
         Private Function EnsureProperList(Of TSyntax As SyntaxNode)(list As SyntaxList(Of TSyntax)) As SyntaxList(Of TSyntax)
             Dim allElements = list
-            If Not allElements.Last().GetTrailingTrivia().Any(Function(t) t.VBKind = SyntaxKind.EndOfLineTrivia OrElse t.VBKind = SyntaxKind.ColonTrivia) Then
+            If Not allElements.Last().GetTrailingTrivia().Any(Function(t) t.Kind = SyntaxKind.EndOfLineTrivia OrElse t.Kind = SyntaxKind.ColonTrivia) Then
                 Return SyntaxFactory.SingletonList(Of TSyntax)(
                     allElements.Last().WithAppendedTrailingTrivia(SyntaxFactory.CarriageReturnLineFeed))
-            ElseIf allElements.Last().GetTrailingTrivia().Any(Function(t) t.VBKind = SyntaxKind.ColonTrivia) Then
+            ElseIf allElements.Last().GetTrailingTrivia().Any(Function(t) t.Kind = SyntaxKind.ColonTrivia) Then
                 Return SyntaxFactory.List(Of TSyntax)(
                     allElements.Take(allElements.Count - 1).Concat(ReplaceTrailingColonToEndOfLineTrivia(allElements.Last())))
             End If
@@ -174,7 +174,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Private Function EnsureProperBegin(destinationType As TypeBlockSyntax) As TypeStatementSyntax
             If destinationType.Inherits.Count = 0 AndAlso
                destinationType.Implements.Count = 0 AndAlso
-               destinationType.Begin.GetTrailingTrivia().Any(Function(t) t.VBKind = SyntaxKind.ColonTrivia) Then
+               destinationType.Begin.GetTrailingTrivia().Any(Function(t) t.Kind = SyntaxKind.ColonTrivia) Then
                 Return ReplaceTrailingColonToEndOfLineTrivia(destinationType.Begin)
             End If
 
@@ -183,7 +183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         Private Function EnsureEndTokens(destinationType As TypeBlockSyntax) As EndBlockStatementSyntax
             If destinationType.End.IsMissing Then
-                Select Case destinationType.VBKind
+                Select Case destinationType.Kind
                     Case SyntaxKind.ClassBlock
                         Return SyntaxFactory.EndClassStatement().WithAdditionalAnnotations(Formatter.Annotation)
                     Case SyntaxKind.InterfaceBlock

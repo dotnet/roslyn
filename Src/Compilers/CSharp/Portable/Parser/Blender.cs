@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             for (var i = 0; start > 0 && i <= maxLookahead;)
             {
                 var token = oldTree.FindToken(start, findInsideTrivia: false);
-                Debug.Assert(token.CSharpKind() != SyntaxKind.None, "how could we not get a real token back?");
+                Debug.Assert(token.Kind() != SyntaxKind.None, "how could we not get a real token back?");
 
                 start = Math.Max(0, token.Position - 1);
 
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 parent != null;
                 parent = parent.Parent)
             {
-                if (parent.CSharpKind() == SyntaxKind.InterpolatedStringExpression)
+                if (parent.Kind() == SyntaxKind.InterpolatedStringExpression)
                 {
                     return true;
                 }

@@ -5913,7 +5913,7 @@ End Module
 
             Dim tree = comp.SyntaxTrees(0)
             Dim model = comp.GetSemanticModel(tree)
-            Dim node = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.MeExpression).Cast(Of MeExpressionSyntax)().Single()
+            Dim node = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.MeExpression).Cast(Of MeExpressionSyntax)().Single()
 
             Dim symbolInfo = model.GetSymbolInfo(node)
 
@@ -5934,7 +5934,7 @@ End Module
 
             Dim tree = comp.SyntaxTrees(0)
             Dim model = comp.GetSemanticModel(tree)
-            Dim node = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.MeExpression).Cast(Of MeExpressionSyntax)().Single()
+            Dim node = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.MeExpression).Cast(Of MeExpressionSyntax)().Single()
 
             Dim symbolInfo = model.GetSymbolInfo(node)
 

@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SourceLocalSymbol local = null;
 
             var declarationOpt = syntax.Declaration;
-            if ((declarationOpt != null) && (declarationOpt.Identifier.CSharpKind() != SyntaxKind.None))
+            if ((declarationOpt != null) && (declarationOpt.Identifier.Kind() != SyntaxKind.None))
             {
                 local = SourceLocalSymbol.MakeLocal(this.ContainingMemberOrLambda, this, declarationOpt.Type, declarationOpt.Identifier, LocalDeclarationKind.CatchVariable);
             }

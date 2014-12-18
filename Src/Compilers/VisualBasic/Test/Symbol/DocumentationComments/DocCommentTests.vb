@@ -82,8 +82,8 @@ End Module
             Dim node = moduleStatement.AsNode()
             Dim trivia = node.GetLeadingTrivia().ToArray()
 
-            Assert.True(trivia.Any(Function(x) x.VBKind = SyntaxKind.CommentTrivia))
-            Assert.False(trivia.Any(Function(x) x.VBKind = SyntaxKind.DocumentationCommentTrivia))
+            Assert.True(trivia.Any(Function(x) x.Kind = SyntaxKind.CommentTrivia))
+            Assert.False(trivia.Any(Function(x) x.Kind = SyntaxKind.DocumentationCommentTrivia))
 
             CompilationUtils.AssertTheseDiagnostics(compilation.GetSemanticModel(tree).GetDiagnostics(), <errors></errors>)
         End Sub
@@ -113,8 +113,8 @@ End Module
             Dim node = moduleStatement.AsNode()
             Dim trivia = node.GetLeadingTrivia().ToArray()
 
-            Assert.False(trivia.Any(Function(x) x.VBKind = SyntaxKind.CommentTrivia))
-            Assert.True(trivia.Any(Function(x) x.VBKind = SyntaxKind.DocumentationCommentTrivia))
+            Assert.False(trivia.Any(Function(x) x.Kind = SyntaxKind.CommentTrivia))
+            Assert.True(trivia.Any(Function(x) x.Kind = SyntaxKind.DocumentationCommentTrivia))
 
             CompilationUtils.AssertTheseDiagnostics(compilation.GetSemanticModel(tree).GetDiagnostics(), <errors></errors>)
         End Sub
@@ -144,8 +144,8 @@ End Module
             Dim node = moduleStatement.AsNode()
             Dim trivia = node.GetLeadingTrivia().ToArray()
 
-            Assert.False(trivia.Any(Function(x) x.VBKind = SyntaxKind.CommentTrivia))
-            Assert.True(trivia.Any(Function(x) x.VBKind = SyntaxKind.DocumentationCommentTrivia))
+            Assert.False(trivia.Any(Function(x) x.Kind = SyntaxKind.CommentTrivia))
+            Assert.True(trivia.Any(Function(x) x.Kind = SyntaxKind.DocumentationCommentTrivia))
 
             CompilationUtils.AssertTheseDiagnostics(compilation.GetSemanticModel(tree).GetDiagnostics(),
 <errors>

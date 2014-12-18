@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 out arglistToken,
                 diagnostics);
 
-            if (arglistToken.CSharpKind() == SyntaxKind.ArgListKeyword)
+            if (arglistToken.Kind() == SyntaxKind.ArgListKeyword)
             {
                 // This is a parse-time error in the native compiler; it is a semantic analysis error in Roslyn.
 

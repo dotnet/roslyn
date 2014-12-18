@@ -166,8 +166,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 targetToken = targetToken.GetPreviousToken()
             End If
 
-            Return targetToken.VBKind = SyntaxKind.None OrElse
-                targetToken.VBKind = SyntaxKind.EndOfFileToken OrElse
+            Return targetToken.Kind = SyntaxKind.None OrElse
+                targetToken.Kind = SyntaxKind.EndOfFileToken OrElse
                 (targetToken.HasNonContinuableEndOfLineBeforePosition(position) AndAlso Not targetToken.FollowsBadEndDirective(position))
         End Function
 

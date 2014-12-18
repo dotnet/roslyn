@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public WhileBinder(Binder enclosing, StatementSyntax syntax)
             : base(enclosing)
         {
-            Debug.Assert(syntax != null && (syntax.CSharpKind() == SyntaxKind.WhileStatement || syntax.CSharpKind() == SyntaxKind.DoStatement));
+            Debug.Assert(syntax != null && (syntax.IsKind(SyntaxKind.WhileStatement) || syntax.IsKind(SyntaxKind.DoStatement)));
             this.syntax = syntax;
         }
 

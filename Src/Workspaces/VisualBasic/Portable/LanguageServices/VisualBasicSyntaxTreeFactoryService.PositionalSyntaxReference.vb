@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Public Sub New(tree As SyntaxTree, node As SyntaxNode)
                     _tree = tree
                     _span = node.Span
-                    _kind = node.VBKind()
+                    _kind = node.Kind()
                 End Sub
 
                 Public Overrides ReadOnly Property SyntaxTree As SyntaxTree
@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim spanStart As Integer = Me._span.Start
 
                     While current.FullSpan.Contains(spanStart)
-                        If current.VBKind = Me._kind AndAlso current.Span = Me._span Then
+                        If current.Kind = Me._kind AndAlso current.Span = Me._span Then
                             Return current
                         End If
 
@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' Provide more efficient implementation if that is not true
                     Return parent.DescendantNodes(Me._span, descendIntoTrivia:=True).
                         First(Function(node)
-                                  Return node.VBKind = Me._kind AndAlso node.Span = Me._span
+                                  Return node.Kind = Me._kind AndAlso node.Span = Me._span
                               End Function)
                 End Function
             End Class

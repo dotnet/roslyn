@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Globalization
         Friend Overrides Function GetUpdatedDocumentAsync(document As Document, model As SemanticModel, root As SyntaxNode, nodeToFix As SyntaxNode, diagnostic As Diagnostic, cancellationToken As CancellationToken) As Task(Of Document)
             ' if nothing can be fixed, return the unchanged node
             Dim newRoot = root
-            Dim kind = nodeToFix.VBKind()
+            Dim kind = nodeToFix.Kind()
             Dim syntaxFactoryService = document.GetLanguageService(Of SyntaxGenerator)
             Select Case kind
                 Case SyntaxKind.SimpleArgument

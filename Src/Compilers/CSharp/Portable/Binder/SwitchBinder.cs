@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var map = new Dictionary<object, List<SourceLabelSymbol>>(labels.Length, new SwitchConstantValueHelper.SwitchLabelsComparer());
             foreach (SourceLabelSymbol label in labels)
             {
-                SyntaxKind labelKind = label.IdentifierNodeOrToken.CSharpKind();
+                SyntaxKind labelKind = label.IdentifierNodeOrToken.Kind();
 
                 if (labelKind == SyntaxKind.CaseSwitchLabel ||
                     labelKind == SyntaxKind.DefaultSwitchLabel)
@@ -586,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (!hasErrors)
                     {
                         // No matching case label/default label found
-                        var labelName = SyntaxFacts.GetText(node.CaseOrDefaultKeyword.CSharpKind());
+                        var labelName = SyntaxFacts.GetText(node.CaseOrDefaultKeyword.Kind());
                         if (node.Kind == SyntaxKind.GotoCaseStatement)
                         {
                             labelName += " " + node.Expression.ToString();

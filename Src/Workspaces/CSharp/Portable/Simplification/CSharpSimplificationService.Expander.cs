@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                 var result = (BinaryExpressionSyntax)base.VisitBinaryExpression(node);
 
-                if ((node.CSharpKind() == SyntaxKind.GreaterThanExpression || node.CSharpKind() == SyntaxKind.RightShiftExpression) && !node.IsParentKind(SyntaxKind.ParenthesizedExpression))
+                if ((node.Kind() == SyntaxKind.GreaterThanExpression || node.Kind() == SyntaxKind.RightShiftExpression) && !node.IsParentKind(SyntaxKind.ParenthesizedExpression))
                 {
                     return result.Parenthesize();
                 }
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 var rewrittenname = (TypeSyntax)this.Visit(node.Name);
                 var parameters = (CrefParameterListSyntax)this.Visit(node.Parameters);
 
-                if (rewrittenname.CSharpKind() == SyntaxKind.QualifiedName)
+                if (rewrittenname.Kind() == SyntaxKind.QualifiedName)
                 {
                     return node.CopyAnnotationsTo(SyntaxFactory.QualifiedCref(
                         ((QualifiedNameSyntax)rewrittenname).Left
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                             .WithTrailingTrivia(node.GetTrailingTrivia()))
                             .WithAdditionalAnnotations(Simplifier.Annotation);
                 }
-                else if (rewrittenname.CSharpKind() == SyntaxKind.AliasQualifiedName)
+                else if (rewrittenname.Kind() == SyntaxKind.AliasQualifiedName)
                 {
                     return node.CopyAnnotationsTo(SyntaxFactory.TypeCref(
                         rewrittenname).WithLeadingTrivia(node.GetLeadingTrivia())
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                         // We replace the simple name completely, so we can't continue and rename the token
                         // with a RenameLocationAnnotation.
                         // There's also no way of removing annotations, so we just add a DoNotRenameAnnotation.
-                        if (replacement.CSharpKind() == SyntaxKind.AliasQualifiedName)
+                        if (replacement.Kind() == SyntaxKind.AliasQualifiedName)
                         {
                             var qualifiedReplacement = (AliasQualifiedNameSyntax)replacement;
 
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                             return replacement;
                         }
 
-                        if (replacement.CSharpKind() == SyntaxKind.QualifiedName)
+                        if (replacement.Kind() == SyntaxKind.QualifiedName)
                         {
                             var qualifiedReplacement = (QualifiedNameSyntax)replacement;
 
@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 identifier = TryEscapeIdentifierToken(identifier, originalSimpleName, semanticModel).WithAdditionalAnnotations(Simplifier.Annotation);
                 if (identifier != rewrittenSimpleName.Identifier)
                 {
-                    switch (newNode.CSharpKind())
+                    switch (newNode.Kind())
                     {
                         case SyntaxKind.IdentifierName:
                         case SyntaxKind.GenericName:
@@ -454,10 +454,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 if (parent is MemberDeclarationSyntax ||
                     parent is MemberBindingExpressionSyntax ||
                     originalSimpleName.GetAncestor<NameEqualsSyntax>() != null ||
-                    (parent is MemberAccessExpressionSyntax && parent.CSharpKind() != SyntaxKind.SimpleMemberAccessExpression) ||
-                    ((parent.CSharpKind() == SyntaxKind.SimpleMemberAccessExpression || parent.CSharpKind() == SyntaxKind.NameMemberCref) && originalSimpleName.IsRightSideOfDot()) ||
-                    (parent.CSharpKind() == SyntaxKind.QualifiedName && originalSimpleName.IsRightSideOfQualifiedName()) ||
-                    (parent.CSharpKind() == SyntaxKind.AliasQualifiedName))
+                    (parent is MemberAccessExpressionSyntax && parent.Kind() != SyntaxKind.SimpleMemberAccessExpression) ||
+                    ((parent.Kind() == SyntaxKind.SimpleMemberAccessExpression || parent.Kind() == SyntaxKind.NameMemberCref) && originalSimpleName.IsRightSideOfDot()) ||
+                    (parent.Kind() == SyntaxKind.QualifiedName && originalSimpleName.IsRightSideOfQualifiedName()) ||
+                    (parent.Kind() == SyntaxKind.AliasQualifiedName))
                 {
                     return TryAddTypeArgumentToIdentifierName(newNode, symbol);
                 }
@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 ////
 
                 // we need to treat the constructor as type name, so just get the containing type.
-                if (symbol.IsConstructor() && (parent.CSharpKind() == SyntaxKind.ObjectCreationExpression || parent.CSharpKind() == SyntaxKind.NameMemberCref))
+                if (symbol.IsConstructor() && (parent.Kind() == SyntaxKind.ObjectCreationExpression || parent.Kind() == SyntaxKind.NameMemberCref))
                 {
                     symbol = symbol.ContainingType;
                 }
@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                     for (int i = 0; i < leftTokens.Count(); ++i)
                     {
                         var candidateToken = leftTokens.ElementAt(i);
-                        if (candidateToken.CSharpKind() == SyntaxKind.LessThanToken || candidateToken.CSharpKind() == SyntaxKind.GreaterThanToken)
+                        if (candidateToken.Kind() == SyntaxKind.LessThanToken || candidateToken.Kind() == SyntaxKind.GreaterThanToken)
                         {
                             candidateTokens.Add(candidateToken);
                             continue;
@@ -565,7 +565,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             private ExpressionSyntax TryAddTypeArgumentToIdentifierName(ExpressionSyntax newNode, ISymbol symbol)
             {
-                if (newNode.CSharpKind() == SyntaxKind.IdentifierName && symbol.Kind == SymbolKind.Method)
+                if (newNode.Kind() == SyntaxKind.IdentifierName && symbol.Kind == SymbolKind.Method)
                 {
                     if (((IMethodSymbol)symbol).TypeArguments.Length != 0)
                     {
@@ -695,9 +695,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
                 while (parent != null)
                 {
-                    if (parent.CSharpKind() == SyntaxKind.ObjectInitializerExpression)
+                    if (parent.Kind() == SyntaxKind.ObjectInitializerExpression)
                     {
-                        return currentNode.CSharpKind() == SyntaxKind.SimpleAssignmentExpression &&
+                        return currentNode.Kind() == SyntaxKind.SimpleAssignmentExpression &&
                             object.Equals(((AssignmentExpressionSyntax)currentNode).Left, identifierName);
                     }
                     else if (parent is ExpressionSyntax)
@@ -724,7 +724,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 bool isInsideCref,
                 bool omitLeftHandSide)
             {
-                Debug.Assert(!replaceNode || rewrittenNode.CSharpKind() == SyntaxKind.IdentifierName);
+                Debug.Assert(!replaceNode || rewrittenNode.Kind() == SyntaxKind.IdentifierName);
 
                 //// TODO: use and expand Generate*Syntax(isymbol) to not depend on symbol display any more.
                 //// See GenerateExpressionSyntax();
@@ -778,7 +778,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                         var leadingTrivia = rewrittenNode.GetLeadingTrivia();
                         rewrittenNode = rewrittenNode.WithLeadingTrivia(null);
 
-                        switch (parent.CSharpKind())
+                        switch (parent.Kind())
                         {
                             case SyntaxKind.QualifiedName:
                                 var qualifiedParent = (QualifiedNameSyntax)parent;
@@ -835,12 +835,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
             private SyntaxToken ReplaceTokenForCref(SyntaxToken oldToken, SyntaxToken dummySameToken)
             {
-                if (oldToken.CSharpKind() == SyntaxKind.LessThanToken)
+                if (oldToken.Kind() == SyntaxKind.LessThanToken)
                 {
                     return SyntaxFactory.Token(oldToken.LeadingTrivia, SyntaxKind.LessThanToken, "{", "{", oldToken.TrailingTrivia);
                 }
 
-                if (oldToken.CSharpKind() == SyntaxKind.GreaterThanToken)
+                if (oldToken.Kind() == SyntaxKind.GreaterThanToken)
                 {
                     return SyntaxFactory.Token(oldToken.LeadingTrivia, SyntaxKind.GreaterThanToken, "}", "}", oldToken.TrailingTrivia);
                 }
@@ -874,7 +874,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             public override SyntaxNode VisitInvocationExpression(InvocationExpressionSyntax originalNode)
             {
                 var rewrittenNode = (InvocationExpressionSyntax)base.VisitInvocationExpression(originalNode);
-                if (originalNode.Expression.CSharpKind() == SyntaxKind.SimpleMemberAccessExpression)
+                if (originalNode.Expression.Kind() == SyntaxKind.SimpleMemberAccessExpression)
                 {
                     var memberAccess = (MemberAccessExpressionSyntax)originalNode.Expression;
                     var targetSymbol = SimplificationHelpers.GetOriginalSymbolInfo(semanticModel, memberAccess.Name);

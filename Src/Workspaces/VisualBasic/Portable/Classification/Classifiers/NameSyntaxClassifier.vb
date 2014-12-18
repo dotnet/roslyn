@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
 
             If modifiedIdentifier.ArrayBounds IsNot Nothing OrElse
                modifiedIdentifier.ArrayRankSpecifiers.Count > 0 OrElse
-               modifiedIdentifier.Nullable.VBKind <> SyntaxKind.None Then
+               modifiedIdentifier.Nullable.Kind <> SyntaxKind.None Then
 
                 Return SpecializedCollections.EmptyEnumerable(Of ClassifiedSpan)()
             End If
@@ -162,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
         End Function
 
         Private Function GetNameToken(node As NameSyntax) As SyntaxToken
-            Select Case node.VBKind
+            Select Case node.Kind
                 Case SyntaxKind.IdentifierName
                     Return DirectCast(node, IdentifierNameSyntax).Identifier
                 Case SyntaxKind.GenericName

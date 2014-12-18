@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Dim newTrivia = MyBase.VisitTrivia(trivia)
 
                 ' convert fullwidth single quotes into halfwidth single quotes.
-                If newTrivia.VBKind = SyntaxKind.CommentTrivia Then
+                If newTrivia.Kind = SyntaxKind.CommentTrivia Then
                     Dim triviaText = newTrivia.ToString()
                     If triviaText.Length > 0 AndAlso _smartSingleQuotes.Contains(triviaText(0)) Then
                         triviaText = CH_STRGHT_Q + triviaText.Substring(1)
@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             Public Overrides Function VisitEndBlockStatement(node As EndBlockStatementSyntax) As SyntaxNode
                 Dim newStatement = DirectCast(MyBase.VisitEndBlockStatement(node), EndBlockStatementSyntax)
 
-                Return If(newStatement.BlockKeyword.VBKind = SyntaxKind.IfKeyword,
+                Return If(newStatement.BlockKeyword.Kind = SyntaxKind.IfKeyword,
                            RewriteEndIfStatementOrDirectiveSyntax(newStatement, newStatement.EndKeyword, newStatement.BlockKeyword),
                            newStatement)
             End Function
@@ -233,9 +233,9 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                     If Not endIfKeywordFound Then
                         If trivia.HasStructure Then
                             Dim structuredTrivia = DirectCast(trivia.GetStructure(), StructuredTriviaSyntax)
-                            If structuredTrivia.VBKind = SyntaxKind.SkippedTokensTrivia Then
+                            If structuredTrivia.Kind = SyntaxKind.SkippedTokensTrivia Then
                                 Dim skippedTokens = DirectCast(structuredTrivia, SkippedTokensTriviaSyntax).Tokens
-                                If skippedTokens.Count = 1 AndAlso skippedTokens.First.VBKind = SyntaxKind.EndIfKeyword Then
+                                If skippedTokens.Count = 1 AndAlso skippedTokens.First.Kind = SyntaxKind.EndIfKeyword Then
                                     endIfKeywordFound = True
                                     Continue For
                                 End If
@@ -255,7 +255,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
                             ' This is the first trivia encountered after the EndIf keyword.
                             ' If this trivia is neither a WhitespaceTrivia nor an EndOfLineTrivia, then we must insert an extra WhitespaceTrivia here.
-                            Select Case trivia.VBKind
+                            Select Case trivia.Kind
                                 Case SyntaxKind.WhitespaceTrivia, SyntaxKind.EndOfLineTrivia
                                     Exit Select
                                 Case Else

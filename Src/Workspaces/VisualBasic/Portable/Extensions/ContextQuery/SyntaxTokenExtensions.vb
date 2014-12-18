@@ -98,7 +98,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
         <Extension()>
         Friend Function IsModifier(token As SyntaxToken) As Boolean
-            Select Case token.VBKind
+            Select Case token.Kind
                 Case SyntaxKind.AsyncKeyword,
                      SyntaxKind.ConstKeyword,
                      SyntaxKind.DefaultKeyword,

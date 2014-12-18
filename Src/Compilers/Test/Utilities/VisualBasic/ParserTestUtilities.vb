@@ -286,7 +286,7 @@ Public Module VerificationHelpers
 
     Private Function VerifySyntaxKinds(node As SyntaxNodeOrToken, ByRef i As Integer, expected As SyntaxKind()) As SyntaxNodeOrToken
         Assert.InRange(i, 0, expected.Length - 1)
-        Assert.Equal(node.VBKind(), expected(i))
+        Assert.Equal(node.Kind(), expected(i))
         i += 1
         Dim children = node.ChildNodesAndTokens
         For j = 0 To children.Count - 1
@@ -323,7 +323,7 @@ Public Module VerificationHelpers
 
     <Extension()>
     Public Function VerifyPrecedingCommentIsTrivia(node As SyntaxNodeOrToken) As SyntaxNodeOrToken
-        Assert.NotEqual(node.VBKind(), SyntaxKind.None)
+        Assert.NotEqual(node.Kind(), SyntaxKind.None)
         Dim trivia = node.GetLeadingTrivia()
         Assert.InRange(trivia.Count, 1, 2)
         Dim ticktickticknode As SyntaxTrivia = Nothing
@@ -332,7 +332,7 @@ Public Module VerificationHelpers
         ElseIf trivia.Count = 2 Then
             ticktickticknode = trivia(1)
         End If
-        Assert.Equal(SyntaxKind.DocumentationCommentExteriorTrivia, ticktickticknode.VBKind)
+        Assert.Equal(SyntaxKind.DocumentationCommentExteriorTrivia, ticktickticknode.Kind)
         Return node
     End Function
 
@@ -357,7 +357,7 @@ Public Module VerificationHelpers
     <Extension()>
     Public Function VerifyNoMissingChildren(tree As SyntaxTree) As SyntaxTree
         Dim node = tree.GetRoot()
-        Assert.False(node.IsMissing, "Unexpected missing node: " & node.VBKind.ToString & node.Span.ToString)
+        Assert.False(node.IsMissing, "Unexpected missing node: " & node.Kind.ToString & node.Span.ToString)
         For Each child In node.ChildNodesAndTokens()
             InternalVerifyNoMissingChildren(child)
         Next
@@ -367,7 +367,7 @@ Public Module VerificationHelpers
     <Extension()>
     Public Function VerifyNoZeroWidthNodes(tree As SyntaxTree) As SyntaxTree
         Dim node = tree.GetRoot()
-        Assert.True(0 <> node.Span.Length OrElse node.VBKind = SyntaxKind.CompilationUnit, "Unexpected 0 width node: " & node.VBKind.ToString & node.Span.ToString)
+        Assert.True(0 <> node.Span.Length OrElse node.Kind = SyntaxKind.CompilationUnit, "Unexpected 0 width node: " & node.Kind.ToString & node.Span.ToString)
         For Each child In node.ChildNodesAndTokens()
             InternalVerifyNoZeroWidthNodes(child)
         Next
@@ -433,9 +433,9 @@ Public Module VerificationHelpers
         If node.Parent IsNot Nothing Then
             Assert.True(node.SpanStart >= node.Parent.SpanStart AndAlso
                         node.Span.End <= node.Parent.Span.End, "Span of child (" &
-                        node.VBKind.ToString & node.Span.ToString &
+                        node.Kind.ToString & node.Span.ToString &
                         ") is not within span of parent (" &
-                        node.Parent.VBKind.ToString & node.Parent.Span.ToString & ")")
+                        node.Parent.Kind.ToString & node.Parent.Span.ToString & ")")
         End If
         Return tree
     End Function
@@ -621,7 +621,7 @@ Public Module VerificationHelpers
             For Each e In expectedErrors.<error>
                 errorMessage.AppendLine(GetErrorString(CInt(e.@id), If(e.@message, "?"), If(e.@start, "?"), If(e.@end, "?")))
             Next
-            errorMessage.AppendLine("Actual Errors (on " & node.VBKind().ToString & node.Span.ToString & ")")
+            errorMessage.AppendLine("Actual Errors (on " & node.Kind().ToString & node.Span.ToString & ")")
             AppendSyntaxErrors(tree.GetDiagnostics(node), errorMessage)
             Assert.False(errorScenarioFailed, errorMessage.ToString())
         End If
@@ -635,7 +635,7 @@ Public Module VerificationHelpers
         If node.IsToken Then
             Dim tk = node
             For Each leadingTrivia In tk.GetLeadingTrivia()
-                If leadingTrivia.VBKind = kind Then
+                If leadingTrivia.Kind = kind Then
                     actualCount += 1
                 End If
                 If leadingTrivia.HasStructure Then
@@ -644,7 +644,7 @@ Public Module VerificationHelpers
                 End If
             Next
             For Each trailingTrivia In tk.GetTrailingTrivia()
-                If trailingTrivia.VBKind = kind Then
+                If trailingTrivia.Kind = kind Then
                     actualCount += 1
                 End If
                 If trailingTrivia.HasStructure Then
@@ -733,13 +733,13 @@ Public Module VerificationHelpers
 
     Private Sub InternalVerifyNoMissingChildren(node As SyntaxNodeOrToken)
         If node.IsNode Then
-            Assert.False(node.IsMissing, "Unexpected missing node: " & node.VBKind().ToString & node.Span.ToString)
+            Assert.False(node.IsMissing, "Unexpected missing node: " & node.Kind().ToString & node.Span.ToString)
             For Each child In node.AsNode.ChildNodesAndTokens()
                 InternalVerifyNoMissingChildren(child)
             Next
         Else
             Assert.False(node.IsMissing AndAlso Not node.IsKind(SyntaxKind.StatementTerminatorToken) AndAlso
-                         Not node.IsKind(SyntaxKind.ColonToken), "Unexpected missing token: " & node.VBKind().ToString & node.Span.ToString)
+                         Not node.IsKind(SyntaxKind.ColonToken), "Unexpected missing token: " & node.Kind().ToString & node.Span.ToString)
             For Each tr In node.AsToken.LeadingTrivia
                 If tr.HasStructure Then
                     InternalVerifyNoMissingChildren(tr.GetStructure)
@@ -755,20 +755,20 @@ Public Module VerificationHelpers
 
     Private Sub InternalVerifyNoZeroWidthNodes(node As SyntaxNodeOrToken)
         If node.IsNode Then
-            Assert.True(0 <> node.Span.Length, "Unexpected 0 width node: " & node.VBKind().ToString & node.Span.ToString)
+            Assert.True(0 <> node.Span.Length, "Unexpected 0 width node: " & node.Kind().ToString & node.Span.ToString)
             For Each child In node.AsNode.ChildNodesAndTokens()
                 InternalVerifyNoZeroWidthNodes(child)
             Next
         Else
-            Assert.True(0 <> node.Span.Length OrElse node.IsKind(SyntaxKind.EndOfFileToken) OrElse node.IsKind(SyntaxKind.StatementTerminatorToken) OrElse node.IsKind(SyntaxKind.ColonToken), "Unexpected 0 width token: " & node.VBKind().ToString & node.Span.ToString)
+            Assert.True(0 <> node.Span.Length OrElse node.IsKind(SyntaxKind.EndOfFileToken) OrElse node.IsKind(SyntaxKind.StatementTerminatorToken) OrElse node.IsKind(SyntaxKind.ColonToken), "Unexpected 0 width token: " & node.Kind().ToString & node.Span.ToString)
             For Each tr In node.AsToken.LeadingTrivia
-                Assert.True(0 <> tr.Span.Length, "Unexpected 0 width trivia: " & node.VBKind().ToString & node.Span.ToString)
+                Assert.True(0 <> tr.Span.Length, "Unexpected 0 width trivia: " & node.Kind().ToString & node.Span.ToString)
                 If tr.HasStructure Then
                     InternalVerifyNoZeroWidthNodes(tr.GetStructure)
                 End If
             Next
             For Each tr In node.AsToken.LeadingTrivia
-                Assert.True(0 <> tr.Span.Length, "Unexpected 0 width trivia: " & node.VBKind().ToString & node.Span.ToString)
+                Assert.True(0 <> tr.Span.Length, "Unexpected 0 width trivia: " & node.Kind().ToString & node.Span.ToString)
                 If tr.HasStructure Then
                     InternalVerifyNoZeroWidthNodes(tr.GetStructure)
                 End If
@@ -788,9 +788,9 @@ Public Module VerificationHelpers
                     InternalVerifyNoAdjcentTriviaHaveSameKind(tr.GetStructure)
                 End If
                 If prev IsNot Nothing Then
-                    Assert.True(prev.Value.VBKind <> tr.VBKind,
-                                "Both current and previous trivia have Kind=" & tr.VBKind.ToString &
-                                " [See under TokenKind=" & node.VBKind().ToString & ", NonTerminalKind=" & node.Parent.VBKind.ToString & "]")
+                    Assert.True(prev.Value.Kind <> tr.Kind,
+                                "Both current and previous trivia have Kind=" & tr.Kind.ToString &
+                                " [See under TokenKind=" & node.Kind().ToString & ", NonTerminalKind=" & node.Parent.Kind.ToString & "]")
                 End If
                 prev = tr
             Next
@@ -800,9 +800,9 @@ Public Module VerificationHelpers
                     InternalVerifyNoAdjcentTriviaHaveSameKind(tr.GetStructure)
                 End If
                 If prev IsNot Nothing Then
-                    Assert.True(prev.Value.VBKind <> tr.VBKind,
-                                "Both current and previous trivia have Kind=" & tr.VBKind.ToString &
-                                " [See under TokenKind=" & node.VBKind().ToString & ", NonTerminalKind=" & node.Parent.VBKind.ToString & "]")
+                    Assert.True(prev.Value.Kind <> tr.Kind,
+                                "Both current and previous trivia have Kind=" & tr.Kind.ToString &
+                                " [See under TokenKind=" & node.Kind().ToString & ", NonTerminalKind=" & node.Parent.Kind.ToString & "]")
                 End If
                 prev = tr
             Next
@@ -818,9 +818,9 @@ Public Module VerificationHelpers
         If node.Parent IsNot Nothing Then
             Assert.True(node.SpanStart >= node.Parent.SpanStart AndAlso
                         node.Span.End <= node.Parent.Span.End, "Span of child (" &
-                        node.VBKind().ToString & node.Span.ToString &
+                        node.Kind().ToString & node.Span.ToString &
                         ") is not within span of parent (" &
-                        node.Parent.VBKind.ToString & node.Parent.Span.ToString & ")")
+                        node.Parent.Kind.ToString & node.Parent.Span.ToString & ")")
         End If
     End Sub
 

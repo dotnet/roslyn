@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         End Function
 
         Public Shared Function TryEscapeIdentifierToken(identifierToken As SyntaxToken, semanticModel As SemanticModel, Optional oldIdentifierToken As SyntaxToken? = Nothing) As SyntaxToken
-            If identifierToken.VBKind <> SyntaxKind.IdentifierToken OrElse identifierToken.ValueText.Length = 0 Then
+            If identifierToken.Kind <> SyntaxKind.IdentifierToken OrElse identifierToken.ValueText.Length = 0 Then
                 Return identifierToken
             End If
 
@@ -87,8 +87,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Dim methodBlockBase = TryCast(nodeToSpeculate, MethodBlockBaseSyntax)
 
             ' Speculation over Field Declarations is not supported
-            If originalNode.VBKind() = SyntaxKind.VariableDeclarator AndAlso
-               originalNode.Parent.VBKind() = SyntaxKind.FieldDeclaration Then
+            If originalNode.Kind() = SyntaxKind.VariableDeclarator AndAlso
+               originalNode.Parent.Kind() = SyntaxKind.FieldDeclaration Then
                 Return originalSemanticModel
             End If
 
@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
             Contract.ThrowIfFalse(SpeculationAnalyzer.CanSpeculateOnNode(nodeToSpeculate))
 
-            Dim isAsNewClause = nodeToSpeculate.VBKind = SyntaxKind.AsNewClause
+            Dim isAsNewClause = nodeToSpeculate.Kind = SyntaxKind.AsNewClause
             If isAsNewClause Then
                 ' Currently, there is no support for speculating on an AsNewClauseSyntax node.
                 ' So we synthesize an EqualsValueSyntax with the inner NewExpression and speculate on this EqualsValueSyntax node.
@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
         Protected Overrides Function TransformReducedNode(reducedNode As SyntaxNode, originalNode As SyntaxNode) As SyntaxNode
             ' Please see comments within the above GetSpeculativeSemanticModel method for details.
 
-            If originalNode.VBKind = SyntaxKind.AsNewClause AndAlso reducedNode.VBKind = SyntaxKind.EqualsValue Then
+            If originalNode.Kind = SyntaxKind.AsNewClause AndAlso reducedNode.Kind = SyntaxKind.EqualsValue Then
                 Return originalNode.ReplaceNode(DirectCast(originalNode, AsNewClauseSyntax).NewExpression, DirectCast(reducedNode, EqualsValueSyntax).Value)
             End If
 

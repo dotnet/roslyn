@@ -7,6 +7,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal static class SyntaxTriviaFunctions
     {
         internal static readonly Func<SyntaxTrivia, bool> Any = t => true;
-        internal static readonly Func<SyntaxTrivia, bool> Skipped = t => t.CSharpKind() == SyntaxKind.SkippedTokensTrivia;
+        internal static readonly Func<SyntaxTrivia, bool> Skipped = t => t.Kind() == SyntaxKind.SkippedTokensTrivia;
     }
 }

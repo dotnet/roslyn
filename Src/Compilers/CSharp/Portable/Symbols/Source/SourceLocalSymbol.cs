@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxToken identifierToken,
             LocalDeclarationKind declarationKind)
         {
-            Debug.Assert(identifierToken.CSharpKind() != SyntaxKind.None);
+            Debug.Assert(identifierToken.Kind() != SyntaxKind.None);
             Debug.Assert(declarationKind != LocalDeclarationKind.None);
 
             this.binder = binder;

@@ -141,14 +141,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         Private Sub AdjustToken(ByRef token As SyntaxToken)
 tryAgain :
-            Select Case token.VBKind
+            Select Case token.Kind
                 Case SyntaxKind.StatementTerminatorToken
                     token = token.GetNextToken()
                     GoTo tryAgain
 
                 Case SyntaxKind.ColonToken
                     Dim parent = token.Parent
-                    If TypeOf parent Is StatementSyntax AndAlso parent.VBKind <> SyntaxKind.LabelStatement Then
+                    If TypeOf parent Is StatementSyntax AndAlso parent.Kind <> SyntaxKind.LabelStatement Then
                         ' let's assume this is a statement block, what else can it be?
                         token = token.GetNextToken()
                         GoTo tryAgain

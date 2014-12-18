@@ -1280,18 +1280,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return node.GetLocation()
                 End If
 
-            ElseIf node.VBKind = SyntaxKind.InvocationExpression Then
+            ElseIf node.IsKind(SyntaxKind.InvocationExpression) Then
                 result = If(DirectCast(node, InvocationExpressionSyntax).Expression, node)
             Else
                 Return node.GetLocation()
             End If
 
-            Select Case result.VBKind
+            Select Case result.Kind
                 Case SyntaxKind.QualifiedName
                     Return DirectCast(result, QualifiedNameSyntax).Right.GetLocation()
 
                 Case SyntaxKind.SimpleMemberAccessExpression
-                    If result.Parent IsNot Nothing AndAlso result.Parent.VBKind = SyntaxKind.AddressOfExpression Then
+                    If result.Parent IsNot Nothing AndAlso result.Parent.IsKind(SyntaxKind.AddressOfExpression) Then
                         Return result.GetLocation()
                     End If
 

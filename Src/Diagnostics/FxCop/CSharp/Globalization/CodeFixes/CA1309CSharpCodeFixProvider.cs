@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Globalization
         {
             // if nothing can be fixed, return the unchanged node
             var newRoot = root;
-            var kind = nodeToFix.CSharpKind();
+            var kind = nodeToFix.Kind();
             var syntaxFactoryService = document.GetLanguageService<SyntaxGenerator>();
             switch (kind)
             {

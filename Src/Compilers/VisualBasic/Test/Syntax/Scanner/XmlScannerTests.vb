@@ -375,8 +375,8 @@ Public Class XmlInternalSyntax
         Dim trivia = eof.LeadingTrivia
 
         Assert.Equal(2, trivia.Count)
-        Assert.Equal(SyntaxKind.WhitespaceTrivia, trivia.Item(0).VBKind())
-        Assert.Equal(SyntaxKind.DocumentationCommentTrivia, trivia.Item(1).VBKind())
+        Assert.Equal(SyntaxKind.WhitespaceTrivia, trivia.Item(0).Kind())
+        Assert.Equal(SyntaxKind.DocumentationCommentTrivia, trivia.Item(1).Kind())
     End Sub
 
 End Class

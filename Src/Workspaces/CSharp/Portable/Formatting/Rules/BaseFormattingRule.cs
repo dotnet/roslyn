@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             TextSpan textSpan,
             IndentBlockOption option = IndentBlockOption.RelativePosition)
         {
-            if (startToken.CSharpKind() == SyntaxKind.None || endToken.CSharpKind() == SyntaxKind.None)
+            if (startToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
             {
                 return;
             }
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             bool includeTriviaAtEnd = false,
             IndentBlockOption option = IndentBlockOption.RelativePosition)
         {
-            if (startToken.CSharpKind() == SyntaxKind.None || endToken.CSharpKind() == SyntaxKind.None)
+            if (startToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
             {
                 return;
             }
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             SyntaxToken endToken,
             IndentBlockOption option = IndentBlockOption.AbsolutePosition)
         {
-            if (startToken.CSharpKind() == SyntaxKind.None || endToken.CSharpKind() == SyntaxKind.None)
+            if (startToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
             {
                 return;
             }
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             SyntaxToken endToken,
             IndentBlockOption option = IndentBlockOption.RelativePosition)
         {
-            if (startToken.CSharpKind() == SyntaxKind.None || endToken.CSharpKind() == SyntaxKind.None)
+            if (startToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
             {
                 return;
             }
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             TextSpan textSpan,
             IndentBlockOption option = IndentBlockOption.RelativePosition)
         {
-            if (startToken.CSharpKind() == SyntaxKind.None || endToken.CSharpKind() == SyntaxKind.None)
+            if (startToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
             {
                 return;
             }
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         protected void AddSuppressOperation(List<SuppressOperation> list, SyntaxToken startToken, SyntaxToken endToken, SuppressOption option)
         {
-            if (startToken.CSharpKind() == SyntaxKind.None || endToken.CSharpKind() == SyntaxKind.None)
+            if (startToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
             {
                 return;
             }
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         protected void AddAnchorIndentationOperation(List<AnchorIndentationOperation> list, SyntaxToken anchorToken, SyntaxToken endToken)
         {
-            if (anchorToken.CSharpKind() == SyntaxKind.None || endToken.CSharpKind() == SyntaxKind.None)
+            if (anchorToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
             {
                 return;
             }

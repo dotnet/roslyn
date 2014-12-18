@@ -673,7 +673,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim lastCommentTrivia As Boolean = False
 
                 For Each trivia In syntaxNode.GetLeadingTrivia()
-                    Select Case trivia.VBKind
+                    Select Case trivia.Kind
 
                         Case SyntaxKind.DocumentationCommentTrivia
                             If theOnlyDocCommentTrivia IsNot Nothing Then

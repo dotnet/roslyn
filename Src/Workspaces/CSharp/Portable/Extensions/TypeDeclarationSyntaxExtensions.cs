@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static TypeDeclarationSyntax AddMembers(
             this TypeDeclarationSyntax node, params MemberDeclarationSyntax[] members)
         {
-            switch (node.CSharpKind())
+            switch (node.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
                     return ((ClassDeclarationSyntax)node).AddMembers(members);
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static TypeDeclarationSyntax WithMembers(
             this TypeDeclarationSyntax node, SyntaxList<MemberDeclarationSyntax> members)
         {
-            switch (node.CSharpKind())
+            switch (node.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
                     return ((ClassDeclarationSyntax)node).WithMembers(members);
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static TypeDeclarationSyntax WithAttributeLists(
             this TypeDeclarationSyntax node, SyntaxList<AttributeListSyntax> attributes)
         {
-            switch (node.CSharpKind())
+            switch (node.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
                     return ((ClassDeclarationSyntax)node).WithAttributeLists(attributes);
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static TypeDeclarationSyntax WithIdentifier(
             this TypeDeclarationSyntax node, SyntaxToken identifier)
         {
-            switch (node.CSharpKind())
+            switch (node.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
                     return ((ClassDeclarationSyntax)node).WithIdentifier(identifier);
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static TypeDeclarationSyntax WithModifiers(
             this TypeDeclarationSyntax node, SyntaxTokenList modifiers)
         {
-            switch (node.CSharpKind())
+            switch (node.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
                     return ((ClassDeclarationSyntax)node).WithModifiers(modifiers);
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static TypeDeclarationSyntax WithTypeParameterList(
             this TypeDeclarationSyntax node, TypeParameterListSyntax list)
         {
-            switch (node.CSharpKind())
+            switch (node.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
                     return ((ClassDeclarationSyntax)node).WithTypeParameterList(list);
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static TypeDeclarationSyntax WithBaseList(
             this TypeDeclarationSyntax node, BaseListSyntax list)
         {
-            switch (node.CSharpKind())
+            switch (node.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
                     return ((ClassDeclarationSyntax)node).WithBaseList(list);
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static TypeDeclarationSyntax WithConstraintClauses(
             this TypeDeclarationSyntax node, SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses)
         {
-            switch (node.CSharpKind())
+            switch (node.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
                     return ((ClassDeclarationSyntax)node).WithConstraintClauses(constraintClauses);
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static TypeDeclarationSyntax WithOpenBraceToken(
             this TypeDeclarationSyntax node, SyntaxToken openBrace)
         {
-            switch (node.CSharpKind())
+            switch (node.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
                     return ((ClassDeclarationSyntax)node).WithOpenBraceToken(openBrace);
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static TypeDeclarationSyntax WithCloseBraceToken(
             this TypeDeclarationSyntax node, SyntaxToken closeBrace)
         {
-            switch (node.CSharpKind())
+            switch (node.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
                     return ((ClassDeclarationSyntax)node).WithCloseBraceToken(closeBrace);
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             IEnumerable<BaseTypeSyntax> baseListTypes = SpecializedCollections.EmptyEnumerable<BaseTypeSyntax>();
 
-            var isPartialType = typeNode.Modifiers.Any(m => m.CSharpKind() == SyntaxKind.PartialKeyword);
+            var isPartialType = typeNode.Modifiers.Any(m => m.Kind() == SyntaxKind.PartialKeyword);
             if (isPartialType)
             {
                 var typeSymbol = model.GetDeclaredSymbol(typeNode);
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 var leadingTrivia = prependNewLineIfMissing ? token.LeadingTrivia.Insert(0, SyntaxFactory.CarriageReturnLineFeed) : token.LeadingTrivia;
                 var trailingTrivia = appendNewLineIfMissing ? token.TrailingTrivia.Insert(0, SyntaxFactory.CarriageReturnLineFeed) : token.TrailingTrivia;
-                return SyntaxFactory.Token(leadingTrivia, token.CSharpKind(), trailingTrivia).WithAdditionalAnnotations(Formatter.Annotation);
+                return SyntaxFactory.Token(leadingTrivia, token.Kind(), trailingTrivia).WithAdditionalAnnotations(Formatter.Annotation);
             }
             
             return token;

@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
                 foreach (var node in declaringReferences.Select(d => d.GetSyntax()))
                 {
                     // Make sure each node is of the expected kind.
-                    Assert.Equal(expectedSyntaxKind, node.CSharpKind());
+                    Assert.Equal(expectedSyntaxKind, node.Kind());
                 }
             }
 

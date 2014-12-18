@@ -13,12 +13,12 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage
         protected override SyntaxNode GetFieldDeclarationNode(SyntaxNode node)
         {
             var fieldNode = node;
-            while (fieldNode != null && fieldNode.CSharpKind() != SyntaxKind.FieldDeclaration)
+            while (fieldNode != null && fieldNode.Kind() != SyntaxKind.FieldDeclaration)
             {
                 fieldNode = fieldNode.Parent;
             }
 
-            return fieldNode.CSharpKind() == SyntaxKind.FieldDeclaration ? fieldNode : null;
+            return fieldNode.Kind() == SyntaxKind.FieldDeclaration ? fieldNode : null;
         }
     }
 }

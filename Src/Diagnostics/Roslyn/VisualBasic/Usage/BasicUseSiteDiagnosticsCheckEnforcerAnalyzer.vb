@@ -54,7 +54,7 @@ Namespace Roslyn.Diagnostics.Analyzers.VisualBasic
 
         Protected Overrides Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
             Dim name = DirectCast(context.Node, MemberAccessExpressionSyntax).Name
-            If name.VBKind = SyntaxKind.IdentifierName Then
+            If name.Kind = SyntaxKind.IdentifierName Then
                 Dim identifier = DirectCast(name, IdentifierNameSyntax)
                 Dim containingTypeName As String = Nothing
                 If PropertiesToValidateMap.TryGetValue(identifier.ToString(), containingTypeName) Then

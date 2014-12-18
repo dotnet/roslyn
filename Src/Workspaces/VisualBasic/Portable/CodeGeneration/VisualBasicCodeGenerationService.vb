@@ -191,7 +191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                      TryCast(destinationMember, MethodBaseSyntax))
 
             If methodStatement IsNot Nothing Then
-                Select Case methodStatement.VBKind
+                Select Case methodStatement.Kind
                     Case SyntaxKind.GetAccessorStatement, SyntaxKind.SetAccessorStatement
                         ' Don't allow adding parameters to Property Getter/Setter
                         Return destinationMember
@@ -231,7 +231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim result As Object
 
             If methodBlock IsNot Nothing Then
-                Select Case methodBlock.VBKind
+                Select Case methodBlock.Kind
                     Case SyntaxKind.SubBlock,
                         SyntaxKind.FunctionBlock
                         result = DirectCast(methodBlock, MethodBlockSyntax).WithBegin(DirectCast(finalStatement, MethodStatementSyntax))
@@ -276,7 +276,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim seenOptional = currentParamsCount > 0 AndAlso parameterList.Parameters(currentParamsCount - 1).Default IsNot Nothing
 
             For Each parameter In parameters
-                If nodesAndTokens.Count > 0 AndAlso nodesAndTokens.Last().VBKind() <> SyntaxKind.CommaToken Then
+                If nodesAndTokens.Count > 0 AndAlso nodesAndTokens.Last().Kind() <> SyntaxKind.CommaToken Then
                     nodesAndTokens.Add(SyntaxFactory.Token(SyntaxKind.CommaToken))
                 End If
 
@@ -436,7 +436,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
                 Dim result As Object
 
-                Select Case methodBlock.VBKind
+                Select Case methodBlock.Kind
                     Case SyntaxKind.SubBlock,
                         SyntaxKind.FunctionBlock
                         result = DirectCast(methodBlock, MethodBlockSyntax).WithStatements(SyntaxFactory.List(allStatements))
@@ -601,7 +601,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Return modifiersList
             End If
 
-            Return SyntaxFactory.TokenList(GetUpdatedDeclarationAccessibilityModifiers(newModifierTokens, modifiersList, Function(modifier As SyntaxToken) SyntaxFacts.IsAccessibilityModifier(modifier.VBKind())))
+            Return SyntaxFactory.TokenList(GetUpdatedDeclarationAccessibilityModifiers(newModifierTokens, modifiersList, Function(modifier As SyntaxToken) SyntaxFacts.IsAccessibilityModifier(modifier.Kind())))
         End Function
 
         Private Function UpdateSimpleAsClause(asClause As SimpleAsClauseSyntax, newType As ITypeSymbol) As SimpleAsClauseSyntax
@@ -617,14 +617,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 WithLeadingTrivia(asClause.GetLeadingTrivia()).
                 WithTrailingTrivia(asClause.GetTrailingTrivia())
 
-            Select Case asClause.VBKind
+            Select Case asClause.Kind
                 Case SyntaxKind.SimpleAsClause
                     Return DirectCast(asClause, SimpleAsClauseSyntax).WithType(newTypeSyntax)
                 Case Else
                     Dim asNewClause = DirectCast(asClause, AsNewClauseSyntax)
                     Dim newExpression = asNewClause.NewExpression
                     Dim updatedNewExpression As NewExpressionSyntax
-                    Select Case newExpression.VBKind
+                    Select Case newExpression.Kind
                         Case SyntaxKind.ArrayCreationExpression
                             updatedNewExpression = DirectCast(newExpression, ArrayCreationExpressionSyntax).WithType(newTypeSyntax)
                         Case SyntaxKind.ObjectCreationExpression
@@ -642,7 +642,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Return declaration
             End If
 
-            Select Case syntaxNode.VBKind
+            Select Case syntaxNode.Kind
                 Case SyntaxKind.SubStatement, SyntaxKind.FunctionStatement
                     Dim methodStatementSyntax = DirectCast(syntaxNode, MethodStatementSyntax)
                     Dim newAsClause = UpdateSimpleAsClause(methodStatementSyntax.AsClause, newType)
@@ -701,7 +701,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Overrides Function UpdateDeclarationMembers(Of TDeclarationNode As SyntaxNode)(declaration As TDeclarationNode, newMembers As IList(Of ISymbol), Optional options As CodeGenerationOptions = Nothing, Optional cancellationToken As CancellationToken = Nothing) As TDeclarationNode
             Dim syntaxNode = TryCast(declaration, VisualBasicSyntaxNode)
             If syntaxNode IsNot Nothing Then
-                Select Case syntaxNode.VBKind
+                Select Case syntaxNode.Kind
                     Case SyntaxKind.EnumBlock, SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock, SyntaxKind.ClassBlock
                         Return Cast(Of TDeclarationNode)(NamedTypeGenerator.UpdateNamedTypeDeclaration(Me, DirectCast(syntaxNode, StatementSyntax), newMembers, options, cancellationToken))
                     Case SyntaxKind.CompilationUnit, SyntaxKind.NamespaceBlock

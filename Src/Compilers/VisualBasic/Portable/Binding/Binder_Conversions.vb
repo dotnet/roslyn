@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim result As BoundExpression
 
-            Select Case node.Keyword.VBKind
+            Select Case node.Keyword.Kind
                 Case SyntaxKind.CTypeKeyword
                     result = BindCTypeExpression(node, diagnostics)
 
@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     result = BindTryCastExpression(node, diagnostics)
 
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(node.Keyword.VBKind)
+                    Throw ExceptionUtilities.UnexpectedValue(node.Keyword.Kind)
             End Select
 
             Return result
@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
              diagnostics As DiagnosticBag
          ) As BoundExpression
 
-            Debug.Assert(node.Keyword.VBKind = SyntaxKind.CTypeKeyword)
+            Debug.Assert(node.Keyword.Kind = SyntaxKind.CTypeKeyword)
 
             Dim argument = BindValue(node.Expression, diagnostics)
             Dim targetType = BindTypeSyntax(node.Type, diagnostics)
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
              diagnostics As DiagnosticBag
          ) As BoundExpression
 
-            Debug.Assert(node.Keyword.VBKind = SyntaxKind.DirectCastKeyword)
+            Debug.Assert(node.Keyword.Kind = SyntaxKind.DirectCastKeyword)
 
             Dim argument = BindValue(node.Expression, diagnostics)
             Dim targetType = BindTypeSyntax(node.Type, diagnostics)
@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
              diagnostics As DiagnosticBag
          ) As BoundExpression
 
-            Debug.Assert(node.Keyword.VBKind = SyntaxKind.TryCastKeyword)
+            Debug.Assert(node.Keyword.Kind = SyntaxKind.TryCastKeyword)
 
             Dim argument = BindValue(node.Expression, diagnostics)
             Dim targetType = BindTypeSyntax(node.Type, diagnostics)
@@ -265,7 +265,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim targetType As SpecialType
 
-            Select Case node.Keyword.VBKind
+            Select Case node.Keyword.Kind
                 Case SyntaxKind.CBoolKeyword : targetType = SpecialType.System_Boolean
                 Case SyntaxKind.CByteKeyword : targetType = SpecialType.System_Byte
                 Case SyntaxKind.CCharKeyword : targetType = SpecialType.System_Char
@@ -283,7 +283,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.CULngKeyword : targetType = SpecialType.System_UInt64
                 Case SyntaxKind.CUShortKeyword : targetType = SpecialType.System_UInt16
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(node.Keyword.VBKind)
+                    Throw ExceptionUtilities.UnexpectedValue(node.Keyword.Kind)
             End Select
 
             Return ApplyConversion(node, GetSpecialType(targetType, node.Keyword, diagnostics),

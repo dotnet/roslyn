@@ -48,12 +48,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' return line break operation after statement terminator token so that we can enforce indentation for the line
-            If previousToken.IsLastTokenOfStatement() AndAlso ContainEndOfLine(previousToken, currentToken) AndAlso currentToken.VBKind <> SyntaxKind.EmptyToken Then
+            If previousToken.IsLastTokenOfStatement() AndAlso ContainEndOfLine(previousToken, currentToken) AndAlso currentToken.Kind <> SyntaxKind.EmptyToken Then
                 Return FormattingOperations.CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines)
             End If
 
             Dim attributeNode = TryCast(previousToken.Parent, AttributeListSyntax)
-            If attributeNode IsNot Nothing AndAlso previousToken.VBKind = SyntaxKind.GreaterThanToken Then
+            If attributeNode IsNot Nothing AndAlso previousToken.Kind = SyntaxKind.GreaterThanToken Then
                 Return FormattingOperations.CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines)
             End If
 
@@ -131,13 +131,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         ' return 1 space for every token pairs as a default operation
         Public Function GetAdjustSpacesOperation(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, nextOperation As NextOperation(Of AdjustSpacesOperation)) As AdjustSpacesOperation Implements IFormattingRule.GetAdjustSpacesOperation
-            If previousToken.VBKind = SyntaxKind.ColonToken AndAlso
+            If previousToken.Kind = SyntaxKind.ColonToken AndAlso
                TypeOf previousToken.Parent Is LabelStatementSyntax AndAlso
-               currentToken.VBKind <> SyntaxKind.EndOfFileToken Then
+               currentToken.Kind <> SyntaxKind.EndOfFileToken Then
                 Return FormattingOperations.CreateAdjustSpacesOperation(1, AdjustSpacesOption.DynamicSpaceToIndentationIfOnSingleLine)
             End If
 
-            Dim space As Integer = If(currentToken.VBKind = SyntaxKind.EndOfFileToken, 0, 1)
+            Dim space As Integer = If(currentToken.Kind = SyntaxKind.EndOfFileToken, 0, 1)
             Return FormattingOperations.CreateAdjustSpacesOperation(space, AdjustSpacesOption.DefaultSpacesIfOnSingleLine)
         End Function
     End Class

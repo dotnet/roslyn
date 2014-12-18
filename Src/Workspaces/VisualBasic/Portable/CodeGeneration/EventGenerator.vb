@@ -12,16 +12,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Private Function AfterMember(
                 members As SyntaxList(Of StatementSyntax),
                 eventDeclaration As StatementSyntax) As StatementSyntax
-            If eventDeclaration.VBKind = SyntaxKind.EventStatement Then
+            If eventDeclaration.Kind = SyntaxKind.EventStatement Then
                 ' Field style events go after the last field event, or after the last field.
                 Dim lastEvent = members.LastOrDefault(Function(m) TypeOf m Is EventStatementSyntax)
 
                 Return If(lastEvent, LastField(members))
             End If
 
-            If eventDeclaration.VBKind = SyntaxKind.EventBlock Then
+            If eventDeclaration.Kind = SyntaxKind.EventBlock Then
                 ' Property style events go after existing events, then after existing constructors.
-                Dim lastEvent = members.LastOrDefault(Function(m) m.VBKind = SyntaxKind.EventBlock)
+                Dim lastEvent = members.LastOrDefault(Function(m) m.Kind = SyntaxKind.EventBlock)
 
                 Return If(lastEvent, LastConstructor(members))
             End If
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 eventDeclaration As StatementSyntax) As StatementSyntax
             ' If it's a field style event, then it goes before everything else if we don't have any
             ' existing fields/events.
-            If eventDeclaration.VBKind = SyntaxKind.FieldDeclaration Then
+            If eventDeclaration.Kind = SyntaxKind.FieldDeclaration Then
                 Return members.FirstOrDefault()
             End If
 

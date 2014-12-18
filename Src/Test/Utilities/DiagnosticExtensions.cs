@@ -99,12 +99,12 @@ namespace Microsoft.CodeAnalysis
 
         public static CSharpCompilation VerifyCSharpAnalyzerDiagnostics(this CSharpCompilation c, DiagnosticAnalyzer[] analyzers, AnalyzerOptions options = null, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null, params DiagnosticDescription[] expected)
         {
-            return VerifyAnalyzerDiagnostics(c, n => n.CSharpKind(), analyzers, options, expected, continueOnAnalyzerException);
+            return VerifyAnalyzerDiagnostics(c, CSharp.CSharpExtensions.Kind, analyzers, options, expected, continueOnAnalyzerException);
         }
 
         public static VisualBasicCompilation VerifyVisualBasicAnalyzerDiagnostics(this VisualBasicCompilation c, DiagnosticAnalyzer[] analyzers, AnalyzerOptions options = null, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null, params DiagnosticDescription[] expected)
         {
-            return VerifyAnalyzerDiagnostics(c, n => n.VBKind(), analyzers, options, expected, continueOnAnalyzerException);
+            return VerifyAnalyzerDiagnostics(c, VisualBasic.VisualBasicExtensions.Kind, analyzers, options, expected, continueOnAnalyzerException);
         }
 
         public static TCompilation VerifyAnalyzerOccuranceCount<TCompilation>(this TCompilation c, DiagnosticAnalyzer[] analyzers, int expectedCount, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
@@ -161,14 +161,14 @@ namespace Microsoft.CodeAnalysis
         public static ImmutableArray<Diagnostic> GetCSharpAnalyzerDiagnostics(this CSharpCompilation c, DiagnosticAnalyzer[] analyzers, AnalyzerOptions options = null, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
         {
             ImmutableArray<Diagnostic> diagnostics;
-            c = GetAnalyzerDiagnostics(c, n => n.CSharpKind(), analyzers, options, continueOnAnalyzerException, out diagnostics);
+            c = GetAnalyzerDiagnostics(c, CSharp.CSharpExtensions.Kind, analyzers, options, continueOnAnalyzerException, out diagnostics);
             return diagnostics;
         }
 
         public static ImmutableArray<Diagnostic> GetVisualBasicAnalyzerDiagnostics(this VisualBasicCompilation c, DiagnosticAnalyzer[] analyzers, AnalyzerOptions options = null, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
         {
             ImmutableArray<Diagnostic> diagnostics;
-            c = GetAnalyzerDiagnostics(c, n => n.VBKind(), analyzers, options, continueOnAnalyzerException, out diagnostics);
+            c = GetAnalyzerDiagnostics(c, VisualBasic.VisualBasicExtensions.Kind, analyzers, options, continueOnAnalyzerException, out diagnostics);
             return diagnostics;
         }
 

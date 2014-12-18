@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
     Friend Module SyntaxTokenExtensions
         <Extension()>
         Public Function IsKindOrHasMatchingText(token As SyntaxToken, kind As SyntaxKind) As Boolean
-            Return token.VBKind = kind OrElse
+            Return token.Kind = kind OrElse
                    token.HasMatchingText(kind)
         End Function
 
@@ -20,27 +20,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function IsKind(token As SyntaxToken, kind1 As SyntaxKind, kind2 As SyntaxKind) As Boolean
-            Return token.VBKind = kind1 OrElse
-                   token.VBKind = kind2
+            Return token.Kind = kind1 OrElse
+                   token.Kind = kind2
         End Function
 
         <Extension()>
         Public Function IsKind(token As SyntaxToken, ParamArray kinds As SyntaxKind()) As Boolean
-            Return kinds.Contains(token.VBKind)
+            Return kinds.Contains(token.Kind)
         End Function
 
         <Extension()>
         Public Function IsCharacterLiteral(token As SyntaxToken) As Boolean
-            Return token.VBKind = SyntaxKind.CharacterLiteralToken
+            Return token.Kind = SyntaxKind.CharacterLiteralToken
         End Function
 
         <Extension()>
         Public Function IsNumericLiteral(token As SyntaxToken) As Boolean
             Return _
-                token.VBKind = SyntaxKind.DateLiteralToken OrElse
-                token.VBKind = SyntaxKind.DecimalLiteralToken OrElse
-                token.VBKind = SyntaxKind.FloatingLiteralToken OrElse
-                token.VBKind = SyntaxKind.IntegerLiteralToken
+                token.Kind = SyntaxKind.DateLiteralToken OrElse
+                token.Kind = SyntaxKind.DecimalLiteralToken OrElse
+                token.Kind = SyntaxKind.FloatingLiteralToken OrElse
+                token.Kind = SyntaxKind.IntegerLiteralToken
         End Function
 
         <Extension()>
@@ -193,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         <Extension()>
         Public Function IsFirstTokenOnLine(token As SyntaxToken, cancellationToken As CancellationToken) As Boolean
             Dim previousToken = token.GetPreviousToken(includeSkipped:=True, includeDirectives:=True, includeDocumentationComments:=True)
-            If previousToken.VBKind = SyntaxKind.None Then
+            If previousToken.Kind = SyntaxKind.None Then
                 Return True
             End If
 
@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         <Extension()>
         Public Function GetNextNonZeroWidthTokenOrEndOfFile(token As SyntaxToken) As SyntaxToken
             Dim nextToken = token.GetNextToken()
-            Return If(nextToken.VBKind = SyntaxKind.None, token.GetAncestor(Of CompilationUnitSyntax)().EndOfFileToken, nextToken)
+            Return If(nextToken.Kind = SyntaxKind.None, token.GetAncestor(Of CompilationUnitSyntax)().EndOfFileToken, nextToken)
         End Function
 
         <Extension()>
@@ -300,15 +300,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             Dim nextToken = token.GetNextToken(includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments)
 
-            Return If(nextToken.VBKind = SyntaxKind.None,
+            Return If(nextToken.Kind = SyntaxKind.None,
                       token.GetAncestor(Of CompilationUnitSyntax).EndOfFileToken,
                       nextToken)
         End Function
 
         <Extension>
         Public Function IsValidAttributeTarget(token As SyntaxToken) As Boolean
-            Return token.VBKind() = SyntaxKind.AssemblyKeyword OrElse
-                   token.VBKind() = SyntaxKind.ModuleKeyword
+            Return token.Kind() = SyntaxKind.AssemblyKeyword OrElse
+                   token.Kind() = SyntaxKind.ModuleKeyword
         End Function
     End Module
 End Namespace

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 public PathSyntaxReference(SyntaxNode node)
                 {
                     this.tree = node.SyntaxTree;
-                    this.kind = node.CSharpKind();
+                    this.kind = node.Kind();
                     this.textSpan = node.Span;
                     this.pathFromRoot = ComputePathFromRoot(node);
                 }
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
 
-                    System.Diagnostics.Debug.Assert(node.CSharpKind() == this.kind);
+                    System.Diagnostics.Debug.Assert(node.Kind() == this.kind);
                     System.Diagnostics.Debug.Assert(node.Span == this.textSpan);
 
                     return node;

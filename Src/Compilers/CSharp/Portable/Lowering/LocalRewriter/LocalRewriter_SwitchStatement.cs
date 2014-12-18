@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else if (labelConstant == null)
                     {
                         // Default label
-                        Debug.Assert(label.IdentifierNodeOrToken.CSharpKind() == SyntaxKind.DefaultSwitchLabel);
+                        Debug.Assert(label.IdentifierNodeOrToken.Kind() == SyntaxKind.DefaultSwitchLabel);
                         Debug.Assert(fallThroughLabel == breakLabel);
 
                         fallThroughLabel = label;
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 foreach (var boundLabel in section.BoundSwitchLabels)
                 {
-                    if (boundLabel.Label.IdentifierNodeOrToken.CSharpKind() == SyntaxKind.CaseSwitchLabel)
+                    if (boundLabel.Label.IdentifierNodeOrToken.Kind() == SyntaxKind.CaseSwitchLabel)
                     {
                         Debug.Assert(((SourceLabelSymbol)boundLabel.Label).SwitchCaseLabelConstant.IsString ||
                             ((SourceLabelSymbol)boundLabel.Label).SwitchCaseLabelConstant.IsNull);

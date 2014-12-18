@@ -131,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return
                     End If
 
-                    If trivia.VBKind = SyntaxKind.DocumentationCommentTrivia Then
+                    If trivia.Kind = SyntaxKind.DocumentationCommentTrivia Then
                         If Me._isInsideMethodOrLambda Then
                             Me._diagnostics.Add(ERRID.WRN_XMLDocInsideMethod, trivia.GetLocation())
 

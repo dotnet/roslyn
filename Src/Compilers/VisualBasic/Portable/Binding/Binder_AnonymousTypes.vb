@@ -153,7 +153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Dim fieldNameToken As SyntaxToken = inferredFieldInitializer.Expression.ExtractAnonymousTypeMemberName(Nothing)
 
-                        If fieldNameToken.VBKind = SyntaxKind.None Then
+                        If fieldNameToken.Kind = SyntaxKind.None Then
                             ' failed to infer field name, create a dummy field descriptor
                             ' NOTE: errors are supposed to be reported by parser
                             fieldName = Nothing
@@ -164,14 +164,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             ' field name successfully infered
                             fieldName = fieldNameToken.ValueText
                             fieldNode = DirectCast(fieldNameToken.Parent, VisualBasicSyntaxNode)
-                            fieldIsKey = inferredFieldInitializer.KeyKeyword.VBKind = SyntaxKind.KeyKeyword
+                            fieldIsKey = inferredFieldInitializer.KeyKeyword.Kind = SyntaxKind.KeyKeyword
                         End If
 
                     Else
                         ' field name is specified implicitly
                         Dim namedFieldInitializer = DirectCast(fieldSyntax, NamedFieldInitializerSyntax)
                         fieldNode = namedFieldInitializer.Name
-                        fieldIsKey = namedFieldInitializer.KeyKeyword.VBKind = SyntaxKind.KeyKeyword
+                        fieldIsKey = namedFieldInitializer.KeyKeyword.Kind = SyntaxKind.KeyKeyword
                         fieldName = namedFieldInitializer.Name.Identifier.ValueText
                     End If
 

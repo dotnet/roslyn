@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         // return 1 space for every token pairs as a default operation
         public AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustSpacesOperation> nextOperation)
         {
-            int space = currentToken.CSharpKind() == SyntaxKind.EndOfFileToken ? 0 : 1;
+            int space = currentToken.Kind() == SyntaxKind.EndOfFileToken ? 0 : 1;
             return FormattingOperations.CreateAdjustSpacesOperation(space, AdjustSpacesOption.DefaultSpacesIfOnSingleLine);
         }
     }

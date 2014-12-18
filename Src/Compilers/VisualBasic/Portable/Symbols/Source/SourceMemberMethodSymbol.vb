@@ -615,7 +615,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
 
             If eventContainerKind = SyntaxKind.KeywordEventContainer Then
-                Select Case DirectCast(singleHandleClause.EventContainer, KeywordEventContainerSyntax).Keyword.VBKind
+                Select Case DirectCast(singleHandleClause.EventContainer, KeywordEventContainerSyntax).Keyword.Kind
                     Case SyntaxKind.MeKeyword
                         handlesKind = HandledEventKind.Me
                         eventContainingType = Me.ContainingType

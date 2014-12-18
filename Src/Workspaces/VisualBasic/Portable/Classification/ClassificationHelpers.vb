@@ -15,20 +15,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         ''' <returns>The classification type for the token</returns>
         ''' <remarks></remarks>
         Public Function GetClassification(token As SyntaxToken) As String
-            If SyntaxFacts.IsKeywordKind(token.VBKind) Then
+            If SyntaxFacts.IsKeywordKind(token.Kind) Then
                 Return ClassificationTypeNames.Keyword
-            ElseIf SyntaxFacts.IsPunctuation(token.VBKind) Then
+            ElseIf SyntaxFacts.IsPunctuation(token.Kind) Then
                 Return ClassifyPunctuation(token)
-            ElseIf token.VBKind = SyntaxKind.IdentifierToken Then
+            ElseIf token.Kind = SyntaxKind.IdentifierToken Then
                 Return ClassifyIdentifierSyntax(token)
             ElseIf token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.CharacterLiteralToken) Then
                 Return ClassificationTypeNames.StringLiteral
             ElseIf token.IsNumericLiteral() Then
                 Return ClassificationTypeNames.NumericLiteral
-            ElseIf token.VBKind = SyntaxKind.XmlNameToken Then
+            ElseIf token.Kind = SyntaxKind.XmlNameToken Then
                 Return ClassificationTypeNames.XmlLiteralName
-            ElseIf token.VBKind = SyntaxKind.XmlTextLiteralToken Then
-                Select Case token.Parent.VBKind
+            ElseIf token.Kind = SyntaxKind.XmlTextLiteralToken Then
+                Select Case token.Parent.Kind
                     Case SyntaxKind.XmlString
                         Return ClassificationTypeNames.XmlLiteralAttributeValue
                     Case SyntaxKind.XmlProcessingInstruction
@@ -40,19 +40,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                     Case Else
                         Return ClassificationTypeNames.XmlLiteralText
                 End Select
-            ElseIf token.VBKind = SyntaxKind.XmlEntityLiteralToken Then
+            ElseIf token.Kind = SyntaxKind.XmlEntityLiteralToken Then
                 Return ClassificationTypeNames.XmlLiteralEntityReference
             ElseIf token.IsKind(SyntaxKind.None, SyntaxKind.BadToken) Then
                 Return Nothing
             Else
-                Return Contract.FailWithReturn(Of String)("Unhandled token kind: " & token.VBKind)
+                Return Contract.FailWithReturn(Of String)("Unhandled token kind: " & token.Kind)
             End If
         End Function
 
         Private Function ClassifyPunctuation(token As SyntaxToken) As String
-            If AllOperators.Contains(token.VBKind) Then
+            If AllOperators.Contains(token.Kind) Then
                 ' special cases...
-                Select Case token.VBKind
+                Select Case token.Kind
                     Case SyntaxKind.LessThanToken, SyntaxKind.GreaterThanToken
                         If TypeOf token.Parent Is AttributeListSyntax Then
                             Return ClassificationTypeNames.Punctuation
@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             ElseIf TypeOf parent Is EnumStatementSyntax AndAlso DirectCast(parent, EnumStatementSyntax).Identifier = identifier Then
                 Return ClassificationTypeNames.EnumName
             ElseIf TypeOf parent Is DelegateStatementSyntax AndAlso DirectCast(parent, DelegateStatementSyntax).Identifier = identifier AndAlso
-                  (parent.VBKind = SyntaxKind.DelegateSubStatement OrElse parent.VBKind = SyntaxKind.DelegateFunctionStatement) Then
+                  (parent.Kind = SyntaxKind.DelegateSubStatement OrElse parent.Kind = SyntaxKind.DelegateFunctionStatement) Then
 
                 Return ClassificationTypeNames.DelegateName
             ElseIf TypeOf parent Is TypeParameterSyntax AndAlso DirectCast(parent, TypeParameterSyntax).Identifier = identifier Then
@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         End Function
 
         Private Function ClassifyTypeDeclarationIdentifier(identifier As SyntaxToken) As String
-            Select Case identifier.Parent.VBKind
+            Select Case identifier.Parent.Kind
                 Case SyntaxKind.ClassStatement
                     Return ClassificationTypeNames.ClassName
                 Case SyntaxKind.ModuleStatement

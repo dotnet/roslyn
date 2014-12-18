@@ -290,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                         End If
                     End If
 
-                    If Not isRenameLocation AndAlso TypeOf (symbol) Is INamespaceSymbol AndAlso token.GetPreviousToken().VBKind = SyntaxKind.NamespaceKeyword Then
+                    If Not isRenameLocation AndAlso TypeOf (symbol) Is INamespaceSymbol AndAlso token.GetPreviousToken().Kind = SyntaxKind.NamespaceKeyword Then
                         Return newToken
                     End If
                 End If
@@ -305,7 +305,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     ConflictResolver.CreateDeclarationLocationAnnotationsAsync(solution, symbols, cancellationToken).WaitAndGetResult(cancellationToken)
 
                 Dim isNamespaceDeclarationReference = False
-                If isRenameLocation AndAlso token.GetPreviousToken().VBKind = SyntaxKind.NamespaceKeyword Then
+                If isRenameLocation AndAlso token.GetPreviousToken().Kind = SyntaxKind.NamespaceKeyword Then
                     isNamespaceDeclarationReference = True
                 End If
 
@@ -340,7 +340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                         Return Me.renameAnnotations.GetAnnotations(Of RenameActionAnnotation)(token).First().IsRenameLocation
                     End If
 
-                    If TypeOf token.Parent Is SimpleNameSyntax AndAlso token.VBKind <> SyntaxKind.GlobalKeyword AndAlso token.Parent.Parent.IsKind(SyntaxKind.QualifiedName, SyntaxKind.QualifiedCrefOperatorReference) Then
+                    If TypeOf token.Parent Is SimpleNameSyntax AndAlso token.Kind <> SyntaxKind.GlobalKeyword AndAlso token.Parent.Parent.IsKind(SyntaxKind.QualifiedName, SyntaxKind.QualifiedCrefOperatorReference) Then
                         Dim symbol = Me.speculativeModel.GetSymbolInfo(token.Parent, Me.cancellationToken).Symbol
                         If symbol IsNot Nothing AndAlso Me.renamedSymbol.Kind <> SymbolKind.Local AndAlso Me.renamedSymbol.Kind <> SymbolKind.RangeVariable AndAlso
                             (symbol Is Me.renamedSymbol OrElse SymbolKey.GetComparer(ignoreCase:=True, ignoreAssemblyKeys:=False).Equals(symbol.GetSymbolKey(), Me.renamedSymbol.GetSymbolKey())) Then
@@ -373,7 +373,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 newToken = RenameWithinToken(oldToken, newToken)
 
                 ' We don't want to annotate XmlName with RenameActionAnnotation
-                If newToken.VBKind = SyntaxKind.XmlNameToken Then
+                If newToken.Kind = SyntaxKind.XmlNameToken Then
                     Return newToken
                 End If
 
@@ -399,7 +399,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Dim identifierToken As SyntaxToken = Nothing
                 Dim expressionOfInvocation = invocationExpression.Expression
                 While expressionOfInvocation IsNot Nothing
-                    Select Case expressionOfInvocation.VBKind
+                    Select Case expressionOfInvocation.Kind
                         Case SyntaxKind.IdentifierName, SyntaxKind.GenericName
                             identifierToken = DirectCast(expressionOfInvocation, SimpleNameSyntax).Identifier
                             Exit While
@@ -420,7 +420,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                                 SyntaxKind.InvocationExpression
                             Return Nothing
                         Case Else
-                            ExceptionUtilities.UnexpectedValue(expressionOfInvocation.VBKind)
+                            ExceptionUtilities.UnexpectedValue(expressionOfInvocation.Kind)
                     End Select
                 End While
 
@@ -559,7 +559,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
             Private Function RenameInTrivia(token As SyntaxToken, leadingOrTrailingTriviaList As IEnumerable(Of SyntaxTrivia)) As SyntaxToken
                 Return token.ReplaceTrivia(leadingOrTrailingTriviaList, Function(oldTrivia, newTrivia)
-                                                                            If newTrivia.VBKind = SyntaxKind.CommentTrivia Then
+                                                                            If newTrivia.Kind = SyntaxKind.CommentTrivia Then
                                                                                 Return RenameInCommentTrivia(newTrivia)
                                                                             End If
 
@@ -573,14 +573,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     Return newToken
                 End If
 
-                If Me.isRenamingInStrings AndAlso newToken.VBKind = SyntaxKind.StringLiteralToken Then
+                If Me.isRenamingInStrings AndAlso newToken.Kind = SyntaxKind.StringLiteralToken Then
                     newToken = RenameInStringLiteral(oldToken, newToken, AddressOf SyntaxFactory.StringLiteralToken)
                 End If
 
                 If Me.isRenamingInComments Then
-                    If newToken.VBKind = SyntaxKind.XmlTextLiteralToken Then
+                    If newToken.Kind = SyntaxKind.XmlTextLiteralToken Then
                         newToken = RenameInStringLiteral(oldToken, newToken, AddressOf SyntaxFactory.XmlTextLiteralToken)
-                    ElseIf newToken.VBKind = SyntaxKind.XmlNameToken AndAlso CaseInsensitiveComparison.Equals(oldToken.ValueText, originalText) Then
+                    ElseIf newToken.Kind = SyntaxKind.XmlNameToken AndAlso CaseInsensitiveComparison.Equals(oldToken.ValueText, originalText) Then
                         Dim newIdentifierToken = SyntaxFactory.XmlNameToken(newToken.LeadingTrivia, replacementText, SyntaxFacts.GetKeywordKind(replacementText), newToken.TrailingTrivia)
                         newToken = newToken.CopyAnnotationsTo(Me.renameAnnotations.WithAdditionalAnnotations(newIdentifierToken, New RenameTokenSimplificationAnnotation() With {.OriginalTextSpan = oldToken.Span}))
                         AddModifiedSpan(oldToken.Span, newToken.Span)
@@ -725,7 +725,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                     For Each implicitReferenceLocation In implicitReferenceLocations
                         Dim token = implicitReferenceLocation.Location.SourceTree.GetTouchingToken(implicitReferenceLocation.Location.SourceSpan.Start, cancellationToken, False)
 
-                        If token.VBKind = SyntaxKind.ForKeyword AndAlso token.Parent.IsKind(SyntaxKind.ForEachStatement) Then
+                        If token.Kind = SyntaxKind.ForKeyword AndAlso token.Parent.IsKind(SyntaxKind.ForEachStatement) Then
                             Return SpecializedCollections.SingletonEnumerable(DirectCast(token.Parent, ForEachStatementSyntax).Expression.GetLocation())
                         End If
                     Next
@@ -753,13 +753,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
             ' for nodes in a using, for or for each statement, we do not need the enclosing _executable_ statement, which is the whole block.
             ' it's enough to expand the using, for or foreach statement.
-            Dim possibleSpecialStatement = token.FirstAncestorOrSelf(Function(n) n.VBKind = SyntaxKind.ForStatement OrElse
-                                                                                 n.VBKind = SyntaxKind.ForEachStatement OrElse
-                                                                                 n.VBKind = SyntaxKind.UsingStatement OrElse
-                                                                                 n.VBKind = SyntaxKind.CatchBlock)
+            Dim possibleSpecialStatement = token.FirstAncestorOrSelf(Function(n) n.Kind = SyntaxKind.ForStatement OrElse
+                                                                                 n.Kind = SyntaxKind.ForEachStatement OrElse
+                                                                                 n.Kind = SyntaxKind.UsingStatement OrElse
+                                                                                 n.Kind = SyntaxKind.CatchBlock)
             If possibleSpecialStatement IsNot Nothing Then
                 If enclosingStatement Is possibleSpecialStatement.Parent Then
-                    enclosingStatement = If(possibleSpecialStatement.VBKind = SyntaxKind.CatchBlock,
+                    enclosingStatement = If(possibleSpecialStatement.Kind = SyntaxKind.CatchBlock,
                                                 DirectCast(possibleSpecialStatement, CatchBlockSyntax).CatchStatement,
                                                 possibleSpecialStatement)
                 End If
@@ -907,7 +907,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 valueText = SyntaxFacts.GetText(kind)
             Else
                 Dim name = SyntaxFactory.ParseName(replacementText)
-                If name.VBKind = SyntaxKind.IdentifierName Then
+                If name.Kind = SyntaxKind.IdentifierName Then
                     valueText = DirectCast(name, IdentifierNameSyntax).Identifier.ValueText
                 End If
             End If

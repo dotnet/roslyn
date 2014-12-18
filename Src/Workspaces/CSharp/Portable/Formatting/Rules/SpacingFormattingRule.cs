@@ -21,10 +21,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             System.Diagnostics.Debug.Assert(previousToken.Parent != null && currentToken.Parent != null);
 
-            var previousKind = previousToken.CSharpKind();
-            var currentKind = currentToken.CSharpKind();
-            var previousParentKind = previousToken.Parent.CSharpKind();
-            var currentParentKind = currentToken.Parent.CSharpKind();
+            var previousKind = previousToken.Kind();
+            var currentKind = currentToken.Kind();
+            var previousParentKind = previousToken.Parent.Kind();
+            var currentParentKind = currentToken.Parent.Kind();
 
             // For Method Declaration
             if (currentToken.IsOpenParenInParameterList() && previousKind == SyntaxKind.IdentifierToken)
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 if (currentToken.Parent is ArrayRankSpecifierSyntax)
                 {
                     var parent = currentToken.Parent as ArrayRankSpecifierSyntax;
-                    if ((parent.Sizes.Any() && parent.Sizes.First().CSharpKind() != SyntaxKind.OmittedArraySizeExpression) || parent.Sizes.SeparatorCount > 0)
+                    if ((parent.Sizes.Any() && parent.Sizes.First().Kind() != SyntaxKind.OmittedArraySizeExpression) || parent.Sizes.SeparatorCount > 0)
                     {
                         // int []: added spacing operation on open [
                         // int[1], int[,]: need spacing operation

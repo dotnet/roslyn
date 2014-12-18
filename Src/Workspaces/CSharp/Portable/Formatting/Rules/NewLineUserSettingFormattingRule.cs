@@ -13,15 +13,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             var parent = node != null ? node.Parent : null;
 
-            return (node != null && node.CSharpKind() == SyntaxKind.SwitchStatement) ||
+            return (node != null && node.Kind() == SyntaxKind.SwitchStatement) ||
                    (parent != null &&
-                   (parent.CSharpKind() == SyntaxKind.IfStatement || parent.CSharpKind() == SyntaxKind.ElseClause ||
-                    parent.CSharpKind() == SyntaxKind.WhileStatement || parent.CSharpKind() == SyntaxKind.DoStatement ||
-                    parent.CSharpKind() == SyntaxKind.ForEachStatement || parent.CSharpKind() == SyntaxKind.UsingStatement ||
-                    parent.CSharpKind() == SyntaxKind.ForStatement || parent.CSharpKind() == SyntaxKind.TryStatement ||
-                    parent.CSharpKind() == SyntaxKind.CatchClause || parent.CSharpKind() == SyntaxKind.FinallyClause ||
-                    parent.CSharpKind() == SyntaxKind.LockStatement || parent.CSharpKind() == SyntaxKind.CheckedStatement ||
-                    parent.CSharpKind() == SyntaxKind.UncheckedStatement));
+                   (parent.Kind() == SyntaxKind.IfStatement || parent.Kind() == SyntaxKind.ElseClause ||
+                    parent.Kind() == SyntaxKind.WhileStatement || parent.Kind() == SyntaxKind.DoStatement ||
+                    parent.Kind() == SyntaxKind.ForEachStatement || parent.Kind() == SyntaxKind.UsingStatement ||
+                    parent.Kind() == SyntaxKind.ForStatement || parent.Kind() == SyntaxKind.TryStatement ||
+                    parent.Kind() == SyntaxKind.CatchClause || parent.Kind() == SyntaxKind.FinallyClause ||
+                    parent.Kind() == SyntaxKind.LockStatement || parent.Kind() == SyntaxKind.CheckedStatement ||
+                    parent.Kind() == SyntaxKind.UncheckedStatement));
         }
 
         public override AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, OptionSet optionSet, NextOperation<AdjustSpacesOperation> nextOperation)
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * { in the type declaration context
-            if (currentToken.CSharpKind() == SyntaxKind.OpenBraceToken && (currentToken.Parent is BaseTypeDeclarationSyntax || currentToken.Parent is NamespaceDeclarationSyntax))
+            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && (currentToken.Parent is BaseTypeDeclarationSyntax || currentToken.Parent is NamespaceDeclarationSyntax))
             {
                 if (!optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInTypes))
                 {
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * { - in the control statement context
-            if (currentToken.CSharpKind() == SyntaxKind.OpenBraceToken && IsControlBlock(currentToken.Parent))
+            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && IsControlBlock(currentToken.Parent))
             {
                 if (!optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInControlBlocks))
                 {
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // else condition is actually handled in the GetAdjustSpacesOperation()
 
             // For Object Initialization Expression
-            if (previousToken.CSharpKind() == SyntaxKind.CommaToken && previousToken.Parent.CSharpKind() == SyntaxKind.ObjectInitializerExpression)
+            if (previousToken.Kind() == SyntaxKind.CommaToken && previousToken.Parent.Kind() == SyntaxKind.ObjectInitializerExpression)
             {
                 if (optionSet.GetOption(CSharpFormattingOptions.NewLineForMembersInObjectInit))
                 {
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // For Anonymous Object Creation Expression
-            if (previousToken.CSharpKind() == SyntaxKind.CommaToken && previousToken.Parent.CSharpKind() == SyntaxKind.AnonymousObjectCreationExpression)
+            if (previousToken.Kind() == SyntaxKind.CommaToken && previousToken.Parent.Kind() == SyntaxKind.AnonymousObjectCreationExpression)
             {
                 if (optionSet.GetOption(CSharpFormattingOptions.NewLineForMembersInAnonymousTypes))
                 {
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * catch in the try catch context
-            if (currentToken.CSharpKind() == SyntaxKind.CatchKeyword)
+            if (currentToken.Kind() == SyntaxKind.CatchKeyword)
             {
                 if (optionSet.GetOption(CSharpFormattingOptions.NewLineForCatch))
                 {
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * Finally
-            if (currentToken.CSharpKind() == SyntaxKind.FinallyKeyword)
+            if (currentToken.Kind() == SyntaxKind.FinallyKeyword)
             {
                 if (optionSet.GetOption(CSharpFormattingOptions.NewLineForFinally))
                 {
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * { - in the type declaration context
-            if (currentToken.CSharpKind() == SyntaxKind.OpenBraceToken && (currentToken.Parent is BaseTypeDeclarationSyntax || currentToken.Parent is NamespaceDeclarationSyntax))
+            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && (currentToken.Parent is BaseTypeDeclarationSyntax || currentToken.Parent is NamespaceDeclarationSyntax))
             {
                 if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInTypes))
                 {
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // new { - Anonymous object creation
-            if (currentToken.CSharpKind() == SyntaxKind.OpenBraceToken && currentToken.Parent != null && currentToken.Parent.CSharpKind() == SyntaxKind.AnonymousObjectCreationExpression)
+            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentToken.Parent != null && currentToken.Parent.Kind() == SyntaxKind.AnonymousObjectCreationExpression)
             {
                 if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInAnonymousTypes))
                 {
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // new { - Object Initialization
-            if (currentToken.CSharpKind() == SyntaxKind.OpenBraceToken && currentToken.Parent != null && currentToken.Parent.CSharpKind() == SyntaxKind.ObjectInitializerExpression)
+            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentToken.Parent != null && currentToken.Parent.Kind() == SyntaxKind.ObjectInitializerExpression)
             {
                 if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInObjectInitializers))
                 {
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var currentTokenParentParent = currentToken.Parent.Parent;
 
             // * { - in the member declaration context
-            if (currentToken.CSharpKind() == SyntaxKind.OpenBraceToken &&
+            if (currentToken.Kind() == SyntaxKind.OpenBraceToken &&
                 currentTokenParentParent != null && (currentTokenParentParent is MemberDeclarationSyntax || currentTokenParentParent is AccessorDeclarationSyntax))
             {
                 if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInMethods))
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * { - in the anonymous Method context
-            if (currentToken.CSharpKind() == SyntaxKind.OpenBraceToken && currentTokenParentParent != null && currentTokenParentParent.CSharpKind() == SyntaxKind.AnonymousMethodExpression)
+            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentTokenParentParent != null && currentTokenParentParent.Kind() == SyntaxKind.AnonymousMethodExpression)
             {
                 if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods))
                 {
@@ -267,8 +267,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * { - in the simple Lambda context
-            if (currentToken.CSharpKind() == SyntaxKind.OpenBraceToken && currentTokenParentParent != null &&
-               (currentTokenParentParent.CSharpKind() == SyntaxKind.SimpleLambdaExpression || currentTokenParentParent.CSharpKind() == SyntaxKind.ParenthesizedLambdaExpression))
+            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && currentTokenParentParent != null &&
+               (currentTokenParentParent.Kind() == SyntaxKind.SimpleLambdaExpression || currentTokenParentParent.Kind() == SyntaxKind.ParenthesizedLambdaExpression))
             {
                 if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInLambdaExpressionBody))
                 {
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // * { - in the control statement context
-            if (currentToken.CSharpKind() == SyntaxKind.OpenBraceToken && IsControlBlock(currentToken.Parent))
+            if (currentToken.Kind() == SyntaxKind.OpenBraceToken && IsControlBlock(currentToken.Parent))
             {
                 if (optionSet.GetOption(CSharpFormattingOptions.NewLinesForBracesInControlBlocks))
                 {
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // Wrapping - Leave statements on same line (false): 
             // Insert a newline between the previous statement and this one.
             // ; *
-            if (previousToken.CSharpKind() == SyntaxKind.SemicolonToken
+            if (previousToken.Kind() == SyntaxKind.SemicolonToken
                 && (previousToken.Parent is StatementSyntax && !previousToken.Parent.IsKind(SyntaxKind.ForStatement))
                 && !optionSet.GetOption(CSharpFormattingOptions.WrappingKeepStatementsOnSingleLine))
             {

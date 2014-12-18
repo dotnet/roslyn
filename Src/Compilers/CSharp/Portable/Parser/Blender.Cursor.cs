@@ -41,14 +41,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 get
                 {
                     return
-                        this.CurrentNodeOrToken.CSharpKind() == SyntaxKind.None ||
-                        this.CurrentNodeOrToken.CSharpKind() == SyntaxKind.EndOfFileToken;
+                        this.CurrentNodeOrToken.Kind() == SyntaxKind.None ||
+                        this.CurrentNodeOrToken.Kind() == SyntaxKind.EndOfFileToken;
                 }
             }
 
             private static bool IsNonZeroWidthOrIsEndOfFile(SyntaxNodeOrToken token)
             {
-                return token.CSharpKind() == SyntaxKind.EndOfFileToken || token.FullWidth != 0;
+                return token.Kind() == SyntaxKind.EndOfFileToken || token.FullWidth != 0;
             }
 
             public Cursor MoveToNextSibling()
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // do not break interpolated string nodes down into their constituent tokens, but
                 // instead replace the whole parsed interpolated string expression with its pre-parsed
                 // interpolated string token.
-                if (node.CSharpKind() == SyntaxKind.InterpolatedStringExpression)
+                if (node.Kind() == SyntaxKind.InterpolatedStringExpression)
                 {
                     var greenToken = Lexer.RescanInterpolatedString((InterpolatedStringExpressionSyntax)node.Green);
                     var redToken = new CodeAnalysis.SyntaxToken(node.Parent, greenToken, node.Position, this.indexInParent);
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var cursor = this;
                 if (!cursor.IsFinished)
                 {
-                    for (var node = cursor.CurrentNodeOrToken; node.CSharpKind() != SyntaxKind.None && !SyntaxFacts.IsAnyToken(node.CSharpKind()); node = cursor.CurrentNodeOrToken)
+                    for (var node = cursor.CurrentNodeOrToken; node.Kind() != SyntaxKind.None && !SyntaxFacts.IsAnyToken(node.Kind()); node = cursor.CurrentNodeOrToken)
                     {
                         cursor = cursor.MoveToFirstChild();
                     }

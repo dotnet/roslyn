@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsOperator(SyntaxToken token)
         {
-            var kind = token.CSharpKind();
+            var kind = token.Kind();
 
             return
                 (SyntaxFacts.IsAnyUnaryExpression(kind) &&
@@ -120,12 +120,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lineDirective = node as LineDirectiveTriviaSyntax;
             if (lineDirective != null)
             {
-                if (lineDirective.Line.CSharpKind() == SyntaxKind.DefaultKeyword)
+                if (lineDirective.Line.Kind() == SyntaxKind.DefaultKeyword)
                 {
                     info = new ExternalSourceInfo(null, ends: true);
                     return true;
                 }
-                else if (lineDirective.Line.CSharpKind() == SyntaxKind.NumericLiteralToken &&
+                else if (lineDirective.Line.Kind() == SyntaxKind.NumericLiteralToken &&
                     lineDirective.Line.Value is int)
                 {
                     info = new ExternalSourceInfo((int)lineDirective.Line.Value, false);
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsLiteral(SyntaxToken token)
         {
-            switch (token.CSharpKind())
+            switch (token.Kind())
             {
             case SyntaxKind.NumericLiteralToken:
             case SyntaxKind.CharacterLiteralToken:
@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsMemberAccessExpression(SyntaxNode node)
         {
             return node is MemberAccessExpressionSyntax &&
-                ((MemberAccessExpressionSyntax)node).CSharpKind() == SyntaxKind.SimpleMemberAccessExpression;
+                ((MemberAccessExpressionSyntax)node).Kind() == SyntaxKind.SimpleMemberAccessExpression;
         }
 
         public bool IsConditionalMemberAccessExpression(SyntaxNode node)
@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsPointerMemberAccessExpression(SyntaxNode node)
         {
             return node is MemberAccessExpressionSyntax &&
-                ((MemberAccessExpressionSyntax)node).CSharpKind() == SyntaxKind.PointerMemberAccessExpression;
+                ((MemberAccessExpressionSyntax)node).Kind() == SyntaxKind.PointerMemberAccessExpression;
         }
 
         public void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity)
@@ -675,7 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsElementAccessExpression(SyntaxNode node)
         {
-            return node.CSharpKind() == SyntaxKind.ElementAccessExpression;
+            return node.Kind() == SyntaxKind.ElementAccessExpression;
         }
 
         public SyntaxNode ConvertToSingleLine(SyntaxNode node)
@@ -695,7 +695,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsIndexerMemberCRef(SyntaxNode node)
         {
-            return node.CSharpKind() == SyntaxKind.IndexerMemberCref;
+            return node.Kind() == SyntaxKind.IndexerMemberCref;
         }
 
         public SyntaxNode GetContainingMemberDeclaration(SyntaxNode root, int position)
@@ -1009,12 +1009,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool TryGetCorrespondingOpenBrace(SyntaxToken token, out SyntaxToken openBrace)
         {
-            if (token.CSharpKind() == SyntaxKind.CloseBraceToken)
+            if (token.Kind() == SyntaxKind.CloseBraceToken)
             {
                 var tuple = token.Parent.GetBraces();
 
                 openBrace = tuple.Item1;
-                return openBrace.CSharpKind() == SyntaxKind.OpenBraceToken;
+                return openBrace.Kind() == SyntaxKind.OpenBraceToken;
             }
 
             openBrace = default(SyntaxToken);

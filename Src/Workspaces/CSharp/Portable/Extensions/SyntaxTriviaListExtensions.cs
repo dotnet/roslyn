@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static SyntaxTrivia? GetFirstNewLine(this SyntaxTriviaList triviaList)
         {
             return triviaList
-                .Where(t => t.CSharpKind() == SyntaxKind.EndOfLineTrivia)
+                .Where(t => t.Kind() == SyntaxKind.EndOfLineTrivia)
                 .FirstOrNullable();
         }
 
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static IEnumerable<SyntaxTrivia> SkipInitialWhitespace(this SyntaxTriviaList triviaList)
         {
-            return triviaList.SkipWhile(t => t.CSharpKind() == SyntaxKind.WhitespaceTrivia);
+            return triviaList.SkipWhile(t => t.Kind() == SyntaxKind.WhitespaceTrivia);
         }
     }
 }

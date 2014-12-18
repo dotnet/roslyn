@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 includeDirectives:=syntaxTree.IsInPreprocessorDirectiveContext(position, cancellationToken),
                 includeDocumentationComments:=True)
 
-            Do While token.VBKind <> SyntaxKind.None
+            Do While token.Kind <> SyntaxKind.None
                 ' If we have a non-word token to our left, we should always stop there
                 If Not token.IsWord() AndAlso token.Span.End <= position Then
                     Exit Do
@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             syntaxTree As SyntaxTree, position As Integer, targetToken As SyntaxToken, allowAfterModifiersOrDim As Boolean, cancellationToken As CancellationToken, ParamArray allowedParentBlocks As SyntaxKind()) As Boolean
 
             Contract.Requires(targetToken = syntaxTree.GetTargetToken(position, cancellationToken))
-            If targetToken.VBKind = SyntaxKind.None OrElse targetToken.Parent Is Nothing Then
+            If targetToken.Kind = SyntaxKind.None OrElse targetToken.Parent Is Nothing Then
                 ' We're at the root, so we're acceptable if we allow us to be in the root
                 Return allowedParentBlocks.Contains(SyntaxKind.CompilationUnit)
             End If
@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             End If
 
             Dim afterDimOrModifiers = allowAfterModifiersOrDim AndAlso (targetToken.IsModifier OrElse
-                                                                        targetToken.VBKind = SyntaxKind.DimKeyword OrElse
+                                                                        targetToken.Kind = SyntaxKind.DimKeyword OrElse
                                                                         targetToken.HasMatchingText(SyntaxKind.AsyncKeyword) OrElse
                                                                         targetToken.HasMatchingText(SyntaxKind.IteratorKeyword))
 
@@ -266,7 +266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
             Contract.Requires(targetToken = syntaxTree.GetTargetToken(position, cancellationToken))
 
-            If targetToken.FollowsEndOfStatement(position) OrElse targetToken.VBKind = SyntaxKind.None Then
+            If targetToken.FollowsEndOfStatement(position) OrElse targetToken.Kind = SyntaxKind.None Then
                 Return False
             End If
 
@@ -348,14 +348,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             End If
 
             ' The close paren of the parameter list of a single-line lambda?
-            If targetToken.VBKind = SyntaxKind.CloseParenToken AndAlso
+            If targetToken.Kind = SyntaxKind.CloseParenToken AndAlso
                targetToken.Parent.IsKind(SyntaxKind.ParameterList) AndAlso
                TypeOf targetToken.Parent.Parent Is LambdaHeaderSyntax Then
                 Return True
             End If
 
             ' A comma in a method call or collection initializer?
-            If targetToken.VBKind = SyntaxKind.CommaToken AndAlso
+            If targetToken.Kind = SyntaxKind.CommaToken AndAlso
                targetToken.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.CollectionInitializer, SyntaxKind.EraseStatement) Then
 
                 Return True
@@ -531,7 +531,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             End If
 
             Contract.Requires(targetToken = syntaxTree.GetTargetToken(position, cancellationToken))
-            If targetToken.VBKind = SyntaxKind.None Then
+            If targetToken.Kind = SyntaxKind.None Then
                 Return False
             End If
 
@@ -565,7 +565,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         <Extension()>
         Friend Function IsAfterStatementOfKind(syntaxTree As SyntaxTree, position As Integer, targetToken As SyntaxToken, cancellationToken As CancellationToken, ParamArray kinds As SyntaxKind()) As Boolean
             Contract.Requires(targetToken = syntaxTree.GetTargetToken(position, cancellationToken))
-            If targetToken.VBKind = SyntaxKind.None OrElse targetToken.Parent Is Nothing Then
+            If targetToken.Kind = SyntaxKind.None OrElse targetToken.Parent Is Nothing Then
                 Return False
             End If
 
@@ -611,7 +611,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         <Extension()>
         Public Function IsQueryIntoClauseContext(syntaxTree As SyntaxTree, position As Integer, targetToken As SyntaxToken, cancellationToken As CancellationToken) As Boolean
             Contract.Requires(targetToken = syntaxTree.GetTargetToken(position, cancellationToken))
-            If targetToken.VBKind = SyntaxKind.None Then
+            If targetToken.Kind = SyntaxKind.None Then
                 Return False
             End If
 
@@ -630,7 +630,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 Return True
             End If
 
-            If targetToken.VBKind = SyntaxKind.EqualsToken Then
+            If targetToken.Kind = SyntaxKind.EqualsToken Then
                 Dim aggregationRangeVariable = targetToken.GetAncestor(Of AggregationRangeVariableSyntax)()
                 If aggregationRangeVariable IsNot Nothing AndAlso aggregationRangeVariable.NameEquals IsNot Nothing Then
                     If aggregationRangeVariable.NameEquals.EqualsToken = targetToken Then
@@ -645,7 +645,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         <Extension()>
         Public Function IsRaiseEventContext(syntaxTree As SyntaxTree, position As Integer, targetToken As SyntaxToken, cancellationToken As CancellationToken) As Boolean
             Contract.Requires(targetToken = syntaxTree.GetTargetToken(position, cancellationToken))
-            Return Not targetToken.FollowsEndOfStatement(position) AndAlso targetToken.VBKind = SyntaxKind.RaiseEventKeyword
+            Return Not targetToken.FollowsEndOfStatement(position) AndAlso targetToken.Kind = SyntaxKind.RaiseEventKeyword
         End Function
 
         <Extension()>
@@ -658,7 +658,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         Public Function IsObjectCreationTypeContext(syntaxTree As SyntaxTree, position As Integer, targetToken As SyntaxToken, cancellationToken As CancellationToken) As Boolean
             Contract.Requires(targetToken = syntaxTree.GetTargetToken(position, cancellationToken))
 
-            If Not targetToken.FollowsEndOfStatement(position) AndAlso targetToken.VBKind = SyntaxKind.NewKeyword Then
+            If Not targetToken.FollowsEndOfStatement(position) AndAlso targetToken.Kind = SyntaxKind.NewKeyword Then
                 Return syntaxTree.IsTypeContext(position, targetToken, cancellationToken) OrElse
                        syntaxTree.IsMultiLineStatementStartContext(position, targetToken, cancellationToken) OrElse
                        syntaxTree.IsSingleLineStatementContext(position, targetToken, cancellationToken)
@@ -729,7 +729,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                 End If
 
                 Dim terminatingToken = GetExpressionTerminatingToken(expression)
-                If terminatingToken.VBKind <> SyntaxKind.None AndAlso
+                If terminatingToken.Kind <> SyntaxKind.None AndAlso
                    Not terminatingToken.IsMissing AndAlso
                    terminatingToken = targetToken Then
 
@@ -774,7 +774,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
             Dim functionAggregationExpression = TryCast(expression, FunctionAggregationSyntax)
             If functionAggregationExpression IsNot Nothing Then
-                If functionAggregationExpression.OpenParenToken.VBKind <> SyntaxKind.None Then
+                If functionAggregationExpression.OpenParenToken.Kind <> SyntaxKind.None Then
                     Return functionAggregationExpression.CloseParenToken
                 Else
                     Return functionAggregationExpression.FunctionName
@@ -823,7 +823,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             End If
 
             Dim singleLineLambda = TryCast(expression, SingleLineLambdaExpressionSyntax)
-            If singleLineLambda IsNot Nothing AndAlso singleLineLambda.VBKind = SyntaxKind.SingleLineFunctionLambdaExpression Then
+            If singleLineLambda IsNot Nothing AndAlso singleLineLambda.Kind = SyntaxKind.SingleLineFunctionLambdaExpression Then
                 Dim bodyExpression = TryCast(singleLineLambda.Body, ExpressionSyntax)
                 If bodyExpression IsNot Nothing Then
                     Return GetExpressionTerminatingToken(bodyExpression)
@@ -868,7 +868,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             If orderByClause IsNot Nothing Then
                 Dim lastOrdering = orderByClause.Orderings.Last()
 
-                If lastOrdering.AscendingOrDescendingKeyword.VBKind = SyntaxKind.None Then
+                If lastOrdering.AscendingOrDescendingKeyword.Kind = SyntaxKind.None Then
                     Return GetExpressionTerminatingToken(lastOrdering.Expression)
                 Else
                     Return lastOrdering.AscendingOrDescendingKeyword

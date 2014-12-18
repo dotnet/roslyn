@@ -203,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                         .WithAdditionalAnnotations(Simplifier.Annotation)
                 End If
 
-                If (node.Expression.VBKind = SyntaxKind.SimpleMemberAccessExpression) Then
+                If (node.Expression.Kind = SyntaxKind.SimpleMemberAccessExpression) Then
                     Dim memberAccess = DirectCast(node.Expression, MemberAccessExpressionSyntax)
                     Dim targetSymbol = SimplificationHelpers.GetOriginalSymbolInfo(_semanticModel, memberAccess.Name)
 
@@ -302,7 +302,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     End If
                 End If
 
-                If newSimpleArgument.Expression.VBKind = SyntaxKind.AddressOfExpression Then
+                If newSimpleArgument.Expression.Kind = SyntaxKind.AddressOfExpression Then
                     Return newSimpleArgument
                 End If
 
@@ -422,7 +422,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 '
                 ' 1. if this identifier is an alias, we'll expand it here and replace the node completely.
                 '
-                If originalSimpleName.VBKind = SyntaxKind.IdentifierName Then
+                If originalSimpleName.Kind = SyntaxKind.IdentifierName Then
                     Dim aliasInfo = _semanticModel.GetAliasInfo(DirectCast(originalSimpleName, IdentifierNameSyntax))
                     If aliasInfo IsNot Nothing Then
                         Dim aliasTarget = aliasInfo.Target
@@ -446,7 +446,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                             replaceNode:=True) _
                              .WithAdditionalAnnotations(Simplifier.Annotation)
 
-                        If replacement.VBKind = SyntaxKind.QualifiedName Then
+                        If replacement.Kind = SyntaxKind.QualifiedName Then
                             Dim qualifiedReplacement = DirectCast(replacement, QualifiedNameSyntax)
 
                             Dim newIdentifier = identifier.CopyAnnotationsTo(qualifiedReplacement.Right.Identifier)
@@ -508,7 +508,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 '
                 identifier = TryEscapeIdentifierToken(identifier, Me._semanticModel)
                 If identifier <> rewrittenSimpleName.Identifier Then
-                    Select Case newNode.VBKind
+                    Select Case newNode.Kind
                         Case SyntaxKind.IdentifierName,
                              SyntaxKind.GenericName
                             newNode = DirectCast(newNode, SimpleNameSyntax).WithIdentifier(identifier).WithAdditionalAnnotations(Simplifier.Annotation)
@@ -523,9 +523,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 ' do not complexify further for location where only simple names are allowed
                 If (TypeOf (parent) Is FieldInitializerSyntax) OrElse
                     ((TypeOf (parent) Is DeclarationStatementSyntax) AndAlso Not TypeOf (parent) Is InheritsOrImplementsStatementSyntax) OrElse
-                    (TypeOf (parent) Is MemberAccessExpressionSyntax AndAlso parent.VBKind <> SyntaxKind.SimpleMemberAccessExpression) OrElse
-                    (parent.VBKind = SyntaxKind.SimpleMemberAccessExpression AndAlso originalSimpleName.IsRightSideOfDot()) OrElse
-                    (parent.VBKind = SyntaxKind.QualifiedName AndAlso originalSimpleName.IsRightSideOfQualifiedName()) Then
+                    (TypeOf (parent) Is MemberAccessExpressionSyntax AndAlso parent.Kind <> SyntaxKind.SimpleMemberAccessExpression) OrElse
+                    (parent.Kind = SyntaxKind.SimpleMemberAccessExpression AndAlso originalSimpleName.IsRightSideOfDot()) OrElse
+                    (parent.Kind = SyntaxKind.QualifiedName AndAlso originalSimpleName.IsRightSideOfQualifiedName()) Then
 
                     Return TryAddTypeArgumentToIdentifierName(newNode, symbol)
                 End If
@@ -535,7 +535,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 '
 
                 ' we need to treat the constructor as type name, so just get the containing type.
-                If symbol.IsConstructor() AndAlso parent.VBKind = SyntaxKind.ObjectCreationExpression Then
+                If symbol.IsConstructor() AndAlso parent.Kind = SyntaxKind.ObjectCreationExpression Then
                     symbol = symbol.ContainingType
                 End If
 
@@ -588,7 +588,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Private Function TryAddTypeArgumentToIdentifierName(
                 newNode As ExpressionSyntax,
                 symbol As ISymbol) As ExpressionSyntax
-                If newNode.VBKind = SyntaxKind.IdentifierName AndAlso symbol.Kind = SymbolKind.Method Then
+                If newNode.Kind = SyntaxKind.IdentifierName AndAlso symbol.Kind = SymbolKind.Method Then
                     If DirectCast(symbol, IMethodSymbol).TypeArguments.Length <> 0 Then
                         Dim typeArguments = DirectCast(symbol, IMethodSymbol).TypeArguments
 
@@ -612,7 +612,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 originalNode As ExpressionSyntax,
                 replaceNode As Boolean
             ) As ExpressionSyntax
-                Debug.Assert(Not replaceNode OrElse rewrittenNode.VBKind = SyntaxKind.IdentifierName)
+                Debug.Assert(Not replaceNode OrElse rewrittenNode.Kind = SyntaxKind.IdentifierName)
 
                 ' TODO: use and expand Generate*Syntax(isymbol) to not depend on symbol display any more.
                 ' See GenerateExpressionSyntax();
@@ -656,7 +656,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                     Dim leadingTrivia = rewrittenNode.GetLeadingTrivia()
                     rewrittenNode = rewrittenNode.WithoutLeadingTrivia()
 
-                    Select Case parent.VBKind
+                    Select Case parent.Kind
                         Case SyntaxKind.QualifiedName
                             Dim qualifiedParent = DirectCast(parent, QualifiedNameSyntax)
 

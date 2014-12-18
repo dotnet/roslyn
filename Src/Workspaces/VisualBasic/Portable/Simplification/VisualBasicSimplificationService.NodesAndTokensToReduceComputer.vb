@@ -79,8 +79,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             End Function
 
             Private Function IsNodeVariableDeclaratorOfFieldDeclaration(node As SyntaxNode) As Boolean
-                Return node IsNot Nothing AndAlso node.VBKind() = SyntaxKind.VariableDeclarator AndAlso
-                    node.Parent IsNot Nothing AndAlso node.Parent.VBKind() = SyntaxKind.FieldDeclaration
+                Return node IsNot Nothing AndAlso node.Kind() = SyntaxKind.VariableDeclarator AndAlso
+                    node.Parent IsNot Nothing AndAlso node.Parent.Kind() = SyntaxKind.FieldDeclaration
             End Function
 
             Public Overrides Function VisitToken(token As SyntaxToken) As SyntaxToken
@@ -97,7 +97,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Dim savedSimplifyAllDescendants = Me._simplifyAllDescendants
                 Me._simplifyAllDescendants = Me._simplifyAllDescendants OrElse token.HasAnnotation(Simplifier.Annotation)
 
-                If Me._simplifyAllDescendants AndAlso Not Me._insideSpeculatedNode AndAlso token.VBKind <> SyntaxKind.None Then
+                If Me._simplifyAllDescendants AndAlso Not Me._insideSpeculatedNode AndAlso token.Kind <> SyntaxKind.None Then
                     Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(token, simplifyAllDescendants:=True, originalNodeOrToken:=token))
                 End If
 
@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Public Overrides Function VisitMethodBlock(node As MethodBlockSyntax) As SyntaxNode
                 Dim updateFunc As Func(Of MethodBlockBaseSyntax, MethodBaseSyntax, SyntaxList(Of StatementSyntax), EndBlockStatementSyntax, MethodBlockBaseSyntax) =
                     Function(n, b, s, e)
-                        Return DirectCast(n, MethodBlockSyntax).Update(node.VBKind, DirectCast(b, MethodStatementSyntax), s, e)
+                        Return DirectCast(n, MethodBlockSyntax).Update(node.Kind, DirectCast(b, MethodStatementSyntax), s, e)
                     End Function
                 Return VisitMethodBlockBaseSyntax(node, updateFunc)
             End Function
@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Public Overrides Function VisitAccessorBlock(node As AccessorBlockSyntax) As SyntaxNode
                 Dim updateFunc As Func(Of MethodBlockBaseSyntax, MethodBaseSyntax, SyntaxList(Of StatementSyntax), EndBlockStatementSyntax, MethodBlockBaseSyntax) =
                     Function(n, b, s, e)
-                        Return DirectCast(n, AccessorBlockSyntax).Update(node.VBKind, DirectCast(b, AccessorStatementSyntax), s, e)
+                        Return DirectCast(n, AccessorBlockSyntax).Update(node.Kind, DirectCast(b, AccessorStatementSyntax), s, e)
                     End Function
                 Return VisitMethodBlockBaseSyntax(node, updateFunc)
             End Function

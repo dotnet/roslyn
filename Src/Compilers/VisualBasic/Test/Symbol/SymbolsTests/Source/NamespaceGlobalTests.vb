@@ -622,7 +622,7 @@ End Namespace
 
             For Each ref In [global].DeclaringSyntaxReferences
                 Dim node = ref.GetSyntax()
-                Assert.Equal(SyntaxKind.CompilationUnit, node.VBKind)
+                Assert.Equal(SyntaxKind.CompilationUnit, node.Kind)
             Next
 
             ' Since we never return something other than CompilationUnit as a declaring syntax for a Global namespace,

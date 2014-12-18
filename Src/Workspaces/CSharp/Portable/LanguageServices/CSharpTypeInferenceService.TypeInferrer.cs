@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private IEnumerable<ITypeSymbol> InferTypeInArgumentList(ArgumentListSyntax argumentList, SyntaxToken previousToken)
             {
                 // Has to follow the ( or a ,
-                if (previousToken != argumentList.OpenParenToken && previousToken.CSharpKind() != SyntaxKind.CommaToken)
+                if (previousToken != argumentList.OpenParenToken && previousToken.Kind() != SyntaxKind.CommaToken)
                 {
                     return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
                 }
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private IEnumerable<ITypeSymbol> InferTypeInAttributeArgumentList(AttributeArgumentListSyntax attributeArgumentList, SyntaxToken previousToken)
             {
                 // Has to follow the ( or a ,
-                if (previousToken != attributeArgumentList.OpenParenToken && previousToken.CSharpKind() != SyntaxKind.CommaToken)
+                if (previousToken != attributeArgumentList.OpenParenToken && previousToken.Kind() != SyntaxKind.CommaToken)
                 {
                     return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
                 }
@@ -678,7 +678,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private IEnumerable<ITypeSymbol> InferTypeInBracketedArgumentList(BracketedArgumentListSyntax bracketedArgumentList, SyntaxToken previousToken)
             {
                 // Has to follow the [ or a ,
-                if (previousToken != bracketedArgumentList.OpenBracketToken && previousToken.CSharpKind() != SyntaxKind.CommaToken)
+                if (previousToken != bracketedArgumentList.OpenBracketToken && previousToken.Kind() != SyntaxKind.CommaToken)
                 {
                     return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
                 }
@@ -738,13 +738,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // operator's token.
                 Contract.ThrowIfTrue(previousToken.HasValue && previousToken.Value != operatorToken);
 
-                if (binop.CSharpKind() == SyntaxKind.CoalesceExpression)
+                if (binop.Kind() == SyntaxKind.CoalesceExpression)
                 {
                     return InferTypeInCoalesceExpression((BinaryExpressionSyntax)binop, expressionOpt, previousToken);
                 }
 
                 var onRightOfToken = right == expressionOpt || previousToken.HasValue;
-                switch (operatorToken.CSharpKind())
+                switch (operatorToken.Kind())
                 {
                 case SyntaxKind.LessThanLessThanToken:
                 case SyntaxKind.GreaterThanGreaterThanToken:
@@ -761,8 +761,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Infer operands of && and || as bool regardless of the other operand.
-                if (operatorToken.CSharpKind() == SyntaxKind.AmpersandAmpersandToken ||
-                    operatorToken.CSharpKind() == SyntaxKind.BarBarToken)
+                if (operatorToken.Kind() == SyntaxKind.AmpersandAmpersandToken ||
+                    operatorToken.Kind() == SyntaxKind.BarBarToken)
                 {
                     return SpecializedCollections.SingletonEnumerable(this.Compilation.GetSpecialType(SpecialType.System_Boolean));
                 }
@@ -781,12 +781,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // For &, &=, |, |=, ^, and ^=, since we couldn't infer the type of either side, 
                 // try to infer the type of the entire binary expression.
-                if (operatorToken.CSharpKind() == SyntaxKind.AmpersandToken ||
-                    operatorToken.CSharpKind() == SyntaxKind.AmpersandEqualsToken ||
-                    operatorToken.CSharpKind() == SyntaxKind.BarToken ||
-                    operatorToken.CSharpKind() == SyntaxKind.BarEqualsToken ||
-                    operatorToken.CSharpKind() == SyntaxKind.CaretToken ||
-                    operatorToken.CSharpKind() == SyntaxKind.CaretEqualsToken)
+                if (operatorToken.Kind() == SyntaxKind.AmpersandToken ||
+                    operatorToken.Kind() == SyntaxKind.AmpersandEqualsToken ||
+                    operatorToken.Kind() == SyntaxKind.BarToken ||
+                    operatorToken.Kind() == SyntaxKind.BarEqualsToken ||
+                    operatorToken.Kind() == SyntaxKind.CaretToken ||
+                    operatorToken.Kind() == SyntaxKind.CaretEqualsToken)
                 {
                     var parentTypes = InferTypes(binop);
                     if (parentTypes.Any())
@@ -797,7 +797,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If it's a plus operator, then do some smarts in case it might be a string or
                 // delegate.
-                if (operatorToken.CSharpKind() == SyntaxKind.PlusToken)
+                if (operatorToken.Kind() == SyntaxKind.PlusToken)
                 {
                     // See Bug 6045.  Note: we've already checked the other side of the operator.  So this
                     // is the case where the other side was also unknown.  So we walk one higher and if
@@ -810,7 +810,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Otherwise pick some sane defaults for certain common cases.
-                switch (operatorToken.CSharpKind())
+                switch (operatorToken.Kind())
                 {
                 case SyntaxKind.BarToken:
                 case SyntaxKind.CaretToken:
@@ -1093,7 +1093,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // { foo(), |
-                    if (previousToken.HasValue && previousToken.Value.CSharpKind() == SyntaxKind.CommaToken)
+                    if (previousToken.HasValue && previousToken.Value.Kind() == SyntaxKind.CommaToken)
                     {
                         var sibling = initializerExpression.Expressions.FirstOrDefault(e => e.SpanStart < previousToken.Value.SpanStart);
                         if (sibling != null)
@@ -1332,7 +1332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
                 }
 
-                switch (postfixUnaryExpressionSyntax.CSharpKind())
+                switch (postfixUnaryExpressionSyntax.Kind())
                 {
                 case SyntaxKind.PostDecrementExpression:
                 case SyntaxKind.PostIncrementExpression:
@@ -1347,7 +1347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If we have a position, then we must be after the prefix token.
                 Contract.ThrowIfTrue(previousToken.HasValue && previousToken.Value != prefixUnaryExpression.OperatorToken);
 
-                switch (prefixUnaryExpression.CSharpKind())
+                switch (prefixUnaryExpression.Kind())
                 {
                 case SyntaxKind.PreDecrementExpression:
                 case SyntaxKind.PreIncrementExpression:
@@ -1503,7 +1503,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (previousToken.HasValue)
                 {
                     if (previousToken.Value != switchLabel.Keyword ||
-                        switchLabel.CSharpKind() != SyntaxKind.CaseSwitchLabel)
+                        switchLabel.Kind() != SyntaxKind.CaseSwitchLabel)
                     {
                         return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
                     }
@@ -1525,7 +1525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Use the first case label to determine the return type.
                 var firstCase =
                     switchStatement.Sections.SelectMany(ss => ss.Labels)
-                                                  .FirstOrDefault(label => label.CSharpKind() == SyntaxKind.CaseSwitchLabel)
+                                                  .FirstOrDefault(label => label.Kind() == SyntaxKind.CaseSwitchLabel)
                                                   as CaseSwitchLabelSyntax;
                 if (firstCase != null)
                 {

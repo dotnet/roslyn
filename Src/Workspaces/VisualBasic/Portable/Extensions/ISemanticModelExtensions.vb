@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             While True
                 current = current.WalkDownParentheses()
-                If current.VBKind = SyntaxKind.IdentifierName Then
+                If current.Kind = SyntaxKind.IdentifierName Then
                     Return (DirectCast(current, IdentifierNameSyntax)).Identifier.ValueText.ToCamelCase()
                 ElseIf TypeOf current Is MemberAccessExpressionSyntax Then
                     Return (DirectCast(current, MemberAccessExpressionSyntax)).Name.Identifier.ValueText.ToCamelCase()

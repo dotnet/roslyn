@@ -943,11 +943,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Shared Function GetXmlString(token As SyntaxToken) As String
-            Select Case token.VBKind
+            Select Case token.Kind
                 Case SyntaxKind.XmlTextLiteralToken, SyntaxKind.XmlEntityLiteralToken
                     Return token.ValueText
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(token.VBKind)
+                    Throw ExceptionUtilities.UnexpectedValue(token.Kind)
             End Select
         End Function
 
@@ -1295,11 +1295,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Shared Function GetXmlName(token As SyntaxToken) As String
-            Select Case token.VBKind
+            Select Case token.Kind
                 Case SyntaxKind.XmlNameToken
                     Return token.ValueText
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(token.VBKind)
+                    Throw ExceptionUtilities.UnexpectedValue(token.Kind)
             End Select
         End Function
 

@@ -185,13 +185,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         // default number = 0 - no number
                         if (exp.Number == -1)
                         {
-                            Assert.Equal(SyntaxKind.LineKeyword, ld.LineKeyword.CSharpKind());
-                            Assert.Equal(SyntaxKind.DefaultKeyword, ld.Line.CSharpKind());
+                            Assert.Equal(SyntaxKind.LineKeyword, ld.LineKeyword.Kind());
+                            Assert.Equal(SyntaxKind.DefaultKeyword, ld.Line.Kind());
                         }
                         else if (exp.Number == -2)
                         {
-                            Assert.Equal(SyntaxKind.LineKeyword, ld.LineKeyword.CSharpKind());
-                            Assert.Equal(SyntaxKind.HiddenKeyword, ld.Line.CSharpKind());
+                            Assert.Equal(SyntaxKind.LineKeyword, ld.LineKeyword.Kind());
+                            Assert.Equal(SyntaxKind.HiddenKeyword, ld.Line.Kind());
                         }
                         else if (exp.Number == 0)
                         {
@@ -205,11 +205,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                         if (null == exp.Text)
                         {
-                            Assert.Equal(SyntaxKind.None, ld.File.CSharpKind());
+                            Assert.Equal(SyntaxKind.None, ld.File.Kind());
                         }
                         else
                         {
-                            Assert.NotEqual(SyntaxKind.None, ld.File.CSharpKind());
+                            Assert.NotEqual(SyntaxKind.None, ld.File.Kind());
                             Assert.Equal(exp.Text, ld.File.Value);
                         }
 
@@ -228,14 +228,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (dt is PragmaWarningDirectiveTriviaSyntax)
             {
                 var pwd = (PragmaWarningDirectiveTriviaSyntax)dt;
-                Assert.Equal(SyntaxKind.PragmaKeyword, pwd.PragmaKeyword.CSharpKind());
+                Assert.Equal(SyntaxKind.PragmaKeyword, pwd.PragmaKeyword.Kind());
                 if (SyntaxKind.None == expected.WarningOrChecksumKind)
                 {
                     Assert.True(pwd.WarningKeyword.IsMissing);
                 }
                 else
                 {
-                    Assert.Equal(SyntaxKind.WarningKeyword, pwd.WarningKeyword.CSharpKind());
+                    Assert.Equal(SyntaxKind.WarningKeyword, pwd.WarningKeyword.Kind());
                 }
 
                 if (SyntaxKind.None == expected.DisableOrRestoreKind)
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 else
                 {
-                    Assert.Equal(expected.DisableOrRestoreKind, pwd.DisableOrRestoreKeyword.CSharpKind());
+                    Assert.Equal(expected.DisableOrRestoreKind, pwd.DisableOrRestoreKeyword.Kind());
                 }
 
                 if (expected.WarningList == null || expected.WarningList.Length == 0)
@@ -278,8 +278,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else if (dt is PragmaChecksumDirectiveTriviaSyntax)
             {
                 var pcd = (PragmaChecksumDirectiveTriviaSyntax)dt;
-                Assert.Equal(SyntaxKind.PragmaKeyword, pcd.PragmaKeyword.CSharpKind());
-                Assert.Equal(SyntaxKind.ChecksumKeyword, pcd.ChecksumKeyword.CSharpKind()); // no missing
+                Assert.Equal(SyntaxKind.PragmaKeyword, pcd.PragmaKeyword.Kind());
+                Assert.Equal(SyntaxKind.ChecksumKeyword, pcd.ChecksumKeyword.Kind()); // no missing
                 // always 3
                 Assert.Equal(3, expected.FileGuidByte.Length);
                 if (expected.FileGuidByte[0] == null)
@@ -2027,7 +2027,7 @@ return (i);
             var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
             Assert.Equal("#region A//B\r\n", regionDirective.ToFullString());
             var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
-            Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.CSharpKind());
+            Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
             Assert.Equal("A//B", regionText.ToFullString());
         }
 
@@ -2049,7 +2049,7 @@ return (i);
             var regionDirective = (RegionDirectiveTriviaSyntax)node.GetFirstDirective();
             Assert.Equal("#region A/\\B\r\n", regionDirective.ToFullString());
             var regionText = regionDirective.EndOfDirectiveToken.LeadingTrivia.Single();
-            Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.CSharpKind());
+            Assert.Equal(SyntaxKind.PreprocessingMessageTrivia, regionText.Kind());
             Assert.Equal("A/\\B", regionText.ToFullString());
         }
 

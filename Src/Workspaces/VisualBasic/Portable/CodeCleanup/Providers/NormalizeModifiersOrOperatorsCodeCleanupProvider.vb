@@ -197,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
                 Dim [operator] = NormalizeOperator(
                                     newNode.OperatorToken,
-                                    Function(t) t.VBKind = SyntaxKind.GreaterThanToken,
+                                    Function(t) t.Kind = SyntaxKind.GreaterThanToken,
                                     Function(t) t.TrailingTrivia,
                                     Function(t) New List(Of SyntaxKind) From {SyntaxKind.LessThanToken},
                                     Function(t, i)
@@ -208,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                                                 t.TrailingTrivia.Skip(i + 1).ToSyntaxTriviaList()))
                                     End Function)
 
-                If [operator].VBKind = SyntaxKind.None Then
+                If [operator].Kind = SyntaxKind.None Then
                     Return newNode
                 End If
 
@@ -232,18 +232,18 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 ' and the operator must be one of kinds that we are interested in
                 Dim [operator] = NormalizeOperator(
                                     binaryOperator.OperatorToken,
-                                    Function(t) NormalizeOperatorsSet.ContainsKey(t.VBKind),
+                                    Function(t) NormalizeOperatorsSet.ContainsKey(t.Kind),
                                     Function(t) t.LeadingTrivia,
-                                    Function(t) NormalizeOperatorsSet(t.VBKind),
+                                    Function(t) NormalizeOperatorsSet(t.Kind),
                                     Function(t, i)
                                         Return t.CopyAnnotationsTo(
                                             SyntaxFactory.Token(
                                                 t.LeadingTrivia.Take(i).ToSyntaxTriviaList(),
-                                                t.VBKind,
+                                                t.Kind,
                                                 t.LeadingTrivia.Skip(i + 1).Concat(t.TrailingTrivia).ToSyntaxTriviaList()))
                                     End Function)
 
-                If [operator].VBKind = SyntaxKind.None Then
+                If [operator].Kind = SyntaxKind.None Then
                     Return binaryOperator
                 End If
 
@@ -258,18 +258,18 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                     Return newToken
                 End If
 
-                If token.IsMissing OrElse Not SyntaxFacts.IsOperator(token.VBKind) Then
+                If token.IsMissing OrElse Not SyntaxFacts.IsOperator(token.Kind) Then
                     Return newToken
                 End If
 
                 Dim actualText = token.ToString()
-                Dim expectedText = SyntaxFacts.GetText(token.VBKind)
+                Dim expectedText = SyntaxFacts.GetText(token.Kind)
 
                 If String.IsNullOrWhiteSpace(expectedText) OrElse actualText = expectedText Then
                     Return newToken
                 End If
 
-                Return SyntaxFactory.Token(newToken.LeadingTrivia, newToken.VBKind, newToken.TrailingTrivia, expectedText)
+                Return SyntaxFactory.Token(newToken.LeadingTrivia, newToken.Kind, newToken.TrailingTrivia, expectedText)
             End Function
 
             ''' <summary>
@@ -283,7 +283,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
                 ' check whether operator has missing stuff in skipped token list
                 Dim skippedTokens = node.OperatorToken.TrailingTrivia _
-                                                 .Where(Function(t) t.VBKind = SyntaxKind.SkippedTokensTrivia) _
+                                                 .Where(Function(t) t.Kind = SyntaxKind.SkippedTokensTrivia) _
                                                  .Select(Function(t) DirectCast(t.GetStructure(), SkippedTokensTriviaSyntax)) _
                                                  .SelectMany(Function(t) t.Tokens)
 
@@ -293,7 +293,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 End If
 
                 Dim last = skippedTokens.Last()
-                If Not SyntaxFacts.IsOperatorStatementOperatorToken(last.VBKind) Then
+                If Not SyntaxFacts.IsOperatorStatementOperatorToken(last.Kind) Then
                     Return node
                 End If
 
@@ -332,8 +332,8 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 End If
 
                 ' now, it should have skipped token trivia in trivia list
-                Dim skippedTokenTrivia = triviaListGetter([operator]).FirstOrDefault(Function(t) t.VBKind = SyntaxKind.SkippedTokensTrivia)
-                If skippedTokenTrivia.VBKind = SyntaxKind.None Then
+                Dim skippedTokenTrivia = triviaListGetter([operator]).FirstOrDefault(Function(t) t.Kind = SyntaxKind.SkippedTokensTrivia)
+                If skippedTokenTrivia.Kind = SyntaxKind.None Then
                     Return Nothing
                 End If
 
@@ -349,7 +349,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Dim i = -1
                 For Each token In actual
                     i = i + 1
-                    If token.VBKind <> expected(i) Then
+                    If token.Kind <> expected(i) Then
                         Return Nothing
                     End If
                 Next
@@ -396,10 +396,10 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                         Exit For
                     End If
 
-                    Dim tokenInRightOrder = modifierList.FirstOrDefault(Function(m) m.VBKind = k)
+                    Dim tokenInRightOrder = modifierList.FirstOrDefault(Function(m) m.Kind = k)
 
                     ' if we didn't find, move on to next one
-                    If tokenInRightOrder.VBKind = SyntaxKind.None Then
+                    If tokenInRightOrder.Kind = SyntaxKind.None Then
                         Continue For
                     End If
 
@@ -413,7 +413,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 ' Verify that all unique modifiers were added to the result.
                 ' The number added to the result count is the duplicate modifier count in the input modifierList.
                 Debug.Assert(modifierList.Count = result.Count +
-                             modifierList.GroupBy(Function(token) token.VBKind).SelectMany(Function(grp) grp.Skip(1)).Count)
+                             modifierList.GroupBy(Function(token) token.Kind).SelectMany(Function(grp) grp.Skip(1)).Count)
                 Return SyntaxFactory.TokenList(result)
             End Function
 
@@ -448,7 +448,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Dim newModifiers = modifiersGetter(newNode)
 
                 ' check whether we need to remove "Dim" keyword or not
-                If newModifiers.Any(Function(m) RemoveDimKeywordSet.Contains(m.VBKind)) Then
+                If newModifiers.Any(Function(m) RemoveDimKeywordSet.Contains(m.Kind)) Then
                     newNode = RemoveDimKeyword(newNode, modifiersGetter)
                 End If
 
@@ -485,8 +485,8 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Dim modifiers = modifiersGetter(node)
 
                 ' "Dim" doesn't exist
-                Dim modifier = modifiers.FirstOrDefault(Function(m) m.VBKind = modifierKind)
-                If modifier.VBKind = SyntaxKind.None Then
+                Dim modifier = modifiers.FirstOrDefault(Function(m) m.Kind = modifierKind)
+                If modifier.Kind = SyntaxKind.None Then
                     Return node
                 End If
 
@@ -517,7 +517,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             Private Function AreModifiersInRightOrder(modifiers As SyntaxTokenList) As Boolean
                 Dim startIndex = 0
                 For Each modifier In modifiers
-                    Dim newIndex = ModifierKindsInOrder.IndexOf(modifier.VBKind, startIndex)
+                    Dim newIndex = ModifierKindsInOrder.IndexOf(modifier.Kind, startIndex)
                     If newIndex = 0 AndAlso startIndex = 0 Then
                         ' very first search with matching the very first modifier in the modifier orders
                         startIndex = newIndex + 1

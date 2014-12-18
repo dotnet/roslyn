@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             SyntaxNode replacementNode;
             TextSpan issueSpan;
 
-            if (node.CSharpKind() == SyntaxKind.QualifiedCref)
+            if (node.Kind() == SyntaxKind.QualifiedCref)
             {
                 var crefSyntax = (QualifiedCrefSyntax)node;
                 CrefSyntax crefReplacement;

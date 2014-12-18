@@ -457,7 +457,7 @@ Class RedNodeFactoryWriter
 
         If childNodeKind IsNot Nothing Then
             ' child can only ever be of one kind (and possibly None)
-            _writer.WriteLine("            Select Case {0}.VBKind()", paramName)
+            _writer.WriteLine("            Select Case {0}.Kind()", paramName)
             _writer.Write("                Case SyntaxKind.{0}", childNodeKind.Name)
 
             _writer.WriteLine()
@@ -483,7 +483,7 @@ Class RedNodeFactoryWriter
             Else
 
                 ' otherwise child must be one of a specific set of kinds
-                _writer.WriteLine("            Select Case {0}.VBKind()", paramName)
+                _writer.WriteLine("            Select Case {0}.Kind()", paramName)
 
                 Dim first = True
                 For Each childNodeKind In childNodeKinds
@@ -517,7 +517,7 @@ Class RedNodeFactoryWriter
 
         If childNodeKind IsNot Nothing Then
             ' child can only ever be of one kind (and possibly None)
-            _writer.WriteLine("            Select Case {0}.VBKind()", paramName)
+            _writer.WriteLine("            Select Case {0}.Kind()", paramName)
             _writer.Write("                Case SyntaxKind.{0}", childNodeKind.Name)
 
             If child.IsOptional Then
@@ -548,7 +548,7 @@ Class RedNodeFactoryWriter
 
             Else
                 ' otherwise child must be one of a specific set of kinds
-                _writer.WriteLine("            Select Case {0}.VBKind()", paramName)
+                _writer.WriteLine("            Select Case {0}.Kind()", paramName)
 
                 Dim needsComma = False
                 For Each childNodeKind In childNodeKinds

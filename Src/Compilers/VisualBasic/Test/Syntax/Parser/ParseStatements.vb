@@ -579,8 +579,8 @@ End Module
         Dim moduleM = TryCast(compUnit.ChildNodesAndTokens()(0).AsNode, TypeBlockSyntax)
         Dim subMain = TryCast(moduleM.ChildNodesAndTokens()(1).AsNode, MethodBlockSyntax)
         Assert.Equal(4, subMain.ChildNodesAndTokens().Count)
-        Assert.Equal(SyntaxKind.SingleLineIfStatement, subMain.ChildNodesAndTokens()(1).VBKind())
-        Assert.Equal(SyntaxKind.ExpressionStatement, subMain.ChildNodesAndTokens()(2).VBKind())
+        Assert.Equal(SyntaxKind.SingleLineIfStatement, subMain.ChildNodesAndTokens()(1).Kind())
+        Assert.Equal(SyntaxKind.ExpressionStatement, subMain.ChildNodesAndTokens()(2).Kind())
         Assert.Equal(SyntaxKind.InvocationExpression, DirectCast(subMain.ChildNodesAndTokens()(2).AsNode, ExpressionStatementSyntax).Expression.Kind)
     End Sub
 
@@ -1698,7 +1698,7 @@ End Module
 ]]>)
         Dim root = tree.GetRoot()
         ' If/Else statement lists should not contain EmptyToken.
-        Dim tokens = root.DescendantTokens().Select(Function(t) t.VBKind).ToArray()
+        Dim tokens = root.DescendantTokens().Select(Function(t) t.Kind).ToArray()
         CheckArray(tokens,
             SyntaxKind.ModuleKeyword,
             SyntaxKind.IdentifierToken,
@@ -2109,9 +2109,9 @@ End Module
         Dim if2 = mainBlock.ChildNodesAndTokens()(2)
         Dim wl5 = mainBlock.ChildNodesAndTokens()(3)
         Assert.Equal(5, mainBlock.ChildNodesAndTokens().Count)
-        Assert.Equal(SyntaxKind.SingleLineIfStatement, if1.VBKind())
-        Assert.Equal(SyntaxKind.SingleLineIfStatement, if2.VBKind())
-        Assert.Equal(SyntaxKind.ExpressionStatement, wl5.VBKind())
+        Assert.Equal(SyntaxKind.SingleLineIfStatement, if1.Kind())
+        Assert.Equal(SyntaxKind.SingleLineIfStatement, if2.Kind())
+        Assert.Equal(SyntaxKind.ExpressionStatement, wl5.Kind())
         Assert.Equal(SyntaxKind.InvocationExpression, DirectCast(wl5.AsNode, ExpressionStatementSyntax).Expression.Kind)
     End Sub
 
@@ -2154,8 +2154,8 @@ End Module
         Dim mainBlock = moduleBlock.ChildNodesAndTokens()(1)
         Dim ah = mainBlock.ChildNodesAndTokens()(2)
         Dim rh = mainBlock.ChildNodesAndTokens()(3)
-        Assert.Equal(ah.VBKind(), SyntaxKind.AddHandlerStatement)
-        Assert.Equal(rh.VBKind(), SyntaxKind.RemoveHandlerStatement)
+        Assert.Equal(ah.Kind(), SyntaxKind.AddHandlerStatement)
+        Assert.Equal(rh.Kind(), SyntaxKind.RemoveHandlerStatement)
     End Sub
 
     <Fact>
@@ -2277,22 +2277,22 @@ End Module
                     ]]>.Value
         Dim leading = SyntaxFactory.ParseLeadingTrivia(prefix + forEachText, offset:=prefix.Length)
         Assert.Equal(3, leading.Count)
-        Assert.Equal(SyntaxKind.CommentTrivia, leading(0).VBKind)
-        Assert.Equal(SyntaxKind.EndOfLineTrivia, leading(1).VBKind)
-        Assert.Equal(SyntaxKind.WhitespaceTrivia, leading(2).VBKind)
+        Assert.Equal(SyntaxKind.CommentTrivia, leading(0).Kind)
+        Assert.Equal(SyntaxKind.EndOfLineTrivia, leading(1).Kind)
+        Assert.Equal(SyntaxKind.WhitespaceTrivia, leading(2).Kind)
 
         Dim trailing = SyntaxFactory.ParseTrailingTrivia(prefix + forEachText, offset:=prefix.Length)
         Assert.Equal(3, trailing.Count)
-        Assert.Equal(SyntaxKind.CommentTrivia, trailing(0).VBKind)
-        Assert.Equal(SyntaxKind.EndOfLineTrivia, trailing(1).VBKind)
-        Assert.Equal(SyntaxKind.WhitespaceTrivia, trailing(2).VBKind)
+        Assert.Equal(SyntaxKind.CommentTrivia, trailing(0).Kind)
+        Assert.Equal(SyntaxKind.EndOfLineTrivia, trailing(1).Kind)
+        Assert.Equal(SyntaxKind.WhitespaceTrivia, trailing(2).Kind)
 
         Dim t = SyntaxFactory.ParseToken(prefix + forEachText, offset:=prefix.Length, startStatement:=True)
-        Assert.Equal(SyntaxKind.ForKeyword, t.VBKind)
+        Assert.Equal(SyntaxKind.ForKeyword, t.Kind)
 
         Dim tokens = SyntaxFactory.ParseTokens(prefix + forEachText, offset:=prefix.Length)
         Assert.Equal(9, tokens.Count)
-        Assert.Equal(SyntaxKind.NextKeyword, tokens(6).VBKind)
+        Assert.Equal(SyntaxKind.NextKeyword, tokens(6).Kind)
 
         Dim statement = SyntaxFactory.ParseExecutableStatement(prefix + forEachText, offset:=prefix.Length)
         Assert.NotNull(statement)
@@ -4371,7 +4371,7 @@ End Class
         ' Find last '(' token.
         Dim indexOfOpenParen = -1
         For i = 0 To tokens.Length - 1
-            If tokens(i).VBKind = SyntaxKind.OpenParenToken Then
+            If tokens(i).Kind = SyntaxKind.OpenParenToken Then
                 indexOfOpenParen = i
             End If
         Next
@@ -4379,12 +4379,12 @@ End Class
 
         ' Of token may have been synthesized.
         Dim ofToken = tokens(indexOfOpenParen + 1)
-        Assert.Equal(ofToken.VBKind, SyntaxKind.OfKeyword)
+        Assert.Equal(ofToken.Kind, SyntaxKind.OfKeyword)
         Assert.Equal(ofToken.IsMissing, ofMissing)
 
         ' Type identifier must have been synthesized.
         Dim identifierToken = tokens(indexOfOpenParen + 2)
-        Assert.Equal(identifierToken.VBKind, SyntaxKind.IdentifierToken)
+        Assert.Equal(identifierToken.Kind, SyntaxKind.IdentifierToken)
         Assert.True(identifierToken.IsMissing)
     End Sub
 
@@ -6510,7 +6510,7 @@ End Module
         Dim tokens = tree.GetRoot().DescendantTokens().Select(Function(t) t.Node).ToArray()
         Dim allTrivia = tree.GetRoot().DescendantTrivia().ToArray()
         For Each trivia In allTrivia
-            If trivia.VBKind = SyntaxKind.LineContinuationTrivia Then
+            If trivia.Kind = SyntaxKind.LineContinuationTrivia Then
                 Assert.Equal(trivia.Width, 1)
                 Assert.Equal(trivia.ToString(), charAsString)
             End If
@@ -6527,7 +6527,7 @@ End Module
         Dim tokens = tree.GetRoot().DescendantTokens().Select(Function(t) t.Node).ToArray()
         Dim allTrivia = tree.GetRoot().DescendantTrivia().ToArray()
         For Each trivia In allTrivia
-            If trivia.VBKind = SyntaxKind.LineContinuationTrivia Then
+            If trivia.Kind = SyntaxKind.LineContinuationTrivia Then
                 Assert.Equal(trivia.Width, 1)
                 Assert.Equal(trivia.ToString(), charAsString)
             End If
@@ -6562,7 +6562,7 @@ End Module
         Dim tokens = tree.GetRoot().DescendantTokens().Select(Function(t) t.Node).ToArray()
         Dim allTrivia = tree.GetRoot().DescendantTrivia().ToArray()
         For Each trivia In allTrivia
-            If trivia.VBKind = SyntaxKind.ColonTrivia Then
+            If trivia.Kind = SyntaxKind.ColonTrivia Then
                 Assert.Equal(trivia.Width, 1)
                 Assert.Equal(trivia.ToString(), singleColon)
             End If
@@ -7312,7 +7312,7 @@ End Module
         Dim actualStatementsAndTrivia = tree.GetRoot().
             DescendantNodesAndSelf().
             Where(Function(n) TypeOf n Is StatementSyntax).
-            SelectMany(Function(s) s.GetLeadingTrivia().Select(Function(trivia) trivia.VBKind()).Concat({s.VBKind()}).Concat(s.GetTrailingTrivia().Select(Function(trivia) trivia.VBKind()))).
+            SelectMany(Function(s) s.GetLeadingTrivia().Select(Function(trivia) trivia.Kind()).Concat({s.Kind()}).Concat(s.GetTrailingTrivia().Select(Function(trivia) trivia.Kind()))).
             ToArray()
         CheckArray(actualStatementsAndTrivia, expectedStatementsAndTrivia)
     End Sub

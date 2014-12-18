@@ -16,18 +16,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         public static bool MatchesKind(this SyntaxTrivia trivia, SyntaxKind kind)
         {
-            return trivia.CSharpKind() == kind;
+            return trivia.Kind() == kind;
         }
 
         public static bool MatchesKind(this SyntaxTrivia trivia, SyntaxKind kind1, SyntaxKind kind2)
         {
-            var triviaKind = trivia.CSharpKind();
+            var triviaKind = trivia.Kind();
             return triviaKind == kind1 || triviaKind == kind2;
         }
 
         public static bool MatchesKind(this SyntaxTrivia trivia, params SyntaxKind[] kinds)
         {
-            return kinds.Contains(trivia.CSharpKind());
+            return kinds.Contains(trivia.Kind());
         }
 
         public static bool IsRegularComment(this SyntaxTrivia trivia)
@@ -42,17 +42,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsSingleLineComment(this SyntaxTrivia trivia)
         {
-            return trivia.CSharpKind() == SyntaxKind.SingleLineCommentTrivia;
+            return trivia.Kind() == SyntaxKind.SingleLineCommentTrivia;
         }
 
         public static bool IsMultiLineComment(this SyntaxTrivia trivia)
         {
-            return trivia.CSharpKind() == SyntaxKind.MultiLineCommentTrivia;
+            return trivia.Kind() == SyntaxKind.MultiLineCommentTrivia;
         }
 
         public static bool IsCompleteMultiLineComment(this SyntaxTrivia trivia)
         {
-            if (trivia.CSharpKind() != SyntaxKind.MultiLineCommentTrivia)
+            if (trivia.Kind() != SyntaxKind.MultiLineCommentTrivia)
             {
                 return false;
             }
@@ -70,18 +70,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsSingleLineDocComment(this SyntaxTrivia trivia)
         {
-            return trivia.CSharpKind() == SyntaxKind.SingleLineDocumentationCommentTrivia;
+            return trivia.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia;
         }
 
         public static bool IsMultiLineDocComment(this SyntaxTrivia trivia)
         {
-            return trivia.CSharpKind() == SyntaxKind.MultiLineDocumentationCommentTrivia;
+            return trivia.Kind() == SyntaxKind.MultiLineDocumentationCommentTrivia;
         }
 
         public static string GetCommentText(this SyntaxTrivia trivia)
         {
             var commentText = trivia.ToString();
-            if (trivia.CSharpKind() == SyntaxKind.SingleLineCommentTrivia)
+            if (trivia.Kind() == SyntaxKind.SingleLineCommentTrivia)
             {
                 if (commentText.StartsWith("//"))
                 {
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 return commentText.TrimStart(null);
             }
-            else if (trivia.CSharpKind() == SyntaxKind.MultiLineCommentTrivia)
+            else if (trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
             {
                 var textBuilder = new StringBuilder();
 
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsWhitespaceOrEndOfLine(this SyntaxTrivia trivia)
         {
-            return trivia.CSharpKind() == SyntaxKind.WhitespaceTrivia || trivia.CSharpKind() == SyntaxKind.EndOfLineTrivia;
+            return trivia.Kind() == SyntaxKind.WhitespaceTrivia || trivia.Kind() == SyntaxKind.EndOfLineTrivia;
         }
 
         public static SyntaxTrivia GetPreviousTrivia(

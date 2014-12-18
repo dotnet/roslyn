@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
 
             protected override Location GetDiagnosticLocation(SyntaxNode node)
             {
-                switch (node.CSharpKind())
+                switch (node.Kind())
                 {
                     case SyntaxKind.MethodDeclaration:
                         return ((MethodDeclarationSyntax)node).Identifier.GetLocation();

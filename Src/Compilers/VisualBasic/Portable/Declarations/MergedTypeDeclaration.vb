@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim node = syntaxRef.GetSyntax()
                 Dim attributeSyntaxList As SyntaxList(Of AttributeListSyntax)
 
-                Select Case node.VBKind
+                Select Case node.Kind
                     Case SyntaxKind.ClassBlock,
                          SyntaxKind.ModuleBlock,
                          SyntaxKind.StructureBlock,
@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         attributeSyntaxList = DirectCast(node, EnumBlockSyntax).EnumStatement.AttributeLists
 
                     Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(node.VBKind)
+                        Throw ExceptionUtilities.UnexpectedValue(node.Kind)
                 End Select
 
                 attributeSyntaxBuilder.Add(attributeSyntaxList)

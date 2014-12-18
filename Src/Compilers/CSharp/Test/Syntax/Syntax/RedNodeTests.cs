@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             public override SyntaxToken VisitToken(SyntaxToken token)
             {
-                return SyntaxFactory.MissingToken(token.CSharpKind());
+                return SyntaxFactory.MissingToken(token.Kind());
             }
         }
 

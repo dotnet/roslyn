@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             public override SyntaxTrivia VisitTrivia(SyntaxTrivia trivia)
             {
-                if (trivia.CSharpKind() == SyntaxKind.DocumentationCommentExteriorTrivia)
+                if (trivia.Kind() == SyntaxKind.DocumentationCommentExteriorTrivia)
                 {
                     if (IsBeginningOrEndOfDocumentComment(trivia))
                     {
@@ -68,8 +68,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 while (currentParent != null)
                 {
-                    if (currentParent.CSharpKind() == SyntaxKind.SingleLineDocumentationCommentTrivia ||
-                        currentParent.CSharpKind() == SyntaxKind.MultiLineDocumentationCommentTrivia)
+                    if (currentParent.Kind() == SyntaxKind.SingleLineDocumentationCommentTrivia ||
+                        currentParent.Kind() == SyntaxKind.MultiLineDocumentationCommentTrivia)
                     {
                         if (trivia.Span.End == currentParent.SpanStart ||
                             trivia.Span.End == currentParent.Span.End)

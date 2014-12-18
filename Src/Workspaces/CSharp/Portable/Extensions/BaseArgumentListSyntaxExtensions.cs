@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (node != null)
             {
-                switch (node.CSharpKind())
+                switch (node.Kind())
                 {
                     case SyntaxKind.ArgumentList:
                         return ((ArgumentListSyntax)node).OpenParenToken;
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (node != null)
             {
-                switch (node.CSharpKind())
+                switch (node.Kind())
                 {
                     case SyntaxKind.ArgumentList:
                         return ((ArgumentListSyntax)node).CloseParenToken;

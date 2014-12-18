@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             private void Add(SyntaxToken syntaxToken)
             {
-                if (syntaxToken.CSharpKind() == SyntaxKind.IdentifierToken)
+                if (syntaxToken.Kind() == SyntaxKind.IdentifierToken)
                 {
                     var identifier = syntaxToken.ValueText;
                     List<SyntaxToken> list;

@@ -41,7 +41,7 @@ Class AsyncAttribute
     End Sub
 End Class]]>)
 
-        Assert.Equal(2, Aggregate t In tree.GetRoot().DescendantTokens Where t.VBKind = SyntaxKind.AsyncKeyword Into Count())
+        Assert.Equal(2, Aggregate t In tree.GetRoot().DescendantTokens Where t.Kind = SyntaxKind.AsyncKeyword Into Count())
 
         Dim fields = tree.GetRoot().DescendantNodes.OfType(Of FieldDeclarationSyntax)().ToArray()
         Assert.Equal(2, Aggregate f In fields Where f.Declarators(0).Names(0).Identifier.ValueText = "Async" Into Count())

@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         End Function
 
         Private Function TargetTokenMatches(token As SyntaxToken) As Boolean
-            Return token.VBKind <> SyntaxKind.None AndAlso Not token.IsMissing AndAlso _targetToken = token
+            Return token.Kind <> SyntaxKind.None AndAlso Not token.IsMissing AndAlso _targetToken = token
         End Function
     End Class
 End Namespace

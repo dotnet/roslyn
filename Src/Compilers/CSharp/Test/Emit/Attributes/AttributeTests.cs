@@ -994,7 +994,7 @@ namespace AttributeTest
                 attrs = nenum.GetAttributes();
                 Assert.Equal(2, attrs.Length);
                 attrs[0].VerifyValue(0, TypedConstantKind.Array, new char[] { 'q', 'c' });
-                Assert.Equal(SyntaxKind.Attribute, attrs[0].ApplicationSyntaxReference.GetSyntax().CSharpKind());
+                Assert.Equal(SyntaxKind.Attribute, attrs[0].ApplicationSyntaxReference.GetSyntax().Kind());
                 var syntax = (AttributeSyntax)attrs[0].ApplicationSyntaxReference.GetSyntax();
                 Assert.Equal(2, syntax.ArgumentList.Arguments.Count());
                 syntax = (AttributeSyntax)attrs[1].ApplicationSyntaxReference.GetSyntax();

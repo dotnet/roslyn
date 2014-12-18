@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     this.tree = node.SyntaxTree;
                     this.textSpan = node.Span;
-                    this.kind = node.CSharpKind();
+                    this.kind = node.Kind();
 
                     System.Diagnostics.Debug.Assert(textSpan.Length > 0);
                 }
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     while (current.FullSpan.Contains(spanStart))
                     {
-                        if (current.CSharpKind() == this.kind && current.Span == this.textSpan)
+                        if (current.Kind() == this.kind && current.Span == this.textSpan)
                         {
                             return current;
                         }

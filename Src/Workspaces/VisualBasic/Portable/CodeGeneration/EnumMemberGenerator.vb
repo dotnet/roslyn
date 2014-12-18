@@ -84,9 +84,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     If lastMember IsNot Nothing Then
 
                         Dim lastExpression = lastMember.Initializer.Value
-                        If lastExpression.VBKind = SyntaxKind.LeftShiftExpression AndAlso IntegerUtilities.HasOneBitSet(value) Then
+                        If lastExpression.Kind = SyntaxKind.LeftShiftExpression AndAlso IntegerUtilities.HasOneBitSet(value) Then
                             Dim binaryExpression = DirectCast(lastExpression, BinaryExpressionSyntax)
-                            If binaryExpression.Left.VBKind = SyntaxKind.NumericLiteralExpression Then
+                            If binaryExpression.Left.Kind = SyntaxKind.NumericLiteralExpression Then
                                 Dim numericLiteral = DirectCast(binaryExpression.Left, LiteralExpressionSyntax)
                                 If numericLiteral.Token.ValueText = "1" Then
                                     ' The user is left shifting ones, stick with that pattern
@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                     right:=SyntaxFactory.NumericLiteralExpression(SyntaxFactory.IntegerLiteralToken(shiftValue.ToString(), LiteralBase.Decimal, TypeCharacter.None, IntegerUtilities.ToUnsigned(shiftValue))))
                                 End If
                             End If
-                        ElseIf lastExpression.VBKind = SyntaxKind.NumericLiteralExpression Then
+                        ElseIf lastExpression.Kind = SyntaxKind.NumericLiteralExpression Then
                             Dim numericLiteral = DirectCast(lastExpression, LiteralExpressionSyntax)
                             Dim numericToken = numericLiteral.Token
                             Dim numericText = numericToken.ToString()

@@ -531,7 +531,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         ' be the actual token "Object", not a synonym like "System.Object")
                         Dim simpleAsClauseSyntax = TryCast(asClauseOpt, SimpleAsClauseSyntax)
                         If simpleAsClauseSyntax Is Nothing OrElse
-                            (simpleAsClauseSyntax.Type.Kind = SyntaxKind.PredefinedType AndAlso DirectCast(simpleAsClauseSyntax.Type, PredefinedTypeSyntax).Keyword.VBKind = SyntaxKind.ObjectKeyword) Then
+                            (simpleAsClauseSyntax.Type.Kind = SyntaxKind.PredefinedType AndAlso DirectCast(simpleAsClauseSyntax.Type, PredefinedTypeSyntax).Keyword.Kind = SyntaxKind.ObjectKeyword) Then
                             perFieldFlags = perFieldFlags Or SourceMemberFlags.InferredFieldType
                         End If
                     End If

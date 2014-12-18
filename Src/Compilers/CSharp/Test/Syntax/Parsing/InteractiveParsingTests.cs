@@ -8428,7 +8428,7 @@ p class A
             var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Interactive);
 
             Assert.Equal(1, tree.GetCompilationUnitRoot().ChildNodes().Count());
-            Assert.Equal(SyntaxKind.GlobalStatement, tree.GetCompilationUnitRoot().ChildNodes().ToList()[0].CSharpKind());
+            Assert.Equal(SyntaxKind.GlobalStatement, tree.GetCompilationUnitRoot().ChildNodes().ToList()[0].Kind());
         }
 
         [WorkItem(541164, "DevDiv")]

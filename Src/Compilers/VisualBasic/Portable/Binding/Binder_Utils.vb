@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Function DecodeVariance(varianceKeywordOpt As SyntaxToken) As VarianceKind
-            Select Case varianceKeywordOpt.VBKind
+            Select Case varianceKeywordOpt.Kind
                 Case SyntaxKind.None
                     Return VarianceKind.None
                 Case SyntaxKind.InKeyword
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.OutKeyword
                     Return VarianceKind.Out
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(varianceKeywordOpt.VBKind)
+                    Throw ExceptionUtilities.UnexpectedValue(varianceKeywordOpt.Kind)
             End Select
         End Function
 
@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Function FindFirstKeyword(syntax As SyntaxTokenList,
                                                 ParamArray keywordKinds As SyntaxKind()) As SyntaxToken
             For Each keywordSyntax In syntax
-                If Array.IndexOf(keywordKinds, keywordSyntax.VBKind) >= 0 Then
+                If Array.IndexOf(keywordKinds, keywordSyntax.Kind) >= 0 Then
                     Return keywordSyntax
                 End If
             Next
@@ -61,9 +61,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim badKeyword = FindFirstKeyword(modifiers, keywordKinds)
             ' Special case: Report "Protected Friend" as error combination if 
             ' Protected is bad and both Protected and Friend found inside modifiers.
-            If badKeyword.VBKind = SyntaxKind.ProtectedKeyword Then
+            If badKeyword.Kind = SyntaxKind.ProtectedKeyword Then
                 Dim friendToken = FindFirstKeyword(modifiers, FriendKeyword)
-                If friendToken.VBKind <> SyntaxKind.None Then
+                If friendToken.Kind <> SyntaxKind.None Then
                     Dim startLoc As Integer = Math.Min(badKeyword.SpanStart, friendToken.SpanStart)
                     Dim endLoc As Integer = Math.Max(badKeyword.Span.End, friendToken.Span.End)
                     Dim location = Me.SyntaxTree.GetLocation(New TextSpan(startLoc, endLoc - startLoc))
@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Map syntax kind of a modifier keyword to SourceMemberFlags value
         ''' </summary>
         Friend Shared Function MapKeywordToFlag(syntax As SyntaxToken) As SourceMemberFlags
-            Select Case syntax.VBKind
+            Select Case syntax.Kind
                 Case SyntaxKind.PrivateKeyword : Return SourceMemberFlags.Private
                 Case SyntaxKind.FriendKeyword : Return SourceMemberFlags.Friend
                 Case SyntaxKind.ProtectedKeyword : Return SourceMemberFlags.Protected
@@ -233,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For Each keywordSyntax In modifiers
                 Dim foundFlag As SourceParameterFlags
 
-                Select Case keywordSyntax.VBKind
+                Select Case keywordSyntax.Kind
                     Case SyntaxKind.ByRefKeyword : foundFlag = SourceParameterFlags.ByRef
                     Case SyntaxKind.ByValKeyword : foundFlag = SourceParameterFlags.ByVal
                     Case SyntaxKind.OptionalKeyword : foundFlag = SourceParameterFlags.Optional
@@ -748,13 +748,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If keywordSyntax.Node Is Nothing Then
                 Return True
             Else
-                Select Case keywordSyntax.VBKind
+                Select Case keywordSyntax.Kind
                     Case SyntaxKind.OnKeyword
                         Return True
                     Case SyntaxKind.OffKeyword
                         Return False
                     Case Else
-                        Throw ExceptionUtilities.UnexpectedValue(keywordSyntax.VBKind)
+                        Throw ExceptionUtilities.UnexpectedValue(keywordSyntax.Kind)
                 End Select
             End If
         End Function
@@ -764,13 +764,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Function DecodeTextBinary(keywordSyntax As SyntaxToken) As Boolean?
 
-            Select Case keywordSyntax.VBKind
+            Select Case keywordSyntax.Kind
                 Case SyntaxKind.TextKeyword
                     Return True
                 Case SyntaxKind.BinaryKeyword
                     Return False
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(keywordSyntax.VBKind)
+                    Throw ExceptionUtilities.UnexpectedValue(keywordSyntax.Kind)
             End Select
         End Function
 
@@ -1176,7 +1176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' does not have NotInheritable, then only MustOverride has an error reported for it, and the error has a different code.
 
                     Dim containingTypeBLock = GetContainingTypeBlock(modifierList.First())
-                    If containingTypeBLock IsNot Nothing AndAlso FindFirstKeyword(containingTypeBLock.Begin.Modifiers, NotInheritableKeyword).VBKind = SyntaxKind.None Then
+                    If containingTypeBLock IsNot Nothing AndAlso FindFirstKeyword(containingTypeBLock.Begin.Modifiers, NotInheritableKeyword).Kind = SyntaxKind.None Then
                         ' Containing type block doesn't have a NotInheritable modifier on it. Must be from other partial declaration.
 
                         If (flags And SourceMemberFlags.InvalidInNotInheritableOtherPartialClass) <> 0 Then

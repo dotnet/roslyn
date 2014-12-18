@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Globalization
 
             // return the unchanged root if no fix is available
             var newRoot = root;
-            if (nodeToFix.CSharpKind() == SyntaxKind.Attribute)
+            if (nodeToFix.Kind() == SyntaxKind.Attribute)
             {
                 // could be either a [DllImport] or [MarshalAs] attribute
                 var attribute = (AttributeSyntax)nodeToFix;

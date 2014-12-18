@@ -36,7 +36,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Dim literal As SyntaxToken = newNode.Token
 
                 ' Pretty list floating and decimal literals.
-                Select Case literal.VBKind
+                Select Case literal.Kind
                     Case SyntaxKind.FloatingLiteralToken
                         ' Get the literal identifier text which needs to be pretty listed.
                         Dim idText = literal.GetIdentifierText()
@@ -222,7 +222,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End Function
 
             Private Shared Function CreateFloatingLiteralToken(token As SyntaxToken, newValueString As String, newValue As Double) As SyntaxToken
-                Debug.Assert(token.VBKind = SyntaxKind.FloatingLiteralToken)
+                Debug.Assert(token.Kind = SyntaxKind.FloatingLiteralToken)
 
                 ' create a new token with valid token text and carries over annotations attached to original token to be a good citizen 
                 ' it might be replacing a token that has annotation injected by other code cleanups
@@ -233,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End Function
 
             Private Shared Function CreateDecimalLiteralToken(token As SyntaxToken, newValueString As String, newValue As Decimal) As SyntaxToken
-                Debug.Assert(token.VBKind = SyntaxKind.DecimalLiteralToken)
+                Debug.Assert(token.Kind = SyntaxKind.DecimalLiteralToken)
 
                 ' create a new token with valid token text and carries over annotations attached to original token to be a good citizen 
                 ' it might be replacing a token that has annotation injected by other code cleanups

@@ -3017,7 +3017,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression GenerateNullCoalescingBadBinaryOpsError(BinaryExpressionSyntax node, BoundExpression leftOperand, BoundExpression rightOperand, Conversion leftConversion, DiagnosticBag diagnostics)
         {
-            Error(diagnostics, ErrorCode.ERR_BadBinaryOps, node, SyntaxFacts.GetText(node.OperatorToken.CSharpKind()), leftOperand.Display, rightOperand.Display);
+            Error(diagnostics, ErrorCode.ERR_BadBinaryOps, node, SyntaxFacts.GetText(node.OperatorToken.Kind()), leftOperand.Display, rightOperand.Display);
             return new BoundNullCoalescingOperator(node, leftOperand, rightOperand,
                 leftConversion, CreateErrorType(), hasErrors: true);
         }

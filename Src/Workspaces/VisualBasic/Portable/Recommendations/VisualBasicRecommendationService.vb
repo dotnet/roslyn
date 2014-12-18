@@ -49,9 +49,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
 
             Dim node = context.TargetToken.Parent
             If context.IsRightOfNameSeparator Then
-                If node.VBKind = SyntaxKind.SimpleMemberAccessExpression Then
+                If node.Kind = SyntaxKind.SimpleMemberAccessExpression Then
                     Return GetSymbolsForMemberAccessExpression(context, DirectCast(node, MemberAccessExpressionSyntax), cancellationToken)
-                ElseIf node.VBKind = SyntaxKind.QualifiedName Then
+                ElseIf node.Kind = SyntaxKind.QualifiedName Then
                     Return GetSymbolsForQualifiedNameSyntax(context, DirectCast(node, QualifiedNameSyntax), cancellationToken)
                 End If
             ElseIf context.SyntaxTree.IsQueryIntoClauseContext(context.Position, context.TargetToken, cancellationToken) Then

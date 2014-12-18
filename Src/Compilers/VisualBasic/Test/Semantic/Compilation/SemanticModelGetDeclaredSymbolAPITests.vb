@@ -1532,7 +1532,7 @@ End Class
             Assert.False(aliasSymbol.IsOverridable)
             Assert.False(aliasSymbol.IsShared)
             Assert.Equal(1, aliasSymbol.DeclaringSyntaxReferences.Length)
-            Assert.Equal(SyntaxKind.SimpleImportsClause, aliasSymbol.DeclaringSyntaxReferences.First.GetSyntax().VBKind)
+            Assert.Equal(SyntaxKind.SimpleImportsClause, aliasSymbol.DeclaringSyntaxReferences.First.GetSyntax().Kind)
             Assert.Equal(Accessibility.NotApplicable, aliasSymbol.DeclaredAccessibility)
             Dim x8 As Symbol = aliasSymbol.ContainingSymbol
             Assert.Equal(aliasSymbol.Locations.Item(0).GetHashCode, aliasSymbol.GetHashCode)
@@ -1633,7 +1633,7 @@ Imports VB6 = Microsoft.VisualBasic
             Dim node = treeA.GetCompilationUnitRoot().FindToken(treeA.GetCompilationUnitRoot().ToFullString().IndexOf("VB6")).Parent.Parent
             Dim symbol = bindingsA.GetDeclaredSymbol(node)
 
-            Assert.Equal(SyntaxKind.SimpleImportsClause, node.VBKind)
+            Assert.Equal(SyntaxKind.SimpleImportsClause, node.Kind)
             Assert.Null(symbol)
 
         End Sub
@@ -2495,22 +2495,22 @@ End Namespace
             Dim treeA = CompilationUtils.GetTree(compilation, "a.vb")
             Dim bindingsA = compilation.GetSemanticModel(treeA)
             Dim node = treeA.GetCompilationUnitRoot().FindToken(treeA.GetCompilationUnitRoot().ToFullString().IndexOf("Delegate")).Parent
-            Assert.Equal(SyntaxKind.DelegateFunctionStatement, node.VBKind)
+            Assert.Equal(SyntaxKind.DelegateFunctionStatement, node.Kind)
             Dim symbol = bindingsA.GetDeclaredSymbol(node)
             Assert.Equal("Foo.Bar.Server.FD", symbol.ToString())
 
             node = treeA.GetCompilationUnitRoot().FindToken(treeA.GetCompilationUnitRoot().ToFullString().IndexOf("Delegate", 30)).Parent
-            Assert.Equal(SyntaxKind.DelegateSubStatement, node.VBKind)
+            Assert.Equal(SyntaxKind.DelegateSubStatement, node.Kind)
             symbol = bindingsA.GetDeclaredSymbol(node)
             Assert.Equal("Foo.Bar.Server.FD2", symbol.ToString())
 
             node = treeA.GetCompilationUnitRoot().FindToken(treeA.GetCompilationUnitRoot().ToFullString().IndexOf("Delegate", 140)).Parent
-            Assert.Equal(SyntaxKind.DelegateFunctionStatement, node.VBKind)
+            Assert.Equal(SyntaxKind.DelegateFunctionStatement, node.Kind)
             symbol = bindingsA.GetDeclaredSymbol(node)
             Assert.Equal("Foo.Bar.Server.C1.FD3", symbol.ToString())
 
             node = treeA.GetCompilationUnitRoot().FindToken(treeA.GetCompilationUnitRoot().ToFullString().IndexOf("Delegate", 160)).Parent
-            Assert.Equal(SyntaxKind.DelegateSubStatement, node.VBKind)
+            Assert.Equal(SyntaxKind.DelegateSubStatement, node.Kind)
             symbol = bindingsA.GetDeclaredSymbol(node)
             Assert.Equal("Foo.Bar.Server.C1.FD4", symbol.ToString())
         End Sub

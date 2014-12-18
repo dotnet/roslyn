@@ -2333,7 +2333,7 @@ class Program
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().Where(n => n.CSharpKind() == SyntaxKind.ThisExpression).Cast<ThisExpressionSyntax>().Single();
+            var node = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.ThisExpression)).Cast<ThisExpressionSyntax>().Single();
 
             var symbolInfo = model.GetSymbolInfo(node);
 
@@ -2352,7 +2352,7 @@ class Program
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
-            var node = tree.GetRoot().DescendantNodes().Where(n => n.CSharpKind() == SyntaxKind.ThisExpression).Cast<ThisExpressionSyntax>().Single();
+            var node = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.ThisExpression)).Cast<ThisExpressionSyntax>().Single();
 
             var symbolInfo = model.GetSymbolInfo(node);
 

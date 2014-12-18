@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
             End Sub
 
             Public Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
-                Select Case context.Node.VBKind
+                Select Case context.Node.Kind
                     Case SyntaxKind.SimpleMemberAccessExpression
                         ' NOTE: This cannot be optimized based on memberAccess.Name because a given method
                         ' may be an explicit interface implementation of IDisposable.Dispose.

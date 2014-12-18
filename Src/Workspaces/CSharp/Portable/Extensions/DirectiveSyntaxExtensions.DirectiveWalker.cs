@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
                 foreach (var directive in token.LeadingTrivia)
                 {
-                    switch (directive.CSharpKind())
+                    switch (directive.Kind())
                     {
                         case SyntaxKind.RegionDirectiveTrivia:
                             HandleRegionDirective((DirectiveTriviaSyntax)directive.GetStructure());
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     var poppedDirective = ifStack.Pop();
                     condDirectives.Add(poppedDirective);
-                    if (poppedDirective.CSharpKind() == SyntaxKind.IfDirectiveTrivia)
+                    if (poppedDirective.Kind() == SyntaxKind.IfDirectiveTrivia)
                     {
                         break;
                     }
@@ -128,9 +128,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // #If should be the first one in sorted order
                 var ifDirective = condDirectives.First();
                 Contract.Assert(
-                    ifDirective.CSharpKind() == SyntaxKind.IfDirectiveTrivia ||
-                    ifDirective.CSharpKind() == SyntaxKind.ElifDirectiveTrivia ||
-                    ifDirective.CSharpKind() == SyntaxKind.ElseDirectiveTrivia);
+                    ifDirective.Kind() == SyntaxKind.IfDirectiveTrivia ||
+                    ifDirective.Kind() == SyntaxKind.ElifDirectiveTrivia ||
+                    ifDirective.Kind() == SyntaxKind.ElseDirectiveTrivia);
 
                 directiveMap.Add(directive, ifDirective);
                 directiveMap.Add(ifDirective, directive);

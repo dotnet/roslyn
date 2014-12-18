@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(2, csharpTriviaList.Count);
 
             var csharpTrivia = csharpTriviaList.ElementAt(1);
-            Assert.Equal(CSharp.SyntaxKind.MultiLineCommentTrivia, csharpTrivia.CSharpKind());
+            Assert.Equal(CSharp.SyntaxKind.MultiLineCommentTrivia, CSharp.CSharpExtensions.Kind(csharpTrivia));
 
             var correctSpan = csharpTrivia.Span;
             Assert.Equal(8, correctSpan.Start);
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(2, vbTriviaList.Count);
 
             var vbTrivia = vbTriviaList.ElementAt(1);
-            Assert.Equal(VB.SyntaxKind.CommentTrivia, vbTrivia.VBKind());
+            Assert.Equal(VB.SyntaxKind.CommentTrivia, VB.VisualBasicExtensions.Kind(vbTrivia));
 
             var correctSpan = vbTrivia.Span;
             Assert.Equal(8, correctSpan.Start);
@@ -156,22 +156,22 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void CSharpSyntax_VisualBasicKind()
         {
             var node = CSharp.SyntaxFactory.Identifier("a");
-            Assert.Equal(VisualBasic.SyntaxKind.None, node.VBKind());
+            Assert.Equal(VB.SyntaxKind.None, VisualBasic.VisualBasicExtensions.Kind(node));
             var token = CSharp.SyntaxFactory.Token(CSharp.SyntaxKind.IfKeyword);
-            Assert.Equal(VisualBasic.SyntaxKind.None, token.VBKind());
+            Assert.Equal(VB.SyntaxKind.None, VisualBasic.VisualBasicExtensions.Kind(token));
             var trivia = CSharp.SyntaxFactory.Comment("c");
-            Assert.Equal(VisualBasic.SyntaxKind.None, trivia.VBKind());
+            Assert.Equal(VB.SyntaxKind.None, VisualBasic.VisualBasicExtensions.Kind(trivia));
         }
 
         [Fact, WorkItem(824695, "DevDiv")]
         public void VisualBasicSyntax_CSharpKind()
         {
             var node = VisualBasic.SyntaxFactory.Identifier("a");
-            Assert.Equal(CSharp.SyntaxKind.None, node.CSharpKind());
+            Assert.Equal(CSharp.SyntaxKind.None, CSharp.CSharpExtensions.Kind(node));
             var token = VisualBasic.SyntaxFactory.Token(VisualBasic.SyntaxKind.IfKeyword);
-            Assert.Equal(CSharp.SyntaxKind.None, token.CSharpKind());
+            Assert.Equal(CSharp.SyntaxKind.None, CSharp.CSharpExtensions.Kind(token));
             var trivia = VisualBasic.SyntaxFactory.CommentTrivia("c");
-            Assert.Equal(CSharp.SyntaxKind.None, trivia.CSharpKind());
+            Assert.Equal(CSharp.SyntaxKind.None, CSharp.CSharpExtensions.Kind(trivia));
         }
 
         [Fact]
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("(((a) + (b)) + (c)) + (d)", trackedExpr.ToString());
 
             var trackedB = trackedExpr.GetCurrentNodes(exprB).First();
-            Assert.Equal(CSharp.SyntaxKind.ParenthesizedExpression, trackedB.Parent.CSharpKind());
+            Assert.Equal(CSharp.SyntaxKind.ParenthesizedExpression, CSharp.CSharpExtensions.Kind(trackedB.Parent));
         }
 
         [Fact]
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("(((a) + (b)) + (c)) + (d)", trackedExpr.ToString());
 
             var trackedB = trackedExpr.GetCurrentNodes(exprB).First();
-            Assert.Equal(CSharp.SyntaxKind.ParenthesizedExpression, trackedB.Parent.CSharpKind());
+            Assert.Equal(CSharp.SyntaxKind.ParenthesizedExpression, CSharp.CSharpExtensions.Kind(trackedB.Parent));
         }
     }
 }

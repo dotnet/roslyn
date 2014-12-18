@@ -233,10 +233,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
             Private Function VisitKeyword(token As SyntaxToken) As SyntaxToken
                 If Not token.IsMissing Then
                     Dim actualText = token.ToString()
-                    Dim expectedText = syntaxFactsService.GetText(token.VBKind)
+                    Dim expectedText = syntaxFactsService.GetText(token.Kind)
 
                     If Not String.IsNullOrWhiteSpace(expectedText) AndAlso actualText <> expectedText Then
-                        Return SyntaxFactory.Token(token.LeadingTrivia, token.VBKind, token.TrailingTrivia, expectedText)
+                        Return SyntaxFactory.Token(token.LeadingTrivia, token.Kind, token.TrailingTrivia, expectedText)
                     End If
                 End If
 
@@ -282,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CaseCorrection
             Public Overrides Function VisitTrivia(trivia As SyntaxTrivia) As SyntaxTrivia
                 trivia = MyBase.VisitTrivia(trivia)
 
-                If trivia.VBKind = SyntaxKind.CommentTrivia AndAlso trivia.Width >= 3 Then
+                If trivia.Kind = SyntaxKind.CommentTrivia AndAlso trivia.Width >= 3 Then
                     Dim remText = trivia.ToString().Substring(0, 3)
                     Dim remKeywordText As String = syntaxFactsService.GetText(SyntaxKind.REMKeyword)
                     If remText <> remKeywordText AndAlso SyntaxFacts.GetKeywordKind(remText) = SyntaxKind.REMKeyword Then

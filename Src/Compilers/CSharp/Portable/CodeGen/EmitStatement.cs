@@ -996,7 +996,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 foreach (BoundSwitchLabel boundLabel in section.BoundSwitchLabels)
                 {
                     var label = (SourceLabelSymbol)boundLabel.Label;
-                    if (label.IdentifierNodeOrToken.CSharpKind() == SyntaxKind.DefaultSwitchLabel)
+                    if (label.IdentifierNodeOrToken.Kind() == SyntaxKind.DefaultSwitchLabel)
                     {
                         fallThroughLabel = label;
                     }

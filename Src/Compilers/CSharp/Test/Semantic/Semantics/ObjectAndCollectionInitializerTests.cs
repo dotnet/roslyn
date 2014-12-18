@@ -1898,7 +1898,7 @@ class X : List<int>
             var semanticModel = compilation.GetSemanticModel(tree);
 
             var nodes = (from node in tree.GetRoot().DescendantNodes()
-                         where node.CSharpKind() == SyntaxKind.CollectionInitializerExpression
+                         where node.IsKind(SyntaxKind.CollectionInitializerExpression)
                          select (InitializerExpressionSyntax)node).Single().Expressions;
 
             SymbolInfo symbolInfo;
@@ -1946,7 +1946,7 @@ class X : Base
             var semanticModel = compilation.GetSemanticModel(tree);
 
             var nodes = (from node in tree.GetRoot().DescendantNodes()
-                         where node.CSharpKind() == SyntaxKind.CollectionInitializerExpression
+                         where node.IsKind(SyntaxKind.CollectionInitializerExpression)
                          select (InitializerExpressionSyntax)node).Single().Expressions;
 
             SymbolInfo symbolInfo;
@@ -1991,7 +1991,7 @@ class Y
             var semanticModel = compilation.GetSemanticModel(tree);
 
             var nodes = (from node in tree.GetRoot().DescendantNodes()
-                         where node.CSharpKind() == SyntaxKind.CollectionInitializerExpression
+                         where node.IsKind(SyntaxKind.CollectionInitializerExpression)
                          select (InitializerExpressionSyntax)node).Single().Expressions;
 
             SymbolInfo symbolInfo;
@@ -2027,7 +2027,7 @@ class X : List<int>
             var semanticModel = compilation.GetSemanticModel(tree);
 
             var nodes = (from node in tree.GetRoot().DescendantNodes()
-                         where node.CSharpKind() == SyntaxKind.CollectionInitializerExpression
+                         where node.IsKind(SyntaxKind.CollectionInitializerExpression)
                          select (InitializerExpressionSyntax)node).Single().Expressions;
 
             SymbolInfo symbolInfo;
@@ -2064,7 +2064,7 @@ class X : List<int>
             var semanticModel = compilation.GetSemanticModel(tree);
 
             var nodes = (from node in tree.GetRoot().DescendantNodes()
-                         where node.CSharpKind() == SyntaxKind.CollectionInitializerExpression
+                         where node.IsKind(SyntaxKind.CollectionInitializerExpression)
                          select (InitializerExpressionSyntax)node).Single().Expressions;
 
             SymbolInfo symbolInfo;
@@ -2108,7 +2108,7 @@ class Test
             var objectCreation = root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
             var listAssignment = (AssignmentExpressionSyntax)objectCreation.Initializer.Expressions[0];
 
-            Assert.Equal(SyntaxKind.SimpleAssignmentExpression, listAssignment.CSharpKind());
+            Assert.Equal(SyntaxKind.SimpleAssignmentExpression, listAssignment.Kind());
             Assert.Equal("List", listAssignment.Left.ToString());
 
             var listInitializer = (InitializerExpressionSyntax)listAssignment.Right;
@@ -2158,7 +2158,7 @@ class Test2
             var objectCreation = root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Single();
             var listAssignment = (AssignmentExpressionSyntax)((InitializerExpressionSyntax)((AssignmentExpressionSyntax)objectCreation.Initializer.Expressions[0]).Right).Expressions[0];
 
-            Assert.Equal(SyntaxKind.SimpleAssignmentExpression, listAssignment.CSharpKind());
+            Assert.Equal(SyntaxKind.SimpleAssignmentExpression, listAssignment.Kind());
             Assert.Equal("List", listAssignment.Left.ToString());
 
             var listInitializer = (InitializerExpressionSyntax)listAssignment.Right;
@@ -2202,7 +2202,7 @@ class C : System.Collections.Generic.List<C>
             var objectCreation = root.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().Last();
             var listAssignment = (AssignmentExpressionSyntax)((InitializerExpressionSyntax)((AssignmentExpressionSyntax)objectCreation.Initializer.Expressions[0]).Right).Expressions[0];
 
-            Assert.Equal(SyntaxKind.SimpleAssignmentExpression, listAssignment.CSharpKind());
+            Assert.Equal(SyntaxKind.SimpleAssignmentExpression, listAssignment.Kind());
             Assert.Equal("[0]", listAssignment.Left.ToString());
 
             var listInitializer = (InitializerExpressionSyntax)listAssignment.Right;

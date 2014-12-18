@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
 
         Private Function UnwrapType(type As TypeSyntax) As TypeSyntax
             While True
-                Select Case type.VBKind
+                Select Case type.Kind
                     Case SyntaxKind.ArrayType
                         type = DirectCast(type, ArrayTypeSyntax).ElementType
                     Case SyntaxKind.NullableType

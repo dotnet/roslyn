@@ -202,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Continue For
                 End If
 
-                Select Case optionStmtSyntax.NameKeyword.VBKind
+                Select Case optionStmtSyntax.NameKeyword.Kind
                     Case SyntaxKind.StrictKeyword
                         If optionStrict.HasValue Then
                             Binder.ReportDiagnostic(diagBag, optionStmtSyntax, ERRID.ERR_DuplicateOption1, "Strict")

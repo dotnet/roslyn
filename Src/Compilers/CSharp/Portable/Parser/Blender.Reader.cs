@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 // fabricated tokens did not come from the lexer (likely from parser)
-                if (IsFabricatedToken(nodeOrToken.CSharpKind()))
+                if (IsFabricatedToken(nodeOrToken.Kind()))
                 {
                     return false;
                 }

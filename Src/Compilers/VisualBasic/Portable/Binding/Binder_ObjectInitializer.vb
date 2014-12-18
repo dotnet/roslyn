@@ -364,7 +364,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If constructorsGroup Is Nothing OrElse constructorsGroup.ResultKind = LookupResultKind.Inaccessible Then
                 If Not errorReported Then
-                    ReportDiagnostic(diagnostics, If(typeNode.VBKind = SyntaxKind.QualifiedName, DirectCast(typeNode, QualifiedNameSyntax).Right, typeNode), ErrorFactory.ErrorInfo(ERRID.ERR_NoViableOverloadCandidates1, "New"))
+                    ReportDiagnostic(diagnostics, If(typeNode.IsKind(SyntaxKind.QualifiedName), DirectCast(typeNode, QualifiedNameSyntax).Right, typeNode), ErrorFactory.ErrorInfo(ERRID.ERR_NoViableOverloadCandidates1, "New"))
                 End If
 
                 ' Suppress any additional diagnostics
@@ -635,7 +635,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For Each fieldInitializer In memberInitializerSyntax.Initializers
                 ' NamedFieldInitializerSyntax is derived from FieldInitializerSyntax, which has this optional keyword as a member
                 ' however it should not be set in case of a NamedFieldInitializerSyntax
-                Debug.Assert(fieldInitializer.KeyKeyword.VBKind <> SyntaxKind.KeyKeyword)
+                Debug.Assert(fieldInitializer.KeyKeyword.Kind <> SyntaxKind.KeyKeyword)
 
                 Dim target As BoundExpression
                 Dim namedFieldInitializer = DirectCast(fieldInitializer, NamedFieldInitializerSyntax)

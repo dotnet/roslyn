@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             If multiLineLambda IsNot Nothing Then
                 ' unlike C#, we need to consider statement terminator token when setting range for indentation
                 Dim baseToken = multiLineLambda.Begin.GetFirstToken(includeZeroWidth:=True)
-                Dim lastBeginningToken = If(multiLineLambda.Begin.GetLastToken().VBKind = SyntaxKind.None, multiLineLambda.Begin.GetLastToken(includeZeroWidth:=True), multiLineLambda.Begin.GetLastToken())
+                Dim lastBeginningToken = If(multiLineLambda.Begin.GetLastToken().Kind = SyntaxKind.None, multiLineLambda.Begin.GetLastToken(includeZeroWidth:=True), multiLineLambda.Begin.GetLastToken())
 
                 AddIndentBlockOperation(operations, baseToken,
                                         lastBeginningToken.GetNextToken(includeZeroWidth:=True),
@@ -191,20 +191,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Dim outerBlockGetFirstToken = outerBlock.GetFirstToken()
             While outerBlock IsNot Nothing AndAlso
                 outerBlockGetFirstToken = firstTokenOfInnerBlock AndAlso
-                (outerBlock.VBKind <> SyntaxKind.UsingBlock OrElse
-                outerBlock.VBKind <> SyntaxKind.SyncLockBlock OrElse
-                outerBlock.VBKind <> SyntaxKind.WithBlock OrElse
-                outerBlock.VBKind <> SyntaxKind.ForEachBlock)
+                (outerBlock.Kind <> SyntaxKind.UsingBlock OrElse
+                outerBlock.Kind <> SyntaxKind.SyncLockBlock OrElse
+                outerBlock.Kind <> SyntaxKind.WithBlock OrElse
+                outerBlock.Kind <> SyntaxKind.ForEachBlock)
                 outerBlock = outerBlock.Parent
                 outerBlockGetFirstToken = outerBlock.GetFirstToken()
             End While
 
             If outerBlock IsNot Nothing AndAlso
                 (ReferenceEquals(outerBlock, firstTokenOfInnerBlock.Parent) OrElse
-                (outerBlock.VBKind <> SyntaxKind.UsingBlock AndAlso
-                outerBlock.VBKind <> SyntaxKind.SyncLockBlock AndAlso
-                outerBlock.VBKind <> SyntaxKind.WithBlock AndAlso
-                outerBlock.VBKind <> SyntaxKind.ForEachBlock)) Then
+                (outerBlock.Kind <> SyntaxKind.UsingBlock AndAlso
+                outerBlock.Kind <> SyntaxKind.SyncLockBlock AndAlso
+                outerBlock.Kind <> SyntaxKind.WithBlock AndAlso
+                outerBlock.Kind <> SyntaxKind.ForEachBlock)) Then
                 Return Nothing
             End If
 
@@ -283,17 +283,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Sub
 
         Private Function IsFirstXmlElementTokenOnLine(xmlToken As SyntaxToken) As Boolean
-            If xmlToken.LeadingTrivia.Any(Function(t) t.VBKind = SyntaxKind.EndOfLineTrivia) Then
+            If xmlToken.LeadingTrivia.Any(Function(t) t.Kind = SyntaxKind.EndOfLineTrivia) Then
                 Return True
             End If
 
             Dim previousToken = xmlToken.GetPreviousToken(includeZeroWidth:=True)
-            If previousToken.VBKind = SyntaxKind.None OrElse
+            If previousToken.Kind = SyntaxKind.None OrElse
                previousToken.IsLastTokenOfStatementWithEndOfLine() Then
                 Return True
             End If
 
-            Return previousToken.TrailingTrivia.Any(Function(t) t.VBKind = SyntaxKind.EndOfLineTrivia)
+            Return previousToken.TrailingTrivia.Any(Function(t) t.Kind = SyntaxKind.EndOfLineTrivia)
         End Function
 
         Private Function GetFirstAndLastMembers(node As SyntaxNode) As ValueTuple(Of SyntaxToken, SyntaxToken)

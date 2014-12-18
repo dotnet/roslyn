@@ -146,15 +146,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private void ClassifyTrivia(SyntaxTrivia trivia)
         {
-            if (trivia.CSharpKind() == SyntaxKind.SingleLineCommentTrivia || trivia.CSharpKind() == SyntaxKind.MultiLineCommentTrivia)
+            if (trivia.Kind() == SyntaxKind.SingleLineCommentTrivia || trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
             {
                 AddClassification(trivia, ClassificationTypeNames.Comment);
             }
-            else if (trivia.CSharpKind() == SyntaxKind.DisabledTextTrivia)
+            else if (trivia.Kind() == SyntaxKind.DisabledTextTrivia)
             {
                 AddClassification(trivia, ClassificationTypeNames.ExcludedCode);
             }
-            else if (trivia.CSharpKind() == SyntaxKind.SkippedTokensTrivia)
+            else if (trivia.Kind() == SyntaxKind.SkippedTokensTrivia)
             {
                 ClassifySkippedTokens((SkippedTokensTriviaSyntax)trivia.GetStructure());
             }
@@ -162,11 +162,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             {
                 ClassifyDocumentationComment((DocumentationCommentTriviaSyntax)trivia.GetStructure());
             }
-            else if (trivia.CSharpKind() == SyntaxKind.DocumentationCommentExteriorTrivia)
+            else if (trivia.Kind() == SyntaxKind.DocumentationCommentExteriorTrivia)
             {
                 AddClassification(trivia, ClassificationTypeNames.XmlDocCommentDelimiter);
             }
-            else if (SyntaxFacts.IsPreprocessorDirective(trivia.CSharpKind()))
+            else if (SyntaxFacts.IsPreprocessorDirective(trivia.Kind()))
             {
                 ClassifyPreprocessorDirective((DirectiveTriviaSyntax)trivia.GetStructure());
             }

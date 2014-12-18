@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                 return;
             }
 
-            switch (node.CSharpKind())
+            switch (node.Kind())
             {
                 case SyntaxKind.IfDirectiveTrivia:
                     ClassifyIfDirective((IfDirectiveTriviaSyntax)node);
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             foreach (var trivia in lastToken.TrailingTrivia)
             {
                 // skip initial whitespace
-                if (trivia.CSharpKind() == SyntaxKind.WhitespaceTrivia)
+                if (trivia.Kind() == SyntaxKind.WhitespaceTrivia)
                 {
                     continue;
                 }
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
 
         private void ClassifyPreprocessorTrivia(SyntaxTrivia trivia, bool allowComments)
         {
-            if (allowComments && trivia.CSharpKind() == SyntaxKind.SingleLineCommentTrivia)
+            if (allowComments && trivia.Kind() == SyntaxKind.SingleLineCommentTrivia)
             {
                 AddClassification(trivia, ClassificationTypeNames.Comment);
             }
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
             AddClassification(node.HashToken, ClassificationTypeNames.PreprocessorKeyword);
             AddClassification(node.LineKeyword, ClassificationTypeNames.PreprocessorKeyword);
 
-            switch (node.Line.CSharpKind())
+            switch (node.Line.Kind())
             {
                 case SyntaxKind.HiddenKeyword:
                 case SyntaxKind.DefaultKeyword:
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
                     break;
             }
 
-            if (node.File.CSharpKind() != SyntaxKind.None)
+            if (node.File.Kind() != SyntaxKind.None)
             {
                 AddClassification(node.File, ClassificationTypeNames.StringLiteral);
             }

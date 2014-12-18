@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Sub New(fieldsOrProperties As ImmutableArray(Of Symbol), syntax As SyntaxReference)
             Debug.Assert(Not fieldsOrProperties.IsEmpty)
-            Debug.Assert(syntax.GetSyntax.VBKind = SyntaxKind.AsNewClause OrElse syntax.GetSyntax.VBKind = SyntaxKind.EqualsValue)
+            Debug.Assert(syntax.GetSyntax.Kind = SyntaxKind.AsNewClause OrElse syntax.GetSyntax.Kind = SyntaxKind.EqualsValue)
 
             Me.FieldsOrProperty = fieldsOrProperties
             Me.Syntax = syntax
@@ -68,7 +68,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Sub New([property] As PropertySymbol, syntax As SyntaxReference)
             Debug.Assert([property] IsNot Nothing)
             Debug.Assert(syntax IsNot Nothing)
-            Debug.Assert(syntax.GetSyntax.VBKind = SyntaxKind.AsNewClause OrElse syntax.GetSyntax.VBKind = SyntaxKind.EqualsValue)
+            Debug.Assert(syntax.GetSyntax.Kind = SyntaxKind.AsNewClause OrElse syntax.GetSyntax.Kind = SyntaxKind.EqualsValue)
 
             Me.FieldsOrProperty = ImmutableArray.Create(Of Symbol)([property])
             Me.Syntax = syntax

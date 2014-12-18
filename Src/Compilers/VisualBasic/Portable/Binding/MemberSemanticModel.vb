@@ -1168,8 +1168,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If current.Kind = SyntaxKind.DocumentationCommentTrivia Then
                     Dim trivia As SyntaxTrivia = DirectCast(current, DocumentationCommentTriviaSyntax).ParentTrivia
-                    Debug.Assert(trivia.VBKind <> SyntaxKind.None)
-                    Debug.Assert(trivia.Token.VBKind <> SyntaxKind.None)
+                    Debug.Assert(trivia.Kind <> SyntaxKind.None)
+                    Debug.Assert(trivia.Token.Kind <> SyntaxKind.None)
                     Return GetEnclosingBinderInternal(memberBinder, binderRoot, DirectCast(trivia.Token.Parent, VisualBasicSyntaxNode), position)
 
                 ElseIf SyntaxFacts.InBlockInterior(current, position, body) Then
@@ -1875,8 +1875,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If node.Kind = SyntaxKind.DocumentationCommentTrivia Then
                     Dim trivia As SyntaxTrivia = DirectCast(node, DocumentationCommentTriviaSyntax).ParentTrivia
-                    Debug.Assert(trivia.VBKind <> SyntaxKind.None)
-                    Debug.Assert(trivia.Token.VBKind <> SyntaxKind.None)
+                    Debug.Assert(trivia.Kind <> SyntaxKind.None)
+                    Debug.Assert(trivia.Token.Kind <> SyntaxKind.None)
                     node = DirectCast(trivia.Token.Parent, VisualBasicSyntaxNode)
                     Continue While
 

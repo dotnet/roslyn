@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             SyntaxToken arglistToken;
             this.lazyParameters = ParameterHelpers.MakeParameters(bodyBinder, this, parameterList, true, out arglistToken, diagnostics);
-            this.lazyIsVararg = (arglistToken.CSharpKind() == SyntaxKind.ArgListKeyword);
+            this.lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             this.lazyReturnType = bodyBinder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax);
 
             var location = this.Locations[0];

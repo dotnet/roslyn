@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
     {
         public static bool IsKindOrHasMatchingText(this SyntaxToken token, SyntaxKind kind)
         {
-            return token.CSharpKind() == kind || token.HasMatchingText(kind);
+            return token.Kind() == kind || token.HasMatchingText(kind);
         }
 
         public static bool HasMatchingText(this SyntaxToken token, SyntaxKind kind)
@@ -28,25 +28,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsKind(this SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2)
         {
-            return token.CSharpKind() == kind1
-                || token.CSharpKind() == kind2;
+            return token.Kind() == kind1
+                || token.Kind() == kind2;
         }
 
         public static bool IsKind(this SyntaxToken token, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3)
         {
-            return token.CSharpKind() == kind1
-                || token.CSharpKind() == kind2
-                || token.CSharpKind() == kind3;
+            return token.Kind() == kind1
+                || token.Kind() == kind2
+                || token.Kind() == kind3;
         }
 
         public static bool IsKind(this SyntaxToken token, params SyntaxKind[] kinds)
         {
-            return kinds.Contains(token.CSharpKind());
+            return kinds.Contains(token.Kind());
         }
 
         public static bool IsLiteral(this SyntaxToken token)
         {
-            switch (token.CSharpKind())
+            switch (token.Kind())
             {
                 case SyntaxKind.CharacterLiteralToken:
                 case SyntaxKind.FalseKeyword:
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             var nextToken = token.GetNextToken(includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
 
-            return nextToken.CSharpKind() == SyntaxKind.None
+            return nextToken.Kind() == SyntaxKind.None
                 ? token.GetAncestor<CompilationUnitSyntax>().EndOfFileToken
                 : nextToken;
         }
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsFirstTokenOnLine(this SyntaxToken token, SourceText text)
         {
             var previousToken = token.GetPreviousToken(includeSkipped: true, includeDirectives: true, includeDocumentationComments: true);
-            if (previousToken.CSharpKind() == SyntaxKind.None)
+            if (previousToken.Kind() == SyntaxKind.None)
             {
                 return true;
             }
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool TryParseGenericName(this SyntaxToken genericIdentifier, CancellationToken cancellationToken, out GenericNameSyntax genericName)
         {
-            if (genericIdentifier.GetNextToken(includeSkipped: true).CSharpKind() == SyntaxKind.LessThanToken)
+            if (genericIdentifier.GetNextToken(includeSkipped: true).Kind() == SyntaxKind.LessThanToken)
             {
                 var lastToken = genericIdentifier.FindLastTokenOfPartialGenericName();
 
@@ -249,11 +249,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// <remarks>This is related to the code in <see cref="SyntaxTreeExtensions.IsInPartiallyWrittenGeneric(SyntaxTree, int, CancellationToken)"/></remarks>
         public static SyntaxToken FindLastTokenOfPartialGenericName(this SyntaxToken genericIdentifier)
         {
-            Contract.ThrowIfFalse(genericIdentifier.CSharpKind() == SyntaxKind.IdentifierToken);
+            Contract.ThrowIfFalse(genericIdentifier.Kind() == SyntaxKind.IdentifierToken);
 
             // advance to the "<" token
             var token = genericIdentifier.GetNextToken(includeSkipped: true);
-            Contract.ThrowIfFalse(token.CSharpKind() == SyntaxKind.LessThanToken);
+            Contract.ThrowIfFalse(token.Kind() == SyntaxKind.LessThanToken);
 
             int stack = 0;
 
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // look forward one token
                 {
                     var next = token.GetNextToken(includeSkipped: true);
-                    if (next.CSharpKind() == SyntaxKind.None)
+                    if (next.Kind() == SyntaxKind.None)
                     {
                         return token;
                     }
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     token = next;
                 }
 
-                if (token.CSharpKind() == SyntaxKind.GreaterThanToken)
+                if (token.Kind() == SyntaxKind.GreaterThanToken)
                 {
                     if (stack == 0)
                     {
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     }
                 }
 
-                switch (token.CSharpKind())
+                switch (token.Kind())
                 {
                     case SyntaxKind.LessThanLessThanToken:
                         stack++;
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     default:
                         // user might have typed "in" on the way to typing "int"
                         // don't want to disregard this genericname because of that
-                        if (SyntaxFacts.IsKeywordKind(token.CSharpKind()))
+                        if (SyntaxFacts.IsKeywordKind(token.Kind()))
                         {
                             break;
                         }
@@ -335,12 +335,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsRegularStringLiteral(this SyntaxToken token)
         {
-            return token.CSharpKind() == SyntaxKind.StringLiteralToken && !token.IsVerbatimStringLiteral();
+            return token.Kind() == SyntaxKind.StringLiteralToken && !token.IsVerbatimStringLiteral();
         }
 
         public static bool IsValidAttributeTarget(this SyntaxToken token)
         {
-            switch (token.CSharpKind())
+            switch (token.Kind())
             {
                 case SyntaxKind.AssemblyKeyword:
                 case SyntaxKind.ModuleKeyword:
