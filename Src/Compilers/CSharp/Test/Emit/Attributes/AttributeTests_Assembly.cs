@@ -1990,5 +1990,24 @@ public class C { }
     Diagnostic(ErrorCode.WRN_AssemblyAttributeFromModuleIsOverridden).WithArguments("System.Reflection.AssemblyFileVersionAttribute", "M1.netmodule")
             );
         }
+
+        [Fact, WorkItem(1082421, "DevDiv")]
+        public void Bug1082421()
+        {
+            const string s = @"
+using static System.Math;
+ 
+[assembly: A(Log)]
+ 
+static class Logo
+{
+    public const int Hight = 32;
+    public const int Width = 32;
+}
+";
+
+            var compilation = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll);
+            compilation.GetDiagnostics();
+        }
     }
 }

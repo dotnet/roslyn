@@ -1007,6 +1007,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // method group. Otherwise, it should be null.
 
             var currentType = this.ContainingType;
+            if ((object)currentType == null)
+            {
+                // This may happen if there is no containing type, 
+                // e.g. we are binding an expression in an assembly-level attribute
+                return null;
+            }
+
             var declaringType = members[0].ContainingType;
 
             HashSet<DiagnosticInfo> unused = null;
