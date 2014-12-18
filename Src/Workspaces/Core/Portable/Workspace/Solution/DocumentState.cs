@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis
             SolutionServices services)
         {
             var textSource = info.TextLoader != null
-                ? CreateRecoverableText(info.TextLoader, info.Id, services)
+                ? CreateRecoverableText(info.TextLoader, info.Id, services, reportInvalidDataException: true)
                 : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, Encoding.UTF8), VersionStamp.Default, info.FilePath));
 
             var treeSource = CreateLazyFullyParsedTree(
@@ -329,8 +329,8 @@ namespace Microsoft.CodeAnalysis
             }
 
             var newTextSource = (mode == PreservationMode.PreserveIdentity)
-                ? CreateStrongText(loader, this.Id, this.solutionServices)
-                : CreateRecoverableText(loader, this.Id, this.solutionServices);
+                ? CreateStrongText(loader, this.Id, this.solutionServices, reportInvalidDataException: true)
+                : CreateRecoverableText(loader, this.Id, this.solutionServices, reportInvalidDataException: true);
 
             var newTreeSource = CreateLazyFullyParsedTree(
                 newTextSource,
