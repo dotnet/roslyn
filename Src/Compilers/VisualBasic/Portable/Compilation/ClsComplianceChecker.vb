@@ -67,6 +67,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' The regular attribute code handles conflicting attributes from included netmodules.
 
+            If symbol.Modules.Length > 1 AndAlso _compilation.Options.ConcurrentBuild Then
+                Dim options = If(Me._cancellationToken.CanBeCanceled, New ParallelOptions() With {.CancellationToken = Me._cancellationToken}, _defaultParallelOptions)
+                Parallel.ForEach(symbol.Modules, options, AddressOf VisitModule)
+            Else
+                For Each m In symbol.Modules
+                    VisitModule(m)
+                Next
+            End If
+
+        End Sub
+
+        Public Overrides Sub VisitModule(symbol As ModuleSymbol)
             Visit(symbol.GlobalNamespace)
         End Sub
 
@@ -594,17 +606,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function GetDeclaredOrInheritedCompliance(symbol As Symbol) As Compliance
             Debug.Assert(symbol.Kind = SymbolKind.NamedType OrElse Not (TypeOf symbol Is TypeSymbol), "Type kinds without declarations are handled elsewhere.")
 
-            Debug.Assert(symbol.Kind <> If(Me._compilation.Options.OutputKind = OutputKind.NetModule, SymbolKind.Assembly, SymbolKind.NetModule),
+            Debug.Assert(symbol.Kind <> If(Me._compilation.Options.OutputKind = OutputKind.NetModule, SymbolKind.Assembly, SymbolKind.NetModule) OrElse
+                         (symbol.Kind = SymbolKind.Assembly AndAlso Me._compilation.Assembly IsNot symbol),
                          "Don't care about assembly when building netmodule and vice versa")
 
             If symbol.Kind = SymbolKind.Namespace Then
                 ' Don't bother storing entries for namespaces - just go straight to the assembly.
-                If DirectCast(symbol, NamespaceSymbol).IsGlobalNamespace AndAlso
-                    Me._compilation.Options.OutputKind = OutputKind.NetModule Then
-                    ' Special case: if we're building a net module, then we need the namespace's
-                    ' containing module (vs assembly) and there isn't one for the global namespace.
-                    Return GetDeclaredOrInheritedCompliance(Me._compilation.Assembly.Modules(0))
-                End If
                 Return GetDeclaredOrInheritedCompliance(GetContainingModuleOrAssembly(symbol))
             ElseIf symbol.Kind = SymbolKind.Method Then
                 Dim method As MethodSymbol = DirectCast(symbol, MethodSymbol)
@@ -738,8 +745,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Return the containing module if the output kind is module and the containing assembly otherwise.
         ''' </summary>
         Private Function GetContainingModuleOrAssembly(symbol As Symbol) As Symbol
+            Dim containingAssembly = symbol.ContainingAssembly
+
+            If containingAssembly IsNot Me._compilation.Assembly Then
+                Return containingAssembly
+            End If
+
             Dim producingNetModule = Me._compilation.Options.OutputKind = OutputKind.NetModule
-            Return If(producingNetModule, DirectCast(symbol.ContainingModule, Symbol), symbol.ContainingAssembly)
+            Return If(producingNetModule, DirectCast(symbol.ContainingModule, Symbol), containingAssembly)
         End Function
 
         Private Shared Function IsAccessibleOutsideAssembly(symbol As Symbol) As Boolean

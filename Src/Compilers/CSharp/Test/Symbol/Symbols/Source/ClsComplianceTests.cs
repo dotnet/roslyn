@@ -3529,5 +3529,50 @@ public class C
                 //     [CLSCompliant(new { field = false }.field)]
                 Diagnostic(ErrorCode.ERR_AnonymousTypeNotAvailable, "new"));
         }
+
+        [Fact, WorkItem(1026453, "DevDiv")]
+        public void Bug1026453()
+        {
+            var source1 = @"
+namespace N1
+{
+    public class A { }
+}
+";
+            var comp1 = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseModule);
+
+            var source2 = @"
+using System;
+
+[assembly: CLSCompliant(true)] 
+[module: CLSCompliant(true)] 
+
+namespace N1
+{
+    public class B { }
+}
+";
+            var comp2 = CreateCompilationWithMscorlib(source2, new[] { comp1.EmitToImageReference() }, TestOptions.ReleaseDll.WithConcurrentBuild(false));
+            comp2.VerifyDiagnostics(
+    // warning CS3013: Added modules must be marked with the CLSCompliant attribute to match the assembly
+    Diagnostic(ErrorCode.WRN_CLS_ModuleMissingCLS).WithLocation(1, 1)
+                );
+
+            comp2.WithOptions(TestOptions.ReleaseDll.WithConcurrentBuild(true)).VerifyDiagnostics(
+    // warning CS3013: Added modules must be marked with the CLSCompliant attribute to match the assembly
+    Diagnostic(ErrorCode.WRN_CLS_ModuleMissingCLS).WithLocation(1, 1)
+                );
+
+            var comp3 = comp2.WithOptions(TestOptions.ReleaseModule.WithConcurrentBuild(false));
+            comp3.VerifyDiagnostics(
+    // warning CS3013: Added modules must be marked with the CLSCompliant attribute to match the assembly
+    Diagnostic(ErrorCode.WRN_CLS_ModuleMissingCLS).WithLocation(1, 1)
+                );
+
+            comp3.WithOptions(TestOptions.ReleaseModule.WithConcurrentBuild(true)).VerifyDiagnostics(
+    // warning CS3013: Added modules must be marked with the CLSCompliant attribute to match the assembly
+    Diagnostic(ErrorCode.WRN_CLS_ModuleMissingCLS).WithLocation(1, 1)
+                );
+        }
     }
 }
