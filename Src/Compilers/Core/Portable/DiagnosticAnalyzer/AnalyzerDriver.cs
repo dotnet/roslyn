@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private static readonly Task EmptyTask = Task.FromResult(false);
 
         private readonly Task initialWorker;
+        private readonly CancellationTokenRegistration queueRegistration;
         protected AnalyzerOptions analyzerOptions;
 
         /// <summary>
@@ -140,10 +141,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </param>
         protected AnalyzerDriver(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options, CancellationToken cancellationToken, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException = null)
         {
-            this.CompilationEventQueue = new AsyncQueue<CompilationEvent>(cancellationToken);
-            this.DiagnosticQueue = new AsyncQueue<Diagnostic>(cancellationToken);
+            this.CompilationEventQueue = new AsyncQueue<CompilationEvent>();
+            this.DiagnosticQueue = new AsyncQueue<Diagnostic>();
             this.addDiagnostic = GetDiagnosticSinkWithSuppression();
             this.analyzerOptions = options;
+            this.queueRegistration = cancellationToken.Register(() =>
+            {
+                this.CompilationEventQueue.TryComplete();
+                this.DiagnosticQueue.TryComplete();
+            });
 
             Func<Exception, DiagnosticAnalyzer, bool> defaultExceptionHandler = (exception, analyzer) => true;
             this.continueOnAnalyzerException = continueOnAnalyzerException ?? defaultExceptionHandler;
@@ -1035,8 +1041,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public void Dispose()
         {
-            CompilationEventQueue.Complete();
-            DiagnosticQueue.Complete();
+            this.CompilationEventQueue.TryComplete();
+            this.DiagnosticQueue.TryComplete();
+            this.queueRegistration.Dispose();
         }
     }
 

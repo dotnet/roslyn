@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     partial void M(int x2) {}
   }
 }";
-            var q = new AsyncQueue<CompilationEvent>(CancellationToken.None);
+            var q = new AsyncQueue<CompilationEvent>();
             CreateCompilationWithMscorlib45(source)
                 .WithEventQueue(q)
                 .VerifyDiagnostics()  // force diagnostics twice

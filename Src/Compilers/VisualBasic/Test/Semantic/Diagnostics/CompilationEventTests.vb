@@ -85,7 +85,7 @@ End Namespace
         </file>
     </compilation>
 
-            Dim q = New AsyncQueue(Of CompilationEvent)(CancellationToken.None)
+            Dim q = New AsyncQueue(Of CompilationEvent)()
             CreateCompilationWithMscorlibAndVBRuntime(source, options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).WithEventQueue(q).VerifyDiagnostics().VerifyDiagnostics()
             VerifyEvents(q,
                 "CompilationStartedEvent",

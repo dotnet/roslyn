@@ -126,7 +126,6 @@
     <Compile Include="Emit\EditAndContinue\EncHoistedLocalInfo.cs" />
     <Compile Include="Emit\EditAndContinue\EncHoistedLocalMetadata.cs" />
     <Compile Include="Emit\EmitOptions.cs" />
-    <Compile Include="DiagnosticAnalyzer\AsyncQueue.TaskCompletionSourceWithCancellation.cs" />
     <Compile Include="Emit\EditAndContinue\EncVariableSlotAllocator.cs" />
     <Compile Include="InternalUtilities\AssemblyLocationLightUp.cs" />
     <Compile Include="Emit\EditAndContinueMethodDebugInformation.cs" />
