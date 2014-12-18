@@ -59,7 +59,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //for nodes, we have yet to see the leading trivia
                     int leadingWidthAlreadyCounted = node.IsToken ? node.GetLeadingTriviaWidth() : 0;
 
-                    current = new CSDiagnostic(sdi, new SourceLocation(this.syntaxTree, new TextSpan(this.position - leadingWidthAlreadyCounted + sdi.Offset, sdi.Width)));
+                    // don't produce locations outside of tree span
+                    var length = this.syntaxTree.GetRoot().FullSpan.Length;
+                    var spanStart = Math.Min(this.position - leadingWidthAlreadyCounted + sdi.Offset, length);
+                    var spanWidth = Math.Min(spanStart + sdi.Width, length) - spanStart;
+
+                    current = new CSDiagnostic(sdi, new SourceLocation(this.syntaxTree, new TextSpan(spanStart, spanWidth)));
 
                     stack.UpdateDiagnosticIndexForStackTop(diagIndex);
                     return true;

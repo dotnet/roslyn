@@ -431,5 +431,62 @@ class MainClass
 
             Assert.Equal("test.txt(3,2): warning CS0000: msg", CSharpDiagnosticFormatter.Instance.Format(diagnostic));
         }
+
+        [WorkItem(1097381)]
+        [Fact]
+        public void TestDiagnosticsLocationsExistInsideTreeSpan()
+        {
+            var node = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier(SyntaxFactory.TriviaList(SyntaxFactory.Whitespace("    ")), "x", default(SyntaxTriviaList)));
+
+            // create node with error that would place itself outside the tree.
+            var nodeWithBadError = node.Green.WithDiagnosticsGreen(new DiagnosticInfo[] { new SyntaxDiagnosticInfo(10, 10, ErrorCode.ERR_AbstractAndExtern) }).CreateRed();
+
+            var tree = SyntaxFactory.SyntaxTree(nodeWithBadError);
+
+            var treeSpan = tree.GetRoot().FullSpan;
+            Assert.Equal(5, treeSpan.Length);
+
+            var diagnostics = tree.GetDiagnostics().ToList();
+
+            Assert.Equal(1, diagnostics.Count);
+            Assert.Equal(5, diagnostics[0].Location.SourceSpan.Start);
+            Assert.Equal(0, diagnostics[0].Location.SourceSpan.Length);
+
+            Assert.Equal(true, treeSpan.Contains(diagnostics[0].Location.SourceSpan));
+
+            var lineSpan = diagnostics[0].Location.GetLineSpan();
+            Assert.Equal(0, lineSpan.StartLinePosition.Line);
+            Assert.Equal(5, lineSpan.StartLinePosition.Character);
+            Assert.Equal(0, lineSpan.EndLinePosition.Line);
+            Assert.Equal(5, lineSpan.EndLinePosition.Character);
+        }
+
+        [WorkItem(1097381)]
+        [Fact]
+        public void TestDiagnosticsLocationsExistInsideTreeSpan_ZeroWidthTree()
+        {
+            var node = SyntaxFactory.MissingToken(SyntaxKind.IdentifierToken);
+
+            // create node with error that would place itself outside the tree.
+            var nodeWithBadError = SyntaxFactory.IdentifierName(new SyntaxToken(node.Node.WithDiagnosticsGreen(new DiagnosticInfo[] { new SyntaxDiagnosticInfo(10, 10, ErrorCode.ERR_AbstractAndExtern) })));
+            var tree = SyntaxFactory.SyntaxTree(nodeWithBadError);
+
+            var treeSpan = tree.GetRoot().FullSpan;
+            Assert.Equal(0, treeSpan.Length);
+
+            var diagnostics = tree.GetDiagnostics().ToList();
+
+            Assert.Equal(1, diagnostics.Count);
+            Assert.Equal(0, diagnostics[0].Location.SourceSpan.Start);
+            Assert.Equal(0, diagnostics[0].Location.SourceSpan.Length);
+
+            Assert.Equal(true, treeSpan.Contains(diagnostics[0].Location.SourceSpan));
+
+            var lineSpan = diagnostics[0].Location.GetLineSpan();
+            Assert.Equal(0, lineSpan.StartLinePosition.Line);
+            Assert.Equal(0, lineSpan.StartLinePosition.Character);
+            Assert.Equal(0, lineSpan.EndLinePosition.Line);
+            Assert.Equal(0, lineSpan.EndLinePosition.Character);
+        }
     }
 }
