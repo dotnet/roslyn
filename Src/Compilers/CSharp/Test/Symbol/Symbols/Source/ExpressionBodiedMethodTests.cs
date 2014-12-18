@@ -9,6 +9,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
 {
     public sealed class ExpressionBodiedMethodTests : CSharpTestBase
     {
+        [Fact]
+        public void PartialMethods()
+        {
+            var comp = CompileAndVerify(@"
+public partial class C
+{
+    static partial void foo() => System.Console.WriteLine(""test"");
+}
+
+public partial class C
+{
+    public static void Main(string[] args)
+    {
+        foo();
+    }
+    static partial void foo();
+}
+", sourceSymbolValidator: m =>
+            {
+                var fooDef = m.GlobalNamespace
+                    .GetMember<NamedTypeSymbol>("C")
+                    .GetMember<SourceMemberMethodSymbol>("foo");
+                Assert.True(fooDef.IsPartial);
+                Assert.True(fooDef.IsPartialDefinition);
+                Assert.False(fooDef.IsPartialImplementation);
+                Assert.Null(fooDef.PartialDefinitionPart);
+
+                var fooImpl = fooDef.PartialImplementationPart
+                    as SourceMemberMethodSymbol;
+                Assert.NotNull(fooImpl);
+                Assert.True(fooImpl.IsPartial);
+                Assert.True(fooImpl.IsPartialImplementation);
+                Assert.False(fooImpl.IsPartialDefinition);
+                Assert.True(fooImpl.IsExpressionBodied);
+            },
+expectedOutput: "test");
+        }
+
         [Fact(Skip = "973907")]
         public void Syntax01()
         {

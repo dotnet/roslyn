@@ -14,6 +14,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.Semantics
     public class ExpressionBodiedMemberTests : SemanticModelTestBase
     {
         [Fact]
+        public void PartialMethods()
+        {
+            var comp = CreateCompilationWithMscorlib45(@"
+public partial class C
+{
+    static partial void foo() => System.Console.WriteLine(""test"");
+}
+
+public partial class C
+{
+    static partial void foo();
+}
+");
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var node = tree.GetRoot()
+                .DescendantNodes()
+                .OfType<MethodDeclarationSyntax>()
+                .ElementAt(1);
+
+            var fooDef = model.GetDeclaredSymbol(node) as SourceMemberMethodSymbol;
+            Assert.NotNull(fooDef);
+            Assert.True(fooDef.IsPartial);
+            Assert.True(fooDef.IsPartialDefinition);
+            Assert.False(fooDef.IsPartialImplementation);
+            Assert.Null(fooDef.PartialDefinitionPart);
+
+            var fooImpl = fooDef.PartialImplementationPart
+                as SourceMemberMethodSymbol;
+            Assert.NotNull(fooImpl);
+            Assert.True(fooImpl.IsPartial);
+            Assert.True(fooImpl.IsPartialImplementation);
+            Assert.False(fooImpl.IsPartialDefinition);
+            Assert.True(fooImpl.IsExpressionBodied);
+        }
+
+        [Fact]
         public void ExprBodiedProp01()
         {
             var comp = CreateCompilationWithMscorlib45(@"
