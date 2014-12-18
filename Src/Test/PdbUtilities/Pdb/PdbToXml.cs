@@ -16,10 +16,11 @@ using System.Threading;
 using System.Xml;
 using Microsoft.Samples.Debugging.CorSymbolStore;
 using Microsoft.Samples.Debugging.SymbolStore;
-using Roslyn.Utilities.Pdb;
-using CDI = Roslyn.Utilities.Pdb.CustomDebugInfoReader;
+using Microsoft.VisualStudio.SymReaderInterop;
+using CDI = Microsoft.VisualStudio.SymReaderInterop.CustomDebugInfoReader;
 using CDIC = Microsoft.Cci.CustomDebugInfoConstants;
 using PooledStringBuilder = Microsoft.CodeAnalysis.Collections.PooledStringBuilder;
+using System.Runtime.InteropServices;
 
 namespace Roslyn.Test.PdbUtilities
 {
@@ -1091,7 +1092,10 @@ namespace Roslyn.Test.PdbUtilities
                     var menc = (ISymENCUnmanagedMethod)m;
                     writer.WriteStartElement("method");
 
-                    WriteMethodAttributes(m.GetToken(), isReference: true);
+                    int token;
+                    int hr = m.GetToken(out token);
+                    SymUnmanagedReaderExtensions.ThrowExceptionForHR(hr);
+                    WriteMethodAttributes(token, isReference: true);
 
                     foreach (var mdoc in GetDocumentsForMethod(menc))
                     {
@@ -1126,10 +1130,12 @@ namespace Roslyn.Test.PdbUtilities
         private static ISymUnmanagedDocument[] GetDocuments(ISymUnmanagedReader symReader)
         {
             int count;
-            symReader.GetDocuments(0, out count, null);
+            int hr = symReader.GetDocuments(0, out count, null);
+            SymUnmanagedReaderExtensions.ThrowExceptionForHR(hr);
 
             var result = new ISymUnmanagedDocument[count];
-            symReader.GetDocuments(count, out count, result);
+            hr = symReader.GetDocuments(count, out count, result);
+            SymUnmanagedReaderExtensions.ThrowExceptionForHR(hr);
 
             return result;
         }
@@ -1137,10 +1143,12 @@ namespace Roslyn.Test.PdbUtilities
         private static ISymUnmanagedMethod[] GetMethodsInDocument(ISymUnmanagedReader2 symReader, ISymUnmanagedDocument symDocument)
         {
             int count;
-            symReader.GetMethodsInDocument(symDocument, 0, out count, null);
+            int hr = symReader.GetMethodsInDocument(symDocument, 0, out count, null);
+            SymUnmanagedReaderExtensions.ThrowExceptionForHR(hr);
 
             var result = new ISymUnmanagedMethod[count];
-            symReader.GetMethodsInDocument(symDocument, count, out count, result);
+            hr = symReader.GetMethodsInDocument(symDocument, count, out count, result);
+            SymUnmanagedReaderExtensions.ThrowExceptionForHR(hr);
 
             return result;
         }

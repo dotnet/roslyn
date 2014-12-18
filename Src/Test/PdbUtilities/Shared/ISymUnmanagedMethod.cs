@@ -3,7 +3,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Roslyn.Utilities.Pdb
+namespace Microsoft.VisualStudio.SymReaderInterop
 {
     [ComImport]
     [Guid("B62B923C-B500-3158-A543-24F307A8B7E1")]
@@ -11,19 +11,21 @@ namespace Roslyn.Utilities.Pdb
     [ComVisible(false)]
     internal interface ISymUnmanagedMethod
     {
-        int GetToken();
-        int GetSequencePointCount();
+        [PreserveSig]
+        int GetToken(out int retVal);
+        int __GetSequencePointCount(out int retVal);
 
-        void GetRootScope([MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedScope retVal);
-        void GetScopeFromOffset(int offset, [MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedScope retVal);
+        [PreserveSig]
+        int GetRootScope([MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedScope retVal);
+        int __GetScopeFromOffset(int offset, [MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedScope retVal);
 
-        void __GetOffset(/*ISymUnmanagedDocument document, int line, int column, out int retVal*/);
-        void __GetRanges(/*ISymUnmanagedDocument document, int line, int column, int cRanges, out int pcRanges, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] int[] ranges*/);
-        void __GetParameters(/*int cParams, out int pcParams, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] ISymUnmanagedVariable[] parms*/);
-        void __GetNamespace(/*[MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedNamespace retVal*/);
-        void __GetSourceStartEnd(/*ISymUnmanagedDocument[] docs, [In, Out, MarshalAs(UnmanagedType.LPArray)] int[] lines, [In, Out, MarshalAs(UnmanagedType.LPArray)] int[] columns, out Boolean retVal*/);
+        int __GetOffset(/*ISymUnmanagedDocument document, int line, int column, out int retVal*/);
+        int __GetRanges(/*ISymUnmanagedDocument document, int line, int column, int cRanges, out int pcRanges, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] int[] ranges*/);
+        int __GetParameters(/*int cParams, out int pcParams, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] ISymUnmanagedVariable[] parms*/);
+        int __GetNamespace(/*[MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedNamespace retVal*/);
+        int __GetSourceStartEnd(/*ISymUnmanagedDocument[] docs, [In, Out, MarshalAs(UnmanagedType.LPArray)] int[] lines, [In, Out, MarshalAs(UnmanagedType.LPArray)] int[] columns, out Boolean retVal*/);
 
-        void GetSequencePoints(
+        int __GetSequencePoints(
             int cPoints,
             out int pcPoints,
             [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[] offsets,

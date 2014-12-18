@@ -4,7 +4,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Roslyn.Utilities.Pdb
+namespace Microsoft.VisualStudio.SymReaderInterop
 {
     [ComImport]
     [Guid("0DFF7289-54F8-11d3-BD28-0000F80849BD")]
@@ -12,17 +12,18 @@ namespace Roslyn.Utilities.Pdb
     [ComVisible(false)]
     internal interface ISymUnmanagedNamespace
     {
-        void GetName(
+        [PreserveSig]
+        int GetName(
             int cchName,
             out int pcchName,
             [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] char[] szName);
 
-        void GetNamespaces(
+        int __GetNamespaces(
             int cNameSpaces,
             out int pcNameSpaces,
             [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] ISymUnmanagedNamespace[] namespaces);
 
-        void GetVariables(
+        int __GetVariables(
             int cVars,
             out int pcVars,
             [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] ISymUnmanagedVariable[] pVars);

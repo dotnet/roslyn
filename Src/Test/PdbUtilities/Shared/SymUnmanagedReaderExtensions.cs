@@ -3,12 +3,18 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.SymbolStore;
+using System.Runtime.InteropServices;
 
-namespace Roslyn.Utilities.Pdb
+namespace Microsoft.VisualStudio.SymReaderInterop
 {
     internal static class SymUnmanagedReaderExtensions
     {
-        private const int E_FAIL = unchecked((int)0x80004005);
+        internal const int S_OK = 0x0;
+        internal const int S_FALSE = 0x1;
+        internal const int E_FAIL = unchecked((int)0x80004005);
+
+        private static readonly IntPtr IgnoreIErrorInfo = new IntPtr(-1);
 
         // The name of the attribute containing the byte array of custom debug info.
         // MSCUSTOMDEBUGINFO in Dev10.
@@ -20,8 +26,11 @@ namespace Roslyn.Utilities.Pdb
         /// </summary>
         internal static byte[] GetCustomDebugInfo(this ISymUnmanagedReader symReader, int methodToken, int methodVersion)
         {
+            SymbolToken symbolToken = new SymbolToken(methodToken);
+
             int bytesAvailable;
-            symReader.GetSymAttribute(methodToken, CdiAttributeName, 0, out bytesAvailable, buffer: null);
+            int hr = symReader.GetSymAttribute(symbolToken, CdiAttributeName, 0, out bytesAvailable, buffer: null);
+            ThrowExceptionForHR(hr);
 
             if (bytesAvailable <= 0)
             {
@@ -30,7 +39,8 @@ namespace Roslyn.Utilities.Pdb
 
             var buffer = new byte[bytesAvailable];
             int bytesRead;
-            symReader.GetSymAttribute(methodToken, CdiAttributeName, bytesAvailable, out bytesRead, buffer);
+            hr = symReader.GetSymAttribute(symbolToken, CdiAttributeName, bytesAvailable, out bytesRead, buffer);
+            ThrowExceptionForHR(hr);
 
             if (bytesAvailable != bytesRead)
             {
@@ -48,7 +58,7 @@ namespace Roslyn.Utilities.Pdb
         internal static ISymUnmanagedMethod GetMethodByVersion(this ISymUnmanagedReader reader, int methodToken, int methodVersion)
         {
             ISymUnmanagedMethod method = null;
-            int hr = reader.GetMethodByVersion(methodToken, methodVersion, out method);
+            int hr = reader.GetMethodByVersion(new SymbolToken(methodToken), methodVersion, out method);
             if (hr == E_FAIL)
             {
                 // method has no symbol info
@@ -122,14 +132,16 @@ namespace Roslyn.Utilities.Pdb
         internal static bool IsInScope(this ISymUnmanagedScope scope, int offset, bool isEndInclusive)
         {
             int startOffset;
-            scope.GetStartOffset(out startOffset);
+            int hr = scope.GetStartOffset(out startOffset);
+            ThrowExceptionForHR(hr);
             if (offset < startOffset)
             {
                 return false;
             }
 
             int endOffset;
-            scope.GetEndOffset(out endOffset);
+            hr = scope.GetEndOffset(out endOffset);
+            ThrowExceptionForHR(hr);
 
             // In PDBs emitted by VB the end offset is inclusive, 
             // in PDBs emitted by C# the end offset is exclusive.
@@ -139,7 +151,8 @@ namespace Roslyn.Utilities.Pdb
         public static ISymUnmanagedScope GetRootScope(this ISymUnmanagedMethod method)
         {
             ISymUnmanagedScope scope;
-            method.GetRootScope(out scope);
+            int hr = method.GetRootScope(out scope);
+            ThrowExceptionForHR(hr);
             return scope;
         }
 
@@ -152,7 +165,8 @@ namespace Roslyn.Utilities.Pdb
         private static ISymUnmanagedScope[] GetScopesInternal(ISymUnmanagedScope scope)
         {
             int numAvailable;
-            scope.GetChildren(0, out numAvailable, null);
+            int hr = scope.GetChildren(0, out numAvailable, null);
+            ThrowExceptionForHR(hr);
             if (numAvailable == 0)
             {
                 return null;
@@ -160,7 +174,8 @@ namespace Roslyn.Utilities.Pdb
 
             int numRead;
             var scopes = new ISymUnmanagedScope[numAvailable];
-            scope.GetChildren(numAvailable, out numRead, scopes);
+            hr = scope.GetChildren(numAvailable, out numRead, scopes);
+            ThrowExceptionForHR(hr);
             if (numRead != numAvailable)
             {
                 throw new InvalidOperationException(string.Format("Read only {0} of {1} child scopes.", numRead, numAvailable));
@@ -178,7 +193,8 @@ namespace Roslyn.Utilities.Pdb
         private static ISymUnmanagedVariable[] GetLocalsInternal(ISymUnmanagedScope scope)
         {
             int numAvailable;
-            scope.GetLocalCount(out numAvailable);
+            int hr = scope.GetLocalCount(out numAvailable);
+            ThrowExceptionForHR(hr);
             if (numAvailable == 0)
             {
                 return null;
@@ -186,7 +202,8 @@ namespace Roslyn.Utilities.Pdb
 
             int numRead;
             var locals = new ISymUnmanagedVariable[numAvailable];
-            scope.GetLocals(numAvailable, out numRead, locals);
+            hr = scope.GetLocals(numAvailable, out numRead, locals);
+            ThrowExceptionForHR(hr);
             if (numRead != numAvailable)
             {
                 throw new InvalidOperationException(string.Format("Read only {0} of {1} locals.", numRead, numAvailable));
@@ -198,14 +215,16 @@ namespace Roslyn.Utilities.Pdb
         internal static int GetSlot(this ISymUnmanagedVariable local)
         {
             int slot;
-            local.GetAddressField1(out slot);
+            int hr = local.GetAddressField1(out slot);
+            ThrowExceptionForHR(hr);
             return slot;
         }
 
         public static string GetName(this ISymUnmanagedVariable local)
         {
             int numAvailable;
-            local.GetName(0, out numAvailable, null);
+            int hr = local.GetName(0, out numAvailable, null);
+            ThrowExceptionForHR(hr);
             if (numAvailable == 0)
             {
                 return "";
@@ -213,7 +232,8 @@ namespace Roslyn.Utilities.Pdb
 
             var chars = new char[numAvailable];
             int numRead;
-            local.GetName(numAvailable, out numRead, chars);
+            hr = local.GetName(numAvailable, out numRead, chars);
+            ThrowExceptionForHR(hr);
             if (numRead != numAvailable)
             {
                 throw new InvalidOperationException(string.Format("Read only {0} of {1} name characters.", numRead, numAvailable));
@@ -226,7 +246,8 @@ namespace Roslyn.Utilities.Pdb
         public static ImmutableArray<ISymUnmanagedNamespace> GetNamespaces(this ISymUnmanagedScope scope)
         {
             int numNamespacesAvailable;
-            scope.GetNamespaces(0, out numNamespacesAvailable, null);
+            int hr = scope.GetNamespaces(0, out numNamespacesAvailable, null);
+            ThrowExceptionForHR(hr);
             if (numNamespacesAvailable == 0)
             {
                 return ImmutableArray<ISymUnmanagedNamespace>.Empty;
@@ -234,7 +255,8 @@ namespace Roslyn.Utilities.Pdb
 
             int numNamespacesRead;
             ISymUnmanagedNamespace[] namespaces = new ISymUnmanagedNamespace[numNamespacesAvailable];
-            scope.GetNamespaces(numNamespacesAvailable, out numNamespacesRead, namespaces);
+            hr = scope.GetNamespaces(numNamespacesAvailable, out numNamespacesRead, namespaces);
+            ThrowExceptionForHR(hr);
             if (numNamespacesRead != numNamespacesAvailable)
             {
                 throw new InvalidOperationException(string.Format("Read only {0} of {1} namespaces.", numNamespacesRead, numNamespacesAvailable));
@@ -246,7 +268,8 @@ namespace Roslyn.Utilities.Pdb
         public static string GetName(this ISymUnmanagedNamespace @namespace)
         {
             int numAvailable;
-            @namespace.GetName(0, out numAvailable, null);
+            int hr = @namespace.GetName(0, out numAvailable, null);
+            ThrowExceptionForHR(hr);
             if (numAvailable == 0)
             {
                 return "";
@@ -254,7 +277,8 @@ namespace Roslyn.Utilities.Pdb
 
             var chars = new char[numAvailable];
             int numRead;
-            @namespace.GetName(numAvailable, out numRead, chars);
+            hr = @namespace.GetName(numAvailable, out numRead, chars);
+            ThrowExceptionForHR(hr);
             if (numRead != numAvailable)
             {
                 throw new InvalidOperationException(string.Format("Read only {0} of {1} name characters.", numRead, numAvailable));
@@ -267,24 +291,37 @@ namespace Roslyn.Utilities.Pdb
         public static int GetStartOffset(this ISymUnmanagedScope scope)
         {
             int startOffset;
-            scope.GetStartOffset(out startOffset);
+            int hr = scope.GetStartOffset(out startOffset);
+            ThrowExceptionForHR(hr);
             return startOffset;
         }
 
         public static int GetEndOffset(this ISymUnmanagedScope scope)
         {
             int endOffset;
-            scope.GetEndOffset(out endOffset);
+            int hr = scope.GetEndOffset(out endOffset);
+            ThrowExceptionForHR(hr);
             return endOffset;
         }
 
         internal static byte[] ToLocalSignature(this ISymUnmanagedVariable variable)
         {
             int n;
-            variable.GetSignature(0, out n, null);
+            int hr = variable.GetSignature(0, out n, null);
+            ThrowExceptionForHR(hr);
             var bytes = new byte[n];
-            variable.GetSignature(n, out n, bytes);
+            hr = variable.GetSignature(n, out n, bytes);
+            ThrowExceptionForHR(hr);
             return bytes;
+        }
+
+        internal static void ThrowExceptionForHR(int hr)
+        {
+            // E_FAIL indicates "no info".
+            if (hr != E_FAIL)
+            {
+                Marshal.ThrowExceptionForHR(hr, IgnoreIErrorInfo);
+            }
         }
     }
 }

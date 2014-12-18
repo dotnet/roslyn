@@ -4,7 +4,7 @@ extern alias PDB;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
-using PDB::Roslyn.Utilities.Pdb;
+using PDB::Microsoft.VisualStudio.SymReaderInterop;
 using Roslyn.Test.Utilities;
 using Xunit;
 

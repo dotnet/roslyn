@@ -4,7 +4,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace Roslyn.Utilities.Pdb
+namespace Microsoft.VisualStudio.SymReaderInterop
 {
     [ComVisible(false)]
     [Guid("85E891DA-A631-4c76-ACA2-A44A39C46B8C")]

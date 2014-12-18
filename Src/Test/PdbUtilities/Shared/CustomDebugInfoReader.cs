@@ -6,9 +6,10 @@ using System.Diagnostics;
 using System.Globalization;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.VisualStudio.SymReaderInterop;
 using CDI = Microsoft.Cci.CustomDebugInfoConstants;
 
-namespace Roslyn.Utilities.Pdb
+namespace Microsoft.VisualStudio.SymReaderInterop
 {
     /// <summary>
     /// A collection of utility method for consuming custom debug info from a PDB.

@@ -3,7 +3,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Roslyn.Utilities.Pdb
+namespace Microsoft.VisualStudio.SymReaderInterop
 {
     [ComImport]
     [Guid("68005D0F-B8E0-3B01-84D5-A11A94154942")]
@@ -11,27 +11,33 @@ namespace Roslyn.Utilities.Pdb
     [ComVisible(false)]
     internal interface ISymUnmanagedScope
     {
-        void GetMethod([MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedMethod pRetVal);
+        int __GetMethod([MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedMethod pRetVal);
 
-        void GetParent([MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedScope pRetVal);
+        int __GetParent([MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedScope pRetVal);
 
-        void GetChildren(
+        [PreserveSig]
+        int GetChildren(
             int cChildren,
             out int pcChildren,
             [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] ISymUnmanagedScope[] children);
 
-        void GetStartOffset(out int pRetVal);
+        [PreserveSig]
+        int GetStartOffset(out int pRetVal);
 
-        void GetEndOffset(out int pRetVal);
+        [PreserveSig]
+        int GetEndOffset(out int pRetVal);
 
-        void GetLocalCount(out int pRetVal);
+        [PreserveSig]
+        int GetLocalCount(out int pRetVal);
 
-        void GetLocals(
+        [PreserveSig]
+        int GetLocals(
             int cLocals,
             out int pcLocals,
             [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] ISymUnmanagedVariable[] locals);
 
-        void GetNamespaces(
+        [PreserveSig]
+        int GetNamespaces(
             int cNameSpaces,
             out int pcNameSpaces,
             [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] ISymUnmanagedNamespace[] namespaces);
