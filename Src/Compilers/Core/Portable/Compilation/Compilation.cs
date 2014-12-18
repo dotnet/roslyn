@@ -1322,6 +1322,16 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(peStream));
             }
 
+            if (!peStream.CanWrite)
+            {
+                throw new ArgumentException(CodeAnalysisResources.StreamMustSupportWrite, nameof(peStream));
+            }
+
+            if (pdbStream != null && !pdbStream.CanWrite)
+            {
+                throw new ArgumentException(CodeAnalysisResources.StreamMustSupportWrite, nameof(pdbStream));
+            }
+
             return Emit(
                 peStream,
                 pdbStream,
@@ -1516,6 +1526,9 @@ namespace Microsoft.CodeAnalysis
             bool metadataOnly,
             CancellationToken cancellationToken)
         {
+            Debug.Assert(executableStream.CanWrite);
+            Debug.Assert(pdbStream == null || pdbStream.CanWrite);
+
             using (Logger.LogBlock(FunctionId.Common_Compilation_SerializeToPeStream, message: this.AssemblyName, cancellationToken: cancellationToken))
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -1524,12 +1537,28 @@ namespace Microsoft.CodeAnalysis
                 Stream signingInputStream = null;
                 DiagnosticBag metadataDiagnostics = null;
                 DiagnosticBag pdbBag = null;
+                Stream pdbTempStream = null;
+                Stream peTempStream = null;
+
+                bool deterministic = this.Feature("deterministic")?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? false;
 
                 try
                 {
                     if (pdbStream != null)
                     {
-                        pdbWriter = new Cci.PdbWriter(pdbFileName ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb"), pdbStream, testSymWriterFactory);
+                        // PDB writer is able to update an existing stream.
+                        // It checks for length to determine whether the given stream has existing data to be updated,
+                        // or whether it should start writing PDB data from scratch. Thus if not writing to a seekable empty stream ,
+                        // let's create an in-memory temp stream for the PDB writer and copy all data to the actual stream at once at the end.
+                        if (!pdbStream.CanSeek || pdbStream.Length != 0)
+                        {
+                            pdbTempStream = new MemoryStream();
+                        }
+
+                        pdbWriter = new Cci.PdbWriter(
+                            pdbFileName ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb"), 
+                            pdbTempStream ?? pdbStream, 
+                            testSymWriterFactory);
                     }
 
                     // Signing can only be done to on-disk files. This is a limitation of the CLR APIs which we use 
@@ -1537,44 +1566,53 @@ namespace Microsoft.CodeAnalysis
                     // then stream that to the stream that this method was called with. Otherwise output to the
                     // stream that this method was called with.
 
-                    Stream outputStream;
+                    Stream peStream;
                     if (!metadataOnly && ShouldBeSigned)
                     {
                         Debug.Assert(Options.StrongNameProvider != null);
 
                         signingInputStream = Options.StrongNameProvider.CreateInputStream();
-                        outputStream = signingInputStream;
+                        peStream = signingInputStream;
                     }
                     else
                     {
                         signingInputStream = null;
-                        outputStream = executableStream;
+                        peStream = executableStream;
+                    }
+
+                    // when in deterministic mode, we need to seek and read the stream to compute a deterministic MVID.
+                    // If the underlying stream isn't readable and seekable, we need to use a temp stream.
+                    if (!peStream.CanSeek || deterministic && !peStream.CanRead)
+                    {
+                        peTempStream = new MemoryStream();
                     }
 
                     metadataDiagnostics = DiagnosticBag.GetInstance();
                     try
                     {
-                        // when in deterministic mode, we need to seek and read the stream to compute a deterministic MVID.
-                        // If the underlying stream isn't readable and seekable, we need to use a temp stream.
-                        string deterministicString = this.Feature("deterministic");
-                        bool deterministic = deterministicString != null && deterministicString != "false";
-                        var writeToTempStream = deterministic && !(outputStream.CanRead && outputStream.CanSeek);
-                        var streamToWrite = writeToTempStream ? new MemoryStream() : outputStream;
-
                         Cci.PeWriter.WritePeToStream(
                             new EmitContext(moduleBeingBuilt, null, metadataDiagnostics),
                             this.MessageProvider,
-                            streamToWrite,
+                            peTempStream ?? peStream,
                             pdbWriter,
                             metadataOnly,
                             deterministic,
                             cancellationToken);
 
-                        if (writeToTempStream)
+                        if (peTempStream != null)
                         {
-                            streamToWrite.Position = 0;
-                            streamToWrite.CopyTo(outputStream);
-                            streamToWrite.Dispose();
+                            peTempStream.Position = 0;
+                            peTempStream.CopyTo(peStream);
+                        }
+
+                        if (pdbTempStream != null)
+                        {
+                            // Note: PDB writer may operate on the underlying stream during disposal.
+                            // So close it here before we read data from the underlying stream.
+                            pdbWriter.Close();
+
+                            pdbTempStream.Position = 0;
+                            pdbTempStream.CopyTo(pdbStream);
                         }
                     }
                     catch (Cci.PdbWritingException ex)
@@ -1616,26 +1654,12 @@ namespace Microsoft.CodeAnalysis
                 }
                 finally
                 {
-                    if (pdbWriter != null)
-                    {
-                        pdbWriter.Dispose();
-                        pdbWriter = null;
-                    }
-
-                    if (signingInputStream != null)
-                    {
-                        signingInputStream.Dispose();
-                    }
-
-                    if (pdbBag != null)
-                    {
-                        pdbBag.Free();
-                    }
-
-                    if (metadataDiagnostics != null)
-                    {
-                        metadataDiagnostics.Free();
-                    }
+                    peTempStream?.Dispose();
+                    pdbTempStream?.Dispose();
+                    pdbWriter?.Dispose();
+                    signingInputStream?.Dispose();
+                    pdbBag?.Free();
+                    metadataDiagnostics?.Free();
                 }
 
                 return true;

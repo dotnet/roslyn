@@ -309,6 +309,9 @@
   <data name="StreamMustSupportReadAndSeek" xml:space="preserve">
     <value>Stream must support read and seek operations.</value>
   </data>
+  <data name="StreamMustSupportWrite" xml:space="preserve">
+    <value>Stream must be writable.</value>
+  </data>
   <data name="InvalidHash" xml:space="preserve">
     <value>Invalid hash.</value>
   </data>

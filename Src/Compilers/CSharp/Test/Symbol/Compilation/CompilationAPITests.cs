@@ -144,6 +144,70 @@ namespace A.B {
         }
 
         [Fact]
+        public void EmitToBoundedStreams()
+        {
+            var pdbArray = new byte[100000];
+            var pdbStream = new MemoryStream(pdbArray, 1, pdbArray.Length - 10);
+
+            var peArray = new byte[100000];
+            var peStream = new MemoryStream(peArray);
+
+            var c = CSharpCompilation.Create("a",
+                new[] { SyntaxFactory.ParseSyntaxTree("class C { static void Main() {} }") },
+                new[] { MscorlibRef });
+
+            var r = c.Emit(peStream, pdbStream);
+            r.Diagnostics.Verify();
+        }
+
+        [Fact]
+        public void EmitToStreamWithNonZeroPosition()
+        {
+            var pdbStream = new MemoryStream();
+            pdbStream.WriteByte(0x12);
+            var peStream = new MemoryStream();
+            peStream.WriteByte(0x12);
+
+            var c = CSharpCompilation.Create("a",
+                new[] { SyntaxFactory.ParseSyntaxTree("class C { static void Main() {} }") },
+                new[] { MscorlibRef });
+
+            var r = c.Emit(peStream, pdbStream);
+            r.Diagnostics.Verify();
+
+            AssertEx.Equal(new byte[] { 0x12, (byte)'M', (byte)'i', (byte)'c', (byte)'r', (byte)'o' }, pdbStream.GetBuffer().Take(6).ToArray());
+            AssertEx.Equal(new byte[] { 0x12, (byte)'M', (byte)'Z' }, peStream.GetBuffer().Take(3).ToArray());
+        }
+
+        [Fact]
+        public void EmitToNonSeekableStreams()
+        {
+            var peStream = new TestStream(canRead: false, canSeek: false, canWrite: true);
+            var pdbStream = new TestStream(canRead: false, canSeek: false, canWrite: true);
+
+            var c = CSharpCompilation.Create("a",
+                new[] { SyntaxFactory.ParseSyntaxTree("class C { static void Main() {} }") },
+                new[] { MscorlibRef });
+
+            var r = c.Emit(peStream, pdbStream);
+            r.Diagnostics.Verify();
+        }
+
+        [Fact]
+        public void EmitToNonWritableStreams()
+        {
+            var peStream = new TestStream(canRead: false, canSeek: false, canWrite: false);
+            var pdbStream = new TestStream(canRead: false, canSeek: false, canWrite: false);
+
+            var c = CSharpCompilation.Create("a",
+                new[] { SyntaxFactory.ParseSyntaxTree("class C { static void Main() {} }") },
+                new[] { MscorlibRef });
+
+            Assert.Throws<ArgumentException>(() => c.Emit(peStream));
+            Assert.Throws<ArgumentException>(() => c.Emit(new MemoryStream(), pdbStream));
+        }
+
+        [Fact]
         public void EmitOptionsDiagnostics()
         {
             var c = CreateCompilationWithMscorlib("class C {}");

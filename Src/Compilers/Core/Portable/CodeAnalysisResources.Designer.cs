@@ -818,6 +818,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Stream must be writable..
+        /// </summary>
+        internal static string StreamMustSupportWrite {
+            get {
+                return ResourceManager.GetString("StreamMustSupportWrite", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to struct.
         /// </summary>
         internal static string Struct1 {

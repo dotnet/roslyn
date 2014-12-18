@@ -68,18 +68,16 @@ namespace Microsoft.Cci
             this.Close();
         }
 
-        private void Close()
+        public void Close()
         {
-            if (this.symWriter != null)
+            try
             {
-                try
-                {
-                    this.symWriter.Close();
-                }
-                catch (Exception ex)
-                {
-                    throw new PdbWritingException(ex);
-                }
+                this.symWriter?.Close();
+                this.symWriter = null;
+            }
+            catch (Exception ex)
+            {
+                throw new PdbWritingException(ex);
             }
         }
 

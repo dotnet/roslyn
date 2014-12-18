@@ -2649,10 +2649,10 @@ class Viewable
             output.BreakHow = 1;
             Assert.Throws<NotSupportedException>(() => compilation.Emit(output));
 
+            // disposed stream is not writable
             var outReal = new MemoryStream();
-            Func<EmitResult> f = () => compilation.Emit(outReal);
             outReal.Dispose();
-            Assert.Throws<ObjectDisposedException>(() => f());
+            Assert.Throws<ArgumentException>(() => compilation.Emit(outReal));
         }
 
         [Fact]
@@ -2669,9 +2669,8 @@ class Viewable
                 Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("Exception from HRESULT: 0x806D0004")
             );
 
-            Func<EmitResult> f = () => compilation.Emit(output, pdb);
             pdb.Dispose();
-            result = f();
+            result = compilation.Emit(output, pdb);
 
             result.Diagnostics.Verify(
                 Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("Exception from HRESULT: 0x806D0004")

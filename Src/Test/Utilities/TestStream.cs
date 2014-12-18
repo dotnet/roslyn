@@ -83,7 +83,10 @@ namespace Roslyn.Test.Utilities
 
         public override void Write(byte[] buffer, int offset, int count)
         {
-            throw new NotSupportedException();
+            if (!CanWrite)
+            {
+                throw new NotSupportedException();
+            }
         }
     }
 }
