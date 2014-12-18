@@ -213,76 +213,38 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// Creates a code action for a change to a single document. 
         /// Use this factory when the change is expensive to compute, and should be deferred until requested.
         /// </summary>
-        public static CodeAction Create(string description, Func<CancellationToken, Task<Document>> createChangedDocument, string id = null)
+        public static CodeAction Create(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string id = null)
         {
-            if (description == null)
+            if (title == null)
             {
-                throw new ArgumentNullException("description");
+                throw new ArgumentNullException(nameof(title));
             }
 
             if (createChangedDocument == null)
             {
-                throw new ArgumentNullException("createChangedDocument");
+                throw new ArgumentNullException(nameof(createChangedDocument));
             }
 
-            return new DocumentChangeAction(description, createChangedDocument, id);
-        }
-
-        /// <summary>
-        /// Creates a code action for a change to a single document.
-        /// Use this factory when the change is trivial to compute or is already computed.
-        /// </summary>
-        public static CodeAction Create(string description, Document changedDocument, string id = null)
-        {
-            if (description == null)
-            {
-                throw new ArgumentNullException("description");
-            }
-
-            if (changedDocument == null)
-            {
-                throw new ArgumentNullException("changedDocument");
-            }
-
-            return new DocumentChangeAction(description, (ct) => Task.FromResult(changedDocument), id);
+            return new DocumentChangeAction(title, createChangedDocument, id);
         }
 
         /// <summary>
         /// Creates a code action for a change to more than one document within a solution.
         /// Use this factory when the change is expensive to compute, and should be deferred until requested.
         /// </summary>
-        public static CodeAction Create(string description, Func<CancellationToken, Task<Solution>> createChangedSolution, string id = null)
+        public static CodeAction Create(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string id = null)
         {
-            if (description == null)
+            if (title == null)
             {
-                throw new ArgumentNullException("description");
+                throw new ArgumentNullException(nameof(title));
             }
 
             if (createChangedSolution == null)
             {
-                throw new ArgumentNullException("createChangedSolution");
+                throw new ArgumentNullException(nameof(createChangedSolution));
             }
 
-            return new SolutionChangeAction(description, createChangedSolution, id);
-        }
-
-        /// <summary>
-        /// Creates a code action for a change to more than one document within a solution.
-        /// Use this factory when the change is trivial to compute or is already computed.
-        /// </summary>
-        public static CodeAction Create(string description, Solution changedSolution, string id = null)
-        {
-            if (description == null)
-            {
-                throw new ArgumentNullException("description");
-            }
-
-            if (changedSolution == null)
-            {
-                throw new ArgumentNullException("changedSolution");
-            }
-
-            return new SolutionChangeAction(description, (ct) => Task.FromResult(changedSolution), id);
+            return new SolutionChangeAction(title, createChangedSolution, id);
         }
 
         internal class DocumentChangeAction : CodeAction
