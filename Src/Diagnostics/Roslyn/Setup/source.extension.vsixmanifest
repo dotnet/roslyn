@@ -3,7 +3,7 @@
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
     <Identity Id="b3d2dbbd-311e-47ee-b4ff-679c4505b3de" Version="|%CurrentProject%;GetBuildVersion|" Language="en-US" Publisher="Microsoft" />
-    <DisplayName>Roslyn Diagnostics</DisplayName>
+    <DisplayName>Roslyn Analyzers</DisplayName>
     <Description xml:space="preserve">Diagnostics for the Roslyn codebase.</Description>
   </Metadata>
   <Installation>
