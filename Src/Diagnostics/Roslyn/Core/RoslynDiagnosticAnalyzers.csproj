@@ -79,6 +79,7 @@
     <Compile Include="Reliability\DirectlyAwaitingTaskAnalyzer.cs" />
     <Compile Include="Reliability\DirectlyAwaitingTaskAnalyzerRule.cs" />
     <Compile Include="Reliability\DirectlyAwaitingTaskFix.cs" />
+    <Compile Include="Reliability\ConsumePreserveSigAnalyzer.cs" />
     <Compile Include="Reliability\MissingSharedAttributeAnalyzer.cs" />
     <Compile Include="Reliability\MixedVersionsOfMefAttributesAnalyzer.cs" />
     <Compile Include="RoslynDiagnosticIds.cs" />

@@ -79,6 +79,33 @@ namespace Roslyn.Diagnostics.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to PreserveSigAttribute indicates that a method will return an HRESULT, rather than throwing an exception.  Therefore, it is important to consume the HRESULT returned by the method, so that errors can be detected.  Generally, this is done by calling Marshal.ThrowExceptionForHR..
+        /// </summary>
+        internal static string ConsumePreserveSigDescription {
+            get {
+                return ResourceManager.GetString("ConsumePreserveSigDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Consume the hresult returned by method &apos;{0}&apos; and call Marshal.ThrowExceptionForHR..
+        /// </summary>
+        internal static string ConsumePreserveSigMessage {
+            get {
+                return ResourceManager.GetString("ConsumePreserveSigMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Always consume the value returned by methods marked with PreserveSigAttribute.
+        /// </summary>
+        internal static string ConsumePreserveSigTitle {
+            get {
+                return ResourceManager.GetString("ConsumePreserveSigTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Accessing the Descriptor property of Diagnostic in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the Descriptor of the compiler diagnostics here. Instead you should directly access these properties off the Diagnostic type..
         /// </summary>
         internal static string DiagnosticDescriptorAccessDescription {

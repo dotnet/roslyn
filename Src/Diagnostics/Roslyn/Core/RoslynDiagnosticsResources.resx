@@ -210,4 +210,13 @@
   <data name="UseProperCrefTagsTitle" xml:space="preserve">
     <value>Avoid using cref tags with a prefix</value>
   </data>
+  <data name="ConsumePreserveSigTitle" xml:space="preserve">
+    <value>Always consume the value returned by methods marked with PreserveSigAttribute</value>
+  </data>
+  <data name="ConsumePreserveSigMessage" xml:space="preserve">
+    <value>Consume the hresult returned by method '{0}' and call Marshal.ThrowExceptionForHR.</value>
+  </data>
+  <data name="ConsumePreserveSigDescription" xml:space="preserve">
+    <value>PreserveSigAttribute indicates that a method will return an HRESULT, rather than throwing an exception.  Therefore, it is important to consume the HRESULT returned by the method, so that errors can be detected.  Generally, this is done by calling Marshal.ThrowExceptionForHR.</value>
+  </data>
 </root>
