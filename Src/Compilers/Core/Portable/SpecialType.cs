@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
     public enum SpecialType : sbyte
     {
         /// <summary>
-        /// OIndicated Non-sepecial type (default value).
+        /// Indicates a non-special type (default value).
         /// </summary>
         None = 0,
 
