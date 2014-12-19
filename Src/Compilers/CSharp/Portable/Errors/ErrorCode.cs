@@ -1304,5 +1304,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExternHasConstructorInitializer = 8091,
         ERR_ExpressionOrDeclarationExpected = 8092,
         ERR_NameofExtensionMethod = 8093,
+        WRN_AlignmentMagnitude = 8094,
     }
 }

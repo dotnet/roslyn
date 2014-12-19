@@ -318,6 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_FilterIsConstant:
                 case ErrorCode.WRN_IdentifierOrNumericLiteralExpected:
                 case ErrorCode.WRN_ReferencedAssemblyDoesNotHaveStrongName:
+                case ErrorCode.WRN_AlignmentMagnitude:
                     return 1;
                 default:
                     return 0;

@@ -215,6 +215,7 @@ class X
                         case ErrorCode.WRN_NoAnalyzerInAssembly:
                         case ErrorCode.WRN_UnableToLoadAnalyzer:
                         case ErrorCode.WRN_ReferencedAssemblyDoesNotHaveStrongName:
+                        case ErrorCode.WRN_AlignmentMagnitude:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         default:

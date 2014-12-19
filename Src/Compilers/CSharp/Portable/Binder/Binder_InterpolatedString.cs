@@ -28,16 +28,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.Interpolation:
                         {
                             var interpolation = (InterpolationSyntax)content;
-                            var value = GenerateConversionForAssignment(objectType, this.BindExpression(interpolation.Expression, diagnostics), diagnostics);
+                            var value = BindValue(interpolation.Expression, diagnostics, Binder.BindValueKind.RValue);
+                            // We need to ensure the argument is not a lambda, method group, etc. It isn't nice to wait until lowering,
+                            // when we perform overload resolution, to report a problem. So we do that check by calling
+                            // GenerateConversionForAssignment with objectType. However we want to preserve the original expression's
+                            // natural type so that overload resolution may select a specialized implementation of string.Format,
+                            // so we discard the result of that call and only preserve its diagnostics.
+                            var discarded = GenerateConversionForAssignment(objectType, value, diagnostics);
                             BoundExpression alignment = null, format = null;
                             if (interpolation.AlignmentClause != null)
                             {
-                                alignment = GenerateConversionForAssignment(intType, this.BindExpression(interpolation.AlignmentClause.Value, diagnostics), diagnostics);
-                                if (!alignment.HasErrors && alignment.ConstantValue == null)
+                                alignment = GenerateConversionForAssignment(intType, BindValue(interpolation.AlignmentClause.Value, diagnostics, Binder.BindValueKind.RValue), diagnostics);
+                                if (alignment.ConstantValue != null)
+                                {
+                                    const int magnitudeLimit = 32767;
+                                    // check that the magnitude of the alignment is "in range".
+                                    int alignmentValue = alignment.ConstantValue.Int32Value;
+                                    //  We do the arithmetic using negative numbers because the largest negative int has no corresponding positive (absolute) value.
+                                    alignmentValue = (alignmentValue > 0) ? -alignmentValue : alignmentValue;
+                                    if (alignmentValue < -magnitudeLimit)
+                                    {
+                                        diagnostics.Add(ErrorCode.WRN_AlignmentMagnitude, alignment.Syntax.Location, alignment.ConstantValue.Int32Value, magnitudeLimit);
+                                    }
+                                }
+                                else if (!alignment.HasErrors)
                                 {
                                     diagnostics.Add(ErrorCode.ERR_ConstantExpected, interpolation.AlignmentClause.Value.Location);
                                 }
                             }
+
                             if (interpolation.FormatClause != null)
                             {
                                 var text = interpolation.FormatClause.FormatStringToken.ValueText;
@@ -56,6 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                                 format = new BoundLiteral(interpolation.FormatClause, ConstantValue.Create(text), stringType, hasErrors);
                             }
+
                             builder.Add(new BoundStringInsert(interpolation, value, alignment, format, null));
                             continue;
                         }

@@ -4604,4 +4604,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NameofExtensionMethod" xml:space="preserve">
     <value>Extension method groups are not allowed as an argument to 'nameof'.</value>
   </data>
+  <data name="WRN_AlignmentMagnitude" xml:space="preserve">
+    <value>Alignment value {0} has a magnitude greater than {1} and may result in a large formatted string.</value>
+  </data>
 </root>

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!result.HasAnyErrors)
             {
                 result = VisitExpression(result); // lower the arguments AND handle expanded form, argument conversions, etc.
-                result = this.MakeConversion(result, conversion.Type, @checked: false);
+                result = MakeConversion(result, conversion.Type, @checked: false);
             }
 
             return result;
@@ -111,7 +111,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             expressions.Insert(0, format);
             var stringType = node.Type;
             var result = factory.StaticCall(stringType, "Format", expressions.ToImmutableAndFree());
-            result = VisitExpression(result); // lower the arguments AND handle expanded form, argument conversions, etc.
+            if (!result.HasAnyErrors)
+            {
+                result = VisitExpression(result); // lower the arguments AND handle expanded form, argument conversions, etc.
+                result = MakeConversion(result, node.Type, @checked: false);
+            }
             return result;
         }
     }

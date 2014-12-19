@@ -9720,6 +9720,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Alignment value {0} has a magnitude greater than {1} and may result in a large formatted string..
+        /// </summary>
+        internal static string WRN_AlignmentMagnitude {
+            get {
+                return ResourceManager.GetString("WRN_AlignmentMagnitude", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The result of the expression is always &apos;null&apos; of type &apos;{0}&apos;.
         /// </summary>
         internal static string WRN_AlwaysNull {
