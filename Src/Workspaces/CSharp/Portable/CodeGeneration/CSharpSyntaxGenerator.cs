@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
     [ExportLanguageService(typeof(SyntaxGenerator), LanguageNames.CSharp), Shared]
     internal class CSharpSyntaxGenerator : SyntaxGenerator
     {
+        #region Declarations
         public override SyntaxNode CompilationUnit(IEnumerable<SyntaxNode> declarations)
         {
             return SyntaxFactory.CompilationUnit()
@@ -2320,264 +2321,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return newNode;
         }
 
-        public override SyntaxNode ReplaceNode(SyntaxNode root, SyntaxNode declaration, SyntaxNode newDeclaration)
-        {
-            newDeclaration = this.AsNodeLike(declaration, newDeclaration);
-
-            if (newDeclaration == null)
-            {
-                return this.RemoveNode(root, declaration);
-            }
-
-            var newFullDecl = this.AsIsolatedDeclaration(newDeclaration);
-            var fullDecl = this.GetFullDeclaration(declaration);
-
-            // special handling for replacing at location of sub-declaration
-            if (fullDecl != declaration)
-            {
-                // try to replace inline if possible
-                if (fullDecl.IsKind(newFullDecl.Kind()) && GetDeclarationCount(newFullDecl) == 1)
-                {
-                    var newSubDecl = this.GetSubDeclarations(newFullDecl)[0];
-                    if (AreInlineReplaceableSubDeclarations(declaration, newSubDecl))
-                    {
-                        return base.ReplaceNode(root, declaration, newSubDecl);
-                    }
-                }
-
-                // replace sub declaration by splitting full declaration and inserting between
-                var index = IndexOf(this.GetSubDeclarations(fullDecl), declaration);
-
-                // replace declaration with multiple declarations
-                return ReplaceRange(root, fullDecl, this.SplitAndReplace(fullDecl, index, new[] { newDeclaration }));
-            }
-
-            // attempt normal replace
-            return base.ReplaceNode(root, declaration, newFullDecl);
-        }
-
-        // returns true if one sub-declaration can be replaced inline with another sub-declaration
-        private bool AreInlineReplaceableSubDeclarations(SyntaxNode decl1, SyntaxNode decl2)
-        {
-            var kind = decl1.Kind();
-            if (decl2.IsKind(kind))
-            {
-                switch (kind)
-                {
-                    case SyntaxKind.Attribute:
-                    case SyntaxKind.VariableDeclarator:
-                        return AreSimilarExceptForSubDeclarations(decl1.Parent, decl2.Parent);
-                }
-            }
-
-            return false;
-        }
-
-        private bool AreSimilarExceptForSubDeclarations(SyntaxNode decl1, SyntaxNode decl2)
-        {
-            if (decl1 == decl2)
-            {
-                return true;
-            }
-
-            if (decl1 == null || decl2 == null)
-            {
-                return false;
-            }
-
-            var kind = decl1.Kind();
-            if (decl2.IsKind(kind))
-            {
-                switch (kind)
-                {
-                    case SyntaxKind.FieldDeclaration:
-                        var fd1 = (FieldDeclarationSyntax)decl1;
-                        var fd2 = (FieldDeclarationSyntax)decl2;
-                        return SyntaxFactory.AreEquivalent(fd1.Modifiers, fd2.Modifiers)
-                            && SyntaxFactory.AreEquivalent(fd1.AttributeLists, fd2.AttributeLists);
-
-                    case SyntaxKind.EventFieldDeclaration:
-                        var efd1 = (EventFieldDeclarationSyntax)decl1;
-                        var efd2 = (EventFieldDeclarationSyntax)decl2;
-                        return SyntaxFactory.AreEquivalent(efd1.Modifiers, efd2.Modifiers)
-                            && SyntaxFactory.AreEquivalent(efd1.AttributeLists, efd2.AttributeLists);
-
-                    case SyntaxKind.LocalDeclarationStatement:
-                        var ld1 = (LocalDeclarationStatementSyntax)decl1;
-                        var ld2 = (LocalDeclarationStatementSyntax)decl2;
-                        return SyntaxFactory.AreEquivalent(ld1.Modifiers, ld2.Modifiers);
-
-                    case SyntaxKind.AttributeList:
-                        // don't compare targets, since aren't part of the abstraction
-                        return true;
-
-                    case SyntaxKind.VariableDeclaration:
-                        var vd1 = (VariableDeclarationSyntax)decl1;
-                        var vd2 = (VariableDeclarationSyntax)decl2;
-                        return SyntaxFactory.AreEquivalent(vd1.Type, vd2.Type) && AreSimilarExceptForSubDeclarations(vd1.Parent, vd2.Parent);
-                }
-            }
-
-            return false;
-        }
-
-        // replaces sub-declaration by splitting multi-part declaration first
-        private IEnumerable<SyntaxNode> SplitAndReplace(SyntaxNode multiPartDeclaration, int index, IEnumerable<SyntaxNode> newDeclarations)
-        {
-            var count = GetDeclarationCount(multiPartDeclaration);
-
-            if (index >= 0 && index < count)
-            {
-                var newNodes = new List<SyntaxNode>();
-
-                if (index > 0)
-                {
-                    // make a single declaration with only sub-declarations before the sub-declaration being replaced
-                    newNodes.Add(this.WithSubDeclarationsRemoved(multiPartDeclaration, index, count - index).WithTrailingTrivia(SyntaxFactory.ElasticSpace));
-                }
-
-                newNodes.AddRange(newDeclarations);
-
-                if (index < count - 1)
-                {
-                    // make a single declaration with only the sub-declarations after the sub-declaration being replaced
-                    newNodes.Add(this.WithSubDeclarationsRemoved(multiPartDeclaration, 0, index + 1).WithLeadingTrivia(SyntaxFactory.ElasticSpace));
-                }
-
-                return newNodes;
-            }
-            else
-            {
-                return newDeclarations;
-            }
-        }
-
-        public override SyntaxNode InsertNodesBefore(SyntaxNode root, SyntaxNode declaration, IEnumerable<SyntaxNode> newDeclarations)
-        {
-            return Isolate(root.TrackNodes(declaration), r => InsertNodesBeforeInternal(r, r.GetCurrentNode(declaration), newDeclarations));
-        }
-
-        private SyntaxNode InsertNodesBeforeInternal(SyntaxNode root, SyntaxNode declaration, IEnumerable<SyntaxNode> newDeclarations)
-        { 
-            var fullDecl = this.GetFullDeclaration(declaration);
-            if (fullDecl == declaration || GetDeclarationCount(fullDecl) == 1)
-            {
-                return base.InsertNodesBefore(root, fullDecl, newDeclarations);
-            }
-
-            var subDecls = this.GetSubDeclarations(fullDecl);
-            var count = subDecls.Count;
-            var index = IndexOf(subDecls, declaration);
-
-            // insert new declaration between full declaration split into two
-            if (index > 0)
-            {
-                return ReplaceRange(root, fullDecl, this.SplitAndInsert(fullDecl, index, newDeclarations));
-            }
-
-            return base.InsertNodesBefore(root, fullDecl, newDeclarations);
-        }
-
-        public override SyntaxNode InsertNodesAfter(SyntaxNode root, SyntaxNode declaration, IEnumerable<SyntaxNode> newDeclarations)
-        {
-            return Isolate(root.TrackNodes(declaration), r => InsertNodesAfterInternal(r, r.GetCurrentNode(declaration), newDeclarations));
-        }
-
-        private SyntaxNode InsertNodesAfterInternal(SyntaxNode root, SyntaxNode declaration, IEnumerable<SyntaxNode> newDeclarations)
-        {
-            var fullDecl = this.GetFullDeclaration(declaration);
-            if (fullDecl == declaration || GetDeclarationCount(fullDecl) == 1)
-            {
-                return base.InsertNodesAfter(root, fullDecl, newDeclarations);
-            }
-
-            var subDecls = this.GetSubDeclarations(fullDecl);
-            var count = subDecls.Count;
-            var index = IndexOf(subDecls, declaration);
-
-            // insert new declaration between full declaration split into two
-            if (index >= 0 && index < count - 1)
-            {
-                return ReplaceRange(root, fullDecl, this.SplitAndInsert(fullDecl, index + 1, newDeclarations));
-            }
-
-            return base.InsertNodesAfter(root, fullDecl, newDeclarations);
-        }
-
-        private IEnumerable<SyntaxNode> SplitAndInsert(SyntaxNode multiPartDeclaration, int index, IEnumerable<SyntaxNode> newDeclarations)
-        {
-            int count = GetDeclarationCount(multiPartDeclaration);
-                var newNodes = new List<SyntaxNode>();
-            newNodes.Add(this.WithSubDeclarationsRemoved(multiPartDeclaration, index, count - index).WithTrailingTrivia(SyntaxFactory.ElasticSpace));
-                newNodes.AddRange(newDeclarations);
-            newNodes.Add(this.WithSubDeclarationsRemoved(multiPartDeclaration, 0, index).WithLeadingTrivia(SyntaxFactory.ElasticSpace));
-            return newNodes;
-            }
-
-        private SyntaxNode WithSubDeclarationsRemoved(SyntaxNode declaration, int index, int count)
-        {
-            return this.RemoveNodes(declaration, this.GetSubDeclarations(declaration).Skip(index).Take(count));
-        }
-
-        private IReadOnlyList<SyntaxNode> GetSubDeclarations(SyntaxNode declaration)
-        {
-            switch (declaration.Kind())
-            {
-                case SyntaxKind.FieldDeclaration:
-                    return ((FieldDeclarationSyntax)declaration).Declaration.Variables;
-                case SyntaxKind.EventFieldDeclaration:
-                    return ((FieldDeclarationSyntax)declaration).Declaration.Variables;
-                case SyntaxKind.LocalDeclarationStatement:
-                    return ((LocalDeclarationStatementSyntax)declaration).Declaration.Variables;
-                case SyntaxKind.VariableDeclaration:
-                    return ((VariableDeclarationSyntax)declaration).Variables;
-                case SyntaxKind.AttributeList:
-                    return ((AttributeListSyntax)declaration).Attributes;
-                default:
-                    return SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
-            }
-        }
-
-        public override SyntaxNode RemoveNode(SyntaxNode root, SyntaxNode declaration)
-        {
-            return this.Isolate(root.TrackNodes(declaration), r => RemoveDeclarationInternal(r, r.GetCurrentNode(declaration)));
-        }
-
-        private SyntaxNode RemoveDeclarationInternal(SyntaxNode root, SyntaxNode declaration)
-        {
-            switch (declaration.Kind())
-            {
-                case SyntaxKind.Attribute:
-                    var attr = (AttributeSyntax)declaration;
-                    var attrList = attr.Parent as AttributeListSyntax;
-                    if (attrList != null && attrList.Attributes.Count == 1)
-                    {
-                        // remove entire list if only one attribute
-                        return this.RemoveNode(root, attrList);
-                    }
-                    break;
-
-                case SyntaxKind.VariableDeclarator:
-                    var full = this.GetFullDeclaration(declaration);
-                    if (full != declaration && GetDeclarationCount(full) == 1)
-                    {
-                        // remove full declaration if only declarator
-                        return this.RemoveNode(root, full);
-                    }
-                    break;
-
-                case SyntaxKind.AttributeArgument:
-                    if (declaration.Parent != null && ((AttributeArgumentListSyntax)declaration.Parent).Arguments.Count == 1)
-                    {
-                        // remove entire argument list if only argument
-                        return this.RemoveNode(root, declaration.Parent);
-                    }
-                    break;
-            }
-
-            return base.RemoveNode(root, declaration);
-        }
-
         public override IReadOnlyList<SyntaxNode> GetParameters(SyntaxNode declaration)
         {
             var list = GetParameterList(declaration);
@@ -2912,7 +2655,356 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-#region Statements and Expressions
+        public override IReadOnlyList<SyntaxNode> GetBaseAndInterfaceTypes(SyntaxNode declaration)
+        {
+            var baseList = this.GetBaseList(declaration);
+            if (baseList != null)
+            {
+                return baseList.Types.OfType<SimpleBaseTypeSyntax>().Select(bt => bt.Type).ToReadOnlyCollection();
+            }
+            else
+            {
+                return SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
+            }
+        }
+
+        public override SyntaxNode AddBaseType(SyntaxNode declaration, SyntaxNode baseType)
+        {
+            var baseList = this.GetBaseList(declaration);
+
+            var newBaseList = (baseList != null)
+                ? baseList.WithTypes(baseList.Types.Insert(0, SyntaxFactory.SimpleBaseType((TypeSyntax)baseType)))
+                : SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(SyntaxFactory.SimpleBaseType((TypeSyntax)baseType)));
+
+            return this.WithBaseList(declaration, newBaseList);
+        }
+
+        public override SyntaxNode AddInterfaceType(SyntaxNode declaration, SyntaxNode interfaceType)
+        {
+            var baseList = this.GetBaseList(declaration);
+
+            var newBaseList = (baseList != null)
+                ? baseList.WithTypes(baseList.Types.Insert(baseList.Types.Count, SyntaxFactory.SimpleBaseType((TypeSyntax)interfaceType)))
+                : SyntaxFactory.BaseList(SyntaxFactory.SingletonSeparatedList<BaseTypeSyntax>(SyntaxFactory.SimpleBaseType((TypeSyntax)interfaceType)));
+
+            return this.WithBaseList(declaration, newBaseList);
+        }
+
+        private BaseListSyntax GetBaseList(SyntaxNode declaration)
+        {
+            switch (declaration.Kind())
+            {
+                case SyntaxKind.ClassDeclaration:
+                    return ((ClassDeclarationSyntax)declaration).BaseList;
+                case SyntaxKind.StructDeclaration:
+                    return ((StructDeclarationSyntax)declaration).BaseList;
+                case SyntaxKind.InterfaceDeclaration:
+                    return ((InterfaceDeclarationSyntax)declaration).BaseList;
+                default:
+                    return null;
+            }
+        }
+
+        private SyntaxNode WithBaseList(SyntaxNode declaration, BaseListSyntax baseList)
+        {
+            switch (declaration.Kind())
+            {
+                case SyntaxKind.ClassDeclaration:
+                    return ((ClassDeclarationSyntax)declaration).WithBaseList(baseList);
+                case SyntaxKind.StructDeclaration:
+                    return ((StructDeclarationSyntax)declaration).WithBaseList(baseList);
+                case SyntaxKind.InterfaceDeclaration:
+                    return ((InterfaceDeclarationSyntax)declaration).WithBaseList(baseList);
+                default:
+                    return declaration;
+            }
+        }
+
+        #endregion
+
+        #region Remove, Replace, Insert
+
+        public override SyntaxNode ReplaceNode(SyntaxNode root, SyntaxNode declaration, SyntaxNode newDeclaration)
+        {
+            newDeclaration = this.AsNodeLike(declaration, newDeclaration);
+
+            if (newDeclaration == null)
+            {
+                return this.RemoveNode(root, declaration);
+            }
+
+            var newFullDecl = this.AsIsolatedDeclaration(newDeclaration);
+            var fullDecl = this.GetFullDeclaration(declaration);
+
+            // special handling for replacing at location of sub-declaration
+            if (fullDecl != declaration)
+            {
+                // try to replace inline if possible
+                if (fullDecl.IsKind(newFullDecl.Kind()) && GetDeclarationCount(newFullDecl) == 1)
+                {
+                    var newSubDecl = this.GetSubDeclarations(newFullDecl)[0];
+                    if (AreInlineReplaceableSubDeclarations(declaration, newSubDecl))
+                    {
+                        return base.ReplaceNode(root, declaration, newSubDecl);
+                    }
+                }
+
+                // replace sub declaration by splitting full declaration and inserting between
+                var index = IndexOf(this.GetSubDeclarations(fullDecl), declaration);
+
+                // replace declaration with multiple declarations
+                return ReplaceRange(root, fullDecl, this.SplitAndReplace(fullDecl, index, new[] { newDeclaration }));
+            }
+
+            // attempt normal replace
+            return base.ReplaceNode(root, declaration, newFullDecl);
+        }
+
+        // returns true if one sub-declaration can be replaced inline with another sub-declaration
+        private bool AreInlineReplaceableSubDeclarations(SyntaxNode decl1, SyntaxNode decl2)
+        {
+            var kind = decl1.Kind();
+            if (decl2.IsKind(kind))
+            {
+                switch (kind)
+                {
+                    case SyntaxKind.Attribute:
+                    case SyntaxKind.VariableDeclarator:
+                        return AreSimilarExceptForSubDeclarations(decl1.Parent, decl2.Parent);
+                }
+            }
+
+            return false;
+        }
+
+        private bool AreSimilarExceptForSubDeclarations(SyntaxNode decl1, SyntaxNode decl2)
+        {
+            if (decl1 == decl2)
+            {
+                return true;
+            }
+
+            if (decl1 == null || decl2 == null)
+            {
+                return false;
+            }
+
+            var kind = decl1.Kind();
+            if (decl2.IsKind(kind))
+            {
+                switch (kind)
+                {
+                    case SyntaxKind.FieldDeclaration:
+                        var fd1 = (FieldDeclarationSyntax)decl1;
+                        var fd2 = (FieldDeclarationSyntax)decl2;
+                        return SyntaxFactory.AreEquivalent(fd1.Modifiers, fd2.Modifiers)
+                            && SyntaxFactory.AreEquivalent(fd1.AttributeLists, fd2.AttributeLists);
+
+                    case SyntaxKind.EventFieldDeclaration:
+                        var efd1 = (EventFieldDeclarationSyntax)decl1;
+                        var efd2 = (EventFieldDeclarationSyntax)decl2;
+                        return SyntaxFactory.AreEquivalent(efd1.Modifiers, efd2.Modifiers)
+                            && SyntaxFactory.AreEquivalent(efd1.AttributeLists, efd2.AttributeLists);
+
+                    case SyntaxKind.LocalDeclarationStatement:
+                        var ld1 = (LocalDeclarationStatementSyntax)decl1;
+                        var ld2 = (LocalDeclarationStatementSyntax)decl2;
+                        return SyntaxFactory.AreEquivalent(ld1.Modifiers, ld2.Modifiers);
+
+                    case SyntaxKind.AttributeList:
+                        // don't compare targets, since aren't part of the abstraction
+                        return true;
+
+                    case SyntaxKind.VariableDeclaration:
+                        var vd1 = (VariableDeclarationSyntax)decl1;
+                        var vd2 = (VariableDeclarationSyntax)decl2;
+                        return SyntaxFactory.AreEquivalent(vd1.Type, vd2.Type) && AreSimilarExceptForSubDeclarations(vd1.Parent, vd2.Parent);
+                }
+            }
+
+            return false;
+        }
+
+        // replaces sub-declaration by splitting multi-part declaration first
+        private IEnumerable<SyntaxNode> SplitAndReplace(SyntaxNode multiPartDeclaration, int index, IEnumerable<SyntaxNode> newDeclarations)
+        {
+            var count = GetDeclarationCount(multiPartDeclaration);
+
+            if (index >= 0 && index < count)
+            {
+                var newNodes = new List<SyntaxNode>();
+
+                if (index > 0)
+                {
+                    // make a single declaration with only sub-declarations before the sub-declaration being replaced
+                    newNodes.Add(this.WithSubDeclarationsRemoved(multiPartDeclaration, index, count - index).WithTrailingTrivia(SyntaxFactory.ElasticSpace));
+                }
+
+                newNodes.AddRange(newDeclarations);
+
+                if (index < count - 1)
+                {
+                    // make a single declaration with only the sub-declarations after the sub-declaration being replaced
+                    newNodes.Add(this.WithSubDeclarationsRemoved(multiPartDeclaration, 0, index + 1).WithLeadingTrivia(SyntaxFactory.ElasticSpace));
+                }
+
+                return newNodes;
+            }
+            else
+            {
+                return newDeclarations;
+            }
+        }
+
+        public override SyntaxNode InsertNodesBefore(SyntaxNode root, SyntaxNode declaration, IEnumerable<SyntaxNode> newDeclarations)
+        {
+            return Isolate(root.TrackNodes(declaration), r => InsertNodesBeforeInternal(r, r.GetCurrentNode(declaration), newDeclarations));
+        }
+
+        private SyntaxNode InsertNodesBeforeInternal(SyntaxNode root, SyntaxNode declaration, IEnumerable<SyntaxNode> newDeclarations)
+        {
+            var fullDecl = this.GetFullDeclaration(declaration);
+            if (fullDecl == declaration || GetDeclarationCount(fullDecl) == 1)
+            {
+                return base.InsertNodesBefore(root, fullDecl, newDeclarations);
+            }
+
+            var subDecls = this.GetSubDeclarations(fullDecl);
+            var count = subDecls.Count;
+            var index = IndexOf(subDecls, declaration);
+
+            // insert new declaration between full declaration split into two
+            if (index > 0)
+            {
+                return ReplaceRange(root, fullDecl, this.SplitAndInsert(fullDecl, index, newDeclarations));
+            }
+
+            return base.InsertNodesBefore(root, fullDecl, newDeclarations);
+        }
+
+        public override SyntaxNode InsertNodesAfter(SyntaxNode root, SyntaxNode declaration, IEnumerable<SyntaxNode> newDeclarations)
+        {
+            return Isolate(root.TrackNodes(declaration), r => InsertNodesAfterInternal(r, r.GetCurrentNode(declaration), newDeclarations));
+        }
+
+        private SyntaxNode InsertNodesAfterInternal(SyntaxNode root, SyntaxNode declaration, IEnumerable<SyntaxNode> newDeclarations)
+        {
+            var fullDecl = this.GetFullDeclaration(declaration);
+            if (fullDecl == declaration || GetDeclarationCount(fullDecl) == 1)
+            {
+                return base.InsertNodesAfter(root, fullDecl, newDeclarations);
+            }
+
+            var subDecls = this.GetSubDeclarations(fullDecl);
+            var count = subDecls.Count;
+            var index = IndexOf(subDecls, declaration);
+
+            // insert new declaration between full declaration split into two
+            if (index >= 0 && index < count - 1)
+            {
+                return ReplaceRange(root, fullDecl, this.SplitAndInsert(fullDecl, index + 1, newDeclarations));
+            }
+
+            return base.InsertNodesAfter(root, fullDecl, newDeclarations);
+        }
+
+        private IEnumerable<SyntaxNode> SplitAndInsert(SyntaxNode multiPartDeclaration, int index, IEnumerable<SyntaxNode> newDeclarations)
+        {
+            int count = GetDeclarationCount(multiPartDeclaration);
+            var newNodes = new List<SyntaxNode>();
+            newNodes.Add(this.WithSubDeclarationsRemoved(multiPartDeclaration, index, count - index).WithTrailingTrivia(SyntaxFactory.ElasticSpace));
+            newNodes.AddRange(newDeclarations);
+            newNodes.Add(this.WithSubDeclarationsRemoved(multiPartDeclaration, 0, index).WithLeadingTrivia(SyntaxFactory.ElasticSpace));
+            return newNodes;
+        }
+
+        private SyntaxNode WithSubDeclarationsRemoved(SyntaxNode declaration, int index, int count)
+        {
+            return this.RemoveNodes(declaration, this.GetSubDeclarations(declaration).Skip(index).Take(count));
+        }
+
+        private IReadOnlyList<SyntaxNode> GetSubDeclarations(SyntaxNode declaration)
+        {
+            switch (declaration.Kind())
+            {
+                case SyntaxKind.FieldDeclaration:
+                    return ((FieldDeclarationSyntax)declaration).Declaration.Variables;
+                case SyntaxKind.EventFieldDeclaration:
+                    return ((FieldDeclarationSyntax)declaration).Declaration.Variables;
+                case SyntaxKind.LocalDeclarationStatement:
+                    return ((LocalDeclarationStatementSyntax)declaration).Declaration.Variables;
+                case SyntaxKind.VariableDeclaration:
+                    return ((VariableDeclarationSyntax)declaration).Variables;
+                case SyntaxKind.AttributeList:
+                    return ((AttributeListSyntax)declaration).Attributes;
+                default:
+                    return SpecializedCollections.EmptyReadOnlyList<SyntaxNode>();
+            }
+        }
+
+        public override SyntaxNode RemoveNode(SyntaxNode root, SyntaxNode declaration)
+        {
+            return this.Isolate(root.TrackNodes(declaration), r => RemoveNodeInternal(r, r.GetCurrentNode(declaration)));
+        }
+
+        private SyntaxNode RemoveNodeInternal(SyntaxNode root, SyntaxNode declaration)
+        {
+            switch (declaration.Kind())
+            {
+                case SyntaxKind.Attribute:
+                    var attr = (AttributeSyntax)declaration;
+                    var attrList = attr.Parent as AttributeListSyntax;
+                    if (attrList != null && attrList.Attributes.Count == 1)
+                    {
+                        // remove entire list if only one attribute
+                        return this.RemoveNodeInternal(root, attrList);
+                    }
+                    break;
+
+                case SyntaxKind.AttributeArgument:
+                    if (declaration.Parent != null && ((AttributeArgumentListSyntax)declaration.Parent).Arguments.Count == 1)
+                    {
+                        // remove entire argument list if only one argument
+                        return this.RemoveNodeInternal(root, declaration.Parent);
+                    }
+                    break;
+
+                case SyntaxKind.VariableDeclarator:
+                    var full = this.GetFullDeclaration(declaration);
+                    if (full != declaration && GetDeclarationCount(full) == 1)
+                    {
+                        // remove full declaration if only one declarator
+                        return this.RemoveNodeInternal(root, full);
+                    }
+                    break;
+
+                case SyntaxKind.SimpleBaseType:
+                    var baseList = declaration.Parent as BaseListSyntax;
+                    if (baseList != null && baseList.Types.Count == 1)
+                    {
+                        // remove entire base list if this is the only base type.
+                        return this.RemoveNodeInternal(root, baseList);
+                    }
+                    break;
+
+                default:
+                    var parent = declaration.Parent;
+                    if (parent != null)
+                    {
+                        switch (parent.Kind())
+                        {
+                            case SyntaxKind.SimpleBaseType:
+                                return RemoveNodeInternal(root, parent);
+                        }
+                    }
+                    break;
+            }
+
+            return base.RemoveNode(root, declaration);
+        }
+        #endregion
+
+        #region Statements and Expressions
         public override SyntaxNode ReturnStatement(SyntaxNode expressionOpt = null)
         {
             return SyntaxFactory.ReturnStatement((ExpressionSyntax)expressionOpt);

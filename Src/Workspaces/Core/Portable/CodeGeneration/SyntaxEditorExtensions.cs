@@ -50,34 +50,39 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             editor.ReplaceNode(declaration, (d, g) => g.WithStatements(d, statements));
         }
 
-        public static void InsertParameters(this SyntaxEditor editor, SyntaxNode declaration, int index, IEnumerable<SyntaxNode> parameters)
+        public static void SetGetAccessorStatements(this SyntaxEditor editor, SyntaxNode declaration, IEnumerable<SyntaxNode> statements)
         {
-            editor.ReplaceNode(declaration, (d, g) => g.InsertParameters(d, index, parameters));
+            editor.ReplaceNode(declaration, (d, g) => g.WithGetAccessorStatements(d, statements));
         }
 
-        public static void AddParameters(this SyntaxEditor editor, SyntaxNode declaration, int index, IEnumerable<SyntaxNode> parameters)
+        public static void SetSetAccessorStatements(this SyntaxEditor editor, SyntaxNode declaration, IEnumerable<SyntaxNode> statements)
         {
-            editor.ReplaceNode(declaration, (d, g) => g.AddParameters(d, parameters));
+            editor.ReplaceNode(declaration, (d, g) => g.WithSetAccessorStatements(d, statements));
         }
 
-        public static void InsertAttributes(this SyntaxEditor editor, SyntaxNode declaration, int index, IEnumerable<SyntaxNode> attributes)
+        public static void AddParameter(this SyntaxEditor editor, SyntaxNode declaration, SyntaxNode parameter)
         {
-            editor.ReplaceNode(declaration, (d, g) => g.InsertAttributes(d, index, attributes));
+            editor.ReplaceNode(declaration, (d, g) => g.AddParameters(d, new[] { parameter }));
         }
 
-        public static void AddAttributes(this SyntaxEditor editor, SyntaxNode declaration, IEnumerable<SyntaxNode> attributes)
+        public static void AddAttribute(this SyntaxEditor editor, SyntaxNode declaration, SyntaxNode attribute)
         {
-            editor.ReplaceNode(declaration, (d, g) => g.AddAttributes(d, attributes));
+            editor.ReplaceNode(declaration, (d, g) => g.AddAttributes(d, new[] { attribute }));
         }
 
-        public static void InsertReturnAttributes(this SyntaxEditor editor, SyntaxNode declaration, int index, IEnumerable<SyntaxNode> attributes)
+        public static void AddReturnAttribute(this SyntaxEditor editor, SyntaxNode declaration, SyntaxNode attribute)
         {
-            editor.ReplaceNode(declaration, (d, g) => g.InsertReturnAttributes(d, index, attributes));
+            editor.ReplaceNode(declaration, (d, g) => g.AddAttributes(d, new[] { attribute }));
         }
 
-        public static void AddReturnAttributes(this SyntaxEditor editor, SyntaxNode declaration, IEnumerable<SyntaxNode> attributes)
+        public static void AddAttributeArgument(this SyntaxEditor editor, SyntaxNode attributeDeclaration, SyntaxNode attributeArgument)
         {
-            editor.ReplaceNode(declaration, (d, g) => g.AddAttributes(d, attributes));
+            editor.ReplaceNode(attributeDeclaration, (d, g) => g.AddAttributeArguments(d, new[] { attributeArgument }));
+        }
+
+        public static void AddMember(this SyntaxEditor editor, SyntaxNode declaration, SyntaxNode member)
+        {
+            editor.ReplaceNode(declaration, (d, g) => g.AddMembers(d, new[] { member }));
         }
 
         public static void InsertMembers(this SyntaxEditor editor, SyntaxNode declaration, int index, IEnumerable<SyntaxNode> members)
@@ -85,9 +90,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             editor.ReplaceNode(declaration, (d, g) => g.InsertMembers(d, index, members));
         }
 
-        public static void AddMembers(this SyntaxEditor editor, SyntaxNode declaration, IEnumerable<SyntaxNode> members)
+        public static void AddBaseType(this SyntaxEditor editor, SyntaxNode declaration, SyntaxNode baseType)
         {
-            editor.ReplaceNode(declaration, (d, g) => g.AddMembers(d, members));
+            editor.ReplaceNode(declaration, (d, g) => g.AddBaseType(d, baseType));
+        }
+
+        public static void AddInterfaceType(this SyntaxEditor editor, SyntaxNode declaration, SyntaxNode interfaceType)
+        {
+            editor.ReplaceNode(declaration, (d, g) => g.AddInterfaceType(d, interfaceType));
         }
     }
 }

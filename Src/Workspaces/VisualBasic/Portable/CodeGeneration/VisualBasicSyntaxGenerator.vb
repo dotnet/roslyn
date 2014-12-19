@@ -15,6 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     Friend Class VisualBasicSyntaxGenerator
         Inherits SyntaxGenerator
 
+#Region "Expressions and Statements"
         Private Function Parenthesize(expression As SyntaxNode) As ParenthesizedExpressionSyntax
             Return DirectCast(expression, ExpressionSyntax).Parenthesize()
         End Function
@@ -410,6 +411,102 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return ParameterDeclaration(identifier, type)
         End Function
 
+        Public Overrides Function ArrayTypeExpression(type As SyntaxNode) As SyntaxNode
+            Dim arrayType = TryCast(type, ArrayTypeSyntax)
+            If arrayType IsNot Nothing Then
+                Return arrayType.WithRankSpecifiers(arrayType.RankSpecifiers.Add(SyntaxFactory.ArrayRankSpecifier()))
+            Else
+                Return SyntaxFactory.ArrayType(DirectCast(type, TypeSyntax), SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier()))
+            End If
+        End Function
+
+        Public Overrides Function NullableTypeExpression(type As SyntaxNode) As SyntaxNode
+            Dim nullableType = TryCast(type, NullableTypeSyntax)
+            If nullableType IsNot Nothing Then
+                Return nullableType
+            Else
+                Return SyntaxFactory.NullableType(DirectCast(type, TypeSyntax))
+            End If
+        End Function
+
+        Public Overrides Function WithTypeArguments(name As SyntaxNode, typeArguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            If name.IsKind(SyntaxKind.IdentifierName) OrElse name.IsKind(SyntaxKind.GenericName) Then
+                Dim sname = DirectCast(name, SimpleNameSyntax)
+                Return SyntaxFactory.GenericName(sname.Identifier, SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(typeArguments.Cast(Of TypeSyntax)())))
+            ElseIf name.IsKind(SyntaxKind.QualifiedName) Then
+                Dim qname = DirectCast(name, QualifiedNameSyntax)
+                Return SyntaxFactory.QualifiedName(qname.Left, DirectCast(WithTypeArguments(qname.Right, typeArguments), SimpleNameSyntax))
+            ElseIf name.IsKind(SyntaxKind.SimpleMemberAccessExpression) Then
+                Dim sma = DirectCast(name, MemberAccessExpressionSyntax)
+                Return SyntaxFactory.MemberAccessExpression(name.Kind(), sma.Expression, sma.OperatorToken, DirectCast(WithTypeArguments(sma.Name, typeArguments), SimpleNameSyntax))
+            Else
+                Throw New NotSupportedException()
+            End If
+        End Function
+
+        Public Overrides Function SubtractExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.SubtractExpression(Parenthesize(left), Parenthesize(right))
+        End Function
+
+        Public Overrides Function DivideExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.DivideExpression(Parenthesize(left), Parenthesize(right))
+        End Function
+
+        Public Overrides Function ModuloExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.ModuloExpression(Parenthesize(left), Parenthesize(right))
+        End Function
+
+        Public Overrides Function BitwiseNotExpression(operand As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.NotExpression(Parenthesize(operand))
+        End Function
+
+        Public Overrides Function CoalesceExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.BinaryConditionalExpression(DirectCast(left, ExpressionSyntax), DirectCast(right, ExpressionSyntax))
+        End Function
+
+        Public Overrides Function LessThanExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.LessThanExpression(Parenthesize(left), Parenthesize(right))
+        End Function
+
+        Public Overrides Function LessThanOrEqualExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.LessThanOrEqualExpression(Parenthesize(left), Parenthesize(right))
+        End Function
+
+        Public Overrides Function GreaterThanExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.GreaterThanExpression(Parenthesize(left), Parenthesize(right))
+        End Function
+
+        Public Overrides Function GreaterThanOrEqualExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.GreaterThanOrEqualExpression(Parenthesize(left), Parenthesize(right))
+        End Function
+
+        Public Overrides Function TryCatchStatement(tryStatements As IEnumerable(Of SyntaxNode), catchClauses As IEnumerable(Of SyntaxNode), Optional finallyStatements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+            Return SyntaxFactory.TryBlock(
+                       GetStatementList(tryStatements),
+                       If(catchClauses IsNot Nothing, SyntaxFactory.List(catchClauses.Cast(Of CatchBlockSyntax)()), Nothing),
+                       If(finallyStatements IsNot Nothing, SyntaxFactory.FinallyBlock(GetStatementList(finallyStatements)), Nothing)
+                   )
+        End Function
+
+        Public Overrides Function CatchClause(type As SyntaxNode, identifier As String, statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Return SyntaxFactory.CatchBlock(
+                SyntaxFactory.CatchStatement(
+                    SyntaxFactory.IdentifierName(identifier),
+                    SyntaxFactory.SimpleAsClause(DirectCast(type, TypeSyntax)),
+                           whenClause:=Nothing
+                       ),
+                       GetStatementList(statements)
+                   )
+        End Function
+
+        Public Overrides Function WhileStatement(condition As SyntaxNode, statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Return SyntaxFactory.WhileBlock(
+                SyntaxFactory.WhileStatement(DirectCast(condition, ExpressionSyntax)),
+                GetStatementList(statements))
+        End Function
+#End Region
+
+#Region "Declarations"
         Private Function AsReadOnlyList(Of T)(sequence As IEnumerable(Of T)) As IReadOnlyList(Of T)
             Dim list = TryCast(sequence, IReadOnlyList(Of T))
 
@@ -534,7 +631,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             If initializer IsNot Nothing Then
                 tokens = tokens.Add(SyntaxFactory.Token(SyntaxKind.OptionalKeyword))
             End If
-            If refKind <> refKind.None Then
+            If refKind <> RefKind.None Then
                 tokens = tokens.Add(SyntaxFactory.Token(SyntaxKind.ByRefKeyword))
             End If
             Return tokens
@@ -2212,7 +2309,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
 
             Dim tokens = GetModifierTokens(declaration)
-            Dim currentAcc As accessibility
+            Dim currentAcc As Accessibility
             Dim mods As DeclarationModifiers
             Dim isDefault As Boolean
             GetAccessibilityAndModifiers(tokens, currentAcc, mods, isDefault)
@@ -2269,17 +2366,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
 
             Select Case (accessibility)
-                Case accessibility.Internal
+                Case Accessibility.Internal
                     _list = _list.Add(SyntaxFactory.Token(SyntaxKind.FriendKeyword))
-                Case accessibility.Public
+                Case Accessibility.Public
                     _list = _list.Add(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
-                Case accessibility.Private
+                Case Accessibility.Private
                     _list = _list.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
-                Case accessibility.Protected
+                Case Accessibility.Protected
                     _list = _list.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
-                Case accessibility.ProtectedOrInternal
+                Case Accessibility.ProtectedOrInternal
                     _list = _list.Add(SyntaxFactory.Token(SyntaxKind.FriendKeyword)).Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
-                Case accessibility.NotApplicable
+                Case Accessibility.NotApplicable
                 Case Else
                     Throw New NotSupportedException(String.Format("Accessibility '{0}' not supported.", accessibility))
             End Select
@@ -2342,7 +2439,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Sub GetAccessibilityAndModifiers(modifierTokens As SyntaxTokenList, ByRef accessibility As Accessibility, ByRef modifiers As DeclarationModifiers, ByRef isDefault As Boolean)
-            accessibility = accessibility.NotApplicable
+            accessibility = Accessibility.NotApplicable
             modifiers = DeclarationModifiers.None
             isDefault = False
 
@@ -2351,20 +2448,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Case SyntaxKind.DefaultKeyword
                         isDefault = True
                     Case SyntaxKind.PublicKeyword
-                        accessibility = accessibility.Public
+                        accessibility = Accessibility.Public
                     Case SyntaxKind.PrivateKeyword
-                        accessibility = accessibility.Private
+                        accessibility = Accessibility.Private
                     Case SyntaxKind.FriendKeyword
-                        If accessibility = accessibility.Protected Then
-                            accessibility = accessibility.ProtectedOrFriend
+                        If accessibility = Accessibility.Protected Then
+                            accessibility = Accessibility.ProtectedOrFriend
                         Else
-                            accessibility = accessibility.Friend
+                            accessibility = Accessibility.Friend
                         End If
                     Case SyntaxKind.ProtectedKeyword
-                        If accessibility = accessibility.Friend Then
-                            accessibility = accessibility.ProtectedOrFriend
+                        If accessibility = Accessibility.Friend Then
+                            accessibility = Accessibility.ProtectedOrFriend
                         Else
-                            accessibility = accessibility.Protected
+                            accessibility = Accessibility.Protected
                         End If
                     Case SyntaxKind.MustInheritKeyword
                         modifiers = modifiers Or DeclarationModifiers.Abstract
@@ -2480,100 +2577,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
 
             Return typeParameterList
-        End Function
-
-        Public Overrides Function ArrayTypeExpression(type As SyntaxNode) As SyntaxNode
-            Dim arrayType = TryCast(type, ArrayTypeSyntax)
-            If arrayType IsNot Nothing Then
-                Return arrayType.WithRankSpecifiers(arrayType.RankSpecifiers.Add(SyntaxFactory.ArrayRankSpecifier()))
-            Else
-                Return SyntaxFactory.ArrayType(DirectCast(type, TypeSyntax), SyntaxFactory.SingletonList(SyntaxFactory.ArrayRankSpecifier()))
-            End If
-        End Function
-
-        Public Overrides Function NullableTypeExpression(type As SyntaxNode) As SyntaxNode
-            Dim nullableType = TryCast(type, NullableTypeSyntax)
-            If nullableType IsNot Nothing Then
-                Return nullableType
-            Else
-                Return SyntaxFactory.NullableType(DirectCast(type, TypeSyntax))
-            End If
-        End Function
-
-        Public Overrides Function WithTypeArguments(name As SyntaxNode, typeArguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            If name.IsKind(SyntaxKind.IdentifierName) OrElse name.IsKind(SyntaxKind.GenericName) Then
-                Dim sname = DirectCast(name, SimpleNameSyntax)
-                Return SyntaxFactory.GenericName(sname.Identifier, SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(typeArguments.Cast(Of TypeSyntax)())))
-            ElseIf name.IsKind(SyntaxKind.QualifiedName) Then
-                Dim qname = DirectCast(name, QualifiedNameSyntax)
-                Return SyntaxFactory.QualifiedName(qname.Left, DirectCast(WithTypeArguments(qname.Right, typeArguments), SimpleNameSyntax))
-            ElseIf name.IsKind(SyntaxKind.SimpleMemberAccessExpression) Then
-                Dim sma = DirectCast(name, MemberAccessExpressionSyntax)
-                Return SyntaxFactory.MemberAccessExpression(name.Kind(), sma.Expression, sma.OperatorToken, DirectCast(WithTypeArguments(sma.Name, typeArguments), SimpleNameSyntax))
-            Else
-                Throw New NotSupportedException()
-            End If
-        End Function
-
-        Public Overrides Function SubtractExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.SubtractExpression(Parenthesize(left), Parenthesize(right))
-        End Function
-
-        Public Overrides Function DivideExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.DivideExpression(Parenthesize(left), Parenthesize(right))
-        End Function
-
-        Public Overrides Function ModuloExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.ModuloExpression(Parenthesize(left), Parenthesize(right))
-        End Function
-
-        Public Overrides Function BitwiseNotExpression(operand As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.NotExpression(Parenthesize(operand))
-        End Function
-
-        Public Overrides Function CoalesceExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.BinaryConditionalExpression(DirectCast(left, ExpressionSyntax), DirectCast(right, ExpressionSyntax))
-        End Function
-
-        Public Overrides Function LessThanExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.LessThanExpression(Parenthesize(left), Parenthesize(right))
-        End Function
-
-        Public Overrides Function LessThanOrEqualExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.LessThanOrEqualExpression(Parenthesize(left), Parenthesize(right))
-        End Function
-
-        Public Overrides Function GreaterThanExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.GreaterThanExpression(Parenthesize(left), Parenthesize(right))
-        End Function
-
-        Public Overrides Function GreaterThanOrEqualExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
-            Return SyntaxFactory.GreaterThanOrEqualExpression(Parenthesize(left), Parenthesize(right))
-        End Function
-
-        Public Overrides Function TryCatchStatement(tryStatements As IEnumerable(Of SyntaxNode), catchClauses As IEnumerable(Of SyntaxNode), Optional finallyStatements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
-            Return SyntaxFactory.TryBlock(
-                       GetStatementList(tryStatements),
-                       If(catchClauses IsNot Nothing, SyntaxFactory.List(catchClauses.Cast(Of CatchBlockSyntax)()), Nothing),
-                       If(finallyStatements IsNot Nothing, SyntaxFactory.FinallyBlock(GetStatementList(finallyStatements)), Nothing)
-                   )
-        End Function
-
-        Public Overrides Function CatchClause(type As SyntaxNode, identifier As String, statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Return SyntaxFactory.CatchBlock(
-                SyntaxFactory.CatchStatement(
-                    SyntaxFactory.IdentifierName(identifier),
-                    SyntaxFactory.SimpleAsClause(DirectCast(type, TypeSyntax)),
-                           whenClause:=Nothing
-                       ),
-                       GetStatementList(statements)
-                   )
-        End Function
-
-        Public Overrides Function WhileStatement(condition As SyntaxNode, statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Return SyntaxFactory.WhileBlock(
-                SyntaxFactory.WhileStatement(DirectCast(condition, ExpressionSyntax)),
-                GetStatementList(statements))
         End Function
 
         Public Overrides Function GetParameters(declaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
@@ -3063,6 +3066,143 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 endEventStatement:=SyntaxFactory.EndEventStatement())
         End Function
 
+        Public Overrides Function GetAttributeArguments(attributeDeclaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
+            Dim list = GetArgumentList(attributeDeclaration)
+            If list IsNot Nothing Then
+                Return list.Arguments
+            Else
+                Return SpecializedCollections.EmptyReadOnlyList(Of SyntaxNode)()
+            End If
+        End Function
+
+        Public Overrides Function InsertAttributeArguments(attributeDeclaration As SyntaxNode, index As Integer, attributeArguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Return Isolate(attributeDeclaration, Function(d) InsertAttributeArgumentsInternal(d, index, attributeArguments))
+        End Function
+
+        Private Function InsertAttributeArgumentsInternal(attributeDeclaration As SyntaxNode, index As Integer, attributeArguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Dim list = GetArgumentList(attributeDeclaration)
+            Dim newArguments = AsArgumentList(attributeArguments)
+
+            If list Is Nothing Then
+                list = newArguments
+            Else
+                list = list.WithArguments(list.Arguments.InsertRange(index, newArguments.Arguments))
+            End If
+
+            Return WithArgumentList(attributeDeclaration, list)
+        End Function
+
+        Private Function GetArgumentList(declaration As SyntaxNode) As ArgumentListSyntax
+            Select Case declaration.Kind
+                Case SyntaxKind.AttributeList
+                    Dim al = DirectCast(declaration, AttributeListSyntax)
+                    If al.Attributes.Count = 1 Then
+                        Return al.Attributes(0).ArgumentList
+                    End If
+                Case SyntaxKind.Attribute
+                    Return DirectCast(declaration, AttributeSyntax).ArgumentList
+            End Select
+            Return Nothing
+        End Function
+
+        Private Function WithArgumentList(declaration As SyntaxNode, argumentList As ArgumentListSyntax) As SyntaxNode
+            Select Case declaration.Kind
+                Case SyntaxKind.AttributeList
+                    Dim al = DirectCast(declaration, AttributeListSyntax)
+                    If al.Attributes.Count = 1 Then
+                        Return ReplaceWithTrivia(declaration, al.Attributes(0), al.Attributes(0).WithArgumentList(argumentList))
+                    End If
+                Case SyntaxKind.Attribute
+                    Return DirectCast(declaration, AttributeSyntax).WithArgumentList(argumentList)
+            End Select
+            Return declaration
+        End Function
+
+        Public Overrides Function GetBaseAndInterfaceTypes(declaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
+            Return Me.GetInherits(declaration).SelectMany(Function(ih) ih.Types).Concat(Me.GetImplements(declaration).SelectMany(Function(imp) imp.Types)).ToImmutableReadOnlyListOrEmpty()
+        End Function
+
+        Public Overrides Function AddBaseType(declaration As SyntaxNode, baseType As SyntaxNode) As SyntaxNode
+            If declaration.IsKind(SyntaxKind.ClassBlock) Then
+                Dim existingBaseType = Me.GetInherits(declaration).SelectMany(Function(inh) inh.Types).FirstOrDefault()
+                If existingBaseType IsNot Nothing Then
+                    Return declaration.ReplaceNode(existingBaseType, baseType.WithTriviaFrom(existingBaseType))
+                Else
+                    Return Me.WithInherits(declaration, SyntaxFactory.SingletonList(SyntaxFactory.InheritsStatement(DirectCast(baseType, TypeSyntax))))
+                End If
+            Else
+                Return declaration
+            End If
+        End Function
+
+        Public Overrides Function AddInterfaceType(declaration As SyntaxNode, interfaceType As SyntaxNode) As SyntaxNode
+            If declaration.IsKind(SyntaxKind.InterfaceBlock) Then
+                Dim inh = Me.GetInherits(declaration)
+                Dim last = inh.SelectMany(Function(s) s.Types).LastOrDefault()
+                If last IsNot Nothing Then
+                    Return InsertNodesAfter(declaration, last, {interfaceType})
+                Else
+                    Return Me.WithInherits(declaration, inh.Add(SyntaxFactory.InheritsStatement(DirectCast(interfaceType, TypeSyntax))))
+                End If
+            Else
+                Dim imp = Me.GetImplements(declaration)
+                Dim last = imp.SelectMany(Function(s) s.Types).LastOrDefault()
+                If last IsNot Nothing Then
+                    Return InsertNodesAfter(declaration, last, {interfaceType})
+                Else
+                    Return Me.WithImplements(declaration, imp.Add(SyntaxFactory.ImplementsStatement(DirectCast(interfaceType, TypeSyntax))))
+                End If
+            End If
+            Throw New NotImplementedException()
+        End Function
+
+        Private Function GetInherits(declaration As SyntaxNode) As SyntaxList(Of InheritsStatementSyntax)
+            Select Case declaration.Kind
+                Case SyntaxKind.ClassBlock
+                    Return DirectCast(declaration, ClassBlockSyntax).Inherits
+                Case SyntaxKind.InterfaceBlock
+                    Return DirectCast(declaration, InterfaceBlockSyntax).Inherits
+                Case Else
+                    Return Nothing
+            End Select
+        End Function
+
+        Private Function WithInherits(declaration As SyntaxNode, list As SyntaxList(Of InheritsStatementSyntax)) As SyntaxNode
+            Select Case declaration.Kind
+                Case SyntaxKind.ClassBlock
+                    Return DirectCast(declaration, ClassBlockSyntax).WithInherits(list)
+                Case SyntaxKind.InterfaceBlock
+                    Return DirectCast(declaration, InterfaceBlockSyntax).WithInherits(list)
+                Case Else
+                    Return declaration
+            End Select
+        End Function
+
+        Private Function GetImplements(declaration As SyntaxNode) As SyntaxList(Of ImplementsStatementSyntax)
+            Select Case declaration.Kind
+                Case SyntaxKind.ClassBlock
+                    Return DirectCast(declaration, ClassBlockSyntax).Implements
+                Case SyntaxKind.StructureBlock
+                    Return DirectCast(declaration, StructureBlockSyntax).Implements
+                Case Else
+                    Return Nothing
+            End Select
+        End Function
+
+        Private Function WithImplements(declaration As SyntaxNode, list As SyntaxList(Of ImplementsStatementSyntax)) As SyntaxNode
+            Select Case declaration.Kind
+                Case SyntaxKind.ClassBlock
+                    Return DirectCast(declaration, ClassBlockSyntax).WithImplements(list)
+                Case SyntaxKind.StructureBlock
+                    Return DirectCast(declaration, StructureBlockSyntax).WithImplements(list)
+                Case Else
+                    Return declaration
+            End Select
+        End Function
+
+#End Region
+
+#Region "Remove, Replace, Insert"
         Public Overrides Function ReplaceNode(root As SyntaxNode, declaration As SyntaxNode, newDeclaration As SyntaxNode) As SyntaxNode
             If newDeclaration Is Nothing Then
                 Return Me.RemoveNode(root, declaration)
@@ -3246,7 +3386,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Return members
             End If
 
-            Dim list = New list(Of SyntaxNode)
+            Dim list = New List(Of SyntaxNode)
             Flatten(members, list)
             Return list.ToImmutableReadOnlyListOrEmpty()
         End Function
@@ -3277,109 +3417,74 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Sub
 
         Public Overrides Function RemoveNode(root As SyntaxNode, declaration As SyntaxNode) As SyntaxNode
-            Return Isolate(root.TrackNodes(declaration), Function(r) Me.RemoveDeclarationInternal(r, r.GetCurrentNode(declaration)))
+            Return Isolate(root.TrackNodes(declaration), Function(r) Me.RemoveNodeInternal(r, r.GetCurrentNode(declaration)))
         End Function
 
-        Private Function RemoveDeclarationInternal(root As SyntaxNode, declaration As SyntaxNode) As SyntaxNode
+        Private Function RemoveNodeInternal(root As SyntaxNode, node As SyntaxNode) As SyntaxNode
 
-            ' special case handling for declarations that remove their parents too
-            Select Case declaration.Kind
+            ' special case handling for nodes that remove their parents too
+            Select Case node.Kind
                 Case SyntaxKind.ModifiedIdentifier
-                    Dim vd = TryCast(declaration.Parent, VariableDeclaratorSyntax)
+                    Dim vd = TryCast(node.Parent, VariableDeclaratorSyntax)
                     If vd IsNot Nothing AndAlso vd.Names.Count = 1 Then
                         ' remove entire variable declarator if only name
-                        Return RemoveDeclarationInternal(root, vd)
+                        Return RemoveNodeInternal(root, vd)
                     End If
                 Case SyntaxKind.VariableDeclarator
-                    If IsChildOfVariableDeclaration(declaration) AndAlso GetDeclarationCount(declaration.Parent) = 1 Then
+                    If IsChildOfVariableDeclaration(node) AndAlso GetDeclarationCount(node.Parent) = 1 Then
                         ' remove entire parent declaration if this is the only declarator
-                        Return RemoveDeclarationInternal(root, declaration.Parent)
+                        Return RemoveNodeInternal(root, node.Parent)
                     End If
                 Case SyntaxKind.AttributeList
-                    Dim attrList = DirectCast(declaration, AttributeListSyntax)
+                    Dim attrList = DirectCast(node, AttributeListSyntax)
                     Dim attrStmt = TryCast(attrList.Parent, AttributesStatementSyntax)
                     If attrStmt IsNot Nothing AndAlso attrStmt.AttributeLists.Count = 1 Then
                         ' remove entire attribute statement if this is the only attribute list
-                        Return RemoveDeclarationInternal(root, attrStmt)
+                        Return RemoveNodeInternal(root, attrStmt)
                     End If
                 Case SyntaxKind.Attribute
-                    Dim attrList = TryCast(declaration.Parent, AttributeListSyntax)
+                    Dim attrList = TryCast(node.Parent, AttributeListSyntax)
                     If attrList IsNot Nothing AndAlso attrList.Attributes.Count = 1 Then
                         ' remove entire attribute list if this is the only attribute
-                        Return RemoveDeclarationInternal(root, attrList)
+                        Return RemoveNodeInternal(root, attrList)
                     End If
                 Case SyntaxKind.SimpleArgument
-                    If IsChildOf(declaration, SyntaxKind.ArgumentList) AndAlso IsChildOf(declaration.Parent, SyntaxKind.Attribute) Then
-                        Dim argList = DirectCast(declaration.Parent, ArgumentListSyntax)
+                    If IsChildOf(node, SyntaxKind.ArgumentList) AndAlso IsChildOf(node.Parent, SyntaxKind.Attribute) Then
+                        Dim argList = DirectCast(node.Parent, ArgumentListSyntax)
                         If argList.Arguments.Count = 1 Then
                             ' remove attribute's arg list if this is the only argument
-                            Return RemoveDeclarationInternal(root, argList)
+                            Return RemoveNodeInternal(root, argList)
                         End If
                     End If
                 Case SyntaxKind.SimpleImportsClause,
                      SyntaxKind.XmlNamespaceImportsClause
-                    Dim imps = DirectCast(declaration.Parent, ImportsStatementSyntax)
+                    Dim imps = DirectCast(node.Parent, ImportsStatementSyntax)
                     If imps.ImportsClauses.Count = 1 Then
                         ' remove entire imports statement if this is the only clause
-                        Return RemoveNode(root, declaration.Parent)
+                        Return RemoveNodeInternal(root, node.Parent)
+                    End If
+                Case Else
+                    Dim parent = node.Parent
+                    If parent IsNot Nothing Then
+                        Select Case parent.Kind
+                            Case SyntaxKind.ImplementsStatement
+                                Dim imp = DirectCast(parent, ImplementsStatementSyntax)
+                                If imp.Types.Count = 1 Then
+                                    Return RemoveNodeInternal(root, parent)
+                                End If
+                            Case SyntaxKind.InheritsStatement
+                                Dim inh = DirectCast(parent, InheritsStatementSyntax)
+                                If inh.Types.Count = 1 Then
+                                    Return RemoveNodeInternal(root, parent)
+                                End If
+                        End Select
                     End If
             End Select
 
             ' do it the normal way
-            Return root.RemoveNode(declaration, DefaultRemoveOptions)
+            Return root.RemoveNode(node, DefaultRemoveOptions)
         End Function
-
-        Public Overrides Function GetAttributeArguments(attributeDeclaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
-            Dim list = GetArgumentList(attributeDeclaration)
-            If list IsNot Nothing Then
-                Return list.Arguments
-            Else
-                Return SpecializedCollections.EmptyReadOnlyList(Of SyntaxNode)()
-            End If
-        End Function
-
-        Public Overrides Function InsertAttributeArguments(attributeDeclaration As SyntaxNode, index As Integer, attributeArguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Return Isolate(attributeDeclaration, Function(d) InsertAttributeArgumentsInternal(d, index, attributeArguments))
-        End Function
-
-        Private Function InsertAttributeArgumentsInternal(attributeDeclaration As SyntaxNode, index As Integer, attributeArguments As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Dim list = GetArgumentList(attributeDeclaration)
-            Dim newArguments = AsArgumentList(attributeArguments)
-
-            If list Is Nothing Then
-                list = newArguments
-            Else
-                list = list.WithArguments(list.Arguments.InsertRange(index, newArguments.Arguments))
-            End If
-
-            Return WithArgumentList(attributeDeclaration, list)
-        End Function
-
-        Private Function GetArgumentList(declaration As SyntaxNode) As ArgumentListSyntax
-            Select Case declaration.Kind
-                Case SyntaxKind.AttributeList
-                    Dim al = DirectCast(declaration, AttributeListSyntax)
-                    If al.Attributes.Count = 1 Then
-                        Return al.Attributes(0).ArgumentList
-                    End If
-                Case SyntaxKind.Attribute
-                    Return DirectCast(declaration, AttributeSyntax).ArgumentList
-            End Select
-            Return Nothing
-        End Function
-
-        Private Function WithArgumentList(declaration As SyntaxNode, argumentList As ArgumentListSyntax) As SyntaxNode
-            Select Case declaration.Kind
-                Case SyntaxKind.AttributeList
-                    Dim al = DirectCast(declaration, AttributeListSyntax)
-                    If al.Attributes.Count = 1 Then
-                        Return ReplaceWithTrivia(declaration, al.Attributes(0), al.Attributes(0).WithArgumentList(argumentList))
-                    End If
-                Case SyntaxKind.Attribute
-                    Return DirectCast(declaration, AttributeSyntax).WithArgumentList(argumentList)
-            End Select
-            Return declaration
-        End Function
+#End Region
 
     End Class
 End Namespace

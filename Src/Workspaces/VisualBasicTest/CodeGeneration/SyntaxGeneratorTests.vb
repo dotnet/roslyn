@@ -2237,6 +2237,200 @@ End Function</x>.Value)
         End Sub
 
         <Fact>
+        Public Sub TestGetBaseAndInterfaceTypes()
+            Dim classBI = SyntaxFactory.ParseCompilationUnit(
+<x>Class C
+    Inherits B
+    Implements I
+End Class</x>.Value).Members(0)
+
+            Dim baseListBI = g.GetBaseAndInterfaceTypes(classBI)
+            Assert.NotNull(baseListBI)
+            Assert.Equal(2, baseListBI.Count)
+            Assert.Equal("B", baseListBI(0).ToString())
+            Assert.Equal("I", baseListBI(1).ToString())
+
+            Dim ifaceI = SyntaxFactory.ParseCompilationUnit(
+<x>Interface I
+    Inherits X
+    Inherits Y
+End Class</x>.Value).Members(0)
+
+            Dim baseListXY = g.GetBaseAndInterfaceTypes(ifaceI)
+            Assert.NotNull(baseListXY)
+            Assert.Equal(2, baseListXY.Count)
+            Assert.Equal("X", baseListXY(0).ToString())
+            Assert.Equal("Y", baseListXY(1).ToString())
+
+            Dim classN = SyntaxFactory.ParseCompilationUnit(
+<x>Class C
+End Class</x>.Value).Members(0)
+
+            Dim baseListN = g.GetBaseAndInterfaceTypes(classN)
+            Assert.NotNull(baseListN)
+            Assert.Equal(0, baseListN.Count)
+        End Sub
+
+        <Fact>
+        Public Sub TestRemoveBaseAndInterfaceTypes()
+            Dim classC = SyntaxFactory.ParseCompilationUnit(
+<x>Class C
+    Inherits A
+    Implements X, Y
+
+End Class</x>.Value).Members(0)
+
+            Dim baseList = g.GetBaseAndInterfaceTypes(classC)
+            Assert.Equal(3, baseList.Count)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.RemoveNode(classC, baseList(0)),
+<x>Class C
+    Implements X, Y
+
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.RemoveNode(classC, baseList(1)),
+<x>Class C
+    Inherits A
+    Implements Y
+
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.RemoveNode(classC, baseList(2)),
+<x>Class C
+    Inherits A
+    Implements X
+
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.RemoveNodes(classC, {baseList(1), baseList(2)}),
+<x>Class C
+    Inherits A
+
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.RemoveNodes(classC, baseList),
+<x>Class C
+End Class</x>.Value)
+
+        End Sub
+
+        <Fact>
+        Public Sub TestAddBaseType()
+            Dim classC = SyntaxFactory.ParseCompilationUnit(
+<x>Class C
+End Class</x>.Value).Members(0)
+
+            Dim classCB = SyntaxFactory.ParseCompilationUnit(
+<x>Class C
+    Inherits B
+
+End Class</x>.Value).Members(0)
+
+            Dim structS = SyntaxFactory.ParseCompilationUnit(
+<x>Structure S
+End Structure</x>.Value).Members(0)
+
+            Dim ifaceI = SyntaxFactory.ParseCompilationUnit(
+<x>Interface I
+End Interface</x>.Value).Members(0)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.AddBaseType(classC, g.IdentifierName("T")),
+<x>Class C
+    Inherits T
+
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.AddBaseType(classCB, g.IdentifierName("T")),
+<x>Class C
+    Inherits T
+
+End Class</x>.Value)
+
+            VerifySyntax(Of StructureBlockSyntax)(
+                g.AddBaseType(structS, g.IdentifierName("T")),
+<x>Structure S
+End Structure</x>.Value)
+
+            VerifySyntax(Of InterfaceBlockSyntax)(
+                g.AddBaseType(ifaceI, g.IdentifierName("T")),
+<x>Interface I
+End Interface</x>.Value)
+
+        End Sub
+
+        <Fact>
+        Public Sub TestAddInterfaceType()
+            Dim classC = SyntaxFactory.ParseCompilationUnit(
+<x>Class C
+End Class</x>.Value).Members(0)
+
+            Dim classCB = SyntaxFactory.ParseCompilationUnit(
+<x>Class C
+    Inherits B
+
+End Class</x>.Value).Members(0)
+
+            Dim classCI = SyntaxFactory.ParseCompilationUnit(
+<x>Class C
+    Implements I
+
+End Class</x>.Value).Members(0)
+
+            Dim structS = SyntaxFactory.ParseCompilationUnit(
+<x>Structure S
+End Structure</x>.Value).Members(0)
+
+            Dim ifaceI = SyntaxFactory.ParseCompilationUnit(
+<x>Interface I
+End Interface</x>.Value).Members(0)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.AddInterfaceType(classC, g.IdentifierName("T")),
+<x>Class C
+    Implements T
+
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.AddInterfaceType(classCB, g.IdentifierName("T")),
+<x>Class C
+    Inherits B
+    Implements T
+
+End Class</x>.Value)
+
+            VerifySyntax(Of ClassBlockSyntax)(
+                g.AddInterfaceType(classCI, g.IdentifierName("T")),
+<x>Class C
+    Implements I, T
+
+End Class</x>.Value)
+
+            VerifySyntax(Of StructureBlockSyntax)(
+                g.AddInterfaceType(structS, g.IdentifierName("T")),
+<x>Structure S
+    Implements T
+
+End Structure</x>.Value)
+
+            VerifySyntax(Of InterfaceBlockSyntax)(
+                g.AddInterfaceType(ifaceI, g.IdentifierName("T")),
+<x>Interface I
+    Inherits T
+
+End Interface</x>.Value)
+
+        End Sub
+
+        <Fact>
         Public Sub TestMultiFieldMembers()
             Dim comp = Compile(
 <x>' Comment

@@ -1845,6 +1845,145 @@ public class C { } // end").Members[0];
         }
 
         [Fact]
+        public void TestGetBaseAndInterfaceTypes()
+        {
+            var classBI = SyntaxFactory.ParseCompilationUnit(
+@"class C : B, I
+{
+}").Members[0];
+
+            var baseListBI = g.GetBaseAndInterfaceTypes(classBI);
+            Assert.NotNull(baseListBI);
+            Assert.Equal(2, baseListBI.Count);
+            Assert.Equal("B", baseListBI[0].ToString());
+            Assert.Equal("I", baseListBI[1].ToString());
+
+            var classB = SyntaxFactory.ParseCompilationUnit(
+@"class C : B
+{
+}").Members[0];
+
+            var baseListB = g.GetBaseAndInterfaceTypes(classB);
+            Assert.NotNull(baseListB);
+            Assert.Equal(1, baseListB.Count);
+            Assert.Equal("B", baseListB[0].ToString());
+
+            var classN = SyntaxFactory.ParseCompilationUnit(
+@"class C
+{
+}").Members[0];
+
+            var baseListN = g.GetBaseAndInterfaceTypes(classN);
+            Assert.NotNull(baseListN);
+            Assert.Equal(0, baseListN.Count);
+        }
+
+        [Fact]
+        public void TestRemoveBaseAndInterfaceTypes()
+        {
+            var classBI = SyntaxFactory.ParseCompilationUnit(
+@"class C : B, I
+{
+}").Members[0];
+
+            var baseListBI = g.GetBaseAndInterfaceTypes(classBI);
+            Assert.NotNull(baseListBI);
+
+            VerifySyntax<ClassDeclarationSyntax>(
+                g.RemoveNode(classBI, baseListBI[0]),
+@"class C : I
+{
+}");
+
+            VerifySyntax<ClassDeclarationSyntax>(
+                g.RemoveNode(classBI, baseListBI[1]),
+@"class C : B
+{
+}");
+
+            VerifySyntax<ClassDeclarationSyntax>(
+                g.RemoveNodes(classBI, baseListBI),
+@"class C
+{
+}");
+        }
+
+        [Fact]
+        public void TestAddBaseType()
+        {
+            var classC = SyntaxFactory.ParseCompilationUnit(
+@"class C
+{
+}").Members[0];
+
+            var classCI = SyntaxFactory.ParseCompilationUnit(
+@"class C : I
+{
+}").Members[0];
+
+            var classCB = SyntaxFactory.ParseCompilationUnit(
+@"class C : B
+{
+}").Members[0];
+
+            VerifySyntax<ClassDeclarationSyntax>(
+                g.AddBaseType(classC, g.IdentifierName("T")),
+@"class C : T
+{
+}");
+
+            VerifySyntax<ClassDeclarationSyntax>(
+                g.AddBaseType(classCI, g.IdentifierName("T")),
+@"class C : T, I
+{
+}");
+
+            // TODO: find way to avoid this
+            VerifySyntax<ClassDeclarationSyntax>(
+                g.AddBaseType(classCB, g.IdentifierName("T")),
+@"class C : T, B
+{
+}");
+        }
+
+        [Fact]
+        public void TestAddInterfaceTypes()
+        {
+            var classC = SyntaxFactory.ParseCompilationUnit(
+@"class C
+{
+}").Members[0];
+
+            var classCI = SyntaxFactory.ParseCompilationUnit(
+@"class C : I
+{
+}").Members[0];
+
+            var classCB = SyntaxFactory.ParseCompilationUnit(
+@"class C : B
+{
+}").Members[0];
+
+            VerifySyntax<ClassDeclarationSyntax>(
+                g.AddInterfaceType(classC, g.IdentifierName("T")),
+@"class C : T
+{
+}");
+
+            VerifySyntax<ClassDeclarationSyntax>(
+                g.AddInterfaceType(classCI, g.IdentifierName("T")),
+@"class C : I, T
+{
+}");
+
+            VerifySyntax<ClassDeclarationSyntax>(
+                g.AddInterfaceType(classCB, g.IdentifierName("T")),
+@"class C : B, T
+{
+}");
+        }
+
+        [Fact]
         public void TestMultiFieldDeclarations()
         {
             var comp = Compile(

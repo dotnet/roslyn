@@ -922,6 +922,24 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract SyntaxNode WithSetAccessorStatements(SyntaxNode declaration, IEnumerable<SyntaxNode> statements);
 
         /// <summary>
+        /// Gets a list of the base and interface types for the declaration.
+        /// </summary>
+        public abstract IReadOnlyList<SyntaxNode> GetBaseAndInterfaceTypes(SyntaxNode declaration);
+
+        /// <summary>
+        /// Adds a base type to the declaration
+        /// </summary>
+        public abstract SyntaxNode AddBaseType(SyntaxNode declaration, SyntaxNode baseType);
+
+        /// <summary>
+        /// Adds an interface type to the declaration
+        /// </summary>
+        public abstract SyntaxNode AddInterfaceType(SyntaxNode declaration, SyntaxNode interfaceType);
+
+        #endregion
+
+        #region Remove, Replace, Insert
+        /// <summary>
         /// Replaces the node in the root's tree with the new node.
         /// </summary>
         public virtual SyntaxNode ReplaceNode(SyntaxNode root, SyntaxNode node, SyntaxNode newDeclaration)
@@ -974,7 +992,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             return newRoot;
         }
-
         #endregion
 
         #region Utility
