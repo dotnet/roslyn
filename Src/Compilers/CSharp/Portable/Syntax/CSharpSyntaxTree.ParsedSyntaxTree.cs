@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.options = options;
                 this.path = path;
                 this.root = cloneRoot ? this.CloneNodeAsRoot(root) : root;
-                this.hasCompilationUnitRoot = root.Kind == SyntaxKind.CompilationUnit;
+                this.hasCompilationUnitRoot = root.Kind() == SyntaxKind.CompilationUnit;
                 this.SetDirectiveStack(directives);
             }
 

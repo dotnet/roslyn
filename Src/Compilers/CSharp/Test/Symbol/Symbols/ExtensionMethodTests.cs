@@ -2889,7 +2889,7 @@ static class Extensions
             var memberAccess = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
 
             var call = (ExpressionSyntax)memberAccess.Parent;
-            Assert.Equal(SyntaxKind.InvocationExpression, call.Kind);
+            Assert.Equal(SyntaxKind.InvocationExpression, call.Kind());
 
             var info = model.GetSymbolInfo(call);
             Assert.Null(info.Symbol);
@@ -3028,13 +3028,13 @@ class Test
             var secondInvocationExpressionSymbol = model.GetSymbolInfo(secondInvocationExpression).Symbol;
 
             Assert.Equal("obj.InstanceMethod", firstInvocationExpression.ToString());
-            Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, firstInvocationExpression.Kind);
+            Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, firstInvocationExpression.Kind());
             Assert.Equal(SymbolKind.Method, firstInvocationSymbol.Kind);
             Assert.Equal("InstanceMethod", firstInvocationSymbol.Name);
             Assert.Equal(firstInvocationSymbol, firstInvocationExpressionSymbol);
 
             Assert.Equal("obj.ExtensionMethod", secondInvocationExpression.ToString());
-            Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, secondInvocationExpression.Kind);
+            Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, secondInvocationExpression.Kind());
             Assert.Equal(SymbolKind.Method, secondInvocationSymbol.Kind);
             Assert.Equal("ExtensionMethod", secondInvocationSymbol.Name);
             Assert.Equal(secondInvocationSymbol, secondInvocationExpressionSymbol);

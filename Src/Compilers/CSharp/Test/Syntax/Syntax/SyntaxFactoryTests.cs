@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Func<string, SyntaxToken> makeStringLiteral = value =>
                 SyntaxFactory.ParseToken(string.Format("\"{0}\"", value)).WithLeadingTrivia(SyntaxFactory.ElasticMarker).WithTrailingTrivia(SyntaxFactory.ElasticMarker);
             var t = SyntaxFactory.PragmaChecksumDirectiveTrivia(makeStringLiteral("file"), makeStringLiteral("guid"), makeStringLiteral("bytes"), true);
-            Assert.Equal(SyntaxKind.PragmaChecksumDirectiveTrivia, t.Kind);
+            Assert.Equal(SyntaxKind.PragmaChecksumDirectiveTrivia, t.Kind());
             Assert.Equal("#pragmachecksum\"file\"\"guid\"\"bytes\"", t.ToString());
             Assert.Equal("#pragma checksum \"file\" \"guid\" \"bytes\"\r\n", t.NormalizeWhitespace().ToString());
         }

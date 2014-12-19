@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(statement != null);
 
-            if (statement.Kind == SyntaxKind.EmptyStatement)
+            if (statement.Kind() == SyntaxKind.EmptyStatement)
             {
                 return false;
             }
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static SyntaxToken GetFirstIncludedToken(StatementSyntax statement, bool inRecursiveCall = false)
         {
             Debug.Assert(statement != null);
-            switch (statement.Kind)
+            switch (statement.Kind())
             {
                 case SyntaxKind.Block:
                     return ((BlockSyntax)statement).OpenBraceToken;
@@ -322,14 +322,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.YieldBreakStatement:
                     return ((YieldStatementSyntax)statement).YieldKeyword;
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(statement.Kind);
+                    throw ExceptionUtilities.UnexpectedValue(statement.Kind());
             }
         }
 
         private static SyntaxToken GetFirstExcludedToken(StatementSyntax statement)
         {
             Debug.Assert(statement != null);
-            switch (statement.Kind)
+            switch (statement.Kind())
             {
                 case SyntaxKind.Block:
                     return ((BlockSyntax)statement).CloseBraceToken;
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.YieldBreakStatement:
                     return ((YieldStatementSyntax)statement).SemicolonToken;
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(statement.Kind);
+                    throw ExceptionUtilities.UnexpectedValue(statement.Kind());
             }
         }
 
@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxToken firstIncluded;
             CSharpSyntaxNode body;
 
-            switch (anonymousFunction.Kind)
+            switch (anonymousFunction.Kind())
             {
                 case SyntaxKind.SimpleLambdaExpression:
                     SimpleLambdaExpressionSyntax simple = (SimpleLambdaExpressionSyntax)anonymousFunction;

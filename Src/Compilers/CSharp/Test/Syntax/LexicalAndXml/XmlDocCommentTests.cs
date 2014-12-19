@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
-            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
+            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
         }
 
         [WorkItem(537500, "DevDiv")]
@@ -105,7 +105,7 @@ class C { }";
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
             Assert.Equal(0, tree.GetCompilationUnitRoot().Errors().Length);
-            Assert.Equal(SyntaxKind.ClassDeclaration, tree.GetCompilationUnitRoot().Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, tree.GetCompilationUnitRoot().Members[0].Kind());
             var leading = tree.GetCompilationUnitRoot().Members[0].GetLeadingTrivia();
             Assert.Equal(1, leading.Count);
             var node = leading[0];
@@ -113,10 +113,10 @@ class C { }";
             Assert.Equal("/// <foo />\r\n", node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(3, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind);
+            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind());
         }
 
         [Fact]
@@ -134,10 +134,10 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(3, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind);
+            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind());
         }
 
         [Fact]
@@ -151,7 +151,7 @@ class C { }";
             Assert.NotNull(tree);
             Assert.Equal(text, tree.GetCompilationUnitRoot().ToFullString());
             Assert.Equal(0, tree.GetCompilationUnitRoot().Errors().Length);
-            Assert.Equal(SyntaxKind.ClassDeclaration, tree.GetCompilationUnitRoot().Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, tree.GetCompilationUnitRoot().Members[0].Kind());
             var leading = tree.GetCompilationUnitRoot().Members[0].GetLeadingTrivia();
             Assert.Equal(2, leading.Count); // a new line follows the comment
             var node = leading[0];
@@ -159,10 +159,10 @@ class C { }";
             Assert.Equal("/** <foo /> */", node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(3, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind);
+            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind());
         }
 
         [Fact]
@@ -181,9 +181,9 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
             var element = (XmlEmptyElementSyntax)doc.Content[1];
             Assert.Equal(1, element.Attributes.Count);
         }
@@ -204,9 +204,9 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
             var element = (XmlEmptyElementSyntax)doc.Content[1];
             Assert.Equal(1, element.Attributes.Count);
         }
@@ -227,12 +227,12 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
             var element = (XmlEmptyElementSyntax)doc.Content[1];
             Assert.Equal(1, element.Attributes.Count);
-            Assert.Equal(SyntaxKind.XmlTextAttribute, element.Attributes[0].Kind);
+            Assert.Equal(SyntaxKind.XmlTextAttribute, element.Attributes[0].Kind());
             var attr = (XmlTextAttributeSyntax)element.Attributes[0];
             Assert.Equal(1, attr.TextTokens.Count);
             Assert.Equal("x'y'z", attr.TextTokens[0].ToString());
@@ -254,12 +254,12 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
             var element = (XmlEmptyElementSyntax)doc.Content[1];
             Assert.Equal(1, element.Attributes.Count);
-            Assert.Equal(SyntaxKind.XmlTextAttribute, element.Attributes[0].Kind);
+            Assert.Equal(SyntaxKind.XmlTextAttribute, element.Attributes[0].Kind());
             var attr = (XmlTextAttributeSyntax)element.Attributes[0];
             Assert.Equal(1, attr.TextTokens.Count);
             Assert.Equal("x\"y\"z", attr.TextTokens[0].ToString());
@@ -282,9 +282,9 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
             Assert.Equal("<foo \r\n/// />", doc.Content[1].ToFullString());
         }
 
@@ -306,11 +306,11 @@ class C { }";
             Assert.Equal("/// <foo \r\n/// />\r\n", node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(3, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
             Assert.Equal("<foo \r\n/// />", doc.Content[1].ToFullString());
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind());
         }
 
         [Fact]
@@ -331,11 +331,11 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(3, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
             Assert.Equal("<foo \r\n  * />", doc.Content[1].ToFullString());
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind());
         }
 
         [Fact]
@@ -357,11 +357,11 @@ class C { }";
             Assert.Equal("/** <foo \r\n  * />\r\n  */", node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(3, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
             Assert.Equal("<foo \r\n  * />", doc.Content[1].ToFullString());
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind());
         }
 
         [Fact]
@@ -384,9 +384,9 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
             var element = (XmlEmptyElementSyntax)doc.Content[1];
             Assert.Equal(1, element.Attributes.Count);
         }
@@ -411,9 +411,9 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
             var element = (XmlEmptyElementSyntax)doc.Content[1];
             Assert.Equal(1, element.Attributes.Count);
         }
@@ -439,12 +439,12 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(3, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
             var element = (XmlEmptyElementSyntax)doc.Content[1];
             Assert.Equal(1, element.Attributes.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind());
         }
 
         [Fact]
@@ -468,12 +468,12 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(3, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
             var element = (XmlEmptyElementSyntax)doc.Content[1];
             Assert.Equal(1, element.Attributes.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind());
         }
 
         [Fact]
@@ -498,9 +498,9 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
             var element = (XmlEmptyElementSyntax)doc.Content[1];
             Assert.Equal(1, element.Attributes.Count);
         }
@@ -527,9 +527,9 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
             var element = (XmlEmptyElementSyntax)doc.Content[1];
             Assert.Equal(1, element.Attributes.Count);
         }
@@ -557,12 +557,12 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(3, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
             var element = (XmlEmptyElementSyntax)doc.Content[1];
             Assert.Equal(1, element.Attributes.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind());
         }
 
         [Fact]
@@ -588,12 +588,12 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(3, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
             var element = (XmlEmptyElementSyntax)doc.Content[1];
             Assert.Equal(1, element.Attributes.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind());
         }
 
         [Fact]
@@ -611,9 +611,9 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
             var element = (XmlEmptyElementSyntax)doc.Content[1];
             Assert.Equal("foo.bar", element.Name.ToString());
         }
@@ -633,9 +633,9 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
             var element = (XmlEmptyElementSyntax)doc.Content[1];
             Assert.Equal("foo:bar", element.Name.ToString());
         }
@@ -655,9 +655,9 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
             var element = (XmlEmptyElementSyntax)doc.Content[1];
             Assert.Equal("abc-def", element.Name.ToString());
         }
@@ -677,9 +677,9 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
             var element = (XmlEmptyElementSyntax)doc.Content[1];
             Assert.Equal("foo123", element.Name.ToString());
         }
@@ -719,9 +719,9 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlElement, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlElement, doc.Content[1].Kind());
             var element = (XmlElementSyntax)doc.Content[1];
             Assert.Equal("foo", element.StartTag.Name.ToString());
             Assert.Equal("foo", element.EndTag.Name.ToString());
@@ -753,9 +753,9 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(3, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlElement, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlElement, doc.Content[1].Kind());
             var element = (XmlElementSyntax)doc.Content[1];
             Assert.Equal("foo", element.StartTag.Name.ToString());
             Assert.Equal("foo", element.EndTag.Name.ToString());
@@ -786,9 +786,9 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlCDataSection, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlCDataSection, doc.Content[1].Kind());
             var cdata = (XmlCDataSectionSyntax)doc.Content[1];
             Assert.Equal(5, cdata.TextTokens.Count);
             Assert.Equal(" this is a test", cdata.TextTokens[0].ToString());
@@ -817,9 +817,9 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(3, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlCDataSection, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlCDataSection, doc.Content[1].Kind());
             var cdata = (XmlCDataSectionSyntax)doc.Content[1];
             Assert.Equal(5, cdata.TextTokens.Count);
             Assert.Equal(" this is a test", cdata.TextTokens[0].ToString());
@@ -827,7 +827,7 @@ class C { }";
             Assert.Equal(" of &some; cdata", cdata.TextTokens[2].ToString());
             Assert.Equal("\r\n", cdata.TextTokens[3].ToString());
             Assert.Equal(" \"']]<>/></text", cdata.TextTokens[4].ToString());
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind());
         }
 
         [Fact]
@@ -845,9 +845,9 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlCDataSection, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlCDataSection, doc.Content[1].Kind());
             var cdata = (XmlCDataSectionSyntax)doc.Content[1];
             Assert.Equal(1, cdata.ErrorsAndWarnings().Length);
             Assert.Equal(1, cdata.TextTokens.Count);
@@ -870,9 +870,9 @@ class C { }"; // end of line/comment
             Assert.Equal("/// <![CDATA[ incomplete\r\n", node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlCDataSection, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlCDataSection, doc.Content[1].Kind());
             var cdata = (XmlCDataSectionSyntax)doc.Content[1];
             Assert.Equal(1, cdata.ErrorsAndWarnings().Length);
             Assert.Equal(2, cdata.TextTokens.Count);
@@ -896,9 +896,9 @@ class C { }"; // end of line/comment
             Assert.Equal("/// <![CDATA[ incomplete\u0085", node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlCDataSection, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlCDataSection, doc.Content[1].Kind());
             var cdata = (XmlCDataSectionSyntax)doc.Content[1];
             Assert.Equal(1, cdata.ErrorsAndWarnings().Length);
             Assert.Equal(2, cdata.TextTokens.Count);
@@ -921,9 +921,9 @@ class C { }"; // end of line/comment
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlCDataSection, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlCDataSection, doc.Content[1].Kind());
             var cdata = (XmlCDataSectionSyntax)doc.Content[1];
             Assert.Equal(1, cdata.ErrorsAndWarnings().Length);
             Assert.Equal(1, cdata.TextTokens.Count);
@@ -948,9 +948,9 @@ class C { }"; // end of line/comment
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlComment, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlComment, doc.Content[1].Kind());
             var comment = (XmlCommentSyntax)doc.Content[1];
             Assert.Equal(5, comment.TextTokens.Count);
             Assert.Equal(" this is a test", comment.TextTokens[0].ToString());
@@ -979,9 +979,9 @@ class C { }"; // end of line/comment
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(3, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlComment, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlComment, doc.Content[1].Kind());
             var comment = (XmlCommentSyntax)doc.Content[1];
             Assert.Equal(5, comment.TextTokens.Count);
             Assert.Equal(" this is a test", comment.TextTokens[0].ToString());
@@ -989,7 +989,7 @@ class C { }"; // end of line/comment
             Assert.Equal(" of &some; comment", comment.TextTokens[2].ToString());
             Assert.Equal("\r\n", comment.TextTokens[3].ToString());
             Assert.Equal(" \"']]<>/></text", comment.TextTokens[4].ToString());
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind());
         }
 
         [Fact]
@@ -1007,9 +1007,9 @@ class C { }"; // end of line/comment
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlComment, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlComment, doc.Content[1].Kind());
             var comment = (XmlCommentSyntax)doc.Content[1];
             Assert.Equal(1, comment.ErrorsAndWarnings().Length);
             Assert.Equal(1, comment.TextTokens.Count);
@@ -1032,9 +1032,9 @@ class C { }"; // end of line/comment
             Assert.Equal("/// <!-- incomplete\r\n", node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlComment, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlComment, doc.Content[1].Kind());
             var comment = (XmlCommentSyntax)doc.Content[1];
             Assert.Equal(1, comment.ErrorsAndWarnings().Length);
             Assert.Equal(2, comment.TextTokens.Count);
@@ -1057,9 +1057,9 @@ class C { }"; // end of line/comment
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlComment, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlComment, doc.Content[1].Kind());
             var comment = (XmlCommentSyntax)doc.Content[1];
             Assert.Equal(1, comment.ErrorsAndWarnings().Length);
             Assert.Equal(1, comment.TextTokens.Count);
@@ -1084,9 +1084,9 @@ class C { }"; // end of line/comment
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlProcessingInstruction, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlProcessingInstruction, doc.Content[1].Kind());
             var ProcessingInstruction = (XmlProcessingInstructionSyntax)doc.Content[1];
             Assert.Null(ProcessingInstruction.Name.Prefix);
             Assert.Equal("ProcessingInstruction", ProcessingInstruction.Name.LocalName.Text);
@@ -1117,9 +1117,9 @@ class C { }"; // end of line/comment
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(3, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlProcessingInstruction, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlProcessingInstruction, doc.Content[1].Kind());
             var ProcessingInstruction = (XmlProcessingInstructionSyntax)doc.Content[1];
             Assert.Equal("prefix", ProcessingInstruction.Name.Prefix.Prefix.Text);
             Assert.Equal(":", ProcessingInstruction.Name.Prefix.ColonToken.Text);
@@ -1130,7 +1130,7 @@ class C { }"; // end of line/comment
             Assert.Equal(" of &a; ProcessingInstruction", ProcessingInstruction.TextTokens[2].ToString());
             Assert.Equal("\r\n", ProcessingInstruction.TextTokens[3].ToString());
             Assert.Equal(" \"']]>/></text>]]>", ProcessingInstruction.TextTokens[4].ToString());
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind());
         }
 
         [Fact]
@@ -1148,9 +1148,9 @@ class C { }"; // end of line/comment
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlProcessingInstruction, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlProcessingInstruction, doc.Content[1].Kind());
             var ProcessingInstruction = (XmlProcessingInstructionSyntax)doc.Content[1];
             Assert.Null(ProcessingInstruction.Name.Prefix);
             Assert.Equal("incomplete", ProcessingInstruction.Name.LocalName.Text);
@@ -1174,9 +1174,9 @@ class C { }"; // end of line/comment
             Assert.Equal("/// <?name incomplete\u0085", node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlProcessingInstruction, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlProcessingInstruction, doc.Content[1].Kind());
             var ProcessingInstruction = (XmlProcessingInstructionSyntax)doc.Content[1];
             Assert.Null(ProcessingInstruction.Name.Prefix);
             Assert.Equal("name", ProcessingInstruction.Name.LocalName.Text);
@@ -1201,9 +1201,9 @@ class C { }"; // end of line/comment
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlProcessingInstruction, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlProcessingInstruction, doc.Content[1].Kind());
             var ProcessingInstruction = (XmlProcessingInstructionSyntax)doc.Content[1];
             Assert.Null(ProcessingInstruction.Name.Prefix);
             Assert.Equal("name", ProcessingInstruction.Name.LocalName.Text);
@@ -1229,7 +1229,7 @@ class C { }"; // end of line/comment
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(1, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
         }
 
@@ -1274,7 +1274,7 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(1, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
             var xmltext = (XmlTextSyntax)doc.Content[0];
             Assert.Equal(2, xmltext.TextTokens.Count);
@@ -1298,7 +1298,7 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(1, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
             var xmltext = (XmlTextSyntax)doc.Content[0];
             Assert.Equal(3, xmltext.TextTokens.Count);
@@ -1323,7 +1323,7 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(1, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
             var xmltext = (XmlTextSyntax)doc.Content[0];
             Assert.Equal(2, xmltext.TextTokens.Count);
@@ -1347,7 +1347,7 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(1, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
             var xmltext = (XmlTextSyntax)doc.Content[0];
             Assert.Equal(3, xmltext.TextTokens.Count);
@@ -1372,7 +1372,7 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(1, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
             var xmltext = (XmlTextSyntax)doc.Content[0];
             Assert.Equal(2, xmltext.TextTokens.Count);
@@ -1396,7 +1396,7 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(1, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
             var xmltext = (XmlTextSyntax)doc.Content[0];
             Assert.Equal(3, xmltext.TextTokens.Count);
@@ -1421,7 +1421,7 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(1, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
             var xmltext = (XmlTextSyntax)doc.Content[0];
             Assert.Equal(2, xmltext.TextTokens.Count);
@@ -1445,7 +1445,7 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(1, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
             var xmltext = (XmlTextSyntax)doc.Content[0];
             Assert.Equal(3, xmltext.TextTokens.Count);
@@ -1525,9 +1525,9 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
             var element = (XmlEmptyElementSyntax)doc.Content[1];
             Assert.Equal(1, element.Attributes.Count);
             var attribute = (XmlTextAttributeSyntax)element.Attributes[0];
@@ -1553,9 +1553,9 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             Assert.True(doc.Content[0].HasLeadingTrivia);
-            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
             var element = (XmlEmptyElementSyntax)doc.Content[1];
             Assert.Equal(1, element.Attributes.Count);
             var attribute = (XmlTextAttributeSyntax)element.Attributes[0];
@@ -1581,8 +1581,8 @@ class C { }";
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(2, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
-            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
+            Assert.Equal(SyntaxKind.XmlEmptyElement, doc.Content[1].Kind());
             var element = (XmlEmptyElementSyntax)doc.Content[1];
             Assert.Equal(1, element.Attributes.Count);
             Assert.NotEqual(0, element.Attributes[0].ErrorsAndWarnings().Length);
@@ -1607,7 +1607,7 @@ x
             Assert.Equal(text, node.ToFullString());
             var doc = (DocumentationCommentTriviaSyntax)node.GetStructure();
             Assert.Equal(1, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
             var xmltext = (XmlTextSyntax)doc.Content[0];
             Assert.Equal(3, xmltext.ChildNodesAndTokens().Count);
             Assert.Equal(SyntaxKind.XmlTextLiteralNewLineToken, xmltext.ChildNodesAndTokens()[0].Kind());
@@ -2731,9 +2731,9 @@ class A
             var doc = trivias[1].GetStructure() as DocumentationCommentTriviaSyntax;
 
             Assert.Equal(3, doc.Content.Count);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind);
-            Assert.Equal(SyntaxKind.XmlElement, doc.Content[1].Kind);
-            Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind);
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[0].Kind());
+            Assert.Equal(SyntaxKind.XmlElement, doc.Content[1].Kind());
+            Assert.Equal(SyntaxKind.XmlText, doc.Content[2].Kind());
         }
 
         [WorkItem(546989, "DevDiv")]

@@ -108,13 +108,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public MustOverride Sub Accept(visitor As VisualBasicSyntaxVisitor)
 
         ''' <summary>
-        ''' The kind of this node.
+        ''' Returns the <see cref="SyntaxKind"/> of the node.
         ''' </summary>
-        Friend Shadows ReadOnly Property Kind As SyntaxKind
-            Get
-                Return CType(Me.Green.RawKind, SyntaxKind)
-            End Get
-        End Property
+        Public Function Kind() As SyntaxKind
+            Return CType(Me.Green.RawKind, SyntaxKind)
+        End Function
 
         <Obsolete("To be removed, use Kind() instead.", True), EditorBrowsable(EditorBrowsableState.Never)>
         Public Function VBKind() As SyntaxKind

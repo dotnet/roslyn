@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void ReportUnassigned(Symbol symbol, CSharpSyntaxNode node)
         {
-            if (node.Parent.Kind == SyntaxKind.AddressOfExpression)
+            if (node.Parent.Kind() == SyntaxKind.AddressOfExpression)
             {
                 result.Add((PrefixUnaryExpressionSyntax)node.Parent);
             }
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void ReportUnassigned(FieldSymbol fieldSymbol, int unassignedSlot, CSharpSyntaxNode node)
         {
-            if (node.Parent.Kind == SyntaxKind.AddressOfExpression)
+            if (node.Parent.Kind() == SyntaxKind.AddressOfExpression)
             {
                 result.Add((PrefixUnaryExpressionSyntax)node.Parent);
             }

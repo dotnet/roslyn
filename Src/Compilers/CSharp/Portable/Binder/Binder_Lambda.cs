@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SeparatedSyntaxList<ParameterSyntax>? parameterSyntaxList = null;
             bool hasSignature;
 
-            switch (syntax.Kind)
+            switch (syntax.Kind())
             {
                 default:
                 case SyntaxKind.SimpleLambdaExpression:

@@ -114,12 +114,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // drill into any LabeledStatements -- atomic LabelStatements have been bound into
                 // wrapped LabeledStatements by this point
-                while (innerStatement.Kind == SyntaxKind.LabeledStatement)
+                while (innerStatement.Kind() == SyntaxKind.LabeledStatement)
                 {
                     innerStatement = ((LabeledStatementSyntax)innerStatement).Statement;
                 }
 
-                if (innerStatement.Kind == SyntaxKind.LocalDeclarationStatement)
+                if (innerStatement.Kind() == SyntaxKind.LocalDeclarationStatement)
                 {
                     var decl = (LocalDeclarationStatementSyntax)innerStatement;
                     if (locals == null)
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var statement in statements)
             {
                 var stmt = statement;
-                while (stmt.Kind == SyntaxKind.LabeledStatement)
+                while (stmt.Kind() == SyntaxKind.LabeledStatement)
                 {
                     var labeledStatement = (LabeledStatementSyntax)stmt;
                     if (labels == null)

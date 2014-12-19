@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundExpression BindCompoundAssignment(AssignmentExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            BoundExpression left = BindValue(node.Left, diagnostics, GetBinaryAssignmentKind(node.Kind));
+            BoundExpression left = BindValue(node.Left, diagnostics, GetBinaryAssignmentKind(node.Kind()));
             BoundExpression right = BindValue(node.Right, diagnostics, BindValueKind.RValue);
-            BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind);
+            BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind());
 
             // If either operand is bad, don't try to do binary operator overload resolution; that will just
             // make cascading errors.  
@@ -397,13 +397,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // creating a deep-on-the-left syntax tree no problem, and then we promptly blow the stack during
             // semantic analysis. Here we build an explicit stack to handle the left-hand recursion.
 
-            Debug.Assert(IsSimpleBinaryOperator(node.Kind));
+            Debug.Assert(IsSimpleBinaryOperator(node.Kind()));
 
             var expressions = ArrayBuilder<BoundExpression>.GetInstance();
             var syntaxNodes = ArrayBuilder<BinaryExpressionSyntax>.GetInstance();
 
             ExpressionSyntax current = node;
-            while (IsSimpleBinaryOperator(current.Kind))
+            while (IsSimpleBinaryOperator(current.Kind()))
             {
                 var binOp = (BinaryExpressionSyntax)current;
                 syntaxNodes.Push(binOp);
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (syntaxNodes.Count > 0)
             {
                 BinaryExpressionSyntax syntaxNode = syntaxNodes.Pop();
-                BindValueKind bindValueKind = GetBinaryAssignmentKind(syntaxNode.Kind);
+                BindValueKind bindValueKind = GetBinaryAssignmentKind(syntaxNode.Kind());
                 BoundExpression left = expressions.Pop();
                 BoundExpression right = expressions.Pop();
                 left = CheckValue(left, bindValueKind, diagnostics);
@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindSimpleBinaryOperator(BinaryExpressionSyntax node, DiagnosticBag diagnostics,
             BoundExpression left, BoundExpression right)
         {
-            BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind);
+            BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind());
 
             // If either operand is bad, don't try to do binary operator overload resolution; that will just
             // make cascading errors.  
@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultOperatorKind &= ~BinaryOperatorKind.TypeMask;
             }
 
-            switch (node.Kind)
+            switch (node.Kind())
             {
                 case SyntaxKind.EqualsExpression:
                 case SyntaxKind.NotEqualsExpression:
@@ -625,7 +625,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression left = BindValue(node.Left, diagnostics, BindValueKind.RValue);
             BoundExpression right = BindValue(node.Right, diagnostics, BindValueKind.RValue);
-            BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind);
+            BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind());
 
             Debug.Assert(kind == BinaryOperatorKind.LogicalAnd || kind == BinaryOperatorKind.LogicalOr);
 
@@ -1743,7 +1743,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindIncrementOperator(CSharpSyntaxNode node, ExpressionSyntax operandSyntax, SyntaxToken operatorToken, DiagnosticBag diagnostics)
         {
             BoundExpression operand = BindValue(operandSyntax, diagnostics, BindValueKind.IncrementDecrement);
-            UnaryOperatorKind kind = SyntaxKindToUnaryOperatorKind(node.Kind);
+            UnaryOperatorKind kind = SyntaxKindToUnaryOperatorKind(node.Kind());
 
             // If the operand is bad, avoid generating cascading errors.
             if (operand.HasAnyErrors)
@@ -1842,7 +1842,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Based on ExpressionBinder::bindPtrIndirection.
         private BoundExpression BindPointerIndirectionExpression(PrefixUnaryExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            BoundExpression operand = BindValue(node.Operand, diagnostics, GetUnaryAssignmentKind(node.Kind));
+            BoundExpression operand = BindValue(node.Operand, diagnostics, GetUnaryAssignmentKind(node.Kind()));
 
             TypeSymbol pointedAtType;
             bool hasErrors;
@@ -2046,14 +2046,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindUnaryOperator(PrefixUnaryExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            BoundExpression operand = BindValue(node.Operand, diagnostics, GetUnaryAssignmentKind(node.Kind));
+            BoundExpression operand = BindValue(node.Operand, diagnostics, GetUnaryAssignmentKind(node.Kind()));
             BoundLiteral constant = BindIntegralMinValConstants(node, operand, diagnostics);
             return constant ?? BindUnaryOperatorCore(node, node.OperatorToken.Text, operand, diagnostics);
         }
 
         private BoundExpression BindUnaryOperatorCore(CSharpSyntaxNode node, string operatorText, BoundExpression operand, DiagnosticBag diagnostics)
         {
-            UnaryOperatorKind kind = SyntaxKindToUnaryOperatorKind(node.Kind);
+            UnaryOperatorKind kind = SyntaxKindToUnaryOperatorKind(node.Kind());
 
             bool isOperandTypeNull = (object)operand.Type == null;
             if (isOperandTypeNull)
@@ -2361,12 +2361,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: or the integer-type-suffix L or l appears as the token immediately following a unary minus 
             // SPEC: operator token, the result is a constant of type long with the value −9223372036854775808. 
 
-            if (node.Kind != SyntaxKind.UnaryMinusExpression)
+            if (node.Kind() != SyntaxKind.UnaryMinusExpression)
             {
                 return null;
             }
 
-            if (operand.Syntax.Kind != SyntaxKind.NumericLiteralExpression)
+            if (operand.Syntax.Kind() != SyntaxKind.NumericLiteralExpression)
             {
                 return null;
             }

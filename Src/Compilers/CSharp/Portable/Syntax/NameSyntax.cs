@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             NameSyntax name = this;
             while (true)
             {
-                switch (name.Kind)
+                switch (name.Kind())
                 {
                     case SyntaxKind.QualifiedName:
                         name = ((QualifiedNameSyntax)name).Left;

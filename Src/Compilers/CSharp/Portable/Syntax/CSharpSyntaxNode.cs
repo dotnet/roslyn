@@ -114,14 +114,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Gets the <see cref="SyntaxKind"/>  of the node.
+        /// Returns the <see cref="SyntaxKind"/> of the node.
         /// </summary>
-        internal SyntaxKind Kind
+        public SyntaxKind Kind()
         {
-            get
-            {
-                return (SyntaxKind)this.Green.RawKind;
-            }
+            return (SyntaxKind)this.Green.RawKind;
         }
 
         [Obsolete("To be removed, use Kind() instead."), EditorBrowsable(EditorBrowsableState.Never)]
@@ -134,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this.Kind.ToString();
+                return this.Kind().ToString();
             }
         }
 
@@ -714,7 +711,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (curr != null)
             {
                 // Don't return a trivia token unless we're in the scope of a cref or name attribute.
-                if (curr.Kind == SyntaxKind.XmlCrefAttribute || curr.Kind == SyntaxKind.XmlNameAttribute)
+                if (curr.Kind() == SyntaxKind.XmlCrefAttribute || curr.Kind() == SyntaxKind.XmlNameAttribute)
                 {
                     return LookupPosition.IsInXmlAttributeValue(position, (XmlAttributeSyntax)curr)
                         ? triviaToken

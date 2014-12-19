@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         SeparatedSyntaxList<ArgumentSyntax> arguments = declarator.ArgumentList.Arguments;
 
-                        if (arguments.Count == 0 || arguments[0].Expression.Kind == SyntaxKind.OmittedArraySizeExpression)
+                        if (arguments.Count == 0 || arguments[0].Expression.Kind() == SyntaxKind.OmittedArraySizeExpression)
                         {
                             Debug.Assert(declarator.ArgumentList.ContainsDiagnostics, "The parser should have caught this.");
                         }

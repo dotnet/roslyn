@@ -809,7 +809,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(enableCallerInfo == ThreeState.Unknown);
 
-            switch (syntax.Kind)
+            switch (syntax.Kind())
             {
                 case SyntaxKind.InvocationExpression:
                     return new SourceLocation(((InvocationExpressionSyntax)syntax).ArgumentList.OpenParenToken);
@@ -910,7 +910,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             BaseFieldDeclarationSyntax fieldDecl;
 
-                            if (memberDecl.Kind == SyntaxKind.PropertyDeclaration)
+                            if (memberDecl.Kind() == SyntaxKind.PropertyDeclaration)
                             {
                                 var propDecl = (PropertyDeclarationSyntax)memberDecl;
                                 EqualsValueClauseSyntax initializer = propDecl.Initializer;

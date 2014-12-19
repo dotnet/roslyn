@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// the suppress flag.</returns>
         private bool ReportUnsafeIfNotAllowed(CSharpSyntaxNode node, TypeSymbol sizeOfTypeOpt, DiagnosticBag diagnostics)
         {
-            Debug.Assert((node.Kind == SyntaxKind.SizeOfExpression) == !ReferenceEquals(sizeOfTypeOpt, null), "Should have a type for (only) sizeof expressions.");
+            Debug.Assert((node.Kind() == SyntaxKind.SizeOfExpression) == !ReferenceEquals(sizeOfTypeOpt, null), "Should have a type for (only) sizeof expressions.");
             return ReportUnsafeIfNotAllowed(node.Location, sizeOfTypeOpt, diagnostics);
         }
 

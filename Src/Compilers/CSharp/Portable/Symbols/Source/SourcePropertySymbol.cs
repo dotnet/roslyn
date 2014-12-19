@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics)
         {
             // This has the value that IsIndexer will ultimately have, once we've populated the fields of this object.
-            bool isIndexer = syntax.Kind == SyntaxKind.IndexerDeclaration;
+            bool isIndexer = syntax.Kind() == SyntaxKind.IndexerDeclaration;
             var interfaceSpecifier = GetExplicitInterfaceSpecifier(syntax);
             bool isExplicitInterfaceImplementation = (interfaceSpecifier != null);
 
@@ -119,12 +119,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var accessor in syntax.AccessorList.Accessors)
                 {
-                    if (accessor.Kind == SyntaxKind.GetAccessorDeclaration &&
+                    if (accessor.Kind() == SyntaxKind.GetAccessorDeclaration &&
                         (getSyntax == null || getSyntax.Keyword.Span.IsEmpty))
                     {
                         getSyntax = accessor;
                     }
-                    else if (accessor.Kind == SyntaxKind.SetAccessorDeclaration &&
+                    else if (accessor.Kind() == SyntaxKind.SetAccessorDeclaration &&
                         (setSyntax == null || setSyntax.Keyword.Span.IsEmpty))
                     {
                         setSyntax = accessor;
@@ -402,13 +402,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if ((object)this.lazyType != null)
                 {
                     Debug.Assert(this.lazyType.IsPointerType() ==
-                         (((BasePropertyDeclarationSyntax)this.syntaxRef.GetSyntax()).Type.Kind == SyntaxKind.PointerType));
+                         (((BasePropertyDeclarationSyntax)this.syntaxRef.GetSyntax()).Type.Kind() == SyntaxKind.PointerType));
 
                     return this.lazyType.IsPointerType();
                 }
 
                 var syntax = (BasePropertyDeclarationSyntax)this.syntaxRef.GetSyntax();
-                return syntax.Type.Kind == SyntaxKind.PointerType;
+                return syntax.Type.Kind() == SyntaxKind.PointerType;
             }
         }
 
@@ -1294,20 +1294,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static ExplicitInterfaceSpecifierSyntax GetExplicitInterfaceSpecifier(BasePropertyDeclarationSyntax syntax)
         {
-            switch (syntax.Kind)
+            switch (syntax.Kind())
             {
                 case SyntaxKind.PropertyDeclaration:
                     return ((PropertyDeclarationSyntax)syntax).ExplicitInterfaceSpecifier;
                 case SyntaxKind.IndexerDeclaration:
                     return ((IndexerDeclarationSyntax)syntax).ExplicitInterfaceSpecifier;
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(syntax.Kind);
+                    throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
             }
         }
 
         private static BaseParameterListSyntax GetParameterListSyntax(BasePropertyDeclarationSyntax syntax)
         {
-            return (syntax.Kind == SyntaxKind.IndexerDeclaration) ? ((IndexerDeclarationSyntax)syntax).ParameterList : null;
+            return (syntax.Kind() == SyntaxKind.IndexerDeclaration) ? ((IndexerDeclarationSyntax)syntax).ParameterList : null;
         }
     }
 }

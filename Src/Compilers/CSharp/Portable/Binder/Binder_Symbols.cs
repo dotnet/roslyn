@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal Symbol BindNamespaceOrTypeOrAliasSymbol(ExpressionSyntax syntax, DiagnosticBag diagnostics, ConsList<Symbol> basesBeingResolved, bool suppressUseSiteDiagnostics)
         {
-            switch (syntax.Kind)
+            switch (syntax.Kind())
             {
                 case SyntaxKind.NullableType:
                     {
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(syntax.Kind);
+                    throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
             }
         }
 
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // right hand side of the "::" here because it is so similar to a simple name; the left hand
             // side is in qualifierOpt.
 
-            switch (syntax.Kind)
+            switch (syntax.Kind())
             {
                 default:
                     return new ExtendedErrorTypeSymbol(qualifierOpt ?? this.Compilation.Assembly.GlobalNamespace, string.Empty, arity: 0, errorInfo: null);
@@ -489,7 +489,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // we actually have the type dynamic (assuming /langversion is at least 4).
             if ((object)qualifierOpt == null &&
                 node.Parent != null &&
-                node.Parent.Kind != SyntaxKind.Attribute && // dynamic not allowed as an attribute type
+                node.Parent.Kind() != SyntaxKind.Attribute && // dynamic not allowed as an attribute type
                 SyntaxFacts.IsInTypeOnlyContext(node) &&
                 node.Identifier.ToString() == "dynamic" &&
                 !IsViableType(result) &&
@@ -837,7 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Unsafe types can never be type arguments, but there's a special error code for that.
             var binder = this.WithAdditionalFlags(BinderFlags.SuppressUnsafeDiagnostics);
 
-            var arg = typeArgument.Kind == SyntaxKind.OmittedTypeArgument
+            var arg = typeArgument.Kind() == SyntaxKind.OmittedTypeArgument
                 ? UnboundArgumentErrorTypeSymbol.Instance
                 : binder.BindType(typeArgument, diagnostics, basesBeingResolved);
             if (arg.IsStatic)
@@ -1509,7 +1509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CSharpSyntaxNode node = where;
                 while (node is ExpressionSyntax)
                 {
-                    if (node.Kind == SyntaxKind.AliasQualifiedName)
+                    if (node.Kind() == SyntaxKind.AliasQualifiedName)
                     {
                         aliasOpt = ((AliasQualifiedNameSyntax)node).Alias.Identifier.ValueText;
                         break;

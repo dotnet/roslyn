@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)
         {
-            if (node.Kind == SyntaxKind.Block)
+            if (node.Kind() == SyntaxKind.Block)
             {
                 if (((BlockSyntax)node).Statements == statements)
                 {

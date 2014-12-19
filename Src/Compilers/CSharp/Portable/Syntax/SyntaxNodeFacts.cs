@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parent = node.Parent;
             if (parent != null)
             {
-                switch (parent.Kind)
+                switch (parent.Kind())
                 {
                     case SyntaxKind.Attribute:
                     return ((AttributeSyntax)parent).Name == node;
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var parent = node.Parent;
                 if (parent != null)
                 {
-                    switch (parent.Kind)
+                    switch (parent.Kind())
                     {
                         case SyntaxKind.UsingDirective:
                         return ((UsingDirectiveSyntax)parent).Name == node;
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     pre-decrement-expression
             //     await-expression
 
-            switch (syntax.Kind)
+            switch (syntax.Kind())
             {
                 case SyntaxKind.InvocationExpression:
                 case SyntaxKind.ObjectCreationExpression:

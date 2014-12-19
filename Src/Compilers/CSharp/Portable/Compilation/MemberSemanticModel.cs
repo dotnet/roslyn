@@ -167,14 +167,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
-                else if (current.Kind == SyntaxKind.CatchClause)
+                else if (current.Kind() == SyntaxKind.CatchClause)
                 {
                     if (LookupPosition.IsInCatchBlockScope(position, (CatchClauseSyntax)current))
                     {
                         binder = RootBinder.GetBinder(current);
                     }
                 }
-                else if (current.Kind == SyntaxKind.CatchFilterClause)
+                else if (current.Kind() == SyntaxKind.CatchFilterClause)
                 {
                     if (LookupPosition.IsInCatchFilterScope(position, (CatchFilterClauseSyntax)current))
                     {
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
-                else if (current.Kind == SyntaxKind.TypeOfExpression && typeOfArgument == null)
+                else if (current.Kind() == SyntaxKind.TypeOfExpression && typeOfArgument == null)
                 {
                     typeOfArgument = ((TypeOfExpressionSyntax)current).Type;
                     typeOfEncounteredBeforeUnexpectedAnonymousFunction = unexpectedAnonymousFunction == null;
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                   new LambdaSymbol(binder.ContainingMemberOrLambda,
                                                                    ImmutableArray<ParameterSymbol>.Empty,
                                                                    ErrorTypeSymbol.UnknownResultType,
-                                                                   unexpectedAnonymousFunction.Kind == SyntaxKind.AnonymousMethodExpression ? MessageID.IDS_AnonMethod : MessageID.IDS_Lambda,
+                                                                   unexpectedAnonymousFunction.Kind() == SyntaxKind.AnonymousMethodExpression ? MessageID.IDS_AnonMethod : MessageID.IDS_Lambda,
                                                                    unexpectedAnonymousFunction,
                                                                    isSynthesized:false,
                                                                    isAsync:false), 
@@ -627,9 +627,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override AwaitExpressionInfo GetAwaitExpressionInfo(AwaitExpressionSyntax node)
         {
-            if (node.Kind != SyntaxKind.AwaitExpression)
+            if (node.Kind() != SyntaxKind.AwaitExpression)
             {
-                throw new ArgumentException("node.Kind==" + node.Kind);
+                throw new ArgumentException("node.Kind==" + node.Kind());
             }
 
             BoundAwaitExpression boundAwait = GetUpperBoundNode(node) as BoundAwaitExpression;
@@ -882,7 +882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // performed).  We resolve this problem by detecting the case where we're looking
             // up the LHS of a member access and calling GetBindableParentNode one more time.
             // This gets us up to the level where the method group conversion occurs.
-            if (bindableParent != null && bindableParent.Kind == SyntaxKind.SimpleMemberAccessExpression && ((MemberAccessExpressionSyntax)bindableParent).Expression == bindableNode)
+            if (bindableParent != null && bindableParent.Kind() == SyntaxKind.SimpleMemberAccessExpression && ((MemberAccessExpressionSyntax)bindableParent).Expression == bindableNode)
             {
                 bindableParent = this.GetBindableParentNode(bindableParent);
             }
@@ -1097,7 +1097,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     enclosingStatement = current as StatementSyntax;
                 }
 
-                switch (current.Kind)
+                switch (current.Kind())
                 {
                     case SyntaxKind.ParenthesizedLambdaExpression:
                     case SyntaxKind.SimpleLambdaExpression:
@@ -1292,7 +1292,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
-                else if (current.Kind == SyntaxKind.CatchClause)
+                else if (current.Kind() == SyntaxKind.CatchClause)
                 {
                     if (LookupPosition.IsInCatchBlockScope(position, (CatchClauseSyntax)current))
                     {
@@ -1303,7 +1303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                     }
                 }
-                else if (current.Kind == SyntaxKind.CatchFilterClause)
+                else if (current.Kind() == SyntaxKind.CatchFilterClause)
                 {
                     if (LookupPosition.IsInCatchFilterScope(position, (CatchFilterClauseSyntax)current))
                     {
@@ -1433,7 +1433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // some nodes don't have direct semantic meaning by themselves and so we need to bind a different node that does
         internal protected virtual CSharpSyntaxNode GetBindableSyntaxNode(CSharpSyntaxNode node)
         {
-            switch (node.Kind)
+            switch (node.Kind())
             {
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
@@ -1452,7 +1452,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             while (true)
             {
-                switch (node.Kind)
+                switch (node.Kind())
                 {
                     case SyntaxKind.ParenthesizedExpression:
                         node = ((ParenthesizedExpressionSyntax)node).Expression;
@@ -1470,7 +1470,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var parent = node.Parent;
             if (parent != null)
             {
-                switch (node.Kind)
+                switch (node.Kind())
                 {
                     case SyntaxKind.IdentifierName:
                     case SyntaxKind.GenericName:
@@ -1491,9 +1491,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // is associated with the declaration, rather than with the declarator.  If we
                         // used the declarator here, we would have enough context to bind it, but we wouldn't
                         // end up with an entry in the syntax-to-bound node map.
-                        Debug.Assert(parent.Kind == SyntaxKind.VariableDeclaration);
+                        Debug.Assert(parent.Kind() == SyntaxKind.VariableDeclaration);
                         var grandparent = parent.Parent;
-                        if (grandparent != null && grandparent.Kind == SyntaxKind.LocalDeclarationStatement &&
+                        if (grandparent != null && grandparent.Kind() == SyntaxKind.LocalDeclarationStatement &&
                             ((VariableDeclarationSyntax)parent).Variables.Count == 1)
                         {
                             return GetBindableSyntaxNode(parent);
@@ -1546,7 +1546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // skip up past parens, as we have no bound nodes for them.
-            while (parent.Kind == SyntaxKind.ParenthesizedExpression)
+            while (parent.Kind() == SyntaxKind.ParenthesizedExpression)
             {
                 var pp = parent.Parent;
                 if (pp == null) break;
@@ -1560,11 +1560,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the node is the instance associated with the method invocation.
             // In that case, return the invocation expression so that any conversion
             // of the receiver can be included in the resulting SemanticInfo.
-            if ((bindableParent.Kind == SyntaxKind.SimpleMemberAccessExpression) && (bindableParent.Parent.Kind == SyntaxKind.InvocationExpression))
+            if ((bindableParent.Kind() == SyntaxKind.SimpleMemberAccessExpression) && (bindableParent.Parent.Kind() == SyntaxKind.InvocationExpression))
             {
                 bindableParent = bindableParent.Parent;
             }
-            else if (bindableParent.Kind == SyntaxKind.ArrayType)
+            else if (bindableParent.Kind() == SyntaxKind.ArrayType)
             {
                 bindableParent = SyntaxFactory.GetStandaloneExpression((ArrayTypeSyntax)bindableParent);
             }

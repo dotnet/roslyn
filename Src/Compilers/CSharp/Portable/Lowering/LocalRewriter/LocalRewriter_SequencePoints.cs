@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (declarationSyntax.Variables.First() == declaratorSyntax)
             {
-                switch (declarationSyntax.Parent.Kind)
+                switch (declarationSyntax.Parent.Kind())
                 {
                     case SyntaxKind.EventFieldDeclaration:
                     case SyntaxKind.FieldDeclaration:

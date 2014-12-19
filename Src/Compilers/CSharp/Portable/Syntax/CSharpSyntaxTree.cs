@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (DirectiveTriviaSyntax directive in this.GetRoot().GetDirectives(d =>
                                                                         {
-                                                                            switch (d.Kind)
+                                                                            switch (d.Kind())
                                                                             {
                                                                                 case SyntaxKind.IfDirectiveTrivia:
                                                                                 case SyntaxKind.ElifDirectiveTrivia:
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 currentState = directive.ApplyDirectives(currentState);
 
-                switch (directive.Kind)
+                switch (directive.Kind())
                 {
                     case SyntaxKind.IfDirectiveTrivia:
                         // #if directive doesn't affect the set of defined/undefined symbols
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentNullException("root");
             }
 
-            var directives = root.Kind == SyntaxKind.CompilationUnit ?
+            var directives = root.Kind() == SyntaxKind.CompilationUnit ?
                 ((CompilationUnitSyntax)root).GetConditionalDirectivesStack() :
                 InternalSyntax.DirectiveStack.Empty;
 

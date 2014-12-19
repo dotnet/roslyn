@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var labelSyntax in labelsSyntax)
             {
                 ConstantValue boundLabelConstantOpt = null;
-                if (labelSyntax.Kind == SyntaxKind.CaseSwitchLabel)
+                if (labelSyntax.Kind() == SyntaxKind.CaseSwitchLabel)
                 {
                     // Bind the switch expression and the switch case label expression, but do not report any diagnostics here.
                     // Diagnostics will be reported during binding.                        
@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Prevent cascading diagnostics
             bool hasErrors = node.HasErrors;
 
-            if (node.Kind == SyntaxKind.CaseSwitchLabel)
+            if (node.Kind() == SyntaxKind.CaseSwitchLabel)
             {
                 var caseLabelSyntax = (CaseSwitchLabelSyntax)node;
                 // Bind the label case expression
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                Debug.Assert(node.Kind == SyntaxKind.DefaultSwitchLabel);
+                Debug.Assert(node.Kind() == SyntaxKind.DefaultSwitchLabel);
                 matchedLabelSymbols = GetDefaultLabels();
             }
 
@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundStatement BindGotoCaseOrDefault(GotoStatementSyntax node, DiagnosticBag diagnostics)
         {
-            Debug.Assert(node.Kind == SyntaxKind.GotoCaseStatement || node.Kind == SyntaxKind.GotoDefaultStatement);
+            Debug.Assert(node.Kind() == SyntaxKind.GotoCaseStatement || node.Kind() == SyntaxKind.GotoDefaultStatement);
 
             BoundExpression gotoCaseExpressionOpt = null;
 
@@ -554,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (node.Expression != null)
                 {
-                    Debug.Assert(node.Kind == SyntaxKind.GotoCaseStatement);
+                    Debug.Assert(node.Kind() == SyntaxKind.GotoCaseStatement);
 
                     // Bind the goto case expression
                     gotoCaseExpressionOpt = BindValue(node.Expression, diagnostics, BindValueKind.RValue);
@@ -577,7 +577,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    Debug.Assert(node.Kind == SyntaxKind.GotoDefaultStatement);
+                    Debug.Assert(node.Kind() == SyntaxKind.GotoDefaultStatement);
                     matchedLabelSymbols = GetDefaultLabels();
                 }
 
@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // No matching case label/default label found
                         var labelName = SyntaxFacts.GetText(node.CaseOrDefaultKeyword.Kind());
-                        if (node.Kind == SyntaxKind.GotoCaseStatement)
+                        if (node.Kind() == SyntaxKind.GotoCaseStatement)
                         {
                             labelName += " " + node.Expression.ToString();
                         }

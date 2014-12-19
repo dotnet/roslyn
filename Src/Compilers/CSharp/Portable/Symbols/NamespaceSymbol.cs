@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal NamespaceSymbol GetNestedNamespace(NameSyntax name)
         {
-            switch (name.Kind)
+            switch (name.Kind())
             {
                 case SyntaxKind.GenericName: // DeclarationTreeBuilder.VisitNamespace uses the PlainName, even for generic names
                 case SyntaxKind.IdentifierName:

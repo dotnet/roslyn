@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal sealed partial class BoundLambda
     {
-        public MessageID MessageID { get { return Syntax.Kind == SyntaxKind.AnonymousMethodExpression ? MessageID.IDS_AnonMethod : MessageID.IDS_Lambda; } }
+        public MessageID MessageID { get { return Syntax.Kind() == SyntaxKind.AnonymousMethodExpression ? MessageID.IDS_AnonMethod : MessageID.IDS_Lambda; } }
 
         private readonly bool inferredFromSingleType;
         private readonly TypeSymbol inferredReturnType;
@@ -688,14 +688,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override bool IsAsync { get { return this.isAsync; } }
 
-        public override MessageID MessageID { get { return this.unboundLambda.Syntax.Kind == SyntaxKind.AnonymousMethodExpression ? MessageID.IDS_AnonMethod : MessageID.IDS_Lambda; } }
+        public override MessageID MessageID { get { return this.unboundLambda.Syntax.Kind() == SyntaxKind.AnonymousMethodExpression ? MessageID.IDS_AnonMethod : MessageID.IDS_Lambda; } }
 
         private CSharpSyntaxNode Body
         {
             get
             {
                 var Syntax = unboundLambda.Syntax;
-                switch (Syntax.Kind)
+                switch (Syntax.Kind())
                 {
                     default:
                     case SyntaxKind.SimpleLambdaExpression:
@@ -712,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(HasSignature && 0 <= index && index < ParameterCount);
             var Syntax = unboundLambda.Syntax;
-            switch (Syntax.Kind)
+            switch (Syntax.Kind())
             {
                 default:
                 case SyntaxKind.SimpleLambdaExpression:
@@ -725,7 +725,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
 
-        bool IsExpressionLambda { get { return Body.Kind != SyntaxKind.Block; } }
+        bool IsExpressionLambda { get { return Body.Kind() != SyntaxKind.Block; } }
 
         public override string ParameterName(int index)
         {

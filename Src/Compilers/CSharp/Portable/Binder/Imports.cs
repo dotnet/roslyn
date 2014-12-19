@@ -53,14 +53,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             SyntaxList<UsingDirectiveSyntax> usingDirectives;
             SyntaxList<ExternAliasDirectiveSyntax> externAliasDirectives;
-            if (declarationSyntax.Kind == SyntaxKind.CompilationUnit)
+            if (declarationSyntax.Kind() == SyntaxKind.CompilationUnit)
             {
                 var compilation = (CompilationUnitSyntax)declarationSyntax;
                 // using directives are not in scope within using directives
                 usingDirectives = inUsing ? default(SyntaxList<UsingDirectiveSyntax>) : compilation.Usings;
                 externAliasDirectives = compilation.Externs;
             }
-            else if (declarationSyntax.Kind == SyntaxKind.NamespaceDeclaration)
+            else if (declarationSyntax.Kind() == SyntaxKind.NamespaceDeclaration)
             {
                 var namespaceDecl = (NamespaceDeclarationSyntax)declarationSyntax;
                 // using directives are not in scope within using directives

@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             foreach (var d in syntaxTree.GetRoot().GetDirectives())
             {
-                if (d.Kind == SyntaxKind.PragmaWarningDirectiveTrivia)
+                if (d.Kind() == SyntaxKind.PragmaWarningDirectiveTrivia)
                 {
                     var w = d as PragmaWarningDirectiveTriviaSyntax;
 
@@ -80,12 +80,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                             continue;
 
                         var errorId = string.Empty;
-                        if (currentErrorCode.Kind == SyntaxKind.NumericLiteralExpression)
+                        if (currentErrorCode.Kind() == SyntaxKind.NumericLiteralExpression)
                         {
                             var token = (currentErrorCode as LiteralExpressionSyntax).Token;
                             errorId = MessageProvider.Instance.GetIdForErrorCode((int)token.Value);
                         }
-                        else if (currentErrorCode.Kind == SyntaxKind.IdentifierName)
+                        else if (currentErrorCode.Kind() == SyntaxKind.IdentifierName)
                         {
                             errorId = (currentErrorCode as IdentifierNameSyntax).Identifier.ValueText;
                         }

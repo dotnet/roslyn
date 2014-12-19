@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Special case: In interactive code, we may be trying to retrieve a binder for global statements
             // at the *very* top-level (i.e. in a completely empty file). In this case, we use the compilation unit
             // directly since it's parent would be null.
-            if (InScript && node.Kind == SyntaxKind.CompilationUnit)
+            if (InScript && node.Kind() == SyntaxKind.CompilationUnit)
             {
                 return GetBinder(node, position);
             }
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </param>
         internal InContainerBinder GetImportsBinder(CSharpSyntaxNode unit)
         {
-            switch (unit.Kind)
+            switch (unit.Kind())
             {
                 case SyntaxKind.NamespaceDeclaration:
                     {

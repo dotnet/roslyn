@@ -581,8 +581,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return GetSpecialType(SpecialType.System_Void);
             }
 
-            var lastStatement = (GlobalStatementSyntax)tree.GetCompilationUnitRoot().Members.LastOrDefault(decl => decl.Kind == SyntaxKind.GlobalStatement);
-            if (lastStatement == null || lastStatement.Statement.Kind != SyntaxKind.ExpressionStatement)
+            var lastStatement = (GlobalStatementSyntax)tree.GetCompilationUnitRoot().Members.LastOrDefault(decl => decl.Kind() == SyntaxKind.GlobalStatement);
+            if (lastStatement == null || lastStatement.Statement.Kind() != SyntaxKind.ExpressionStatement)
             {
                 return GetSpecialType(SpecialType.System_Void);
             }
@@ -1824,7 +1824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void RecordImportInternal(CSharpSyntaxNode syntax)
         {
             LazyInitializer.EnsureInitialized(ref this.lazyImportInfos).
-                Add(new ImportInfo(syntax.SyntaxTree, syntax.Kind, syntax.Span));
+                Add(new ImportInfo(syntax.SyntaxTree, syntax.Kind(), syntax.Span));
         }
 
         private struct ImportInfo : IEquatable<ImportInfo>
@@ -2582,7 +2582,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxTree tree,
             DiagnosticBag diagnostics)
         {
-            var checksumDirectives = tree.GetRoot().GetDirectives(d => d.Kind == SyntaxKind.PragmaChecksumDirectiveTrivia &&
+            var checksumDirectives = tree.GetRoot().GetDirectives(d => d.Kind() == SyntaxKind.PragmaChecksumDirectiveTrivia &&
                                                                  !d.ContainsDiagnostics);
 
             foreach (var directive in checksumDirectives)

@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? BoundYieldBreakStatement.Synthesized(syntax) as BoundStatement
                 : BoundReturnStatement.Synthesized(syntax, null);
 
-            if (syntax.Kind == SyntaxKind.Block)
+            if (syntax.Kind() == SyntaxKind.Block)
             {
                 // Implicitly added return for async method does not need sequence points since lowering would add one.
                 if (method == null || !method.IsAsync)

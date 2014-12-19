@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var map = new MultiDictionary<string, TypeParameterSymbol>();
 
-            switch (crefSyntax.Kind)
+            switch (crefSyntax.Kind())
             {
                 case SyntaxKind.TypeCref:
                     {
@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 default:
                     {
-                        Debug.Assert(false, "Unexpected cref syntax kind " + crefSyntax.Kind);
+                        Debug.Assert(false, "Unexpected cref syntax kind " + crefSyntax.Kind());
                         break;
                     }
             }
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void AddTypeParameters(TypeSyntax typeSyntax, MultiDictionary<string, TypeParameterSymbol> map)
         {
 
-            switch (typeSyntax.Kind)
+            switch (typeSyntax.Kind())
             {
                 case SyntaxKind.AliasQualifiedName:
                     AddTypeParameters(((AliasQualifiedNameSyntax)typeSyntax).Name, map);
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.PredefinedType:
                     break;
                 default:
-                    Debug.Assert(false, "Unexpected type syntax kind " + typeSyntax.Kind);
+                    Debug.Assert(false, "Unexpected type syntax kind " + typeSyntax.Kind());
                     break;
             }
         }
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void AddTypeParameters(MemberCrefSyntax memberSyntax, MultiDictionary<string, TypeParameterSymbol> map)
         {
             // Other members have arity 0.
-            if (memberSyntax.Kind == SyntaxKind.NameMemberCref)
+            if (memberSyntax.Kind() == SyntaxKind.NameMemberCref)
             {
                 AddTypeParameters(((NameMemberCrefSyntax)memberSyntax).Name, map);
             }
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Other types (non-identifiers) are allowed in error scenarios, but they do not introduce new 
                 // cref type parameters.
-                if (typeArguments[i].Kind == SyntaxKind.IdentifierName)
+                if (typeArguments[i].Kind() == SyntaxKind.IdentifierName)
                 {
                     IdentifierNameSyntax typeParameterSyntax = (IdentifierNameSyntax)typeArguments[i];
                     Debug.Assert(typeParameterSyntax != null, "Syntactic requirement of crefs");

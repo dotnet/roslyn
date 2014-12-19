@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode node = boundFixed.Syntax.Parent;
             while (node != null)
             {
-                switch (node.Kind)
+                switch (node.Kind())
                 {
                     case SyntaxKind.TryStatement:
                         // NOTE: if we started in the catch or finally of this try statement,
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.FinallyClause:
                         // Skip past the enclosing try to avoid a false positive.
                         node = node.Parent;
-                        Debug.Assert(node.Kind == SyntaxKind.TryStatement);
+                        Debug.Assert(node.Kind() == SyntaxKind.TryStatement);
                         node = node.Parent;
                         break;
                     default:

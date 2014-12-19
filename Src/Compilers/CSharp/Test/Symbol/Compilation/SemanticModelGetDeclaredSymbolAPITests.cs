@@ -3096,7 +3096,7 @@ public sealed class ErrorProp
             var model = compilation.GetSemanticModel(tree);
 
             var accessorDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().Single();
-            Assert.Equal(SyntaxKind.UnknownAccessorDeclaration, accessorDecl.Kind);
+            Assert.Equal(SyntaxKind.UnknownAccessorDeclaration, accessorDecl.Kind());
             Assert.Null(model.GetDeclaredSymbol(accessorDecl));
         }
 
@@ -3555,7 +3555,7 @@ enum EnumX
             var cu = tree.GetCompilationUnitRoot();
             var enumDecl = (EnumDeclarationSyntax)cu.Members[0];
             MemberDeclarationSyntax enumMemberDecl = enumDecl.Members[0];
-            Assert.Equal(SyntaxKind.EnumMemberDeclaration, enumMemberDecl.Kind);
+            Assert.Equal(SyntaxKind.EnumMemberDeclaration, enumMemberDecl.Kind());
 
             var enumTypeSymbol = model.GetDeclaredSymbol(enumDecl);
             Assert.Equal(SymbolKind.NamedType, enumTypeSymbol.Kind);

@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
             Assert.NotNull(sym);
             Assert.Equal(MethodKind.AnonymousFunction, sym.MethodKind);
 
-            var nodes = CheckDeclaringSyntaxNodesWithoutGetDeclaredSymbol(comp, sym, 1, node.Kind);
+            var nodes = CheckDeclaringSyntaxNodesWithoutGetDeclaredSymbol(comp, sym, 1, node.Kind());
             Assert.Equal(nodes[0].GetSyntax(), node);
 
             foreach (ParameterSymbol p in sym.Parameters)

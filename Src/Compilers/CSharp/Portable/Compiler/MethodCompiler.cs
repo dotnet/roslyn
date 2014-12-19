@@ -1559,15 +1559,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // of the enclosing class. 
                 CSharpSyntaxNode containerNode = constructor.GetNonNullSyntaxNode();
                 SyntaxToken bodyToken;
-                if (containerNode.Kind == SyntaxKind.ClassDeclaration)
+                if (containerNode.Kind() == SyntaxKind.ClassDeclaration)
                 {
                     bodyToken = ((ClassDeclarationSyntax)containerNode).OpenBraceToken;
                 }
-                else if (containerNode.Kind == SyntaxKind.StructDeclaration)
+                else if (containerNode.Kind() == SyntaxKind.StructDeclaration)
                 {
                     bodyToken = ((StructDeclarationSyntax)containerNode).OpenBraceToken;
                 }
-                else if (containerNode.Kind == SyntaxKind.EnumDeclaration)
+                else if (containerNode.Kind() == SyntaxKind.EnumDeclaration)
                 {
                     // We're not going to find any non-default ctors, but we'll look anyway.
                     bodyToken = ((EnumDeclarationSyntax)containerNode).OpenBraceToken;
@@ -1685,7 +1685,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ConstructorInitializerSyntax initializerSyntax = constructorSyntax.Initializer;
                         if (initializerSyntax != null)
                         {
-                            return initializerSyntax.Kind == SyntaxKind.ThisConstructorInitializer;
+                            return initializerSyntax.Kind() == SyntaxKind.ThisConstructorInitializer;
                         }
                     }
                 }

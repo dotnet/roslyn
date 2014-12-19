@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundStatement AddLocalDeclarationSequencePointIfNecessary(CSharpSyntaxNode syntax, LocalSymbol localSymbol, BoundStatement rewrittenLocalDeclaration, bool wasCompilerGenerated = false)
         {
             // Add sequence points, if necessary.
-            if (this.GenerateDebugInfo && !wasCompilerGenerated && !localSymbol.IsConst && syntax.Kind == SyntaxKind.VariableDeclarator)
+            if (this.GenerateDebugInfo && !wasCompilerGenerated && !localSymbol.IsConst && syntax.Kind() == SyntaxKind.VariableDeclarator)
             {
                 Debug.Assert(syntax.SyntaxTree != null);
                 rewrittenLocalDeclaration = AddSequencePoint((VariableDeclaratorSyntax)syntax, rewrittenLocalDeclaration);

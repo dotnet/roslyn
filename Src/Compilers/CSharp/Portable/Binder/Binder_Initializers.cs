@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             (EqualsValueClauseSyntax)initializerNode,
                             diagnostics);
                     }
-                    else if (initializerNode.Kind == SyntaxKind.LabeledStatement)
+                    else if (initializerNode.Kind() == SyntaxKind.LabeledStatement)
                     {
                         // TODO: labels in interactive
                         var boundStatement = new BoundBadStatement(initializerNode, ImmutableArray<BoundNode>.Empty, true);

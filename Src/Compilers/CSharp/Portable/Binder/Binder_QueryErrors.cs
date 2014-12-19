@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             for (CSharpSyntaxNode parent = node.Parent; parent != null; parent = parent.Parent)
             {
-                if (parent.Kind == SyntaxKind.JoinClause)
+                if (parent.Kind() == SyntaxKind.JoinClause)
                 {
                     var join = parent as JoinClauseSyntax;
                     if (join.LeftExpression.Span.Contains(node.Span) && join.Identifier.ValueText == node.Identifier.ValueText) return true;
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // variable of the enclosing query.
             for (CSharpSyntaxNode parent = node.Parent; parent != null; parent = parent.Parent)
             {
-                if (parent.Kind == SyntaxKind.JoinClause)
+                if (parent.Kind() == SyntaxKind.JoinClause)
                 {
                     var join = parent as JoinClauseSyntax;
                     if (join.RightExpression.Span.Contains(node.Span)) return true;
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             string clauseKind = null;
             bool multiple = false;
-            switch (queryClause.Kind)
+            switch (queryClause.Kind())
             {
                 case SyntaxKind.JoinClause:
                     clauseKind = SyntaxFacts.GetText(SyntaxKind.JoinKeyword); 
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 default:
                     clauseKind = "unknown";
-                    Debug.Assert(false, "invalid query clause kind " + queryClause.Kind);
+                    Debug.Assert(false, "invalid query clause kind " + queryClause.Kind());
                     break;
             }
 

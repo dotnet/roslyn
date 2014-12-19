@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var name = ParseName(text);
 
             Assert.NotNull(name);
-            Assert.Equal(SyntaxKind.IdentifierName, name.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, name.Kind());
             Assert.False(((IdentifierNameSyntax)name).Identifier.IsMissing);
             Assert.Equal(0, name.Errors().Length);
             Assert.Equal(text, name.ToString());
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var name = ParseName(text);
 
             Assert.NotNull(name);
-            Assert.Equal(SyntaxKind.IdentifierName, name.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, name.Kind());
             Assert.False(((IdentifierNameSyntax)name).Identifier.IsMissing);
             Assert.Equal(1, name.Errors().Length);
             Assert.Equal(text, name.ToFullString());
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var name = ParseName(text);
 
             Assert.NotNull(name);
-            Assert.Equal(SyntaxKind.IdentifierName, name.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, name.Kind());
             Assert.True(((IdentifierNameSyntax)name).Identifier.IsMissing);
             Assert.Equal(1, name.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_IdentifierExpected, name.Errors()[0].Code);
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var name = ParseName(text);
 
             Assert.NotNull(name);
-            Assert.Equal(SyntaxKind.IdentifierName, name.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, name.Kind());
             Assert.True(name.IsMissing);
             Assert.Equal(2, name.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_UnexpectedCharacter, name.Errors()[0].Code);
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var name = ParseName(text);
 
             Assert.NotNull(name);
-            Assert.Equal(SyntaxKind.IdentifierName, name.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, name.Kind());
             Assert.True(name.IsMissing);
             Assert.Equal(2, name.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_UnexpectedCharacter, name.Errors()[0].Code);
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var name = ParseName(text);
 
             Assert.NotNull(name);
-            Assert.Equal(SyntaxKind.IdentifierName, name.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, name.Kind());
             Assert.True(name.IsMissing);
             Assert.Equal(2, name.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_UnexpectedCharacter, name.Errors()[0].Code);
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var name = ParseName(text);
 
             Assert.NotNull(name);
-            Assert.Equal(SyntaxKind.AliasQualifiedName, name.Kind);
+            Assert.Equal(SyntaxKind.AliasQualifiedName, name.Kind());
             Assert.False(name.IsMissing);
             Assert.Equal(0, name.Errors().Length);
             Assert.Equal(text, name.ToString());
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.NotNull(name);
             Assert.False(name.IsMissing);
-            Assert.Equal(SyntaxKind.AliasQualifiedName, name.Kind);
+            Assert.Equal(SyntaxKind.AliasQualifiedName, name.Kind());
             var an = (AliasQualifiedNameSyntax)name;
             Assert.Equal(SyntaxKind.GlobalKeyword, an.Alias.Identifier.Kind());
             Assert.Equal(0, name.Errors().Length);
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var name = ParseName(text);
 
             Assert.NotNull(name);
-            Assert.Equal(SyntaxKind.QualifiedName, name.Kind);
+            Assert.Equal(SyntaxKind.QualifiedName, name.Kind());
             Assert.False(name.IsMissing);
             Assert.Equal(0, name.Errors().Length);
             Assert.Equal(text, name.ToString());
@@ -153,13 +153,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var name = ParseName(text);
 
             Assert.NotNull(name);
-            Assert.Equal(SyntaxKind.QualifiedName, name.Kind);
+            Assert.Equal(SyntaxKind.QualifiedName, name.Kind());
             Assert.False(name.IsMissing);
             Assert.Equal(0, name.Errors().Length);
             Assert.Equal(text, name.ToString());
 
             name = ((QualifiedNameSyntax)name).Left;
-            Assert.Equal(SyntaxKind.AliasQualifiedName, name.Kind);
+            Assert.Equal(SyntaxKind.AliasQualifiedName, name.Kind());
             Assert.False(name.IsMissing);
             Assert.Equal(0, name.Errors().Length);
         }
@@ -182,13 +182,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var name = ParseName(text);
 
             Assert.NotNull(name);
-            Assert.Equal(SyntaxKind.QualifiedName, name.Kind);
+            Assert.Equal(SyntaxKind.QualifiedName, name.Kind());
             Assert.False(name.IsMissing);
             Assert.Equal(1, name.Errors().Length);
             Assert.Equal(text, name.ToString());
 
             name = ((QualifiedNameSyntax)name).Left;
-            Assert.Equal(SyntaxKind.AliasQualifiedName, name.Kind);
+            Assert.Equal(SyntaxKind.AliasQualifiedName, name.Kind());
             Assert.False(name.IsMissing);
             Assert.Equal(0, name.Errors().Length);
         }
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var name = ParseName(text);
 
             Assert.NotNull(name);
-            Assert.Equal(SyntaxKind.GenericName, name.Kind);
+            Assert.Equal(SyntaxKind.GenericName, name.Kind());
             Assert.False(name.IsMissing);
             Assert.Equal(0, name.Errors().Length);
             var gname = (GenericNameSyntax)name;
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var name = ParseName(text);
 
             Assert.NotNull(name);
-            Assert.Equal(SyntaxKind.GenericName, name.Kind);
+            Assert.Equal(SyntaxKind.GenericName, name.Kind());
             Assert.False(name.IsMissing);
             Assert.Equal(0, name.Errors().Length);
             var gname = (GenericNameSyntax)name;
@@ -232,14 +232,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var name = ParseName(text);
 
             Assert.NotNull(name);
-            Assert.Equal(SyntaxKind.GenericName, name.Kind);
+            Assert.Equal(SyntaxKind.GenericName, name.Kind());
             Assert.False(name.IsMissing);
             Assert.Equal(0, name.Errors().Length);
             var gname = (GenericNameSyntax)name;
             Assert.Equal(1, gname.TypeArgumentList.Arguments.Count);
             Assert.False(gname.IsUnboundGenericName);
             Assert.NotNull(gname.TypeArgumentList.Arguments[0]);
-            Assert.Equal(SyntaxKind.GenericName, gname.TypeArgumentList.Arguments[0].Kind);
+            Assert.Equal(SyntaxKind.GenericName, gname.TypeArgumentList.Arguments[0].Kind());
             Assert.Equal(text, name.ToString());
         }
 
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var name = ParseName(text);
 
             Assert.NotNull(name);
-            Assert.Equal(SyntaxKind.GenericName, name.Kind);
+            Assert.Equal(SyntaxKind.GenericName, name.Kind());
             Assert.False(name.IsMissing);
             Assert.Equal(0, name.Errors().Length);
             var gname = (GenericNameSyntax)name;
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var name = ParseName(text);
 
             Assert.NotNull(name);
-            Assert.Equal(SyntaxKind.GenericName, name.Kind);
+            Assert.Equal(SyntaxKind.GenericName, name.Kind());
             Assert.False(name.IsMissing);
             Assert.Equal(0, name.Errors().Length);
             var gname = (GenericNameSyntax)name;
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var tname = ParseTypeName(text);
 
             Assert.NotNull(tname);
-            Assert.Equal(SyntaxKind.IdentifierName, tname.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, tname.Kind());
             var name = (NameSyntax)tname;
             Assert.False(name.IsMissing);
             Assert.Equal(0, name.Errors().Length);
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var tname = ParseTypeName(text);
 
             Assert.NotNull(tname);
-            Assert.Equal(SyntaxKind.QualifiedName, tname.Kind);
+            Assert.Equal(SyntaxKind.QualifiedName, tname.Kind());
             var name = (NameSyntax)tname;
             Assert.False(name.IsMissing);
             Assert.Equal(0, name.Errors().Length);
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var tname = ParseTypeName(text);
 
             Assert.NotNull(tname);
-            Assert.Equal(SyntaxKind.GenericName, tname.Kind);
+            Assert.Equal(SyntaxKind.GenericName, tname.Kind());
             var name = (NameSyntax)tname;
             Assert.False(name.IsMissing);
             Assert.Equal(0, name.Errors().Length);
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var tname = ParseTypeName(text);
 
             Assert.NotNull(tname);
-            Assert.Equal(SyntaxKind.GenericName, tname.Kind);
+            Assert.Equal(SyntaxKind.GenericName, tname.Kind());
             var name = (NameSyntax)tname;
             Assert.False(name.IsMissing);
             Assert.Equal(0, name.Errors().Length);
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(1, gname.TypeArgumentList.Arguments.Count);
             Assert.False(gname.IsUnboundGenericName);
             Assert.NotNull(gname.TypeArgumentList.Arguments[0]);
-            Assert.Equal(SyntaxKind.GenericName, gname.TypeArgumentList.Arguments[0].Kind);
+            Assert.Equal(SyntaxKind.GenericName, gname.TypeArgumentList.Arguments[0].Kind());
             Assert.Equal(text, name.ToString());
         }
 
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var tname = ParseTypeName(text);
 
             Assert.NotNull(tname);
-            Assert.Equal(SyntaxKind.GenericName, tname.Kind);
+            Assert.Equal(SyntaxKind.GenericName, tname.Kind());
             var name = (NameSyntax)tname;
             Assert.False(name.IsMissing);
             Assert.Equal(0, name.Errors().Length);
@@ -384,7 +384,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var tname = ParseTypeName(text);
 
             Assert.NotNull(tname);
-            Assert.Equal(SyntaxKind.PredefinedType, tname.Kind);
+            Assert.Equal(SyntaxKind.PredefinedType, tname.Kind());
             Assert.Equal(text, tname.ToString());
             var tok = ((PredefinedTypeSyntax)tname).Keyword;
             Assert.Equal(kind, tok.Kind());
@@ -397,10 +397,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var tname = ParseTypeName(text);
 
             Assert.NotNull(tname);
-            Assert.Equal(SyntaxKind.NullableType, tname.Kind);
+            Assert.Equal(SyntaxKind.NullableType, tname.Kind());
             Assert.Equal(text, tname.ToString());
             var name = (NameSyntax)((NullableTypeSyntax)tname).ElementType;
-            Assert.Equal(SyntaxKind.IdentifierName, name.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, name.Kind());
             Assert.False(name.IsMissing);
             Assert.Equal(0, name.Errors().Length);
         }
@@ -412,10 +412,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var tname = ParseTypeName(text);
 
             Assert.NotNull(tname);
-            Assert.Equal(SyntaxKind.PointerType, tname.Kind);
+            Assert.Equal(SyntaxKind.PointerType, tname.Kind());
             Assert.Equal(text, tname.ToString());
             var name = (NameSyntax)((PointerTypeSyntax)tname).ElementType;
-            Assert.Equal(SyntaxKind.IdentifierName, name.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, name.Kind());
             Assert.False(name.IsMissing);
             Assert.Equal(0, name.Errors().Length);
         }
@@ -428,11 +428,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.NotNull(tname);
             Assert.Equal(text, tname.ToString());
-            Assert.Equal(SyntaxKind.PointerType, tname.Kind);
+            Assert.Equal(SyntaxKind.PointerType, tname.Kind());
 
             // check depth of pointer defers
             int depth = 0;
-            while (tname.Kind == SyntaxKind.PointerType)
+            while (tname.Kind() == SyntaxKind.PointerType)
             {
                 tname = ((PointerTypeSyntax)tname).ElementType;
                 depth++;
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(3, depth);
 
             var name = (NameSyntax)tname;
-            Assert.Equal(SyntaxKind.IdentifierName, name.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, name.Kind());
             Assert.False(name.IsMissing);
             Assert.Equal(0, name.Errors().Length);
         }
@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.NotNull(tname);
             Assert.Equal(text, tname.ToString());
-            Assert.Equal(SyntaxKind.ArrayType, tname.Kind);
+            Assert.Equal(SyntaxKind.ArrayType, tname.Kind());
 
             var array = (ArrayTypeSyntax)tname;
             Assert.Equal(1, array.RankSpecifiers.Count);
@@ -463,7 +463,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(1, array.RankSpecifiers[0].Rank);
 
             var name = (NameSyntax)array.ElementType;
-            Assert.Equal(SyntaxKind.IdentifierName, name.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, name.Kind());
             Assert.False(name.IsMissing);
             Assert.Equal(0, name.Errors().Length);
         }
@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.NotNull(tname);
             Assert.Equal(text, tname.ToString());
-            Assert.Equal(SyntaxKind.ArrayType, tname.Kind);
+            Assert.Equal(SyntaxKind.ArrayType, tname.Kind());
 
             var array = (ArrayTypeSyntax)tname;
             Assert.Equal(1, array.RankSpecifiers.Count);
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(3, array.RankSpecifiers[0].Rank);
 
             var name = (NameSyntax)array.ElementType;
-            Assert.Equal(SyntaxKind.IdentifierName, name.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, name.Kind());
             Assert.False(name.IsMissing);
             Assert.Equal(0, name.Errors().Length);
         }
@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.NotNull(tname);
             Assert.Equal(text, tname.ToString());
-            Assert.Equal(SyntaxKind.ArrayType, tname.Kind);
+            Assert.Equal(SyntaxKind.ArrayType, tname.Kind());
 
             var array = (ArrayTypeSyntax)tname;
             Assert.Equal(3, array.RankSpecifiers.Count);
@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(3, array.RankSpecifiers[2].Rank);
 
             var name = (NameSyntax)array.ElementType;
-            Assert.Equal(SyntaxKind.IdentifierName, name.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, name.Kind());
             Assert.False(name.IsMissing);
             Assert.Equal(0, name.Errors().Length);
         }
@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.NotNull(tname);
             Assert.Equal(text, tname.ToString());
-            Assert.Equal(SyntaxKind.GenericName, tname.Kind);
+            Assert.Equal(SyntaxKind.GenericName, tname.Kind());
 
             var gname = (GenericNameSyntax)tname;
             Assert.Equal("foo", gname.Identifier.ToString());
@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(gname.TypeArgumentList.Arguments[0]);
 
             var arg = gname.TypeArgumentList.Arguments[0];
-            Assert.Equal(SyntaxKind.IdentifierName, arg.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, arg.Kind());
             Assert.Equal(true, arg.ContainsDiagnostics);
             Assert.Equal(1, arg.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_IllegalVarianceSyntax, arg.Errors()[0].Code);
@@ -554,7 +554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.NotNull(tname);
             Assert.Equal(text, tname.ToString());
-            Assert.Equal(SyntaxKind.GenericName, tname.Kind);
+            Assert.Equal(SyntaxKind.GenericName, tname.Kind());
 
             var gname = (GenericNameSyntax)tname;
             Assert.Equal("foo", gname.Identifier.ToString());
@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(gname.TypeArgumentList.Arguments[0]);
 
             var arg = gname.TypeArgumentList.Arguments[0];
-            Assert.Equal(SyntaxKind.IdentifierName, arg.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, arg.Kind());
             Assert.Equal(true, arg.ContainsDiagnostics);
             Assert.Equal(1, arg.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_TypeExpected, arg.Errors()[0].Code);
@@ -579,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.NotNull(tname);
             Assert.Equal(text, tname.ToString());
-            Assert.Equal(SyntaxKind.GenericName, tname.Kind);
+            Assert.Equal(SyntaxKind.GenericName, tname.Kind());
 
             var gname = (GenericNameSyntax)tname;
             Assert.Equal("foo", gname.Identifier.ToString());
@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(gname.TypeArgumentList.Arguments[0]);
 
             var arg = gname.TypeArgumentList.Arguments[0];
-            Assert.Equal(SyntaxKind.IdentifierName, arg.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, arg.Kind());
             Assert.Equal(true, arg.ContainsDiagnostics);
             Assert.Equal(2, arg.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_TypeExpected, arg.Errors()[0].Code);

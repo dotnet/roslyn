@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (IsStatementWithEmbeddedStatementBody(syntax.Kind))
+            if (IsStatementWithEmbeddedStatementBody(syntax.Kind()))
             {
                 return;
             }
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
             
-            throw ExceptionUtilities.UnexpectedValue(syntax.Kind);
+            throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
         }
 
         private static bool IsStatementWithEmbeddedStatementBody(SyntaxKind syntax)

@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static bool IsActiveConditionalDirective(DirectiveTriviaSyntax directive)
         {
-            switch (directive.Kind)
+            switch (directive.Kind())
             {
                 case SyntaxKind.DefineDirectiveTrivia:
                     return ((DefineDirectiveTriviaSyntax)directive).IsActive;

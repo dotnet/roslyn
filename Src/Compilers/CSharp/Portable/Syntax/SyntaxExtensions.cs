@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static ArrowExpressionClauseSyntax GetExpressionBodySyntax(this CSharpSyntaxNode node)
         {
             ArrowExpressionClauseSyntax arrowExpr = null;
-            switch (node.Kind)
+            switch (node.Kind())
             {
                 // The ArrowExpressionClause is the declaring syntax for the
                 // 'get' SourcePropertyAccessorSymbol of properties and indexers.
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 default:
                     // Don't throw, just use for the assert in case this is used in the semantic model
-                    ExceptionUtilities.UnexpectedValue(node.Kind);
+                    ExceptionUtilities.UnexpectedValue(node.Kind());
                     break;
             }
             return arrowExpr;
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static XmlNameAttributeElementKind GetElementKind(this XmlNameAttributeSyntax attributeSyntax)
         {
             CSharpSyntaxNode parentSyntax = attributeSyntax.Parent;
-            SyntaxKind parentKind = parentSyntax.Kind;
+            SyntaxKind parentKind = parentSyntax.Kind();
 
             string parentName;
             if (parentKind == SyntaxKind.XmlEmptyElement)
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>The given simple name updated with the given identifier.</returns>
         public static SimpleNameSyntax WithIdentifier(this SimpleNameSyntax simpleName, SyntaxToken identifier)
         {
-            return simpleName.Kind == SyntaxKind.IdentifierName
+            return simpleName.Kind() == SyntaxKind.IdentifierName
                 ? (SimpleNameSyntax)((IdentifierNameSyntax)simpleName).WithIdentifier(identifier)
                 : (SimpleNameSyntax)((GenericNameSyntax)simpleName).WithIdentifier(identifier);
         }
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static CSharpSyntaxNode SkipParens(this CSharpSyntaxNode expression)
         {
-            while (expression != null && expression.Kind == SyntaxKind.ParenthesizedExpression)
+            while (expression != null && expression.Kind() == SyntaxKind.ParenthesizedExpression)
             {
                 expression = ((ParenthesizedExpressionSyntax)expression).Expression;
             }
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
 
-            switch (node.Kind)
+            switch (node.Kind())
             {
                 case SyntaxKind.Parameter:
                 case SyntaxKind.FieldDeclaration:

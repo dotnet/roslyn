@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            switch (node.Kind)
+            switch (node.Kind())
             {
                 case SyntaxKind.CollectionInitializerExpression:
                 case SyntaxKind.ObjectInitializerExpression:
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.IdentifierName:
                     // The alias of a using directive is a declaration, so there is no semantic info - use GetDeclaredSymbol instead.
-                    if (!isSpeculative && node.Parent != null && node.Parent.Kind == SyntaxKind.NameEquals && node.Parent.Parent.Kind == SyntaxKind.UsingDirective)
+                    if (!isSpeculative && node.Parent != null && node.Parent.Kind() == SyntaxKind.NameEquals && node.Parent.Parent.Kind() == SyntaxKind.UsingDirective)
                     {
                         return false;
                     }
@@ -333,12 +333,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static bool HasParameterList(CrefSyntax crefSyntax)
         {
-            while (crefSyntax.Kind == SyntaxKind.QualifiedCref)
+            while (crefSyntax.Kind() == SyntaxKind.QualifiedCref)
             {
                 crefSyntax = ((QualifiedCrefSyntax)crefSyntax).Member;
             }
 
-            switch (crefSyntax.Kind)
+            switch (crefSyntax.Kind())
             {
                 case SyntaxKind.NameMemberCref:
                     return ((NameMemberCrefSyntax)crefSyntax).Parameters != null;
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 CheckSyntaxNode(expression);
 
-                if (expression.Parent != null && expression.Parent.Kind == SyntaxKind.CollectionInitializerExpression)
+                if (expression.Parent != null && expression.Parent.Kind() == SyntaxKind.CollectionInitializerExpression)
                 {
                     // Find containing object creation expression
 
@@ -527,16 +527,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Skip containing object initializers
                     while (initializer.Parent != null && 
-                           initializer.Parent.Kind == SyntaxKind.SimpleAssignmentExpression &&
+                           initializer.Parent.Kind() == SyntaxKind.SimpleAssignmentExpression &&
                            ((AssignmentExpressionSyntax)initializer.Parent).Right == initializer &&
                            initializer.Parent.Parent != null &&
-                           initializer.Parent.Parent.Kind == SyntaxKind.ObjectInitializerExpression)
+                           initializer.Parent.Parent.Kind() == SyntaxKind.ObjectInitializerExpression)
                     {
                         initializer = (InitializerExpressionSyntax)initializer.Parent.Parent;
                     }
 
 
-                    if (initializer.Parent != null && initializer.Parent.Kind == SyntaxKind.ObjectCreationExpression &&
+                    if (initializer.Parent != null && initializer.Parent.Kind() == SyntaxKind.ObjectCreationExpression &&
                         ((ObjectCreationExpressionSyntax)initializer.Parent).Initializer == initializer &&
                         CanGetSemanticInfo(initializer.Parent, allowNamedArgumentName: false))
                     {
@@ -1081,7 +1081,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             while (node != null)
             {
-                if (node.Kind == SyntaxKind.XmlCrefAttribute || node.Kind == SyntaxKind.XmlNameAttribute)
+                if (node.Kind() == SyntaxKind.XmlCrefAttribute || node.Kind() == SyntaxKind.XmlNameAttribute)
                 {
                     return false;
                 }
@@ -1819,7 +1819,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (boundExpr != null &&
                 !(boundNodeForSyntacticParent != null &&
-                  boundNodeForSyntacticParent.Syntax.Kind == SyntaxKind.ObjectCreationExpression &&
+                  boundNodeForSyntacticParent.Syntax.Kind() == SyntaxKind.ObjectCreationExpression &&
                   ((ObjectCreationExpressionSyntax)boundNodeForSyntacticParent.Syntax).Type == boundExpr.Syntax)) // Do not return any type information for a ObjectCreationExpressionSyntax.Type node.
             {
                 // TODO: Should parenthesized expression really not have symbols? At least for C#, I'm not sure that 
@@ -2055,7 +2055,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression != null)
             {
                 var parent = expression.Parent;
-                return (parent != null && parent.Kind == SyntaxKind.GotoStatement)
+                return (parent != null && parent.Kind() == SyntaxKind.GotoStatement)
                     ? binder.BindLabel(expression, diagnostics)
                     : binder.BindNamespaceOrTypeOrExpression(expression, diagnostics);
             }
@@ -2775,7 +2775,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetDeclaredSymbol, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
             {
                 CSharpSyntaxNode catchClause = catchDeclaration.Parent; //Syntax->Binder map is keyed on clause, not decl
-                Debug.Assert(catchClause.Kind == SyntaxKind.CatchClause);
+                Debug.Assert(catchClause.Kind() == SyntaxKind.CatchClause);
                 Binder enclosingBinder = this.GetEnclosingBinder(GetAdjustedNodePosition(catchClause));
                 Binder catchBinder = enclosingBinder.GetBinder(catchClause).WithAdditionalFlags(BinderFlags.SemanticModel);
                 LocalSymbol local = catchBinder.Locals.FirstOrDefault();
@@ -2828,7 +2828,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var expr = (BoundBadExpression)boundNode;
                         resultKind = expr.ResultKind;
 
-                        if (expr.Syntax.Kind == SyntaxKind.ObjectCreationExpression)
+                        if (expr.Syntax.Kind() == SyntaxKind.ObjectCreationExpression)
                         {
                             if (resultKind == LookupResultKind.NotCreatable)
                             {
@@ -2855,7 +2855,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // Watch out for not creatable types within object creation syntax
                         if (boundNodeForSyntacticParent != null &&
-                           boundNodeForSyntacticParent.Syntax.Kind == SyntaxKind.ObjectCreationExpression &&
+                           boundNodeForSyntacticParent.Syntax.Kind() == SyntaxKind.ObjectCreationExpression &&
                            ((ObjectCreationExpressionSyntax)boundNodeForSyntacticParent.Syntax).Type == boundType.Syntax &&
                            boundNodeForSyntacticParent.Kind == BoundKind.BadExpression &&
                            ((BoundBadExpression)boundNodeForSyntacticParent).ResultKind == LookupResultKind.NotCreatable)
@@ -3377,7 +3377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpSyntaxNode parentSyntax = boundNodeForSyntacticParent.Syntax;
             if (parentSyntax != null &&
                 parentSyntax == boundNode.Syntax.Parent &&
-                parentSyntax.Kind == SyntaxKind.Attribute && ((AttributeSyntax)parentSyntax).Name == boundNode.Syntax)
+                parentSyntax.Kind() == SyntaxKind.Attribute && ((AttributeSyntax)parentSyntax).Name == boundNode.Syntax)
             {
                 var unwrappedSymbols = UnwrapAliases(symbols);
 
@@ -4477,7 +4477,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.GetDeclaredSymbol(member, cancellationToken);
             }
 
-            switch (node.Kind)
+            switch (node.Kind())
             {
                 case SyntaxKind.LabeledStatement:
                     return this.GetDeclaredSymbol((LabeledStatementSyntax)node, cancellationToken);
@@ -4604,7 +4604,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken));
 
                         NameSyntax name = ns.Name;
-                        while (name.Kind == SyntaxKind.QualifiedName)
+                        while (name.Kind() == SyntaxKind.QualifiedName)
                         {
                             name = ((QualifiedNameSyntax)name).Left;
                             var declaredSymbol = getSymbol ? GetSymbolInfo(name, cancellationToken).Symbol : null;

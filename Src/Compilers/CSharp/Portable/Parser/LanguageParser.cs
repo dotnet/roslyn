@@ -1582,7 +1582,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (member != null)
             {
                 // on reuse valid type declaration (not bad namespace members)
-                switch (member.Kind)
+                switch (member.Kind())
                 {
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.StructDeclaration:
@@ -2199,7 +2199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             if (member != null)
             {
-                switch (member.Kind)
+                switch (member.Kind())
                 {
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.StructDeclaration:
@@ -2224,7 +2224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // a type.
                 if (originalTypeDeclaration != null)
                 {
-                    switch (member.Kind)
+                    switch (member.Kind())
                     {
                         case SyntaxKind.MethodDeclaration:
                             // can reuse a method as long as it *doesn't* match the type name.
@@ -3733,7 +3733,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
-                    if (isEvent && parent != null && parent.Kind == SyntaxKind.EventDeclaration)
+                    if (isEvent && parent != null && parent.Kind() == SyntaxKind.EventDeclaration)
                     {
                         return true;
                     }
@@ -3741,7 +3741,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     break;
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:
-                    if (!isEvent && parent != null && parent.Kind == SyntaxKind.PropertyDeclaration)
+                    if (!isEvent && parent != null && parent.Kind() == SyntaxKind.PropertyDeclaration)
                     {
                         return true;
                     }
@@ -4024,15 +4024,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             CSharp.CSharpSyntaxNode parent = parameter.Parent;
             if (parent != null)
             {
-                if (parent.Kind == SyntaxKind.SimpleLambdaExpression)
+                if (parent.Kind() == SyntaxKind.SimpleLambdaExpression)
                 {
                     return false;
                 }
 
                 CSharp.CSharpSyntaxNode grandparent = parent.Parent;
-                if (grandparent != null && grandparent.Kind == SyntaxKind.ParenthesizedLambdaExpression)
+                if (grandparent != null && grandparent.Kind() == SyntaxKind.ParenthesizedLambdaExpression)
                 {
-                    Debug.Assert(parent.Kind == SyntaxKind.ParameterList);
+                    Debug.Assert(parent.Kind() == SyntaxKind.ParameterList);
                     return false;
                 }
             }
@@ -4547,7 +4547,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             if (decl != null)
             {
-                switch (decl.Kind)
+                switch (decl.Kind())
                 {
                     case SyntaxKind.FieldDeclaration:
                         return ((CSharp.Syntax.FieldDeclarationSyntax)decl).Modifiers;
@@ -4604,7 +4604,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 flags |= VariableFlags.Const;
             }
 
-            if (parent != null && (parent.Kind == SyntaxKind.VariableDeclaration || parent.Kind == SyntaxKind.LocalDeclarationStatement))
+            if (parent != null && (parent.Kind() == SyntaxKind.VariableDeclaration || parent.Kind() == SyntaxKind.LocalDeclarationStatement))
             {
                 flags |= VariableFlags.Local;
             }
@@ -4624,7 +4624,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return (flags == GetOriginalVariableFlags(old))
                 && (isFirst == WasFirstVariable(old))
                 && old.Initializer == null  // can't reuse node that possibly ends in an expression
-                && (oldKind = GetOldParent(old).Kind) != SyntaxKind.VariableDeclaration // or in a method body
+                && (oldKind = GetOldParent(old).Kind()) != SyntaxKind.VariableDeclaration // or in a method body
                 && oldKind != SyntaxKind.LocalDeclarationStatement;
         }
 

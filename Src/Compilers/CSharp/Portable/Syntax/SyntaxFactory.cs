@@ -1113,7 +1113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             XmlEmptyElementSyntax elementSyntax = (XmlEmptyElementSyntax)structure.Content[1];
             Debug.Assert(elementSyntax.Attributes.Count == 1);
             XmlAttributeSyntax attributeSyntax = (XmlAttributeSyntax)elementSyntax.Attributes[0];
-            return attributeSyntax.Kind == SyntaxKind.XmlCrefAttribute ? ((XmlCrefAttributeSyntax)attributeSyntax).Cref : null;
+            return attributeSyntax.Kind() == SyntaxKind.XmlCrefAttribute ? ((XmlCrefAttributeSyntax)attributeSyntax).Cref : null;
         }
 
         /// <summary>
@@ -1498,9 +1498,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node != null)
             {
                 var parent = node.Parent as ExpressionSyntax;
-                if (parent != null && (node.Kind == SyntaxKind.IdentifierName || node.Kind == SyntaxKind.GenericName))
+                if (parent != null && (node.Kind() == SyntaxKind.IdentifierName || node.Kind() == SyntaxKind.GenericName))
                 {
-                    switch (parent.Kind)
+                    switch (parent.Kind())
                     {
                         case SyntaxKind.QualifiedName:
                             var qualifiedName = (QualifiedNameSyntax)parent;
@@ -1551,7 +1551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return node;
             }
 
-            switch (node.Kind)
+            switch (node.Kind())
             {
                 case SyntaxKind.IdentifierName:
                 case SyntaxKind.GenericName:
@@ -1574,7 +1574,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return node;
             }
 
-            switch (parent.Kind)
+            switch (parent.Kind())
             {
                 case SyntaxKind.QualifiedName:
                     if (((QualifiedNameSyntax)parent).Right == node)
@@ -1615,7 +1615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (((NameMemberCrefSyntax)parent).Name == node)
                     {
                         CSharpSyntaxNode grandparent = parent.Parent;
-                        return grandparent != null && grandparent.Kind == SyntaxKind.QualifiedCref
+                        return grandparent != null && grandparent.Kind() == SyntaxKind.QualifiedCref
                             ? grandparent
                             : parent;
                     }
@@ -1639,7 +1639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case SyntaxKind.ObjectCreationExpression:
-                    if (node.Kind == SyntaxKind.NullableType && ((ObjectCreationExpressionSyntax)parent).Type == node)
+                    if (node.Kind() == SyntaxKind.NullableType && ((ObjectCreationExpressionSyntax)parent).Type == node)
                     {
                         return parent;
                     }
@@ -1665,8 +1665,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var currentNode = node;
 
-            Debug.Assert(currentNode.Kind == SyntaxKind.MemberBindingExpression ||
-                         currentNode.Kind == SyntaxKind.ElementBindingExpression);
+            Debug.Assert(currentNode.Kind() == SyntaxKind.MemberBindingExpression ||
+                         currentNode.Kind() == SyntaxKind.ElementBindingExpression);
 
             // In a well formed tree, the corresponding access node should be one of the ancestors
             // and its "?" token should preceed the binding syntax.
@@ -1675,7 +1675,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 currentNode = currentNode.Parent;
                 Debug.Assert(currentNode != null, "binding should be enclosed in a conditional access");
 
-                if (currentNode.Kind == SyntaxKind.ConditionalAccessExpression)
+                if (currentNode.Kind() == SyntaxKind.ConditionalAccessExpression)
                 {
                     var condAccess = (ConditionalAccessExpressionSyntax)currentNode;
                     if (condAccess.OperatorToken.EndPosition == node.Position)
@@ -1697,20 +1697,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (expression != null)
             {
-                switch (expression.Kind)
+                switch (expression.Kind())
                 {
                     case SyntaxKind.SimpleMemberAccessExpression:
                     case SyntaxKind.PointerMemberAccessExpression:
                         var max = (MemberAccessExpressionSyntax)expression;
-                        if (max.Name.Kind == SyntaxKind.GenericName)
+                        if (max.Name.Kind() == SyntaxKind.GenericName)
                         {
                             var gn = (GenericNameSyntax)max.Name;
-                            return SyntaxFactory.BinaryExpression(expression.Kind, max.Expression, max.OperatorToken, SyntaxFactory.IdentifierName(gn.Identifier));
+                            return SyntaxFactory.BinaryExpression(expression.Kind(), max.Expression, max.OperatorToken, SyntaxFactory.IdentifierName(gn.Identifier));
                         }
                         break;
                     case SyntaxKind.QualifiedName:
                         var qn = (QualifiedNameSyntax)expression;
-                        if (qn.Right.Kind == SyntaxKind.GenericName)
+                        if (qn.Right.Kind() == SyntaxKind.GenericName)
                         {
                             var gn = (GenericNameSyntax)qn.Right;
                             return SyntaxFactory.QualifiedName(qn.Left, qn.DotToken, SyntaxFactory.IdentifierName(gn.Identifier));
@@ -1718,7 +1718,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     case SyntaxKind.AliasQualifiedName:
                         var an = (AliasQualifiedNameSyntax)expression;
-                        if (an.Name.Kind == SyntaxKind.GenericName)
+                        if (an.Name.Kind() == SyntaxKind.GenericName)
                         {
                             var gn = (GenericNameSyntax)an.Name;
                             return SyntaxFactory.AliasQualifiedName(an.Alias, an.ColonColonToken, SyntaxFactory.IdentifierName(gn.Identifier));
@@ -1793,7 +1793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // expression statement terminating semicolon might be missing in interactive code:
                 if (tree.Options.Kind != SourceCodeKind.Interactive ||
-                    globalStatement.Statement.Kind != SyntaxKind.ExpressionStatement ||
+                    globalStatement.Statement.Kind() != SyntaxKind.ExpressionStatement ||
                     token.Kind() != SyntaxKind.SemicolonToken)
                 {
                     return false;

@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundStatement result;
 
-            switch (node.Kind)
+            switch (node.Kind())
             {
                 case SyntaxKind.Block:
                     result = BindBlock((BlockSyntax)node, diagnostics);
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // NOTE: We could probably throw an exception here, but it's conceivable
                     // that a non-parser syntax tree could reach this point with an unexpected
                     // SyntaxKind and we don't want to throw if that occurs.
-                    Debug.Assert(false, "Unexpected SyntaxKind " + node.Kind);
+                    Debug.Assert(false, "Unexpected SyntaxKind " + node.Kind());
                     result = new BoundBadStatement(node, ImmutableArray<BoundNode>.Empty, hasErrors: true);
                     break;
             }
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundStatement BindPossibleEmbeddedStatement(StatementSyntax node, DiagnosticBag diagnostics)
         {
-            switch (node.Kind)
+            switch (node.Kind())
             {
                 case SyntaxKind.Block:
                 case SyntaxKind.UsingStatement:
@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindGoto(GotoStatementSyntax node, DiagnosticBag diagnostics)
         {
-            switch (node.Kind)
+            switch (node.Kind())
             {
                 case SyntaxKind.GotoStatement:
                     var expression = BindLabel(node.Expression, diagnostics);
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return binder.BindGotoCaseOrDefault(node, diagnostics);
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(node.Kind);
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
         }
 
@@ -527,7 +527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private TypeSymbol BindVariableType(CSharpSyntaxNode declarationNode, DiagnosticBag diagnostics, TypeSyntax typeSyntax, ref bool isConst, out bool isVar, out AliasSymbol alias)
         {
-            Debug.Assert(declarationNode.Kind == SyntaxKind.LocalDeclarationStatement);
+            Debug.Assert(declarationNode.Kind() == SyntaxKind.LocalDeclarationStatement);
 
             // If the type is "var" then suppress errors when binding it. "var" might be a legal type
             // or it might not; if it is not then we do not want to report an error. If it is, then
@@ -564,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // more sense to treat that as "var x = 10; var y = 123.4;" and do each inference
                 // separately.
 
-                if (declarationNode.Kind == SyntaxKind.LocalDeclarationStatement && ((LocalDeclarationStatementSyntax)declarationNode).Declaration.Variables.Count > 1 && !declarationNode.HasErrors)
+                if (declarationNode.Kind() == SyntaxKind.LocalDeclarationStatement && ((LocalDeclarationStatementSyntax)declarationNode).Declaration.Variables.Count > 1 && !declarationNode.HasErrors)
                 {
                     Error(diagnostics, ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator, declarationNode);
                 }
@@ -611,7 +611,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            if (initializer.Value.Kind == SyntaxKind.ArrayInitializerExpression)
+            if (initializer.Value.Kind() == SyntaxKind.ArrayInitializerExpression)
             {
                 return BindUnexpectedArrayInitializer((InitializerExpressionSyntax)initializer.Value,
                     diagnostics, ErrorCode.ERR_ImplicitlyTypedVariableAssignedArrayInitializer, errorSyntax);
@@ -1552,7 +1552,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var syntax = expr.Syntax;
-            switch (syntax.Kind)
+            switch (syntax.Kind())
             {
                 case SyntaxKind.SimpleMemberAccessExpression:
                 case SyntaxKind.PointerMemberAccessExpression:
@@ -1584,7 +1584,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             CSharpSyntaxNode syntax = expr.Syntax;
-            switch (syntax.Kind)
+            switch (syntax.Kind())
             {
                 case SyntaxKind.SimpleMemberAccessExpression:
                 case SyntaxKind.PointerMemberAccessExpression:
@@ -1594,7 +1594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     eventSyntax = syntax;
                     break;
                 default:
-                    Debug.Assert(false, "Unexpected syntax: " + syntax.Kind);
+                    Debug.Assert(false, "Unexpected syntax: " + syntax.Kind());
                     eventSyntax = syntax;
                     break;
             }
@@ -1998,7 +1998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node != null);
 
-            if (node.Kind != SyntaxKind.ArrayInitializerExpression)
+            if (node.Kind() != SyntaxKind.ArrayInitializerExpression)
             {
                 return BindValue(node, diagnostics, BindValueKind.RValue);
             }
@@ -2339,7 +2339,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (conversion.IsExplicit)
                 {
-                    if (sourceType.SpecialType == SpecialType.System_Double && syntax.Kind == SyntaxKind.NumericLiteralExpression &&
+                    if (sourceType.SpecialType == SpecialType.System_Double && syntax.Kind() == SyntaxKind.NumericLiteralExpression &&
                         (targetType.SpecialType == SpecialType.System_Single || targetType.SpecialType == SpecialType.System_Decimal))
                     {
                         Error(diagnostics, ErrorCode.ERR_LiteralDoubleCast, syntax, (targetType.SpecialType == SpecialType.System_Single) ? "F" : "M", targetType);
@@ -2435,12 +2435,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!Conversions.ReportDelegateMethodGroupDiagnostics(this, methodGroup, targetType, diagnostics))
                 {
                     var nodeForSquiggle = syntax;
-                    while (nodeForSquiggle.Kind == SyntaxKind.ParenthesizedExpression)
+                    while (nodeForSquiggle.Kind() == SyntaxKind.ParenthesizedExpression)
                     {
                         nodeForSquiggle = ((ParenthesizedExpressionSyntax)nodeForSquiggle).Expression;
                     }
 
-                    if (nodeForSquiggle.Kind == SyntaxKind.SimpleMemberAccessExpression || nodeForSquiggle.Kind == SyntaxKind.PointerMemberAccessExpression)
+                    if (nodeForSquiggle.Kind() == SyntaxKind.SimpleMemberAccessExpression || nodeForSquiggle.Kind() == SyntaxKind.PointerMemberAccessExpression)
                     {
                         nodeForSquiggle = ((MemberAccessExpressionSyntax)nodeForSquiggle).Name;
                     }
@@ -3207,7 +3207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Need to attach the tree for when we generate sequence points.
-            return new BoundBlock(node, locals, ImmutableArray.Create(statement)) { WasCompilerGenerated = node.Kind != SyntaxKind.ArrowExpressionClause };
+            return new BoundBlock(node, locals, ImmutableArray.Create(statement)) { WasCompilerGenerated = node.Kind() != SyntaxKind.ArrowExpressionClause };
         }
 
         /// <summary>

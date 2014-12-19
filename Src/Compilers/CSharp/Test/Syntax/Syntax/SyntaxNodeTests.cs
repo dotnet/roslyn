@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var expression = SyntaxFactory.ParseExpression(text);
             var e = expression.DescendantNodes().OfType<IdentifierNameSyntax>().First(n => n.Identifier.Text == "e");
 
-            var firstParens = e.FirstAncestorOrSelf<ExpressionSyntax>(n => n.Kind == SyntaxKind.ParenthesizedExpression);
+            var firstParens = e.FirstAncestorOrSelf<ExpressionSyntax>(n => n.Kind() == SyntaxKind.ParenthesizedExpression);
             Assert.NotNull(firstParens);
             Assert.Equal("(d / e)", firstParens.ToString());
         }
@@ -608,8 +608,8 @@ a + b";
             var tree2 = SyntaxFactory.ParseSyntaxTree("class bar { void M() { } }");
             var m1 = ((TypeDeclarationSyntax)tree1.GetCompilationUnitRoot().Members[0]).Members[0];
             var m2 = ((TypeDeclarationSyntax)tree2.GetCompilationUnitRoot().Members[0]).Members[0];
-            Assert.Equal(SyntaxKind.MethodDeclaration, m1.Kind);
-            Assert.Equal(SyntaxKind.MethodDeclaration, m2.Kind);
+            Assert.Equal(SyntaxKind.MethodDeclaration, m1.Kind());
+            Assert.Equal(SyntaxKind.MethodDeclaration, m2.Kind());
             Assert.NotEqual(m1, m2);
             Assert.True(m1.IsEquivalentTo(m2));
         }
@@ -1099,7 +1099,7 @@ using foo.bar;
             var tree = SyntaxFactory.ParseSyntaxTree("#define FOO");
             var d = tree.GetCompilationUnitRoot().GetFirstDirective();
             Assert.NotNull(d);
-            Assert.Equal(SyntaxKind.DefineDirectiveTrivia, d.Kind);
+            Assert.Equal(SyntaxKind.DefineDirectiveTrivia, d.Kind());
         }
 
         [Fact]
@@ -1111,7 +1111,7 @@ using foo.bar;
 ");
             var d = tree.GetCompilationUnitRoot().GetLastDirective();
             Assert.NotNull(d);
-            Assert.Equal(SyntaxKind.UndefDirectiveTrivia, d.Kind);
+            Assert.Equal(SyntaxKind.UndefDirectiveTrivia, d.Kind());
         }
 
         [Fact]
@@ -1128,16 +1128,16 @@ class C {
 ");
             var d1 = tree.GetCompilationUnitRoot().GetFirstDirective();
             Assert.NotNull(d1);
-            Assert.Equal(SyntaxKind.DefineDirectiveTrivia, d1.Kind);
+            Assert.Equal(SyntaxKind.DefineDirectiveTrivia, d1.Kind());
             var d2 = d1.GetNextDirective();
             Assert.NotNull(d2);
-            Assert.Equal(SyntaxKind.DefineDirectiveTrivia, d2.Kind);
+            Assert.Equal(SyntaxKind.DefineDirectiveTrivia, d2.Kind());
             var d3 = d2.GetNextDirective();
             Assert.NotNull(d3);
-            Assert.Equal(SyntaxKind.IfDirectiveTrivia, d3.Kind);
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, d3.Kind());
             var d4 = d3.GetNextDirective();
             Assert.NotNull(d4);
-            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, d4.Kind);
+            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, d4.Kind());
             var d5 = d4.GetNextDirective();
             Assert.Null(d5);
         }
@@ -1156,16 +1156,16 @@ class C {
 ");
             var d1 = tree.GetCompilationUnitRoot().GetLastDirective();
             Assert.NotNull(d1);
-            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, d1.Kind);
+            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, d1.Kind());
             var d2 = d1.GetPreviousDirective();
             Assert.NotNull(d2);
-            Assert.Equal(SyntaxKind.IfDirectiveTrivia, d2.Kind);
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, d2.Kind());
             var d3 = d2.GetPreviousDirective();
             Assert.NotNull(d3);
-            Assert.Equal(SyntaxKind.DefineDirectiveTrivia, d3.Kind);
+            Assert.Equal(SyntaxKind.DefineDirectiveTrivia, d3.Kind());
             var d4 = d3.GetPreviousDirective();
             Assert.NotNull(d4);
-            Assert.Equal(SyntaxKind.DefineDirectiveTrivia, d4.Kind);
+            Assert.Equal(SyntaxKind.DefineDirectiveTrivia, d4.Kind());
             var d5 = d4.GetPreviousDirective();
             Assert.Null(d5);
         }
@@ -1185,17 +1185,17 @@ class C { }
 ");
             var d = tree.GetCompilationUnitRoot().GetFirstDirective();
             Assert.NotNull(d);
-            Assert.Equal(SyntaxKind.DefineDirectiveTrivia, d.Kind);
+            Assert.Equal(SyntaxKind.DefineDirectiveTrivia, d.Kind());
             d = d.GetNextDirective();
             Assert.NotNull(d);
-            Assert.Equal(SyntaxKind.IfDirectiveTrivia, d.Kind);
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, d.Kind());
             var related = d.GetRelatedDirectives();
             Assert.NotNull(related);
             Assert.Equal(4, related.Count);
-            Assert.Equal(SyntaxKind.IfDirectiveTrivia, related[0].Kind);
-            Assert.Equal(SyntaxKind.ElifDirectiveTrivia, related[1].Kind);
-            Assert.Equal(SyntaxKind.ElseDirectiveTrivia, related[2].Kind);
-            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, related[3].Kind);
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, related[0].Kind());
+            Assert.Equal(SyntaxKind.ElifDirectiveTrivia, related[1].Kind());
+            Assert.Equal(SyntaxKind.ElseDirectiveTrivia, related[2].Kind());
+            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, related[3].Kind());
         }
 
         [Fact]
@@ -1213,17 +1213,17 @@ class C { }
 ");
             var d = tree.GetCompilationUnitRoot().GetFirstDirective();
             Assert.NotNull(d);
-            Assert.Equal(SyntaxKind.DefineDirectiveTrivia, d.Kind);
+            Assert.Equal(SyntaxKind.DefineDirectiveTrivia, d.Kind());
             d = d.GetNextDirective();
             Assert.NotNull(d);
-            Assert.Equal(SyntaxKind.IfDirectiveTrivia, d.Kind);
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, d.Kind());
             var related = d.GetRelatedDirectives();
             Assert.NotNull(related);
             Assert.Equal(4, related.Count);
-            Assert.Equal(SyntaxKind.IfDirectiveTrivia, related[0].Kind);
-            Assert.Equal(SyntaxKind.ElifDirectiveTrivia, related[1].Kind);
-            Assert.Equal(SyntaxKind.ElseDirectiveTrivia, related[2].Kind);
-            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, related[3].Kind);
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, related[0].Kind());
+            Assert.Equal(SyntaxKind.ElifDirectiveTrivia, related[1].Kind());
+            Assert.Equal(SyntaxKind.ElseDirectiveTrivia, related[2].Kind());
+            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, related[3].Kind());
 
             // get directives related to elif
             var related2 = related[1].GetRelatedDirectives();
@@ -1249,14 +1249,14 @@ class C { }
 ");
             var d = tree.GetCompilationUnitRoot().GetLastDirective();
             Assert.NotNull(d);
-            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, d.Kind);
+            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, d.Kind());
             var related = d.GetRelatedDirectives();
             Assert.NotNull(related);
             Assert.Equal(4, related.Count);
-            Assert.Equal(SyntaxKind.IfDirectiveTrivia, related[0].Kind);
-            Assert.Equal(SyntaxKind.ElifDirectiveTrivia, related[1].Kind);
-            Assert.Equal(SyntaxKind.ElseDirectiveTrivia, related[2].Kind);
-            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, related[3].Kind);
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, related[0].Kind());
+            Assert.Equal(SyntaxKind.ElifDirectiveTrivia, related[1].Kind());
+            Assert.Equal(SyntaxKind.ElseDirectiveTrivia, related[2].Kind());
+            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, related[3].Kind());
         }
 
         [Fact]
@@ -1277,17 +1277,17 @@ class C { }
 ");
             var d = tree.GetCompilationUnitRoot().GetFirstDirective();
             Assert.NotNull(d);
-            Assert.Equal(SyntaxKind.DefineDirectiveTrivia, d.Kind);
+            Assert.Equal(SyntaxKind.DefineDirectiveTrivia, d.Kind());
             d = d.GetNextDirective();
             Assert.NotNull(d);
-            Assert.Equal(SyntaxKind.IfDirectiveTrivia, d.Kind);
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, d.Kind());
             var related = d.GetRelatedDirectives();
             Assert.NotNull(related);
             Assert.Equal(4, related.Count);
-            Assert.Equal(SyntaxKind.IfDirectiveTrivia, related[0].Kind);
-            Assert.Equal(SyntaxKind.ElifDirectiveTrivia, related[1].Kind);
-            Assert.Equal(SyntaxKind.ElseDirectiveTrivia, related[2].Kind);
-            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, related[3].Kind);
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, related[0].Kind());
+            Assert.Equal(SyntaxKind.ElifDirectiveTrivia, related[1].Kind());
+            Assert.Equal(SyntaxKind.ElseDirectiveTrivia, related[2].Kind());
+            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, related[3].Kind());
         }
 
         [Fact]
@@ -1308,17 +1308,17 @@ class C { }
 ");
             var d = tree.GetCompilationUnitRoot().GetFirstDirective();
             Assert.NotNull(d);
-            Assert.Equal(SyntaxKind.DefineDirectiveTrivia, d.Kind);
+            Assert.Equal(SyntaxKind.DefineDirectiveTrivia, d.Kind());
             d = d.GetNextDirective();
             Assert.NotNull(d);
-            Assert.Equal(SyntaxKind.IfDirectiveTrivia, d.Kind);
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, d.Kind());
             var related = d.GetRelatedDirectives();
             Assert.NotNull(related);
             Assert.Equal(4, related.Count);
-            Assert.Equal(SyntaxKind.IfDirectiveTrivia, related[0].Kind);
-            Assert.Equal(SyntaxKind.ElifDirectiveTrivia, related[1].Kind);
-            Assert.Equal(SyntaxKind.ElseDirectiveTrivia, related[2].Kind);
-            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, related[3].Kind);
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, related[0].Kind());
+            Assert.Equal(SyntaxKind.ElifDirectiveTrivia, related[1].Kind());
+            Assert.Equal(SyntaxKind.ElseDirectiveTrivia, related[2].Kind());
+            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, related[3].Kind());
         }
 
         [Fact]
@@ -1339,14 +1339,14 @@ class C { }
 ");
             var d = tree.GetCompilationUnitRoot().GetLastDirective();
             Assert.NotNull(d);
-            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, d.Kind);
+            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, d.Kind());
             var related = d.GetRelatedDirectives();
             Assert.NotNull(related);
             Assert.Equal(4, related.Count);
-            Assert.Equal(SyntaxKind.IfDirectiveTrivia, related[0].Kind);
-            Assert.Equal(SyntaxKind.ElifDirectiveTrivia, related[1].Kind);
-            Assert.Equal(SyntaxKind.ElseDirectiveTrivia, related[2].Kind);
-            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, related[3].Kind);
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, related[0].Kind());
+            Assert.Equal(SyntaxKind.ElifDirectiveTrivia, related[1].Kind());
+            Assert.Equal(SyntaxKind.ElseDirectiveTrivia, related[2].Kind());
+            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, related[3].Kind());
         }
 
         [Fact]
@@ -1366,14 +1366,14 @@ class C { }
 ");
             var d = tree.GetCompilationUnitRoot().GetLastDirective();
             Assert.NotNull(d);
-            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, d.Kind);
+            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, d.Kind());
             var related = d.GetRelatedDirectives();
             Assert.NotNull(related);
             Assert.Equal(4, related.Count);
-            Assert.Equal(SyntaxKind.IfDirectiveTrivia, related[0].Kind);
-            Assert.Equal(SyntaxKind.ElifDirectiveTrivia, related[1].Kind);
-            Assert.Equal(SyntaxKind.ElseDirectiveTrivia, related[2].Kind);
-            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, related[3].Kind);
+            Assert.Equal(SyntaxKind.IfDirectiveTrivia, related[0].Kind());
+            Assert.Equal(SyntaxKind.ElifDirectiveTrivia, related[1].Kind());
+            Assert.Equal(SyntaxKind.ElseDirectiveTrivia, related[2].Kind());
+            Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, related[3].Kind());
         }
 
         [Fact]
@@ -1388,12 +1388,12 @@ class A { }
 ");
             var d = tree.GetCompilationUnitRoot().GetFirstDirective();
             Assert.NotNull(d);
-            Assert.Equal(SyntaxKind.RegionDirectiveTrivia, d.Kind);
+            Assert.Equal(SyntaxKind.RegionDirectiveTrivia, d.Kind());
             var related = d.GetRelatedDirectives();
             Assert.NotNull(related);
             Assert.Equal(2, related.Count);
-            Assert.Equal(SyntaxKind.RegionDirectiveTrivia, related[0].Kind);
-            Assert.Equal(SyntaxKind.EndRegionDirectiveTrivia, related[1].Kind);
+            Assert.Equal(SyntaxKind.RegionDirectiveTrivia, related[0].Kind());
+            Assert.Equal(SyntaxKind.EndRegionDirectiveTrivia, related[1].Kind());
         }
 
         [Fact]
@@ -1409,12 +1409,12 @@ class A { }
 ");
             var d = tree.GetCompilationUnitRoot().GetLastDirective();
             Assert.NotNull(d);
-            Assert.Equal(SyntaxKind.EndRegionDirectiveTrivia, d.Kind);
+            Assert.Equal(SyntaxKind.EndRegionDirectiveTrivia, d.Kind());
             var related = d.GetRelatedDirectives();
             Assert.NotNull(related);
             Assert.Equal(2, related.Count);
-            Assert.Equal(SyntaxKind.RegionDirectiveTrivia, related[0].Kind);
-            Assert.Equal(SyntaxKind.EndRegionDirectiveTrivia, related[1].Kind);
+            Assert.Equal(SyntaxKind.RegionDirectiveTrivia, related[0].Kind());
+            Assert.Equal(SyntaxKind.EndRegionDirectiveTrivia, related[1].Kind());
         }
 
         [Fact, WorkItem(536995, "DevDiv")]

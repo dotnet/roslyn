@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AccessorDeclarationSyntax removeSyntax = null;
             foreach (AccessorDeclarationSyntax accessor in syntax.AccessorList.Accessors)
             {
-                switch (accessor.Kind)
+                switch (accessor.Kind())
                 {
                     case SyntaxKind.AddAccessorDeclaration:
                         if (addSyntax == null || addSyntax.Keyword.Span.IsEmpty)

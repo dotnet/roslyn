@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool CanBeValidAttributeArgument(ExpressionSyntax node, Binder typeBinder)
         {
             Debug.Assert(node != null);
-            switch (node.Kind)
+            switch (node.Kind())
             {
                 // ObjectCreationExpression for primitive types, such as "new int()", are treated as constants and allowed in attribute arguments.
                 case SyntaxKind.ObjectCreationExpression:

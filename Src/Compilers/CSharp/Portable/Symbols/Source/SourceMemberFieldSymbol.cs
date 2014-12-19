@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private bool IsPointerFieldSyntactically()
         {
             var declaration = GetFieldDeclaration(VariableDeclaratorNode).Declaration;
-            if (declaration.Type.Kind == SyntaxKind.PointerType)
+            if (declaration.Type.Kind() == SyntaxKind.PointerType)
             {
                 // public int * Blah;   // pointer
                 return true;

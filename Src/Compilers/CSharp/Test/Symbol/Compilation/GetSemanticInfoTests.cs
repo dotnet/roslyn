@@ -240,7 +240,7 @@ public class Test
             Assert.Equal(10, mainStats.Count);
             // ary = new byte[3];
             var v1 = (mainStats[0] as ExpressionStatementSyntax).Expression;
-            Assert.Equal(SyntaxKind.SimpleAssignmentExpression, v1.Kind);
+            Assert.Equal(SyntaxKind.SimpleAssignmentExpression, v1.Kind());
             ConversionTestHelper(model, (v1 as AssignmentExpressionSyntax).Right, ConversionKind.Identity, ConversionKind.Identity);
             // ary[0] = 0x0F;
             var v2 = (mainStats[1] as ExpressionStatementSyntax).Expression;
@@ -253,7 +253,7 @@ public class Test
             ConversionTestHelper(model, v4[0].Initializer.Value, ConversionKind.ImplicitReference, ConversionKind.NoConversion);
             // obj.M(ary[0]);
             var v6 = (mainStats[5] as ExpressionStatementSyntax).Expression;
-            Assert.Equal(SyntaxKind.InvocationExpression, v6.Kind);
+            Assert.Equal(SyntaxKind.InvocationExpression, v6.Kind());
             var v61 = (v6 as InvocationExpressionSyntax).ArgumentList.Arguments;
             ConversionTestHelper(model, v61[0].Expression, ConversionKind.ImplicitNumeric, ConversionKind.ImplicitNumeric);
             // object box = -1;
@@ -535,7 +535,7 @@ enum E { zero, one }
             ConversionTestHelper(model, v2[0].Initializer.Value, ConversionKind.ImplicitNullable, ConversionKind.ExplicitNullable);
             // nullable01 = localVal;
             var v3 = (mainStats[3] as ExpressionStatementSyntax).Expression;
-            Assert.Equal(SyntaxKind.SimpleAssignmentExpression, v3.Kind);
+            Assert.Equal(SyntaxKind.SimpleAssignmentExpression, v3.Kind());
             ConversionTestHelper(model, (v3 as AssignmentExpressionSyntax).Right, ConversionKind.ImplicitNullable, ConversionKind.ImplicitNullable);
 
             // E e = 0;
@@ -1028,8 +1028,8 @@ class Test
             var exprSyntaxList = GetExprSyntaxList(tree);
 
             Assert.Equal(6, exprSyntaxList.Count); // Note the omitted array size expression in "string[]"
-            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxList[4].Kind);
-            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxList[5].Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxList[4].Kind());
+            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxList[5].Kind());
 
             Assert.Equal("", exprSyntaxList[4].ToFullString());
             Assert.Equal("", exprSyntaxList[5].ToFullString());
@@ -1119,7 +1119,7 @@ using System;
             var stmt = (GlobalStatementSyntax)root.Members.Single();
             var expr = ((ExpressionStatementSyntax)stmt.Statement).Expression;
 
-            Assert.Equal(SyntaxKind.GreaterThanExpression, expr.Kind);
+            Assert.Equal(SyntaxKind.GreaterThanExpression, expr.Kind());
 
             var info = model.GetSemanticInfoSummary(expr);
             Assert.Equal(SpecialType.System_Boolean, info.Type.SpecialType);
@@ -1387,7 +1387,7 @@ class C
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
-            Assert.Equal(SyntaxKind.ElementAccessExpression, exprSyntaxToBind.Kind);
+            Assert.Equal(SyntaxKind.ElementAccessExpression, exprSyntaxToBind.Kind());
 
             var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
 
@@ -1425,7 +1425,7 @@ class C
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
-            Assert.Equal(SyntaxKind.ElementAccessExpression, exprSyntaxToBind.Kind);
+            Assert.Equal(SyntaxKind.ElementAccessExpression, exprSyntaxToBind.Kind());
 
             var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
 
@@ -1463,7 +1463,7 @@ class C
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
-            Assert.Equal(SyntaxKind.ElementAccessExpression, exprSyntaxToBind.Kind);
+            Assert.Equal(SyntaxKind.ElementAccessExpression, exprSyntaxToBind.Kind());
 
             var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
 
@@ -1499,7 +1499,7 @@ public class Test
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
-            Assert.Equal(SyntaxKind.GenericName, exprSyntaxToBind.Kind);
+            Assert.Equal(SyntaxKind.GenericName, exprSyntaxToBind.Kind());
 
             var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
 
@@ -1530,7 +1530,7 @@ public class Test
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
-            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxToBind.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxToBind.Kind());
 
             var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
 
@@ -1552,7 +1552,7 @@ this[double E] { get { return /*<bind>*/E/*</bind>*/; } }
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
-            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxToBind.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxToBind.Kind());
 
             var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
 
@@ -1582,7 +1582,7 @@ class A<T> : I<T>
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
-            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxToBind.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxToBind.Kind());
 
             var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
 
@@ -1606,7 +1606,7 @@ namespace N { }
             var comp = CreateCompilationWithMscorlib(tree);
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
-            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxToBind.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxToBind.Kind());
             var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
         }
 
@@ -1645,7 +1645,7 @@ class Program
             var comp = CreateCompilationWithMscorlib(tree);
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
-            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxToBind.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxToBind.Kind());
             // Bind Parallel from line Parallel.For(0, 100, RunTest, options);
             // This will implicitly bind "var" to determine type of options.
             // This calls LocalSymbol.GetType
@@ -1678,7 +1678,7 @@ class C
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
-            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxToBind.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxToBind.Kind());
 
             var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
 
@@ -1713,7 +1713,7 @@ class C
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
-            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxToBind.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxToBind.Kind());
 
             var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
 
@@ -1748,7 +1748,7 @@ class C
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
-            Assert.Equal(SyntaxKind.ThisExpression, exprSyntaxToBind.Kind);
+            Assert.Equal(SyntaxKind.ThisExpression, exprSyntaxToBind.Kind());
 
             var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
 
@@ -1784,7 +1784,7 @@ class Program
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
-            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxToBind.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxToBind.Kind());
 
             var bindInfo = model.GetSemanticInfoSummary(exprSyntaxToBind);
 
@@ -1820,7 +1820,7 @@ struct S
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
-            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxToBind.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxToBind.Kind());
 
             var bindInfo = model.GetSymbolInfo(exprSyntaxToBind);
 
@@ -1861,7 +1861,7 @@ class C<T, U, V>
             var model = comp.GetSemanticModel(tree);
             var nameSyntaxToBind = (SimpleNameSyntax)GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
-            Assert.Equal(SyntaxKind.GenericName, nameSyntaxToBind.Kind);
+            Assert.Equal(SyntaxKind.GenericName, nameSyntaxToBind.Kind());
             Assert.Equal(3, nameSyntaxToBind.Arity);
 
             var bindInfo = model.GetSymbolInfo(nameSyntaxToBind);
@@ -1890,7 +1890,7 @@ class C
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
-            Assert.Equal(SyntaxKind.ArrayType, exprSyntaxToBind.Kind);
+            Assert.Equal(SyntaxKind.ArrayType, exprSyntaxToBind.Kind());
 
             var bindInfo = model.GetSymbolInfo(exprSyntaxToBind);
 
@@ -1926,7 +1926,7 @@ public class C<T> where T : IA, IB // can find IA.P in two different ways
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
-            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxToBind.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxToBind.Kind());
 
             var bindInfo = model.GetSymbolInfo(exprSyntaxToBind);
             Assert.Equal("System.Collections.Generic.IEnumerable<System.Object> System.Collections.Generic.IEnumerable<T>.Select<T, System.Object>(System.Func<T, System.Object> selector)", bindInfo.Symbol.ToTestDisplayString());
@@ -1962,7 +1962,7 @@ public class C<T> where T : IA, IB
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
-            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxToBind.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxToBind.Kind());
 
             var bindInfo = model.GetSymbolInfo(exprSyntaxToBind);
             Assert.Equal("System.Collections.Generic.IEnumerable<System.Int32> System.Collections.Generic.IEnumerable<T>.Select<T, System.Int32>(System.Func<T, System.Int32> selector)", bindInfo.Symbol.ToTestDisplayString());
@@ -1998,7 +1998,7 @@ public class C<T> where T : IB, IA
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
-            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxToBind.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxToBind.Kind());
 
             var bindInfo = model.GetSymbolInfo(exprSyntaxToBind);
             Assert.Equal("System.Collections.Generic.IEnumerable<System.Int32> System.Collections.Generic.IEnumerable<T>.Select<T, System.Int32>(System.Func<T, System.Int32> selector)", bindInfo.Symbol.ToTestDisplayString());
@@ -2033,7 +2033,7 @@ public class C<T> where T : IB, IC
             var model = comp.GetSemanticModel(tree);
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
-            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxToBind.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, exprSyntaxToBind.Kind());
 
             var bindInfo = model.GetSymbolInfo(exprSyntaxToBind);
             Assert.Equal("System.Collections.Generic.IEnumerable<System.Object> System.Collections.Generic.IEnumerable<T>.Select<T, System.Object>(System.Func<T, System.Object> selector)", bindInfo.Symbol.ToTestDisplayString());
@@ -2209,7 +2209,7 @@ public class C<T> where T : {1}
             typeParameter = classC.TypeParameters.Single();
 
             var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
-            Assert.Equal(SyntaxKind.DefaultExpression, exprSyntaxToBind.Kind);
+            Assert.Equal(SyntaxKind.DefaultExpression, exprSyntaxToBind.Kind());
 
             return model.LookupSymbols(exprSyntaxToBind.SpanStart, typeParameter, memberName);
         }
@@ -3763,7 +3763,7 @@ class C
 
             var position = text.IndexOf("here");
             var syntax = SyntaxFactory.ParseExpression("       C.M"); //Leading trivia was significant for triggering an assert before the fix.
-            Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, syntax.Kind);
+            Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, syntax.Kind());
 
             var info = model.GetSpeculativeSymbolInfo(position, syntax, SpeculativeBindingOption.BindAsExpression);
             Assert.Equal(compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M"), info.CandidateSymbols.Single());
@@ -3796,7 +3796,7 @@ class C
 
             var position = text.IndexOf("here");
             var syntax = SyntaxFactory.ParseExpression("       C.M"); //Leading trivia was significant for triggering an assert before the fix.
-            Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, syntax.Kind);
+            Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, syntax.Kind());
 
             var info = model.GetSpeculativeSymbolInfo(position, syntax, SpeculativeBindingOption.BindAsExpression);
             Assert.Null(info.Symbol);
@@ -3823,7 +3823,7 @@ class C
             var model = compilation.GetSemanticModel(tree);
 
             var syntax = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
-            Assert.Equal(SyntaxKind.IdentifierName, syntax.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, syntax.Kind());
 
             var info = model.GetSymbolInfo(syntax);
             Assert.Equal(compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M"), info.CandidateSymbols.Single());
@@ -3849,7 +3849,7 @@ class C
             var model = compilation.GetSemanticModel(tree);
 
             var syntax = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
-            Assert.Equal(SyntaxKind.IdentifierName, syntax.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, syntax.Kind());
 
             var info = model.GetSymbolInfo(syntax);
             Assert.Null(info.Symbol);
@@ -3890,7 +3890,7 @@ class C
 
             var position = source2.IndexOf("here");
             var syntax = SyntaxFactory.ParseExpression("       a.P"); //Leading trivia was significant for triggering an assert before the fix.
-            Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, syntax.Kind);
+            Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, syntax.Kind());
 
             var info = model.GetSpeculativeSymbolInfo(position, syntax, SpeculativeBindingOption.BindAsExpression);
             Assert.Equal(compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("IA").GetMember<PropertySymbol>("P"), info.Symbol);
@@ -3930,7 +3930,7 @@ class C
 
             var position = source2.IndexOf("here");
             var syntax = SyntaxFactory.ParseExpression("       a.P"); //Leading trivia was significant for triggering an assert before the fix.
-            Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, syntax.Kind);
+            Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, syntax.Kind());
 
             var info = model.GetSpeculativeSymbolInfo(position, syntax, SpeculativeBindingOption.BindAsExpression);
             Assert.Null(info.Symbol);
@@ -3975,7 +3975,7 @@ class C
             var model = compilation.GetSemanticModel(tree);
 
             var syntax = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
-            Assert.Equal(SyntaxKind.QualifiedName, syntax.Kind);
+            Assert.Equal(SyntaxKind.QualifiedName, syntax.Kind());
 
             var info = model.GetSymbolInfo(syntax);
             Assert.Null(info.Symbol);
@@ -4015,7 +4015,7 @@ static class Program
             var model = comp.GetSemanticModel(tree);
 
             var originalSyntax = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
-            Assert.Equal(SyntaxKind.InvocationExpression, originalSyntax.Kind);
+            Assert.Equal(SyntaxKind.InvocationExpression, originalSyntax.Kind());
 
             var info1 = model.GetSymbolInfo(originalSyntax);
             var method1 = info1.Symbol as MethodSymbol;
@@ -4043,7 +4043,7 @@ static class Program
             Assert.Equal(SpecialType.System_Collections_Generic_ICollection_T, ((TypeSymbol)reducedFrom1.Parameters[0].Type.OriginalDefinition).SpecialType);
 
             var speculativeSyntax = SyntaxFactory.ParseExpression("fields.Any((field => field.IsStatic))"); //cast removed
-            Assert.Equal(SyntaxKind.InvocationExpression, speculativeSyntax.Kind);
+            Assert.Equal(SyntaxKind.InvocationExpression, speculativeSyntax.Kind());
 
             var info2 = model.GetSpeculativeSymbolInfo(originalSyntax.SpanStart, speculativeSyntax, SpeculativeBindingOption.BindAsExpression);
             var method2 = info2.Symbol as MethodSymbol;
@@ -4730,12 +4730,12 @@ class A
             var model = comp.GetSemanticModel(tree);
 
             var trueLiteral = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
-            Assert.Equal(SyntaxKind.TrueLiteralExpression, trueLiteral.Kind);
+            Assert.Equal(SyntaxKind.TrueLiteralExpression, trueLiteral.Kind());
 
             Assert.DoesNotThrow(() => model.GetSymbolInfo(trueLiteral));
 
             var parameterSyntax = trueLiteral.FirstAncestorOrSelf<ParameterSyntax>();
-            Assert.Equal(SyntaxKind.Parameter, parameterSyntax.Kind);
+            Assert.Equal(SyntaxKind.Parameter, parameterSyntax.Kind());
 
             Assert.DoesNotThrow(() => model.GetDeclaredSymbol(parameterSyntax));
         }

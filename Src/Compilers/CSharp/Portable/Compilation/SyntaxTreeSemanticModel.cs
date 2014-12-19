@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-            else if (node.Parent.Kind == SyntaxKind.XmlNameAttribute && (attrSyntax = (XmlNameAttributeSyntax)node.Parent).Identifier == node)
+            else if (node.Parent.Kind() == SyntaxKind.XmlNameAttribute && (attrSyntax = (XmlNameAttributeSyntax)node.Parent).Identifier == node)
             {
                 result = SymbolInfo.None;
 
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (; expression != null && expression.Parent != null; expression = expression.Parent as TypeSyntax)
             {
                 var parent = expression.Parent;
-                if (parent is BaseTypeSyntax && parent.Parent != null && parent.Parent.Kind == SyntaxKind.BaseList && ((BaseTypeSyntax)parent).Type == expression)
+                if (parent is BaseTypeSyntax && parent.Parent != null && parent.Parent.Kind() == SyntaxKind.BaseList && ((BaseTypeSyntax)parent).Type == expression)
                 {
                     // we have a winner
                     var decl = (BaseTypeDeclarationSyntax)parent.Parent.Parent;
@@ -700,7 +700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool outsideMemberDecl = false;
             if (memberDecl != null)
             {
-                switch (memberDecl.Kind)
+                switch (memberDecl.Kind())
                 {
                     case SyntaxKind.AddAccessorDeclaration:
                     case SyntaxKind.RemoveAccessorDeclaration:
@@ -748,7 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var span = node.Span;
 
-                switch (memberDecl.Kind)
+                switch (memberDecl.Kind())
                 {
                     case SyntaxKind.DelegateDeclaration:
                         {
@@ -840,7 +840,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             for (CSharpSyntaxNode curr = node; curr != null; curr = curr.Parent)
             {
-                if (SyntaxFacts.IsDocumentationCommentTrivia(curr.Kind))
+                if (SyntaxFacts.IsDocumentationCommentTrivia(curr.Kind()))
                 {
                     return true;
                 }
@@ -891,7 +891,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private MemberSemanticModel CreateMemberModel(CSharpSyntaxNode node)
         {
             var outer = this.binderFactory.GetBinder(node);
-            switch (node.Kind)
+            switch (node.Kind())
             {
                 case SyntaxKind.Block:
 
@@ -920,7 +920,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                 case SyntaxKind.EqualsValueClause:
-                    switch (node.Parent.Kind)
+                    switch (node.Parent.Kind())
                     {
                         case SyntaxKind.VariableDeclarator:
                             {
@@ -1011,7 +1011,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         Debug.Assert(!this.IsRegularCSharp);
                         // TODO (tomat): handle misplaced global statements
-                        if (node.Parent.Kind == SyntaxKind.CompilationUnit)
+                        if (node.Parent.Kind() == SyntaxKind.CompilationUnit)
                         {
                             var scriptConstructor = this.Compilation.ScriptClass.InstanceConstructors.First();
                             return MethodBodySemanticModel.Create(
@@ -1065,7 +1065,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)declaredSymbol != null)
             {
-                switch (variableDecl.Parent.Parent.Kind)
+                switch (variableDecl.Parent.Parent.Kind())
                 {
                     case SyntaxKind.FieldDeclaration:
                         return (SourceMemberFieldSymbol)declaredSymbol;
@@ -1128,7 +1128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(declarationSyntax != null);
 
             NamespaceOrTypeSymbol container;
-            if (declarationSyntax.Parent.Kind == SyntaxKind.CompilationUnit)
+            if (declarationSyntax.Parent.Kind() == SyntaxKind.CompilationUnit)
             {
                 container = compilation.Assembly.GlobalNamespace;
             }
@@ -1254,7 +1254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 CheckSyntaxNode(declarationSyntax);
 
-                switch (declarationSyntax.Kind)
+                switch (declarationSyntax.Kind())
                 {
                     // Few subtypes of MemberDeclarationSyntax don't declare any symbols or declare multiple symbols, return null for these cases.
 
@@ -1382,7 +1382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 CheckSyntaxNode(declarationSyntax);
 
-                if (declarationSyntax.Kind == SyntaxKind.UnknownAccessorDeclaration)
+                if (declarationSyntax.Kind() == SyntaxKind.UnknownAccessorDeclaration)
                 {
                     // this is not a real accessor, so we shouldn't return anything.
                     return null;
@@ -1390,7 +1390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var propertyOrEventDecl = declarationSyntax.Parent.Parent;
 
-                switch (propertyOrEventDecl.Kind)
+                switch (propertyOrEventDecl.Kind())
                 {
                     case SyntaxKind.PropertyDeclaration:
                     case SyntaxKind.IndexerDeclaration:
@@ -1404,7 +1404,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return this.GetDeclaredMember(container, declarationSyntax.Span) as MethodSymbol;
 
                     default:
-                        Debug.Assert(false, "Accessor unexpectedly attached to " + propertyOrEventDecl.Kind);
+                        Debug.Assert(false, "Accessor unexpectedly attached to " + propertyOrEventDecl.Kind());
                         return null;
                 }
             }
@@ -1419,7 +1419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var containingMemberSyntax = declarationSyntax.Parent;
 
                 NamespaceOrTypeSymbol container;
-                switch (containingMemberSyntax.Kind)
+                switch (containingMemberSyntax.Kind())
                 {
                     case SyntaxKind.PropertyDeclaration:
                     case SyntaxKind.IndexerDeclaration:
@@ -1432,7 +1432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     default:
                         // Don't throw, use only for the assert
-                        ExceptionUtilities.UnexpectedValue(containingMemberSyntax.Kind);
+                        ExceptionUtilities.UnexpectedValue(containingMemberSyntax.Kind());
                         return null;
                 }
             }
@@ -1440,7 +1440,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private string GetDeclarationName(CSharpSyntaxNode declaration)
         {
-            switch (declaration.Kind)
+            switch (declaration.Kind())
             {
                 case SyntaxKind.MethodDeclaration:
                     {
@@ -1540,7 +1540,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Symbol GetDeclaredMember(NamespaceOrTypeSymbol container, TextSpan declarationSpan, NameSyntax name)
         {
-            switch (name.Kind)
+            switch (name.Kind())
             {
                 case SyntaxKind.GenericName:
                 case SyntaxKind.IdentifierName:
@@ -1558,7 +1558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return GetDeclaredMember(container, declarationSpan, an.Name);
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(name.Kind);
+                    throw ExceptionUtilities.UnexpectedValue(name.Kind());
             }
         }
 
@@ -2055,10 +2055,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private NamespaceOrTypeSymbol GetDeclaredTypeMemberContainer(CSharpSyntaxNode memberDeclaration)
         {
-            if (memberDeclaration.Parent.Kind == SyntaxKind.CompilationUnit)
+            if (memberDeclaration.Parent.Kind() == SyntaxKind.CompilationUnit)
             {
                 // top-level namespace:
-                if (memberDeclaration.Kind == SyntaxKind.NamespaceDeclaration)
+                if (memberDeclaration.Kind() == SyntaxKind.NamespaceDeclaration)
                 {
                     return compilation.Assembly.GlobalNamespace;
                 }
@@ -2070,7 +2070,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // top-level type type in an explicitly declared namespace:
-                if (SyntaxFacts.IsTypeDeclaration(memberDeclaration.Kind))
+                if (SyntaxFacts.IsTypeDeclaration(memberDeclaration.Kind()))
                 {
                     return compilation.Assembly.GlobalNamespace;
                 }
@@ -2089,7 +2089,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // a namespace or a type in an explicitly declared namespace:
-            if (memberDeclaration.Kind == SyntaxKind.NamespaceDeclaration || SyntaxFacts.IsTypeDeclaration(memberDeclaration.Kind))
+            if (memberDeclaration.Kind() == SyntaxKind.NamespaceDeclaration || SyntaxFacts.IsTypeDeclaration(memberDeclaration.Kind()))
             {
                 return container;
             }

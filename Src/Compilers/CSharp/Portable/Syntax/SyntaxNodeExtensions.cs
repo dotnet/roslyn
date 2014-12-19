@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool IsAnonymousFunction(this CSharpSyntaxNode syntax)
         {
             Debug.Assert(syntax != null);
-            switch (syntax.Kind)
+            switch (syntax.Kind())
             {
                 case SyntaxKind.ParenthesizedLambdaExpression:
                 case SyntaxKind.SimpleLambdaExpression:
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool IsQuery(this CSharpSyntaxNode syntax)
         {
             Debug.Assert(syntax != null);
-            switch (syntax.Kind)
+            switch (syntax.Kind())
             {
                 case SyntaxKind.FromClause:
                 case SyntaxKind.GroupClause:
@@ -63,8 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool CanHaveAssociatedLocalBinder(this CSharpSyntaxNode syntax)
         {
             return syntax.IsAnonymousFunction() ||
-                syntax.Kind == SyntaxKind.CatchClause ||
-                syntax.Kind == SyntaxKind.CatchFilterClause ||
+                syntax.Kind() == SyntaxKind.CatchClause ||
+                syntax.Kind() == SyntaxKind.CatchFilterClause ||
                 syntax is StatementSyntax;
         }
 
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             while (true)
             {
-                switch (input.Kind)
+                switch (input.Kind())
                 {
                     case SyntaxKind.IdentifierName:
                         return ((IdentifierNameSyntax)input).Identifier;
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SyntaxKind.ConditionalAccessExpression:
                         input = ((ConditionalAccessExpressionSyntax)input).WhenNotNull;
-                        if (input.Kind == SyntaxKind.MemberBindingExpression)
+                        if (input.Kind() == SyntaxKind.MemberBindingExpression)
                         {
                             return ((MemberBindingExpressionSyntax)input).Name.Identifier;
                         }

@@ -1963,7 +1963,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool HasInstanceData(MemberDeclarationSyntax m)
         {
-            switch (m.Kind)
+            switch (m.Kind())
             {
                 case SyntaxKind.FieldDeclaration:
                     var fieldDecl = (FieldDeclarationSyntax)m;
@@ -2492,7 +2492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var m in syntax.Members)
             {
-                switch (m.Kind)
+                switch (m.Kind())
                 {
                     case SyntaxKind.EnumMemberDeclaration:
                         {
@@ -2528,7 +2528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(m.Kind);
+                        throw ExceptionUtilities.UnexpectedValue(m.Kind());
                 }
             }
 
@@ -2765,7 +2765,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 bool reportMisplacedGlobalCode = !globalCodeAllowed && !m.HasErrors;
 
-                switch (m.Kind)
+                switch (m.Kind())
                 {
                     case SyntaxKind.FieldDeclaration:
                         {
@@ -3010,9 +3010,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     default:
                         Debug.Assert(
-                            SyntaxFacts.IsTypeDeclaration(m.Kind) ||
-                            m.Kind == SyntaxKind.NamespaceDeclaration ||
-                            m.Kind == SyntaxKind.IncompleteMember);
+                            SyntaxFacts.IsTypeDeclaration(m.Kind()) ||
+                            m.Kind() == SyntaxKind.NamespaceDeclaration ||
+                            m.Kind() == SyntaxKind.IncompleteMember);
                         break;
                 }
             }
@@ -3023,7 +3023,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static bool IsGlobalCodeAllowed(CSharpSyntaxNode parent)
         {
-            var parentKind = parent.Kind;
+            var parentKind = parent.Kind();
             return !(parentKind == SyntaxKind.NamespaceDeclaration ||
                 parentKind == SyntaxKind.CompilationUnit && parent.SyntaxTree.Options.Kind == SourceCodeKind.Regular);
         }

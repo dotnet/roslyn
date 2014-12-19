@@ -21,14 +21,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.ExpressionStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.ExpressionStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
             var es = (ExpressionStatementSyntax)statement;
             Assert.NotNull(es.Expression);
-            Assert.Equal(SyntaxKind.InvocationExpression, es.Expression.Kind);
-            Assert.Equal(SyntaxKind.IdentifierName, ((InvocationExpressionSyntax)es.Expression).Expression.Kind);
+            Assert.Equal(SyntaxKind.InvocationExpression, es.Expression.Kind());
+            Assert.Equal(SyntaxKind.IdentifierName, ((InvocationExpressionSyntax)es.Expression).Expression.Kind());
             Assert.Equal("a()", es.Expression.ToString());
             Assert.NotNull(es.SemicolonToken);
             Assert.False(es.SemicolonToken.IsMissing);
@@ -41,14 +41,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.ExpressionStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.ExpressionStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
             var es = (ExpressionStatementSyntax)statement;
             Assert.NotNull(es.Expression);
-            Assert.Equal(SyntaxKind.InvocationExpression, es.Expression.Kind);
-            Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, ((InvocationExpressionSyntax)es.Expression).Expression.Kind);
+            Assert.Equal(SyntaxKind.InvocationExpression, es.Expression.Kind());
+            Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, ((InvocationExpressionSyntax)es.Expression).Expression.Kind());
             Assert.Equal("a.b()", es.Expression.ToString());
             Assert.NotNull(es.SemicolonToken);
             Assert.False(es.SemicolonToken.IsMissing);
@@ -61,13 +61,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.ExpressionStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.ExpressionStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
             var es = (ExpressionStatementSyntax)statement;
             Assert.NotNull(es.Expression);
-            Assert.Equal(SyntaxKind.InvocationExpression, es.Expression.Kind);
-            Assert.Equal(SyntaxKind.GenericName, ((InvocationExpressionSyntax)es.Expression).Expression.Kind);
+            Assert.Equal(SyntaxKind.InvocationExpression, es.Expression.Kind());
+            Assert.Equal(SyntaxKind.GenericName, ((InvocationExpressionSyntax)es.Expression).Expression.Kind());
             Assert.Equal("a<b>()", es.Expression.ToString());
             Assert.NotNull(es.SemicolonToken);
             Assert.False(es.SemicolonToken.IsMissing);
@@ -80,14 +80,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.ExpressionStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.ExpressionStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
             var es = (ExpressionStatementSyntax)statement;
             Assert.NotNull(es.Expression);
-            Assert.Equal(SyntaxKind.InvocationExpression, es.Expression.Kind);
-            Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, ((InvocationExpressionSyntax)es.Expression).Expression.Kind);
+            Assert.Equal(SyntaxKind.InvocationExpression, es.Expression.Kind());
+            Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, ((InvocationExpressionSyntax)es.Expression).Expression.Kind());
             Assert.Equal("a<b>.c()", es.Expression.ToString());
             Assert.NotNull(es.SemicolonToken);
             Assert.False(es.SemicolonToken.IsMissing);
@@ -100,14 +100,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.ExpressionStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.ExpressionStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
             var es = (ExpressionStatementSyntax)statement;
             Assert.NotNull(es.Expression);
-            Assert.Equal(SyntaxKind.InvocationExpression, es.Expression.Kind);
-            Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, ((InvocationExpressionSyntax)es.Expression).Expression.Kind);
+            Assert.Equal(SyntaxKind.InvocationExpression, es.Expression.Kind());
+            Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, ((InvocationExpressionSyntax)es.Expression).Expression.Kind());
             Assert.Equal("a.b<c>()", es.Expression.ToString());
             Assert.NotNull(es.SemicolonToken);
             Assert.False(es.SemicolonToken.IsMissing);
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.ExpressionStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.ExpressionStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(es.SemicolonToken.IsMissing);
 
             var opKind = SyntaxFacts.GetPostfixUnaryExpression(kind);
-            Assert.Equal(opKind, es.Expression.Kind);
+            Assert.Equal(opKind, es.Expression.Kind());
             var us = (PostfixUnaryExpressionSyntax)es.Expression;
             Assert.Equal("a", us.Operand.ToString());
             Assert.Equal(kind, us.OperatorToken.Kind());
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, ds.Modifiers.Count);
             Assert.NotNull(ds.Declaration.Type);
             Assert.Equal("var", ds.Declaration.Type.ToString());
-            Assert.Equal(SyntaxKind.IdentifierName, ds.Declaration.Type.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, ds.Declaration.Type.Kind());
             Assert.Equal(SyntaxKind.IdentifierToken, ((IdentifierNameSyntax)ds.Declaration.Type).Identifier.Kind());
             Assert.Equal(1, ds.Declaration.Variables.Count);
 
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(0, ds.Modifiers.Count);
             Assert.NotNull(ds.Declaration.Type);
             Assert.Equal("dynamic", ds.Declaration.Type.ToString());
-            Assert.Equal(SyntaxKind.IdentifierName, ds.Declaration.Type.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, ds.Declaration.Type.Kind());
             Assert.Equal(SyntaxKind.IdentifierToken, ((IdentifierNameSyntax)ds.Declaration.Type).Identifier.Kind());
             Assert.Equal(1, ds.Declaration.Variables.Count);
 
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.EqualsToken);
             Assert.False(ds.Declaration.Variables[0].Initializer.EqualsToken.IsMissing);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
-            Assert.Equal(SyntaxKind.ArrayInitializerExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
+            Assert.Equal(SyntaxKind.ArrayInitializerExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
             Assert.Equal("{b, c}", ds.Declaration.Variables[0].Initializer.Value.ToString());
 
             Assert.NotNull(ds.SemicolonToken);
@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(1, statement.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_BadMemberFlag, statement.Errors()[0].Code);
@@ -595,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(1, statement.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_BadMemberFlag, statement.Errors()[0].Code);
@@ -627,7 +627,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(1, statement.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_BadMemberFlag, statement.Errors()[0].Code);
@@ -659,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.FixedStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.FixedStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -669,13 +669,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(fs.OpenParenToken);
             Assert.False(fs.FixedKeyword.IsMissing);
             Assert.NotNull(fs.Declaration);
-            Assert.Equal(SyntaxKind.VariableDeclaration, fs.Declaration.Kind);
+            Assert.Equal(SyntaxKind.VariableDeclaration, fs.Declaration.Kind());
             Assert.NotNull(fs.Declaration.Type);
             Assert.Equal("T", fs.Declaration.Type.ToString());
             Assert.Equal(1, fs.Declaration.Variables.Count);
             Assert.Equal("a = b", fs.Declaration.Variables[0].ToString());
             Assert.NotNull(fs.Statement);
-            Assert.Equal(SyntaxKind.Block, fs.Statement.Kind);
+            Assert.Equal(SyntaxKind.Block, fs.Statement.Kind());
             Assert.Equal("{ }", fs.Statement.ToString());
         }
 
@@ -686,7 +686,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.FixedStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.FixedStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -696,16 +696,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(fs.OpenParenToken);
             Assert.False(fs.FixedKeyword.IsMissing);
             Assert.NotNull(fs.Declaration);
-            Assert.Equal(SyntaxKind.VariableDeclaration, fs.Declaration.Kind);
+            Assert.Equal(SyntaxKind.VariableDeclaration, fs.Declaration.Kind());
             Assert.NotNull(fs.Declaration.Type);
             Assert.Equal("var", fs.Declaration.Type.ToString());
             Assert.True(fs.Declaration.Type.IsVar);
-            Assert.Equal(SyntaxKind.IdentifierName, fs.Declaration.Type.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, fs.Declaration.Type.Kind());
             Assert.Equal(SyntaxKind.IdentifierToken, ((IdentifierNameSyntax)fs.Declaration.Type).Identifier.Kind());
             Assert.Equal(1, fs.Declaration.Variables.Count);
             Assert.Equal("a = b", fs.Declaration.Variables[0].ToString());
             Assert.NotNull(fs.Statement);
-            Assert.Equal(SyntaxKind.Block, fs.Statement.Kind);
+            Assert.Equal(SyntaxKind.Block, fs.Statement.Kind());
             Assert.Equal("{ }", fs.Statement.ToString());
         }
 
@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.FixedStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.FixedStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -726,14 +726,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(fs.OpenParenToken);
             Assert.False(fs.FixedKeyword.IsMissing);
             Assert.NotNull(fs.Declaration);
-            Assert.Equal(SyntaxKind.VariableDeclaration, fs.Declaration.Kind);
+            Assert.Equal(SyntaxKind.VariableDeclaration, fs.Declaration.Kind());
             Assert.NotNull(fs.Declaration.Type);
             Assert.Equal("T", fs.Declaration.Type.ToString());
             Assert.Equal(2, fs.Declaration.Variables.Count);
             Assert.Equal("a = b", fs.Declaration.Variables[0].ToString());
             Assert.Equal("c = d", fs.Declaration.Variables[1].ToString());
             Assert.NotNull(fs.Statement);
-            Assert.Equal(SyntaxKind.Block, fs.Statement.Kind);
+            Assert.Equal(SyntaxKind.Block, fs.Statement.Kind());
             Assert.Equal("{ }", fs.Statement.ToString());
         }
 
@@ -744,7 +744,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.EmptyStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.EmptyStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -760,7 +760,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.LabeledStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.LabeledStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -770,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(ls.ColonToken);
             Assert.Equal(SyntaxKind.ColonToken, ls.ColonToken.Kind());
             Assert.NotNull(ls.Statement);
-            Assert.Equal(SyntaxKind.EmptyStatement, ls.Statement.Kind);
+            Assert.Equal(SyntaxKind.EmptyStatement, ls.Statement.Kind());
             Assert.Equal(";", ls.Statement.ToString());
         }
 
@@ -781,7 +781,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.BreakStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.BreakStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -800,7 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.ContinueStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.ContinueStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -819,7 +819,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.GotoStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.GotoStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -841,7 +841,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.GotoCaseStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.GotoCaseStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -865,7 +865,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.GotoDefaultStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.GotoDefaultStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -888,7 +888,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.ReturnStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.ReturnStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -908,7 +908,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.ReturnStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.ReturnStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -929,7 +929,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.YieldReturnStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.YieldReturnStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -953,7 +953,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.YieldBreakStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.YieldBreakStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -976,7 +976,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.ThrowStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.ThrowStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -996,7 +996,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.ThrowStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.ThrowStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1017,7 +1017,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.TryStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.TryStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1047,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.TryStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.TryStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1076,7 +1076,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.TryStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.TryStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1100,7 +1100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.TryStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.TryStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1143,7 +1143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.TryStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.TryStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1166,7 +1166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.TryStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.TryStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1211,7 +1211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.CheckedStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.CheckedStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1228,7 +1228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.UncheckedStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.UncheckedStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1245,7 +1245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.UnsafeStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.UnsafeStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1262,7 +1262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.WhileStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.WhileStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1274,7 +1274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(ws.CloseParenToken);
             Assert.Equal("a", ws.Condition.ToString());
             Assert.NotNull(ws.Statement);
-            Assert.Equal(SyntaxKind.Block, ws.Statement.Kind);
+            Assert.Equal(SyntaxKind.Block, ws.Statement.Kind());
         }
 
         [Fact]
@@ -1284,7 +1284,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.DoStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.DoStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1294,7 +1294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(ds.Statement);
             Assert.NotNull(ds.WhileKeyword);
             Assert.Equal(SyntaxKind.WhileKeyword, ds.WhileKeyword.Kind());
-            Assert.Equal(SyntaxKind.Block, ds.Statement.Kind);
+            Assert.Equal(SyntaxKind.Block, ds.Statement.Kind());
             Assert.NotNull(ds.OpenParenToken);
             Assert.NotNull(ds.Condition);
             Assert.NotNull(ds.CloseParenToken);
@@ -1309,7 +1309,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.ForStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.ForStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1335,7 +1335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.ForStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.ForStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1372,7 +1372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.ForStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.ForStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1385,7 +1385,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(fs.Declaration);
             Assert.NotNull(fs.Declaration.Type);
             Assert.Equal("var", fs.Declaration.Type.ToString());
-            Assert.Equal(SyntaxKind.IdentifierName, fs.Declaration.Type.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, fs.Declaration.Type.Kind());
             Assert.Equal(SyntaxKind.IdentifierToken, ((IdentifierNameSyntax)fs.Declaration.Type).Identifier.Kind());
             Assert.Equal(1, fs.Declaration.Variables.Count);
             Assert.NotNull(fs.Declaration.Variables[0].Identifier);
@@ -1411,7 +1411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.ForStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.ForStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1456,7 +1456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.ForStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.ForStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1485,7 +1485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.ForStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.ForStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1515,7 +1515,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.ForStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.ForStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1545,7 +1545,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.ForStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.ForStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1575,7 +1575,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.ForStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.ForStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1606,7 +1606,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.ForStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.ForStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1649,7 +1649,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.ForEachStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.ForEachStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1678,7 +1678,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.ForEachStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.ForEachStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(1, statement.Errors().Length);
 
@@ -1711,7 +1711,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.ForEachStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.ForEachStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1722,7 +1722,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(fs.OpenParenToken);
             Assert.NotNull(fs.Type);
             Assert.Equal("var", fs.Type.ToString());
-            Assert.Equal(SyntaxKind.IdentifierName, fs.Type.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, fs.Type.Kind());
             Assert.Equal(SyntaxKind.IdentifierToken, ((IdentifierNameSyntax)fs.Type).Identifier.Kind());
             Assert.NotNull(fs.Identifier);
             Assert.Equal("a", fs.Identifier.ToString());
@@ -1742,7 +1742,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.IfStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.IfStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1765,7 +1765,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.IfStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.IfStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1791,7 +1791,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.LockStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.LockStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1812,7 +1812,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.SwitchStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.SwitchStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
             var diags = statement.ErrorsAndWarnings();
@@ -1838,7 +1838,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.SwitchStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.SwitchStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1873,7 +1873,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.SwitchStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.SwitchStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1920,7 +1920,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.SwitchStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.SwitchStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1953,7 +1953,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.SwitchStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.SwitchStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -1995,7 +1995,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.SwitchStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.SwitchStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -2031,7 +2031,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.UsingStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.UsingStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -2053,7 +2053,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.UsingStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.UsingStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -2087,7 +2087,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.UsingStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.UsingStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -2099,7 +2099,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(us.Declaration);
             Assert.NotNull(us.Declaration.Type);
             Assert.Equal("var", us.Declaration.Type.ToString());
-            Assert.Equal(SyntaxKind.IdentifierName, us.Declaration.Type.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, us.Declaration.Type.Kind());
             Assert.Equal(SyntaxKind.IdentifierToken, ((IdentifierNameSyntax)us.Declaration.Type).Identifier.Kind());
             Assert.Equal(1, us.Declaration.Variables.Count);
             Assert.NotNull(us.Declaration.Variables[0].Identifier);
@@ -2123,7 +2123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.UsingStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.UsingStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -2167,7 +2167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.UsingStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.UsingStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -2189,7 +2189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.UsingStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.UsingStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -2211,7 +2211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.UsingStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.UsingStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 
@@ -2232,7 +2232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = "partial v1 = null;";
             var statement = this.ParseStatement(text);
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
 
             var decl = (LocalDeclarationStatementSyntax)statement;
@@ -2260,7 +2260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var statement = this.ParseStatement(prefix + text, offset: prefix.Length);
 
             Assert.NotNull(statement);
-            Assert.Equal(SyntaxKind.ForEachStatement, statement.Kind);
+            Assert.Equal(SyntaxKind.ForEachStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
 

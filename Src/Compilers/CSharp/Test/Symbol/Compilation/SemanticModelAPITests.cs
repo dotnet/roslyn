@@ -2049,7 +2049,7 @@ class C
             var model = comp.GetSemanticModel(tree);
 
             var accessorSyntax = tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().Single();
-            Assert.Equal(SyntaxKind.UnknownAccessorDeclaration, accessorSyntax.Kind);
+            Assert.Equal(SyntaxKind.UnknownAccessorDeclaration, accessorSyntax.Kind());
 
             var statementSyntax = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single();
             var memberModel = ((CSharpSemanticModel)model).GetMemberModel(statementSyntax);
@@ -2434,7 +2434,7 @@ class C
             Assert.Equal(expectedSymbolKind, symbol.Kind);
             Assert.Equal(expectedTypeDislayString, symbol.ToDisplayString());
 
-            if (speculatedTypeSyntax.Kind == SyntaxKind.QualifiedName)
+            if (speculatedTypeSyntax.Kind() == SyntaxKind.QualifiedName)
             {
                 var right = ((QualifiedNameSyntax)speculatedTypeSyntax).Right;
 

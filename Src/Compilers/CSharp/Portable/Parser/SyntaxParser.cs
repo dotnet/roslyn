@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             get
             {
                 var cn = this.CurrentNode;
-                return cn != null ? cn.Kind : SyntaxKind.None;
+                return cn != null ? cn.Kind() : SyntaxKind.None;
             }
         }
 

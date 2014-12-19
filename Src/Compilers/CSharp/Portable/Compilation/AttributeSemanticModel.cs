@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal protected override CSharpSyntaxNode GetBindableSyntaxNode(CSharpSyntaxNode node)
         {
-            switch (node.Kind)
+            switch (node.Kind())
             {
                 case SyntaxKind.Attribute:
                     return node;
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override BoundNode Bind(Binder binder, CSharpSyntaxNode node, DiagnosticBag diagnostics)
         {
-            if (node.Kind == SyntaxKind.Attribute)
+            if (node.Kind() == SyntaxKind.Attribute)
             {
                 var attribute = (AttributeSyntax)node;
                 return binder.BindAttribute(attribute, AttributeType, diagnostics);

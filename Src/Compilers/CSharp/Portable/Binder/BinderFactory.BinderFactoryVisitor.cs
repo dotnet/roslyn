@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var propertyOrEventDecl = parent.Parent.Parent;
                         MethodSymbol accessor = null;
 
-                        switch (propertyOrEventDecl.Kind)
+                        switch (propertyOrEventDecl.Kind())
                         {
                             case SyntaxKind.PropertyDeclaration:
                             case SyntaxKind.IndexerDeclaration:
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     var propertySymbol = GetPropertySymbol((BasePropertyDeclarationSyntax)propertyOrEventDecl, resultBinder);
                                     if ((object)propertySymbol != null)
                                     {
-                                        accessor = (parent.Kind == SyntaxKind.SetAccessorDeclaration) ? propertySymbol.SetMethod : propertySymbol.GetMethod;
+                                        accessor = (parent.Kind() == SyntaxKind.SetAccessorDeclaration) ? propertySymbol.SetMethod : propertySymbol.GetMethod;
                                     }
                                     break;
                                 }
@@ -257,12 +257,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     var eventSymbol = GetEventSymbol((EventDeclarationSyntax)propertyOrEventDecl, resultBinder);
                                     if ((object)eventSymbol != null)
                                     {
-                                        accessor = (parent.Kind == SyntaxKind.AddAccessorDeclaration) ? eventSymbol.AddMethod : eventSymbol.RemoveMethod;
+                                        accessor = (parent.Kind() == SyntaxKind.AddAccessorDeclaration) ? eventSymbol.AddMethod : eventSymbol.RemoveMethod;
                                     }
                                     break;
                                 }
                             default:
-                                Debug.Assert(false, "Accessor unexpectedly attached to " + propertyOrEventDecl.Kind);
+                                Debug.Assert(false, "Accessor unexpectedly attached to " + propertyOrEventDecl.Kind());
                                 break;
                         }
 
@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((object)container == null)
                 {
                     Debug.Assert(binder.ContainingMemberOrLambda is NamespaceSymbol);
-                    if (node.Parent.Kind == SyntaxKind.CompilationUnit && syntaxTree.Options.Kind != SourceCodeKind.Regular)
+                    if (node.Parent.Kind() == SyntaxKind.CompilationUnit && syntaxTree.Options.Kind != SourceCodeKind.Regular)
                     {
                         container = compilation.ScriptClass;
                     }
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <param name="outerBinder">Binder for the scope around the method (may be null for operators, constructors, and destructors).</param>
             private static string GetMethodName(BaseMethodDeclarationSyntax baseMethodDeclarationSyntax, Binder outerBinder)
             {
-                switch (baseMethodDeclarationSyntax.Kind)
+                switch (baseMethodDeclarationSyntax.Kind())
                 {
                     case SyntaxKind.ConstructorDeclaration:
                         return (baseMethodDeclarationSyntax.Modifiers.Any(SyntaxKind.StaticKeyword) ? WellKnownMemberNames.StaticConstructorName : WellKnownMemberNames.InstanceConstructorName);
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         MethodDeclarationSyntax methodDeclSyntax = (MethodDeclarationSyntax)baseMethodDeclarationSyntax;
                         return ExplicitInterfaceHelpers.GetMemberName(outerBinder, methodDeclSyntax.ExplicitInterfaceSpecifier, methodDeclSyntax.Identifier.ValueText);
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(baseMethodDeclarationSyntax.Kind);
+                        throw ExceptionUtilities.UnexpectedValue(baseMethodDeclarationSyntax.Kind());
                 }
             }
 
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifierSyntax = basePropertyDeclarationSyntax.ExplicitInterfaceSpecifier;
 
-                switch (basePropertyDeclarationSyntax.Kind)
+                switch (basePropertyDeclarationSyntax.Kind())
                 {
                     case SyntaxKind.PropertyDeclaration:
                         var propertyDecl = (PropertyDeclarationSyntax)basePropertyDeclarationSyntax;
@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var eventDecl = (EventDeclarationSyntax)basePropertyDeclarationSyntax;
                         return ExplicitInterfaceHelpers.GetMemberName(outerBinder, explicitInterfaceSpecifierSyntax, eventDecl.Identifier.ValueText);
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(basePropertyDeclarationSyntax.Kind);
+                        throw ExceptionUtilities.UnexpectedValue(basePropertyDeclarationSyntax.Kind());
                 }
             }
 
@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private SourcePropertySymbol GetPropertySymbol(BasePropertyDeclarationSyntax basePropertyDeclarationSyntax, Binder outerBinder)
             {
-                Debug.Assert(basePropertyDeclarationSyntax.Kind == SyntaxKind.PropertyDeclaration || basePropertyDeclarationSyntax.Kind == SyntaxKind.IndexerDeclaration);
+                Debug.Assert(basePropertyDeclarationSyntax.Kind() == SyntaxKind.PropertyDeclaration || basePropertyDeclarationSyntax.Kind() == SyntaxKind.IndexerDeclaration);
 
                 NamedTypeSymbol container = GetContainerType(outerBinder, basePropertyDeclarationSyntax);
                 if ((object)container == null)
@@ -718,7 +718,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     InContainerBinder outer;
                     var container = parent.Parent;
 
-                    if (InScript && container.Kind == SyntaxKind.CompilationUnit)
+                    if (InScript && container.Kind() == SyntaxKind.CompilationUnit)
                     {
                         // Although namespaces are not allowed in script code we still bind them so that we don't report useless errors.
                         // A namespace in script code is not bound within the scope of a Script class, 
@@ -859,7 +859,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 TextSpan containingSpan = containingNode.Span;
 
                 SyntaxToken token;
-                if (containingNode.Kind != SyntaxKind.CompilationUnit && this.position == containingSpan.End)
+                if (containingNode.Kind() != SyntaxKind.CompilationUnit && this.position == containingSpan.End)
                 {
                     // This occurs at EOF
                     token = containingNode.GetLastToken();
@@ -1040,7 +1040,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // As in Dev11, we do not allow <param name="value"> on events.
-                SyntaxKind memberKind = memberSyntax.Kind;
+                SyntaxKind memberKind = memberSyntax.Kind();
                 if (memberKind == SyntaxKind.PropertyDeclaration || memberKind == SyntaxKind.IndexerDeclaration)
                 {
                     Binder outerBinder = VisitCore(memberSyntax.Parent);
@@ -1109,7 +1109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new WithClassTypeParametersBinder(typeSymbol, nextBinder);
                 }
 
-                if (memberSyntax.Kind == SyntaxKind.MethodDeclaration)
+                if (memberSyntax.Kind() == SyntaxKind.MethodDeclaration)
                 {
                     MethodDeclarationSyntax methodDeclSyntax = (MethodDeclarationSyntax)memberSyntax;
                     if (methodDeclSyntax.Arity > 0)
@@ -1119,7 +1119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return new WithMethodTypeParametersBinder(method, nextBinder);
                     }
                 }
-                else if (memberSyntax.Kind == SyntaxKind.DelegateDeclaration)
+                else if (memberSyntax.Kind() == SyntaxKind.DelegateDeclaration)
                 {
                     Binder outerBinder = VisitCore(memberSyntax.Parent);
                     SourceNamedTypeSymbol delegateType = ((NamespaceOrTypeSymbol)outerBinder.ContainingMemberOrLambda).GetSourceTypeMember((DelegateDeclarationSyntax)memberSyntax);
@@ -1186,7 +1186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static MemberDeclarationSyntax GetAssociatedMemberForXmlSyntax(CSharpSyntaxNode xmlSyntax)
         {
-            Debug.Assert(xmlSyntax is XmlAttributeSyntax || xmlSyntax.Kind == SyntaxKind.XmlEmptyElement || xmlSyntax.Kind == SyntaxKind.XmlElementStartTag);
+            Debug.Assert(xmlSyntax is XmlAttributeSyntax || xmlSyntax.Kind() == SyntaxKind.XmlEmptyElement || xmlSyntax.Kind() == SyntaxKind.XmlElementStartTag);
 
             StructuredTriviaSyntax structuredTrivia = GetEnclosingDocumentationComment(xmlSyntax);
             SyntaxTrivia containingTrivia = structuredTrivia.ParentTrivia;
@@ -1213,7 +1213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static DocumentationCommentTriviaSyntax GetEnclosingDocumentationComment(CSharpSyntaxNode xmlSyntax)
         {
             CSharpSyntaxNode curr = xmlSyntax;
-            for (; !SyntaxFacts.IsDocumentationCommentTrivia(curr.Kind); curr = curr.Parent)
+            for (; !SyntaxFacts.IsDocumentationCommentTrivia(curr.Kind()); curr = curr.Parent)
             {
             }
             Debug.Assert(curr != null);

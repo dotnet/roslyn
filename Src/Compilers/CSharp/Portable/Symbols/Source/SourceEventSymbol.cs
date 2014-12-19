@@ -127,14 +127,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var syntax = this.CSharpSyntaxNode;
                     if (syntax != null)
                     {
-                        switch (syntax.Kind)
+                        switch (syntax.Kind())
                         {
                             case SyntaxKind.EventDeclaration:
                                 return ((EventDeclarationSyntax)syntax).AttributeLists;
                             case SyntaxKind.VariableDeclarator:
                                 return ((EventFieldDeclarationSyntax)syntax.Parent.Parent).AttributeLists;
                             default:
-                                Debug.Assert(false, "Unknown event syntax kind " + syntax.Kind);
+                                Debug.Assert(false, "Unknown event syntax kind " + syntax.Kind());
                                 break;
                         }
                     }

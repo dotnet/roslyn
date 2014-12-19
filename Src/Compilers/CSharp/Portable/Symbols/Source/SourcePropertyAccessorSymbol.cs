@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isAutoPropertyAccessor,
             DiagnosticBag diagnostics)
         {
-            Debug.Assert(syntax.Kind == SyntaxKind.GetAccessorDeclaration || syntax.Kind == SyntaxKind.SetAccessorDeclaration);
+            Debug.Assert(syntax.Kind() == SyntaxKind.GetAccessorDeclaration || syntax.Kind() == SyntaxKind.SetAccessorDeclaration);
 
-            bool isGetMethod = (syntax.Kind == SyntaxKind.GetAccessorDeclaration); 
+            bool isGetMethod = (syntax.Kind() == SyntaxKind.GetAccessorDeclaration); 
             string name;
             ImmutableArray<MethodSymbol> explicitInterfaceImplementations;
             GetNameAndExplicitInterfaceImplementations(
@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
             var syntax = this.GetSyntax();
-            switch (syntax.Kind)
+            switch (syntax.Kind())
             {
                 case SyntaxKind.GetAccessorDeclaration:
                 case SyntaxKind.SetAccessorDeclaration:

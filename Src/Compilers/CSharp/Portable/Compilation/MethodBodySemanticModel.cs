@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)owner != null);
             Debug.Assert(owner.Kind == SymbolKind.Method);
             Debug.Assert(syntax != null);
-            Debug.Assert(owner.ContainingType.IsScriptClass || syntax.Kind != SyntaxKind.CompilationUnit);
+            Debug.Assert(owner.ContainingType.IsScriptClass || syntax.Kind() != SyntaxKind.CompilationUnit);
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override BoundNode Bind(Binder binder, CSharpSyntaxNode node, DiagnosticBag diagnostics)
         {
-            if (node.Kind == SyntaxKind.ArrowExpressionClause)
+            if (node.Kind() == SyntaxKind.ArrowExpressionClause)
             {
                 return binder.BindExpressionBodyAsBlock((ArrowExpressionClauseSyntax)node, diagnostics);
             }
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override BoundNode GetBoundRoot()
         {
             CSharpSyntaxNode root = this.Root;
-            if (root.Kind == SyntaxKind.ArrowExpressionClause)
+            if (root.Kind() == SyntaxKind.ArrowExpressionClause)
             {
                 root = ((ArrowExpressionClauseSyntax)root).Expression;
                 return GetUpperBoundNode(GetBindableSyntaxNode(root));

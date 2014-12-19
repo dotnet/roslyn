@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
             var block = method.Body;
             var statement = block.Statements[0] as LocalDeclarationStatementSyntax;
             var expression = statement.Declaration.Variables[0].Initializer.Value as BinaryExpressionSyntax;
-            Assert.Equal(expression.Kind, SyntaxKind.MultiplyExpression);
+            Assert.Equal(expression.Kind(), SyntaxKind.MultiplyExpression);
         }
 
         [Fact]
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
             // Make the change to the node
             var newTree = oldTree.WithReplaceFirst(oldName, newName);
             var treeNode = topLevel ? GetGlobalExpressionNode(newTree) : GetExpressionNode(newTree);
-            Assert.Equal(treeNode.Kind, newSyntaxKind);
+            Assert.Equal(treeNode.Kind(), newSyntaxKind);
         }
 
         private static ExpressionSyntax GetExpressionNode(SyntaxTree newTree)

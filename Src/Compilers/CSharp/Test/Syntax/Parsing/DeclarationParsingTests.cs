@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind);
+            Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind());
             var ad = (AttributeListSyntax)file.AttributeLists[0];
 
             Assert.NotNull(ad.OpenBracketToken);
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind);
+            Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind());
             var ad = (AttributeListSyntax)file.AttributeLists[0];
 
             Assert.NotNull(ad.OpenBracketToken);
@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind);
+            Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind());
             var ad = (AttributeListSyntax)file.AttributeLists[0];
 
             Assert.NotNull(ad.OpenBracketToken);
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind);
+            Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind());
             var ad = (AttributeListSyntax)file.AttributeLists[0];
 
             Assert.NotNull(ad.OpenBracketToken);
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind);
+            Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind());
             var ad = (AttributeListSyntax)file.AttributeLists[0];
 
             Assert.NotNull(ad.OpenBracketToken);
@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind);
+            Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind());
             var ad = (AttributeListSyntax)file.AttributeLists[0];
 
             Assert.NotNull(ad.OpenBracketToken);
@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind);
+            Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind());
             var ad = (AttributeListSyntax)file.AttributeLists[0];
 
             Assert.NotNull(ad.OpenBracketToken);
@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind);
+            Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind());
             var ad = (AttributeListSyntax)file.AttributeLists[0];
 
             Assert.NotNull(ad.OpenBracketToken);
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind);
+            Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind());
             var ad = (AttributeListSyntax)file.AttributeLists[0];
 
             Assert.NotNull(ad.OpenBracketToken);
@@ -546,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind);
+            Assert.Equal(SyntaxKind.AttributeList, file.AttributeLists[0].Kind());
             var ad = (AttributeListSyntax)file.AttributeLists[0];
             Assert.NotNull(ad.OpenBracketToken);
             Assert.NotNull(ad.Target);
@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.NamespaceDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.NamespaceDeclaration, file.Members[0].Kind());
             var ns = (NamespaceDeclarationSyntax)file.Members[0];
             Assert.NotNull(ns.NamespaceKeyword);
             Assert.NotNull(ns.Name);
@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.NamespaceDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.NamespaceDeclaration, file.Members[0].Kind());
             var ns = (NamespaceDeclarationSyntax)file.Members[0];
             Assert.NotNull(ns.NamespaceKeyword);
             Assert.NotNull(ns.Name);
@@ -627,7 +627,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.NamespaceDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.NamespaceDeclaration, file.Members[0].Kind());
             var ns = (NamespaceDeclarationSyntax)file.Members[0];
             Assert.NotNull(ns.NamespaceKeyword);
             Assert.NotNull(ns.Name);
@@ -650,7 +650,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.NamespaceDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.NamespaceDeclaration, file.Members[0].Kind());
             var ns = (NamespaceDeclarationSyntax)file.Members[0];
             Assert.NotNull(ns.NamespaceKeyword);
             Assert.NotNull(ns.Name);
@@ -673,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToFullString());
             Assert.Equal(1, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.NamespaceDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.NamespaceDeclaration, file.Members[0].Kind());
             var ns = (NamespaceDeclarationSyntax)file.Members[0];
             Assert.NotNull(ns.NamespaceKeyword);
             Assert.NotNull(ns.Name);
@@ -697,7 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.NamespaceDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.NamespaceDeclaration, file.Members[0].Kind());
             var ns = (NamespaceDeclarationSyntax)file.Members[0];
             Assert.NotNull(ns.NamespaceKeyword);
             Assert.NotNull(ns.Name);
@@ -705,7 +705,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(ns.OpenBraceToken);
             Assert.Equal(0, ns.Usings.Count);
             Assert.Equal(1, ns.Members.Count);
-            Assert.Equal(SyntaxKind.NamespaceDeclaration, ns.Members[0].Kind);
+            Assert.Equal(SyntaxKind.NamespaceDeclaration, ns.Members[0].Kind());
             var ns2 = (NamespaceDeclarationSyntax)ns.Members[0];
             Assert.NotNull(ns2.NamespaceKeyword);
             Assert.NotNull(ns2.Name);
@@ -728,7 +728,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -754,7 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
@@ -781,7 +781,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
@@ -808,7 +808,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
@@ -835,7 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
@@ -862,7 +862,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
@@ -889,7 +889,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
@@ -916,7 +916,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(1, cs.AttributeLists.Count);
             Assert.Equal("[attr]", cs.AttributeLists[0].ToString());
@@ -943,7 +943,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(2, cs.AttributeLists.Count);
             Assert.Equal("[attr1]", cs.AttributeLists[0].ToString());
@@ -971,7 +971,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(1, cs.AttributeLists.Count);
             Assert.Equal("[attr1, attr2]", cs.AttributeLists[0].ToString());
@@ -998,7 +998,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -1029,7 +1029,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -1061,7 +1061,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -1080,7 +1080,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(cs.ConstraintClauses[0].ColonToken);
             Assert.False(cs.ConstraintClauses[0].ColonToken.IsMissing);
             Assert.Equal(1, cs.ConstraintClauses[0].Constraints.Count);
-            Assert.Equal(SyntaxKind.TypeConstraint, cs.ConstraintClauses[0].Constraints[0].Kind);
+            Assert.Equal(SyntaxKind.TypeConstraint, cs.ConstraintClauses[0].Constraints[0].Kind());
             var bound = (TypeConstraintSyntax)cs.ConstraintClauses[0].Constraints[0];
             Assert.NotNull(bound.Type);
             Assert.Equal("c", bound.Type.ToString());
@@ -1103,7 +1103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_ConstraintOnlyAllowedOnGenericDecl, errors[0].Code);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -1121,7 +1121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(cs.ConstraintClauses[0].ColonToken);
             Assert.False(cs.ConstraintClauses[0].ColonToken.IsMissing);
             Assert.Equal(1, cs.ConstraintClauses[0].Constraints.Count);
-            Assert.Equal(SyntaxKind.TypeConstraint, cs.ConstraintClauses[0].Constraints[0].Kind);
+            Assert.Equal(SyntaxKind.TypeConstraint, cs.ConstraintClauses[0].Constraints[0].Kind());
             var bound = (TypeConstraintSyntax)cs.ConstraintClauses[0].Constraints[0];
             Assert.NotNull(bound.Type);
             Assert.Equal("c", bound.Type.ToString());
@@ -1142,7 +1142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -1161,7 +1161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(cs.ConstraintClauses[0].ColonToken);
             Assert.False(cs.ConstraintClauses[0].ColonToken.IsMissing);
             Assert.Equal(1, cs.ConstraintClauses[0].Constraints.Count);
-            Assert.Equal(SyntaxKind.ConstructorConstraint, cs.ConstraintClauses[0].Constraints[0].Kind);
+            Assert.Equal(SyntaxKind.ConstructorConstraint, cs.ConstraintClauses[0].Constraints[0].Kind());
             var bound = (ConstructorConstraintSyntax)cs.ConstraintClauses[0].Constraints[0];
             Assert.NotNull(bound.NewKeyword);
             Assert.False(bound.NewKeyword.IsMissing);
@@ -1186,7 +1186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -1205,7 +1205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(cs.ConstraintClauses[0].ColonToken);
             Assert.False(cs.ConstraintClauses[0].ColonToken.IsMissing);
             Assert.Equal(1, cs.ConstraintClauses[0].Constraints.Count);
-            Assert.Equal(SyntaxKind.ClassConstraint, cs.ConstraintClauses[0].Constraints[0].Kind);
+            Assert.Equal(SyntaxKind.ClassConstraint, cs.ConstraintClauses[0].Constraints[0].Kind());
             var bound = (ClassOrStructConstraintSyntax)cs.ConstraintClauses[0].Constraints[0];
             Assert.NotNull(bound.ClassOrStructKeyword);
             Assert.False(bound.ClassOrStructKeyword.IsMissing);
@@ -1227,7 +1227,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -1246,7 +1246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(cs.ConstraintClauses[0].ColonToken);
             Assert.False(cs.ConstraintClauses[0].ColonToken.IsMissing);
             Assert.Equal(1, cs.ConstraintClauses[0].Constraints.Count);
-            Assert.Equal(SyntaxKind.StructConstraint, cs.ConstraintClauses[0].Constraints[0].Kind);
+            Assert.Equal(SyntaxKind.StructConstraint, cs.ConstraintClauses[0].Constraints[0].Kind());
             var bound = (ClassOrStructConstraintSyntax)cs.ConstraintClauses[0].Constraints[0];
             Assert.NotNull(bound.ClassOrStructKeyword);
             Assert.False(bound.ClassOrStructKeyword.IsMissing);
@@ -1268,7 +1268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -1288,18 +1288,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(cs.ConstraintClauses[0].ColonToken.IsMissing);
             Assert.Equal(3, cs.ConstraintClauses[0].Constraints.Count);
 
-            Assert.Equal(SyntaxKind.ClassConstraint, cs.ConstraintClauses[0].Constraints[0].Kind);
+            Assert.Equal(SyntaxKind.ClassConstraint, cs.ConstraintClauses[0].Constraints[0].Kind());
             var classBound = (ClassOrStructConstraintSyntax)cs.ConstraintClauses[0].Constraints[0];
             Assert.NotNull(classBound.ClassOrStructKeyword);
             Assert.False(classBound.ClassOrStructKeyword.IsMissing);
             Assert.Equal(SyntaxKind.ClassKeyword, classBound.ClassOrStructKeyword.Kind());
 
-            Assert.Equal(SyntaxKind.TypeConstraint, cs.ConstraintClauses[0].Constraints[1].Kind);
+            Assert.Equal(SyntaxKind.TypeConstraint, cs.ConstraintClauses[0].Constraints[1].Kind());
             var typeBound = (TypeConstraintSyntax)cs.ConstraintClauses[0].Constraints[1];
             Assert.NotNull(typeBound.Type);
             Assert.Equal("c", typeBound.Type.ToString());
 
-            Assert.Equal(SyntaxKind.ConstructorConstraint, cs.ConstraintClauses[0].Constraints[2].Kind);
+            Assert.Equal(SyntaxKind.ConstructorConstraint, cs.ConstraintClauses[0].Constraints[2].Kind());
             var bound = (ConstructorConstraintSyntax)cs.ConstraintClauses[0].Constraints[2];
             Assert.NotNull(bound.NewKeyword);
             Assert.False(bound.NewKeyword.IsMissing);
@@ -1324,7 +1324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -1343,7 +1343,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(cs.ConstraintClauses[0].ColonToken);
             Assert.False(cs.ConstraintClauses[0].ColonToken.IsMissing);
             Assert.Equal(1, cs.ConstraintClauses[0].Constraints.Count);
-            Assert.Equal(SyntaxKind.TypeConstraint, cs.ConstraintClauses[0].Constraints[0].Kind);
+            Assert.Equal(SyntaxKind.TypeConstraint, cs.ConstraintClauses[0].Constraints[0].Kind());
             var typeBound = (TypeConstraintSyntax)cs.ConstraintClauses[0].Constraints[0];
             Assert.NotNull(typeBound.Type);
             Assert.Equal("c", typeBound.Type.ToString());
@@ -1354,7 +1354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(cs.ConstraintClauses[1].ColonToken);
             Assert.False(cs.ConstraintClauses[1].ColonToken.IsMissing);
             Assert.Equal(1, cs.ConstraintClauses[1].Constraints.Count);
-            Assert.Equal(SyntaxKind.ConstructorConstraint, cs.ConstraintClauses[1].Constraints[0].Kind);
+            Assert.Equal(SyntaxKind.ConstructorConstraint, cs.ConstraintClauses[1].Constraints[0].Kind());
             var bound = (ConstructorConstraintSyntax)cs.ConstraintClauses[1].Constraints[0];
             Assert.NotNull(bound.NewKeyword);
             Assert.False(bound.NewKeyword.IsMissing);
@@ -1379,7 +1379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(2, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -1398,7 +1398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(cs.ConstraintClauses[0].ColonToken);
             Assert.False(cs.ConstraintClauses[0].ColonToken.IsMissing);
             Assert.Equal(1, cs.ConstraintClauses[0].Constraints.Count);
-            Assert.Equal(SyntaxKind.TypeConstraint, cs.ConstraintClauses[0].Constraints[0].Kind);
+            Assert.Equal(SyntaxKind.TypeConstraint, cs.ConstraintClauses[0].Constraints[0].Kind());
             var typeBound = (TypeConstraintSyntax)cs.ConstraintClauses[0].Constraints[0];
             Assert.NotNull(typeBound.Type);
             Assert.Equal("c", typeBound.Type.ToString());
@@ -1409,7 +1409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(cs.ConstraintClauses[1].ColonToken);
             Assert.True(cs.ConstraintClauses[1].ColonToken.IsMissing);
             Assert.Equal(1, cs.ConstraintClauses[1].Constraints.Count);
-            Assert.Equal(SyntaxKind.TypeConstraint, cs.ConstraintClauses[1].Constraints[0].Kind);
+            Assert.Equal(SyntaxKind.TypeConstraint, cs.ConstraintClauses[1].Constraints[0].Kind());
             var bound = (TypeConstraintSyntax)cs.ConstraintClauses[1].Constraints[0];
             Assert.True(bound.Type.IsMissing);
         }
@@ -1425,7 +1425,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(3, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -1444,7 +1444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(cs.ConstraintClauses[0].ColonToken);
             Assert.False(cs.ConstraintClauses[0].ColonToken.IsMissing);
             Assert.Equal(1, cs.ConstraintClauses[0].Constraints.Count);
-            Assert.Equal(SyntaxKind.TypeConstraint, cs.ConstraintClauses[0].Constraints[0].Kind);
+            Assert.Equal(SyntaxKind.TypeConstraint, cs.ConstraintClauses[0].Constraints[0].Kind());
             var typeBound = (TypeConstraintSyntax)cs.ConstraintClauses[0].Constraints[0];
             Assert.NotNull(typeBound.Type);
             Assert.Equal("c", typeBound.Type.ToString());
@@ -1453,7 +1453,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(cs.ConstraintClauses[1].Name.IsMissing);
             Assert.True(cs.ConstraintClauses[1].ColonToken.IsMissing);
             Assert.Equal(1, cs.ConstraintClauses[1].Constraints.Count);
-            Assert.Equal(SyntaxKind.TypeConstraint, cs.ConstraintClauses[1].Constraints[0].Kind);
+            Assert.Equal(SyntaxKind.TypeConstraint, cs.ConstraintClauses[1].Constraints[0].Kind());
             var bound = (TypeConstraintSyntax)cs.ConstraintClauses[1].Constraints[0];
             Assert.True(bound.Type.IsMissing);
         }
@@ -1469,7 +1469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -1493,18 +1493,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(cs.ConstraintClauses[0].ColonToken.IsMissing);
             Assert.Equal(3, cs.ConstraintClauses[0].Constraints.Count);
 
-            Assert.Equal(SyntaxKind.ClassConstraint, cs.ConstraintClauses[0].Constraints[0].Kind);
+            Assert.Equal(SyntaxKind.ClassConstraint, cs.ConstraintClauses[0].Constraints[0].Kind());
             var classBound = (ClassOrStructConstraintSyntax)cs.ConstraintClauses[0].Constraints[0];
             Assert.NotNull(classBound.ClassOrStructKeyword);
             Assert.False(classBound.ClassOrStructKeyword.IsMissing);
             Assert.Equal(SyntaxKind.ClassKeyword, classBound.ClassOrStructKeyword.Kind());
 
-            Assert.Equal(SyntaxKind.TypeConstraint, cs.ConstraintClauses[0].Constraints[1].Kind);
+            Assert.Equal(SyntaxKind.TypeConstraint, cs.ConstraintClauses[0].Constraints[1].Kind());
             var typeBound = (TypeConstraintSyntax)cs.ConstraintClauses[0].Constraints[1];
             Assert.NotNull(typeBound.Type);
             Assert.Equal("e", typeBound.Type.ToString());
 
-            Assert.Equal(SyntaxKind.ConstructorConstraint, cs.ConstraintClauses[0].Constraints[2].Kind);
+            Assert.Equal(SyntaxKind.ConstructorConstraint, cs.ConstraintClauses[0].Constraints[2].Kind());
             var bound = (ConstructorConstraintSyntax)cs.ConstraintClauses[0].Constraints[2];
             Assert.NotNull(bound.NewKeyword);
             Assert.False(bound.NewKeyword.IsMissing);
@@ -1529,7 +1529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.InterfaceDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.InterfaceDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -1554,7 +1554,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.InterfaceDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.InterfaceDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -1584,7 +1584,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.InterfaceDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.InterfaceDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -1616,7 +1616,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.StructDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.StructDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -1641,7 +1641,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -1656,7 +1656,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, cs.Members[0].Kind());
             cs = (TypeDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -1681,7 +1681,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -1696,7 +1696,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, cs.Members[0].Kind());
             cs = (TypeDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
@@ -1722,7 +1722,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -1737,7 +1737,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, cs.Members[0].Kind());
             cs = (TypeDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
@@ -1763,7 +1763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -1778,7 +1778,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, cs.Members[0].Kind());
             cs = (TypeDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(2, cs.Modifiers.Count);
@@ -1805,7 +1805,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -1820,7 +1820,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, cs.Members[0].Kind());
             cs = (TypeDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(2, cs.Modifiers.Count);
@@ -1847,7 +1847,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -1862,7 +1862,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, cs.Members[0].Kind());
             cs = (TypeDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
@@ -1888,7 +1888,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -1903,7 +1903,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, cs.Members[0].Kind());
             cs = (TypeDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(1, cs.Modifiers.Count);
@@ -1929,7 +1929,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
             var ds = (DelegateDeclarationSyntax)file.Members[0];
             Assert.NotNull(ds.DelegateKeyword);
             Assert.NotNull(ds.ReturnType);
@@ -1976,7 +1976,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
             var ds = (DelegateDeclarationSyntax)file.Members[0];
             Assert.NotNull(ds.DelegateKeyword);
             Assert.NotNull(ds.ReturnType);
@@ -2022,7 +2022,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
             var ds = (DelegateDeclarationSyntax)file.Members[0];
             Assert.NotNull(ds.DelegateKeyword);
             Assert.NotNull(ds.ReturnType);
@@ -2057,7 +2057,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
             var ds = (DelegateDeclarationSyntax)file.Members[0];
             Assert.NotNull(ds.DelegateKeyword);
             Assert.NotNull(ds.ReturnType);
@@ -2092,7 +2092,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
             var ds = (DelegateDeclarationSyntax)file.Members[0];
             Assert.NotNull(ds.DelegateKeyword);
             Assert.NotNull(ds.ReturnType);
@@ -2134,7 +2134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
             var ds = (DelegateDeclarationSyntax)file.Members[0];
             Assert.NotNull(ds.DelegateKeyword);
             Assert.NotNull(ds.ReturnType);
@@ -2170,7 +2170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
             var ds = (DelegateDeclarationSyntax)file.Members[0];
             Assert.NotNull(ds.DelegateKeyword);
             Assert.NotNull(ds.ReturnType);
@@ -2206,7 +2206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
             var ds = (DelegateDeclarationSyntax)file.Members[0];
             Assert.NotNull(ds.DelegateKeyword);
             Assert.NotNull(ds.ReturnType);
@@ -2243,7 +2243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = file.Errors();
             Assert.Equal(0, errors.Length);
 
-            Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
             var ds = (DelegateDeclarationSyntax)file.Members[0];
             Assert.NotNull(ds.DelegateKeyword);
             Assert.NotNull(ds.ReturnType);
@@ -2276,7 +2276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
             var ds = (DelegateDeclarationSyntax)file.Members[0];
             Assert.NotNull(ds.DelegateKeyword);
             Assert.NotNull(ds.ReturnType);
@@ -2312,7 +2312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -2327,7 +2327,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.DelegateDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.DelegateDeclaration, cs.Members[0].Kind());
             var ds = (DelegateDeclarationSyntax)cs.Members[0];
             Assert.NotNull(ds.DelegateKeyword);
             Assert.NotNull(ds.ReturnType);
@@ -2354,7 +2354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -2369,7 +2369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.MethodDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.MethodDeclaration, cs.Members[0].Kind());
             var ms = (MethodDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ms.AttributeLists.Count);
             Assert.Equal(0, ms.Modifiers.Count);
@@ -2399,7 +2399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -2414,7 +2414,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.MethodDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.MethodDeclaration, cs.Members[0].Kind());
             var ms = (MethodDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ms.AttributeLists.Count);
             Assert.Equal(modifiers.Length, ms.Modifiers.Count);
@@ -2467,7 +2467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -2482,7 +2482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.MethodDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.MethodDeclaration, cs.Members[0].Kind());
             var ms = (MethodDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ms.AttributeLists.Count);
             Assert.Equal(1, ms.Modifiers.Count);
@@ -2514,7 +2514,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -2529,7 +2529,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.MethodDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.MethodDeclaration, cs.Members[0].Kind());
             var ms = (MethodDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ms.AttributeLists.Count);
             Assert.Equal(0, ms.Modifiers.Count);
@@ -2566,7 +2566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -2581,7 +2581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.MethodDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.MethodDeclaration, cs.Members[0].Kind());
             var ms = (MethodDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ms.AttributeLists.Count);
             Assert.Equal(0, ms.Modifiers.Count);
@@ -2627,7 +2627,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -2642,7 +2642,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.MethodDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.MethodDeclaration, cs.Members[0].Kind());
             var ms = (MethodDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ms.AttributeLists.Count);
             Assert.Equal(0, ms.Modifiers.Count);
@@ -2692,7 +2692,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -2707,7 +2707,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.MethodDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.MethodDeclaration, cs.Members[0].Kind());
             var ms = (MethodDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ms.AttributeLists.Count);
             Assert.Equal(0, ms.Modifiers.Count);
@@ -2766,7 +2766,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -2781,7 +2781,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.MethodDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.MethodDeclaration, cs.Members[0].Kind());
             var ms = (MethodDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ms.AttributeLists.Count);
             Assert.Equal(0, ms.Modifiers.Count);
@@ -2831,7 +2831,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -2846,7 +2846,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.MethodDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.MethodDeclaration, cs.Members[0].Kind());
             var ms = (MethodDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ms.AttributeLists.Count);
             Assert.Equal(0, ms.Modifiers.Count);
@@ -2883,7 +2883,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -2898,7 +2898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.MethodDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.MethodDeclaration, cs.Members[0].Kind());
             var ms = (MethodDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ms.AttributeLists.Count);
             Assert.Equal(0, ms.Modifiers.Count);
@@ -2929,7 +2929,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -2944,7 +2944,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.MethodDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.MethodDeclaration, cs.Members[0].Kind());
             var ms = (MethodDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ms.AttributeLists.Count);
             Assert.Equal(0, ms.Modifiers.Count);
@@ -2967,7 +2967,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(ms.ConstraintClauses[0].ColonToken);
             Assert.False(ms.ConstraintClauses[0].ColonToken.IsMissing);
             Assert.Equal(1, ms.ConstraintClauses[0].Constraints.Count);
-            Assert.Equal(SyntaxKind.TypeConstraint, ms.ConstraintClauses[0].Constraints[0].Kind);
+            Assert.Equal(SyntaxKind.TypeConstraint, ms.ConstraintClauses[0].Constraints[0].Kind());
             var typeBound = (TypeConstraintSyntax)ms.ConstraintClauses[0].Constraints[0];
             Assert.NotNull(typeBound.Type);
             Assert.Equal("d", typeBound.Type.ToString());
@@ -3010,7 +3010,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -3026,7 +3026,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.ConstructorDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ConstructorDeclaration, cs.Members[0].Kind());
             var cn = (ConstructorDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, cn.AttributeLists.Count);
             Assert.Equal(0, cn.Modifiers.Count);
@@ -3045,7 +3045,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -3061,7 +3061,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.ConstructorDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ConstructorDeclaration, cs.Members[0].Kind());
             var cn = (ConstructorDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, cn.AttributeLists.Count);
             Assert.Equal(1, cn.Modifiers.Count);
@@ -3092,7 +3092,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -3108,7 +3108,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.DestructorDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.DestructorDeclaration, cs.Members[0].Kind());
             var cn = (DestructorDeclarationSyntax)cs.Members[0];
             Assert.NotNull(cn.TildeToken);
             Assert.Equal(0, cn.AttributeLists.Count);
@@ -3129,7 +3129,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -3144,7 +3144,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.FieldDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.FieldDeclaration, cs.Members[0].Kind());
             var fs = (FieldDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, fs.AttributeLists.Count);
             Assert.Equal(0, fs.Modifiers.Count);
@@ -3189,7 +3189,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -3204,7 +3204,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.FieldDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.FieldDeclaration, cs.Members[0].Kind());
             var fs = (FieldDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, fs.AttributeLists.Count);
             Assert.Equal(0, fs.Modifiers.Count);
@@ -3229,7 +3229,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -3244,7 +3244,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.FieldDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.FieldDeclaration, cs.Members[0].Kind());
             var fs = (FieldDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, fs.AttributeLists.Count);
             Assert.Equal(1, fs.Modifiers.Count);
@@ -3283,7 +3283,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -3298,7 +3298,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.EventFieldDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.EventFieldDeclaration, cs.Members[0].Kind());
             var fs = (EventFieldDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, fs.AttributeLists.Count);
             Assert.Equal(1, fs.Modifiers.Count);
@@ -3339,7 +3339,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -3354,7 +3354,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.FieldDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.FieldDeclaration, cs.Members[0].Kind());
             var fs = (FieldDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, fs.AttributeLists.Count);
             Assert.Equal(1, fs.Modifiers.Count);
@@ -3384,7 +3384,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -3399,7 +3399,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.FieldDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.FieldDeclaration, cs.Members[0].Kind());
             var fs = (FieldDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, fs.AttributeLists.Count);
             Assert.Equal(0, fs.Modifiers.Count);
@@ -3428,7 +3428,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -3443,7 +3443,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.FieldDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.FieldDeclaration, cs.Members[0].Kind());
             var fs = (FieldDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, fs.AttributeLists.Count);
             Assert.Equal(0, fs.Modifiers.Count);
@@ -3456,7 +3456,7 @@ class Class1<T>{
             Assert.NotNull(fs.Declaration.Variables[0].Initializer);
             Assert.NotNull(fs.Declaration.Variables[0].Initializer.EqualsToken);
             Assert.NotNull(fs.Declaration.Variables[0].Initializer.Value);
-            Assert.Equal(SyntaxKind.ArrayInitializerExpression, fs.Declaration.Variables[0].Initializer.Value.Kind);
+            Assert.Equal(SyntaxKind.ArrayInitializerExpression, fs.Declaration.Variables[0].Initializer.Value.Kind());
             Assert.Equal("{ }", fs.Declaration.Variables[0].Initializer.Value.ToString());
             Assert.NotNull(fs.SemicolonToken);
             Assert.False(fs.SemicolonToken.IsMissing);
@@ -3473,7 +3473,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -3488,7 +3488,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.FieldDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.FieldDeclaration, cs.Members[0].Kind());
             var fs = (FieldDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, fs.AttributeLists.Count);
             Assert.Equal(0, fs.Modifiers.Count);
@@ -3527,7 +3527,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -3542,7 +3542,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.FieldDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.FieldDeclaration, cs.Members[0].Kind());
             var fs = (FieldDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, fs.AttributeLists.Count);
             Assert.Equal(0, fs.Modifiers.Count);
@@ -3590,7 +3590,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -3605,7 +3605,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.FieldDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.FieldDeclaration, cs.Members[0].Kind());
             var fs = (FieldDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, fs.AttributeLists.Count);
             Assert.Equal(1, fs.Modifiers.Count);
@@ -3636,7 +3636,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -3651,7 +3651,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.PropertyDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.PropertyDeclaration, cs.Members[0].Kind());
             var ps = (PropertyDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ps.AttributeLists.Count);
             Assert.Equal(0, ps.Modifiers.Count);
@@ -3709,7 +3709,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -3724,7 +3724,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.PropertyDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.PropertyDeclaration, cs.Members[0].Kind());
             var ps = (PropertyDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ps.AttributeLists.Count);
             Assert.Equal(0, ps.Modifiers.Count);
@@ -3763,7 +3763,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -3778,7 +3778,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.PropertyDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.PropertyDeclaration, cs.Members[0].Kind());
             var ps = (PropertyDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ps.AttributeLists.Count);
             Assert.Equal(0, ps.Modifiers.Count);
@@ -3817,7 +3817,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (ClassDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -3832,7 +3832,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.PropertyDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.PropertyDeclaration, cs.Members[0].Kind());
             var ps = (PropertyDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ps.AttributeLists.Count);
             Assert.Equal(0, ps.Modifiers.Count);
@@ -3872,11 +3872,11 @@ class Class1<T>{
             Assert.Equal(0, file.Errors().Length);
 
             Assert.Equal(1, file.Members.Count);
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (ClassDeclarationSyntax)file.Members[0];
 
             Assert.Equal(1, cs.Members.Count);
-            Assert.Equal(SyntaxKind.PropertyDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.PropertyDeclaration, cs.Members[0].Kind());
             var ps = (PropertyDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ps.Errors().Length);
         }
@@ -3901,7 +3901,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -3916,7 +3916,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(isEvent ? SyntaxKind.EventDeclaration : SyntaxKind.PropertyDeclaration, cs.Members[0].Kind);
+            Assert.Equal(isEvent ? SyntaxKind.EventDeclaration : SyntaxKind.PropertyDeclaration, cs.Members[0].Kind());
             var ps = (PropertyDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ps.AttributeLists.Count);
             Assert.Equal(0, ps.Modifiers.Count);
@@ -3931,19 +3931,19 @@ class Class1<T>{
 
             Assert.Equal(0, ps.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, ps.AccessorList.Accessors[0].Modifiers.Count);
-            Assert.Equal(accessorKind, ps.AccessorList.Accessors[0].Kind);
+            Assert.Equal(accessorKind, ps.AccessorList.Accessors[0].Kind());
             Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
             Assert.Equal(accessorKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
             Assert.Equal(SyntaxKind.None, ps.AccessorList.Accessors[0].SemicolonToken.Kind());
             var body = ps.AccessorList.Accessors[0].Body;
             Assert.NotNull(body);
             Assert.Equal(1, body.Statements.Count);
-            Assert.Equal(SyntaxKind.ExpressionStatement, body.Statements[0].Kind);
+            Assert.Equal(SyntaxKind.ExpressionStatement, body.Statements[0].Kind());
             var es = (ExpressionStatementSyntax)body.Statements[0];
             Assert.NotNull(es.Expression);
-            Assert.Equal(SyntaxKind.SimpleAssignmentExpression, es.Expression.Kind);
+            Assert.Equal(SyntaxKind.SimpleAssignmentExpression, es.Expression.Kind());
             var bx = (AssignmentExpressionSyntax)es.Expression;
-            Assert.Equal(SyntaxKind.IdentifierName, bx.Right.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, bx.Right.Kind());
             Assert.Equal(tokenKind, ((IdentifierNameSyntax)bx.Right).Identifier.Kind());
         }
 
@@ -3957,7 +3957,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -3972,7 +3972,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.EventDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.EventDeclaration, cs.Members[0].Kind());
             var es = (EventDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, es.AttributeLists.Count);
             Assert.Equal(0, es.Modifiers.Count);
@@ -3987,19 +3987,19 @@ class Class1<T>{
 
             Assert.Equal(0, es.AccessorList.Accessors[0].AttributeLists.Count);
             Assert.Equal(0, es.AccessorList.Accessors[0].Modifiers.Count);
-            Assert.Equal(accessorKind, es.AccessorList.Accessors[0].Kind);
+            Assert.Equal(accessorKind, es.AccessorList.Accessors[0].Kind());
             Assert.NotNull(es.AccessorList.Accessors[0].Keyword);
             Assert.Equal(accessorKeyword, es.AccessorList.Accessors[0].Keyword.Kind());
             Assert.Equal(SyntaxKind.None, es.AccessorList.Accessors[0].SemicolonToken.Kind());
             var body = es.AccessorList.Accessors[0].Body;
             Assert.NotNull(body);
             Assert.Equal(1, body.Statements.Count);
-            Assert.Equal(SyntaxKind.ExpressionStatement, body.Statements[0].Kind);
+            Assert.Equal(SyntaxKind.ExpressionStatement, body.Statements[0].Kind());
             var xs = (ExpressionStatementSyntax)body.Statements[0];
             Assert.NotNull(xs.Expression);
-            Assert.Equal(SyntaxKind.SimpleAssignmentExpression, xs.Expression.Kind);
+            Assert.Equal(SyntaxKind.SimpleAssignmentExpression, xs.Expression.Kind());
             var bx = (AssignmentExpressionSyntax)xs.Expression;
-            Assert.Equal(SyntaxKind.IdentifierName, bx.Right.Kind);
+            Assert.Equal(SyntaxKind.IdentifierName, bx.Right.Kind());
             Assert.Equal(tokenKind, ((IdentifierNameSyntax)bx.Right).Identifier.Kind());
         }
 
@@ -4013,7 +4013,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -4028,7 +4028,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.PropertyDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.PropertyDeclaration, cs.Members[0].Kind());
             var ps = (PropertyDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ps.AttributeLists.Count);
             Assert.Equal(1, ps.Modifiers.Count);
@@ -4082,7 +4082,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -4097,7 +4097,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.PropertyDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.PropertyDeclaration, cs.Members[0].Kind());
             var ps = (PropertyDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ps.AttributeLists.Count);
             Assert.Equal(0, ps.Modifiers.Count);
@@ -4145,7 +4145,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -4160,7 +4160,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.PropertyDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.PropertyDeclaration, cs.Members[0].Kind());
             var ps = (PropertyDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ps.AttributeLists.Count);
             Assert.Equal(0, ps.Modifiers.Count);
@@ -4201,7 +4201,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -4216,7 +4216,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.EventDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.EventDeclaration, cs.Members[0].Kind());
             var es = (EventDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, es.AttributeLists.Count);
             Assert.Equal(0, es.Modifiers.Count);
@@ -4255,7 +4255,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -4270,7 +4270,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.EventDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.EventDeclaration, cs.Members[0].Kind());
             var es = (EventDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, es.AttributeLists.Count);
             Assert.Equal(1, es.Modifiers.Count);
@@ -4323,7 +4323,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -4338,7 +4338,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.PropertyDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.PropertyDeclaration, cs.Members[0].Kind());
             var ps = (PropertyDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ps.AttributeLists.Count);
             Assert.Equal(1, ps.Modifiers.Count);
@@ -4387,7 +4387,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -4402,7 +4402,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.EventDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.EventDeclaration, cs.Members[0].Kind());
             var es = (EventDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, es.AttributeLists.Count);
             Assert.Equal(0, es.Modifiers.Count);
@@ -4444,7 +4444,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -4459,7 +4459,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.IndexerDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.IndexerDeclaration, cs.Members[0].Kind());
             var ps = (IndexerDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ps.AttributeLists.Count);
             Assert.Equal(0, ps.Modifiers.Count);
@@ -4511,7 +4511,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -4526,7 +4526,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.IndexerDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.IndexerDeclaration, cs.Members[0].Kind());
             var ps = (IndexerDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ps.AttributeLists.Count);
             Assert.Equal(0, ps.Modifiers.Count);
@@ -4587,7 +4587,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -4602,7 +4602,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.IndexerDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.IndexerDeclaration, cs.Members[0].Kind());
             var ps = (IndexerDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ps.AttributeLists.Count);
             Assert.Equal(0, ps.Modifiers.Count);
@@ -4655,7 +4655,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -4670,7 +4670,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.OperatorDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.OperatorDeclaration, cs.Members[0].Kind());
             var ps = (OperatorDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ps.AttributeLists.Count);
             Assert.Equal(0, ps.Modifiers.Count);
@@ -4735,7 +4735,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -4750,7 +4750,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.OperatorDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.OperatorDeclaration, cs.Members[0].Kind());
             var ps = (OperatorDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ps.AttributeLists.Count);
             Assert.Equal(0, ps.Modifiers.Count);
@@ -4791,7 +4791,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -4806,7 +4806,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.OperatorDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.OperatorDeclaration, cs.Members[0].Kind());
             var ps = (OperatorDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ps.AttributeLists.Count);
             Assert.Equal(0, ps.Modifiers.Count);
@@ -4854,7 +4854,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -4869,7 +4869,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.ConversionOperatorDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ConversionOperatorDeclaration, cs.Members[0].Kind());
             var ms = (ConversionOperatorDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ms.AttributeLists.Count);
             Assert.Equal(0, ms.Modifiers.Count);
@@ -4902,7 +4902,7 @@ class Class1<T>{
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
             var cs = (TypeDeclarationSyntax)file.Members[0];
             Assert.Equal(0, cs.AttributeLists.Count);
             Assert.Equal(0, cs.Modifiers.Count);
@@ -4917,7 +4917,7 @@ class Class1<T>{
 
             Assert.Equal(1, cs.Members.Count);
 
-            Assert.Equal(SyntaxKind.ConversionOperatorDeclaration, cs.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ConversionOperatorDeclaration, cs.Members[0].Kind());
             var ms = (ConversionOperatorDeclarationSyntax)cs.Members[0];
             Assert.Equal(0, ms.AttributeLists.Count);
             Assert.Equal(0, ms.Modifiers.Count);
@@ -4952,7 +4952,7 @@ class Class1<T>{
 
             var ns = (NamespaceDeclarationSyntax)file.Members[0];
             Assert.Equal(1, ns.Errors().Length);
-            Assert.Equal(SyntaxKind.AliasQualifiedName, ns.Name.Kind);
+            Assert.Equal(SyntaxKind.AliasQualifiedName, ns.Name.Kind());
             Assert.Equal((int)ErrorCode.ERR_UnexpectedAliasedName, ns.Name.Errors()[0].Code);
 
             text = "namespace A<B> { }";
@@ -4965,7 +4965,7 @@ class Class1<T>{
 
             ns = (NamespaceDeclarationSyntax)file.Members[0];
             Assert.Equal(1, ns.Errors().Length);
-            Assert.Equal(SyntaxKind.GenericName, ns.Name.Kind);
+            Assert.Equal(SyntaxKind.GenericName, ns.Name.Kind());
             Assert.Equal((int)ErrorCode.ERR_UnexpectedGenericName, ns.Name.Errors()[0].Code);
 
             text = "namespace A<,> { }";
@@ -4978,7 +4978,7 @@ class Class1<T>{
 
             ns = (NamespaceDeclarationSyntax)file.Members[0];
             Assert.Equal(1, ns.Errors().Length);
-            Assert.Equal(SyntaxKind.GenericName, ns.Name.Kind);
+            Assert.Equal(SyntaxKind.GenericName, ns.Name.Kind());
             Assert.Equal((int)ErrorCode.ERR_UnexpectedGenericName, ns.Name.Errors()[0].Code);
         }
 

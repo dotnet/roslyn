@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (inExpressionLambda)
             {
-                switch (node.Syntax.Kind)
+                switch (node.Syntax.Kind())
                 {
                     case SyntaxKind.ParenthesizedLambdaExpression:
                         {
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 Error(ErrorCode.ERR_BadAsyncExpressionTree, node);
                             }
-                            else if (lambdaSyntax.Body.Kind == SyntaxKind.Block)
+                            else if (lambdaSyntax.Body.Kind() == SyntaxKind.Block)
                             {
                                 Error(ErrorCode.ERR_StatementLambdaToExpressionTree, node);
                             }
@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 Error(ErrorCode.ERR_BadAsyncExpressionTree, node);
                             }
-                            else if (lambdaSyntax.Body.Kind == SyntaxKind.Block)
+                            else if (lambdaSyntax.Body.Kind() == SyntaxKind.Block)
                             {
                                 Error(ErrorCode.ERR_StatementLambdaToExpressionTree, node);
                             }

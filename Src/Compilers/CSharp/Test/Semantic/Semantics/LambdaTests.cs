@@ -696,7 +696,7 @@ class Program
             var model = comp.GetSemanticModel(tree);
 
             ExpressionSyntax expr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().
-                Where(e => e.Kind == SyntaxKind.AddExpression).Single();
+                Where(e => e.Kind() == SyntaxKind.AddExpression).Single();
 
             var tinfo = model.GetTypeInfo(expr);
             var conv = model.GetConversion(expr);

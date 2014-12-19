@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override BoundNode GetBoundRoot()
         {
             CSharpSyntaxNode rootSyntax = this.Root;
-            switch (rootSyntax.Kind)
+            switch (rootSyntax.Kind())
             {
                 case SyntaxKind.VariableDeclarator:
                     rootSyntax = ((VariableDeclaratorSyntax)rootSyntax).Initializer.Value;
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(rootSyntax.Kind);
+                    throw ExceptionUtilities.UnexpectedValue(rootSyntax.Kind());
             }
 
             return GetUpperBoundNode(GetBindableSyntaxNode(rootSyntax));
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             EqualsValueClauseSyntax equalsValue = null;
 
-            switch (node.Kind)
+            switch (node.Kind())
             {
                 case SyntaxKind.EqualsValueClause:
                     equalsValue = (EqualsValueClauseSyntax)node;
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // that's our root and we know how to bind that thing even if it is not an 
             // expression or a statement.
 
-            switch (node.Kind)
+            switch (node.Kind())
             {
                 case SyntaxKind.EqualsValueClause:
                     return this.Root == node ||     /*enum or parameter initializer*/

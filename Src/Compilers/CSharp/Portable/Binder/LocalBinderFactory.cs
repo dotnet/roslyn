@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (MemberDeclarationSyntax member in node.Members)
             {
-                if (member.Kind == SyntaxKind.GlobalStatement)
+                if (member.Kind() == SyntaxKind.GlobalStatement)
                 {
                     Visit(member);
                 }
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitSimpleLambdaExpression(SimpleLambdaExpressionSyntax node)
         {
             CSharpSyntaxNode body = node.Body;
-            if (body.Kind == SyntaxKind.Block)
+            if (body.Kind() == SyntaxKind.Block)
             {
                 VisitBlock((BlockSyntax)body);
             }
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void VisitParenthesizedLambdaExpression(ParenthesizedLambdaExpressionSyntax node)
         {
             CSharpSyntaxNode body = node.Body;
-            if (body.Kind == SyntaxKind.Block)
+            if (body.Kind() == SyntaxKind.Block)
             {
                 VisitBlock((BlockSyntax)body);
             }
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitCheckedStatement(CheckedStatementSyntax node)
         {
-            var binder = enclosing.WithCheckedOrUncheckedRegion(@checked: node.Kind == SyntaxKind.CheckedStatement);
+            var binder = enclosing.WithCheckedOrUncheckedRegion(@checked: node.Kind() == SyntaxKind.CheckedStatement);
             AddToMap(node, binder);
 
             Visit(node.Block, binder);
@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (statement != null)
             {
-                switch (statement.Kind)
+                switch (statement.Kind())
                 {
                     case SyntaxKind.LocalDeclarationStatement:
                     case SyntaxKind.LabeledStatement:

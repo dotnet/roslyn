@@ -99,8 +99,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 { WasCompilerGenerated = true };
 
             Debug.Assert(syntax is ExpressionSyntax); // Should be the initial value.
-            Debug.Assert(syntax.Parent.Kind == SyntaxKind.EqualsValueClause);
-            switch (syntax.Parent.Parent.Kind)
+            Debug.Assert(syntax.Parent.Kind() == SyntaxKind.EqualsValueClause);
+            switch (syntax.Parent.Parent.Kind())
             {
                 case SyntaxKind.VariableDeclarator:
                     var declaratorSyntax = (VariableDeclaratorSyntax)syntax.Parent.Parent;

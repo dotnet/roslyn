@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
                 var newTree = oldTree.WithReplace(16, "get", "set");
                 var classType = newTree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
                 var propertyType = classType.Members[0] as PropertyDeclarationSyntax;
-                Assert.Equal(SyntaxKind.SetAccessorDeclaration, propertyType.AccessorList.Accessors[0].Kind);
+                Assert.Equal(SyntaxKind.SetAccessorDeclaration, propertyType.AccessorList.Accessors[0].Kind());
             });
         }
 
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
                 var newTree = oldTree.WithReplace(16, "set", "get");
                 var classType = newTree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
                 var propertyType = classType.Members[0] as PropertyDeclarationSyntax;
-                Assert.Equal(propertyType.AccessorList.Accessors[0].Kind, SyntaxKind.GetAccessorDeclaration);
+                Assert.Equal(propertyType.AccessorList.Accessors[0].Kind(), SyntaxKind.GetAccessorDeclaration);
             });
         }
 
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
                 var newTree = oldTree.WithReplace(16, "add", "remove");
                 var classType = newTree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
                 var propertyType = classType.Members[0] as EventDeclarationSyntax;
-                Assert.Equal(propertyType.AccessorList.Accessors[0].Kind, SyntaxKind.RemoveAccessorDeclaration);
+                Assert.Equal(propertyType.AccessorList.Accessors[0].Kind(), SyntaxKind.RemoveAccessorDeclaration);
             });
         }
 
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
                 var newTree = oldTree.WithReplace(16, "remove", "add");
                 var classType = newTree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
                 var propertyType = classType.Members[0] as EventDeclarationSyntax;
-                Assert.Equal(propertyType.AccessorList.Accessors[0].Kind, SyntaxKind.AddAccessorDeclaration);
+                Assert.Equal(propertyType.AccessorList.Accessors[0].Kind(), SyntaxKind.AddAccessorDeclaration);
             });
         }
 

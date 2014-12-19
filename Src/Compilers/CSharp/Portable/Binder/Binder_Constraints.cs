@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var syntax in constraintsSyntax)
             {
-                switch (syntax.Kind)
+                switch (syntax.Kind())
                 {
                     case SyntaxKind.ClassConstraint:
                         constraints |= TypeParameterConstraintKind.ReferenceType;
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         break;
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(syntax.Kind);
+                        throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
                 }
             }
 

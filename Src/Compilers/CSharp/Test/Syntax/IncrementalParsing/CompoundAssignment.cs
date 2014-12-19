@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
             // Make the change to the node
             var newTree = oldTree.WithReplaceFirst(oldName, newName);
             var binNode = topLevel ? GetGlobalStatementSyntaxChange(newTree) : GetExpressionSyntaxChange(newTree);
-            Assert.Equal(binNode.Kind, newSyntaxKind);
+            Assert.Equal(binNode.Kind(), newSyntaxKind);
         }
 
         private static string GetExpressionString(SyntaxKind oldStyle)

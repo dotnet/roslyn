@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    ImmutableArray.Create(syntax.Keyword.GetLocation()))
         {
             Debug.Assert(syntax != null);
-            Debug.Assert(syntax.Kind == SyntaxKind.AddAccessorDeclaration || syntax.Kind == SyntaxKind.RemoveAccessorDeclaration);
+            Debug.Assert(syntax.Kind() == SyntaxKind.AddAccessorDeclaration || syntax.Kind() == SyntaxKind.RemoveAccessorDeclaration);
 
-            bool isAdder = syntax.Kind == SyntaxKind.AddAccessorDeclaration;
+            bool isAdder = syntax.Kind() == SyntaxKind.AddAccessorDeclaration;
 
             string name;
             ImmutableArray<MethodSymbol> explicitInterfaceImplementations;

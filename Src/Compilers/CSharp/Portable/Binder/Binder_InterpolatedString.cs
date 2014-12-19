@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var intType = GetSpecialType(SpecialType.System_Int32, diagnostics, node);
             foreach (var content in node.Contents)
             {
-                switch (content.Kind)
+                switch (content.Kind())
                 {
                     case SyntaxKind.Interpolation:
                         {

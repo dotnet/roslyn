@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         diagnostics.Add(ErrorCode.ERR_InitializerAddHasWrongSignature, node.Location, memberSymbol);
                     }
-                    else if (node.Kind == SyntaxKind.AwaitExpression && memberSymbol.Name == WellKnownMemberNames.GetAwaiter)
+                    else if (node.Kind() == SyntaxKind.AwaitExpression && memberSymbol.Name == WellKnownMemberNames.GetAwaiter)
                     {
                         diagnostics.Add(ErrorCode.ERR_BadAwaitArg, node.Location, receiverOpt.Type);
                     }
@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (InFieldInitializer && !ContainingType.IsScriptClass || InConstructorInitializer || InAttributeArgument)
                 {
                     CSharpSyntaxNode errorNode = node;
-                    if (node.Parent != null && node.Parent.Kind == SyntaxKind.InvocationExpression)
+                    if (node.Parent != null && node.Parent.Kind() == SyntaxKind.InvocationExpression)
                     {
                         errorNode = node.Parent;
                     }

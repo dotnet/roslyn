@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static BoundBlock ConstructDestructorBody(CSharpSyntaxNode syntax, MethodSymbol method, BoundBlock block)
         {
             Debug.Assert(method.MethodKind == MethodKind.Destructor);
-            Debug.Assert(syntax.Kind == SyntaxKind.Block);
+            Debug.Assert(syntax.Kind() == SyntaxKind.Block);
 
             // If this is a destructor and a base type has a Finalize method (see GetBaseTypeFinalizeMethod for exact 
             // requirements), then we need to call that method in a finally block.  Otherwise, just return block as-is.

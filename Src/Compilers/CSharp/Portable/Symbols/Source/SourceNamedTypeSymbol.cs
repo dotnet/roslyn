@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static SyntaxToken GetName(CSharpSyntaxNode node)
         {
-            switch (node.Kind)
+            switch (node.Kind())
             {
                 case SyntaxKind.EnumDeclaration:
                     return ((EnumDeclarationSyntax)node).Identifier;
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var syntaxTree = syntaxRef.SyntaxTree;
 
                 TypeParameterListSyntax tpl;
-                switch (typeDecl.Kind)
+                switch (typeDecl.Kind())
                 {
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.StructDeclaration:
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case SyntaxKind.EnumDeclaration:
                     default:
                         // there is no such thing as a generic enum, so code should never reach here.
-                        throw ExceptionUtilities.UnexpectedValue(typeDecl.Kind);
+                        throw ExceptionUtilities.UnexpectedValue(typeDecl.Kind());
                 }
 
                 var parameterBuilder = new List<TypeParameterBuilder>();
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static SyntaxList<TypeParameterConstraintClauseSyntax> GetConstraintClauses(CSharpSyntaxNode node)
         {
-            switch (node.Kind)
+            switch (node.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case SyntaxKind.DelegateDeclaration:
                     return ((DelegateDeclarationSyntax)node).ConstraintClauses;
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(node.Kind);
+                    throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
         }
 

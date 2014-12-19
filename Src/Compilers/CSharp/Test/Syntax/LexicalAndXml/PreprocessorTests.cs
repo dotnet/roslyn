@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             List<SyntaxKind> actual = new List<SyntaxKind>();
             foreach (var dt in directives)
             {
-                actual.Add(dt.Kind);
+                actual.Add(dt.Kind());
             }
 
             int idx = 0;
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             List<SyntaxKind> actual = new List<SyntaxKind>();
             foreach (var dt in directives)
             {
-                actual.Add(dt.Kind);
+                actual.Add(dt.Kind());
             }
 
             int idx = 0;
@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var directives = node.GetDirectives();
             Assert.Equal(1, directives.Count);
             var dt = directives[0];
-            Assert.Equal(expected.PragmaKind, directives[0].Kind);
+            Assert.Equal(expected.PragmaKind, directives[0].Kind());
 
             if (dt is PragmaWarningDirectiveTriviaSyntax)
             {
@@ -258,12 +258,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     foreach (var warningNumber in expected.WarningList)
                     {
                         var actualWarningNumber = pwd.ErrorCodes[idx++];
-                        if (actualWarningNumber.Kind == SyntaxKind.NumericLiteralExpression)
+                        if (actualWarningNumber.Kind() == SyntaxKind.NumericLiteralExpression)
                         {
                             var token = (actualWarningNumber as LiteralExpressionSyntax).Token;
                             Assert.Equal(warningNumber, token.ValueText);
                         }
-                        else if (actualWarningNumber.Kind == SyntaxKind.IdentifierName)
+                        else if (actualWarningNumber.Kind() == SyntaxKind.IdentifierName)
                         {
                             var token = (actualWarningNumber as IdentifierNameSyntax).Identifier;
                             Assert.Equal(warningNumber, token.ValueText);
@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             else
             {
-                throw new NotImplementedException(dt.Kind.ToString());
+                throw new NotImplementedException(dt.Kind().ToString());
             }
         }
 
@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             foreach (var exp in memberInfo)
             {
                 var mem = actual[idx++];
-                Assert.Equal(exp.Kind, mem.Kind);
+                Assert.Equal(exp.Kind, mem.Kind());
 
 #if false
                 var td = (TypeDeclarationSyntax)mem;
@@ -1605,7 +1605,7 @@ class A
 
             // TODO
             Assert.Equal(1, node.Members.Count);
-            Assert.Equal(SyntaxKind.ClassDeclaration, node.Members[0].Kind);
+            Assert.Equal(SyntaxKind.ClassDeclaration, node.Members[0].Kind());
             var td = (TypeDeclarationSyntax)node.Members[0];
             Assert.Equal("A", td.Identifier.ToString());
         }

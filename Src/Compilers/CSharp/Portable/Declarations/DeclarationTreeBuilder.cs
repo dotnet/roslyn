@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxList<MemberDeclarationSyntax> members,
             Syntax.InternalSyntax.SyntaxList<Syntax.InternalSyntax.MemberDeclarationSyntax> internalMembers)
         {
-            Debug.Assert(node.Kind == SyntaxKind.NamespaceDeclaration || (node.Kind == SyntaxKind.CompilationUnit && syntaxTree.Options.Kind == SourceCodeKind.Regular));
+            Debug.Assert(node.Kind() == SyntaxKind.NamespaceDeclaration || (node.Kind() == SyntaxKind.CompilationUnit && syntaxTree.Options.Kind == SourceCodeKind.Regular));
 
             if (members.Count == 0)
             {
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    hasGlobalMembers = hasGlobalMembers || member.Kind != SyntaxKind.IncompleteMember;
+                    hasGlobalMembers = hasGlobalMembers || member.Kind() != SyntaxKind.IncompleteMember;
                 }
             }
 
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ICollection<string> memberNames,
             SingleTypeDeclaration.TypeDeclarationFlags declFlags)
         {
-            Debug.Assert(parent.Kind == SyntaxKind.CompilationUnit && syntaxTree.Options.Kind != SourceCodeKind.Regular);
+            Debug.Assert(parent.Kind() == SyntaxKind.CompilationUnit && syntaxTree.Options.Kind != SourceCodeKind.Regular);
 
             // script type is represented by the parent node:
             var parentReference = syntaxTree.GetReference(parent);

@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns>Null if there is no matching declaration.</returns>
         internal SourceNamedTypeSymbol GetSourceTypeMember(TypeDeclarationSyntax syntax)
         {
-            return GetSourceTypeMember(syntax.Identifier.ValueText, syntax.Arity, syntax.Kind, syntax);
+            return GetSourceTypeMember(syntax.Identifier.ValueText, syntax.Arity, syntax.Kind(), syntax);
         }
 
         /// <summary>
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns>Null if there is no matching declaration.</returns>
         internal SourceNamedTypeSymbol GetSourceTypeMember(DelegateDeclarationSyntax syntax)
         {
-            return GetSourceTypeMember(syntax.Identifier.ValueText, syntax.Arity, syntax.Kind, syntax);
+            return GetSourceTypeMember(syntax.Identifier.ValueText, syntax.Arity, syntax.Kind(), syntax);
         }
 
         /// <summary>

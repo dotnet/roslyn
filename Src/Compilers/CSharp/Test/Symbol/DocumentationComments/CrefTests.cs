@@ -5740,7 +5740,7 @@ class C
             {
                 var typeSyntax = cref.DescendantNodes().OfType<SimpleNameSyntax>().First();
                 var typeSymbol = model.GetSymbolInfo(typeSyntax).Symbol;
-                if (typeSyntax.Parent.Kind == SyntaxKind.NameMemberCref)
+                if (typeSyntax.Parent.Kind() == SyntaxKind.NameMemberCref)
                 {
                     Assert.Null(typeSymbol);
                 }

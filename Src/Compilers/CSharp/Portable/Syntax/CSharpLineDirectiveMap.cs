@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         // Add all active #line directives under trivia into the list, in source code order.
         protected override bool ShouldAddDirective(DirectiveTriviaSyntax directive)
         {
-            return directive.IsActive && directive.Kind == SyntaxKind.LineDirectiveTrivia;
+            return directive.IsActive && directive.Kind() == SyntaxKind.LineDirectiveTrivia;
         }
 
         // Given a directive and the previous entry, create a new entry.

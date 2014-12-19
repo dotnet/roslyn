@@ -260,7 +260,7 @@ class C
             var model = comp.GetSemanticModel(tree);
 
             var literalSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
-            Assert.Equal(SyntaxKind.NumericLiteralExpression, literalSyntax.Kind);
+            Assert.Equal(SyntaxKind.NumericLiteralExpression, literalSyntax.Kind());
 
             var info = model.GetTypeInfo(literalSyntax); //Used to throw
             Assert.Equal(SpecialType.System_Int32, info.Type.SpecialType);

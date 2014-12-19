@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression FinalTranslation(QueryTranslationState state, DiagnosticBag diagnostics)
         {
             Debug.Assert(state.clauses.IsEmpty());
-            switch (state.selectOrGroup.Kind)
+            switch (state.selectOrGroup.Kind())
             {
                 case SyntaxKind.SelectClause:
                     {
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         void ReduceQuery(QueryTranslationState state, DiagnosticBag diagnostics)
         {
             var topClause = state.clauses.Pop();
-            switch (topClause.Kind)
+            switch (topClause.Kind())
             {
                 case SyntaxKind.WhereClause:
                     ReduceWhere((WhereClauseSyntax)topClause, state, diagnostics);
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ReduceLet((LetClauseSyntax)topClause, state, diagnostics);
                     break;
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(topClause.Kind);
+                    throw ExceptionUtilities.UnexpectedValue(topClause.Kind());
             }
         }
 
@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lambda2 = MakeQueryUnboundLambda(QueryTranslationState.RangeVariableMap(x2), x2, join.RightExpression);
             args.Add(lambda2);
 
-            if (state.clauses.IsEmpty() && state.selectOrGroup.Kind == SyntaxKind.SelectClause)
+            if (state.clauses.IsEmpty() && state.selectOrGroup.Kind() == SyntaxKind.SelectClause)
             {
                 var select = state.selectOrGroup as SelectClauseSyntax;
                 BoundCall invocation;
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool first = true;
             foreach (var ordering in orderby.Orderings)
             {
-                string methodName = (first ? "OrderBy" : "ThenBy") + (ordering.Kind == SyntaxKind.DescendingOrdering ? "Descending" : "");
+                string methodName = (first ? "OrderBy" : "ThenBy") + (ordering.Kind() == SyntaxKind.DescendingOrdering ? "Descending" : "");
                 var lambda = MakeQueryUnboundLambda(state.RangeVariableMap(), state.rangeVariable, ordering.Expression);
                 var invocation = MakeQueryInvocation(ordering, state.fromExpression, methodName, lambda, diagnostics);
                 state.fromExpression = MakeQueryClause(ordering, invocation, queryInvocation: invocation);
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression lambda1 = MakeQueryUnboundLambda(state.RangeVariableMap(), x1, from.Expression, from.Type, castType);
             var x2 = state.AddRangeVariable(this, from.Identifier, diagnostics);
 
-            if (state.clauses.IsEmpty() && state.selectOrGroup.Kind == SyntaxKind.SelectClause)
+            if (state.clauses.IsEmpty() && state.selectOrGroup.Kind() == SyntaxKind.SelectClause)
             {
                 // A query expression with a second from clause followed by a select clause
                 //     from x1 in e1

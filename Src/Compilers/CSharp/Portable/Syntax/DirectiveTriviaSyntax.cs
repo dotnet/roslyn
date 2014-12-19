@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             get
             {
-                switch (this.Kind)
+                switch (this.Kind())
                 {
                     case SyntaxKind.IfDirectiveTrivia:
                         return ((IfDirectiveTriviaSyntax)this).IfKeyword;
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     case SyntaxKind.ReferenceDirectiveTrivia:
                         return ((ReferenceDirectiveTriviaSyntax)this).ReferenceKeyword;
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(this.Kind);
+                        throw ExceptionUtilities.UnexpectedValue(this.Kind());
                 }
             }
         }
@@ -146,12 +146,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         private DirectiveTriviaSyntax GetNextRelatedDirective()
         {
             DirectiveTriviaSyntax d = this;
-            switch (d.Kind)
+            switch (d.Kind())
             {
                 case SyntaxKind.IfDirectiveTrivia:
                     while (d != null)
                     {
-                        switch (d.Kind)
+                        switch (d.Kind())
                         {
                             case SyntaxKind.ElifDirectiveTrivia:
                             case SyntaxKind.ElseDirectiveTrivia:
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.ElifDirectiveTrivia:
                     while (d != null)
                     {
-                        switch (d.Kind)
+                        switch (d.Kind())
                         {
                             case SyntaxKind.ElseDirectiveTrivia:
                             case SyntaxKind.EndIfDirectiveTrivia:
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.ElseDirectiveTrivia:
                     while (d != null)
                     {
-                        if (d.Kind == SyntaxKind.EndIfDirectiveTrivia)
+                        if (d.Kind() == SyntaxKind.EndIfDirectiveTrivia)
                         {
                             return d;
                         }
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.RegionDirectiveTrivia:
                     while (d != null)
                     {
-                        if (d.Kind == SyntaxKind.EndRegionDirectiveTrivia)
+                        if (d.Kind() == SyntaxKind.EndRegionDirectiveTrivia)
                         {
                             return d;
                         }
@@ -215,17 +215,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 if (d != null)
                 {
                     // skip matched sets
-                    switch (d.Kind)
+                    switch (d.Kind())
                     {
                         case SyntaxKind.IfDirectiveTrivia:
-                            while (d != null && d.Kind != SyntaxKind.EndIfDirectiveTrivia)
+                            while (d != null && d.Kind() != SyntaxKind.EndIfDirectiveTrivia)
                             {
                                 d = d.GetNextRelatedDirective();
                             }
 
                             continue;
                         case SyntaxKind.RegionDirectiveTrivia:
-                            while (d != null && d.Kind != SyntaxKind.EndRegionDirectiveTrivia)
+                            while (d != null && d.Kind() != SyntaxKind.EndRegionDirectiveTrivia)
                             {
                                 d = d.GetNextRelatedDirective();
                             }
@@ -243,12 +243,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         private DirectiveTriviaSyntax GetPreviousRelatedDirective()
         {
             DirectiveTriviaSyntax d = this;
-            switch (d.Kind)
+            switch (d.Kind())
             {
                 case SyntaxKind.EndIfDirectiveTrivia:
                     while (d != null)
                     {
-                        switch (d.Kind)
+                        switch (d.Kind())
                         {
                             case SyntaxKind.IfDirectiveTrivia:
                             case SyntaxKind.ElifDirectiveTrivia:
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.ElifDirectiveTrivia:
                     while (d != null)
                     {
-                        if (d.Kind == SyntaxKind.IfDirectiveTrivia)
+                        if (d.Kind() == SyntaxKind.IfDirectiveTrivia)
                         {
                             return d;
                         }
@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.ElseDirectiveTrivia:
                     while (d != null)
                     {
-                        switch (d.Kind)
+                        switch (d.Kind())
                         {
                             case SyntaxKind.IfDirectiveTrivia:
                             case SyntaxKind.ElifDirectiveTrivia:
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.EndRegionDirectiveTrivia:
                     while (d != null)
                     {
-                        if (d.Kind == SyntaxKind.RegionDirectiveTrivia)
+                        if (d.Kind() == SyntaxKind.RegionDirectiveTrivia)
                         {
                             return d;
                         }
@@ -312,17 +312,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 if (d != null)
                 {
                     // skip matched sets
-                    switch (d.Kind)
+                    switch (d.Kind())
                     {
                         case SyntaxKind.EndIfDirectiveTrivia:
-                            while (d != null && d.Kind != SyntaxKind.IfDirectiveTrivia)
+                            while (d != null && d.Kind() != SyntaxKind.IfDirectiveTrivia)
                             {
                                 d = d.GetPreviousRelatedDirective();
                             }
 
                             continue;
                         case SyntaxKind.EndRegionDirectiveTrivia:
-                            while (d != null && d.Kind != SyntaxKind.RegionDirectiveTrivia)
+                            while (d != null && d.Kind() != SyntaxKind.RegionDirectiveTrivia)
                             {
                                 d = d.GetPreviousRelatedDirective();
                             }
