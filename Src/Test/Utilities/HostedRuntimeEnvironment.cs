@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         }
 
         /// <summary>
-        /// Loads given array of bytes as an assembly image using <see cref="M:System.Reflection.Assembly.Load"/> or <see cref="M:System.Reflection.Assembly.ReflectionOnlyLoad"/>.
+        /// Loads given array of bytes as an assembly image using <see cref="System.Reflection.Assembly.Load"/> or <see cref="System.Reflection.Assembly.ReflectionOnlyLoad"/>.
         /// </summary>
         internal static Assembly LoadAsAssembly(ImmutableArray<byte> rawAssembly, bool reflectionOnly = false)
         {
