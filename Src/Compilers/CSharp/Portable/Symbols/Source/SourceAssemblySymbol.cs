@@ -1984,7 +1984,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (lazyInternalsVisibleToMap == null)
             {
                 Interlocked.CompareExchange(ref lazyInternalsVisibleToMap,
-                                            new ConcurrentDictionary<string, ConcurrentDictionary<ImmutableArray<byte>, Tuple<Location, String>>>(), null);
+                                            new ConcurrentDictionary<string, ConcurrentDictionary<ImmutableArray<byte>, Tuple<Location, String>>>(StringComparer.OrdinalIgnoreCase), null);
             }
 
             //later, once the identity is established we confirm that if the assembly being 

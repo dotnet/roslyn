@@ -1761,6 +1761,57 @@ internal class B
         CompileAndVerify(cb, verify:false).Diagnostics.Verify(); 
     }
 
+    [Fact, WorkItem(1072350, "DevDiv")]
+    public void Bug1072350()
+    {
+        const string sourceA = @"
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""X "")]
+internal class A
+{
+    internal static int I = 42;
+}";
+
+        const string sourceB = @"
+class B
+{
+    static void Main()
+    {
+        System.Console.Write(A.I);
+    }
+}";
+
+        var ca = CreateCompilationWithMscorlib(sourceA, options: TestOptions.ReleaseDll, assemblyName: "ClassLibrary2");
+        CompileAndVerify(ca);
+
+        var cb = CreateCompilationWithMscorlib(sourceB, options: TestOptions.ReleaseExe, assemblyName: "X", references: new[] { new CSharpCompilationReference(ca)});
+        CompileAndVerify(cb, expectedOutput: "42", emitOptions: TestEmitters.CCI).Diagnostics.Verify(); 
+    }
+
+    [Fact, WorkItem(1072339, "DevDiv")]
+    public void Bug1072339()
+    {
+        const string sourceA = @"
+[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""x"")]
+internal class A
+{
+    internal static int I = 42;
+}";
+
+        const string sourceB = @"
+class B
+{
+    static void Main()
+    {
+        System.Console.Write(A.I);
+    }
+}";
+
+        var ca = CreateCompilationWithMscorlib(sourceA, options: TestOptions.ReleaseDll, assemblyName: "ClassLibrary2");
+        CompileAndVerify(ca);
+
+        var cb = CreateCompilationWithMscorlib(sourceB, options: TestOptions.ReleaseExe, assemblyName: "X", references: new[] { new CSharpCompilationReference(ca)});
+        CompileAndVerify(cb, expectedOutput: "42", emitOptions: TestEmitters.CCI).Diagnostics.Verify(); 
+    }
 
     #endregion
 }

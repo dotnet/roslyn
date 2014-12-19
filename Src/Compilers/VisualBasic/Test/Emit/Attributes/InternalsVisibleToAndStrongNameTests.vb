@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Reflection.Metadata
 Imports System.Reflection.PortableExecutable
+Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Emit
@@ -1553,6 +1554,66 @@ End Class
 </compilation>, {New VisualBasicCompilationReference(ca)}, options:=TestOptions.ReleaseModule.WithStrongNameProvider(DefaultProvider))
 
         CompileAndVerify(cb, verify:=False).Diagnostics.Verify()
+    End Sub
+
+    <Fact, WorkItem(1072350, "DevDiv")>
+    Public Sub Bug1072350()
+        Dim sourceA As XElement = _
+<compilation name="ClassLibrary2">
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("X ")>
+Friend Class A
+    Friend Shared I As Integer = 42
+End Class]]>
+    </file>
+</compilation>
+
+        Dim sourceB As XElement = _
+<compilation name="X">
+    <file name="b.vb"><![CDATA[
+Class B
+    Shared Sub Main()
+        System.Console.Write(A.I)
+    End Sub
+End Class]]>
+    </file>
+</compilation>
+
+        Dim ca = CreateCompilationWithMscorlib(sourceA, options:=TestOptions.ReleaseDll)
+        CompileAndVerify(ca)
+
+        Dim cb = CreateCompilationWithMscorlib(sourceB, options:=TestOptions.ReleaseExe, references:={ new VisualBasicCompilationReference(ca) })
+        CompileAndVerify(cb, expectedOutput:="42", emitOptions:=TestEmitters.CCI).Diagnostics.Verify()
+    End Sub
+
+    <Fact, WorkItem(1072339, "DevDiv")>
+    Public Sub Bug1072339()
+        Dim sourceA As XElement = _
+<compilation name="ClassLibrary2">
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("x")>
+Friend Class A
+    Friend Shared I As Integer = 42
+End Class]]>
+    </file>
+</compilation>
+
+        Dim sourceB As XElement = _
+<compilation name="x">
+    <file name="b.vb"><![CDATA[
+Class B
+    Shared Sub Main()
+        System.Console.Write(A.I)
+    End Sub
+End Class]]>
+    </file>
+</compilation>
+
+        Dim ca = CreateCompilationWithMscorlib(sourceA, options:=TestOptions.ReleaseDll)
+        CompileAndVerify(ca)
+
+        Dim cb = CreateCompilationWithMscorlib(sourceB, options:=TestOptions.ReleaseExe, references:={ new VisualBasicCompilationReference(ca) })
+        CompileAndVerify(cb, expectedOutput:="42", emitOptions:=TestEmitters.CCI).Diagnostics.Verify()
     End Sub
 
 End Class

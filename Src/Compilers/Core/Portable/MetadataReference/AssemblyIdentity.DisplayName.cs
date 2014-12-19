@@ -173,8 +173,8 @@ namespace Microsoft.CodeAnalysis
             }
 
             int position = 0;
-            string simpleName = TryParseNameToken(displayName, ',', ref position);
-            if (simpleName == null)
+            string simpleName;
+            if (!TryParseNameToken(displayName, ref position, out simpleName))
             {
                 return false;
             }
@@ -191,18 +191,34 @@ namespace Microsoft.CodeAnalysis
 
             while (position < displayName.Length)
             {
-                string propertyName = TryParseNameToken(displayName, '=', ref position);
-                if (propertyName == null)
+                // Parse ',' name '=' value
+                if (displayName[position] != ',')
                 {
                     return false;
                 }
 
-                string propertyValue = TryParseNameToken(displayName, ',', ref position);
-                if (propertyValue == null)
+                position++;
+
+                string propertyName;
+                if (!TryParseNameToken(displayName, ref position, out propertyName))
                 {
                     return false;
                 }
 
+                if (position >= displayName.Length || displayName[position] != '=')
+                {
+                    return false;
+                }
+
+                position++;
+
+                string propertyValue;
+                if (!TryParseNameToken(displayName, ref position, out propertyValue))
+                {
+                    return false;
+                }
+
+                // Process property
                 if (string.Equals(propertyName, "Version", StringComparison.OrdinalIgnoreCase))
                 {
                     if ((seen & AssemblyIdentityParts.Version) != 0)
@@ -381,21 +397,26 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-        private static string TryParseNameToken(string displayName, char terminator, ref int position)
+        private static bool TryParseNameToken(string displayName, ref int position, out string value)
         {
             Debug.Assert(displayName.IndexOf('\0') == -1);
 
             int i = position;
 
             // skip leading whitespace:
-            while (i < displayName.Length && IsWhiteSpace(displayName[i]))
+            while (true)
             {
-                i++;
-            }
+                if (i == displayName.Length)
+                {
+                    value = null;
+                    return false;
+                }
+                else if (!IsWhiteSpace(displayName[i]))
+                {
+                    break;
+                }
 
-            if (i == displayName.Length)
-            {
-                return null;
+                i++;
             }
 
             char quote;
@@ -410,75 +431,94 @@ namespace Microsoft.CodeAnalysis
 
             int valueStart = i;
             int valueEnd = displayName.Length;
-            int escapeCount = 0;
+            bool containsEscapes = false;
 
-            while (i < displayName.Length)
+            while (true)
             {
+                if (i >= displayName.Length)
+                {
+                    i = displayName.Length;
+                    break;
+                }
+
                 char c = displayName[i];
                 if (c == '\\')
                 {
-                    escapeCount++;
+                    containsEscapes = true;
                     i += 2;
                     continue;
                 }
 
-                if (quote == 0)
+                if (quote == '\0')
                 {
-                    if (c == terminator)
+                    if (IsNameTokenTerminator(c))
                     {
-                        int j = i - 1;
-                        while (j >= valueStart && IsWhiteSpace(displayName[j]))
-                        {
-                            j--;
-                        }
-
-                        valueEnd = j + 1;
                         break;
                     }
-
-                    if (IsQuote(c) || IsNameTokenTerminator(c))
+                    else if (IsQuote(c))
                     {
-                        return null;
+                        value = null;
+                        return false;
                     }
                 }
                 else if (c == quote)
                 {
                     valueEnd = i;
                     i++;
-
-                    // skip any whitespace following the quote
-                    while (i < displayName.Length && IsWhiteSpace(displayName[i]))
-                    {
-                        i++;
-                    }
-
-                    if (i < displayName.Length && displayName[i] != terminator)
-                    {
-                        return null;
-                    }
-
                     break;
                 }
 
                 i++;
             }
 
-            Debug.Assert(i >= displayName.Length || IsNameTokenTerminator(displayName[i]));
-            position = (i >= displayName.Length) ? displayName.Length : i + 1;
+            if (quote == '\0')
+            {
+                int j = i - 1;
+                while (j >= valueStart && IsWhiteSpace(displayName[j]))
+                {
+                    j--;
+                }
+
+                valueEnd = j + 1;
+            }
+            else
+            {
+                // skip any whitespace following the quote and check for the terminator
+                while (i < displayName.Length)
+                {
+                    char c = displayName[i];
+                    if (!IsWhiteSpace(c))
+                    {
+                        if (!IsNameTokenTerminator(c))
+                        {
+                            value = null;
+                            return false;
+                        }
+                        break;
+                    }
+
+                    i++;
+                }
+            }
+
+            Debug.Assert(i == displayName.Length || IsNameTokenTerminator(displayName[i]));
+            position = i;
 
             // empty
             if (valueEnd == valueStart)
             {
-                return null;
+                value = null;
+                return false;
             }
 
-            if (escapeCount == 0)
+            if (!containsEscapes)
             {
-                return displayName.Substring(valueStart, valueEnd - valueStart);
+                value = displayName.Substring(valueStart, valueEnd - valueStart);
+                return true;
             }
             else
             {
-                return Unescape(displayName, valueStart, valueEnd);
+                return TryUnescape(displayName, valueStart, valueEnd, out value);
             }
         }
 
@@ -687,7 +727,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static string Unescape(string str, int start, int end)
+        private static bool TryUnescape(string str, int start, int end, out string value)
         {
             var sb = PooledStringBuilder.GetInstance();
 
@@ -697,10 +737,10 @@ namespace Microsoft.CodeAnalysis
                 char c = str[i++];
                 if (c == '\\')
                 {
-                    Debug.Assert(CanBeEscaped(c));
                     if (!Unescape(sb.Builder, str, ref i))
                     {
-                        return null;
+                        value = null;
+                        return false;
                     }
                 }
                 else
@@ -709,7 +749,8 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return sb.ToStringAndFree();
+            value = sb.ToStringAndFree();
+            return true;
         }
 
         private static bool Unescape(StringBuilder sb, string str, ref int i)
