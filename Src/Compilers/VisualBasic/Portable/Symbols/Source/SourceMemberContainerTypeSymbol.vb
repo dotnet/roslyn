@@ -1680,7 +1680,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function BuildMembersAndInitializers(diagBag As DiagnosticBag) As MembersAndInitializers
 #If DEBUG Then
             Dim threadId = Environment.CurrentManagedThreadId
-            Debug.Assert(m_computingMembersThreadId <> threadId)
+
+            ' Bug 1098580 tracks re-enabling this assert.
+            'Debug.Assert(m_computingMembersThreadId <> threadId)
             Interlocked.CompareExchange(m_computingMembersThreadId, threadId, 0)
 #End If
             ' Get type members

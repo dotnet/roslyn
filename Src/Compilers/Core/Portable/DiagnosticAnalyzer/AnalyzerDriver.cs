@@ -276,21 +276,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var analyzersByKind = new List<ArrayBuilder<SymbolAnalyzerAction>>();
             foreach (var analyzer in this.compilationAnalysisScope.SymbolActions)
             {
-                // Catch exceptions from analyzer.Kinds.
-                ExecuteAndCatchIfThrows(analyzer.Analyzer, addDiagnostic, continueOnAnalyzerException, () =>
+                var kinds = analyzer.Kinds;
+                foreach (var k in kinds.Distinct())
                 {
-                    var kinds = analyzer.Kinds;
-                    foreach (var k in kinds.Distinct())
+                    if ((int)k > 100) continue; // protect against vicious analyzers
+                    while ((int)k >= analyzersByKind.Count)
                     {
-                        if ((int)k > 100) continue; // protect against vicious analyzers
-                        while ((int)k >= analyzersByKind.Count)
-                        {
-                            analyzersByKind.Add(ArrayBuilder<SymbolAnalyzerAction>.GetInstance());
-                        }
-
-                        analyzersByKind[(int)k].Add(analyzer);
+                        analyzersByKind.Add(ArrayBuilder<SymbolAnalyzerAction>.GetInstance());
                     }
-                }, CancellationToken.None);
+
+                    analyzersByKind[(int)k].Add(analyzer);
+                }
             }
 
             return analyzersByKind.Select(a => a.ToImmutableAndFree()).ToImmutableArray();
@@ -328,17 +324,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     // when just a single operation is cancelled, we continue processing events.
                     // TODO: what is the desired behavior in this case?
-                }
-                catch (Exception ex)
-                {
-                    var desc = new DiagnosticDescriptor(DiagnosticId,
-                          CodeAnalysisResources.CompilerAnalyzerFailure,
-                          "diagnostic analyzer worker threw an exception " + ex,
-                          category: Diagnostic.CompilerDiagnosticCategory,
-                          defaultSeverity: DiagnosticSeverity.Error,
-                          isEnabledByDefault: true,
-                          customTags: WellKnownDiagnosticTags.AnalyzerException);
-                    addDiagnostic(Diagnostic.Create(desc, Location.None));
                 }
             }
         }
@@ -1008,7 +993,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 analyze();
             }
-            catch (OperationCanceledException oce) when (continueOnAnalyzerException(oce, analyzer))
+            catch (OperationCanceledException oce) when (continueOnAnalyzerException(oce, analyzer) && !(analyzer is CompilerDiagnosticAnalyzer))
             {
                 if (oce.CancellationToken != cancellationToken)
                 {
@@ -1016,7 +1001,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     addDiagnostic(GetAnalyzerDiagnostic(analyzer, oce));
                 }
             }
-            catch (Exception e) when (continueOnAnalyzerException(e, analyzer))
+            catch (Exception e) when (continueOnAnalyzerException(e, analyzer) && !(analyzer is CompilerDiagnosticAnalyzer))
             {
                 // Create a info diagnostic saying that the analyzer failed
                 addDiagnostic(GetAnalyzerDiagnostic(analyzer, e));
@@ -1486,24 +1471,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             foreach (var nodeAction in nodeActions)
             {
-                // Catch Exception from  nodeAnalyzer.Kinds
-                try
+                foreach (var kind in nodeAction.Kinds)
                 {
-                    foreach (var kind in nodeAction.Kinds)
+                    ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> actionsForKind;
+                    if (!nodeActionsByKind.TryGetValue(kind, out actionsForKind))
                     {
-                        ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> actionsForKind;
-                        if (!nodeActionsByKind.TryGetValue(kind, out actionsForKind))
-                        {
-                            nodeActionsByKind.Add(kind, actionsForKind = ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>.GetInstance());
-                        }
-
-                        actionsForKind.Add(nodeAction);
+                        nodeActionsByKind.Add(kind, actionsForKind = ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>.GetInstance());
                     }
-                }
-                catch (Exception e)
-                {
-                    // Create a diagnostic saying that the analyzer failed.
-                    addDiagnostic(GetAnalyzerDiagnostic(nodeAction.Analyzer, e));
+
+                    actionsForKind.Add(nodeAction);
                 }
             }
         }
