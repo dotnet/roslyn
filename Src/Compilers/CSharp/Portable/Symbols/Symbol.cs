@@ -739,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal string GetDebuggerDisplay()
         {
-            return string.Format("{0} {1}", this.Kind, this.ToDisplayString(SymbolDisplayFormat.TestFormat));
+            return $"{this.Kind} {this.ToDisplayString(SymbolDisplayFormat.TestFormat)}";
         }
 
         internal void AddSemanticDiagnostics(DiagnosticBag diagnostics)

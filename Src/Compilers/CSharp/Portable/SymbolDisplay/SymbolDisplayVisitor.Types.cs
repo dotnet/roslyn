@@ -333,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var name = string.Format("<anonymous type: {0}>", members);
+                var name = $"<anonymous type: {members}>";
                 builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.ClassName, symbol, name));
             }
         }

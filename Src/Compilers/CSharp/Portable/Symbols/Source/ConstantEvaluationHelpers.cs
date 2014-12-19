@@ -173,12 +173,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                if (lastUpdated != null)
-                {
-                    lastUpdated.Free();
-                    lastUpdated = null;
-                }
-
+                lastUpdated?.Free();
+                lastUpdated = null;
                 if (set.Count > 0)
                 {
                     var updated = PooledHashSet<SourceFieldSymbolWithSyntaxReference>.GetInstance();
@@ -254,10 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 set.Free();
             }
 
-            if (lastUpdated != null)
-            {
-                lastUpdated.Free();
-            }
+            lastUpdated?.Free();
         }
 
         private static SourceFieldSymbolWithSyntaxReference GetStartOfFirstCycle(

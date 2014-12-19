@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var kind = SyntaxFacts.GetKeywordKind(identifier);
             return kind == SyntaxKind.None
                 ? identifier
-                : string.Format("@{0}", identifier);
+                : $"@{identifier}";
         }
 
         public override void VisitAssembly(IAssemblySymbol symbol)

@@ -117,12 +117,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (location0 != null)
                 {
-                    description0 = string.Format("{0} [{1}]", description0, location0);
+                    description0 = $"{description0} [{location0}]";
                 }
 
                 if (location1 != null)
                 {
-                    description1 = string.Format("{0} [{1}]", description1, location1);
+                    description1 = $"{description1} [{location1}]";
                 }
             }
 
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 string path = tree.GetDisplayPath(span, (compilation != null) ? compilation.Options.SourceReferenceResolver : null);
                 if (!string.IsNullOrEmpty(path))
                 {
-                    return string.Format("{0}({1})", path, tree.GetDisplayLineNumber(span));
+                    return $"{path}({tree.GetDisplayLineNumber(span)})";
                 }
             }
 

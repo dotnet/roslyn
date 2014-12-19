@@ -1513,10 +1513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            if (typeParameterNames != null)
-            {
-                typeParameterNames.Free();
-            }
+            typeParameterNames?.Free();
         }
 
         private void CheckIndexerSignatureCollisions(

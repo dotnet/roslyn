@@ -3565,9 +3565,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         builder.AddRange(constructors, i);
                     }
                 }
-                else if (builder != null)
+                else
                 {
-                    builder.Add(constructor);
+                    builder?.Add(constructor);
                 }
             }
 

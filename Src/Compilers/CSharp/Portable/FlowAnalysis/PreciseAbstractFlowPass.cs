@@ -866,7 +866,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public override BoundNode DefaultVisit(BoundNode node)
         {
-            Debug.Assert(false, string.Format("Should Visit{0} be overridden in {1}?", node.Kind, this.GetType().Name));
+            Debug.Assert(false, $"Should Visit{node.Kind} be overridden in {this.GetType().Name}?");
             return null;
         }
 

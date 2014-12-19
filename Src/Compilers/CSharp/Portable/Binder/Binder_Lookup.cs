@@ -457,10 +457,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (resultWithSuffix != null)
-            {
-                resultWithSuffix.Free();
-            }
+            resultWithSuffix?.Free();
         }
 
         private bool IsAmbiguousResult(LookupResult result, out Symbol resultSymbol)
@@ -699,11 +696,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (visited != null)
-            {
-                visited.Free();
-            }
-
+            visited?.Free();
             tmp.Free();
         }
 
@@ -1525,10 +1518,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type = type.GetNextBaseTypeNoUseSiteDiagnostics(null, this.Compilation, ref visited);
             }
 
-            if (visited != null)
-            {
-                visited.Free();
-            }
+            visited?.Free();
         }
 
         private void AddMemberLookupSymbolsInfoInInterface(LookupSymbolsInfo result, TypeSymbol type, LookupOptions options, Binder originalBinder, TypeSymbol accessThroughType)

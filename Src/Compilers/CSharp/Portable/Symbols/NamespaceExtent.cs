@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override string ToString()
         {
-            return string.Format("{0}: {1}", kind, symbolOrCompilation);
+            return $"{kind}: {symbolOrCompilation}";
         }
 
         /// <summary>

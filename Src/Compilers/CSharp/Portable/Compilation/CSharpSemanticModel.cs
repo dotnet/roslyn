@@ -3549,11 +3549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (hiddenSymbols != null)
-            {
-                hiddenSymbols.Free();
-            }
-
+            hiddenSymbols?.Free();
             return builder.ToImmutableAndFree();
         }
 

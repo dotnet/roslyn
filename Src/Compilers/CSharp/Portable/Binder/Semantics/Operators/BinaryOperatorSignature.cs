@@ -35,8 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override string ToString()
         {
-            return string.Format("kind: {0} left: {1} right: {2} return: {3}",
-                this.Kind, this.LeftType, this.RightType, this.ReturnType);
+            return $"kind: {this.Kind} left: {this.LeftType} right: {this.RightType} return: {this.ReturnType}";
         }
 
         public bool Equals(BinaryOperatorSignature other)

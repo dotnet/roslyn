@@ -346,11 +346,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)fieldSymbol != null)
             {
                 var containingAssembly = fieldSymbol.ContainingAssembly as SourceAssemblySymbol;
-                if ((object)containingAssembly != null)
-                {
-                    // We do not want to generate any unassigned field or unreferenced field diagnostics.
-                    containingAssembly.NoteFieldAccess(fieldSymbol, read: true, write: true);
-                }
+
+                // We do not want to generate any unassigned field or unreferenced field diagnostics.
+                containingAssembly?.NoteFieldAccess(fieldSymbol, read: true, write: true);
 
                 lvalue = new BoundFieldAccess(nameSyntax, null, fieldSymbol, ConstantValue.NotAvailable, resultKind, fieldSymbol.Type);
             }

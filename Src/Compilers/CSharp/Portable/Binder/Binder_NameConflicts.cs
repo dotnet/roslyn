@@ -89,8 +89,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (tpNames != null) tpNames.Free();
-            if (pNames != null) pNames.Free();
+            tpNames?.Free();
+            pNames?.Free();
         }
 
         /// <remarks>

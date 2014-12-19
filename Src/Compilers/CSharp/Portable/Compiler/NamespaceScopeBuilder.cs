@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
-                        Debug.Assert(false, string.Format("None of the aliases of {0} is valid in this scope", @namespace));
+                        Debug.Assert(false, $"None of the aliases of {@namespace} is valid in this scope");
                     }
                 }
             }

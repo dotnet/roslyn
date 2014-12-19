@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            TypeSymbol receiverType = receiver != null ? receiver.Type : null;
+            TypeSymbol receiverType = receiver?.Type;
             diagnostics.Add(new DiagnosticInfoWithSymbols(
                 ErrorCode.ERR_QueryTypeInferenceFailedSelectMany,
                 new object[] { type, receiverType, methodName },

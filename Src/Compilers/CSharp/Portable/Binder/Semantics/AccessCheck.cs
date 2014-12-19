@@ -488,11 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (visited != null)
-            {
-                visited.Free();
-            }
-
+            visited?.Free();
             return result;
         }
 

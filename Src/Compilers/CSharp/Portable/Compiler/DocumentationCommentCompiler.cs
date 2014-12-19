@@ -1107,7 +1107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private string GetAndEndTemporaryString()
         {
             TemporaryStringBuilder t = temporaryStringBuilders.Pop();
-            Debug.Assert(indentDepth == t.InitialIndentDepth, string.Format("Temporary strings should be indent-neutral (was {0}, is {1})", t.InitialIndentDepth, indentDepth));
+            Debug.Assert(indentDepth == t.InitialIndentDepth, $"Temporary strings should be indent-neutral (was {t.InitialIndentDepth}, is {indentDepth})");
             indentDepth = t.InitialIndentDepth;
             return t.Pooled.ToStringAndFree();
         }

@@ -919,7 +919,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return true;
                     }
                 default:
-                    Debug.Assert(false, string.Format("Unexpected accessibility {0}", hidingMember.DeclaredAccessibility));
+                    Debug.Assert(false, $"Unexpected accessibility {hidingMember.DeclaredAccessibility}");
                     break;
             }
             return false;

@@ -24,8 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override string ToString()
         {
-            return string.Format("kind: {0} operand: {1} return: {2}",
-                this.Kind, this.OperandType, this.ReturnType);
+            return $"kind: {this.Kind} operand: {this.OperandType} return: {this.ReturnType}";
         }
     }
 }

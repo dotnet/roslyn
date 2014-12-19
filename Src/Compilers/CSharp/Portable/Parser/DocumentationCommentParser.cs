@@ -1218,7 +1218,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     if (typeArgumentsMustBeIdentifiers && typeSyntax.Kind != SyntaxKind.IdentifierName)
                     {
                         typeSyntax = this.AddError(typeSyntax, ErrorCode.WRN_ErrorOverride,
-                            new SyntaxDiagnosticInfo(ErrorCode.ERR_TypeParamMustBeIdentifier), string.Format("{0:d4}", (int)ErrorCode.ERR_TypeParamMustBeIdentifier));
+                            new SyntaxDiagnosticInfo(ErrorCode.ERR_TypeParamMustBeIdentifier), $"{(int)ErrorCode.ERR_TypeParamMustBeIdentifier:d4}");
                     }
 
                     list.Add(typeSyntax);
