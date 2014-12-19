@@ -249,7 +249,7 @@ world.";
         }
 
         [Fact]
-        public void UnclosedInterpolation()
+        public void UnclosedInterpolation01()
         {
             string source =
 @"using System;
@@ -273,6 +273,32 @@ class Program
                 // (6,35): error CS1002: ; expected
                 //         Console.WriteLine( $"{" );
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(6, 35)
+                );
+        }
+
+        [Fact]
+        public void UnclosedInterpolation02()
+        {
+            string source =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        var x = $"";";
+            // The precise error messages are not important, but this must be an error.
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+                // (5,19): error CS1010: Newline in constant
+                //         var x = $";
+                Diagnostic(ErrorCode.ERR_NewlineInConst, ";").WithLocation(5, 19),
+                // (5,20): error CS1002: ; expected
+                //         var x = $";
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(5, 20),
+                // (5,20): error CS1513: } expected
+                //         var x = $";
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 20),
+                // (5,20): error CS1513: } expected
+                //         var x = $";
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 20)
                 );
         }
 

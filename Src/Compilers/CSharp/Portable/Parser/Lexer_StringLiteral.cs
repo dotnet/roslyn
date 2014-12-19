@@ -332,7 +332,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     Debug.Assert(IsAtEnd());
                     if (error == null)
                     {
-                        error = lexer.MakeError(lexer.TextWindow.Position, 1, isVerbatim ? ErrorCode.ERR_UnterminatedStringLit : ErrorCode.ERR_NewlineInConst);
+                        int position = IsAtEnd(true) ? lexer.TextWindow.Position - 1 : lexer.TextWindow.Position;
+                        error = lexer.MakeError(position, 1, isVerbatim ? ErrorCode.ERR_UnterminatedStringLit : ErrorCode.ERR_NewlineInConst);
                     }
 
                     closeQuoteMissing = true;
