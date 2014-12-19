@@ -3285,5 +3285,110 @@ class Test
             var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Foo").Single();
             Assert.Equal("void Test.Foo<dynamic>(System.Action<dynamic> action, System.Collections.Generic.IEnumerable<dynamic> source)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
         }
+
+        [Fact, WorkItem(875140, "DevDiv")]
+        public void Bug875140_01()
+        {
+            string source = @"
+using System;
+using System.Reflection;
+ 
+class Program
+{
+    unsafe static void Main()
+    {
+        Action<dynamic, object> action = delegate { };
+        void* p = Pointer.Unbox(Foo(action));
+    }
+ 
+    static T Foo<T>(Action<T, T> x) { throw null; }
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true)).VerifyDiagnostics();
+
+            var tree = verifier.Compilation.SyntaxTrees.Single();
+            var model = verifier.Compilation.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Foo").Single();
+            Assert.Equal("System.Object Program.Foo<System.Object>(System.Action<System.Object, System.Object> x)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(875140, "DevDiv")]
+        public void Bug875140_02()
+        {
+            string source = @"
+using System;
+using System.Reflection;
+ 
+class Program
+{
+    unsafe static void Main()
+    {
+        Action<object, dynamic> action = delegate { };
+        void* p = Pointer.Unbox(Foo(action));
+    }
+ 
+    static T Foo<T>(Action<T, T> x) { throw null; }
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugDll.WithAllowUnsafe(true)).VerifyDiagnostics();
+
+            var tree = verifier.Compilation.SyntaxTrees.Single();
+            var model = verifier.Compilation.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Foo").Single();
+            Assert.Equal("System.Object Program.Foo<System.Object>(System.Action<System.Object, System.Object> x)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+        }
+
+        [Fact, WorkItem(875140, "DevDiv")]
+        public void Bug875140_03()
+        {
+            string source = @"
+using System;
+using System.Reflection;
+ 
+class Program
+{
+    unsafe static void Main()
+    {
+        Func<object, dynamic> action = null;
+        void* p = Pointer.Unbox(Foo(action));
+    }
+ 
+    static T Foo<T>(Func<T, T> x) { throw null; }
+}
+";
+            CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll.WithAllowUnsafe(true)).VerifyDiagnostics(
+    // (10,33): error CS0411: The type arguments for method 'Program.Foo<T>(Func<T, T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+    //         void* p = Pointer.Unbox(Foo(action));
+    Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Foo").WithArguments("Program.Foo<T>(System.Func<T, T>)").WithLocation(10, 33)
+                );
+        }
+
+        [Fact, WorkItem(875140, "DevDiv")]
+        public void Bug875140_04()
+        {
+            string source = @"
+using System;
+ 
+class Program
+{
+    static void Main()
+    {
+        Func<dynamic, object> action = null;
+        Foo(action).M1();
+    }
+ 
+    static T Foo<T>(Func<T, T> x) { throw null; }
+}
+";
+            var verifier = CompileAndVerify(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll).VerifyDiagnostics();
+
+            var tree = verifier.Compilation.SyntaxTrees.Single();
+            var model = verifier.Compilation.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Foo").Single();
+            Assert.Equal("dynamic Program.Foo<dynamic>(System.Func<dynamic, dynamic> x)", model.GetSymbolInfo(node).Symbol.ToTestDisplayString());
+        }
     }
 }

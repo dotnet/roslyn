@@ -2270,7 +2270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Make a copy; don't modify the collection as we're iterating it.
                     foreach (var candidate in initialCandidates)
                     {
-                        if (bound != candidate && !this.conversions.ClassifyImplicitConversion(bound, candidate, ref useSiteDiagnostics).Exists)
+                        if (bound != candidate && !ImplicitConversionExists(bound, candidate, ref useSiteDiagnostics))
                         {
                             candidates.Remove(candidate);
                         }
@@ -2287,7 +2287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var candidate in initialCandidates)
                     {
-                        if (bound != candidate && !this.conversions.ClassifyImplicitConversion(candidate, bound, ref useSiteDiagnostics).Exists)
+                        if (bound != candidate && !ImplicitConversionExists(candidate, bound, ref useSiteDiagnostics))
                         {
                             candidates.Remove(candidate);
                         }
@@ -2299,25 +2299,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC:   which there is an implicit conversion from all the other candidate
             // SPEC:   types, then the parameter is fixed to V.
 
+            // SPEC: 4.7 The Dynamic Type
+            //       Type inference (7.5.2) will prefer dynamic over object if both are candidates.
+            // This rule doesn't have to be implemented explicitly due to special handling of 
+            // conversions from dynamic in ImplicitConversionExists helper.
+
             TypeSymbol best = null;
             foreach (var candidate in candidates)
             {
                 foreach (var candidate2 in candidates)
                 {
-                    if (candidate != candidate2 && !this.conversions.ClassifyImplicitConversion(candidate2, candidate, ref useSiteDiagnostics).Exists)
+                    if (candidate != candidate2 && !ImplicitConversionExists(candidate2, candidate, ref useSiteDiagnostics))
                     {
                         goto OuterBreak;
                     }
                 }
 
-                // SPEC: 4.7 The Dynamic Type
-                //       Type inference (7.5.2) will prefer dynamic over object if both are candidates.
-                if ((object)best == null || (best.IsObjectType() && candidate.IsDynamic()))
+                if ((object)best == null)
                 {
                     best = candidate;
                 }
                 else if (!(best.IsDynamic() && candidate.IsObjectType()))
                 {
+                    Debug.Assert(!(best.IsObjectType() && candidate.IsDynamic()));
+                    Debug.Assert(!(best.IsDynamic() && candidate.IsObjectType()));
+
                     // best candidate is not unique
                     return false;
                 }
@@ -2337,6 +2343,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
+        private bool ImplicitConversionExists(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            // SPEC VIOLATION: For the purpose of algorithm in Fix method, dynamic type is not considered convertible to any other type, including object.
+            if (source.IsDynamic() && !destination.IsDynamic())
+            {
+                return false;
+            }
+
+            return this.conversions.ClassifyImplicitConversion(source, destination, ref useSiteDiagnostics).Exists;
+        }
 
         ////////////////////////////////////////////////////////////////////////////////
         //
