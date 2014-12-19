@@ -296,7 +296,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 id = New LocalDebugId(syntaxOffset, ordinal)
 
                 If SlotAllocatorOpt IsNot Nothing Then
-                    slotIndex = SlotAllocatorOpt.GetPreviousHoistedLocalSlotIndex(declaratorSyntax, DirectCast(fieldType, Cci.ITypeDefinition), local.SynthesizedKind, id)
+                    slotIndex = SlotAllocatorOpt.GetPreviousHoistedLocalSlotIndex(declaratorSyntax, DirectCast(fieldType, Cci.ITypeReference), local.SynthesizedKind, id)
                 End If
             End If
 

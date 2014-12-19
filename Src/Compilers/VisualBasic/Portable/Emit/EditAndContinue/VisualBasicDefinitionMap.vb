@@ -119,7 +119,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                     Select Case GeneratedNames.GetKind(name)
                         Case GeneratedNameKind.StateMachineAwaiterField
-                            If GeneratedNames.TryParseSlotIndex(name, slotIndex) Then
+
+                            If GeneratedNames.TryParseSlotIndex(StringConstants.StateMachineAwaiterFieldPrefix, name, slotIndex) Then
                                 Dim field = TryCast(member, IFieldSymbol)
 
                                 ' Correct metadata won't contain duplicates, but malformed might, ignore the duplicate:
@@ -130,8 +131,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                                 End If
                             End If
 
-                        Case GeneratedNameKind.HoistedSynthesizedLocalField
-                            If GeneratedNames.TryParseSlotIndex(name, slotIndex) Then
+                        Case GeneratedNameKind.HoistedSynthesizedLocalField,
+                             GeneratedNameKind.StateMachineHoistedUserVariableField
+
+                            Dim _name As String = Nothing
+                            If GeneratedNames.TryParseSlotIndex(StringConstants.HoistedSynthesizedLocalPrefix, name, slotIndex) OrElse
+                               GeneratedNames.TryParseStateMachineHoistedUserVariableName(name, _name, slotIndex) Then
                                 Dim field = TryCast(member, IFieldSymbol)
                                 If slotIndex >= localSlotDebugInfo.Length Then
                                     ' Invalid metadata
@@ -149,6 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             hoistedLocalMap = hoistedLocals
             awaiterMap = awaiters
+            awaiterSlotCount = maxAwaiterSlotIndex + 1
         End Sub
 
         Protected Overrides Function TryGetLocalSlotMapFromMetadata(handle As MethodDefinitionHandle, debugInfo As EditAndContinueMethodDebugInformation) As ImmutableArray(Of EncLocalInfo)

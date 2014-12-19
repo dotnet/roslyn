@@ -273,20 +273,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ' Extracts the slot index from a name of a field that stores hoisted variables Or awaiters.
-        ' Such a name ends with "__{slot index + 1}". 
+        ' Such a name ends with "$prefix{slot index}". 
         ' Returned slot index Is >= 0.
-        Friend Shared Function TryParseSlotIndex(fieldName As String, <Out> ByRef slotIndex As Integer) As Boolean
-            Dim lastUnder = fieldName.LastIndexOf("_"c)
-            If lastUnder - 1 < 0 OrElse lastUnder = fieldName.Length OrElse fieldName(lastUnder - 1) <> "_"c Then
-                slotIndex = -1
-                Return False
-            End If
-
-            If Integer.TryParse(fieldName.Substring(lastUnder + 1), slotIndex) AndAlso slotIndex >= 1 Then
-                slotIndex = slotIndex - 1
+        Friend Shared Function TryParseSlotIndex(prefix As String, fieldName As String, <Out> ByRef slotIndex As Integer) As Boolean
+            If fieldName.StartsWith(prefix, StringComparison.Ordinal) AndAlso
+                Integer.TryParse(fieldName.Substring(prefix.Length), NumberStyles.None, CultureInfo.InvariantCulture, slotIndex) Then
                 Return True
             End If
-
             slotIndex = -1
             Return False
         End Function

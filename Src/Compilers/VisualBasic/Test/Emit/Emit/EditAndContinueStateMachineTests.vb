@@ -984,6 +984,8 @@ Class C
     Async Function F(a As Long) As Task(Of Integer)
         Return Await Task.FromResult(1)
     End Function
+    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
+    End Sub
 End Class
     </file>
 </compilation>
@@ -1001,12 +1003,14 @@ Class C
     Async Function F(a As Short) As Task(Of Integer)
         Return Await Task.FromResult(4)
     End Function
+    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
+    End Sub
 End Class
     </file>
 </compilation>
 
             Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=TestOptions.DebugDll)
-            Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(source1, references:=LatestReferences, options:=TestOptions.DebugDll)
+            Dim compilation1 = compilation0.WithSource(source1)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
 
@@ -1040,9 +1044,9 @@ End Class
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(16, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(18, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
@@ -1474,6 +1478,8 @@ Class C
         dim x = p
         Yield 1
     End Function
+    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
+    End Sub
 End Class
     </file>
 </compilation>
@@ -1486,35 +1492,39 @@ Class C
         dim x = p
         Yield 2
     End Function
+    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
+    End Sub
 End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=TestOptions.DebugDll)
-            Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(source1, references:=LatestReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
+            Dim debugInfoProvider = v0.CreatePdbInfoProvider()
 
             Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) debugInfoProvider.GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(Of Integer)({&H06000002UI, &H06000005UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
+                AssertEx.Equal(Of Integer)({&H06000002UI, &H06000006UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
 
                 ' verify delta metadata contains expected rows
                 Using md1 = diff1.GetMetadata()
+                    '  Verify that no new TypeDefs, FieldDefs or MethodDefs were added and 3 methods were updated:
                     CheckEncLogDefinitions(md1.Reader,
                         Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                         Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
@@ -1586,6 +1596,8 @@ Class C
         dim x = p
         Yield 1
     End Function
+    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
+    End Sub
 End Class
     </file>
 </compilation>
@@ -1599,26 +1611,29 @@ Class C
         dim y = 1234
         Yield y
     End Function
+    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
+    End Sub
 End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=TestOptions.DebugDll)
-            Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(source1, references:=LatestReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
+            Dim debugInfoProvider = v0.CreatePdbInfoProvider()
 
             Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) debugInfoProvider.GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(Of Integer)({&H06000002UI, &H06000005UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
+                AssertEx.Equal(Of Integer)({&H06000002UI, &H06000006UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
 
                 ' verify delta metadata contains expected rows
                 Using md1 = diff1.GetMetadata()
@@ -1629,8 +1644,8 @@ End Class
                         Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                         Row(8, TableIndex.Field, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
@@ -1706,6 +1721,8 @@ Class C
         dim x = p
         Yield 1
     End Function
+    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
+    End Sub
 End Class
     </file>
 </compilation>
@@ -1718,26 +1735,29 @@ Class C
         dim y = 1234
         Yield p
     End Function
+    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
+    End Sub
 End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=TestOptions.DebugDll)
-            Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(source1, references:=LatestReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
+            Dim debugInfoProvider = v0.CreatePdbInfoProvider()
 
             Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) debugInfoProvider.GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(Of Integer)({&H06000002UI, &H06000005UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
+                AssertEx.Equal(Of Integer)({&H06000002UI, &H06000006UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
 
                 ' verify delta metadata contains expected rows
                 Using md1 = diff1.GetMetadata()
@@ -1748,8 +1768,8 @@ End Class
                         Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                         Row(8, TableIndex.Field, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
@@ -1786,7 +1806,7 @@ End Class
   IL_0024:  nop
   IL_0025:  ldarg.0
   IL_0026:  ldc.i4     0x4d2
-  IL_002b:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_y$0 As Integer""
+  IL_002b:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_y$1 As Integer""
   IL_0030:  ldarg.0
   IL_0031:  ldarg.0
   IL_0032:  ldfld      ""C.VB$StateMachine_1_F.$VB$Local_p As Integer""
@@ -1821,6 +1841,8 @@ Class C
         dim x = 10.0
         Yield 1
     End Function
+    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
+    End Sub
 End Class
     </file>
 </compilation>
@@ -1833,38 +1855,41 @@ Class C
         dim x = 1234
         Yield 0
     End Function
+    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
+    End Sub
 End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=TestOptions.DebugDll)
-            Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(source1, references:=LatestReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
+            Dim debugInfoProvider = v0.CreatePdbInfoProvider()
 
             Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) debugInfoProvider.GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(Of Integer)({&H06000002UI, &H06000005UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
+                AssertEx.Equal(Of Integer)({&H06000002UI, &H06000006UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
 
                 ' verify delta metadata contains expected rows
                 Using md1 = diff1.GetMetadata()
-                    ' 3 methods updated
+                    ' 1 field def added & 3 methods updated
                     CheckEncLogDefinitions(md1.Reader,
                         Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                         Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                         Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                         Row(6, TableIndex.Field, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
@@ -1901,7 +1926,7 @@ End Class
   IL_0024:  nop
   IL_0025:  ldarg.0
   IL_0026:  ldc.i4     0x4d2
-  IL_002b:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_x$0 As Integer""
+  IL_002b:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_x$1 As Integer""
   IL_0030:  ldarg.0
   IL_0031:  ldc.i4.0
   IL_0032:  stfld      ""C.VB$StateMachine_1_F.$Current As Integer""
@@ -1936,6 +1961,8 @@ Class C
             Yield 1
         Next
     End Function
+    Public Sub Y() ' needs to be present to work around SymWriter bug #1068894
+    End Sub
 End Class
     </file>
 </compilation>
@@ -1949,6 +1976,8 @@ Class C
             Yield 1
         Next
     End Function
+    Public Sub Y() ' needs to be present to work around SymWriter bug #1068894
+    End Sub
 End Class
     </file>
 </compilation>
@@ -1971,34 +2000,49 @@ End Class
                                                                                       }, [module].GetFieldNamesAndTypes("C.VB$StateMachine_1_F"))
                                                                                   End Sub)
 
+            Dim v1 = CompileAndVerify(compilation:=compilation1, symbolValidator:=Sub([module] As ModuleSymbol)
+                                                                                      Assert.Equal(
+                                                                                      {
+                                                                                        "$State: System.Int32",
+                                                                                        "$Current: System.Int32",
+                                                                                        "$InitialThreadId: System.Int32",
+                                                                                        "$VB$Me: C",
+                                                                                        "$S0: System.Double()",
+                                                                                        "$S1: System.Int32",
+                                                                                        "$VB$ResumableLocal_x$2: System.Double"
+                                                                                      }, [module].GetFieldNamesAndTypes("C.VB$StateMachine_1_F"))
+                                                                                  End Sub)
+
+            Dim debugInfoProvider = v0.CreatePdbInfoProvider()
+
             Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) debugInfoProvider.GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetSyntaxMapByKind(method0, SyntaxKind.ForEachStatement), preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(Of Integer)({&H06000002UI, &H06000005UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
+                AssertEx.Equal(Of Integer)({&H06000002UI, &H06000006UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
 
                 ' verify delta metadata contains expected rows
                 Using md1 = diff1.GetMetadata()
-                    ' 3 methods updated
+                    ' 2 field defs added and 3 methods updated
                     CheckEncLogDefinitions(md1.Reader,
-                        Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
-                        Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                        Row(8, TableIndex.Field, EditAndContinueOperation.Default),
-                        Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
-                        Row(9, TableIndex.Field, EditAndContinueOperation.Default),
-                        Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
-                        Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
+                            Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(8, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
+                            Row(9, TableIndex.Field, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                            Row(13, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(14, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(15, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
                 End Using
 
                 diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
@@ -2042,18 +2086,18 @@ End Class
   IL_0039:  ldc.i4.1
   IL_003a:  ldc.r8     2
   IL_0043:  stelem.r8
-  IL_0044:  stfld      ""C.VB$StateMachine_1_F.$S0 As Double()""
+  IL_0044:  stfld      ""C.VB$StateMachine_1_F.$S3 As Double()""
   IL_0049:  ldarg.0
   IL_004a:  ldc.i4.0
   IL_004b:  stfld      ""C.VB$StateMachine_1_F.$S1 As Integer""
   IL_0050:  br.s       IL_008f
   IL_0052:  ldarg.0
   IL_0053:  ldarg.0
-  IL_0054:  ldfld      ""C.VB$StateMachine_1_F.$S0 As Double()""
+  IL_0054:  ldfld      ""C.VB$StateMachine_1_F.$S3 As Double()""
   IL_0059:  ldarg.0
   IL_005a:  ldfld      ""C.VB$StateMachine_1_F.$S1 As Integer""
   IL_005f:  ldelem.r8
-  IL_0060:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_x$2 As Double""
+  IL_0060:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_x$4 As Double""
   IL_0065:  ldarg.0
   IL_0066:  ldc.i4.1
   IL_0067:  stfld      ""C.VB$StateMachine_1_F.$Current As Integer""
@@ -2079,7 +2123,7 @@ End Class
   IL_008f:  ldarg.0
   IL_0090:  ldfld      ""C.VB$StateMachine_1_F.$S1 As Integer""
   IL_0095:  ldarg.0
-  IL_0096:  ldfld      ""C.VB$StateMachine_1_F.$S0 As Double()""
+  IL_0096:  ldfld      ""C.VB$StateMachine_1_F.$S3 As Double()""
   IL_009b:  ldlen
   IL_009c:  conv.i4
   IL_009d:  clt
@@ -2104,6 +2148,8 @@ Class C
         Dim x = p
         Return Await Task.FromResult(10)
     End Function
+    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
+    End Sub
 End Class
     </file>
 </compilation>
@@ -2116,26 +2162,29 @@ Class C
         Dim x = p
         Return Await Task.FromResult(20)
     End Function
+    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
+    End Sub
 End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=TestOptions.DebugDll)
-            Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(source1, references:=LatestReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
+            Dim debugInfoProvider = v0.CreatePdbInfoProvider()
 
             Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) debugInfoProvider.GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(Of Integer)({&H06000004UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
+                AssertEx.Equal(Of Integer)({&H06000005UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
 
                 ' verify delta metadata contains expected rows
                 Using md1 = diff1.GetMetadata()
@@ -2143,7 +2192,7 @@ End Class
                         Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                         Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
                 End Using
@@ -2266,6 +2315,8 @@ Class C
         Dim x = p
         Return Await Task.FromResult(10)
     End Function
+    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
+    End Sub
 End Class
     </file>
 </compilation>
@@ -2279,26 +2330,29 @@ Class C
         Dim y = 10
         Return Await Task.FromResult(y)
     End Function
+    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
+    End Sub
 End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=TestOptions.DebugDll)
-            Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(source1, references:=LatestReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
+            Dim debugInfoProvider = v0.CreatePdbInfoProvider()
 
             Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) debugInfoProvider.GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(Of Integer)({&H06000004UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
+                AssertEx.Equal(Of Integer)({&H06000005UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
 
                 ' verify delta metadata contains expected rows
                 Using md1 = diff1.GetMetadata()
@@ -2308,7 +2362,7 @@ End Class
                         Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                         Row(7, TableIndex.Field, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
                 End Using
@@ -2435,6 +2489,8 @@ Class C
         Dim x = p
         Return Await Task.FromResult(10)
     End Function
+    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
+    End Sub
 End Class
     </file>
 </compilation>
@@ -2447,26 +2503,29 @@ Class C
         Dim y = 1234
         Return Await Task.FromResult(p)
     End Function
+    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
+    End Sub
 End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=TestOptions.DebugDll)
-            Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(source1, references:=LatestReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
+            Dim debugInfoProvider = v0.CreatePdbInfoProvider()
 
             Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) debugInfoProvider.GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(Of Integer)({&H06000004UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
+                AssertEx.Equal(Of Integer)({&H06000005UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
 
                 ' verify delta metadata contains expected rows
                 Using md1 = diff1.GetMetadata()
@@ -2476,7 +2535,7 @@ End Class
                         Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                         Row(7, TableIndex.Field, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
                 End Using
@@ -2506,7 +2565,7 @@ End Class
     IL_000f:  nop
     IL_0010:  ldarg.0
     IL_0011:  ldc.i4     0x4d2
-    IL_0016:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_y$0 As Integer""
+    IL_0016:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_y$1 As Integer""
     IL_001b:  nop
     IL_001c:  ldarg.0
     IL_001d:  ldfld      ""C.VB$StateMachine_1_F.$VB$Local_p As Integer""
@@ -2599,6 +2658,8 @@ Class C
         Dim x = 10
         Return Await Task.FromResult(10)
     End Function
+    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
+    End Sub
 End Class
     </file>
 </compilation>
@@ -2611,26 +2672,29 @@ Class C
         Dim x = 10.0
         Return Await Task.FromResult(20)
     End Function
+    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
+    End Sub
 End Class
     </file>
 </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=TestOptions.DebugDll)
-            Dim compilation1 = CompilationUtils.CreateCompilationWithReferences(source1, references:=LatestReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source0, references:=LatestReferences, options:=ComSafeDebugDll)
+            Dim compilation1 = compilation0.WithSource(source1)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
+            Dim debugInfoProvider = v0.CreatePdbInfoProvider()
 
             Using md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
                 Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
                 Dim method1 = compilation1.GetMember(Of MethodSymbol)("C.F")
 
-                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
+                Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, Function(handle) debugInfoProvider.GetEncMethodDebugInfo(handle))
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
-                AssertEx.Equal(Of Integer)({&H06000004UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
+                AssertEx.Equal(Of Integer)({&H06000005UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
 
                 ' verify delta metadata contains expected rows
                 Using md1 = diff1.GetMetadata()
@@ -2640,7 +2704,7 @@ End Class
                         Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                         Row(6, TableIndex.Field, EditAndContinueOperation.Default),
                         Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                        Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                        Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
                         Row(8, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                         Row(9, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
                 End Using
@@ -2670,7 +2734,7 @@ End Class
     IL_000f:  nop
     IL_0010:  ldarg.0
     IL_0011:  ldc.r8     10
-    IL_001a:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_x$0 As Double""
+    IL_001a:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_x$1 As Double""
     IL_001f:  nop
     IL_0020:  ldc.i4.s   20
     IL_0022:  call       ""Function System.Threading.Tasks.Task.FromResult(Of Integer)(Integer) As System.Threading.Tasks.Task(Of Integer)""
@@ -2766,18 +2830,21 @@ Class C
     End Function
 
     Async Function G() As Task(Of Integer) ' testing G1 -> G3
-        Dim C = New C()
+        Dim c = New C()
         Dim a1 As Boolean = True
         Await Task.Delay(0)
         Return 1
     End Function
 
     Async Function H() As Task(Of Integer) ' testing G0 -> G3
-        Dim C = New C()
+        Dim c = New C()
         Dim a1 As Boolean = True
         Await Task.Delay(0)
         Return 1
     End Function
+
+    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
+    End Sub 
 End Class
     </file>
 </compilation>
@@ -2806,6 +2873,9 @@ Class C
         Await Task.Delay(0)
         Return 1
     End Function
+
+    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
+    End Sub
 End Class
     </file>
 </compilation>
@@ -2834,6 +2904,9 @@ Class C
         Await Task.Delay(0)
         Return 1
     End Function
+
+    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
+    End Sub
 End Class
     </file>
 </compilation>
@@ -2862,6 +2935,9 @@ Class C
         Await Task.Delay(0)
         Return 1
     End Function
+
+    Public Sub X() ' needs to be present to work around SymWriter bug #1068894
+    End Sub
 End Class
     </file>
 </compilation>
@@ -2910,9 +2986,9 @@ End Class
                         New SemanticEdit(SemanticEditKind.Update, g0, g1, GetEquivalentNodesMap(g1, g0), preserveLocalVariables:=True)))
 
             diff1.VerifySynthesizedMembers(
-                "C.VB$StateMachine_1_G: {$State, $Builder, $VB$Me, $VB$ResumableLocal_c$0, $VB$ResumableLocal_a1$1, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}",
-                "C.VB$StateMachine_1_F: {$State, $Builder, $VB$Me, $VB$ResumableLocal_a1$0, $VB$ResumableLocal_a2$1, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}",
-                "C: {VB$StateMachine_1_F, VB$StateMachine_1_G}")
+                "C: {VB$StateMachine_1_F, VB$StateMachine_1_G}",
+                "C.VB$StateMachine_1_F: {$State, $Builder, $VB$Me, $VB$ResumableLocal_a1$2, $VB$ResumableLocal_a2$1, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}",
+                "C.VB$StateMachine_1_G: {$State, $Builder, $VB$Me, $VB$ResumableLocal_c$0, $VB$ResumableLocal_a1$1, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}")
 
             Dim diff2 = compilation2.EmitDifference(
                     diff1.NextGeneration,
@@ -2920,8 +2996,8 @@ End Class
                         New SemanticEdit(SemanticEditKind.Update, f1, f2, GetEquivalentNodesMap(f2, f1), preserveLocalVariables:=True)))
 
             diff2.VerifySynthesizedMembers(
-                "C.VB$StateMachine_1_F: {$State, $Builder, $VB$Me, $VB$ResumableLocal_a1$2, $VB$ResumableLocal_a2$3, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $VB$ResumableLocal_a1$0, $VB$ResumableLocal_a2$1}",
                 "C: {VB$StateMachine_1_F, VB$StateMachine_1_G}",
+                "C.VB$StateMachine_1_F: {$State, $Builder, $VB$Me, $VB$ResumableLocal_a1$3, $VB$ResumableLocal_a2$4, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $VB$ResumableLocal_a1$2, $VB$ResumableLocal_a2$1}",
                 "C.VB$StateMachine_1_G: {$State, $Builder, $VB$Me, $VB$ResumableLocal_c$0, $VB$ResumableLocal_a1$1, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}")
 
             Dim diff3 = compilation3.EmitDifference(
@@ -2932,9 +3008,9 @@ End Class
 
             diff3.VerifySynthesizedMembers(
                 "C: {VB$StateMachine_1_G, VB$StateMachine_1_H, VB$StateMachine_1_F}",
-                "C.VB$StateMachine_1_H: {$State, $Builder, $VB$Me, $VB$ResumableLocal_c$0, $VB$ResumableLocal_a1$1, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}",
-                "C.VB$StateMachine_1_F: {$State, $Builder, $VB$Me, $VB$ResumableLocal_a1$2, $VB$ResumableLocal_a2$3, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $VB$ResumableLocal_a1$0, $VB$ResumableLocal_a2$1}",
-                "C.VB$StateMachine_1_G: {$State, $Builder, $VB$Me, $VB$ResumableLocal_c$0, $VB$ResumableLocal_a1$2, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $VB$ResumableLocal_a1$1}")
+                "C.VB$StateMachine_1_F: {$State, $Builder, $VB$Me, $VB$ResumableLocal_a1$3, $VB$ResumableLocal_a2$4, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $VB$ResumableLocal_a1$2, $VB$ResumableLocal_a2$1}",
+                "C.VB$StateMachine_1_G: {$State, $Builder, $VB$Me, $VB$ResumableLocal_c$0, $VB$ResumableLocal_a1$2, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $VB$ResumableLocal_a1$1}",
+                "C.VB$StateMachine_1_H: {$State, $Builder, $VB$Me, $VB$ResumableLocal_c$0, $VB$ResumableLocal_a1$2, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}")
 
             ' Verify delta metadata contains expected rows.
             Dim md1 = diff1.GetMetadata()
@@ -2951,8 +3027,8 @@ End Class
                     Row(19, TableIndex.Field, EditAndContinueOperation.Default),
                     Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
                     Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                    Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                    Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
                     Row(16, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(17, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(18, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
@@ -2982,7 +3058,7 @@ End Class
     IL_000f:  nop
     IL_0010:  ldarg.0
     IL_0011:  newobj     ""Sub C..ctor()""
-    IL_0016:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_a1$0 As C""
+    IL_0016:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_a1$2 As C""
     IL_001b:  ldarg.0
     IL_001c:  ldc.i4.3
     IL_001d:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_a2$1 As Integer""
@@ -3072,7 +3148,7 @@ End Class
                     Row(3, TableIndex.TypeDef, EditAndContinueOperation.AddField),
                     Row(21, TableIndex.Field, EditAndContinueOperation.Default),
                     Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                    Row(7, TableIndex.MethodDef, EditAndContinueOperation.Default),
                     Row(20, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(21, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
 
@@ -3100,10 +3176,10 @@ End Class
     IL_000f:  nop
     IL_0010:  ldarg.0
     IL_0011:  ldc.i4.1
-    IL_0012:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_a1$2 As Boolean""
+    IL_0012:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_a1$3 As Boolean""
     IL_0017:  ldarg.0
     IL_0018:  newobj     ""Sub C..ctor()""
-    IL_001d:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_a2$3 As C""
+    IL_001d:  stfld      ""C.VB$StateMachine_1_F.$VB$ResumableLocal_a2$4 As C""
     IL_0022:  nop
     IL_0023:  ldc.i4.0
     IL_0024:  call       ""Function System.Threading.Tasks.Task.Delay(Integer) As System.Threading.Tasks.Task""
@@ -3193,8 +3269,8 @@ End Class
                     Row(23, TableIndex.Field, EditAndContinueOperation.Default),
                     Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
                     Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
-                    Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                    Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                    Row(13, TableIndex.MethodDef, EditAndContinueOperation.Default),
                     Row(22, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(23, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(24, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
@@ -3427,8 +3503,8 @@ End Class
 
             diff1.VerifySynthesizedMembers(
                 "C: {VB$StateMachine_1_F, VB$StateMachine_1_G}",
-                "C.VB$StateMachine_1_G: {$State, $Builder, $VB$Me, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}",
-                "C.VB$StateMachine_1_F: {$State, $Builder, $VB$Me, $A0, $A1, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}")
+                "C.VB$StateMachine_1_F: {$State, $Builder, $VB$Me, $A2, $A1, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}",
+                "C.VB$StateMachine_1_G: {$State, $Builder, $VB$Me, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}")
 
             Dim diff2 = compilation2.EmitDifference(
                     diff1.NextGeneration,
@@ -3436,8 +3512,8 @@ End Class
                         New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapByKind(f1, SyntaxKind.FunctionBlock), preserveLocalVariables:=True)))
 
             diff2.VerifySynthesizedMembers(
-                "C.VB$StateMachine_1_F: {$State, $Builder, $VB$Me, $A2, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $A1}",
                 "C: {VB$StateMachine_1_F, VB$StateMachine_1_G}",
+                "C.VB$StateMachine_1_F: {$State, $Builder, $VB$Me, $A3, $A2, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $A1}",
                 "C.VB$StateMachine_1_G: {$State, $Builder, $VB$Me, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}")
 
             Dim diff3 = compilation3.EmitDifference(
@@ -3447,10 +3523,10 @@ End Class
                         New SemanticEdit(SemanticEditKind.Update, h2, h3, GetSyntaxMapByKind(h2, SyntaxKind.FunctionBlock), preserveLocalVariables:=True)))
 
             diff3.VerifySynthesizedMembers(
-                "C.VB$StateMachine_1_H: {$State, $Builder, $VB$Me, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}",
-                "C.VB$StateMachine_1_F: {$State, $Builder, $VB$Me, $A2, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $A1}",
                 "C: {VB$StateMachine_1_G, VB$StateMachine_1_H, VB$StateMachine_1_F}",
-                "C.VB$StateMachine_1_G: {$State, $Builder, $VB$Me, $A1, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $A0}")
+                "C.VB$StateMachine_1_G: {$State, $Builder, $VB$Me, $A1, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $A0}",
+                "C.VB$StateMachine_1_H: {$State, $Builder, $VB$Me, $A1, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}",
+                "C.VB$StateMachine_1_F: {$State, $Builder, $VB$Me, $A3, $A2, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $A1}")
 
             ' Verify delta metadata contains expected rows.
             Dim md1 = diff1.GetMetadata()
@@ -3521,7 +3597,7 @@ End Class
     IL_003f:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
     IL_0044:  ldarg.0
     IL_0045:  ldloc.3
-    IL_0046:  stfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
+    IL_0046:  stfld      ""C.VB$StateMachine_1_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
     IL_004b:  ldarg.0
     IL_004c:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
     IL_0051:  ldloca.s   V_3
@@ -3537,10 +3613,10 @@ End Class
     IL_0066:  stloc.1
     IL_0067:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
     IL_006c:  ldarg.0
-    IL_006d:  ldfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
+    IL_006d:  ldfld      ""C.VB$StateMachine_1_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
     IL_0072:  stloc.3
     IL_0073:  ldarg.0
-    IL_0074:  ldflda     ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
+    IL_0074:  ldflda     ""C.VB$StateMachine_1_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
     IL_0079:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of C)""
     IL_007f:  br.s       IL_0081
     IL_0081:  ldloca.s   V_3
@@ -3685,7 +3761,7 @@ End Class
     IL_003f:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
     IL_0044:  ldarg.0
     IL_0045:  ldloc.3
-    IL_0046:  stfld      ""C.VB$StateMachine_1_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)""
+    IL_0046:  stfld      ""C.VB$StateMachine_1_F.$A3 As System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)""
     IL_004b:  ldarg.0
     IL_004c:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
     IL_0051:  ldloca.s   V_3
@@ -3701,10 +3777,10 @@ End Class
     IL_0066:  stloc.1
     IL_0067:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
     IL_006c:  ldarg.0
-    IL_006d:  ldfld      ""C.VB$StateMachine_1_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)""
+    IL_006d:  ldfld      ""C.VB$StateMachine_1_F.$A3 As System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)""
     IL_0072:  stloc.3
     IL_0073:  ldarg.0
-    IL_0074:  ldflda     ""C.VB$StateMachine_1_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)""
+    IL_0074:  ldflda     ""C.VB$StateMachine_1_F.$A3 As System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)""
     IL_0079:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)""
     IL_007f:  br.s       IL_0081
     IL_0081:  ldloca.s   V_3
@@ -3730,7 +3806,7 @@ End Class
     IL_00b5:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
     IL_00ba:  ldarg.0
     IL_00bb:  ldloc.s    V_6
-    IL_00bd:  stfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
+    IL_00bd:  stfld      ""C.VB$StateMachine_1_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
     IL_00c2:  ldarg.0
     IL_00c3:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
     IL_00c8:  ldloca.s   V_6
@@ -3746,10 +3822,10 @@ End Class
     IL_00da:  stloc.1
     IL_00db:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
     IL_00e0:  ldarg.0
-    IL_00e1:  ldfld      ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
+    IL_00e1:  ldfld      ""C.VB$StateMachine_1_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
     IL_00e6:  stloc.s    V_6
     IL_00e8:  ldarg.0
-    IL_00e9:  ldflda     ""C.VB$StateMachine_1_F.$A0 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
+    IL_00e9:  ldflda     ""C.VB$StateMachine_1_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
     IL_00ee:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of C)""
     IL_00f4:  br.s       IL_00f6
     IL_00f6:  ldloca.s   V_6
