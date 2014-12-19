@@ -77,8 +77,8 @@ namespace ImplementNotifyPropertyChangedCS
             out AccessorDeclarationSyntax setter)
         {
             var accessors = property.AccessorList.Accessors;
-            getter = accessors.FirstOrDefault(ad => ad.CSharpKind() == SyntaxKind.GetAccessorDeclaration);
-            setter = accessors.FirstOrDefault(ad => ad.CSharpKind() == SyntaxKind.SetAccessorDeclaration);
+            getter = accessors.FirstOrDefault(ad => ad.Kind() == SyntaxKind.GetAccessorDeclaration);
+            setter = accessors.FirstOrDefault(ad => ad.Kind() == SyntaxKind.SetAccessorDeclaration);
 
             return accessors.Count == 2 && getter != null && setter != null;
         }
@@ -161,7 +161,7 @@ namespace ImplementNotifyPropertyChangedCS
             IFieldSymbol backingField,
             SemanticModel semanticModel)
         {
-            if (expression.CSharpKind() != SyntaxKind.SimpleAssignmentExpression)
+            if (expression.Kind() != SyntaxKind.SimpleAssignmentExpression)
             {
                 return false;
             }
@@ -265,7 +265,7 @@ namespace ImplementNotifyPropertyChangedCS
 
             var condition = ifStatement.Condition as BinaryExpressionSyntax;
             if (condition == null ||
-                condition.CSharpKind() != SyntaxKind.NotEqualsExpression)
+                condition.Kind() != SyntaxKind.NotEqualsExpression)
             {
                 return false;
             }
@@ -326,7 +326,7 @@ namespace ImplementNotifyPropertyChangedCS
 
             var condition = ifStatement.Condition as BinaryExpressionSyntax;
             if (condition == null ||
-                condition.CSharpKind() != SyntaxKind.EqualsExpression)
+                condition.Kind() != SyntaxKind.EqualsExpression)
             {
                 return false;
             }

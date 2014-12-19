@@ -30,7 +30,7 @@ End Class ' exact text round trip, including comments and whitespace
 
     Sub ValidIdentifier(identifier As String, expectedValid As Boolean)
         Dim token = SyntaxFactory.ParseToken(identifier)
-        Assert.AreEqual(expectedValid, token.VBKind() = SyntaxKind.IdentifierToken AndAlso token.Span.Length = identifier.Length)
+        Assert.AreEqual(expectedValid, token.Kind() = SyntaxKind.IdentifierToken AndAlso token.Span.Length = identifier.Length)
     End Sub
 
     <TestMethod()>
@@ -51,12 +51,12 @@ End Class ' exact text round trip, including comments and whitespace
     <TestMethod()>
     Sub ParseExpression()
         Dim expression = SyntaxFactory.ParseExpression("1 + 2")
-        If expression.VBKind() = SyntaxKind.AddExpression Then
+        If expression.Kind() = SyntaxKind.AddExpression Then
             Dim binaryExpression = CType(expression, BinaryExpressionSyntax)
             Dim operatorToken = binaryExpression.OperatorToken
             Assert.AreEqual("+", operatorToken.ToString())
             Dim left = binaryExpression.Left
-            Assert.AreEqual(SyntaxKind.NumericLiteralExpression, left.VBKind)
+            Assert.AreEqual(SyntaxKind.NumericLiteralExpression, left.Kind)
         End If
     End Sub
 
@@ -105,7 +105,7 @@ End Class
         Dim trivia = eof.LeadingTrivia
         Assert.AreEqual(3, trivia.Count)
         Assert.AreEqual("#Else" & vbCrLf, trivia.ElementAt(0).ToFullString())
-        Assert.AreEqual(SyntaxKind.DisabledTextTrivia, trivia.ElementAt(1).VBKind)
+        Assert.AreEqual(SyntaxKind.DisabledTextTrivia, trivia.ElementAt(1).Kind)
         Assert.AreEqual("#End If", trivia.ElementAt(2).ToString())
 
         Dim directive = tree.GetRoot().GetLastDirective()

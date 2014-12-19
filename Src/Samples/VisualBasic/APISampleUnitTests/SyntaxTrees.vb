@@ -58,7 +58,7 @@ End Class
         Dim method = CType(root.DescendantNodes().OfType(Of MethodBlockSyntax)().First().Begin, MethodStatementSyntax)
 
         Dim newMethod = method.Update(
-            method.VBKind,
+            method.Kind,
             method.AttributeLists,
             method.Modifiers,
             method.Keyword,

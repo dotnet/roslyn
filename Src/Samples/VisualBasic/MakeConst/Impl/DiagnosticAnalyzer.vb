@@ -34,7 +34,7 @@ Class DiagnosticAnalyzer
 
     Private Function CanBeMadeConst(localDeclaration As LocalDeclarationStatementSyntax, semanticModel As SemanticModel) As Boolean
         ' Only consider local variable declarations that are Dim (no Static or Const).
-        If Not localDeclaration.Modifiers.All(Function(m) m.VBKind() = SyntaxKind.DimKeyword) Then
+        If Not localDeclaration.Modifiers.All(Function(m) m.Kind() = SyntaxKind.DimKeyword) Then
             Return False
         End If
 

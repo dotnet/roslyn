@@ -50,8 +50,8 @@ namespace ConvertToAutoPropertyCS
         private static bool HasBothAccessors(BasePropertyDeclarationSyntax property)
         {
             var accessors = property.AccessorList.Accessors;
-            var getter = accessors.FirstOrDefault(ad => ad.CSharpKind() == SyntaxKind.GetAccessorDeclaration);
-            var setter = accessors.FirstOrDefault(ad => ad.CSharpKind() == SyntaxKind.SetAccessorDeclaration);
+            var getter = accessors.FirstOrDefault(ad => ad.Kind() == SyntaxKind.GetAccessorDeclaration);
+            var setter = accessors.FirstOrDefault(ad => ad.Kind() == SyntaxKind.SetAccessorDeclaration);
 
             if (getter != null && setter != null)
             {
@@ -68,7 +68,7 @@ namespace ConvertToAutoPropertyCS
             var semanticModel = (SemanticModel)await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // Retrieves the get accessor declarations of the specified property.
-            var getter = property.AccessorList.Accessors.FirstOrDefault(ad => ad.CSharpKind() == SyntaxKind.GetAccessorDeclaration);
+            var getter = property.AccessorList.Accessors.FirstOrDefault(ad => ad.Kind() == SyntaxKind.GetAccessorDeclaration);
 
             // Retrieves the type that contains the specified property
             var containingType = semanticModel.GetDeclaredSymbol(property).ContainingType;

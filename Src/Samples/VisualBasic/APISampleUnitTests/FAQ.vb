@@ -789,8 +789,8 @@ End Module
 
             Assert.IsTrue(token1.IsEquivalentTo(token2))
 
-            Dim trivia1 As SyntaxTrivia = node1.DescendantTrivia().First(Function(t) t.VBKind() = SyntaxKind.WhitespaceTrivia)
-            Dim trivia2 As SyntaxTrivia = node2.DescendantTrivia().Last(Function(t) t.VBKind() = SyntaxKind.EndOfLineTrivia)
+            Dim trivia1 As SyntaxTrivia = node1.DescendantTrivia().First(Function(t) t.Kind() = SyntaxKind.WhitespaceTrivia)
+            Dim trivia2 As SyntaxTrivia = node2.DescendantTrivia().Last(Function(t) t.Kind() = SyntaxKind.EndOfLineTrivia)
 
             Assert.IsFalse(trivia1.IsEquivalentTo(trivia2))
         End Sub
@@ -834,14 +834,14 @@ End Module
             End Sub
 
             Public Overrides Sub VisitTrivia(trivia As SyntaxTrivia)
-                If trivia.VBKind() = SyntaxKind.CommentTrivia OrElse trivia.VBKind() = SyntaxKind.DocumentationCommentTrivia Then
+                If trivia.Kind() = SyntaxKind.CommentTrivia OrElse trivia.Kind() = SyntaxKind.DocumentationCommentTrivia Then
                     Results.Append(vbLf)
                     Results.Append(trivia.ToFullString().Trim())
                     Results.Append(" (Parent Token: ")
-                    Results.Append(trivia.Token.VBKind.ToString())
+                    Results.Append(trivia.Token.Kind.ToString())
                     Results.Append(")")
 
-                    If trivia.VBKind() = SyntaxKind.DocumentationCommentTrivia Then
+                    If trivia.Kind() = SyntaxKind.DocumentationCommentTrivia Then
                         ' Trivia for xml documentation comments have addditional 'structure'
                         ' available under a child DocumentationCommentSyntax.
                         Assert.IsTrue(trivia.HasStructure)
@@ -1106,7 +1106,7 @@ Visiting StructureBlockSyntax (Kind = StructureBlock)</text>.Value, walker.Resul
                 Results.Append("Visiting ")
                 Results.Append(node.GetType().Name)
                 Results.Append(" (Kind = ")
-                Results.Append(node.VBKind().ToString())
+                Results.Append(node.Kind().ToString())
                 Results.Append("): ")
                 Results.Append(node.ToString())
                 MyBase.VisitIfStatement(node)
@@ -1115,12 +1115,12 @@ Visiting StructureBlockSyntax (Kind = StructureBlock)</text>.Value, walker.Resul
             ' Visits all SyntaxTokens.
             Public Overrides Sub VisitToken(token As SyntaxToken)
                 ' We only care about SyntaxTokens with Kind 'IfKeyword'.
-                If token.VBKind() = SyntaxKind.IfKeyword Then
+                If token.Kind() = SyntaxKind.IfKeyword Then
                     Results.Append(vbLf)
                     Results.Append("Visiting ")
                     Results.Append(token.GetType().Name)
                     Results.Append(" (Kind = ")
-                    Results.Append(token.VBKind().ToString())
+                    Results.Append(token.Kind().ToString())
                     Results.Append("): ")
                     Results.Append(token.Parent.ToString())
                 End If
@@ -1139,7 +1139,7 @@ Visiting StructureBlockSyntax (Kind = StructureBlock)</text>.Value, walker.Resul
                     Results.Append("Visiting ")
                     Results.Append(node.GetType().Name)
                     Results.Append(" (Kind = ")
-                    Results.Append(node.VBKind().ToString())
+                    Results.Append(node.Kind().ToString())
                     Results.Append(")")
                 End If
 
@@ -1818,11 +1818,11 @@ End Module
             ' Get BinaryExpressionSyntax corresponding to the two addition expressions 'i + j' above.
             Dim addExpression1 As BinaryExpressionSyntax = compilationUnit.DescendantNodes.
                                                                            OfType(Of BinaryExpressionSyntax).
-                                                                           First(Function(b) b.VBKind() = SyntaxKind.AddExpression)
+                                                                           First(Function(b) b.Kind() = SyntaxKind.AddExpression)
 
             Dim addExpression2 As BinaryExpressionSyntax = compilationUnit.DescendantNodes.
                                                                            OfType(Of BinaryExpressionSyntax).
-                                                                           Last(Function(b) b.VBKind() = SyntaxKind.AddExpression)
+                                                                           Last(Function(b) b.Kind() = SyntaxKind.AddExpression)
 
             ' Replace addition expressions 'i + j' with multiplication expressions 'i * j'.
             Dim multipyExpression1 As BinaryExpressionSyntax =
@@ -2036,7 +2036,7 @@ End Module
                     Return True
                 End If
 
-                Select Case node.VBKind
+                Select Case node.Kind
                     Case SyntaxKind.WhileBlock,
                          SyntaxKind.UsingBlock,
                          SyntaxKind.SyncLockBlock,
@@ -2131,7 +2131,7 @@ End Class
                 Dim updatedTrivia As SyntaxTrivia = MyBase.VisitTrivia(trivia)
                 Dim directiveTrivia = TryCast(trivia.GetStructure(), DirectiveTriviaSyntax)
                 If directiveTrivia IsNot Nothing Then
-                    If directiveTrivia.VBKind() = SyntaxKind.RegionDirectiveTrivia OrElse directiveTrivia.VBKind() = SyntaxKind.EndRegionDirectiveTrivia Then
+                    If directiveTrivia.Kind() = SyntaxKind.RegionDirectiveTrivia OrElse directiveTrivia.Kind() = SyntaxKind.EndRegionDirectiveTrivia Then
                         updatedTrivia = Nothing
                     End If
                 End If
@@ -2152,7 +2152,7 @@ End Class
 
             Private Function RemoveRegions(oldTriviaList As SyntaxTriviaList) As SyntaxTriviaList
                 Return SyntaxFactory.TriviaList(From trivia In oldTriviaList
-                                                Where trivia.VBKind() <> SyntaxKind.RegionDirectiveTrivia AndAlso trivia.VBKind() <> SyntaxKind.EndRegionDirectiveTrivia)
+                                                Where trivia.Kind() <> SyntaxKind.RegionDirectiveTrivia AndAlso trivia.Kind() <> SyntaxKind.EndRegionDirectiveTrivia)
             End Function
         End Class
 
@@ -2182,8 +2182,8 @@ End Class
             ' Get all RegionDirective and EndRegionDirective trivia.
             Dim trivia As IEnumerable(Of SyntaxTrivia) =
                     From t In oldRoot.DescendantTrivia
-                    Where t.VBKind() = SyntaxKind.RegionDirectiveTrivia OrElse
-                          t.VBKind() = SyntaxKind.EndRegionDirectiveTrivia
+                    Where t.Kind() = SyntaxKind.RegionDirectiveTrivia OrElse
+                          t.Kind() = SyntaxKind.EndRegionDirectiveTrivia
 
             Dim newRoot As SyntaxNode =
                     oldRoot.ReplaceTrivia(trivia:=trivia,
@@ -2254,10 +2254,10 @@ End Module
                 Dim updatedNode As SyntaxNode = MyBase.VisitAssignmentStatement(node)
 
                 If IsBlock(node.Parent) AndAlso
-                    (node.VBKind() = SyntaxKind.AddAssignmentStatement OrElse
-                     node.VBKind() = SyntaxKind.SubtractAssignmentStatement OrElse
-                     node.VBKind() = SyntaxKind.MultiplyAssignmentStatement OrElse
-                     node.VBKind() = SyntaxKind.DivideAssignmentStatement) Then
+                    (node.Kind() = SyntaxKind.AddAssignmentStatement OrElse
+                     node.Kind() = SyntaxKind.SubtractAssignmentStatement OrElse
+                     node.Kind() = SyntaxKind.MultiplyAssignmentStatement OrElse
+                     node.Kind() = SyntaxKind.DivideAssignmentStatement) Then
 
                     ' Print value of the variable on the 'Left' side of
                     ' compound assignement statements encountered.

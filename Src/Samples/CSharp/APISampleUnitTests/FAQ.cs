@@ -762,8 +762,8 @@ class Program
             SyntaxToken token1 = node1.DescendantTokens().First();
             SyntaxToken token2 = node2.DescendantTokens().First();
             Assert.IsTrue(token1.IsEquivalentTo(token2));
-            SyntaxTrivia trivia1 = node1.DescendantTrivia().First(t => t.CSharpKind() == SyntaxKind.WhitespaceTrivia);
-            SyntaxTrivia trivia2 = node2.DescendantTrivia().Last(t => t.CSharpKind() == SyntaxKind.EndOfLineTrivia);
+            SyntaxTrivia trivia1 = node1.DescendantTrivia().First(t => t.Kind() == SyntaxKind.WhitespaceTrivia);
+            SyntaxTrivia trivia2 = node2.DescendantTrivia().Last(t => t.Kind() == SyntaxKind.EndOfLineTrivia);
             Assert.IsFalse(trivia1.IsEquivalentTo(trivia2));
         }
 
@@ -804,15 +804,15 @@ class Program
 
             public override void VisitTrivia(SyntaxTrivia trivia)
             {
-                bool isDocComment = SyntaxFacts.IsDocumentationCommentTrivia(trivia.CSharpKind());
+                bool isDocComment = SyntaxFacts.IsDocumentationCommentTrivia(trivia.Kind());
                 if (isDocComment ||
-                    trivia.CSharpKind() == SyntaxKind.SingleLineCommentTrivia ||
-                    trivia.CSharpKind() == SyntaxKind.MultiLineCommentTrivia)
+                    trivia.Kind() == SyntaxKind.SingleLineCommentTrivia ||
+                    trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
                 {
                     Results.AppendLine();
                     Results.Append(trivia.ToFullString().Trim());
                     Results.Append(" (Parent Token: ");
-                    Results.Append(trivia.Token.CSharpKind());
+                    Results.Append(trivia.Token.Kind());
                     Results.Append(")");
                     if (isDocComment)
                     {
@@ -1059,7 +1059,7 @@ Visiting StructDeclarationSyntax (Kind = StructDeclaration)", walker.Results.ToS
                 Results.Append("Visiting ");
                 Results.Append(node.GetType().Name);
                 Results.Append(" (Kind = ");
-                Results.Append(node.CSharpKind().ToString());
+                Results.Append(node.Kind().ToString());
                 Results.Append("): ");
                 Results.Append(node.ToString());
                 base.VisitIfStatement(node);
@@ -1069,13 +1069,13 @@ Visiting StructDeclarationSyntax (Kind = StructDeclaration)", walker.Results.ToS
             public override void VisitToken(SyntaxToken token)
             {
                 // We only care about SyntaxTokens with Kind 'IfKeyword'.
-                if (token.CSharpKind() == SyntaxKind.IfKeyword)
+                if (token.Kind() == SyntaxKind.IfKeyword)
                 {
                     Results.AppendLine();
                     Results.Append("Visiting ");
                     Results.Append(token.GetType().Name);
                     Results.Append(" (Kind = ");
-                    Results.Append(token.CSharpKind().ToString());
+                    Results.Append(token.Kind().ToString());
                     Results.Append("): ");
                     Results.Append(token.Parent.ToString());
                 }
@@ -1096,7 +1096,7 @@ Visiting StructDeclarationSyntax (Kind = StructDeclaration)", walker.Results.ToS
                     Results.Append("Visiting ");
                     Results.Append(node.GetType().Name);
                     Results.Append(" (Kind = ");
-                    Results.Append(node.CSharpKind().ToString());
+                    Results.Append(node.Kind().ToString());
                     Results.Append(")");
                 }
 
@@ -1737,9 +1737,9 @@ class Program
 
             // Get BinaryExpressionSyntax corresponding to the two addition expressions 'i + j' above.
             BinaryExpressionSyntax addExpression1 = compilationUnit.DescendantNodes()
-                .OfType<BinaryExpressionSyntax>().First(b => b.CSharpKind() == SyntaxKind.AddExpression);
+                .OfType<BinaryExpressionSyntax>().First(b => b.Kind() == SyntaxKind.AddExpression);
             BinaryExpressionSyntax addExpression2 = compilationUnit.DescendantNodes()
-                .OfType<BinaryExpressionSyntax>().Last(b => b.CSharpKind() == SyntaxKind.AddExpression);
+                .OfType<BinaryExpressionSyntax>().Last(b => b.Kind() == SyntaxKind.AddExpression);
 
             // Replace addition expressions 'i + j' with multiplication expressions 'i * j'.
             BinaryExpressionSyntax multipyExpression1 = SyntaxFactory.BinaryExpression(SyntaxKind.MultiplyExpression,
@@ -1980,9 +1980,9 @@ class Program
             {
                 SyntaxNode updatedNode = base.VisitExpressionStatement(node);
 
-                if (node.Expression.CSharpKind() == SyntaxKind.SimpleAssignmentExpression)
+                if (node.Expression.Kind() == SyntaxKind.SimpleAssignmentExpression)
                 {
-                    if (node.Parent.CSharpKind() == SyntaxKind.Block)
+                    if (node.Parent.Kind() == SyntaxKind.Block)
                     {
                         // There is a parent block so it is ok to remove the statement completely.
                         updatedNode = null;
@@ -2070,8 +2070,8 @@ class C
             public override SyntaxTrivia VisitTrivia(SyntaxTrivia trivia)
             {
                 SyntaxTrivia updatedTrivia = base.VisitTrivia(trivia);
-                if (trivia.CSharpKind() == SyntaxKind.RegionDirectiveTrivia ||
-                    trivia.CSharpKind() == SyntaxKind.EndRegionDirectiveTrivia)
+                if (trivia.Kind() == SyntaxKind.RegionDirectiveTrivia ||
+                    trivia.Kind() == SyntaxKind.EndRegionDirectiveTrivia)
                 {
                     // Remove the trivia entirely by returning default(SyntaxTrivia).
                     updatedTrivia = default(SyntaxTrivia);
@@ -2095,8 +2095,8 @@ class C
             private SyntaxTriviaList RemoveRegions(SyntaxTriviaList oldTriviaList)
             {
                 return SyntaxFactory.TriviaList(oldTriviaList
-                    .Where(trivia => trivia.CSharpKind() != SyntaxKind.RegionDirectiveTrivia &&
-                                     trivia.CSharpKind() != SyntaxKind.EndRegionDirectiveTrivia));
+                    .Where(trivia => trivia.Kind() != SyntaxKind.RegionDirectiveTrivia &&
+                                     trivia.Kind() != SyntaxKind.EndRegionDirectiveTrivia));
             }
         }
 
@@ -2123,8 +2123,8 @@ class C
 
             // Get all RegionDirective and EndRegionDirective trivia.
             IEnumerable<SyntaxTrivia> trivia = oldRoot.DescendantTrivia()
-                .Where(t => t.CSharpKind() == SyntaxKind.RegionDirectiveTrivia ||
-                            t.CSharpKind() == SyntaxKind.EndRegionDirectiveTrivia);
+                .Where(t => t.Kind() == SyntaxKind.RegionDirectiveTrivia ||
+                            t.Kind() == SyntaxKind.EndRegionDirectiveTrivia);
 
             SyntaxNode newRoot = oldRoot.ReplaceTrivia(trivia: trivia,
                 computeReplacementTrivia:
@@ -2191,10 +2191,10 @@ class Program
             {
                 SyntaxNode updatedNode = base.VisitExpressionStatement(node);
 
-                if (node.Expression.CSharpKind() == SyntaxKind.AddAssignmentExpression ||
-                    node.Expression.CSharpKind() == SyntaxKind.SubtractAssignmentExpression ||
-                    node.Expression.CSharpKind() == SyntaxKind.MultiplyAssignmentExpression ||
-                    node.Expression.CSharpKind() == SyntaxKind.DivideAssignmentExpression)
+                if (node.Expression.Kind() == SyntaxKind.AddAssignmentExpression ||
+                    node.Expression.Kind() == SyntaxKind.SubtractAssignmentExpression ||
+                    node.Expression.Kind() == SyntaxKind.MultiplyAssignmentExpression ||
+                    node.Expression.Kind() == SyntaxKind.DivideAssignmentExpression)
                 {
                     // Print value of the variable on the 'Left' side of
                     // compound assignement statements encountered.

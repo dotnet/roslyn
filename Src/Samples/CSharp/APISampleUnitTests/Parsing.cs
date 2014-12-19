@@ -32,7 +32,7 @@ namespace APISampleUnitTestsCS
         {
             SyntaxToken token = SyntaxFactory.ParseToken(identifier);
             Assert.AreEqual(expectedValid,
-                token.CSharpKind() == SyntaxKind.IdentifierToken && token.Span.Length == identifier.Length);
+                token.Kind() == SyntaxKind.IdentifierToken && token.Span.Length == identifier.Length);
         }
 
         [TestMethod]
@@ -67,14 +67,14 @@ namespace APISampleUnitTestsCS
         public void ParseExpression()
         {
             ExpressionSyntax expression = SyntaxFactory.ParseExpression("1 + 2");
-            if (expression.CSharpKind() == SyntaxKind.AddExpression)
+            if (expression.Kind() == SyntaxKind.AddExpression)
             {
                 BinaryExpressionSyntax binaryExpression = (BinaryExpressionSyntax)expression;
                 SyntaxToken operatorToken = binaryExpression.OperatorToken;
                 Assert.AreEqual("+", operatorToken.ToString());
 
                 ExpressionSyntax left = binaryExpression.Left;
-                Assert.AreEqual(SyntaxKind.NumericLiteralExpression, left.CSharpKind());
+                Assert.AreEqual(SyntaxKind.NumericLiteralExpression, left.Kind());
             }
         }
 
@@ -107,7 +107,7 @@ class B { }
             SyntaxTriviaList trivia = eof.LeadingTrivia;
             Assert.AreEqual(3, trivia.Count);
             Assert.AreEqual("#else", trivia.ElementAt(0).ToString());
-            Assert.AreEqual(SyntaxKind.DisabledTextTrivia, trivia.ElementAt(1).CSharpKind());
+            Assert.AreEqual(SyntaxKind.DisabledTextTrivia, trivia.ElementAt(1).Kind());
             Assert.AreEqual("#endif", trivia.ElementAt(2).ToString());
 
             DirectiveTriviaSyntax directive = tree.GetRoot().GetLastDirective();
