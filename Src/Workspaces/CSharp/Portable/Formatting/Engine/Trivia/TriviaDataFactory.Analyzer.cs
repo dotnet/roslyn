@@ -55,11 +55,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 foreach (var trivia in list)
                 {
-                    if (trivia.CSharpKind() == SyntaxKind.WhitespaceTrivia)
+                    if (trivia.Kind() == SyntaxKind.WhitespaceTrivia)
                     {
                         AnalyzeWhitespacesInTrivia(trivia, ref result);
                     }
-                    else if (trivia.CSharpKind() == SyntaxKind.EndOfLineTrivia)
+                    else if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
                     {
                         AnalyzeLineBreak(trivia, ref result);
                     }
@@ -67,18 +67,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     {
                         result.HasComments = true;
                     }
-                    else if (trivia.CSharpKind() == SyntaxKind.SkippedTokensTrivia)
+                    else if (trivia.Kind() == SyntaxKind.SkippedTokensTrivia)
                     {
                         result.HasSkippedTokens = true;
                     }
-                    else if (trivia.CSharpKind() == SyntaxKind.DisabledTextTrivia ||
-                             trivia.CSharpKind() == SyntaxKind.PreprocessingMessageTrivia)
+                    else if (trivia.Kind() == SyntaxKind.DisabledTextTrivia ||
+                             trivia.Kind() == SyntaxKind.PreprocessingMessageTrivia)
                     {
                         result.HasSkippedOrDisabledText = true;
                     }
                     else
                     {
-                        Contract.ThrowIfFalse(SyntaxFacts.IsPreprocessorDirective(trivia.CSharpKind()));
+                        Contract.ThrowIfFalse(SyntaxFacts.IsPreprocessorDirective(trivia.Kind()));
 
                         result.HasPreprocessor = true;
                     }
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             private static void AnalyzeWhitespacesInTrivia(SyntaxTrivia trivia, ref AnalysisResult result)
             {
                 // trivia already has text. getting text should be noop
-                Debug.Assert(trivia.CSharpKind() == SyntaxKind.WhitespaceTrivia);
+                Debug.Assert(trivia.Kind() == SyntaxKind.WhitespaceTrivia);
                 Debug.Assert(trivia.Width() == trivia.FullWidth());
 
                 int space = 0;

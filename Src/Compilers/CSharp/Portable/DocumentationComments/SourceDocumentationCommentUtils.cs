@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool seenOtherTrivia = false;
             foreach (var trivia in syntaxNode.GetLeadingTrivia().Reverse())
             {
-                switch (trivia.CSharpKind())
+                switch (trivia.Kind())
                 {
                     case SyntaxKind.SingleLineDocumentationCommentTrivia:
                     case SyntaxKind.MultiLineDocumentationCommentTrivia:

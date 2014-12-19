@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -123,6 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        [Obsolete("To be removed, use Kind() instead."), EditorBrowsable(EditorBrowsableState.Never)]
         public SyntaxKind CSharpKind()
         {
             return (SyntaxKind)this.Green.RawKind;
@@ -574,7 +576,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             while (true)
             {
-                Debug.Assert(curNode.CSharpKind() != SyntaxKind.None);
+                Debug.Assert(curNode.Kind() != SyntaxKind.None);
                 Debug.Assert(curNode.FullSpan.Contains(position));
 
                 var node = curNode.AsNode();
@@ -697,7 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             SyntaxTrivia trivia = GetTriviaFromSyntaxToken(position, nonTriviaToken);
 
-            if (!SyntaxFacts.IsDocumentationCommentTrivia(trivia.CSharpKind()))
+            if (!SyntaxFacts.IsDocumentationCommentTrivia(trivia.Kind()))
             {
                 return nonTriviaToken;
             }

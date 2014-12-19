@@ -40,15 +40,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
                     index = index + 1
 
-                    Contract.ThrowIfTrue(trivia.VBKind = SyntaxKind.EndOfLineTrivia)
-                    Contract.ThrowIfTrue(trivia.VBKind = SyntaxKind.SkippedTokensTrivia)
+                    Contract.ThrowIfTrue(trivia.Kind = SyntaxKind.EndOfLineTrivia)
+                    Contract.ThrowIfTrue(trivia.Kind = SyntaxKind.SkippedTokensTrivia)
 
                     ' if it contains elastic trivia. always format
                     If trivia.IsElastic() Then
                         Return True
                     End If
 
-                    If trivia.VBKind = SyntaxKind.WhitespaceTrivia Then
+                    If trivia.Kind = SyntaxKind.WhitespaceTrivia Then
                         Debug.Assert(trivia.ToString() = trivia.ToFullString())
                         Dim text = trivia.ToString()
                         If text.IndexOf(vbTab) >= 0 Then
@@ -56,15 +56,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                         End If
                     End If
 
-                    If trivia.VBKind = SyntaxKind.DocumentationCommentTrivia Then
+                    If trivia.Kind = SyntaxKind.DocumentationCommentTrivia Then
                         Return False
                     End If
 
-                    If trivia.VBKind = SyntaxKind.RegionDirectiveTrivia OrElse trivia.VBKind = SyntaxKind.EndRegionDirectiveTrivia OrElse SyntaxFacts.IsPreprocessorDirective(trivia.VBKind) Then
+                    If trivia.Kind = SyntaxKind.RegionDirectiveTrivia OrElse trivia.Kind = SyntaxKind.EndRegionDirectiveTrivia OrElse SyntaxFacts.IsPreprocessorDirective(trivia.Kind) Then
                         Return False
                     End If
 
-                    If trivia.VBKind = SyntaxKind.ColonTrivia Then
+                    If trivia.Kind = SyntaxKind.ColonTrivia Then
                         Return True
                     End If
                 Next
@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End Function
 
             Private Function OnWhitespace(trivia As SyntaxTrivia, currentIndex As Integer) As Boolean
-                If trivia.VBKind <> SyntaxKind.WhitespaceTrivia Then
+                If trivia.Kind <> SyntaxKind.WhitespaceTrivia Then
                     Return False
                 End If
 
@@ -155,7 +155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End Sub
 
             Private Function OnEndOfLine(trivia As SyntaxTrivia, currentIndex As Integer) As Boolean
-                If trivia.VBKind <> SyntaxKind.EndOfLineTrivia Then
+                If trivia.Kind <> SyntaxKind.EndOfLineTrivia Then
                     Return False
                 End If
 
@@ -180,7 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End Sub
 
             Private Function OnLineContinuation(trivia As SyntaxTrivia, currentIndex As Integer) As Boolean
-                If trivia.VBKind <> SyntaxKind.LineContinuationTrivia Then
+                If trivia.Kind <> SyntaxKind.LineContinuationTrivia Then
                     Return False
                 End If
 
@@ -197,7 +197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End Function
 
             Private Function OnColon(trivia As SyntaxTrivia) As Boolean
-                If trivia.VBKind <> SyntaxKind.ColonTrivia Then
+                If trivia.Kind <> SyntaxKind.ColonTrivia Then
                     Return False
                 End If
 
@@ -206,8 +206,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End Function
 
             Private Function OnComment(trivia As SyntaxTrivia, currentIndex As Integer) As Boolean
-                If trivia.VBKind <> SyntaxKind.CommentTrivia AndAlso
-                   trivia.VBKind <> SyntaxKind.DocumentationCommentTrivia Then
+                If trivia.Kind <> SyntaxKind.CommentTrivia AndAlso
+                   trivia.Kind <> SyntaxKind.DocumentationCommentTrivia Then
                     Return False
                 End If
 
@@ -222,7 +222,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                     Return True
                 End If
 
-                If trivia.VBKind = SyntaxKind.DocumentationCommentTrivia AndAlso
+                If trivia.Kind = SyntaxKind.DocumentationCommentTrivia AndAlso
                    ShouldFormatDocumentationComment(indentation, optionSet.GetOption(FormattingOptions.TabSize, LanguageNames.VisualBasic), trivia) Then
                     Return True
                 End If
@@ -232,7 +232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End Function
 
             Private Function OnSkippedTokensOrText(trivia As SyntaxTrivia) As Boolean
-                If trivia.VBKind <> SyntaxKind.SkippedTokensTrivia Then
+                If trivia.Kind <> SyntaxKind.SkippedTokensTrivia Then
                     Return False
                 End If
 
@@ -240,8 +240,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End Function
 
             Private Function OnRegion(trivia As SyntaxTrivia, currentIndex As Integer) As Boolean
-                If trivia.VBKind <> SyntaxKind.RegionDirectiveTrivia AndAlso
-                   trivia.VBKind <> SyntaxKind.EndRegionDirectiveTrivia Then
+                If trivia.Kind <> SyntaxKind.RegionDirectiveTrivia AndAlso
+                   trivia.Kind <> SyntaxKind.EndRegionDirectiveTrivia Then
                     Return False
                 End If
 
@@ -258,7 +258,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End Function
 
             Private Function OnPreprocessor(trivia As SyntaxTrivia, currentIndex As Integer) As Boolean
-                If Not SyntaxFacts.IsPreprocessorDirective(trivia.VBKind) Then
+                If Not SyntaxFacts.IsPreprocessorDirective(trivia.Kind) Then
                     Return False
                 End If
 
@@ -292,7 +292,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Dim sawFirstOne = False
                 For Each token In xmlComment.DescendantTokens()
                     For Each xmlTrivia In token.LeadingTrivia
-                        If xmlTrivia.VBKind = SyntaxKind.DocumentationCommentExteriorTrivia Then
+                        If xmlTrivia.Kind = SyntaxKind.DocumentationCommentExteriorTrivia Then
                             ' skip first one since its leading whitespace will belong to syntax tree's syntax token
                             ' not xml doc comment's token
                             If Not sawFirstOne Then

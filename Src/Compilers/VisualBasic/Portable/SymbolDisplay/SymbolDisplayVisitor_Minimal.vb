@@ -188,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim nameWithoutAttributeSuffix As String = Nothing
                 If symbolName.TryGetWithoutAttributeSuffix(False, nameWithoutAttributeSuffix) Then
                     Dim token = SyntaxFactory.ParseToken(nameWithoutAttributeSuffix)
-                    If token.VBKind = SyntaxKind.IdentifierToken Then
+                    If token.Kind = SyntaxKind.IdentifierToken Then
                         symbolName = nameWithoutAttributeSuffix
                     End If
                 End If

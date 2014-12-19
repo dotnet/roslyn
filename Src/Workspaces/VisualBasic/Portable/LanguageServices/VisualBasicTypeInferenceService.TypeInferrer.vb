@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return SpecializedCollections.SingletonEnumerable(info.ConvertedType)
                     End If
 
-                    If expression.VBKind = SyntaxKind.AddressOfExpression Then
+                    If expression.Kind = SyntaxKind.AddressOfExpression Then
                         Dim unaryExpression = DirectCast(expression, UnaryExpressionSyntax)
                         Dim symbol = _semanticModel.GetSymbolInfo(unaryExpression.Operand, _cancellationToken).GetAnySymbol()
                         Dim type = symbol.ConvertToType(Me.Compilation)
@@ -366,12 +366,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Function InferTypeInAsClause(asClause As AsClauseSyntax,
                                                  Optional expressionOpt As ExpressionSyntax = Nothing,
                                                  Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of ITypeSymbol)
-                If previousToken <> Nothing AndAlso previousToken.VBKind <> SyntaxKind.AsKeyword Then
+                If previousToken <> Nothing AndAlso previousToken.Kind <> SyntaxKind.AsKeyword Then
                     Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
                 End If
 
                 If asClause.IsParentKind(SyntaxKind.CatchStatement) Then
-                    If expressionOpt Is asClause.Type OrElse previousToken.VBKind = SyntaxKind.AsKeyword Then
+                    If expressionOpt Is asClause.Type OrElse previousToken.Kind = SyntaxKind.AsKeyword Then
                         Return SpecializedCollections.SingletonEnumerable(Me.Compilation.ExceptionType)
                     End If
                 End If
@@ -455,7 +455,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim rightSide = previousToken <> Nothing OrElse expression Is binop.Right
 
-                Select Case binop.OperatorToken.VBKind
+                Select Case binop.OperatorToken.Kind
                     Case SyntaxKind.LessThanLessThanToken,
                         SyntaxKind.GreaterThanGreaterThanToken,
                         SyntaxKind.LessThanLessThanEqualsToken,
@@ -475,7 +475,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return otherSideTypes
                 End If
 
-                Select Case binop.OperatorToken.VBKind
+                Select Case binop.OperatorToken.Kind
                     Case SyntaxKind.CaretToken,
                         SyntaxKind.AmpersandToken,
                         SyntaxKind.LessThanToken,
@@ -644,7 +644,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private Function InferTypeForReturnStatement(returnStatement As ReturnStatementSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of ITypeSymbol)
                 ' If we're position based, we must have gotten the Return token
-                If previousToken <> Nothing AndAlso previousToken.VBKind <> SyntaxKind.ReturnKeyword Then
+                If previousToken <> Nothing AndAlso previousToken.Kind <> SyntaxKind.ReturnKeyword Then
                     Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
                 End If
 
@@ -738,7 +738,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Function InferTypeInTernaryConditionalExpression(conditional As TernaryConditionalExpressionSyntax,
                                                                      Optional expressionOpt As ExpressionSyntax = Nothing,
                                                                      Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of ITypeSymbol)
-                If previousToken <> Nothing AndAlso previousToken.VBKind <> SyntaxKind.OpenParenToken AndAlso previousToken.VBKind <> SyntaxKind.CommaToken Then
+                If previousToken <> Nothing AndAlso previousToken.Kind <> SyntaxKind.OpenParenToken AndAlso previousToken.Kind <> SyntaxKind.CommaToken Then
                     Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
                 ElseIf previousToken = conditional.OpenParenToken Then
                     Return SpecializedCollections.SingletonEnumerable(Me.Compilation.GetSpecialType(SpecialType.System_Boolean))
@@ -757,7 +757,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private Function InferTypeInThrowStatement(Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of ITypeSymbol)
                 ' If we're not the Throw token, there's nothing to to
-                If previousToken <> Nothing AndAlso previousToken.VBKind <> SyntaxKind.ThrowKeyword Then
+                If previousToken <> Nothing AndAlso previousToken.Kind <> SyntaxKind.ThrowKeyword Then
                     Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
                 End If
 
@@ -765,7 +765,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Private Function InferTypeInUnaryExpression(unaryExpressionSyntax As UnaryExpressionSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of ITypeSymbol)
-                Select Case unaryExpressionSyntax.VBKind
+                Select Case unaryExpressionSyntax.Kind
                     Case SyntaxKind.UnaryPlusExpression, SyntaxKind.UnaryMinusExpression
                         Return SpecializedCollections.SingletonEnumerable(Me.Compilation.GetSpecialType(SpecialType.System_Int32))
                     Case SyntaxKind.NotExpression

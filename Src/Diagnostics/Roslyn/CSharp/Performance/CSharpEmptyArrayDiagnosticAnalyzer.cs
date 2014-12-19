@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Performance
                 }
 
                 InitializerExpressionSyntax initializerExpr = null;
-                bool isArrayCreationExpression = ctx.Node.CSharpKind() == SyntaxKind.ArrayCreationExpression;
+                bool isArrayCreationExpression = ctx.Node.Kind() == SyntaxKind.ArrayCreationExpression;
                 if (isArrayCreationExpression)
                 {
                     // This is an ArrayCreationExpression (e.g. "new byte[2]" or "new byte[] { 1, 2 }").
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Performance
                         }
 
                         // Parse out the numerical length from the rank specifier.  It must be a constant zero.
-                        LiteralExpressionSyntax sizeSpecifier = rankSpecifier.ChildNodes().FirstOrDefault(child => child.CSharpKind() == SyntaxKind.NumericLiteralExpression) as LiteralExpressionSyntax;
+                        LiteralExpressionSyntax sizeSpecifier = rankSpecifier.ChildNodes().FirstOrDefault(child => child.Kind() == SyntaxKind.NumericLiteralExpression) as LiteralExpressionSyntax;
                         if (sizeSpecifier != null)
                         {
                             if (sizeSpecifier.Token.Value is int && ((int)sizeSpecifier.Token.Value) == 0)

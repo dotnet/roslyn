@@ -112,8 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             private static bool IsEndOfLine(SyntaxTrivia trivia)
             {
-                return trivia.CSharpKind() == SyntaxKind.EndOfLineTrivia
-                    || trivia.CSharpKind() == SyntaxKind.SingleLineCommentTrivia
+                return trivia.Kind() == SyntaxKind.EndOfLineTrivia
+                    || trivia.Kind() == SyntaxKind.SingleLineCommentTrivia
                     || trivia.IsDirective;
             }
 
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 }
 
                 // the next token gets the accrued trivia.
-                if (result.CSharpKind() != SyntaxKind.None && this.residualTrivia != null && this.residualTrivia.Count > 0)
+                if (result.Kind() != SyntaxKind.None && this.residualTrivia != null && this.residualTrivia.Count > 0)
                 {
                     this.residualTrivia.Add(result.LeadingTrivia);
                     result = result.WithLeadingTrivia(this.residualTrivia.ToList());
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                         alternate.Add(withSeps, 0, i);
                     }
 
-                    if (alternate != null && visited.CSharpKind() != SyntaxKind.None)
+                    if (alternate != null && visited.Kind() != SyntaxKind.None)
                     {
                         alternate.Add(visited);
                     }

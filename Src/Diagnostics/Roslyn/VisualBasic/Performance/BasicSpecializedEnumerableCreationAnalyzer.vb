@@ -39,7 +39,7 @@ Namespace Roslyn.Diagnostics.Analyzers.VisualBasic
                 Dim expressionsToAnalyze = context.Node.DescendantNodes().Where(Function(n) ShouldAnalyzeExpression(n, context.SemanticModel))
 
                 For Each expression In expressionsToAnalyze
-                    Select Case expression.VBKind()
+                    Select Case expression.Kind()
                         Case SyntaxKind.ArrayCreationExpression
                             AnalyzeArrayCreationExpression(DirectCast(expression, ArrayCreationExpressionSyntax), AddressOf context.ReportDiagnostic)
                         Case SyntaxKind.CollectionInitializer
@@ -51,7 +51,7 @@ Namespace Roslyn.Diagnostics.Analyzers.VisualBasic
             End Sub
 
             Private Function ShouldAnalyzeExpression(expression As SyntaxNode, semanticModel As SemanticModel) As Boolean
-                Select Case expression.VBKind()
+                Select Case expression.Kind()
                     Case SyntaxKind.ArrayCreationExpression
                         Return ShouldAnalyzeArrayCreationExpression(expression, semanticModel)
 
@@ -83,7 +83,7 @@ Namespace Roslyn.Diagnostics.Analyzers.VisualBasic
 
                     ' Check for explicit specification of empty or singleton array
                     Dim literalRankSpecifier = DirectCast(arrayCreationExpression.RankSpecifiers(0).ChildNodes() _
-                        .SingleOrDefault(Function(n) n.VBKind() = SyntaxKind.NumericLiteralExpression),
+                        .SingleOrDefault(Function(n) n.Kind() = SyntaxKind.NumericLiteralExpression),
                         LiteralExpressionSyntax)
 
                     If literalRankSpecifier IsNot Nothing Then

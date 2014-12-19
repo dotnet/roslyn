@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             // before visiting nested statements
             foreach (var statement in node.Statements)
             {
-                if (statement.CSharpKind() == SyntaxKind.LocalDeclarationStatement)
+                if (statement.Kind() == SyntaxKind.LocalDeclarationStatement)
                 {
                     var declarationStatement = (LocalDeclarationStatementSyntax)statement;
 
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
             foreach (var clause in body.Clauses)
             {
-                switch (clause.CSharpKind())
+                switch (clause.Kind())
                 {
                     case SyntaxKind.FromClause:
 
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 Visit(fromClause);
             }
 
-            foreach (var child in body.ChildNodes().Where(c => c.CSharpKind() != SyntaxKind.QueryContinuation))
+            foreach (var child in body.ChildNodes().Where(c => c.Kind() != SyntaxKind.QueryContinuation))
             {
                 Visit(child);
             }

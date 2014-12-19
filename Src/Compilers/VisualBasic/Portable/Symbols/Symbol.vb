@@ -290,7 +290,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 For Each location In locations
                     If location.IsInSource AndAlso location.SourceTree IsNot Nothing Then
                         Dim token = CType(location.SourceTree.GetRoot().FindToken(location.SourceSpan.Start), SyntaxToken)
-                        If token.VBKind <> SyntaxKind.None Then
+                        If token.Kind <> SyntaxKind.None Then
                             Dim node As VisualBasicSyntaxNode = token.Parent.FirstAncestorOrSelf(Of TNode)()
                             If node IsNot Nothing Then
                                 builder.Add(node)

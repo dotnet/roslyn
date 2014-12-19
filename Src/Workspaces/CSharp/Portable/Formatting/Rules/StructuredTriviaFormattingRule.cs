@@ -36,17 +36,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private AdjustSpacesOperation GetAdjustSpacesOperation(SyntaxToken previousToken, SyntaxToken currentToken, NextOperation<AdjustSpacesOperation> nextOperation)
         {
-            if (previousToken.CSharpKind() == SyntaxKind.HashToken && SyntaxFacts.IsPreprocessorKeyword(currentToken.CSharpKind()))
+            if (previousToken.Kind() == SyntaxKind.HashToken && SyntaxFacts.IsPreprocessorKeyword(currentToken.Kind()))
             {
                 return CreateAdjustSpacesOperation(space: 0, option: AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
-            if (previousToken.CSharpKind() == SyntaxKind.RegionKeyword && currentToken.CSharpKind() == SyntaxKind.EndOfDirectiveToken)
+            if (previousToken.Kind() == SyntaxKind.RegionKeyword && currentToken.Kind() == SyntaxKind.EndOfDirectiveToken)
             {
                 return CreateAdjustSpacesOperation(space: 0, option: AdjustSpacesOption.PreserveSpaces);
             }
 
-            if (currentToken.CSharpKind() == SyntaxKind.EndOfDirectiveToken)
+            if (currentToken.Kind() == SyntaxKind.EndOfDirectiveToken)
             {
                 return CreateAdjustSpacesOperation(space: 0, option: AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }

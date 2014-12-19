@@ -201,7 +201,7 @@ Public Class ParseExpressionTest
 
         Assert.True(exp.ContainsDiagnostics)
 
-        Dim unexp = From t In exp.GetTrailingTrivia() Where t.VBKind = SyntaxKind.SkippedTokensTrivia
+        Dim unexp = From t In exp.GetTrailingTrivia() Where t.Kind = SyntaxKind.SkippedTokensTrivia
 
         'ERRID_NullableCharNotSupported = 36637
         Assert.Equal(1, unexp.Count)
@@ -277,16 +277,16 @@ b</t>)
     <Fact>
     Public Sub ParseSpecialBase()
         Dim expr = ParseExpression("MyBase.b")
-        Assert.Equal(SyntaxKind.MyBaseExpression, expr.ChildNodesAndTokens()(0).VBKind())
+        Assert.Equal(SyntaxKind.MyBaseExpression, expr.ChildNodesAndTokens()(0).Kind())
         expr = ParseExpression("MyClass.b")
-        Assert.Equal(SyntaxKind.MyClassExpression, expr.ChildNodesAndTokens()(0).VBKind())
+        Assert.Equal(SyntaxKind.MyClassExpression, expr.ChildNodesAndTokens()(0).Kind())
         expr = ParseExpression("Global.b")
-        Assert.Equal(SyntaxKind.GlobalName, expr.ChildNodesAndTokens()(0).VBKind())
+        Assert.Equal(SyntaxKind.GlobalName, expr.ChildNodesAndTokens()(0).Kind())
 
         expr = ParseExpression("Me")
         Assert.Equal(SyntaxKind.MeExpression, expr.Kind)
         expr = ParseExpression("Me.b")
-        Assert.Equal(SyntaxKind.MeExpression, expr.ChildNodesAndTokens()(0).VBKind())
+        Assert.Equal(SyntaxKind.MeExpression, expr.ChildNodesAndTokens()(0).Kind())
     End Sub
 
     <Fact>
@@ -294,8 +294,8 @@ b</t>)
         Dim expr = ParseExpression("(A)")
         Assert.Equal(SyntaxKind.ParenthesizedExpression, expr.Kind)
         expr = ParseExpression("((A)).B")
-        Assert.Equal(SyntaxKind.ParenthesizedExpression, expr.ChildNodesAndTokens()(0).VBKind())
-        Assert.Equal(SyntaxKind.ParenthesizedExpression, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).VBKind())
+        Assert.Equal(SyntaxKind.ParenthesizedExpression, expr.ChildNodesAndTokens()(0).Kind())
+        Assert.Equal(SyntaxKind.ParenthesizedExpression, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).Kind())
 
         expr = ParseExpression(<![CDATA[
 (
@@ -305,8 +305,8 @@ b</t>)
 ).
 ToString]]>.Value)
 
-        Assert.Equal(SyntaxKind.ParenthesizedExpression, expr.ChildNodesAndTokens()(0).VBKind())
-        Assert.Equal(SyntaxKind.ParenthesizedExpression, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).VBKind())
+        Assert.Equal(SyntaxKind.ParenthesizedExpression, expr.ChildNodesAndTokens()(0).Kind())
+        Assert.Equal(SyntaxKind.ParenthesizedExpression, expr.ChildNodesAndTokens()(0).ChildNodesAndTokens()(1).Kind())
     End Sub
 
     <Fact>
@@ -347,15 +347,15 @@ ToString]]>.Value)
     Public Sub ParseBuiltInCasts()
         Dim expr = ParseExpression("CObj(123)")
         Assert.Equal(SyntaxKind.PredefinedCastExpression, expr.Kind)
-        Assert.Equal(SyntaxKind.CObjKeyword, DirectCast(expr, PredefinedCastExpressionSyntax).Keyword.VBKind)
+        Assert.Equal(SyntaxKind.CObjKeyword, DirectCast(expr, PredefinedCastExpressionSyntax).Keyword.Kind)
 
         expr = ParseExpression("CStr(aa)")
         Assert.Equal(SyntaxKind.PredefinedCastExpression, expr.Kind)
-        Assert.Equal(SyntaxKind.CStrKeyword, DirectCast(expr, PredefinedCastExpressionSyntax).Keyword.VBKind)
+        Assert.Equal(SyntaxKind.CStrKeyword, DirectCast(expr, PredefinedCastExpressionSyntax).Keyword.Kind)
 
         expr = ParseExpression("CUint(aa)")
         Assert.Equal(SyntaxKind.PredefinedCastExpression, expr.Kind)
-        Assert.Equal(SyntaxKind.CUIntKeyword, DirectCast(expr, PredefinedCastExpressionSyntax).Keyword.VBKind)
+        Assert.Equal(SyntaxKind.CUIntKeyword, DirectCast(expr, PredefinedCastExpressionSyntax).Keyword.Kind)
 
     End Sub
 
@@ -971,8 +971,8 @@ Skip 2
         Dim lastToken = stmt.GetLastToken(includeZeroWidth:=True)
         ' Colon trivia should be attached to missing identifier token
         Assert.True(lastToken.IsMissing)
-        Assert.Equal(SyntaxKind.IdentifierToken, lastToken.VBKind)
-        Assert.Equal(lastToken.TrailingTrivia(0).VBKind, SyntaxKind.ColonTrivia)
+        Assert.Equal(SyntaxKind.IdentifierToken, lastToken.Kind)
+        Assert.Equal(lastToken.TrailingTrivia(0).Kind, SyntaxKind.ColonTrivia)
     End Sub
 
     <Fact>
@@ -995,8 +995,8 @@ Skip 2
 
         ' new line trivia should be attached to closing paren
         Assert.False(lastToken.IsMissing)
-        Assert.Equal(SyntaxKind.CloseParenToken, lastToken.VBKind)
-        Assert.Equal(lastToken.TrailingTrivia(0).VBKind, SyntaxKind.WhitespaceTrivia)
+        Assert.Equal(SyntaxKind.CloseParenToken, lastToken.Kind)
+        Assert.Equal(lastToken.TrailingTrivia(0).Kind, SyntaxKind.WhitespaceTrivia)
     End Sub
 
     <Fact>
@@ -1783,7 +1783,7 @@ End Module
 
         Dim expr = ParseExpression("From x", expectsErrors:=True)
         Assert.Equal(SyntaxKind.QueryExpression, expr.Kind)
-        Assert.Equal(SyntaxKind.FromClause, expr.ChildNodesAndTokens()(0).VBKind())
+        Assert.Equal(SyntaxKind.FromClause, expr.ChildNodesAndTokens()(0).Kind())
     End Sub
 
     <WorkItem(537003, "DevDiv")>
@@ -2111,7 +2111,7 @@ End Module
         Dim text = SourceText.From(source)
         Dim tree = VisualBasicSyntaxTree.ParseText(text)
         Dim nodes = tree.GetRoot().DescendantNodes().ToArray()
-        Dim varNameEquals = nodes.First(Function(n) n.VBKind = SyntaxKind.VariableNameEquals)
+        Dim varNameEquals = nodes.First(Function(n) n.Kind = SyntaxKind.VariableNameEquals)
         Assert.Equal(varNameEquals.ToFullString(), "a = ")
     End Sub
 
@@ -2128,7 +2128,7 @@ End Module
         Dim text = SourceText.From(source)
         Dim tree = VisualBasicSyntaxTree.ParseText(text)
         Dim nodes = tree.GetRoot().DescendantNodes().ToArray()
-        Dim varNameEquals = nodes.First(Function(n) n.VBKind = SyntaxKind.VariableNameEquals)
+        Dim varNameEquals = nodes.First(Function(n) n.Kind = SyntaxKind.VariableNameEquals)
         Assert.Equal(varNameEquals.ToFullString(), "a As Class C")
     End Sub
 
@@ -2145,7 +2145,7 @@ End Module
         Dim text = SourceText.From(source)
         Dim tree = VisualBasicSyntaxTree.ParseText(text)
         Dim nodes = tree.GetRoot().DescendantNodes().ToArray()
-        Dim collectionRangeVar = DirectCast(nodes.First(Function(n) n.VBKind = SyntaxKind.CollectionRangeVariable), CollectionRangeVariableSyntax)
+        Dim collectionRangeVar = DirectCast(nodes.First(Function(n) n.Kind = SyntaxKind.CollectionRangeVariable), CollectionRangeVariableSyntax)
         Dim varName = collectionRangeVar.Identifier
         Assert.Equal(varName.ToFullString(), "a ")
     End Sub
@@ -2163,7 +2163,7 @@ End Module
         Dim text = SourceText.From(source)
         Dim tree = VisualBasicSyntaxTree.ParseText(text)
         Dim nodes = tree.GetRoot().DescendantNodes().ToArray()
-        Dim collectionRangeVar = DirectCast(nodes.First(Function(n) n.VBKind = SyntaxKind.CollectionRangeVariable), CollectionRangeVariableSyntax)
+        Dim collectionRangeVar = DirectCast(nodes.First(Function(n) n.Kind = SyntaxKind.CollectionRangeVariable), CollectionRangeVariableSyntax)
         Dim asClause = collectionRangeVar.AsClause
         Assert.Equal(asClause.ToFullString(), "As Object ")
     End Sub

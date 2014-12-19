@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 If TypeOf node Is XmlNodeSyntax Then
                     ClassifyXmlNode(DirectCast(node, XmlNodeSyntax))
                 Else
-                    Select Case node.VBKind
+                    Select Case node.Kind
                         Case SyntaxKind.XmlDeclaration
                             ClassifyDeclaration(DirectCast(node, XmlDeclarationSyntax))
                         Case SyntaxKind.XmlDeclarationOption
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             End Sub
 
             Private Sub ClassifyXmlNode(node As XmlNodeSyntax)
-                Select Case node.VBKind
+                Select Case node.Kind
                     Case SyntaxKind.XmlDocument
                         ClassifyXmlDocument(DirectCast(node, XmlDocumentSyntax))
                     Case SyntaxKind.XmlElement
@@ -231,7 +231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                     DirectCast(element.Parent, XmlAttributeSyntax).Name Is element Then
                     type = ClassificationTypeNames.XmlLiteralAttributeName
                 ElseIf TypeOf element.Parent Is XmlMemberAccessExpressionSyntax AndAlso
-                    element.Parent.VBKind = SyntaxKind.XmlAttributeAccessExpression AndAlso
+                    element.Parent.Kind = SyntaxKind.XmlAttributeAccessExpression AndAlso
                     DirectCast(element.Parent, XmlMemberAccessExpressionSyntax).Name Is element Then
                     type = ClassificationTypeNames.XmlLiteralAttributeName
                 ElseIf IsElementName(element) Then
@@ -310,8 +310,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
                 ' case of an attribute, or an XmlBracketName, in which case, the brackets need
                 ' to be classified as well
                 Dim lastChild = syntax.ChildNodesAndTokens().LastOrDefault()
-                If lastChild.VBKind() <> SyntaxKind.None Then
-                    Select Case lastChild.VBKind()
+                If lastChild.Kind() <> SyntaxKind.None Then
+                    Select Case lastChild.Kind()
                         Case SyntaxKind.XmlName
                             ClassifyXmlName(DirectCast(lastChild.AsNode(), XmlNameSyntax))
                         Case SyntaxKind.XmlBracketedName

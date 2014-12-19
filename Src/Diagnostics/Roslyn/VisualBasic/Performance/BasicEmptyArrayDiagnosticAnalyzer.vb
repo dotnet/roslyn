@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.Performance
                     End If
 
                     Dim initializerExpr As CollectionInitializerSyntax = Nothing
-                    Dim isArrayCreationExpression As Boolean = (ctx.Node.VBKind() = SyntaxKind.ArrayCreationExpression)
+                    Dim isArrayCreationExpression As Boolean = (ctx.Node.Kind() = SyntaxKind.ArrayCreationExpression)
                     If isArrayCreationExpression Then
                         ' This Is an ArrayCreationExpression (e.g. "New Byte(2)" Or "New Byte() { 1, 2, 3 }").
                         ' If it has any array bounds, make sure it has only 1 and that it's a simple argument.
@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Performance
                                 Dim sizeSpecifier As SimpleArgumentSyntax = TryCast(arrayCreationExpr.ArrayBounds.Arguments(0), SimpleArgumentSyntax)
                                 If sizeSpecifier IsNot Nothing Then
                                     Dim unaryExpression As UnaryExpressionSyntax = TryCast(sizeSpecifier.Expression, UnaryExpressionSyntax)
-                                    If unaryExpression IsNot Nothing AndAlso unaryExpression.OperatorToken.VBKind() = SyntaxKind.MinusToken Then
+                                    If unaryExpression IsNot Nothing AndAlso unaryExpression.OperatorToken.Kind() = SyntaxKind.MinusToken Then
                                         Dim literal As LiteralExpressionSyntax = TryCast(unaryExpression.Operand, LiteralExpressionSyntax)
                                         If literal IsNot Nothing AndAlso TypeOf literal.Token.Value Is Integer AndAlso CType(literal.Token.Value, Integer) = 1 Then
                                             Report(ctx, arrayCreationExpr)
@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.Performance
                         ' This is an CollectionInitializerSyntax (e.g. { 1, 2 }).  However, we only want to examine it if it's not part of a larger ArrayCreationExpressionSyntax;
                         ' otherwise, we'll end up flagging it twice and recommending incorrect transforms.  We also only want to examine it if it's not part of an object collection
                         ' initializer, as then we're not actually creating an array.
-                        Select Case ctx.Node.Parent.VBKind()
+                        Select Case ctx.Node.Parent.Kind()
                             Case SyntaxKind.ArrayCreationExpression
                             Case SyntaxKind.ObjectCollectionInitializer
                                 Return

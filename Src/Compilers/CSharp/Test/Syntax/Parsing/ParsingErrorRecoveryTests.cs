@@ -4298,7 +4298,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.AnonymousObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(0, file.Errors().Length);
@@ -4351,7 +4351,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.AnonymousObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(1, file.Errors().Length);
@@ -4378,7 +4378,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.AnonymousObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(2, file.Errors().Length);
@@ -4406,7 +4406,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.AnonymousObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(1, file.Errors().Length);
@@ -4433,7 +4433,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.AnonymousObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(1, file.Errors().Length);
@@ -4461,7 +4461,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.AnonymousObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(2, file.Errors().Length);
@@ -4490,7 +4490,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.AnonymousObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(2, file.Errors().Length);
@@ -4519,7 +4519,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.AnonymousObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(3, file.Errors().Length);
@@ -4549,7 +4549,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.AnonymousObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(2, file.Errors().Length);
@@ -4578,7 +4578,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.AnonymousObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(2, file.Errors().Length);
@@ -4606,7 +4606,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.AnonymousObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(1, file.Errors().Length);
@@ -4633,7 +4633,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.AnonymousObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(1, file.Errors().Length);
@@ -4660,7 +4660,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.AnonymousObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(1, file.Errors().Length);
@@ -4687,7 +4687,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.AnonymousObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(2, file.Errors().Length);
@@ -4715,7 +4715,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.AnonymousObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(1, file.Errors().Length);
@@ -4742,7 +4742,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.AnonymousObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(1, file.Errors().Length);
@@ -4770,7 +4770,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(0, file.Errors().Length);
@@ -4796,7 +4796,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(1, file.Errors().Length);
@@ -4823,7 +4823,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(1, file.Errors().Length);
@@ -4850,7 +4850,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(2, file.Errors().Length);
@@ -4878,7 +4878,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(1, file.Errors().Length);
@@ -4905,7 +4905,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(2, file.Errors().Length);
@@ -4934,7 +4934,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(2, file.Errors().Length);
@@ -4963,7 +4963,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(2, file.Errors().Length);
@@ -4992,7 +4992,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(3, file.Errors().Length);
@@ -5022,7 +5022,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(2, file.Errors().Length);
@@ -5051,7 +5051,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(3, file.Errors().Length);
@@ -5080,7 +5080,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(1, file.Errors().Length);
@@ -5107,7 +5107,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(1, file.Errors().Length);
@@ -5134,7 +5134,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(1, file.Errors().Length);
@@ -5161,7 +5161,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(2, file.Errors().Length);
@@ -5189,7 +5189,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(1, file.Errors().Length);
@@ -5216,7 +5216,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(2, file.Errors().Length);
@@ -5244,7 +5244,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(5, file.Errors().Length);
@@ -5275,7 +5275,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(4, file.Errors().Length);
@@ -5306,7 +5306,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(6, file.Errors().Length);
@@ -5339,7 +5339,7 @@ class C
             var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
             Assert.Equal(1, ds.Declaration.Variables.Count);
             Assert.NotNull(ds.Declaration.Variables[0].Initializer);
-            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.CSharpKind());
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
             Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
             Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, ds.Declaration.Variables[0].Initializer.Value.Kind);
             Assert.Equal(5, file.Errors().Length);
@@ -5425,7 +5425,7 @@ class C
             Assert.Equal(SyntaxKind.GetAccessorDeclaration, acc.Kind);
             Assert.NotNull(acc.Keyword);
             Assert.False(acc.Keyword.IsMissing);
-            Assert.Equal(SyntaxKind.GetKeyword, acc.Keyword.CSharpKind());
+            Assert.Equal(SyntaxKind.GetKeyword, acc.Keyword.Kind());
             Assert.Null(acc.Body);
             Assert.NotNull(acc.SemicolonToken);
             Assert.True(acc.SemicolonToken.IsMissing);
@@ -5460,14 +5460,14 @@ class C
             Assert.Equal(SyntaxKind.GetAccessorDeclaration, acc.Kind);
             Assert.NotNull(acc.Keyword);
             Assert.False(acc.Keyword.IsMissing);
-            Assert.Equal(SyntaxKind.GetKeyword, acc.Keyword.CSharpKind());
+            Assert.Equal(SyntaxKind.GetKeyword, acc.Keyword.Kind());
             Assert.NotNull(acc.Body);
             Assert.NotNull(acc.Body.OpenBraceToken);
             Assert.False(acc.Body.OpenBraceToken.IsMissing);
             Assert.Equal(0, acc.Body.Statements.Count);
             Assert.NotNull(acc.Body.CloseBraceToken);
             Assert.True(acc.Body.CloseBraceToken.IsMissing);
-            Assert.Equal(SyntaxKind.None, acc.SemicolonToken.CSharpKind());
+            Assert.Equal(SyntaxKind.None, acc.SemicolonToken.Kind());
 
             Assert.Equal(2, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[0].Code);
@@ -5499,14 +5499,14 @@ class C
             Assert.Equal(SyntaxKind.GetAccessorDeclaration, acc.Kind);
             Assert.NotNull(acc.Keyword);
             Assert.False(acc.Keyword.IsMissing);
-            Assert.Equal(SyntaxKind.GetKeyword, acc.Keyword.CSharpKind());
+            Assert.Equal(SyntaxKind.GetKeyword, acc.Keyword.Kind());
             Assert.NotNull(acc.Body);
             Assert.NotNull(acc.Body.OpenBraceToken);
             Assert.False(acc.Body.OpenBraceToken.IsMissing);
             Assert.Equal(0, acc.Body.Statements.Count);
             Assert.NotNull(acc.Body.CloseBraceToken);
             Assert.True(acc.Body.CloseBraceToken.IsMissing);
-            Assert.Equal(SyntaxKind.None, acc.SemicolonToken.CSharpKind());
+            Assert.Equal(SyntaxKind.None, acc.SemicolonToken.Kind());
 
             Assert.Equal(3, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_RbraceExpected, file.Errors()[0].Code);
@@ -5531,7 +5531,7 @@ class C
             Assert.Equal(1, accessorDecls.Count);
 
             var getDecl = accessorDecls[0];
-            Assert.Equal(SyntaxKind.GetKeyword, getDecl.Keyword.CSharpKind());
+            Assert.Equal(SyntaxKind.GetKeyword, getDecl.Keyword.Kind());
 
             var getBodyDecl = getDecl.Body;
             Assert.NotNull(getBodyDecl);
@@ -5539,7 +5539,7 @@ class C
 
             var getBodyStmts = getBodyDecl.Statements;
             Assert.Equal(1, getBodyStmts.Count);
-            Assert.Equal(SyntaxKind.ReturnKeyword, getBodyStmts[0].GetFirstToken().CSharpKind());
+            Assert.Equal(SyntaxKind.ReturnKeyword, getBodyStmts[0].GetFirstToken().Kind());
             Assert.False(getBodyStmts[0].ContainsDiagnostics);
 
             Assert.Equal(1, file.Errors().Length);
@@ -5563,12 +5563,12 @@ class C
             Assert.Equal(2, accessorDecls.Count);
 
             var getDecl = accessorDecls[0];
-            Assert.Equal(SyntaxKind.GetKeyword, getDecl.Keyword.CSharpKind());
+            Assert.Equal(SyntaxKind.GetKeyword, getDecl.Keyword.Kind());
             Assert.Null(getDecl.Body);
             Assert.True(getDecl.SemicolonToken.IsMissing);
 
             var setDecl = accessorDecls[1];
-            Assert.Equal(SyntaxKind.SetKeyword, setDecl.Keyword.CSharpKind());
+            Assert.Equal(SyntaxKind.SetKeyword, setDecl.Keyword.Kind());
             Assert.Null(setDecl.Body);
             Assert.True(setDecl.SemicolonToken.IsMissing);
 
@@ -5899,7 +5899,7 @@ class C
             var subitem2 = (TypeDeclarationSyntax)item1.Members[1];
             Assert.Equal(SyntaxKind.ClassDeclaration, item1.Members[1].Kind);
             Assert.Equal("y", subitem2.Identifier.ToString());
-            Assert.Equal(SyntaxKind.PartialKeyword, subitem2.Modifiers[0].CSharpContextualKind());
+            Assert.Equal(SyntaxKind.PartialKeyword, subitem2.Modifiers[0].ContextualKind());
             Assert.True(subitem2.OpenBraceToken.IsMissing);
             Assert.True(subitem2.CloseBraceToken.IsMissing);
             Assert.Equal(3, subitem2.Errors().Length);
@@ -6217,14 +6217,14 @@ class C
             // isn't abstract.  It might be reasonable to say that an open brace was expected though.
 
             var classDecl = file.ChildNodesAndTokens()[0];
-            Assert.Equal(SyntaxKind.ClassDeclaration, classDecl.CSharpKind());
+            Assert.Equal(SyntaxKind.ClassDeclaration, classDecl.Kind());
 
             var methodDecl = classDecl.ChildNodesAndTokens()[3];
-            Assert.Equal(SyntaxKind.MethodDeclaration, methodDecl.CSharpKind()); //not ConstructorDeclaration
+            Assert.Equal(SyntaxKind.MethodDeclaration, methodDecl.Kind()); //not ConstructorDeclaration
             Assert.True(methodDecl.ContainsDiagnostics);
 
             var methodBody = methodDecl.ChildNodesAndTokens()[3];
-            Assert.Equal(SyntaxKind.Block, methodBody.CSharpKind());
+            Assert.Equal(SyntaxKind.Block, methodBody.Kind());
             Assert.False(methodBody.ContainsDiagnostics);
         }
 
@@ -6238,27 +6238,27 @@ class C
             Assert.Equal(text, file.ToFullString());
 
             var incompleteMemberDecl = file.ChildNodesAndTokens()[0];
-            Assert.Equal(incompleteMemberDecl.CSharpKind(), SyntaxKind.IncompleteMember);
+            Assert.Equal(incompleteMemberDecl.Kind(), SyntaxKind.IncompleteMember);
             Assert.False(incompleteMemberDecl.IsMissing);
 
             var attributeDecl = incompleteMemberDecl.ChildNodesAndTokens()[0];
-            Assert.Equal(attributeDecl.CSharpKind(), SyntaxKind.AttributeList);
+            Assert.Equal(attributeDecl.Kind(), SyntaxKind.AttributeList);
             Assert.False(attributeDecl.IsMissing);
 
             var openBracketToken = attributeDecl.ChildNodesAndTokens()[0];
-            Assert.Equal(openBracketToken.CSharpKind(), SyntaxKind.OpenBracketToken);
+            Assert.Equal(openBracketToken.Kind(), SyntaxKind.OpenBracketToken);
             Assert.False(openBracketToken.IsMissing);
 
             var attribute = attributeDecl.ChildNodesAndTokens()[1];
-            Assert.Equal(attribute.CSharpKind(), SyntaxKind.Attribute);
+            Assert.Equal(attribute.Kind(), SyntaxKind.Attribute);
             Assert.True(attribute.IsMissing);
 
             var identifierName = attribute.ChildNodesAndTokens()[0];
-            Assert.Equal(identifierName.CSharpKind(), SyntaxKind.IdentifierName);
+            Assert.Equal(identifierName.Kind(), SyntaxKind.IdentifierName);
             Assert.True(identifierName.IsMissing);
 
             var identifierToken = identifierName.ChildNodesAndTokens()[0];
-            Assert.Equal(identifierToken.CSharpKind(), SyntaxKind.IdentifierToken);
+            Assert.Equal(identifierToken.Kind(), SyntaxKind.IdentifierToken);
             Assert.True(identifierToken.IsMissing);
         }
 

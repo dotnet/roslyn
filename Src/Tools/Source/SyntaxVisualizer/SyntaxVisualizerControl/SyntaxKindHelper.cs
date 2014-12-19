@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
+using CSharpExtensions = Microsoft.CodeAnalysis.CSharp.CSharpExtensions;
+using VisualBasicExtensions = Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions;
 
 namespace Roslyn.SyntaxVisualizer.Control
 {
@@ -31,11 +33,11 @@ namespace Roslyn.SyntaxVisualizer.Control
 
             if (node.Language == LanguageNames.CSharp)
             {
-                kind = node.CSharpKind().ToString();
+                kind = CSharpExtensions.Kind(node).ToString();
             }
             else 
             {
-                kind = node.VBKind().ToString();
+                kind = VisualBasicExtensions.Kind(node).ToString();
             }
 
             return kind;
@@ -47,11 +49,11 @@ namespace Roslyn.SyntaxVisualizer.Control
 
             if (token.Language == LanguageNames.CSharp)
             {
-                kind = token.CSharpKind().ToString();
+                kind = CSharpExtensions.Kind(token).ToString();
             }
             else 
             {
-                kind = token.VBKind().ToString();
+                kind = VisualBasicExtensions.Kind(token).ToString();
             }
 
             return kind;
@@ -63,11 +65,11 @@ namespace Roslyn.SyntaxVisualizer.Control
 
             if (trivia.Language == LanguageNames.CSharp)
             {
-                kind = trivia.CSharpKind().ToString();
+                kind = CSharpExtensions.Kind(trivia).ToString();
             }
             else
             {
-                kind = trivia.VBKind().ToString();
+                kind = VisualBasicExtensions.Kind(trivia).ToString();
             }
 
             return kind;

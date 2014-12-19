@@ -194,11 +194,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             // If we have two members of the same kind, we won't insert a blank line if both members
             // have any content (e.g. accessors bodies, non-empty method bodies, etc.).
-            if (previousMember.CSharpKind() == nextMember.CSharpKind())
+            if (previousMember.Kind() == nextMember.Kind())
             {
                 // Easy cases:
-                if (previousMember.CSharpKind() == SyntaxKind.FieldDeclaration ||
-                    previousMember.CSharpKind() == SyntaxKind.EventFieldDeclaration)
+                if (previousMember.Kind() == SyntaxKind.FieldDeclaration ||
+                    previousMember.Kind() == SyntaxKind.EventFieldDeclaration)
                 {
                     // Ensure that fields and events are each declared on a separate line.
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLines);
@@ -266,12 +266,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         // copied from compiler formatter to have same base forced format
         private int LineBreaksAfter(SyntaxToken previousToken, SyntaxToken currentToken)
         {
-            if (currentToken.CSharpKind() == SyntaxKind.None)
+            if (currentToken.Kind() == SyntaxKind.None)
             {
                 return 0;
             }
 
-            switch (previousToken.CSharpKind())
+            switch (previousToken.Kind())
             {
                 case SyntaxKind.None:
                     return 0;
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 case SyntaxKind.CloseParenToken:
                     return (((previousToken.Parent is StatementSyntax) && currentToken.Parent != previousToken.Parent)
-                        || currentToken.CSharpKind() == SyntaxKind.OpenBraceToken) ? 1 : 0;
+                        || currentToken.Kind() == SyntaxKind.OpenBraceToken) ? 1 : 0;
 
                 case SyntaxKind.CloseBracketToken:
                     if (previousToken.Parent is AttributeListSyntax)
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return previousToken.Parent is EnumDeclarationSyntax ? 1 : 0;
 
                 case SyntaxKind.ElseKeyword:
-                    return currentToken.CSharpKind() != SyntaxKind.IfKeyword ? 1 : 0;
+                    return currentToken.Kind() != SyntaxKind.IfKeyword ? 1 : 0;
 
                 case SyntaxKind.ColonToken:
                     if (previousToken.Parent is LabeledStatementSyntax || previousToken.Parent is SwitchLabelSyntax)
@@ -329,19 +329,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     break;
             }
 
-            if ((currentToken.CSharpKind() == SyntaxKind.FromKeyword && currentToken.Parent.CSharpKind() == SyntaxKind.FromClause) ||
-                (currentToken.CSharpKind() == SyntaxKind.LetKeyword && currentToken.Parent.CSharpKind() == SyntaxKind.LetClause) ||
-                (currentToken.CSharpKind() == SyntaxKind.WhereKeyword && currentToken.Parent.CSharpKind() == SyntaxKind.WhereClause) ||
-                (currentToken.CSharpKind() == SyntaxKind.JoinKeyword && currentToken.Parent.CSharpKind() == SyntaxKind.JoinClause) ||
-                (currentToken.CSharpKind() == SyntaxKind.JoinKeyword && currentToken.Parent.CSharpKind() == SyntaxKind.JoinIntoClause) ||
-                (currentToken.CSharpKind() == SyntaxKind.OrderByKeyword && currentToken.Parent.CSharpKind() == SyntaxKind.OrderByClause) ||
-                (currentToken.CSharpKind() == SyntaxKind.SelectKeyword && currentToken.Parent.CSharpKind() == SyntaxKind.SelectClause) ||
-                (currentToken.CSharpKind() == SyntaxKind.GroupKeyword && currentToken.Parent.CSharpKind() == SyntaxKind.GroupClause))
+            if ((currentToken.Kind() == SyntaxKind.FromKeyword && currentToken.Parent.Kind() == SyntaxKind.FromClause) ||
+                (currentToken.Kind() == SyntaxKind.LetKeyword && currentToken.Parent.Kind() == SyntaxKind.LetClause) ||
+                (currentToken.Kind() == SyntaxKind.WhereKeyword && currentToken.Parent.Kind() == SyntaxKind.WhereClause) ||
+                (currentToken.Kind() == SyntaxKind.JoinKeyword && currentToken.Parent.Kind() == SyntaxKind.JoinClause) ||
+                (currentToken.Kind() == SyntaxKind.JoinKeyword && currentToken.Parent.Kind() == SyntaxKind.JoinIntoClause) ||
+                (currentToken.Kind() == SyntaxKind.OrderByKeyword && currentToken.Parent.Kind() == SyntaxKind.OrderByClause) ||
+                (currentToken.Kind() == SyntaxKind.SelectKeyword && currentToken.Parent.Kind() == SyntaxKind.SelectClause) ||
+                (currentToken.Kind() == SyntaxKind.GroupKeyword && currentToken.Parent.Kind() == SyntaxKind.GroupClause))
             {
                 return 1;
             }
 
-            switch (currentToken.CSharpKind())
+            switch (currentToken.Kind())
             {
                 case SyntaxKind.OpenBraceToken:
                 case SyntaxKind.CloseBraceToken:
@@ -387,24 +387,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private static int LineBreaksAfterCloseBrace(SyntaxToken nextToken)
         {
-            if (nextToken.CSharpKind() == SyntaxKind.CloseBraceToken)
+            if (nextToken.Kind() == SyntaxKind.CloseBraceToken)
             {
                 return 1;
             }
             else if (
-                nextToken.CSharpKind() == SyntaxKind.CatchKeyword ||
-                nextToken.CSharpKind() == SyntaxKind.FinallyKeyword ||
-                nextToken.CSharpKind() == SyntaxKind.ElseKeyword)
+                nextToken.Kind() == SyntaxKind.CatchKeyword ||
+                nextToken.Kind() == SyntaxKind.FinallyKeyword ||
+                nextToken.Kind() == SyntaxKind.ElseKeyword)
             {
                 return 1;
             }
             else if (
-                nextToken.CSharpKind() == SyntaxKind.WhileKeyword &&
-                nextToken.Parent.CSharpKind() == SyntaxKind.DoStatement)
+                nextToken.Kind() == SyntaxKind.WhileKeyword &&
+                nextToken.Parent.Kind() == SyntaxKind.DoStatement)
             {
                 return 1;
             }
-            else if (nextToken.CSharpKind() == SyntaxKind.EndOfFileToken)
+            else if (nextToken.Kind() == SyntaxKind.EndOfFileToken)
             {
                 return 0;
             }
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             {
                 return 0;
             }
-            else if (currentToken.CSharpKind() == SyntaxKind.CloseBraceToken)
+            else if (currentToken.Kind() == SyntaxKind.CloseBraceToken)
             {
                 return 1;
             }
@@ -440,8 +440,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private bool IsWhitespace(SyntaxTrivia trivia)
         {
-            return trivia.CSharpKind() == SyntaxKind.WhitespaceTrivia
-                || trivia.CSharpKind() == SyntaxKind.EndOfLineTrivia;
+            return trivia.Kind() == SyntaxKind.WhitespaceTrivia
+                || trivia.Kind() == SyntaxKind.EndOfLineTrivia;
         }
 
         private int GetNumberOfLines(SyntaxTriviaList triviaList)

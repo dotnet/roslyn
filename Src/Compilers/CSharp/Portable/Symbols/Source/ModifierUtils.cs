@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var modifier in modifiers)
             {
                 DeclarationModifiers one;
-                switch (modifier.CSharpContextualKind())
+                switch (modifier.ContextualKind())
                 {
                     case SyntaxKind.AbstractKeyword:
                         one = DeclarationModifiers.Abstract;
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         goto default;
 
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(modifier.CSharpContextualKind());
+                        throw ExceptionUtilities.UnexpectedValue(modifier.ContextualKind());
                 }
 
                 result |= one;

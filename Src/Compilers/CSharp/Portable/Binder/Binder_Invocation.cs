@@ -850,7 +850,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node != expression)
             {
-                switch (expression.CSharpKind())
+                switch (expression.Kind)
                 {
                     case SyntaxKind.QualifiedName:
                         return ((QualifiedNameSyntax)expression).Right.GetLocation();
@@ -1058,7 +1058,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             result = null;
             if (node.Expression.Kind != SyntaxKind.IdentifierName ||
-                !((IdentifierNameSyntax)node.Expression).Identifier.IsContextualKind(SyntaxKind.NameOfKeyword) ||
+                ((IdentifierNameSyntax)node.Expression).Identifier.ContextualKind() != SyntaxKind.NameOfKeyword ||
                 node.ArgumentList.Arguments.Count != 1)
             {
                 return false;

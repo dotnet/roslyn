@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (member != null)
             {
-                switch (member.CSharpKind())
+                switch (member.Kind())
                 {
                     case SyntaxKind.EnumDeclaration:
                         return ((EnumDeclarationSyntax)member).AttributeLists;
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (member != null)
             {
-                switch (member.CSharpKind())
+                switch (member.Kind())
                 {
                     case SyntaxKind.EnumDeclaration:
                         return ((EnumDeclarationSyntax)member).Identifier;
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (member != null)
             {
-                switch (member.CSharpKind())
+                switch (member.Kind())
                 {
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (member != null)
             {
-                switch (member.CSharpKind())
+                switch (member.Kind())
                 {
                     case SyntaxKind.ClassDeclaration:
                     case SyntaxKind.InterfaceDeclaration:
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (member != null)
             {
-                switch (member.CSharpKind())
+                switch (member.Kind())
                 {
                     case SyntaxKind.DelegateDeclaration:
                         return ((DelegateDeclarationSyntax)member).ParameterList;
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (member != null)
             {
-                switch (member.CSharpKind())
+                switch (member.Kind())
                 {
                     case SyntaxKind.DelegateDeclaration:
                         return ((DelegateDeclarationSyntax)member).WithParameterList((ParameterListSyntax)parameterList);
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (member != null)
             {
-                switch (member.CSharpKind())
+                switch (member.Kind())
                 {
                     case SyntaxKind.EnumDeclaration:
                         return ((EnumDeclarationSyntax)member).WithAttributeLists(attributeLists);
@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (member != null)
             {
-                switch (member.CSharpKind())
+                switch (member.Kind())
                 {
                     case SyntaxKind.DelegateDeclaration:
                         return ((DelegateDeclarationSyntax)member).ReturnType;
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (memberDeclaration != null)
             {
-                switch (memberDeclaration.CSharpKind())
+                switch (memberDeclaration.Kind())
                 {
                     case SyntaxKind.MethodDeclaration:
                     case SyntaxKind.OperatorDeclaration:
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (memberDeclaration != null)
             {
-                switch (memberDeclaration.CSharpKind())
+                switch (memberDeclaration.Kind())
                 {
                     case SyntaxKind.MethodDeclaration:
                         return ((MethodDeclarationSyntax)memberDeclaration).Body;
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (memberDeclaration != null)
             {
-                switch (memberDeclaration.CSharpKind())
+                switch (memberDeclaration.Kind())
                 {
                     case SyntaxKind.MethodDeclaration:
                         return ((MethodDeclarationSyntax)memberDeclaration).WithBody(body);

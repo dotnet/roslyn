@@ -350,7 +350,7 @@ public class B
                     var token = countedSyntaxTree.GetCompilationUnitRoot().FindToken(nodeInUnderlying.SpanStart);
                     for (var node = token.Parent; node != null; node = node.Parent)
                     {
-                        if (node.Span == nodeInUnderlying.Span && node.CSharpKind() == nodeInUnderlying.CSharpKind())
+                        if (node.Span == nodeInUnderlying.Span && node.RawKind == nodeInUnderlying.RawKind)
                         {
                             return (CSharpSyntaxNode)node;
                         }

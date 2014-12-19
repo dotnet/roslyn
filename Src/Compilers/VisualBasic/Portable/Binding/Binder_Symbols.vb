@@ -763,7 +763,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              diagBag As DiagnosticBag,
                                                              ByRef reportedAnError As Boolean,
                                                              suppressUseSiteError As Boolean) As SingleLookupResult
-                Return LookupPredefinedTypeName(predefinedTypeSyntax, predefinedTypeSyntax.Keyword.VBKind, binder, diagBag, reportedAnError, suppressUseSiteError)
+                Return LookupPredefinedTypeName(predefinedTypeSyntax, predefinedTypeSyntax.Keyword.Kind, binder, diagBag, reportedAnError, suppressUseSiteError)
             End Function
 
             Public Shared Function LookupPredefinedTypeName(node As VisualBasicSyntaxNode,

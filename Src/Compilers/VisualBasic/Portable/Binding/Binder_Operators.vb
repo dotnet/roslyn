@@ -142,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim left As BoundExpression = BindValue(node.Left, diagnostics, propagateIsOperandOfConditionalBranch)
             Dim right As BoundExpression = BindValue(node.Right, diagnostics, propagateIsOperandOfConditionalBranch)
 
-            Return BindBinaryOperator(node, left, right, node.OperatorToken.VBKind, preliminaryOperatorKind, isOperandOfConditionalBranch, diagnostics)
+            Return BindBinaryOperator(node, left, right, node.OperatorToken.Kind, preliminaryOperatorKind, isOperandOfConditionalBranch, diagnostics)
         End Function
 
         Private Function BindBinaryOperatorUnwound(
@@ -180,7 +180,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim rightSyntax As ExpressionSyntax = expressionsStack.Pop()
                 Dim binarySyntax = DirectCast(rightSyntax.Parent, BinaryExpressionSyntax)
                 Dim right As BoundExpression = BindValue(rightSyntax, diagnostics, False)
-                leftmost = BindBinaryOperator(binarySyntax, leftmost, right, binarySyntax.OperatorToken.VBKind, preliminaryOperatorKind, isOperandOfConditionalBranch, diagnostics)
+                leftmost = BindBinaryOperator(binarySyntax, leftmost, right, binarySyntax.OperatorToken.Kind, preliminaryOperatorKind, isOperandOfConditionalBranch, diagnostics)
             End While
 
             expressionsStack.Free()

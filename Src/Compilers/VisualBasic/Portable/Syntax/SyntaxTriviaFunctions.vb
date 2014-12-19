@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Friend Class SyntaxTriviaFunctions
-        Friend Shared ReadOnly Skipped As Func(Of SyntaxTrivia, Boolean) = Function(t) t.VBKind = SyntaxKind.SkippedTokensTrivia
+        Friend Shared ReadOnly Skipped As Func(Of SyntaxTrivia, Boolean) = Function(t) t.Kind = SyntaxKind.SkippedTokensTrivia
     End Class
 
 End Namespace

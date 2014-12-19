@@ -30,7 +30,7 @@ namespace N
             Assert.Equal(c.ObjectType, implicitClass.BaseType);
             Assert.Equal(0, implicitClass.Arity);
             Assert.True(implicitClass.IsImplicitlyDeclared);
-            Assert.Equal(SyntaxKind.NamespaceDeclaration, implicitClass.DeclaringSyntaxReferences.Single().GetSyntax().CSharpKind());
+            Assert.Equal(SyntaxKind.NamespaceDeclaration, implicitClass.DeclaringSyntaxReferences.Single().GetSyntax().Kind());
             Assert.False(implicitClass.IsSubmissionClass);
             Assert.False(implicitClass.IsScriptClass);
         }
@@ -50,7 +50,7 @@ void Foo()
             Assert.Equal(c.ObjectType, scriptClass.BaseType);
             Assert.Equal(0, scriptClass.Arity);
             Assert.True(scriptClass.IsImplicitlyDeclared);
-            Assert.Equal(SyntaxKind.CompilationUnit, scriptClass.DeclaringSyntaxReferences.Single().GetSyntax().CSharpKind());
+            Assert.Equal(SyntaxKind.CompilationUnit, scriptClass.DeclaringSyntaxReferences.Single().GetSyntax().Kind());
             Assert.False(scriptClass.IsSubmissionClass);
             Assert.True(scriptClass.IsScriptClass);
         }

@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
             Private Sub ProcessExplicitLineContinuation(token1 As SyntaxToken, token2 As SyntaxToken)
                 ' we are at the very beginning
-                If token1.VBKind = SyntaxKind.None Then
+                If token1.Kind = SyntaxKind.None Then
                     Return
                 End If
 
@@ -173,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                     Return
                 End If
 
-                Dim token2Kind = GetToken(token2).VBKind
+                Dim token2Kind = GetToken(token2).Kind
                 Dim dotOrExclamationInWithBlock =
                     (token2Kind = SyntaxKind.DotToken OrElse
                       token2Kind = SyntaxKind.ExclamationToken) AndAlso
@@ -194,7 +194,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 '       !A = !B
                 ' End With
 
-                If GetToken(token1).VBKind = SyntaxKind.DistinctKeyword AndAlso dotOrExclamationInWithBlock Then
+                If GetToken(token1).Kind = SyntaxKind.DistinctKeyword AndAlso dotOrExclamationInWithBlock Then
                     Return
                 End If
 
@@ -205,22 +205,22 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 End If
 
                 ' colon is not on the same line, remove colon trivia
-                ReplaceTrailingTrivia(token1, trailingTrivia.Where(Function(t) t.VBKind <> SyntaxKind.ColonTrivia).ToSyntaxTriviaList())
+                ReplaceTrailingTrivia(token1, trailingTrivia.Where(Function(t) t.Kind <> SyntaxKind.ColonTrivia).ToSyntaxTriviaList())
 
                 If colonInLeading And dotOrExclamationInWithBlock Then
                     Return
                 End If
 
-                ReplaceLeadingTrivia(token2, leadingTrivia.Where(Function(t) t.VBKind <> SyntaxKind.ColonTrivia).ToSyntaxTriviaList())
+                ReplaceLeadingTrivia(token2, leadingTrivia.Where(Function(t) t.Kind <> SyntaxKind.ColonTrivia).ToSyntaxTriviaList())
             End Sub
 
             Private Function RemoveTrailingColonTrivia(token1 As SyntaxToken, trailing As IEnumerable(Of SyntaxTrivia)) As IEnumerable(Of SyntaxTrivia)
-                If token1.VBKind <> SyntaxKind.ColonToken OrElse trailing.Count = 0 Then
+                If token1.Kind <> SyntaxKind.ColonToken OrElse trailing.Count = 0 Then
                     Return trailing
                 End If
 
-                If trailing(0).VBKind = SyntaxKind.ColonTrivia Then
-                    Return trailing.SkipWhile(Function(t) t.VBKind = SyntaxKind.ColonTrivia)
+                If trailing(0).Kind = SyntaxKind.ColonTrivia Then
+                    Return trailing.SkipWhile(Function(t) t.Kind = SyntaxKind.ColonTrivia)
                 End If
 
                 Return trailing
@@ -257,8 +257,8 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             Private Shared Iterator Function RemoveConsecutiveColons(trivia As SyntaxTriviaList) As IEnumerable(Of SyntaxTrivia)
                 Dim last As SyntaxTrivia = Nothing
                 For Each t In trivia
-                    If t.VBKind <> SyntaxKind.ColonTrivia OrElse
-                        last.VBKind <> SyntaxKind.ColonTrivia Then
+                    If t.Kind <> SyntaxKind.ColonTrivia OrElse
+                        last.Kind <> SyntaxKind.ColonTrivia Then
                         Yield t
                     End If
                     last = t
@@ -272,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Dim leading = New List(Of SyntaxTrivia)
 
                 For Each trivia In GetTrailingTrivia(token1)
-                    If trivia.VBKind = SyntaxKind.ColonTrivia Then
+                    If trivia.Kind = SyntaxKind.ColonTrivia Then
                         If colon Then
                             Continue For
                         End If
@@ -283,7 +283,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 Next
 
                 For Each trivia In GetLeadingTrivia(token2)
-                    If trivia.VBKind = SyntaxKind.ColonTrivia Then
+                    If trivia.Kind = SyntaxKind.ColonTrivia Then
                         If colon Then
                             Continue For
                         End If
@@ -310,13 +310,13 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End Sub
 
             Private Shared Function ContainsInapplicableTrivia(trivia As SyntaxTriviaList) As Boolean
-                Return trivia.Any(Function(t) t.VBKind <> SyntaxKind.WhitespaceTrivia AndAlso
-                                              t.VBKind <> SyntaxKind.LineContinuationTrivia AndAlso
-                                              t.VBKind <> SyntaxKind.EndOfLineTrivia)
+                Return trivia.Any(Function(t) t.Kind <> SyntaxKind.WhitespaceTrivia AndAlso
+                                              t.Kind <> SyntaxKind.LineContinuationTrivia AndAlso
+                                              t.Kind <> SyntaxKind.EndOfLineTrivia)
             End Function
 
             Private Shared Function ReplaceLineContinuationToEndOfLine(trivia As IEnumerable(Of SyntaxTrivia)) As IEnumerable(Of SyntaxTrivia)
-                Return trivia.Where(Function(t) t.VBKind <> SyntaxKind.LineContinuationTrivia)
+                Return trivia.Where(Function(t) t.Kind <> SyntaxKind.LineContinuationTrivia)
             End Function
 
             Private Function GetLeadingTrivia(token As SyntaxToken) As SyntaxTriviaList

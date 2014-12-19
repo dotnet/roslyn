@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             int diffI = 0;
             foreach (var kind in kinds)
             {
-                if (diffI < diffs.Length && diffs[diffI].CSharpKind() == kind)
+                if (diffI < diffs.Length && diffs[diffI].IsKind(kind))
                 {
                     diffI++;
                 }
@@ -1240,7 +1240,7 @@ class Test
             // Verify if the children of the trees are of the same kind
             for (int i = 0; i < parsedTree.GetCompilationUnitRoot().ChildNodesAndTokens().Count; i++)
             {
-                Assert.Equal(parsedTree.GetCompilationUnitRoot().ChildNodesAndTokens()[i].CSharpKind(), incrementalTree.GetCompilationUnitRoot().ChildNodesAndTokens()[i].CSharpKind());
+                Assert.Equal(parsedTree.GetCompilationUnitRoot().ChildNodesAndTokens()[i].Kind(), incrementalTree.GetCompilationUnitRoot().ChildNodesAndTokens()[i].Kind());
             }
         }
 
@@ -2541,7 +2541,7 @@ class D { }
             {
                 var tempTree = SyntaxFactory.ParseSyntaxTree(text);
                 var tempRoot = tempTree.GetRoot();
-                var tempToken = tempRoot.DescendantTokens().First(t => t.CSharpKind() == SyntaxKind.IdentifierToken);
+                var tempToken = tempRoot.DescendantTokens().First(t => t.Kind() == SyntaxKind.IdentifierToken);
                 var oldRoot = tempRoot.ReplaceToken(tempToken, tempToken.WithAdditionalAnnotations(new SyntaxAnnotation()));
                 Assert.True(oldRoot.ContainsAnnotations, "Should contain annotations.");
                 Assert.Equal(text, oldRoot.ToFullString());
@@ -2687,7 +2687,7 @@ class D { }
 
         private static void CompareTreeEquivalence(SyntaxNodeOrToken parsedTreeNode, SyntaxNodeOrToken incrementalTreeNode)
         {
-            Assert.Equal(parsedTreeNode.CSharpKind(), incrementalTreeNode.CSharpKind());
+            Assert.Equal(parsedTreeNode.Kind(), incrementalTreeNode.Kind());
 
             Assert.Equal(parsedTreeNode.ChildNodesAndTokens().Count, incrementalTreeNode.ChildNodesAndTokens().Count);
 

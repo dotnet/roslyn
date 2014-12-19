@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Dim locals = ArrayBuilder(Of LocalSymbol).GetInstance()
 
             For Each node In methodSyntax.DescendantNodes()
-                If node.VBKind = SyntaxKind.VariableDeclarator Then
+                If node.Kind = SyntaxKind.VariableDeclarator Then
                     For Each name In DirectCast(node, VariableDeclaratorSyntax).Names
                         Dim local = DirectCast(model.GetDeclaredSymbol(name), LocalSymbol)
                         locals.Add(local)
@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         End Function
 
         Friend Shared Function GetLocalName(node As SyntaxNode) As String
-            If node.VBKind = SyntaxKind.ModifiedIdentifier Then
+            If node.Kind = SyntaxKind.ModifiedIdentifier Then
                 Return DirectCast(node, ModifiedIdentifierSyntax).Identifier.ToString()
             End If
 
@@ -86,9 +86,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         Friend Shared Function GetSyntaxMapByKind(method As MethodSymbol, ParamArray kinds As SyntaxKind()) As Func(Of SyntaxNode, SyntaxNode)
             Return Function(node As SyntaxNode)
-                       For Each kind In kinds
-                           If node.VBKind() = kind Then
-                               Return method.DeclaringSyntaxReferences.Single().SyntaxTree.GetRoot().DescendantNodes().Single(Function(n) n.VBKind() = kind)
+                       For Each k In kinds
+                           If node.IsKind(k) Then
+                               Return method.DeclaringSyntaxReferences.Single().SyntaxTree.GetRoot().DescendantNodes().Single(Function(n) n.IsKind(k))
                            End If
                        Next
 

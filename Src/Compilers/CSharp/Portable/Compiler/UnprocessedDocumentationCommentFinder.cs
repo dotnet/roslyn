@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            if (!IsValidLocation && SyntaxFacts.IsDocumentationCommentTrivia(trivia.CSharpKind()))
+            if (!IsValidLocation && SyntaxFacts.IsDocumentationCommentTrivia(trivia.Kind()))
             {
                 int start = trivia.Position; // FullSpan start to include /** or ///
                 const int length = 1; //Match dev11: span is just one character

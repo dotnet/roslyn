@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
             For Each clause In node.Clauses
 
-                Select Case clause.VBKind
+                Select Case clause.Kind
                     Case SyntaxKind.FromClause
                         tokens.AddRange(From variable In DirectCast(clause, FromClauseSyntax).Variables
                                         Select variable.Identifier.Identifier)
@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             Dim tokens As New List(Of SyntaxToken)
 
             For Each statement In block
-                If statement.VBKind = SyntaxKind.LocalDeclarationStatement Then
+                If statement.Kind = SyntaxKind.LocalDeclarationStatement Then
                     Dim declarationStatement = DirectCast(statement, LocalDeclarationStatementSyntax)
 
                     For Each declarator In declarationStatement.Declarators
@@ -134,13 +134,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             Dim tokens As New List(Of SyntaxToken)
 
             Dim controlVariable As SyntaxNode
-            If node.ForOrForEachStatement.VBKind = SyntaxKind.ForEachStatement Then
+            If node.ForOrForEachStatement.Kind = SyntaxKind.ForEachStatement Then
                 controlVariable = DirectCast(node.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable
             Else
                 controlVariable = DirectCast(node.ForOrForEachStatement, ForStatementSyntax).ControlVariable
             End If
 
-            If controlVariable.VBKind = SyntaxKind.VariableDeclarator Then
+            If controlVariable.Kind = SyntaxKind.VariableDeclarator Then
                 ' it's only legal to have one name in the variable declarator for for and for each loops.
                 tokens.Add(DirectCast(controlVariable, VariableDeclaratorSyntax).Names.First().Identifier)
             Else

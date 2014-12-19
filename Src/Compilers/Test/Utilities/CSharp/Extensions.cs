@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static bool TryFindNodeOrToken(SyntaxNodeOrToken node, SyntaxKind kind, ref int occurrence, ref SyntaxNodeOrToken foundNode)
         {
-            if (node.CSharpKind() == kind)
+            if (node.IsKind(kind))
             {
                 occurrence--;
                 if (occurrence == 0)

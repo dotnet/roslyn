@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             // * <End Of File> case for C#, make sure we don't insert new line between * and <End of
             // File> tokens.
-            if (currentToken.CSharpKind() == SyntaxKind.EndOfFileToken)
+            if (currentToken.Kind() == SyntaxKind.EndOfFileToken)
             {
                 return CreateAdjustNewLinesOperation(0, AdjustNewLinesOption.PreserveLines);
             }
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             // * <End Of File) case
             // for C#, make sure we have nothing between these two tokens
-            if (currentToken.CSharpKind() == SyntaxKind.EndOfFileToken)
+            if (currentToken.Kind() == SyntaxKind.EndOfFileToken)
             {
                 return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }

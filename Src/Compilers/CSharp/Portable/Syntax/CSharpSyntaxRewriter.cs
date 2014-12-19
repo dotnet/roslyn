@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     alternate.Add(list, 0, index);
                 }
 
-                if (alternate != null && visited.CSharpKind() != SyntaxKind.None) //skip the null check since SyntaxToken is a value type
+                if (alternate != null && visited.Kind() != SyntaxKind.None) //skip the null check since SyntaxToken is a value type
                 {
                     alternate.Add(visited);
                 }
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         alternate.Add(list, 0, index);
                     }
 
-                    if (alternate != null && visited.CSharpKind() != SyntaxKind.None)
+                    if (alternate != null && visited.Kind() != SyntaxKind.None)
                     {
                         alternate.Add(visited);
                     }

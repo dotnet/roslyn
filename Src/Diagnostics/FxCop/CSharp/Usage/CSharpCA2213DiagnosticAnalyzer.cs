@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage
 
             public void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {
-                if (context.Node.CSharpKind() == SyntaxKind.SimpleMemberAccessExpression)
+                if (context.Node.Kind() == SyntaxKind.SimpleMemberAccessExpression)
                 {
                     var memberAccess = (MemberAccessExpressionSyntax)context.Node;
                     if (memberAccess.Name != null && memberAccess.Name.Identifier.ValueText == Dispose)
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage
                         }
                     }
                 }
-                else if (context.Node.CSharpKind() == SyntaxKind.UsingStatement)
+                else if (context.Node.Kind() == SyntaxKind.UsingStatement)
                 {
                     var usingStatementExpression = ((UsingStatementSyntax)context.Node).Expression;
                     if (usingStatementExpression != null)

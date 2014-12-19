@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         <Extension()>
         Public Function GetAttributes(member As StatementSyntax) As SyntaxList(Of AttributeListSyntax)
             If member IsNot Nothing Then
-                Select Case member.VBKind
+                Select Case member.Kind
                     Case SyntaxKind.ClassBlock,
                         SyntaxKind.InterfaceBlock,
                         SyntaxKind.ModuleBlock,
@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         <Extension()>
         Public Function WithAttributeLists(member As StatementSyntax, attributeLists As SyntaxList(Of AttributeListSyntax)) As StatementSyntax
             If member IsNot Nothing Then
-                Select Case member.VBKind
+                Select Case member.Kind
                     Case SyntaxKind.ClassBlock,
                         SyntaxKind.InterfaceBlock,
                         SyntaxKind.ModuleBlock,
@@ -160,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         <Extension()>
         Public Function GetModifiers(member As StatementSyntax) As IEnumerable(Of SyntaxToken)
             If member IsNot Nothing Then
-                Select Case member.VBKind
+                Select Case member.Kind
                     Case SyntaxKind.ClassBlock,
                         SyntaxKind.InterfaceBlock,
                         SyntaxKind.ModuleBlock,
@@ -218,7 +218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         <Extension()>
         Public Function WithModifiers(member As StatementSyntax, modifiers As SyntaxTokenList) As StatementSyntax
             If member IsNot Nothing Then
-                Select Case member.VBKind
+                Select Case member.Kind
                     Case SyntaxKind.ClassBlock
                         Dim classBlock = DirectCast(member, ClassBlockSyntax)
                         Return classBlock.WithBegin(classBlock.Begin.WithModifiers(modifiers))
@@ -301,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         <Extension()>
         Public Function GetNameTokenOrNothing(member As StatementSyntax) As SyntaxToken
             If member IsNot Nothing Then
-                Select Case member.VBKind
+                Select Case member.Kind
                     Case SyntaxKind.ClassBlock,
                         SyntaxKind.InterfaceBlock,
                         SyntaxKind.ModuleBlock,
@@ -354,7 +354,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         <Extension()>
         Public Function GetTypeParameterList(member As StatementSyntax) As TypeParameterListSyntax
             If member IsNot Nothing Then
-                Select Case member.VBKind
+                Select Case member.Kind
                     Case SyntaxKind.ClassBlock,
                         SyntaxKind.InterfaceBlock,
                         SyntaxKind.StructureBlock
@@ -381,7 +381,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         <Extension()>
         Public Function GetParameterList(member As StatementSyntax) As ParameterListSyntax
             If member IsNot Nothing Then
-                Select Case member.VBKind
+                Select Case member.Kind
                     Case SyntaxKind.SubBlock,
                         SyntaxKind.FunctionBlock,
                         SyntaxKind.ConstructorBlock,
@@ -422,7 +422,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         Private Function GetAsClause(member As StatementSyntax) As AsClauseSyntax
             If member IsNot Nothing Then
-                Select Case member.VBKind
+                Select Case member.Kind
                     Case SyntaxKind.FunctionBlock
                         Return DirectCast(member, MethodBlockSyntax).Begin.AsClause
                     Case SyntaxKind.OperatorBlock
@@ -466,7 +466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return False
             End If
 
-            Select Case statement.VBKind
+            Select Case statement.Kind
                 Case SyntaxKind.NamespaceStatement,
                     SyntaxKind.ClassStatement,
                     SyntaxKind.InterfaceStatement,
@@ -497,7 +497,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return False
             End If
 
-            Select Case statement.VBKind
+            Select Case statement.Kind
                 Case SyntaxKind.NamespaceBlock,
                     SyntaxKind.ClassBlock,
                     SyntaxKind.InterfaceBlock,
@@ -526,7 +526,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return DirectCast(statement, DeclarationStatementSyntax)
             End If
 
-            Select Case statement.VBKind
+            Select Case statement.Kind
                 Case SyntaxKind.NamespaceBlock
                     Return DirectCast(statement, NamespaceBlockSyntax).NamespaceStatement
                 Case SyntaxKind.ClassBlock,
@@ -556,7 +556,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return False
             End If
 
-            Select Case statement.VBKind
+            Select Case statement.Kind
                 Case SyntaxKind.ClassStatement,
                     SyntaxKind.InterfaceStatement,
                     SyntaxKind.ModuleStatement,
@@ -586,7 +586,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return False
             End If
 
-            Select Case statement.VBKind
+            Select Case statement.Kind
                 Case SyntaxKind.ClassBlock,
                     SyntaxKind.InterfaceBlock,
                     SyntaxKind.ModuleBlock,
@@ -614,7 +614,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return DirectCast(statement, DeclarationStatementSyntax)
             End If
 
-            Select Case statement.VBKind
+            Select Case statement.Kind
                 Case SyntaxKind.ClassBlock,
                     SyntaxKind.InterfaceBlock,
                     SyntaxKind.ModuleBlock,
@@ -684,7 +684,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             If statement IsNot Nothing Then
                 Dim nextToken = statement.GetLastToken().GetNextToken()
 
-                If nextToken.VBKind = SyntaxKind.None Then
+                If nextToken.Kind = SyntaxKind.None Then
                     Return Nothing
                 End If
 

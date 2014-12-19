@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             }
 
             // preprocessor case
-            if (SyntaxFacts.IsPreprocessorDirective(trivia2.CSharpKind()))
+            if (SyntaxFacts.IsPreprocessorDirective(trivia2.Kind()))
             {
                 // Check for immovable preprocessor directives, which are bad directive trivia 
                 // without a preceding line break
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private bool IsStartOrEndOfFile(SyntaxTrivia trivia1, SyntaxTrivia trivia2)
         {
-            return (this.Token1.RawKind == 0 || this.Token2.RawKind == 0) && (trivia1.CSharpKind() == 0 || trivia2.CSharpKind() == 0);
+            return (this.Token1.RawKind == 0 || this.Token2.RawKind == 0) && (trivia1.Kind() == 0 || trivia2.Kind() == 0);
         }
 
         private static bool IsMultilineComment(SyntaxTrivia trivia1)
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         {
             result = default(SyntaxTrivia);
 
-            if (trivia.CSharpKind() != SyntaxKind.MultiLineCommentTrivia)
+            if (trivia.Kind() != SyntaxKind.MultiLineCommentTrivia)
             {
                 return false;
             }
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private LineColumnDelta FormatStructuredTrivia(
             LineColumn lineColumn, SyntaxTrivia trivia, List<SyntaxTrivia> changes, CancellationToken cancellationToken)
         {
-            if (trivia.CSharpKind() == SyntaxKind.SkippedTokensTrivia)
+            if (trivia.Kind() == SyntaxKind.SkippedTokensTrivia)
             {
                 // don't touch anything if it contains skipped tokens
                 this.succeeded = false;
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
         private LineColumnDelta FormatStructuredTrivia(
             LineColumn lineColumn, SyntaxTrivia trivia, List<TextChange> changes, CancellationToken cancellationToken)
         {
-            if (trivia.CSharpKind() == SyntaxKind.SkippedTokensTrivia)
+            if (trivia.Kind() == SyntaxKind.SkippedTokensTrivia)
             {
                 // don't touch anything if it contains skipped tokens
                 this.succeeded = false;

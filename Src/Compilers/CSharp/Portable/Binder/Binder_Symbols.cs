@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal Symbol BindNamespaceAliasSymbol(IdentifierNameSyntax node, DiagnosticBag diagnostics)
         {
-            if (node.Identifier.CSharpKind() == SyntaxKind.GlobalKeyword)
+            if (node.Identifier.Kind() == SyntaxKind.GlobalKeyword)
             {
                 return this.Compilation.GlobalNamespaceAlias;
             }
@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Symbol BindPredefinedTypeSymbol(PredefinedTypeSyntax node, DiagnosticBag diagnostics)
         {
-            return GetSpecialType(node.Keyword.CSharpKind().GetSpecialType(), diagnostics, node);
+            return GetSpecialType(node.Keyword.Kind().GetSpecialType(), diagnostics, node);
         }
 
         /// <summary>

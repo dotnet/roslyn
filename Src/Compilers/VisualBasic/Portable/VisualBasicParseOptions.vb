@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Throw New ArgumentException(parameterName)
                 End If
 
-                Debug.Assert(SyntaxFactory.ParseTokens(symbol.Key).Select(Function(t) t.VBKind).SequenceEqual({SyntaxKind.IdentifierToken, SyntaxKind.EndOfFileToken}))
+                Debug.Assert(SyntaxFactory.ParseTokens(symbol.Key).Select(Function(t) t.Kind).SequenceEqual({SyntaxKind.IdentifierToken, SyntaxKind.EndOfFileToken}))
 
                 Dim constant = InternalSyntax.CConst.TryCreate(symbol.Value)
                 If constant Is Nothing Then

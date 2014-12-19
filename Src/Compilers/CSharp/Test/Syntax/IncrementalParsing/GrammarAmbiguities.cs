@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
 
         private void AssertNodesAreEquivalent(SyntaxNodeOrToken expectedNode, SyntaxNodeOrToken actualNode)
         {
-            Assert.Equal(expectedNode.CSharpKind(), actualNode.CSharpKind());
+            Assert.Equal(expectedNode.Kind(), actualNode.Kind());
             Assert.Equal(expectedNode.FullSpan, actualNode.FullSpan);
             Assert.Equal(expectedNode.ChildNodesAndTokens().Count, actualNode.ChildNodesAndTokens().Count);
 

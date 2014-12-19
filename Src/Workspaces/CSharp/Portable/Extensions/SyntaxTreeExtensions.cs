@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var result = new HashSet<SyntaxKind>(SyntaxFacts.EqualityComparer);
             while (true)
             {
-                switch (token.CSharpKind())
+                switch (token.Kind())
                 {
                     case SyntaxKind.PublicKeyword:
                     case SyntaxKind.InternalKeyword:
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     case SyntaxKind.VolatileKeyword:
                     case SyntaxKind.UnsafeKeyword:
                     case SyntaxKind.AsyncKeyword:
-                        result.Add(token.CSharpKind());
+                        result.Add(token.Kind());
                         token = token.GetPreviousToken(includeSkipped: true);
                         continue;
                     case SyntaxKind.IdentifierToken:
@@ -174,18 +174,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            if (token.CSharpKind() == SyntaxKind.None)
+            if (token.Kind() == SyntaxKind.None)
             {
                 return false;
             }
 
-            return predicate(token.CSharpKind());
+            return predicate(token.Kind());
         }
 
         public static bool IsRightOfNumericLiteral(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            return token.CSharpKind() == SyntaxKind.NumericLiteralToken;
+            return token.Kind() == SyntaxKind.NumericLiteralToken;
         }
 
         public static bool IsPrimaryFunctionExpressionContext(this SyntaxTree syntaxTree, int position, SyntaxToken tokenOnLeftOfPosition, CancellationToken cancellationToken)
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
             token = token.GetPreviousTokenIfTouchingWord(position);
 
-            return token.CSharpKind() == kind;
+            return token.Kind() == kind;
         }
 
         public static bool IsInNonUserCode(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 var span = trivia.Span;
                 var fullSpan = trivia.FullSpan;
-                var endsWithNewLine = trivia.GetStructure().GetLastToken(includeSkipped: true).CSharpKind() == SyntaxKind.XmlTextLiteralNewLineToken;
+                var endsWithNewLine = trivia.GetStructure().GetLastToken(includeSkipped: true).Kind() == SyntaxKind.XmlTextLiteralNewLineToken;
 
                 if (endsWithNewLine)
                 {
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             var trivia = FindTriviaAndAdjustForEndOfFile(syntaxTree, position, cancellationToken);
 
-            if (trivia.CSharpKind() == SyntaxKind.EndOfLineTrivia)
+            if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
             {
                 // Check if we're on the newline right at the end of a comment
                 trivia = trivia.GetPreviousTrivia(syntaxTree, cancellationToken);
@@ -368,7 +368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // single-line comments at the end of preprocessor directives.
             var trivia = FindTriviaAndAdjustForEndOfFile(syntaxTree, position, cancellationToken, findInsideTrivia: true);
 
-            if (trivia.CSharpKind() == SyntaxKind.EndOfLineTrivia)
+            if (trivia.Kind() == SyntaxKind.EndOfLineTrivia)
             {
                 // Check if we're on the newline right at the end of a comment
                 trivia = trivia.GetPreviousTrivia(syntaxTree, cancellationToken, findInsideTrivia: true);
@@ -486,7 +486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 token = root.EndOfFileToken.GetPreviousToken(includeSkipped: true, includeDirectives: true);
             }
 
-            if (token.CSharpKind() == SyntaxKind.CharacterLiteralToken)
+            if (token.Kind() == SyntaxKind.CharacterLiteralToken)
             {
                 var span = token.Span;
 
@@ -528,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // The latter two are the hard cases we don't actually have an 
             // DisabledTextTrivia yet. 
             var trivia = syntaxTree.GetRoot(cancellationToken).FindTrivia(position, findInsideTrivia: false);
-            if (trivia.CSharpKind() == SyntaxKind.DisabledTextTrivia)
+            if (trivia.Kind() == SyntaxKind.DisabledTextTrivia)
             {
                 return true;
             }
@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var token = syntaxTree.FindTokenOrEndToken(position, cancellationToken);
             var text = syntaxTree.GetText(cancellationToken);
             var lineContainingPosition = text.Lines.IndexOf(position);
-            if (token.CSharpKind() == SyntaxKind.EndOfFileToken)
+            if (token.Kind() == SyntaxKind.EndOfFileToken)
             {
                 var triviaList = token.LeadingTrivia;
                 foreach (var triviaTok in triviaList.Reverse())
@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             var root = syntaxTree.GetRoot(cancellationToken) as CompilationUnitSyntax;
             var result = root.FindToken(position, findInsideTrivia: true);
-            if (result.CSharpKind() != SyntaxKind.None)
+            if (result.Kind() != SyntaxKind.None)
             {
                 return result;
             }
@@ -694,7 +694,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             int index = 0;
 
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            if (token.CSharpKind() == SyntaxKind.None)
+            if (token.Kind() == SyntaxKind.None)
             {
                 return false;
             }
@@ -708,7 +708,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             int stack = 0;
             while (true)
             {
-                switch (token.CSharpKind())
+                switch (token.Kind())
                 {
                     case SyntaxKind.LessThanToken:
                         if (stack == 0)
@@ -717,7 +717,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             // name before that and we're done!
                             lessThanToken = token;
                             token = token.GetPreviousToken(includeSkipped: true);
-                            if (token.CSharpKind() == SyntaxKind.None)
+                            if (token.Kind() == SyntaxKind.None)
                             {
                                 return false;
                             }
@@ -728,7 +728,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                             // but we need to know the simple name that precedes the <
                             // it could be
                             // ~~~~~~foo<a,b,...
-                            if (token.CSharpKind() == SyntaxKind.IdentifierToken)
+                            if (token.Kind() == SyntaxKind.IdentifierToken)
                             {
                                 // okay now check whether it is actually partially written
                                 if (IsFullyWrittenGeneric(token, lessThanToken))
@@ -778,7 +778,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     default:
                         // user might have typed "in" on the way to typing "int"
                         // don't want to disregard this genericname because of that
-                        if (SyntaxFacts.IsKeywordKind(token.CSharpKind()))
+                        if (SyntaxFacts.IsKeywordKind(token.Kind()))
                         {
                             break;
                         }
@@ -792,7 +792,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 // statement "Func<A" with missing semicolon, expression statement "B" with missing
                 // semicolon, and the "," is skipped.
                 token = token.GetPreviousToken(includeSkipped: true);
-                if (token.CSharpKind() == SyntaxKind.None)
+                if (token.Kind() == SyntaxKind.None)
                 {
                     return false;
                 }

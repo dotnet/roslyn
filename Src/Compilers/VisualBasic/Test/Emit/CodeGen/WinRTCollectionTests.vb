@@ -6387,7 +6387,7 @@ End Class
             Dim tree = comp.SyntaxTrees.Single()
             Dim model = comp.GetSemanticModel(tree)
 
-            Dim add = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.IdentifierName AndAlso DirectCast(n, IdentifierNameSyntax).Identifier.ValueText = "Add").Single()
+            Dim add = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.IdentifierName AndAlso DirectCast(n, IdentifierNameSyntax).Identifier.ValueText = "Add").Single()
             Dim addMethod = model.GetSymbolInfo(add).Symbol
             Assert.Equal("Sub System.Collections.Generic.IDictionary(Of System.String, Windows.Data.Json.IJsonValue).Add(key As System.String, value As Windows.Data.Json.IJsonValue)", addMethod.ToTestDisplayString())
 

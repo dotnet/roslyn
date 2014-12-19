@@ -1400,7 +1400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // but we want to bind them anyway for error tolerance reasons.
                         var container = GetDeclaredTypeMemberContainer(propertyOrEventDecl);
                         Debug.Assert((object)container != null);
-                        Debug.Assert(declarationSyntax.Keyword.CSharpKind() != SyntaxKind.IdentifierToken);
+                        Debug.Assert(declarationSyntax.Keyword.Kind() != SyntaxKind.IdentifierToken);
                         return this.GetDeclaredMember(container, declarationSyntax.Span) as MethodSymbol;
 
                     default:
@@ -1500,7 +1500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return OperatorFacts.OperatorNameFromDeclaration(operatorDecl);
 
                 case SyntaxKind.ConversionOperatorDeclaration:
-                    if (((ConversionOperatorDeclarationSyntax)declaration).ImplicitOrExplicitKeyword.CSharpKind() == SyntaxKind.ExplicitKeyword)
+                    if (((ConversionOperatorDeclarationSyntax)declaration).ImplicitOrExplicitKeyword.Kind() == SyntaxKind.ExplicitKeyword)
                     {
                         return WellKnownMemberNames.ExplicitConversionName;
                     }

@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         Private Function TryCreateSpanForNode(node As SyntaxNode, position As Integer) As TextSpan?
-            Select Case node.VBKind
+            Select Case node.Kind
                 Case SyntaxKind.VariableDeclarator,
                      SyntaxKind.ModifiedIdentifier
                     ' Handled by parent field or local variable declaration.
@@ -343,7 +343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         Private Function TryCreateSpanForCollectionRangeVariable(collectionRangeVariable As CollectionRangeVariableSyntax) As TextSpan?
-            If collectionRangeVariable.Parent.VBKind = SyntaxKind.FromClause Then
+            If collectionRangeVariable.Parent.Kind = SyntaxKind.FromClause Then
                 Dim fromClause = DirectCast(collectionRangeVariable.Parent, FromClauseSyntax)
                 Dim query = DirectCast(fromClause.Parent, QueryExpressionSyntax)
 
@@ -411,7 +411,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return False
             End If
 
-            Select Case expression.Parent.VBKind
+            Select Case expression.Parent.Kind
                 Case SyntaxKind.JoinCondition
                     Dim joinCondition = DirectCast(expression.Parent, JoinConditionSyntax)
                     If expression Is joinCondition.Left OrElse expression Is joinCondition.Right Then

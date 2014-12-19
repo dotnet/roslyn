@@ -59,10 +59,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         Public Shared Function CanSpeculateOnNode(node As SyntaxNode) As Boolean
             Return TypeOf node Is ExecutableStatementSyntax OrElse
                 TypeOf node Is TypeSyntax OrElse
-                node.VBKind = SyntaxKind.Attribute OrElse
-                node.VBKind = SyntaxKind.EqualsValue OrElse
-                node.VBKind = SyntaxKind.AsNewClause OrElse
-                node.VBKind = SyntaxKind.RangeArgument
+                node.Kind = SyntaxKind.Attribute OrElse
+                node.Kind = SyntaxKind.EqualsValue OrElse
+                node.Kind = SyntaxKind.AsNewClause OrElse
+                node.Kind = SyntaxKind.RangeArgument
         End Function
 
         Protected Overrides Function GetSemanticRootOfReplacedExpression(semanticRootOfOriginalExpr As SyntaxNode, annotatedReplacedExpression As ExpressionSyntax) As SyntaxNode
@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
 
             ' Speculation is not supported for AsNewClauseSyntax nodes.
             ' Generate an EqualsValueSyntax node with the inner NewExpression of the AsNewClauseSyntax node for speculation.
-            If semanticRootOfOriginalExpr.VBKind = SyntaxKind.AsNewClause Then
+            If semanticRootOfOriginalExpr.Kind = SyntaxKind.AsNewClause Then
                 ' Because the original expression will change identity in the newly generated EqualsValueSyntax node,
                 ' we annotate it here to allow us to get back to it after replace.
                 Dim originalExprAnnotation = New SyntaxAnnotation()
@@ -128,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 Return speculativeModel
             End If
 
-            Select Case nodeToSpeculate.VBKind
+            Select Case nodeToSpeculate.Kind
                 Case SyntaxKind.Attribute
                     semanticModel.TryGetSpeculativeSemanticModel(position, DirectCast(nodeToSpeculate, AttributeSyntax), speculativeModel)
                     Return speculativeModel
@@ -229,7 +229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             Dim originalLambdaBody As SyntaxNode, replacedLambdaBody As SyntaxNode
             Dim originalParams As SeparatedSyntaxList(Of ParameterSyntax), replacedParams As SeparatedSyntaxList(Of ParameterSyntax)
 
-            Select Case originalLambda.VBKind
+            Select Case originalLambda.Kind
                 Case SyntaxKind.SingleLineFunctionLambdaExpression, SyntaxKind.SingleLineSubLambdaExpression
                     Dim originalSingleLineLambda = DirectCast(originalLambda, SingleLineLambdaExpressionSyntax)
                     Dim replacedSingleLineLambda = DirectCast(replacedLambda, SingleLineLambdaExpressionSyntax)
@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
 
                 Case Else
 
-                    Throw ExceptionUtilities.UnexpectedValue(originalLambda.VBKind)
+                    Throw ExceptionUtilities.UnexpectedValue(originalLambda.Kind)
             End Select
 
             Debug.Assert(originalParams.Count = replacedParams.Count)
@@ -328,7 +328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 End If
 
                 Return Not ImplicitConversionsAreCompatible(originalExpression, newExpression)
-            ElseIf currentOriginalNode.VBKind = SyntaxKind.VariableDeclarator Then
+            ElseIf currentOriginalNode.Kind = SyntaxKind.VariableDeclarator Then
                 ' Heuristic: If replacing the node will result in changing the type of a local variable
                 ' that is type-inferred, we won't remove it. It's possible to do this analysis, but it's
                 ' very expensive and the benefit to the user is small.
@@ -340,7 +340,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 End If
 
                 Return False
-            ElseIf currentOriginalNode.VBKind = SyntaxKind.CollectionInitializer Then
+            ElseIf currentOriginalNode.Kind = SyntaxKind.CollectionInitializer Then
                 Return previousOriginalNode IsNot Nothing AndAlso
                     ReplacementBreaksCollectionInitializerAddMethod(DirectCast(previousOriginalNode, ExpressionSyntax), DirectCast(previousReplacedNode, ExpressionSyntax))
             Else
@@ -412,7 +412,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         Protected Overrides Function GetReceiver(expression As ExpressionSyntax) As ExpressionSyntax
             expression = expression.WalkDownParentheses()
 
-            Select Case expression.VBKind
+            Select Case expression.Kind
                 Case SyntaxKind.SimpleMemberAccessExpression
                     Return DirectCast(expression, MemberAccessExpressionSyntax).Expression.WalkDownParentheses()
 
@@ -447,7 +447,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         Private Shared Function GetArgumentList(expression As ExpressionSyntax) As ArgumentListSyntax
             expression = expression.WalkDownParentheses()
 
-            Select Case expression.VBKind
+            Select Case expression.Kind
                 Case SyntaxKind.InvocationExpression
                     Return DirectCast(expression, InvocationExpressionSyntax).ArgumentList
                 Case SyntaxKind.ObjectCreationExpression
@@ -458,7 +458,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         End Function
 
         Private Function ReplacementBreaksBinaryExpression(binaryExpression As BinaryExpressionSyntax, newBinaryExpression As BinaryExpressionSyntax) As Boolean
-            Dim operatorTokenKind = binaryExpression.OperatorToken.VBKind
+            Dim operatorTokenKind = binaryExpression.OperatorToken.Kind
             If SyntaxFacts.IsAssignmentStatementOperatorToken(operatorTokenKind) AndAlso
                 operatorTokenKind <> SyntaxKind.LessThanLessThanEqualsToken AndAlso
                 operatorTokenKind <> SyntaxKind.GreaterThanGreaterThanEqualsToken AndAlso

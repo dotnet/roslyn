@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' remove blank lines between parameter lists and implements clauses
-            If currentToken.VBKind = SyntaxKind.ImplementsKeyword AndAlso
+            If currentToken.Kind = SyntaxKind.ImplementsKeyword AndAlso
                (previousToken.GetAncestor(Of MethodStatementSyntax)() IsNot Nothing OrElse
                 previousToken.GetAncestor(Of PropertyStatementSyntax)() IsNot Nothing OrElse
                 previousToken.GetAncestor(Of EventStatementSyntax)() IsNot Nothing) Then
@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' handle comma separated lists in implements clauses
-            If previousToken.GetAncestor(Of ImplementsClauseSyntax)() IsNot Nothing AndAlso currentToken.VBKind = SyntaxKind.CommaToken Then
+            If previousToken.GetAncestor(Of ImplementsClauseSyntax)() IsNot Nothing AndAlso currentToken.Kind = SyntaxKind.CommaToken Then
                 Return FormattingOperations.CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces)
             End If
 
@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             ' put attributes in its own line if it is top level attribute
             Dim attributeNode = TryCast(previousToken.Parent, AttributeListSyntax)
             If attributeNode IsNot Nothing AndAlso TypeOf attributeNode.Parent Is StatementSyntax AndAlso
-               attributeNode.GreaterThanToken = previousToken AndAlso currentToken.VBKind <> SyntaxKind.LessThanToken Then
+               attributeNode.GreaterThanToken = previousToken AndAlso currentToken.Kind <> SyntaxKind.LessThanToken Then
                 Return FormattingOperations.CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.ForceLines)
             End If
 
@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' The previous token may end a statement, but it could be in a lambda inside parens.
-            If currentToken.VBKind = SyntaxKind.CloseParenToken AndAlso
+            If currentToken.Kind = SyntaxKind.CloseParenToken AndAlso
                TypeOf currentToken.Parent Is ParenthesizedExpressionSyntax Then
 
                 Return operation
@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Private Function AfterLastImportStatement(token As SyntaxToken, nextToken As SyntaxToken) As Boolean
             ' in between two imports
-            If nextToken.VBKind = SyntaxKind.ImportsKeyword Then
+            If nextToken.Kind = SyntaxKind.ImportsKeyword Then
                 Return False
             End If
 
@@ -144,8 +144,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
         End Function
 
         Private Function LineBreaksAfter(previousToken As SyntaxToken, currentToken As SyntaxToken) As Integer?
-            If currentToken.VBKind = SyntaxKind.None OrElse
-               previousToken.VBKind = SyntaxKind.None Then
+            If currentToken.Kind = SyntaxKind.None OrElse
+               previousToken.Kind = SyntaxKind.None Then
                 Return 0
             End If
 
@@ -161,19 +161,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' Early out of accessors, we don't force more lines between them.
-            If previousStatement.VBKind = SyntaxKind.EndSetStatement OrElse
-               previousStatement.VBKind = SyntaxKind.EndGetStatement OrElse
-               previousStatement.VBKind = SyntaxKind.EndAddHandlerStatement OrElse
-               previousStatement.VBKind = SyntaxKind.EndRemoveHandlerStatement OrElse
-               previousStatement.VBKind = SyntaxKind.EndRaiseEventStatement Then
+            If previousStatement.Kind = SyntaxKind.EndSetStatement OrElse
+               previousStatement.Kind = SyntaxKind.EndGetStatement OrElse
+               previousStatement.Kind = SyntaxKind.EndAddHandlerStatement OrElse
+               previousStatement.Kind = SyntaxKind.EndRemoveHandlerStatement OrElse
+               previousStatement.Kind = SyntaxKind.EndRaiseEventStatement Then
                 Return Nothing
             End If
 
             ' Blank line after an end block, unless it's followed by another end or an else
             If IsEndBlockStatement(previousStatement) Then
                 If IsEndBlockStatement(currentStatement) OrElse
-                   currentStatement.VBKind = SyntaxKind.ElseIfStatement OrElse
-                   currentStatement.VBKind = SyntaxKind.ElseStatement Then
+                   currentStatement.Kind = SyntaxKind.ElseIfStatement OrElse
+                   currentStatement.Kind = SyntaxKind.ElseStatement Then
                     Return GetActualLines(previousToken, currentToken, 1)
                 Else
                     Return GetActualLines(previousToken, currentToken, 2, 1)

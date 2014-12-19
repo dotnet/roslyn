@@ -67,8 +67,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         Public Function Compare(x As SyntaxNode, y As SyntaxNode) As Integer Implements IComparer(Of SyntaxNode).Compare
             Dim xPrecedence As Integer
             Dim yPrecedence As Integer
-            If Not kindPrecedenceMap.TryGetValue(x.VBKind(), xPrecedence) OrElse
-               Not kindPrecedenceMap.TryGetValue(y.VBKind(), yPrecedence) Then
+            If Not kindPrecedenceMap.TryGetValue(x.Kind(), xPrecedence) OrElse
+               Not kindPrecedenceMap.TryGetValue(y.Kind(), yPrecedence) Then
                 ' The containing definition is malformed and contains a node kind we didn't expect.
                 ' Ignore comparisons with those unexpected nodes and sort them to the end of the declaration.
                 Return 1
@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             x = ConvertBlockToStatement(x)
             y = ConvertBlockToStatement(y)
 
-            Select Case x.VBKind
+            Select Case x.Kind
                 Case SyntaxKind.DelegateSubStatement,
                      SyntaxKind.DelegateFunctionStatement
                     Return Compare(DirectCast(x, DelegateStatementSyntax), DirectCast(y, DelegateStatementSyntax))
@@ -120,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Shared Function ConvertBlockToStatement(node As SyntaxNode) As SyntaxNode
-            Select Case node.VBKind
+            Select Case node.Kind
                 Case SyntaxKind.PropertyBlock
                     Return DirectCast(node, PropertyBlockSyntax).PropertyStatement
 
@@ -272,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Shared Function ContainsToken(list As IEnumerable(Of SyntaxToken), kind As SyntaxKind) As Boolean
             Return list.Contains(Function(token As SyntaxToken)
-                                     Return token.VBKind = kind
+                                     Return token.Kind = kind
                                  End Function)
         End Function
 
@@ -300,7 +300,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
 
             ' Determine default accessibility
-            Select Case declaration.VBKind
+            Select Case declaration.Kind
                 Case SyntaxKind.InterfaceStatement,
                      SyntaxKind.ModuleStatement,
                      SyntaxKind.ClassStatement,
@@ -312,7 +312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             Dim node = declaration.Parent
             While node IsNot Nothing
-                Select Case node.VBKind
+                Select Case node.Kind
                     Case SyntaxKind.InterfaceBlock
                         ' Interface members are all Public
                         Return Accessibility.Public
@@ -320,7 +320,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Case SyntaxKind.ModuleBlock,
                          SyntaxKind.ClassBlock
                         ' Standard module and class members default to Public unless they are variable declarations
-                        Return If(declaration.VBKind = SyntaxKind.FieldDeclaration, Accessibility.Private, Accessibility.Public)
+                        Return If(declaration.Kind = SyntaxKind.FieldDeclaration, Accessibility.Private, Accessibility.Public)
 
                     Case SyntaxKind.StructureBlock
                         ' Structure member declarations always default to Public
@@ -381,8 +381,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Dim xPrecedence = 0
                 Dim yPrecedence = 0
 
-                operatorPrecedenceMap.TryGetValue(x.VBKind, xPrecedence)
-                operatorPrecedenceMap.TryGetValue(y.VBKind, yPrecedence)
+                operatorPrecedenceMap.TryGetValue(x.Kind, xPrecedence)
+                operatorPrecedenceMap.TryGetValue(y.Kind, yPrecedence)
 
                 comparisonResult = If(xPrecedence = yPrecedence, 0, If(xPrecedence < yPrecedence, -1, 1))
             End If

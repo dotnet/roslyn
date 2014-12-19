@@ -1045,7 +1045,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function InLoopOrLambda(lambdaSyntax As SyntaxNode, scopeSyntax As SyntaxNode) As Boolean
             Dim curSyntax = lambdaSyntax.Parent
             While (curSyntax IsNot Nothing AndAlso curSyntax IsNot scopeSyntax)
-                Select Case curSyntax.VBKind
+                Select Case curSyntax.Kind
                     Case SyntaxKind.ForBlock,
                          SyntaxKind.ForEachBlock,
                          SyntaxKind.WhileBlock,

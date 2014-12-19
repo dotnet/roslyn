@@ -4172,7 +4172,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 CheckSyntaxNode(node);
 
-                if (node.Ancestors().Any(n => SyntaxFacts.IsPreprocessorDirective(n.CSharpKind())))
+                if (node.Ancestors().Any(n => SyntaxFacts.IsPreprocessorDirective(n.Kind())))
                 {
                     bool isDefined = this.SyntaxTree.IsPreprocessorSymbolDefined(node.Identifier.ValueText, node.Identifier.SpanStart);
                     return new PreprocessingSymbolInfo(new PreprocessingSymbol(node.Identifier.ValueText), isDefined);
@@ -4595,7 +4595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var newLevel = DecrementLevel(levelsToCompute);
 
-            switch (node.CSharpKind())
+            switch (node.Kind())
             {
                 case SyntaxKind.NamespaceDeclaration:
                     {

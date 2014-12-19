@@ -17,22 +17,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
         Public Overrides Function GetAdjustSpacesOperation(previousToken As SyntaxToken, currentToken As SyntaxToken, optionSet As OptionSet, nextFunc As NextOperation(Of AdjustSpacesOperation)) As AdjustSpacesOperation
             ' * <end of file token>
-            If currentToken.VBKind = SyntaxKind.EndOfFileToken Then
+            If currentToken.Kind = SyntaxKind.EndOfFileToken Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
             ' ()
-            If previousToken.VBKind = SyntaxKind.OpenParenToken AndAlso currentToken.VBKind = SyntaxKind.CloseParenToken Then
+            If previousToken.Kind = SyntaxKind.OpenParenToken AndAlso currentToken.Kind = SyntaxKind.CloseParenToken Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
             ' ,,
-            If previousToken.VBKind = SyntaxKind.CommaToken AndAlso currentToken.VBKind = SyntaxKind.CommaToken Then
+            If previousToken.Kind = SyntaxKind.CommaToken AndAlso currentToken.Kind = SyntaxKind.CommaToken Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
             ' ( < case
-            If previousToken.VBKind = SyntaxKind.OpenParenToken AndAlso
+            If previousToken.Kind = SyntaxKind.OpenParenToken AndAlso
                FormattingHelpers.IsLessThanInAttribute(currentToken) Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
@@ -50,18 +50,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' <? * 
-            If previousToken.VBKind = SyntaxKind.LessThanQuestionToken AndAlso FormattingHelpers.IsXmlTokenInXmlDeclaration(previousToken) Then
+            If previousToken.Kind = SyntaxKind.LessThanQuestionToken AndAlso FormattingHelpers.IsXmlTokenInXmlDeclaration(previousToken) Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
             ' * ?> case
-            If currentToken.VBKind = SyntaxKind.QuestionGreaterThanToken AndAlso FormattingHelpers.IsXmlTokenInXmlDeclaration(currentToken) Then
+            If currentToken.Kind = SyntaxKind.QuestionGreaterThanToken AndAlso FormattingHelpers.IsXmlTokenInXmlDeclaration(currentToken) Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
             ' except <%= [xml token] or [xml token] %> case
-            If (previousToken.VBKind <> SyntaxKind.LessThanPercentEqualsToken AndAlso FormattingHelpers.IsXmlToken(currentToken)) AndAlso
-               (FormattingHelpers.IsXmlToken(previousToken) AndAlso currentToken.VBKind <> SyntaxKind.PercentGreaterThanToken) Then
+            If (previousToken.Kind <> SyntaxKind.LessThanPercentEqualsToken AndAlso FormattingHelpers.IsXmlToken(currentToken)) AndAlso
+               (FormattingHelpers.IsXmlToken(previousToken) AndAlso currentToken.Kind <> SyntaxKind.PercentGreaterThanToken) Then
 
                 ' [xml token] [xml token]
                 If FormattingHelpers.IsXmlToken(previousToken) AndAlso FormattingHelpers.IsXmlToken(currentToken) Then
@@ -70,32 +70,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' %> [xml name token]
-            If previousToken.VBKind = SyntaxKind.PercentGreaterThanToken AndAlso currentToken.VBKind = SyntaxKind.XmlNameToken Then
+            If previousToken.Kind = SyntaxKind.PercentGreaterThanToken AndAlso currentToken.Kind = SyntaxKind.XmlNameToken Then
                 Return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
             ' [xml token] [xml name token]
-            If FormattingHelpers.IsXmlToken(previousToken) AndAlso currentToken.VBKind = SyntaxKind.XmlNameToken Then
+            If FormattingHelpers.IsXmlToken(previousToken) AndAlso currentToken.Kind = SyntaxKind.XmlNameToken Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
             ' [xml name token] <%=
-            If previousToken.VBKind = SyntaxKind.XmlNameToken AndAlso currentToken.VBKind = SyntaxKind.LessThanPercentEqualsToken Then
+            If previousToken.Kind = SyntaxKind.XmlNameToken AndAlso currentToken.Kind = SyntaxKind.LessThanPercentEqualsToken Then
                 Return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
             ' [xml name token] %>
-            If previousToken.VBKind = SyntaxKind.XmlNameToken AndAlso currentToken.VBKind = SyntaxKind.PercentGreaterThanToken Then
+            If previousToken.Kind = SyntaxKind.XmlNameToken AndAlso currentToken.Kind = SyntaxKind.PercentGreaterThanToken Then
                 Return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
             ' [xml name token] [xml token]
-            If previousToken.VBKind = SyntaxKind.XmlNameToken AndAlso FormattingHelpers.IsXmlToken(currentToken) Then
+            If previousToken.Kind = SyntaxKind.XmlNameToken AndAlso FormattingHelpers.IsXmlToken(currentToken) Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
             ' [xml name token] =
-            If previousToken.VBKind = SyntaxKind.XmlNameToken AndAlso currentToken.VBKind = SyntaxKind.EqualsToken Then
+            If previousToken.Kind = SyntaxKind.XmlNameToken AndAlso currentToken.Kind = SyntaxKind.EqualsToken Then
                 ' [XmlAttributeAccessExpression] =
                 If TypeOf currentToken.Parent Is BinaryExpressionSyntax AndAlso DirectCast(currentToken.Parent, BinaryExpressionSyntax).Left.IsKind(SyntaxKind.XmlAttributeAccessExpression) OrElse
                     currentToken.Parent.IsKind(SyntaxKind.SimpleAssignmentStatement) AndAlso DirectCast(currentToken.Parent, AssignmentStatementSyntax).Left.IsKind(SyntaxKind.XmlAttributeAccessExpression) Then
@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' = ' [xml string]
-            If previousToken.VBKind = SyntaxKind.EqualsToken AndAlso FormattingHelpers.IsQuoteInXmlString(currentToken) Then
+            If previousToken.Kind = SyntaxKind.EqualsToken AndAlso FormattingHelpers.IsQuoteInXmlString(currentToken) Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
@@ -123,32 +123,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' xml text literal 
-            If (previousToken.VBKind = SyntaxKind.XmlTextLiteralToken AndAlso currentToken.VBKind <> SyntaxKind.XmlNameToken) OrElse
-               (previousToken.VBKind <> SyntaxKind.XmlNameToken AndAlso currentToken.VBKind = SyntaxKind.XmlTextLiteralToken) Then
+            If (previousToken.Kind = SyntaxKind.XmlTextLiteralToken AndAlso currentToken.Kind <> SyntaxKind.XmlNameToken) OrElse
+               (previousToken.Kind <> SyntaxKind.XmlNameToken AndAlso currentToken.Kind = SyntaxKind.XmlTextLiteralToken) Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
             ' xml entity literal
-            If previousToken.VBKind = SyntaxKind.XmlEntityLiteralToken OrElse
-                currentToken.VBKind = SyntaxKind.XmlEntityLiteralToken Then
+            If previousToken.Kind = SyntaxKind.XmlEntityLiteralToken OrElse
+                currentToken.Kind = SyntaxKind.XmlEntityLiteralToken Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.PreserveSpaces)
             End If
 
             ' (( case
-            If previousToken.VBKind = SyntaxKind.OpenParenToken AndAlso
-               currentToken.VBKind = SyntaxKind.OpenParenToken Then
+            If previousToken.Kind = SyntaxKind.OpenParenToken AndAlso
+               currentToken.Kind = SyntaxKind.OpenParenToken Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
             ' [identifier] ( case
-            If previousToken.VBKind = SyntaxKind.IdentifierToken AndAlso
-               currentToken.VBKind = SyntaxKind.OpenParenToken Then
+            If previousToken.Kind = SyntaxKind.IdentifierToken AndAlso
+               currentToken.Kind = SyntaxKind.OpenParenToken Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
             ' [some keywords] ( case
-            If currentToken.VBKind = SyntaxKind.OpenParenToken Then
-                Select Case previousToken.VBKind
+            If currentToken.Kind = SyntaxKind.OpenParenToken Then
+                Select Case previousToken.Kind
                     Case SyntaxKind.NewKeyword, SyntaxKind.FunctionKeyword, SyntaxKind.SubKeyword, SyntaxKind.SetKeyword,
                          SyntaxKind.AddHandlerKeyword, SyntaxKind.RemoveHandlerKeyword, SyntaxKind.RaiseEventKeyword,
                          SyntaxKind.GetTypeKeyword, SyntaxKind.CTypeKeyword, SyntaxKind.TryCastKeyword,
@@ -156,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                         Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
                 End Select
 
-                If SyntaxFacts.IsPredefinedCastExpressionKeyword(previousToken.VBKind) Then
+                If SyntaxFacts.IsPredefinedCastExpressionKeyword(previousToken.Kind) Then
                     Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
                 End If
             End If
@@ -177,84 +177,84 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' array rank specifier ( case
-            If currentToken.VBKind = SyntaxKind.OpenParenToken AndAlso TypeOf currentToken.Parent Is ArrayRankSpecifierSyntax Then
+            If currentToken.Kind = SyntaxKind.OpenParenToken AndAlso TypeOf currentToken.Parent Is ArrayRankSpecifierSyntax Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
             ' [overloadable operator] ( case
-            If currentToken.VBKind = SyntaxKind.OpenParenToken AndAlso FormattingHelpers.IsOverloadableOperator(previousToken) Then
+            If currentToken.Kind = SyntaxKind.OpenParenToken AndAlso FormattingHelpers.IsOverloadableOperator(previousToken) Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
             ' [type parameter list] [parameter list] )( case
-            If previousToken.VBKind = SyntaxKind.CloseParenToken AndAlso TypeOf previousToken.Parent Is TypeParameterListSyntax AndAlso
-               currentToken.VBKind = SyntaxKind.OpenParenToken AndAlso TypeOf currentToken.Parent Is ParameterListSyntax Then
+            If previousToken.Kind = SyntaxKind.CloseParenToken AndAlso TypeOf previousToken.Parent Is TypeParameterListSyntax AndAlso
+               currentToken.Kind = SyntaxKind.OpenParenToken AndAlso TypeOf currentToken.Parent Is ParameterListSyntax Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
             ' , [named field initializer dot]
-            If previousToken.VBKind = SyntaxKind.CommaToken AndAlso FormattingHelpers.IsNamedFieldInitializerDot(currentToken) Then
+            If previousToken.Kind = SyntaxKind.CommaToken AndAlso FormattingHelpers.IsNamedFieldInitializerDot(currentToken) Then
                 Return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
 
             ' ? . [conditional access operator]
-            If previousToken.VBKind = SyntaxKind.QuestionToken AndAlso currentToken.VBKind = SyntaxKind.DotToken AndAlso
+            If previousToken.Kind = SyntaxKind.QuestionToken AndAlso currentToken.Kind = SyntaxKind.DotToken AndAlso
                 previousToken.Parent.IsKind(SyntaxKind.ConditionalAccessExpression) Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
             ' identifier ? [conditional access operator]
-            If previousToken.VBKind = SyntaxKind.IdentifierToken AndAlso currentToken.VBKind = SyntaxKind.QuestionToken AndAlso
-                    currentToken.Parent.VBKind = SyntaxKind.ConditionalAccessExpression Then
+            If previousToken.Kind = SyntaxKind.IdentifierToken AndAlso currentToken.Kind = SyntaxKind.QuestionToken AndAlso
+                    currentToken.Parent.Kind = SyntaxKind.ConditionalAccessExpression Then
 
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
             ' Me ? [conditional access operator]
-            If previousToken.VBKind = SyntaxKind.MeKeyword AndAlso currentToken.VBKind = SyntaxKind.QuestionToken AndAlso
-                    currentToken.Parent.VBKind = SyntaxKind.ConditionalAccessExpression Then
+            If previousToken.Kind = SyntaxKind.MeKeyword AndAlso currentToken.Kind = SyntaxKind.QuestionToken AndAlso
+                    currentToken.Parent.Kind = SyntaxKind.ConditionalAccessExpression Then
 
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
             ' MyBase ? [conditional access operator]
-            If previousToken.VBKind = SyntaxKind.MyBaseKeyword AndAlso currentToken.VBKind = SyntaxKind.QuestionToken AndAlso
-                    currentToken.Parent.VBKind = SyntaxKind.ConditionalAccessExpression Then
+            If previousToken.Kind = SyntaxKind.MyBaseKeyword AndAlso currentToken.Kind = SyntaxKind.QuestionToken AndAlso
+                    currentToken.Parent.Kind = SyntaxKind.ConditionalAccessExpression Then
 
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
             ' MyClass ? [conditional access operator]
-            If previousToken.VBKind = SyntaxKind.MyClassExpression AndAlso currentToken.VBKind = SyntaxKind.QuestionToken AndAlso
-                    currentToken.Parent.VBKind = SyntaxKind.ConditionalAccessExpression Then
+            If previousToken.Kind = SyntaxKind.MyClassExpression AndAlso currentToken.Kind = SyntaxKind.QuestionToken AndAlso
+                    currentToken.Parent.Kind = SyntaxKind.ConditionalAccessExpression Then
 
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
             ' } ? [conditional access operator after initializer]
-            If previousToken.VBKind = SyntaxKind.CloseBraceToken AndAlso currentToken.VBKind = SyntaxKind.QuestionToken AndAlso
-                    currentToken.Parent.VBKind = SyntaxKind.ConditionalAccessExpression Then
+            If previousToken.Kind = SyntaxKind.CloseBraceToken AndAlso currentToken.Kind = SyntaxKind.QuestionToken AndAlso
+                    currentToken.Parent.Kind = SyntaxKind.ConditionalAccessExpression Then
 
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
             ' " ? [conditional access operator after string literal]
-            If previousToken.VBKind = SyntaxKind.StringLiteralToken AndAlso currentToken.VBKind = SyntaxKind.QuestionToken AndAlso
-                    currentToken.Parent.VBKind = SyntaxKind.ConditionalAccessExpression Then
+            If previousToken.Kind = SyntaxKind.StringLiteralToken AndAlso currentToken.Kind = SyntaxKind.QuestionToken AndAlso
+                    currentToken.Parent.Kind = SyntaxKind.ConditionalAccessExpression Then
 
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
             ' ) ? [conditional access off invocation]
-            If previousToken.VBKind = SyntaxKind.CloseParenToken AndAlso currentToken.VBKind = SyntaxKind.QuestionToken AndAlso
-                    currentToken.Parent.VBKind = SyntaxKind.ConditionalAccessExpression Then
+            If previousToken.Kind = SyntaxKind.CloseParenToken AndAlso currentToken.Kind = SyntaxKind.QuestionToken AndAlso
+                    currentToken.Parent.Kind = SyntaxKind.ConditionalAccessExpression Then
 
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
             ' * [member access dot without expression]
-            If previousToken.VBKind <> SyntaxKind.OpenParenToken AndAlso FormattingHelpers.IsMemberAccessDotWithoutExpression(currentToken) Then
+            If previousToken.Kind <> SyntaxKind.OpenParenToken AndAlso FormattingHelpers.IsMemberAccessDotWithoutExpression(currentToken) Then
                 Return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
@@ -263,13 +263,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             ' * ,
             ' * .
             ' * :=
-            Select Case currentToken.VBKind
+            Select Case currentToken.Kind
                 Case SyntaxKind.CloseBraceToken, SyntaxKind.CloseParenToken, SyntaxKind.CommaToken, SyntaxKind.ColonEqualsToken
                     Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
 
                 Case SyntaxKind.DotToken
-                    Dim space = If(previousToken.VBKind = SyntaxKind.CallKeyword OrElse
-                                   previousToken.VBKind = SyntaxKind.KeyKeyword, 1, 0)
+                    Dim space = If(previousToken.Kind = SyntaxKind.CallKeyword OrElse
+                                   previousToken.Kind = SyntaxKind.KeyKeyword, 1, 0)
                     Return CreateAdjustSpacesOperation(space, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End Select
 
@@ -278,12 +278,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             ' ) *
             ' . *
             ' := *
-            Select Case previousToken.VBKind
+            Select Case previousToken.Kind
                 Case SyntaxKind.OpenBraceToken, SyntaxKind.OpenParenToken, SyntaxKind.DotToken, SyntaxKind.ColonEqualsToken
                     Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
 
                 Case SyntaxKind.CloseParenToken
-                    Dim space = If(previousToken.VBKind = currentToken.VBKind, 0, 1)
+                    Dim space = If(previousToken.Kind = currentToken.Kind, 0, 1)
                     Return CreateAdjustSpacesOperation(space, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End Select
 
@@ -294,32 +294,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
 
             If IsExclamationInDictionaryAccess(currentToken) Then
                 If Not currentToken.TrailingTrivia.Any(SyntaxKind.LineContinuationTrivia) AndAlso
-                   previousToken.VBKind <> SyntaxKind.WithKeyword AndAlso
-                   previousToken.VBKind <> SyntaxKind.EqualsToken Then
+                   previousToken.Kind <> SyntaxKind.WithKeyword AndAlso
+                   previousToken.Kind <> SyntaxKind.EqualsToken Then
                     Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
                 End If
             End If
 
             ' * </
-            If currentToken.VBKind = SyntaxKind.LessThanSlashToken AndAlso
+            If currentToken.Kind = SyntaxKind.LessThanSlashToken AndAlso
                FormattingHelpers.IsXmlToken(previousToken) Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
             ' * />
-            If currentToken.VBKind = SyntaxKind.SlashGreaterThanToken Then
+            If currentToken.Kind = SyntaxKind.SlashGreaterThanToken Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
             ' * > in xml literal
-            If (currentToken.VBKind = SyntaxKind.GreaterThanToken AndAlso
+            If (currentToken.Kind = SyntaxKind.GreaterThanToken AndAlso
                 FormattingHelpers.IsXmlToken(currentToken)) Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
             ' +1 or -1
-            If (previousToken.VBKind = SyntaxKind.PlusToken OrElse
-                previousToken.VBKind = SyntaxKind.MinusToken) AndAlso
+            If (previousToken.Kind = SyntaxKind.PlusToken OrElse
+                previousToken.Kind = SyntaxKind.MinusToken) AndAlso
                 TypeOf previousToken.Parent Is UnaryExpressionSyntax Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
@@ -334,13 +334,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
-            If previousToken.VBKind = SyntaxKind.EmptyToken OrElse currentToken.VBKind = SyntaxKind.EmptyToken Then
+            If previousToken.Kind = SyntaxKind.EmptyToken OrElse currentToken.Kind = SyntaxKind.EmptyToken Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.PreserveSpaces)
             End If
 
             ' Else If
-            If previousToken.VBKind = SyntaxKind.ElseKeyword AndAlso
-               currentToken.VBKind = SyntaxKind.IfKeyword AndAlso
+            If previousToken.Kind = SyntaxKind.ElseKeyword AndAlso
+               currentToken.Kind = SyntaxKind.IfKeyword AndAlso
                previousToken.Parent Is currentToken.Parent Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
@@ -349,7 +349,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             Dim labelStatement = TryCast(previousToken.Parent, LabelStatementSyntax)
             If labelStatement IsNot Nothing AndAlso
                labelStatement.LabelToken = previousToken AndAlso
-               currentToken.VBKind = SyntaxKind.ColonToken Then
+               currentToken.Kind = SyntaxKind.ColonToken Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 

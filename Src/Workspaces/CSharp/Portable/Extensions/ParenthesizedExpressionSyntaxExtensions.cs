@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     // If both the expression and its parent are binary expressions and their kinds
                     // are the same, check to see if they are commutative (e.g. + or *).
                     if (parentBinaryExpression.IsKind(SyntaxKind.AddExpression, SyntaxKind.MultiplyExpression) &&
-                        node.Expression.CSharpKind() == parentBinaryExpression.CSharpKind())
+                        node.Expression.Kind() == parentBinaryExpression.Kind())
                     {
                         return false;
                     }

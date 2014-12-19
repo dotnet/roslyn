@@ -686,7 +686,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             public override void VisitToken(SyntaxToken token)
             {
-                if (token.CSharpKind() != SyntaxKind.None)
+                if (!token.IsKind(SyntaxKind.None))
                 {
                     this.NodeOrTokens.Add(token);
                 }
@@ -696,7 +696,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             public override void VisitTrivia(SyntaxTrivia trivia)
             {
-                if (trivia.CSharpKind() != SyntaxKind.None)
+                if (!trivia.IsKind(SyntaxKind.None))
                 {
                     this.Trivia.Add(trivia);
                 }
@@ -727,7 +727,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             public override SyntaxToken VisitToken(SyntaxToken token)
             {
-                if (token.CSharpKind() == SyntaxKind.None)
+                if (token.IsKind(SyntaxKind.None))
                 {
                     return token;
                 }
@@ -737,7 +737,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             public override SyntaxTrivia VisitTrivia(SyntaxTrivia trivia)
             {
-                if (trivia.CSharpKind() == SyntaxKind.None)
+                if (trivia.IsKind(SyntaxKind.None))
                 {
                     return trivia;
                 }
@@ -776,7 +776,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             public override SyntaxToken VisitToken(SyntaxToken token)
             {
-                if (token.CSharpKind() == SyntaxKind.None)
+                if (token.Kind() == SyntaxKind.None)
                 {
                     return token;
                 }
@@ -787,7 +787,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             public override SyntaxTrivia VisitTrivia(SyntaxTrivia trivia)
             {
-                if (trivia.CSharpKind() == SyntaxKind.None)
+                if (trivia.IsKind(SyntaxKind.None))
                 {
                     return trivia;
                 }
@@ -827,7 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             public override SyntaxToken VisitToken(SyntaxToken token)
             {
-                if (token.CSharpKind() == SyntaxKind.None)
+                if (token.IsKind(SyntaxKind.None))
                 {
                     return token;
                 }
@@ -837,7 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             public override SyntaxTrivia VisitTrivia(SyntaxTrivia trivia)
             {
-                if (trivia.CSharpKind() == SyntaxKind.None)
+                if (trivia.IsKind(SyntaxKind.None))
                 {
                     return trivia;
                 }

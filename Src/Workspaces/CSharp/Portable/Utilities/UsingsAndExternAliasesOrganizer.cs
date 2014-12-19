@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
                 var node = list[i];
                 var trailingTrivia = node.GetTrailingTrivia();
 
-                if (!trailingTrivia.Any() || trailingTrivia.Last().CSharpKind() != SyntaxKind.EndOfLineTrivia)
+                if (!trailingTrivia.Any() || trailingTrivia.Last().Kind() != SyntaxKind.EndOfLineTrivia)
                 {
                     // TODO(cyrusn): Don't use CRLF.  Use the appropriate 
                     // newline for this file.
@@ -90,10 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             for (int i = 1; i < list.Count; i++)
             {
                 var node = list[i];
-                list[i] = node.WithLeadingTrivia(node.GetLeadingTrivia().SkipWhile(t => t.CSharpKind() == SyntaxKind.EndOfLineTrivia));
+                list[i] = node.WithLeadingTrivia(node.GetLeadingTrivia().SkipWhile(t => t.Kind() == SyntaxKind.EndOfLineTrivia));
             }
 
-            list[0] = list[0].WithLeadingTrivia(list[0].GetLeadingTrivia().SkipWhile(t => t.CSharpKind() == SyntaxKind.EndOfLineTrivia));
+            list[0] = list[0].WithLeadingTrivia(list[0].GetLeadingTrivia().SkipWhile(t => t.Kind() == SyntaxKind.EndOfLineTrivia));
         }
     }
 }

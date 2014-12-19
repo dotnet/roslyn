@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             get
             {
-                return this.Type == null && this.Identifier.CSharpContextualKind() == SyntaxKind.ArgListKeyword;
+                return this.Type == null && this.Identifier.ContextualKind() == SyntaxKind.ArgListKeyword;
             }
         }
     }

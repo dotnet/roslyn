@@ -292,8 +292,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             ' Select is the only keyword in LINQ which has dual usage 1. Case selection 2. Query Select Clause
             If isNodeCloseParenLastTokenOfStatement AndAlso
                 EndsQuery(lastToken, semanticModel, cancellationToken) AndAlso
-                nextToken.VBKind = SyntaxKind.SelectKeyword AndAlso
-                nextNextToken.VBKind <> SyntaxKind.CaseKeyword Then
+                nextToken.Kind = SyntaxKind.SelectKeyword AndAlso
+                nextNextToken.Kind <> SyntaxKind.CaseKeyword Then
                 Return False
             End If
 
@@ -301,7 +301,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             ' (Await Task.Run(Function() i)),
             If node.Expression.IsKind(SyntaxKind.AwaitExpression) AndAlso
                 (isNodeCloseParenLastTokenOfStatement OrElse
-                nextToken.VBKind = SyntaxKind.CommaToken) Then
+                nextToken.Kind = SyntaxKind.CommaToken) Then
                 Return True
             End If
 
@@ -343,7 +343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                             ' If both the expression and it's parent are binary expressions and their kinds
                             ' are the same, check to see if they are commutative (e.g. + or *).
                             If parentBinaryExpression.IsKind(SyntaxKind.AddExpression, SyntaxKind.MultiplyExpression) AndAlso
-                               expression.VBKind = parentExpression.VBKind Then
+                               expression.Kind = parentExpression.Kind Then
 
                                 Return True
                             End If
@@ -364,7 +364,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             '   Dim x = <x <%= (Sub() If True Then Else) %>/>
             If TypeOf expression Is SingleLineLambdaExpressionSyntax Then
                 If node.CloseParenToken.IsLastTokenOfStatementWithEndOfLine() AndAlso
-                    lastToken.VBKind = SyntaxKind.ThenKeyword Then
+                    lastToken.Kind = SyntaxKind.ThenKeyword Then
                     Return False
                 End If
 
@@ -373,7 +373,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     If EndsQuery(lastToken, semanticModel, cancellationToken) OrElse EndsVariableDeclarator(lastToken) OrElse
                             (EndsLambda(lastToken) AndAlso
                             Not previousToken.IsKindOrHasMatchingText(SyntaxKind.OpenParenToken) AndAlso
-                            lastStatement IsNot Nothing AndAlso lastStatement.VBKind = SyntaxKind.ReDimStatement) Then
+                            lastStatement IsNot Nothing AndAlso lastStatement.Kind = SyntaxKind.ReDimStatement) Then
                         Return False
                     End If
 
@@ -397,10 +397,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 '                                End Sub) Is Object
                 ' 4. TypeOf (Sub() If True Then Dim y = Sub()
                 '                                End Sub) IsNot Object
-                If (node.Parent.VBKind = SyntaxKind.InvocationExpression OrElse
-                        node.Parent.VBKind = SyntaxKind.IsExpression OrElse
-                        node.Parent.VBKind = SyntaxKind.TypeOfIsExpression OrElse
-                        node.Parent.VBKind = SyntaxKind.TypeOfIsNotExpression) Then
+                If (node.Parent.Kind = SyntaxKind.InvocationExpression OrElse
+                        node.Parent.Kind = SyntaxKind.IsExpression OrElse
+                        node.Parent.Kind = SyntaxKind.TypeOfIsExpression OrElse
+                        node.Parent.Kind = SyntaxKind.TypeOfIsNotExpression) Then
                     Return False
                 End If
 
@@ -410,7 +410,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 If nextToken.IsKindOrHasMatchingText(SyntaxKind.CloseParenToken) OrElse
                        nextToken.IsKindOrHasMatchingText(SyntaxKind.CloseBraceToken) OrElse
                        lastToken.IsLastTokenOfStatement(checkColonTrivia:=True) OrElse
-                       node.Parent.VBKind = SyntaxKind.XmlEmbeddedExpression Then
+                       node.Parent.Kind = SyntaxKind.XmlEmbeddedExpression Then
                     Return True
                 End If
 
@@ -478,7 +478,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             ' case:
             ' 1. (!b) => !b
-            If expression.VBKind = SyntaxKind.DictionaryAccessExpression AndAlso
+            If expression.Kind = SyntaxKind.DictionaryAccessExpression AndAlso
                 node.CloseParenToken.IsLastTokenOfStatement() Then
                 Return True
             End If

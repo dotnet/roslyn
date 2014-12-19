@@ -132,7 +132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Property
 
                 Public Overrides Sub DefaultVisit(node As SyntaxNode)
-                    Dim kind As SyntaxKind = node.VBKind()
+                    Dim kind As SyntaxKind = node.Kind()
 
                     If kind = SyntaxKind.XmlCrefAttribute Then
                         Dim crefAttr = DirectCast(node, XmlCrefAttributeSyntax)

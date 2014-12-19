@@ -1896,8 +1896,8 @@ End Module
         Dim stmt1 = main.ChildNodesAndTokens()(1)
         Dim stmt2 = main.ChildNodesAndTokens()(2)
         Dim colon = stmt1.ChildNodesAndTokens().LastOrDefault().GetTrailingTrivia().Last
-        Assert.Equal(colon.VBKind, SyntaxKind.ColonTrivia)
-        Assert.Equal(stmt2.VBKind(), SyntaxKind.ExpressionStatement)
+        Assert.Equal(colon.Kind, SyntaxKind.ColonTrivia)
+        Assert.Equal(stmt2.Kind(), SyntaxKind.ExpressionStatement)
         Assert.Equal(SyntaxKind.InvocationExpression, DirectCast(stmt2.AsNode, ExpressionStatementSyntax).Expression.Kind)
 
         Dim exprStmt = TryCast(stmt2.AsNode, ExpressionStatementSyntax)

@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             For index = 0 To modifierList.Count - 1
                 Dim token As SyntaxToken = modifierList(index)
 
-                Select Case token.VBKind
+                Select Case token.Kind
                     Case SyntaxKind.PublicKeyword,
                          SyntaxKind.MustOverrideKeyword,
                          SyntaxKind.NotOverridableKeyword,
@@ -159,13 +159,13 @@ lReportErrorOnSingleToken:
                         ' Report [Partial methods must be declared 'Private' instead of '...']
                         binder.ReportDiagnostic(diagBag, token,
                                                 ERRID.ERR_OnlyPrivatePartialMethods1,
-                                                SyntaxFacts.GetText(token.VBKind))
+                                                SyntaxFacts.GetText(token.Kind))
                         reportPartialMethodsMustBePrivate = False
 
                     Case SyntaxKind.ProtectedKeyword
 
                         ' Check for 'Protected Friend'
-                        If index >= modifierList.Count - 1 OrElse modifierList(index + 1).VBKind <> SyntaxKind.FriendKeyword Then
+                        If index >= modifierList.Count - 1 OrElse modifierList(index + 1).Kind <> SyntaxKind.FriendKeyword Then
                             GoTo lReportErrorOnSingleToken
                         End If
 
@@ -179,14 +179,14 @@ lReportErrorOnTwoTokens:
                         ' Report [Partial methods must be declared 'Private' instead of '...']
                         binder.ReportDiagnostic(diagBag, location,
                                                 ERRID.ERR_OnlyPrivatePartialMethods1,
-                                                token.VBKind.GetText() & " " & nextToken.VBKind.GetText())
+                                                token.Kind.GetText() & " " & nextToken.Kind.GetText())
 
                         reportPartialMethodsMustBePrivate = False
 
                     Case SyntaxKind.FriendKeyword
 
                         ' Check for 'Friend Protected'
-                        If index >= modifierList.Count - 1 OrElse modifierList(index + 1).VBKind <> SyntaxKind.ProtectedKeyword Then
+                        If index >= modifierList.Count - 1 OrElse modifierList(index + 1).Kind <> SyntaxKind.ProtectedKeyword Then
                             GoTo lReportErrorOnSingleToken
                         End If
 
@@ -203,7 +203,7 @@ lReportErrorOnTwoTokens:
 
             If reportPartialMethodsMustBePrivate Then
                 ' Report [Partial methods must be declared 'Private']
-                Debug.Assert(partialToken.VBKind = SyntaxKind.PartialKeyword)
+                Debug.Assert(partialToken.Kind = SyntaxKind.PartialKeyword)
                 binder.ReportDiagnostic(diagBag, partialToken, ERRID.ERR_PartialMethodsMustBePrivate)
             End If
         End Sub
@@ -226,15 +226,15 @@ lReportErrorOnTwoTokens:
             ' modifiers: Protected and Overloads in Modules and Structures:
             If container.TypeKind = TypeKind.Module Then
                 If (methodModifiers.FoundFlags And SourceMemberFlags.Overloads) <> 0 Then
-                    Dim keyword = syntax.Modifiers.First(Function(m) m.VBKind = SyntaxKind.OverloadsKeyword)
+                    Dim keyword = syntax.Modifiers.First(Function(m) m.Kind = SyntaxKind.OverloadsKeyword)
                     diagBag.Add(ERRID.ERR_OverloadsModifierInModule, keyword.GetLocation(), keyword.ValueText)
                 ElseIf (methodModifiers.FoundFlags And SourceMemberFlags.Protected) <> 0 Then
-                    Dim keyword = syntax.Modifiers.First(Function(m) m.VBKind = SyntaxKind.ProtectedKeyword)
+                    Dim keyword = syntax.Modifiers.First(Function(m) m.Kind = SyntaxKind.ProtectedKeyword)
                     diagBag.Add(ERRID.ERR_ModuleCantUseDLLDeclareSpecifier1, keyword.GetLocation(), keyword.ValueText)
                 End If
             ElseIf container.TypeKind = TypeKind.Structure Then
                 If (methodModifiers.FoundFlags And SourceMemberFlags.Protected) <> 0 Then
-                    Dim keyword = syntax.Modifiers.First(Function(m) m.VBKind = SyntaxKind.ProtectedKeyword)
+                    Dim keyword = syntax.Modifiers.First(Function(m) m.Kind = SyntaxKind.ProtectedKeyword)
                     diagBag.Add(ERRID.ERR_StructCantUseDLLDeclareSpecifier1, keyword.GetLocation(), keyword.ValueText)
                 End If
             End If
@@ -281,7 +281,7 @@ lReportErrorOnTwoTokens:
 
         Private Shared Function GetPInvokeAttributes(syntax As DeclareStatementSyntax) As PInvokeAttributes
             Dim result As PInvokeAttributes
-            Select Case syntax.CharsetKeyword.VBKind
+            Select Case syntax.CharsetKeyword.Kind
                 Case SyntaxKind.None, SyntaxKind.AnsiKeyword
                     result = PInvokeAttributes.CharSetAnsi Or PInvokeAttributes.NoMangle
 
@@ -317,7 +317,7 @@ lReportErrorOnTwoTokens:
 
             Dim paramCountMismatchERRID As ERRID
 
-            Select Case syntax.OperatorToken.VBKind
+            Select Case syntax.OperatorToken.Kind
                 Case SyntaxKind.NotKeyword, SyntaxKind.IsTrueKeyword, SyntaxKind.IsFalseKeyword,
                      SyntaxKind.CTypeKeyword
                     paramCountMismatchERRID = ERRID.ERR_OneParameterRequired1
@@ -334,7 +334,7 @@ lReportErrorOnTwoTokens:
                     paramCountMismatchERRID = ERRID.ERR_TwoParametersRequired1
 
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(syntax.OperatorToken.VBKind)
+                    Throw ExceptionUtilities.UnexpectedValue(syntax.OperatorToken.Kind)
             End Select
 
             Select Case paramCountMismatchERRID
@@ -360,12 +360,12 @@ lReportErrorOnTwoTokens:
             End Select
 
             If paramCountMismatchERRID <> 0 Then
-                binder.ReportDiagnostic(diagBag, syntax.OperatorToken, paramCountMismatchERRID, SyntaxFacts.GetText(syntax.OperatorToken.VBKind))
+                binder.ReportDiagnostic(diagBag, syntax.OperatorToken, paramCountMismatchERRID, SyntaxFacts.GetText(syntax.OperatorToken.Kind))
             End If
 
             ' ERRID.ERR_OperatorDeclaredInModule is reported by the parser.
 
-            flags = flags Or If(syntax.OperatorToken.VBKind = SyntaxKind.CTypeKeyword, SourceMemberFlags.MethodKindConversion, SourceMemberFlags.MethodKindOperator)
+            flags = flags Or If(syntax.OperatorToken.Kind = SyntaxKind.CTypeKeyword, SourceMemberFlags.MethodKindConversion, SourceMemberFlags.MethodKindOperator)
 
             Return New SourceMemberMethodSymbol(
                 container, name, flags, binder, syntax, arity:=0)
@@ -477,7 +477,7 @@ lReportErrorOnTwoTokens:
             End If
 
 
-            If syntax.OperatorToken.VBKind = SyntaxKind.CTypeKeyword Then
+            If syntax.OperatorToken.Kind = SyntaxKind.CTypeKeyword Then
                 If (foundFlags And (SourceMemberFlags.Narrowing Or SourceMemberFlags.Widening)) = 0 Then
                     binder.ReportDiagnostic(diagBag, syntax.OperatorToken, ERRID.ERR_ConvMustBeWideningOrNarrowing)
                     computedFlags = computedFlags Or SourceMemberFlags.Narrowing
@@ -908,7 +908,7 @@ lReportErrorOnTwoTokens:
             binder = BinderBuilder.CreateBinderForGenericMethodDeclaration(Me, binder)
 
             ' Handle type parameter variance.
-            If syntax.VarianceKeyword.VBKind <> SyntaxKind.None Then
+            If syntax.VarianceKeyword.Kind <> SyntaxKind.None Then
                 Binder.ReportDiagnostic(diagnostics, syntax.VarianceKeyword, ERRID.ERR_VarianceDisallowedHere)
             End If
 
@@ -933,7 +933,7 @@ lReportErrorOnTwoTokens:
                 Case SyntaxKind.OperatorStatement
                     Dim operatorStatement = DirectCast(node, OperatorStatementSyntax)
 
-                    Select Case operatorStatement.OperatorToken.VBKind
+                    Select Case operatorStatement.OperatorToken.Kind
                         Case SyntaxKind.NotKeyword
                             Return WellKnownMemberNames.OnesComplementOperatorName
 
@@ -1026,7 +1026,7 @@ lReportErrorOnTwoTokens:
                             Return WellKnownMemberNames.ExplicitConversionName
 
                         Case Else
-                            Throw ExceptionUtilities.UnexpectedValue(operatorStatement.OperatorToken.VBKind)
+                            Throw ExceptionUtilities.UnexpectedValue(operatorStatement.OperatorToken.Kind)
                     End Select
 
                 Case SyntaxKind.SubNewStatement
@@ -1035,7 +1035,7 @@ lReportErrorOnTwoTokens:
                     ' to duplicate some of the logic just to determine if it is shared.
                     Dim isShared As Boolean = False
                     For Each tok In node.Modifiers
-                        If tok.VBKind = SyntaxKind.SharedKeyword Then
+                        If tok.Kind = SyntaxKind.SharedKeyword Then
                             isShared = True
                         End If
                     Next

@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.EndOfFileToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.Equal(text, token.ToFullString());
             Assert.Equal(text.Length, token.FullWidth);
             var errors = token.Errors();
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var trivia = token.LeadingTrivia.ToArray();
             Assert.Equal(1, trivia.Length);
             Assert.NotNull(trivia[0]);
-            Assert.Equal(SyntaxKind.SingleLineCommentTrivia, trivia[0].CSharpKind());
+            Assert.Equal(SyntaxKind.SingleLineCommentTrivia, trivia[0].Kind());
         }
 
         [Fact]
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.EndOfFileToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.Equal(text, token.ToFullString());
             Assert.Equal(text.Length, token.FullWidth);
             var errors = token.Errors();
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var trivia = token.LeadingTrivia.ToArray();
             Assert.Equal(1, trivia.Length);
             Assert.NotNull(trivia[0]);
-            Assert.Equal(SyntaxKind.SingleLineCommentTrivia, trivia[0].CSharpKind());
+            Assert.Equal(SyntaxKind.SingleLineCommentTrivia, trivia[0].Kind());
         }
 
         [Fact]
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.EndOfFileToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.Equal(text, token.ToFullString());
             Assert.Equal(text.Length, token.FullWidth);
             var errors = token.Errors();
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var trivia = token.LeadingTrivia.ToArray();
             Assert.Equal(1, trivia.Length);
             Assert.NotNull(trivia[0]);
-            Assert.Equal(SyntaxKind.SingleLineDocumentationCommentTrivia, trivia[0].CSharpKind());
+            Assert.Equal(SyntaxKind.SingleLineDocumentationCommentTrivia, trivia[0].Kind());
         }
 
         [WorkItem(537500, "DevDiv")]
@@ -127,14 +127,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string text = "////test";
             var token = LexToken(text);
 
-            Assert.Equal(SyntaxKind.EndOfFileToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.Equal(text, token.ToFullString());
             Assert.False(token.ContainsDiagnostics);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
 
             var trivia = token.LeadingTrivia.Single();
-            Assert.Equal(SyntaxKind.SingleLineCommentTrivia, trivia.CSharpKind());
+            Assert.Equal(SyntaxKind.SingleLineCommentTrivia, trivia.Kind());
             Assert.Equal(text, trivia.ToFullString());
             Assert.Equal(text, trivia.ToString());
             Assert.False(trivia.ContainsDiagnostics);
@@ -149,14 +149,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.EndOfFileToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.Equal(text, token.ToFullString());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             var trivia = token.GetLeadingTrivia().ToArray();
             Assert.Equal(1, trivia.Length);
             Assert.NotNull(trivia[0]);
-            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].CSharpKind());
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
         }
 
         [Fact]
@@ -171,14 +171,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.EndOfFileToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.Equal(text, token.ToFullString());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             var trivia = token.GetLeadingTrivia().ToArray();
             Assert.Equal(1, trivia.Length);
             Assert.NotNull(trivia[0]);
-            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].CSharpKind());
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
         }
 
         [Fact]
@@ -193,14 +193,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.EndOfFileToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.Equal(text, token.ToFullString());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             var trivia = token.GetLeadingTrivia().ToArray();
             Assert.Equal(1, trivia.Length);
             Assert.NotNull(trivia[0]);
-            Assert.Equal(SyntaxKind.MultiLineDocumentationCommentTrivia, trivia[0].CSharpKind());
+            Assert.Equal(SyntaxKind.MultiLineDocumentationCommentTrivia, trivia[0].Kind());
         }
 
         [Fact]
@@ -211,14 +211,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.EndOfFileToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.Equal(text, token.ToFullString());
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
             var trivia = token.GetLeadingTrivia().ToArray();
             Assert.Equal(1, trivia.Length);
             Assert.NotNull(trivia[0]);
-            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].CSharpKind());
+            Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
             errors = trivia[0].Errors();
             Assert.Equal(1, errors.Length);
         }
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.EndOfFileToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.Equal(text, token.ToFullString());
             Assert.Equal(text.Length, token.FullWidth);
             var errors = token.Errors();
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var trivia = token.LeadingTrivia.ToArray();
             Assert.Equal(1, trivia.Length);
             Assert.NotNull(trivia[0]);
-            Assert.Equal(SyntaxKind.SingleLineCommentTrivia, trivia[0].CSharpKind());
+            Assert.Equal(SyntaxKind.SingleLineCommentTrivia, trivia[0].Kind());
         }
 
         [Fact]
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -424,7 +424,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -458,7 +458,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.ToFullString());
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     var token = LexToken(text);
 
                     Assert.NotNull(token);
-                    Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+                    Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
                     Assert.Equal(text, token.Text);
                     var errors = token.Errors();
                     Assert.Equal(0, errors.Length);
@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(System.Globalization.UnicodeCategory.UppercaseLetter, Char.GetUnicodeCategory(text[0]));
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -521,7 +521,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     var token = LexToken(text);
 
                     Assert.NotNull(token);
-                    Assert.True(SyntaxFacts.IsReservedKeyword(token.CSharpKind()));
+                    Assert.True(SyntaxFacts.IsReservedKeyword(token.Kind()));
                     Assert.Equal(text, token.Text);
                     var errors = token.Errors();
                     Assert.Equal(0, errors.Length);
@@ -599,7 +599,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = SyntaxFacts.GetText(kind);
             var token = LexToken(text);
             Assert.NotNull(token);
-            Assert.Equal(kind, token.CSharpKind());
+            Assert.Equal(kind, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -614,7 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.StringLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -629,7 +629,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.StringLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -644,7 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.StringLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -659,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.StringLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -674,7 +674,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.StringLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
             Assert.NotEqual(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
@@ -690,7 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.StringLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
@@ -706,7 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.StringLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
@@ -723,7 +723,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.StringLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -739,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.StringLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -755,7 +755,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.StringLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -771,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.StringLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
@@ -788,7 +788,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -804,7 +804,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -820,7 +820,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -836,7 +836,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -852,7 +852,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -868,7 +868,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -884,7 +884,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -900,7 +900,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -916,7 +916,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -932,7 +932,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
@@ -948,7 +948,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -964,7 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -980,7 +980,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -996,7 +996,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -1012,7 +1012,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -1028,7 +1028,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
@@ -1044,7 +1044,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
@@ -1061,7 +1061,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
@@ -1078,7 +1078,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal("'a", token.Text);
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
@@ -1094,7 +1094,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal("'", token.Text);
             var errors = token.Errors();
             Assert.Equal(2, errors.Length);
@@ -1112,7 +1112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal("'ab", token.Text);
             var errors = token.Errors();
             Assert.Equal(2, errors.Length);
@@ -1132,7 +1132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal("'\uFFFF'", token.Text);
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
@@ -1147,7 +1147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.BadToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.BadToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_UnexpectedCharacter, errors[0].Code);
@@ -1162,7 +1162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.BadToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.BadToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_ExpectedVerbatimLiteral, errors[0].Code);
@@ -1177,7 +1177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.BadToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.BadToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_ExpectedVerbatimLiteral, errors[0].Code);
@@ -1194,7 +1194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1210,7 +1210,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1226,7 +1226,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1242,7 +1242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1256,7 +1256,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1271,7 +1271,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1285,7 +1285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_FloatOverflow, errors[0].Code);
@@ -1300,7 +1300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_FloatOverflow, errors[0].Code);
@@ -1315,7 +1315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_FloatOverflow, errors[0].Code);
@@ -1330,7 +1330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_FloatOverflow, errors[0].Code);
@@ -1345,7 +1345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_FloatOverflow, errors[0].Code);
@@ -1360,7 +1360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             decimal d;
             if (decimal.TryParse("0E1", System.Globalization.NumberStyles.AllowExponent, null, out d))
@@ -1383,7 +1383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_FloatOverflow, errors[0].Code);
@@ -1398,7 +1398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1413,7 +1413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_FloatOverflow, errors[0].Code);
@@ -1428,7 +1428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1443,7 +1443,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1459,7 +1459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1475,7 +1475,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1491,7 +1491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1507,7 +1507,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1523,7 +1523,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1539,7 +1539,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1555,7 +1555,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1571,7 +1571,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1587,7 +1587,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1603,7 +1603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1619,7 +1619,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1635,7 +1635,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1651,7 +1651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1667,7 +1667,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1683,7 +1683,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.ErrorsAndWarnings();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.WRN_LowercaseEllSuffix, errors[0].Code);
@@ -1700,7 +1700,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1716,7 +1716,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1726,7 +1726,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1742,7 +1742,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1752,7 +1752,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1768,7 +1768,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1778,7 +1778,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1794,7 +1794,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1804,7 +1804,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1820,7 +1820,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1830,7 +1830,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1846,7 +1846,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1856,7 +1856,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             token = LexToken(text);
             errors = token.Errors();
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1871,7 +1871,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1882,7 +1882,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             errors = token.Errors();
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1897,7 +1897,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1908,7 +1908,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             errors = token.Errors();
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1922,7 +1922,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1937,7 +1937,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1953,7 +1953,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1969,7 +1969,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -1985,7 +1985,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -2000,7 +2000,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_IntOverflow, errors[0].Code);
@@ -2015,7 +2015,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -2030,7 +2030,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -2045,7 +2045,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -2060,7 +2060,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_IntOverflow, errors[0].Code);
@@ -2076,7 +2076,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -2092,7 +2092,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -2108,7 +2108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -2124,7 +2124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -2140,7 +2140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -2156,7 +2156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -2172,7 +2172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -2188,7 +2188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -2204,7 +2204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -2220,7 +2220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal("3", token.Text);
@@ -2236,7 +2236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -2252,7 +2252,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -2268,7 +2268,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -2289,7 +2289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = DebuggerLexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -2300,7 +2300,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             errors = token.Errors();
             
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(text, token.Value);
@@ -2310,7 +2310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             errors = token.Errors();
             
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(0, errors.Length);
             Assert.Equal(text.Substring(0, text.Length - 1), token.Text);
             Assert.Equal(text.Substring(0, text.Length - 1), token.Value);
@@ -2320,7 +2320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             errors = token.Errors();
             
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(0, errors.Length);
             Assert.Equal(text.Substring(0, text.Length - 1), token.Text);
             Assert.Equal(text.Substring(0, text.Length - 1), token.Value);
@@ -2330,7 +2330,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             errors = token.Errors();
             
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.NotEqual(text, token.Value);
@@ -2341,7 +2341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             errors = token.Errors();
             
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.LessThanToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.LessThanToken, token.Kind());
             Assert.Equal(0, errors.Length);
             Assert.Equal("<", token.Text);
 
@@ -2350,7 +2350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             errors = token.Errors();
             
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.LessThanLessThanToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.LessThanLessThanToken, token.Kind());
             Assert.Equal(0, errors.Length);
             Assert.Equal("<<", token.Text);
         }
@@ -2362,7 +2362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = DebuggerLexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
@@ -2373,7 +2373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             errors = token.Errors();
             
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(text, token.Value);
@@ -2383,7 +2383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             errors = token.Errors();
             
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(0, errors.Length);
             Assert.Equal(text.Substring(0, text.Length - 1), token.Text);
             Assert.Equal(text.Substring(0, text.Length - 1), token.Value);
@@ -2393,61 +2393,61 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDebuggerObjectAddressIdentifiers()
         {
             var token = LexToken("@0x0");
-            Assert.Equal(SyntaxKind.BadToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.BadToken, token.Kind());
             VerifyError(token, ErrorCode.ERR_ExpectedVerbatimLiteral);
             Assert.Equal("@", token.Text);
             Assert.Equal("@", token.Value);
 
             token = DebuggerLexToken("@0x0");
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             VerifyNoErrors(token);
             Assert.Equal("@0x0", token.Text);
             Assert.Equal("0x0", token.Value);
 
             token = DebuggerLexToken("@0X012345678");
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             VerifyNoErrors(token);
             Assert.Equal("@0X012345678", token.Text);
             Assert.Equal("0X012345678", token.Value);
 
             token = DebuggerLexToken("@0x9abcdefA");
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             VerifyNoErrors(token);
             Assert.Equal("@0x9abcdefA", token.Text);
             Assert.Equal("0x9abcdefA", token.Value);
 
             token = DebuggerLexToken("@0xBCDEF");
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             VerifyNoErrors(token);
             Assert.Equal("@0xBCDEF", token.Text);
             Assert.Equal("0xBCDEF", token.Value);
 
             token = DebuggerLexToken("@0x");
-            Assert.Equal(SyntaxKind.BadToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.BadToken, token.Kind());
             VerifyError(token, ErrorCode.ERR_ExpectedVerbatimLiteral);
             Assert.Equal("@", token.Text);
             Assert.Equal("@", token.Value);
 
             token = LexToken("@0b1c2d3e4f");
-            Assert.Equal(SyntaxKind.BadToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.BadToken, token.Kind());
             VerifyError(token, ErrorCode.ERR_ExpectedVerbatimLiteral);
             Assert.Equal("@", token.Text);
             Assert.Equal("@", token.Value);
 
             token = DebuggerLexToken("@0b1c2d3e4f");
-            Assert.Equal(SyntaxKind.BadToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.BadToken, token.Kind());
             VerifyError(token, ErrorCode.ERR_ExpectedVerbatimLiteral);
             Assert.Equal("@", token.Text);
             Assert.Equal("@", token.Value);
 
             token = DebuggerLexToken("@0x12u");
-            Assert.Equal(SyntaxKind.BadToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.BadToken, token.Kind());
             VerifyError(token, ErrorCode.ERR_ExpectedVerbatimLiteral);
             Assert.Equal("@", token.Text);
             Assert.Equal("@", token.Value);
 
             token = DebuggerLexToken("@0xffff0000ffff0000ffff0000");
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             VerifyError(token, ErrorCode.ERR_IntOverflow);
             Assert.Equal("@0xffff0000ffff0000ffff0000", token.Text);
             Assert.Equal("0xffff0000ffff0000ffff0000", token.Value);
@@ -2464,7 +2464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = DebuggerLexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_LegacyObjectIdSyntax, errors[0].Code);
@@ -2477,7 +2477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             errors = token.Errors();
             
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(1, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(text, token.Value);
@@ -2487,7 +2487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             errors = token.Errors();
             
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             Assert.Equal(1, errors.Length);
             Assert.Equal(text.Substring(0, text.Length - 1), token.Text);
             Assert.Equal(0x123, token.Value);
@@ -2497,7 +2497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             errors = token.Errors();
             
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             Assert.Equal(1, errors.Length);
             Assert.Equal(text.Substring(0, text.Length - 1), token.Text);
             Assert.Equal(123L, token.Value);
@@ -2508,7 +2508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             errors = token.Errors();
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal("$123", token.Value);
@@ -2521,36 +2521,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal("token", token.Text);
             Assert.True(token.HasLeadingTrivia);
             var leading = token.GetLeadingTrivia();
             Assert.Equal(1, leading.Count);
-            Assert.Equal(SyntaxKind.WhitespaceTrivia, leading[0].CSharpKind());
+            Assert.Equal(SyntaxKind.WhitespaceTrivia, leading[0].Kind());
             Assert.Equal(" \t\v\f\u00A0", leading[0].ToString());
 
             Assert.True(token.HasTrailingTrivia);
             var trailing = token.GetTrailingTrivia();
             Assert.Equal(1, trailing.Count);
-            Assert.Equal(SyntaxKind.WhitespaceTrivia, trailing[0].CSharpKind());
+            Assert.Equal(SyntaxKind.WhitespaceTrivia, trailing[0].Kind());
             Assert.Equal("\u00A0\f\v\t ", trailing[0].ToString());
 
             text = "\u001Atoken\u001A";
             token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal("token", token.Text);
             Assert.True(token.HasLeadingTrivia);
             leading = token.GetLeadingTrivia();
             Assert.Equal(1, leading.Count);
-            Assert.Equal(SyntaxKind.WhitespaceTrivia, leading[0].CSharpKind());
+            Assert.Equal(SyntaxKind.WhitespaceTrivia, leading[0].Kind());
             Assert.Equal("\u001A", leading[0].ToString());
 
             Assert.True(token.HasTrailingTrivia);
             trailing = token.GetTrailingTrivia();
             Assert.Equal(1, trailing.Count);
-            Assert.Equal(SyntaxKind.WhitespaceTrivia, trailing[0].CSharpKind());
+            Assert.Equal(SyntaxKind.WhitespaceTrivia, trailing[0].Kind());
             Assert.Equal("\u001A", trailing[0].ToString());
 
             // BOM is special. It is both whitespace and an identifier character.
@@ -2559,19 +2559,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             token = LexToken(text);
 
             Assert.NotNull(token);
-            Assert.Equal(SyntaxKind.IdentifierToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal("to\uFEFFken\uFEFF", token.Text);
             Assert.Equal("token", token.Value);
             Assert.True(token.HasLeadingTrivia);
             leading = token.GetLeadingTrivia();
             Assert.Equal(1, leading.Count);
-            Assert.Equal(SyntaxKind.WhitespaceTrivia, leading[0].CSharpKind());
+            Assert.Equal(SyntaxKind.WhitespaceTrivia, leading[0].Kind());
             Assert.Equal("\uFEFF", leading[0].ToString());
 
             Assert.True(token.HasTrailingTrivia);
             trailing = token.GetTrailingTrivia();
             Assert.Equal(1, trailing.Count);
-            Assert.Equal(SyntaxKind.WhitespaceTrivia, trailing[0].CSharpKind());
+            Assert.Equal(SyntaxKind.WhitespaceTrivia, trailing[0].Kind());
             Assert.Equal(" \uFEFF", trailing[0].ToString());
         }
 
@@ -2683,7 +2683,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private void AssertBadDecimalLiteral(string text)
         {
             var token = LexToken(text);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var error = token.Errors().Single();
             Assert.Equal((int)ErrorCode.ERR_FloatOverflow, error.Code);
         }
@@ -2691,7 +2691,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private void AssertGoodDecimalLiteral(string text, string expectedBits)
         {
             var token = LexToken(text);
-            Assert.Equal(SyntaxKind.NumericLiteralToken, token.CSharpKind());
+            Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             Assert.Equal(0, token.Errors().Length);
             Assert.Equal(expectedBits, ToHexString((decimal)token.Value));
         }

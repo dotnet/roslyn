@@ -1692,7 +1692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArgumentSyntax argumentSyntax,
             bool allowArglist)
         {
-            RefKind refKind = argumentSyntax.RefOrOutKeyword.CSharpKind().GetRefKind();
+            RefKind refKind = argumentSyntax.RefOrOutKeyword.Kind().GetRefKind();
 
             hadError |= BindArgumentAndName(
                 result,
@@ -4400,7 +4400,7 @@ notColorColor:
             // No member accesses on void
             if ((object)leftType != null && leftType.SpecialType == SpecialType.System_Void)
             {
-                DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.CSharpKind()), leftType);
+                DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.Kind()), leftType);
                 diagnostics.Add(new CSDiagnostic(diagnosticInfo, operatorToken.GetLocation()));
                 return BadExpression(node, boundLeft);
             }
@@ -4410,7 +4410,7 @@ notColorColor:
                 Debug.Assert((object)leftType == null);
 
                 var msgId = ((UnboundLambda)boundLeft).MessageID;
-                DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.CSharpKind()), msgId.Localize());
+                DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.Kind()), msgId.Localize());
                 diagnostics.Add(new CSDiagnostic(diagnosticInfo, node.Location));
                 return BadExpression(node, boundLeft);
             }
@@ -6250,7 +6250,7 @@ notColorColor:
             var operatorToken = node.OperatorToken;
             // TODO: need a special ERR for this.
             //       conditional access is not really a binary operator.
-            DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.CSharpKind()), access.Display);
+            DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.Kind()), access.Display);
             diagnostics.Add(new CSDiagnostic(diagnosticInfo, operatorToken.GetLocation()));
             access = BadExpression(access.Syntax, access);
 
@@ -6279,7 +6279,7 @@ notColorColor:
             Debug.Assert(node.Expression != null);
 
             var receiver = node.Expression;
-            while (receiver.CSharpKind() == SyntaxKind.ParenthesizedExpression)
+            while (receiver.IsKind(SyntaxKind.ParenthesizedExpression))
             {
                 receiver = ((ParenthesizedExpressionSyntax)receiver).Expression;
                 Debug.Assert(receiver != null);
@@ -6334,7 +6334,7 @@ notColorColor:
             if (receiver.Kind == BoundKind.UnboundLambda)
             {
                 var msgId = ((UnboundLambda)receiver).MessageID;
-                DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.CSharpKind()), msgId.Localize());
+                DiagnosticInfo diagnosticInfo = new CSDiagnosticInfo(ErrorCode.ERR_BadUnaryOp, SyntaxFacts.GetText(operatorToken.Kind()), msgId.Localize());
                 diagnostics.Add(new CSDiagnostic(diagnosticInfo, node.Location));
                 return BadExpression(receiverSyntax, receiver);
             }

@@ -316,7 +316,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim triviaToMoveCnt = triviaToMove.Count
 
             For Each trivia In triviaToMove
-                If trivia.VBKind = SyntaxKind.WhitespaceTrivia Then
+                If trivia.Kind = SyntaxKind.WhitespaceTrivia Then
                     triviaToMoveCnt -= 1
                 Else
                     Exit For

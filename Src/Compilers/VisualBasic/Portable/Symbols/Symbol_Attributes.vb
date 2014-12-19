@@ -371,7 +371,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Parser ensures that an error is reported for anything other than "assembly" or
             ' "module". Only assembly and module keywords can get here.
-            Select Case targetOpt.AttributeModifier.VBKind
+            Select Case targetOpt.AttributeModifier.Kind
                 Case SyntaxKind.AssemblyKeyword
                     explicitTarget = AttributeLocation.Assembly
 
@@ -379,7 +379,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     explicitTarget = AttributeLocation.Module
 
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(targetOpt.AttributeModifier.VBKind)
+                    Throw ExceptionUtilities.UnexpectedValue(targetOpt.AttributeModifier.Kind)
             End Select
 
             If symbolPart = 0 Then

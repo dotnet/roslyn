@@ -303,7 +303,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (location.IsInSource)
                 {
                     SyntaxToken token = (SyntaxToken)location.SourceTree.GetRoot().FindToken(location.SourceSpan.Start);
-                    if (token.CSharpKind() != SyntaxKind.None)
+                    if (token.Kind() != SyntaxKind.None)
                     {
                         CSharpSyntaxNode node = token.Parent.FirstAncestorOrSelf<TNode>();
                         if (node != null)

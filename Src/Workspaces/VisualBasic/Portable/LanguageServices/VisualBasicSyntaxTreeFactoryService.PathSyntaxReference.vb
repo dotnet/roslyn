@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Public Sub New(tree As SyntaxTree, node As SyntaxNode)
                     Me.tree = tree
-                    Me.kind = node.VBKind()
+                    Me.kind = node.Kind()
                     Me._span = node.Span
                     Me.pathFromRoot = ComputePathFromRoot(node)
                 End Sub
@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         i = i + 1
                     End While
 
-                    System.Diagnostics.Debug.Assert(node.VBKind = Me.kind)
+                    System.Diagnostics.Debug.Assert(node.Kind = Me.kind)
                     System.Diagnostics.Debug.Assert(node.Span = Me._span)
                     Return node
 

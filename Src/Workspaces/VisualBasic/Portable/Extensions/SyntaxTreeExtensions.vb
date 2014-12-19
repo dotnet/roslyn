@@ -129,7 +129,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             ' #IF false Then
             ' |$
 
-            If SyntaxTree.FindTriviaToLeft(position, cancellationToken).VBKind = SyntaxKind.DisabledTextTrivia Then
+            If SyntaxTree.FindTriviaToLeft(position, cancellationToken).Kind = SyntaxKind.DisabledTextTrivia Then
                 Return True
             End If
 
@@ -179,12 +179,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         <Extension()>
         Public Function IsRightOfDot(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
             Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
-            If token.VBKind = SyntaxKind.None Then
+            If token.Kind = SyntaxKind.None Then
                 Return False
             End If
 
             token = token.GetPreviousTokenIfTouchingWord(position)
-            Return token.VBKind = SyntaxKind.DotToken
+            Return token.Kind = SyntaxKind.DotToken
         End Function
 
         <Extension()>
@@ -195,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         <Extension()>
         Public Function IsRightOfIntegerLiteral(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
             Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
-            Return token.VBKind = SyntaxKind.IntegerLiteralToken
+            Return token.Kind = SyntaxKind.IntegerLiteralToken
         End Function
 
         <Extension()>
@@ -298,7 +298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             If trailing.Count = 1 Then
                 Dim trivia = trailing.First()
 
-                If trivia.VBKind = SyntaxKind.EndOfLineTrivia Then
+                If trivia.Kind = SyntaxKind.EndOfLineTrivia Then
                     Return token.IsLastTokenOfStatement()
                 End If
 
@@ -307,7 +307,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             ' little bit more expansive case
             For Each trivia In trailing
-                If trivia.VBKind = SyntaxKind.EndOfLineTrivia Then
+                If trivia.Kind = SyntaxKind.EndOfLineTrivia Then
                     Return token.IsLastTokenOfStatement()
                 End If
             Next
@@ -352,7 +352,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             Return statement _
                     .GetTrailingTrivia() _
-                    .FirstOrNullable(Function(t) t.VBKind = SyntaxKind.ColonTrivia)
+                    .FirstOrNullable(Function(t) t.Kind = SyntaxKind.ColonTrivia)
         End Function
 
         Private Function PartOfSingleLineLambda(node As SyntaxNode) As Boolean

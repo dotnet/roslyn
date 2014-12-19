@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shared Function ErrorInfo(id As ERRID, ByRef syntaxToken As SyntaxToken) As DiagnosticInfo
-            Return ErrorInfo(id, SyntaxFacts.GetText(syntaxToken.VBKind))
+            Return ErrorInfo(id, SyntaxFacts.GetText(syntaxToken.Kind))
         End Function
 
         Public Shared Function ErrorInfo(id As ERRID, ByRef syntaxTokenKind As SyntaxKind) As DiagnosticInfo
@@ -79,11 +79,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shared Function ErrorInfo(id As ERRID, ByRef syntaxToken As SyntaxToken, type As TypeSymbol) As DiagnosticInfo
-            Return ErrorInfo(id, SyntaxFacts.GetText(syntaxToken.VBKind), type)
+            Return ErrorInfo(id, SyntaxFacts.GetText(syntaxToken.Kind), type)
         End Function
 
         Public Shared Function ErrorInfo(id As ERRID, ByRef syntaxToken As SyntaxToken, type1 As TypeSymbol, type2 As TypeSymbol) As DiagnosticInfo
-            Return ErrorInfo(id, SyntaxFacts.GetText(syntaxToken.VBKind), type1, type2)
+            Return ErrorInfo(id, SyntaxFacts.GetText(syntaxToken.Kind), type1, type2)
         End Function
 
         Private Shared s_resourceManager As Resources.ResourceManager

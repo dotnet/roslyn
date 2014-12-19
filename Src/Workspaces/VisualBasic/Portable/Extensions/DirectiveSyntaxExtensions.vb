@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         <Extension()>
         Public Function GetStartDirectives(syntaxTree As SyntaxTree, cancellationToken As CancellationToken) As IEnumerable(Of DirectiveTriviaSyntax)
             Return GetDirectiveInfo(syntaxTree.GetRoot(cancellationToken), cancellationToken).StartEndMap.Keys.Where(
-                Function(d) d.VBKind = SyntaxKind.RegionDirectiveTrivia OrElse d.VBKind = SyntaxKind.IfDirectiveTrivia)
+                Function(d) d.Kind = SyntaxKind.RegionDirectiveTrivia OrElse d.Kind = SyntaxKind.IfDirectiveTrivia)
         End Function
 
         ''' <summary>
@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Throw New ArgumentNullException("directive")
             End If
 
-            If directive.VBKind = SyntaxKind.ElseIfDirectiveTrivia OrElse directive.VBKind = SyntaxKind.ElseDirectiveTrivia Then
+            If directive.Kind = SyntaxKind.ElseIfDirectiveTrivia OrElse directive.Kind = SyntaxKind.ElseDirectiveTrivia Then
                 Throw New ArgumentException("directive cannot be a ElseIfDirective or ElseDirective.")
             End If
 

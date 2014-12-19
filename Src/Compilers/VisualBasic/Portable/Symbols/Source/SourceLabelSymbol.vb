@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Note: use the same method here to get the name as in Binder.BindLabelStatement when looking up the label
             ' Explanation: some methods do not add the type character and return e.g. C for C$ (e.g. GetIdentifierText())
             MyBase.New(labelNameToken.ValueText)
-            Debug.Assert(labelNameToken.VBKind = SyntaxKind.IdentifierToken OrElse labelNameToken.VBKind = SyntaxKind.IntegerLiteralToken)
+            Debug.Assert(labelNameToken.Kind = SyntaxKind.IdentifierToken OrElse labelNameToken.Kind = SyntaxKind.IntegerLiteralToken)
 
             _labelName = labelNameToken
             _containingMethod = containingMethod

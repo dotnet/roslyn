@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var parameterNodesAndTokens = currentParameterList.Parameters.GetWithSeparators().ToList();
             foreach (var parameter in parameters)
             {
-                if (parameterNodesAndTokens.Count > 0 && parameterNodesAndTokens.Last().CSharpKind() != SyntaxKind.CommaToken)
+                if (parameterNodesAndTokens.Count > 0 && parameterNodesAndTokens.Last().Kind() != SyntaxKind.CommaToken)
                 {
                     parameterNodesAndTokens.Add(SyntaxFactory.Token(SyntaxKind.CommaToken));
                 }
@@ -639,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 return modifiersList;
             }
 
-            return GetUpdatedDeclarationAccessibilityModifiers(newModifierTokens, modifiersList, (SyntaxToken modifier) => SyntaxFacts.IsAccessibilityModifier(modifier.CSharpKind()))
+            return GetUpdatedDeclarationAccessibilityModifiers(newModifierTokens, modifiersList, (SyntaxToken modifier) => SyntaxFacts.IsAccessibilityModifier(modifier.Kind()))
                 .ToSyntaxTokenList();
         }
 
@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
 
             TypeSyntax newTypeSyntax;
-            switch (syntaxNode.CSharpKind())
+            switch (syntaxNode.Kind())
             {
                 case SyntaxKind.DelegateDeclaration:
                     // Handle delegate declarations.
@@ -774,7 +774,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var syntaxNode = declaration as CSharpSyntaxNode;
             if (syntaxNode != null)
             {
-                switch (syntaxNode.CSharpKind())
+                switch (syntaxNode.Kind())
                 {
                     case SyntaxKind.CompilationUnit:
                     case SyntaxKind.NamespaceDeclaration:

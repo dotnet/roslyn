@@ -27,8 +27,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return False
             End If
 
-            Return node.VBKind = kind1 OrElse
-                   node.VBKind = kind2
+            Return node.Kind = kind1 OrElse
+                   node.Kind = kind2
         End Function
 
         <Extension()>
@@ -37,9 +37,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return False
             End If
 
-            Return node.VBKind = kind1 OrElse
-                   node.VBKind = kind2 OrElse
-                   node.VBKind = kind3
+            Return node.Kind = kind1 OrElse
+                   node.Kind = kind2 OrElse
+                   node.Kind = kind3
         End Function
 
         <Extension()>
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return False
             End If
 
-            Return kinds.Contains(node.VBKind())
+            Return kinds.Contains(node.Kind())
         End Function
 
         <Extension()>
@@ -70,7 +70,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             Return node.GetAncestorsOrThis(Of StatementSyntax)().
                         SelectMany(Function(s) s.GetModifiers()).
-                        Any(Function(t) t.VBKind = SyntaxKind.SharedKeyword)
+                        Any(Function(t) t.Kind = SyntaxKind.SharedKeyword)
         End Function
 
         <Extension()>
@@ -208,13 +208,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Sub
 
         Private Function Match(kind As SyntaxKind, description As String) As Matcher(Of SyntaxTrivia)
-            Return Matcher.Single(Of SyntaxTrivia)(Function(t) t.VBKind = kind, description)
+            Return Matcher.Single(Of SyntaxTrivia)(Function(t) t.Kind = kind, description)
         End Function
 
         <Extension()>
         Friend Function IsMultiLineLambda(lambda As LambdaExpressionSyntax) As Boolean
-            Return lambda.VBKind = SyntaxKind.MultiLineSubLambdaExpression OrElse
-                   lambda.VBKind = SyntaxKind.MultiLineFunctionLambdaExpression
+            Return lambda.Kind = SyntaxKind.MultiLineSubLambdaExpression OrElse
+                   lambda.Kind = SyntaxKind.MultiLineFunctionLambdaExpression
         End Function
 
         <Extension()>
@@ -294,7 +294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim currentGroup = New List(Of TSyntaxNode)()
             For Each node In nodes
                 Dim hasUnmatchedInteriorDirective = node.ContainsInterleavedDirective(cancellationToken)
-                Dim hasLeadingDirective = node.GetLeadingTrivia().Any(Function(t) SyntaxFacts.IsPreprocessorDirective(t.VBKind))
+                Dim hasLeadingDirective = node.GetLeadingTrivia().Any(Function(t) SyntaxFacts.IsPreprocessorDirective(t.Kind))
 
                 If hasUnmatchedInteriorDirective Then
                     ' we have a #if/#endif/#region/#endregion/#else/#elif in
@@ -522,7 +522,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             Dim ppIndex = -1
             For i = leadingTrivia.Count - 1 To 0 Step -1
-                If SyntaxFacts.IsPreprocessorDirective(leadingTrivia(i).VBKind) Then
+                If SyntaxFacts.IsPreprocessorDirective(leadingTrivia(i).Kind) Then
                     ppIndex = i
                     Exit For
                 End If
@@ -564,7 +564,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Return True
                 End If
 
-                Select Case node.VBKind
+                Select Case node.Kind
                     Case SyntaxKind.WhileBlock,
                          SyntaxKind.UsingBlock,
                          SyntaxKind.SyncLockBlock,
@@ -625,7 +625,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Return DirectCast(node, MultiLineLambdaExpressionSyntax).Statements
                 End If
 
-                Select Case node.VBKind
+                Select Case node.Kind
                     Case SyntaxKind.WhileBlock
                         Return DirectCast(node, WhileBlockSyntax).Statements
                     Case SyntaxKind.UsingBlock
@@ -781,7 +781,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 node As SingleLineLambdaExpressionSyntax,
                 statements As SyntaxList(Of StatementSyntax),
                 ParamArray annotations As SyntaxAnnotation()) As SyntaxNode
-            If node.VBKind = SyntaxKind.SingleLineSubLambdaExpression Then
+            If node.Kind = SyntaxKind.SingleLineSubLambdaExpression Then
                 Dim singleLineLambda = DirectCast(node, SingleLineLambdaExpressionSyntax)
                 If statements.Count = 1 Then
                     Return node.WithBody(statements.First())
@@ -820,7 +820,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
         <Extension()>
         Public Function IsSingleLineExecutableBlock(executableBlock As SyntaxNode) As Boolean
-            Select Case executableBlock.VBKind
+            Select Case executableBlock.Kind
                 Case SyntaxKind.SingleLineElseClause,
                      SyntaxKind.SingleLineIfStatement,
                      SyntaxKind.SingleLineSubLambdaExpression
@@ -844,7 +844,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Dim ifStatements As SyntaxList(Of StatementSyntax)
             Dim elseStatements As SyntaxList(Of StatementSyntax)
 
-            Select Case executableBlock.VBKind
+            Select Case executableBlock.Kind
                 Case SyntaxKind.SingleLineIfStatement
                     singleLineIf = DirectCast(executableBlock, SingleLineIfStatementSyntax)
                     ifStatements = newStatements
@@ -892,7 +892,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             Dim current = block
             While current.IsSingleLineExecutableBlock()
-                If current.VBKind = SyntaxKind.SingleLineIfStatement OrElse current.VBKind = SyntaxKind.SingleLineElseClause Then
+                If current.Kind = SyntaxKind.SingleLineIfStatement OrElse current.Kind = SyntaxKind.SingleLineElseClause Then
                     Dim singleLineIf As SingleLineIfStatementSyntax = Nothing
                     Dim multiLineIf As MultiLineIfBlockSyntax = Nothing
                     UpdateStatements(current, statements, annotations, singleLineIf, multiLineIf)
@@ -903,7 +903,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
                     oldBlock = singleLineIf
                     newBlock = multiLineIf
-                ElseIf current.VBKind = SyntaxKind.SingleLineSubLambdaExpression Then
+                ElseIf current.Kind = SyntaxKind.SingleLineSubLambdaExpression Then
                     Dim singleLineLambda = DirectCast(current, SingleLineLambdaExpressionSyntax)
                     Dim multiLineLambda = SyntaxFactory.MultiLineSubLambdaExpression(
                         singleLineLambda.Begin,
@@ -1093,7 +1093,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 For j = 0 To statement.ImportsClauses.Count - 1
                     Dim importsClause = statement.ImportsClauses(j)
 
-                    If importsClause.VBKind = SyntaxKind.SimpleImportsClause Then
+                    If importsClause.Kind = SyntaxKind.SimpleImportsClause Then
                         Dim simpleImportsClause = DirectCast(importsClause, SimpleImportsClauseSyntax)
 
                         If simpleImportsClause.Alias IsNot Nothing Then

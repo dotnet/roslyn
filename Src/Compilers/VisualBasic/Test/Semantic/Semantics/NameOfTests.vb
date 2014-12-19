@@ -45,7 +45,7 @@ BC30804: 'Variant' is no longer a supported type; use the 'Object' type instead.
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim nodes = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().ToArray()
+            Dim nodes = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().ToArray()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -444,7 +444,7 @@ system
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -516,7 +516,7 @@ m1
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -600,7 +600,7 @@ m1
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -652,7 +652,7 @@ M1
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -702,7 +702,7 @@ BC37246: Method type arguments unexpected.
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -755,7 +755,7 @@ BC37246: Method type arguments unexpected.
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -805,7 +805,7 @@ BC37246: Method type arguments unexpected.
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -855,7 +855,7 @@ c3
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -932,7 +932,7 @@ BC32042: Too few type arguments to 'C2(Of Integer).Cc3(Of S)'.
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -1045,7 +1045,7 @@ BC30389: 'C2.Cc3' is not accessible in this context because it is 'Protected'.
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -1113,7 +1113,7 @@ ALIAS
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -1178,7 +1178,7 @@ BC30390: 'C3.Protected Sub M1()' is not accessible in this context because it is
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -1260,7 +1260,7 @@ BC30389: 'C2(Of Integer).C3(Of Short).P1' is not accessible in this context beca
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -1342,7 +1342,7 @@ BC30389: 'C2(Of Integer).C3(Of Short).F1' is not accessible in this context beca
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -1423,7 +1423,7 @@ BC30389: 'C2(Of Integer).C3(Of Short).E1' is not accessible in this context beca
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -1503,7 +1503,7 @@ BC30456: 'Missing' is not a member of 'C2(Of Integer).C3(Of Short)'.
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -1634,7 +1634,7 @@ BC30562: 'Ambiguous' is ambiguous between declarations in Modules 'Module2, Modu
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -1727,7 +1727,7 @@ loCal
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -1784,7 +1784,7 @@ BC32000: Local variable 'local' cannot be referred to before it is declared.
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -1841,7 +1841,7 @@ BC30980: Type of 'local' cannot be inferred from an expression containing 'local
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -1898,7 +1898,7 @@ LOCAL
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -2040,7 +2040,7 @@ F1
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -2139,7 +2139,7 @@ P1
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -2240,7 +2240,7 @@ M1
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -2346,7 +2346,7 @@ M1
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -2450,7 +2450,7 @@ E1
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -2786,7 +2786,7 @@ End Class
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -2861,7 +2861,7 @@ BC30451: 'MTest' is not declared. It may be inaccessible due to its protection l
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -2926,7 +2926,7 @@ BC30157: Leading '.' or '!' can only appear inside a 'With' statement.
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -2989,7 +2989,7 @@ End Class
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -3050,7 +3050,7 @@ End Class
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -3111,7 +3111,7 @@ End Class
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -3171,7 +3171,7 @@ End Class
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -3234,7 +3234,7 @@ M1
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -3295,7 +3295,7 @@ F1
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -3352,7 +3352,7 @@ F1
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -3411,7 +3411,7 @@ MTest
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo
@@ -3467,7 +3467,7 @@ MTest
 
             Dim tree = comp.SyntaxTrees.First
             Dim model = comp.GetSemanticModel(tree)
-            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.VBKind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
+            Dim node1 = tree.GetRoot().DescendantNodes().Where(Function(n) n.Kind() = SyntaxKind.NameOfExpression).Cast(Of NameOfExpressionSyntax)().First()
 
             Dim typeInfo As TypeInfo
             Dim symbolInfo As SymbolInfo

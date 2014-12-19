@@ -1352,7 +1352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 if (reference != null)
                 {
                     var syntax = reference.GetSyntax();
-                    switch (syntax.CSharpKind())
+                    switch (syntax.Kind())
                     {
                         case SyntaxKind.MethodDeclaration:
                             MethodDeclarationSyntax methodDecl = (MethodDeclarationSyntax)syntax;
@@ -1368,7 +1368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                             Debug.Assert(false, "Field-like events are never explicit interface implementations");
                             break;
                         default:
-                            Debug.Assert(false, "Unexpected syntax kind " + syntax.CSharpKind());
+                            Debug.Assert(false, "Unexpected syntax kind " + syntax.Kind());
                             break;
                     }
                 }

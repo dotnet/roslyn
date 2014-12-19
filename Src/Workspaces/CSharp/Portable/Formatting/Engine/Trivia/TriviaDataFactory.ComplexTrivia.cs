@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     return true;
                 }
 
-                var firstTriviaInTree = this.Token1.CSharpKind() == SyntaxKind.None;
+                var firstTriviaInTree = this.Token1.Kind() == SyntaxKind.None;
 
                 return CodeShapeAnalyzer.ShouldFormatMultiLine(context, firstTriviaInTree, triviaList);
             }

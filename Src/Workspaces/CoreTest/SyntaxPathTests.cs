@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             SyntaxNode node;
             Assert.True(path.TryResolve(newTree, CancellationToken.None, out node));
-            Assert.Equal(SyntaxKind.CompilationUnit, node.CSharpKind());
+            Assert.Equal(SyntaxKind.CompilationUnit, node.Kind());
         }
 
         [Fact]
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             SyntaxNode node;
             Assert.True(path.TryResolve(newTree, CancellationToken.None, out node));
-            Assert.Equal(SyntaxKind.CompilationUnit, node.CSharpKind());
+            Assert.Equal(SyntaxKind.CompilationUnit, node.Kind());
         }
 
         [Fact]
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             SyntaxNode node;
             Assert.True(path.TryResolve(tree, CancellationToken.None, out node));
-            Assert.Equal(SyntaxKind.CompilationUnit, node.CSharpKind());
+            Assert.Equal(SyntaxKind.CompilationUnit, node.Kind());
         }
 
         [Fact]
@@ -178,13 +178,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(path2.TryResolve(tree, CancellationToken.None, out n2));
             Assert.True(path3.TryResolve(tree, CancellationToken.None, out n3));
 
-            Assert.Equal(SyntaxKind.MethodDeclaration, n1.CSharpKind());
+            Assert.Equal(SyntaxKind.MethodDeclaration, n1.Kind());
             Assert.Equal("M1", ((MethodDeclarationSyntax)n1).Identifier.ValueText);
 
-            Assert.Equal(SyntaxKind.MethodDeclaration, n2.CSharpKind());
+            Assert.Equal(SyntaxKind.MethodDeclaration, n2.Kind());
             Assert.Equal("M2", ((MethodDeclarationSyntax)n2).Identifier.ValueText);
 
-            Assert.Equal(SyntaxKind.MethodDeclaration, n3.CSharpKind());
+            Assert.Equal(SyntaxKind.MethodDeclaration, n3.Kind());
             Assert.Equal("M3", ((MethodDeclarationSyntax)n3).Identifier.ValueText);
         }
 
@@ -214,9 +214,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(path1.TryResolve(tree, CancellationToken.None, out n1));
             Assert.True(path2.TryResolve(tree, CancellationToken.None, out n2));
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, n1.CSharpKind());
+            Assert.Equal(SyntaxKind.ClassDeclaration, n1.Kind());
             Assert.Equal("C", ((TypeDeclarationSyntax)n1).Identifier.ValueText);
-            Assert.Equal(SyntaxKind.ClassDeclaration, n2.CSharpKind());
+            Assert.Equal(SyntaxKind.ClassDeclaration, n2.Kind());
             Assert.Equal("D", ((TypeDeclarationSyntax)n2).Identifier.ValueText);
         }
 
@@ -252,10 +252,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(path1.TryResolve(tree, CancellationToken.None, out n1));
             Assert.True(path2.TryResolve(tree, CancellationToken.None, out n2));
 
-            Assert.Equal(SyntaxKind.MethodDeclaration, n1.CSharpKind());
+            Assert.Equal(SyntaxKind.MethodDeclaration, n1.Kind());
             Assert.Equal("M1", ((MethodDeclarationSyntax)n1).Identifier.ValueText);
 
-            Assert.Equal(SyntaxKind.MethodDeclaration, n2.CSharpKind());
+            Assert.Equal(SyntaxKind.MethodDeclaration, n2.Kind());
             Assert.Equal("M2", ((MethodDeclarationSyntax)n2).Identifier.ValueText);
         }
 
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(path1.TryResolve(tree, CancellationToken.None, out n1));
             Assert.False(path2.TryResolve(tree, CancellationToken.None, out n2));
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, n1.CSharpKind());
+            Assert.Equal(SyntaxKind.ClassDeclaration, n1.Kind());
             Assert.Equal("D", ((TypeDeclarationSyntax)n1).Identifier.ValueText);
         }
 
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.False(path2.TryResolve(tree, CancellationToken.None, out n2));
             Assert.False(path3.TryResolve(tree, CancellationToken.None, out n3));
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, n1.CSharpKind());
+            Assert.Equal(SyntaxKind.ClassDeclaration, n1.Kind());
             Assert.Equal("D", ((TypeDeclarationSyntax)n1).Identifier.ValueText);
         }
 
@@ -351,9 +351,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(path1.TryResolve(tree, CancellationToken.None, out n1));
             Assert.True(path2.TryResolve(tree, CancellationToken.None, out n2));
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, n1.CSharpKind());
+            Assert.Equal(SyntaxKind.ClassDeclaration, n1.Kind());
             Assert.Equal("C", ((TypeDeclarationSyntax)n1).Identifier.ValueText);
-            Assert.Equal(SyntaxKind.ClassDeclaration, n2.CSharpKind());
+            Assert.Equal(SyntaxKind.ClassDeclaration, n2.Kind());
             Assert.Equal("D", ((TypeDeclarationSyntax)n2).Identifier.ValueText);
         }
 
@@ -383,9 +383,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(path1.TryResolve(tree, CancellationToken.None, out n1));
             Assert.True(path2.TryResolve(tree, CancellationToken.None, out n2));
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, n1.CSharpKind());
+            Assert.Equal(SyntaxKind.ClassDeclaration, n1.Kind());
             Assert.Equal("C", ((TypeDeclarationSyntax)n1).Identifier.ValueText);
-            Assert.Equal(SyntaxKind.StructDeclaration, n2.CSharpKind());
+            Assert.Equal(SyntaxKind.StructDeclaration, n2.Kind());
             Assert.Equal("D", ((TypeDeclarationSyntax)n2).Identifier.ValueText);
         }
 
@@ -425,9 +425,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(path1.TryResolve(tree, CancellationToken.None, out n1));
             Assert.True(path2.TryResolve(tree, CancellationToken.None, out n2));
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, n1.CSharpKind());
+            Assert.Equal(SyntaxKind.ClassDeclaration, n1.Kind());
             Assert.Equal("C", ((TypeDeclarationSyntax)n1).Identifier.ValueText);
-            Assert.Equal(SyntaxKind.StructDeclaration, n2.CSharpKind());
+            Assert.Equal(SyntaxKind.StructDeclaration, n2.Kind());
             Assert.Equal("D", ((TypeDeclarationSyntax)n2).Identifier.ValueText);
         }
 
@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             SyntaxNode node;
             Assert.True(path.TryResolve(newTree, CancellationToken.None, out node));
 
-            Assert.Equal(SyntaxKind.ClassDeclaration, node.CSharpKind());
+            Assert.Equal(SyntaxKind.ClassDeclaration, node.Kind());
         }
 
         internal static SourceText WithReplaceFirst(SourceText text, string oldText, string newText)

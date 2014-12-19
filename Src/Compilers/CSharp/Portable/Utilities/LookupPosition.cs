@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsBeforeToken(int position, SyntaxToken firstExcluded)
         {
-            return firstExcluded.CSharpKind() == SyntaxKind.None || position < firstExcluded.SpanStart;
+            return firstExcluded.Kind() == SyntaxKind.None || position < firstExcluded.SpanStart;
         }
 
         internal static bool IsInAttributeSpecification(int position, SyntaxList<AttributeListSyntax> attributesSyntaxList)

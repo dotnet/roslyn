@@ -1085,7 +1085,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var curSyntax = lambdaSyntax.Parent;
             while (curSyntax != null && curSyntax != scopeSyntax)
             {
-                switch (curSyntax.CSharpKind())
+                switch (curSyntax.Kind())
                 {
                     case SyntaxKind.ForStatement:
                     case SyntaxKind.ForEachStatement:

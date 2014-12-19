@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 End If
 
                 For Each node In declaringNodes.Select(Function(d) d.GetSyntax())
-                    Assert.Equal(expectedSyntaxKind, node.VBKind)
+                    Assert.Equal(expectedSyntaxKind, node.Kind)
 
                     ' We don't want to return block nodes.
                     Dim beginStatement As StatementSyntax = Nothing

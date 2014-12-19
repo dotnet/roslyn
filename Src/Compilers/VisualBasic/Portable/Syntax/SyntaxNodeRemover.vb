@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 End If
             End Sub
             Private Shared Function IsEndOfLine(trivia As SyntaxTrivia) As Boolean
-                Return trivia.VBKind = SyntaxKind.EndOfLineTrivia OrElse trivia.VBKind = SyntaxKind.CommentTrivia OrElse trivia.IsDirective
+                Return trivia.Kind = SyntaxKind.EndOfLineTrivia OrElse trivia.Kind = SyntaxKind.CommentTrivia OrElse trivia.IsDirective
             End Function
 
             Private Shared Function HasEndOfLine(trivia As SyntaxTriviaList) As Boolean
@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 End If
 
                 ' the next token gets the accrued trivia.
-                If result.VBKind <> SyntaxKind.None AndAlso Me._residualTrivia IsNot Nothing AndAlso Me._residualTrivia.Count > 0 Then
+                If result.Kind <> SyntaxKind.None AndAlso Me._residualTrivia IsNot Nothing AndAlso Me._residualTrivia.Count > 0 Then
                     Me._residualTrivia.Add(result.LeadingTrivia)
                     result = result.WithLeadingTrivia(Me._residualTrivia.ToList())
                     Me._residualTrivia.Clear()

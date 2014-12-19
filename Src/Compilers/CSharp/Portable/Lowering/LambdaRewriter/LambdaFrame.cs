@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
             
-            throw ExceptionUtilities.UnexpectedValue(syntax.CSharpKind());
+            throw ExceptionUtilities.UnexpectedValue(syntax.Kind);
         }
 
         private static bool IsStatementWithEmbeddedStatementBody(SyntaxKind syntax)

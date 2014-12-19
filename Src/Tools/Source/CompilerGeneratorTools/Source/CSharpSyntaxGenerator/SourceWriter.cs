@@ -1216,7 +1216,7 @@ namespace CSharpSyntaxGenerator
                 Write("            var newNode = SyntaxFactory.{0}(", StripPost(node.Name, "Syntax"));
                 if (node.Kinds.Count > 1)
                 {
-                    Write("this.CSharpKind(), ");
+                    Write("this.Kind(), ");
                 }
                 for (int f = 0; f < node.Fields.Count; f++)
                 {
@@ -1576,7 +1576,7 @@ namespace CSharpSyntaxGenerator
                 {
                     if (field.Kinds != null && field.Kinds.Count > 0)
                     {
-                        WriteLine("      switch ({0}.CSharpKind())", pname);
+                        WriteLine("      switch ({0}.Kind())", pname);
                         WriteLine("      {");
                         foreach (var kind in field.Kinds)
                         {

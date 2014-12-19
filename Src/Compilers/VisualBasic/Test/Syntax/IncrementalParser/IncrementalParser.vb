@@ -706,13 +706,13 @@ End Class]]>).Value
 
         Dim exp1 = newTree.GetRoot().ChildNodesAndTokens()(0).ChildNodesAndTokens()(1)
         Dim inc1 = incTree.GetRoot().ChildNodesAndTokens()(0).ChildNodesAndTokens()(1)
-        Assert.Equal(SyntaxKind.SubBlock, exp1.VBKind())
-        Assert.Equal(exp1.VBKind(), inc1.VBKind())
+        Assert.Equal(SyntaxKind.SubBlock, exp1.Kind())
+        Assert.Equal(exp1.Kind(), inc1.Kind())
 
         Dim exp2 = exp1.ChildNodesAndTokens()(1)
         Dim inc2 = inc1.ChildNodesAndTokens()(1)
-        Assert.Equal(SyntaxKind.LocalDeclarationStatement, exp2.VBKind())
-        Assert.Equal(exp2.VBKind(), inc2.VBKind())
+        Assert.Equal(SyntaxKind.LocalDeclarationStatement, exp2.Kind())
+        Assert.Equal(exp2.Kind(), inc2.Kind())
 
         ' this XML output is too much
         'IncParseAndVerify(New IncParseNode With {
@@ -1682,7 +1682,7 @@ End Class
         ''''''''''
         Dim tempTree2 = VisualBasicSyntaxTree.ParseText(text)
         Dim tempRoot2 = tempTree2.GetRoot()
-        Dim tempToken2 = tempRoot2.DescendantTokens().First(Function(t) t.VBKind = SyntaxKind.IdentifierToken)
+        Dim tempToken2 = tempRoot2.DescendantTokens().First(Function(t) t.Kind = SyntaxKind.IdentifierToken)
         Dim oldRoot2 = tempRoot2.ReplaceToken(tempToken2, tempToken2.WithAdditionalAnnotations(New SyntaxAnnotation()))
         Assert.True(oldRoot2.ContainsAnnotations, "Should contain annotations.")
         Assert.Equal(text, oldRoot2.ToFullString())

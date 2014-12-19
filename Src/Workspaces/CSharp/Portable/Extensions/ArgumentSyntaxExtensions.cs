@@ -16,10 +16,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static SyntaxTokenList GenerateParameterModifiers(this ArgumentSyntax argument)
         {
             // If the argument was marked with ref or out, then do the same for the parameter.
-            if (argument.RefOrOutKeyword.CSharpKind() == SyntaxKind.RefKeyword ||
-                argument.RefOrOutKeyword.CSharpKind() == SyntaxKind.OutKeyword)
+            if (argument.RefOrOutKeyword.Kind() == SyntaxKind.RefKeyword ||
+                argument.RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword)
             {
-                return SyntaxFactory.TokenList(SyntaxFactory.Token(argument.RefOrOutKeyword.CSharpKind()));
+                return SyntaxFactory.TokenList(SyntaxFactory.Token(argument.RefOrOutKeyword.Kind()));
             }
 
             return default(SyntaxTokenList);
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static RefKind GetRefKind(this ArgumentSyntax argument)
         {
-            var refSyntaxKind = argument.RefOrOutKeyword.CSharpKind();
+            var refSyntaxKind = argument.RefOrOutKeyword.Kind();
             return
                 refSyntaxKind == SyntaxKind.RefKeyword ? RefKind.Ref :
                 refSyntaxKind == SyntaxKind.OutKeyword ? RefKind.Out : RefKind.None;

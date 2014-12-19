@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Collections.ObjectModel
+Imports System.ComponentModel
 Imports System.Reflection
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Instrumentation
@@ -115,6 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        <Obsolete("To be removed, use Kind() instead.", True), EditorBrowsable(EditorBrowsableState.Never)>
         Public Function VBKind() As SyntaxKind
             Return CType(Me.Green.RawKind, SyntaxKind)
         End Function
@@ -371,7 +373,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(stack IsNot Nothing)
 
             For Each n In nodes
-                Debug.Assert(n.VBKind <> SyntaxKind.None)
+                Debug.Assert(n.Kind <> SyntaxKind.None)
                 If n.UnderlyingNode.ContainsDiagnostics Then
                     If n.HasStructure Then
                         stack.Push(DirectCast(n.GetStructure, VisualBasicSyntaxNode))

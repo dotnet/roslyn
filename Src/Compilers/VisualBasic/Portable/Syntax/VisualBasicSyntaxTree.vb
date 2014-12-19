@@ -319,7 +319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim foundXml As Boolean = False
 
             While node IsNot Nothing
-                If Not SyntaxFacts.IsXmlSyntax(node.VBKind()) Then
+                If Not SyntaxFacts.IsXmlSyntax(node.Kind()) Then
                     Exit While
                 End If
 

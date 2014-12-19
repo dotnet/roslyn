@@ -549,7 +549,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Overrides Function VisitLabelStatement(node As BoundLabelStatement) As BoundNode
                 If Not node.WasCompilerGenerated AndAlso node.Syntax.Kind = SyntaxKind.LabelStatement AndAlso
-                   DirectCast(node.Syntax, LabelStatementSyntax).LabelToken.VBKind = SyntaxKind.IntegerLiteralToken Then
+                   DirectCast(node.Syntax, LabelStatementSyntax).LabelToken.Kind = SyntaxKind.IntegerLiteralToken Then
                     m_ContainsLineNumberLabel = True
                 End If
 

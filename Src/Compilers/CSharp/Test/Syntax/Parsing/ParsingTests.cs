@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         protected SyntaxNodeOrToken N(SyntaxKind kind)
         {
             Assert.True(treeEnumerator.MoveNext());
-            Assert.Equal(kind, treeEnumerator.Current.CSharpKind());
+            Assert.Equal(kind, treeEnumerator.Current.Kind());
             return treeEnumerator.Current;
         }
 
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             Assert.True(treeEnumerator.MoveNext());
             SyntaxNodeOrToken current = this.treeEnumerator.Current;
-            Assert.Equal(kind, current.CSharpKind());
+            Assert.Equal(kind, current.Kind());
             Assert.True(current.IsMissing);
             return current;
         }
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Conditional("PARSING_TESTS_DUMP")]
         private static void Print(SyntaxNodeOrToken node)
         {
-            Debug.WriteLine("{0}(SyntaxKind.{1});", node.IsMissing ? "M" : "N", node.CSharpKind());
+            Debug.WriteLine("{0}(SyntaxKind.{1});", node.IsMissing ? "M" : "N", node.Kind());
         }
 
         [Conditional("PARSING_TESTS_DUMP")]

@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         /// <param name="arity">The number of generic type parameters.</param>
         private static void DecomposeName(ExpressionSyntax expression, out ExpressionSyntax qualifier, out string name, out int arity)
         {
-            switch (expression.CSharpKind())
+            switch (expression.Kind())
             {
             case SyntaxKind.SimpleMemberAccessExpression:
             case SyntaxKind.PointerMemberAccessExpression:
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static bool CanBindToken(SyntaxToken token)
         {
             // Add more token kinds if necessary;
-            switch (token.CSharpKind())
+            switch (token.Kind())
             {
             case SyntaxKind.CommaToken:
             case SyntaxKind.DelegateKeyword:
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             {
                 current = current.WalkDownParentheses();
 
-                if (current.CSharpKind() == SyntaxKind.IdentifierName)
+                if (current.Kind() == SyntaxKind.IdentifierName)
                 {
                     return ((IdentifierNameSyntax)current).Identifier.ValueText.ToCamelCase();
                 }

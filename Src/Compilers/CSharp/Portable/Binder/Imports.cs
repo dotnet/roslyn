@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                if (aliasSyntax.Identifier.CSharpContextualKind() == SyntaxKind.GlobalKeyword)
+                if (aliasSyntax.Identifier.ContextualKind() == SyntaxKind.GlobalKeyword)
                 {
                     diagnostics.Add(ErrorCode.ERR_GlobalExternAlias, aliasSyntax.Identifier.GetLocation());
                 }

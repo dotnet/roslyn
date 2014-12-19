@@ -28,8 +28,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
         Public Function Compare(token1 As SyntaxToken,
                                 token2 As SyntaxToken) As Integer Implements IComparer(Of SyntaxToken).Compare
             If specialCaseSystem AndAlso
-                token1.GetPreviousToken().VBKind = SyntaxKind.ImportsKeyword AndAlso
-                token2.GetPreviousToken().VBKind = SyntaxKind.ImportsKeyword Then
+                token1.GetPreviousToken().Kind = SyntaxKind.ImportsKeyword AndAlso
+                token2.GetPreviousToken().Kind = SyntaxKind.ImportsKeyword Then
 
                 Dim token1IsSystem = IsSystem(token1.ToString())
                 Dim token2IsSystem = IsSystem(token2.ToString())
