@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis
         ''' <param name="kind">The SyntaxKind to test for.</param>
         <Extension>
         Public Function IsKind(trivia As SyntaxTrivia, kind As SyntaxKind) As Boolean
-            Return trivia.Kind = kind
+            Return trivia.RawKind = kind
         End Function
 
         ''' <summary>
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis
         ''' <param name="kind">The SyntaxKind to test for.</param>
         <Extension>
         Public Function IsKind(token As SyntaxToken, kind As SyntaxKind) As Boolean
-            Return token.Kind = kind
+            Return token.RawKind = kind
         End Function
 
         ''' <summary>
@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis
         ''' <returns>A boolean value if node is of specified kind; otherwise false.</returns>
         <Extension>
         Public Function IsKind(node As SyntaxNode, kind As SyntaxKind) As Boolean
-            Return node IsNot Nothing AndAlso node.Kind = kind
+            Return node IsNot Nothing AndAlso node.RawKind = kind
         End Function
 
         ''' <summary>
@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis
         ''' <returns>A boolean value if nodeoOrToken is of specified kind; otherwise false.</returns>
         <Extension>
         Public Function IsKind(nodeOrToken As SyntaxNodeOrToken, kind As SyntaxKind) As Boolean
-            Return nodeOrToken.Kind = kind
+            Return nodeOrToken.RawKind = kind
         End Function
 
         ''' <summary>
@@ -211,13 +211,19 @@ End Namespace
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Public Module VisualBasicExtensions
+        Friend Function IsVisualBasicKind(rawKind As Integer) As Boolean
+            Const LastPossibleVisualBasicKind As Integer = 8192
+
+            Return rawKind <= LastPossibleVisualBasicKind
+        End Function
 
         ''' <summary>
         ''' Returns <see cref="SyntaxKind"/> for <see cref="SyntaxTrivia"/> nodes.
         ''' </summary> 
         <Extension>
         Public Function Kind(trivia As SyntaxTrivia) As SyntaxKind
-            Return If(trivia.Language Is LanguageNames.VisualBasic, CType(trivia.RawKind, SyntaxKind), SyntaxKind.None)
+            Dim rawKind = trivia.RawKind
+            Return If(IsVisualBasicKind(rawKind), CType(rawKind, SyntaxKind), SyntaxKind.None)
         End Function
 
         ''' <summary>
@@ -225,7 +231,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>       
         <Extension>
         Public Function Kind(token As SyntaxToken) As SyntaxKind
-            Return If(token.Language Is LanguageNames.VisualBasic, CType(token.RawKind, SyntaxKind), SyntaxKind.None)
+            Dim rawKind = token.RawKind
+            Return If(IsVisualBasicKind(rawKind), CType(rawKind, SyntaxKind), SyntaxKind.None)
         End Function
 
         ''' <summary>
@@ -233,7 +240,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         <Extension>
         Public Function Kind(node As SyntaxNode) As SyntaxKind
-            Return If(node.Language Is LanguageNames.VisualBasic, CType(node.RawKind, SyntaxKind), SyntaxKind.None)
+            Dim rawKind = node.RawKind
+            Return If(IsVisualBasicKind(rawKind), CType(rawKind, SyntaxKind), SyntaxKind.None)
         End Function
 
         ''' <summary>
@@ -241,7 +249,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>        
         <Extension>
         Public Function Kind(nodeOrToken As SyntaxNodeOrToken) As SyntaxKind
-            Return If(nodeOrToken.Language Is LanguageNames.VisualBasic, CType(nodeOrToken.RawKind, SyntaxKind), SyntaxKind.None)
+            Dim rawKind = nodeOrToken.RawKind
+            Return If(IsVisualBasicKind(rawKind), CType(rawKind, SyntaxKind), SyntaxKind.None)
         End Function
 
         <Extension>

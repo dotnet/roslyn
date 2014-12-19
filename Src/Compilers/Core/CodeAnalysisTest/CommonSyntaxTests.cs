@@ -1,15 +1,41 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 using VB = Microsoft.CodeAnalysis.VisualBasic;
+using CS = Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class CommonSyntaxTests
     {
+        [Fact]
+        public void Kinds()
+        {
+            foreach (CS.SyntaxKind kind in Enum.GetValues(typeof(CS.SyntaxKind)))
+            {
+                Assert.True(CS.CSharpExtensions.IsCSharpKind((int)kind), kind + " should be C# kind");
+
+                if (kind != CS.SyntaxKind.None && kind != CS.SyntaxKind.List)
+                {
+                    Assert.False(VB.VisualBasicExtensions.IsVisualBasicKind((int)kind), kind + " should not be VB kind");
+                }
+            }
+
+            foreach (VB.SyntaxKind kind in Enum.GetValues(typeof(VB.SyntaxKind)))
+            {
+                Assert.True(VB.VisualBasicExtensions.IsVisualBasicKind((int)kind), kind + " should be VB kind");
+
+                if (kind != VB.SyntaxKind.None && kind != VB.SyntaxKind.List)
+                {
+                    Assert.False(CS.CSharpExtensions.IsCSharpKind((int)kind), kind + " should not be C# kind");
+                }
+            }
+        }
+
         [Fact]
         public void SyntaxNodeOrToken()
         {

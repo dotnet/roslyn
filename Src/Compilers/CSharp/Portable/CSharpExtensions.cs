@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis
     {
         public static bool IsKind(this SyntaxToken token, SyntaxKind kind)
         {
-            return token.Kind() == kind;
+            return token.RawKind == (int)kind;
         }
 
         [Obsolete("To be removed, use Kind() or IsKind() instead.", true), EditorBrowsable(EditorBrowsableState.Never)]
@@ -27,18 +27,17 @@ namespace Microsoft.CodeAnalysis
 
         public static bool IsKind(this SyntaxTrivia trivia, SyntaxKind kind)
         {
-            return trivia.Kind() == kind;
+            return trivia.RawKind == (int)kind;
         }
 
         public static bool IsKind(this SyntaxNode node, SyntaxKind kind)
         {
-            return node != null
-                && node.Kind() == kind;
+            return node?.RawKind == (int)kind;
         }
 
         public static bool IsKind(this SyntaxNodeOrToken nodeOrToken, SyntaxKind kind)
         {
-            return nodeOrToken.Kind() == kind;
+            return nodeOrToken.RawKind == (int)kind;
         }
 
         [Obsolete("To be removed, use Kind() or IsKind() instead.", true), EditorBrowsable(EditorBrowsableState.Never)]
@@ -171,24 +170,37 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     public static class CSharpExtensions
     {
+        internal static bool IsCSharpKind(int rawKind)
+        {
+            const int FirstVisualBasicKind = (int)SyntaxKind.List + 1;
+            const int FirstCSharpKind = (int)SyntaxKind.TildeToken;
+
+            // not in the range [FirstVisualBasicKind, FirstCSharpKind)
+            return unchecked((uint)(rawKind - FirstVisualBasicKind)) > (FirstCSharpKind - 1 - FirstVisualBasicKind);
+        }
+
         public static SyntaxKind Kind(this SyntaxToken token)
         {
-            return (object)token.Language == (object)LanguageNames.CSharp ? (SyntaxKind)token.RawKind : SyntaxKind.None;
+            var rawKind = token.RawKind;
+            return IsCSharpKind(rawKind) ? (SyntaxKind)rawKind : SyntaxKind.None;
         }
 
         public static SyntaxKind Kind(this SyntaxTrivia trivia)
         {
-            return (object)trivia.Language == (object)LanguageNames.CSharp ? (SyntaxKind)trivia.RawKind : SyntaxKind.None;
+            var rawKind = trivia.RawKind;
+            return IsCSharpKind(rawKind) ? (SyntaxKind)rawKind : SyntaxKind.None;
         }
 
         public static SyntaxKind Kind(this SyntaxNode node)
         {
-            return (object)node.Language == (object)LanguageNames.CSharp ? (SyntaxKind)node.RawKind : SyntaxKind.None;
+            var rawKind = node.RawKind;
+            return IsCSharpKind(rawKind) ? (SyntaxKind)rawKind : SyntaxKind.None;
         }
 
         public static SyntaxKind Kind(this SyntaxNodeOrToken nodeOrToken)
         {
-            return (object)nodeOrToken.Language == (object)LanguageNames.CSharp ? (SyntaxKind)nodeOrToken.RawKind : SyntaxKind.None;
+            var rawKind = nodeOrToken.RawKind;
+            return IsCSharpKind(rawKind) ? (SyntaxKind)rawKind : SyntaxKind.None;
         }
 
         public static bool IsKeyword(this SyntaxToken token)
