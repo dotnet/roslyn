@@ -1487,11 +1487,16 @@ namespace Microsoft.CodeAnalysis
             return newSolution;
         }
 
-        internal async Task<Solution> WithMergedLinkedFileChangesAsync(Solution oldSolution, SolutionChanges? solutionChanges = null, CancellationToken cancellationToken = default(CancellationToken))
+        internal async Task<Solution> WithMergedLinkedFileChangesAsync(
+            Solution oldSolution, 
+            SolutionChanges? solutionChanges = null, 
+            IMergeConflictHandler mergeConflictHandler = null, 
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             // we only log sessioninfo for actual changes committed to workspace which should exclude ones from preview
             var session = new LinkedFileDiffMergingSession(oldSolution, this, solutionChanges ?? this.GetChanges(oldSolution), logSessionInfo: solutionChanges != null);
-            return await session.MergeDiffsAsync(cancellationToken).ConfigureAwait(false);
+
+            return (await session.MergeDiffsAsync(mergeConflictHandler, cancellationToken).ConfigureAwait(false)).MergedSolution;
         }
 
         private SolutionBranch firstBranch;

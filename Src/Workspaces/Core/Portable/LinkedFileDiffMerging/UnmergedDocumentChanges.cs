@@ -8,14 +8,14 @@ namespace Microsoft.CodeAnalysis
     internal sealed class UnmergedDocumentChanges
     {
         public IEnumerable<TextChange> UnmergedChanges { get; private set; }
-        public SourceText Text { get; private set; }
         public string ProjectName { get; private set; }
+        public DocumentId DocumentId { get; private set; }
 
-        public UnmergedDocumentChanges(IEnumerable<TextChange> unmergedChanges, SourceText text, string projectName)
+        public UnmergedDocumentChanges(IEnumerable<TextChange> unmergedChanges, string projectName, DocumentId documentId)
         {
             UnmergedChanges = unmergedChanges;
-            Text = text;
             ProjectName = projectName;
+            DocumentId = documentId;
         }
     }
 }

@@ -2,23 +2,24 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal abstract class AbstractLinkedFileMergeConflictCommentAdditionService : ILinkedFileMergeConflictCommentAdditionService
+    internal abstract class AbstractLinkedFileMergeConflictCommentAdditionService : IMergeConflictHandler, ILanguageService, ILinkedFileMergeConflictCommentAdditionService
     {
         internal abstract string GetConflictCommentText(string header, string beforeString, string afterString);
 
-        public IEnumerable<TextChange> CreateCommentsForUnmergedChanges(SourceText originalSourceText, IEnumerable<UnmergedDocumentChanges> unmergedChanges)
+        public IEnumerable<TextChange> CreateEdits(SourceText originalSourceText, IEnumerable<UnmergedDocumentChanges> unmergedChanges)
         {
             var commentChanges = new List<TextChange>();
 
             foreach (var documentWithChanges in unmergedChanges)
             {
                 var partitionedChanges = PartitionChangesForDocument(documentWithChanges.UnmergedChanges, originalSourceText);
-                var comments = GetCommentChangesForDocument(partitionedChanges, documentWithChanges.ProjectName, originalSourceText, documentWithChanges.Text);
+                var comments = GetCommentChangesForDocument(partitionedChanges, documentWithChanges.ProjectName, originalSourceText);
 
                 commentChanges.AddRange(comments);
             }
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis
             return partitionedChanges;
         }
 
-        private List<TextChange> GetCommentChangesForDocument(IEnumerable<IEnumerable<TextChange>> partitionedChanges, string projectName, SourceText oldDocumentText, SourceText newDocumentText)
+        private List<TextChange> GetCommentChangesForDocument(IEnumerable<IEnumerable<TextChange>> partitionedChanges, string projectName, SourceText oldDocumentText)
         {
             var commentChanges = new List<TextChange>();
 

@@ -140,7 +140,8 @@ namespace Microsoft.CodeAnalysis.Rename
                 if (referencedSymbol.Kind == SymbolKind.Method ||
                     referencedSymbol.Kind == SymbolKind.Property ||
                     referencedSymbol.Kind == SymbolKind.Event ||
-                    referencedSymbol.Kind == SymbolKind.TypeParameter)
+                    referencedSymbol.Kind == SymbolKind.TypeParameter ||
+                    referencedSymbol.Kind == SymbolKind.Field)
                 {
                     if (referencedSymbol.Kind == originalSymbol.Kind &&
                         string.Compare(TrimNameToAfterLastDot(referencedSymbol.Name), TrimNameToAfterLastDot(originalSymbol.Name), StringComparison.OrdinalIgnoreCase) == 0 &&

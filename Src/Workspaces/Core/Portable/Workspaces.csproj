@@ -370,6 +370,8 @@
     <Compile Include="CodeRefactorings\CodeRefactoringContext.cs" />
     <Compile Include="Differencing\LongestCommonImmutableArraySubsequence.cs" />
     <Compile Include="Differencing\SequenceEdit.cs" />
+    <Compile Include="LinkedFileDiffMerging\LinkedFileMergeSessionResult.cs" />
+    <Compile Include="LinkedFileDiffMerging\DefaultDocumentTextDifferencingService.cs" />
     <Compile Include="Log\AggregateLogger.cs" />
     <Compile Include="Log\KeyValueLogMessage.cs" />
     <Compile Include="Log\LogAggregator.cs" />
@@ -842,8 +844,10 @@
     <Compile Include="Workspace\Host\TextFactory\TextFactoryServiceFactory.cs" />
     <Compile Include="Workspace\Host\TextFactory\TextFactoryServiceFactory.TextFactoryService.cs" />
     <Compile Include="Workspace\PrimaryWorkspace.cs" />
-    <Compile Include="Workspace\Solution\AbstractLinkedFileMergeConflictCommentAdditionService.cs" />
+    <Compile Include="LinkedFileDiffMerging\AbstractLinkedFileMergeConflictCommentAdditionService.cs" />
     <Compile Include="Workspace\Solution\AdditionalDocumentStream.cs" />
+    <Compile Include="LinkedFileDiffMerging\IMergeConflictHandler.cs" />
+    <Compile Include="Workspace\Solution\IDocumentTextDifferencingService.cs" />
     <Compile Include="Workspace\Solution\MetadataReferenceManager.cs" />
     <Compile Include="Workspace\Solution\TextDocumentState.cs">
       <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
@@ -858,7 +862,7 @@
     <Compile Include="Workspace\Solution\DocumentState.cs" />
     <Compile Include="Workspace\Solution\DocumentState.EquivalenceResult.cs" />
     <Compile Include="Workspace\Solution\DocumentState_SimpleProperties.cs" />
-    <Compile Include="Workspace\Solution\ILinkedFileMergeConflictCommentAdditionService.cs" />
+    <Compile Include="LinkedFileDiffMerging\ILinkedFileMergeConflictCommentAdditionService.cs" />
     <Compile Include="Workspace\Solution\MetadataOnlyImage.cs" />
     <Compile Include="Workspace\Solution\MetadataOnlyReference.cs" />
     <Compile Include="Workspace\Solution\PreservationMode.cs" />
@@ -883,8 +887,10 @@
     <Compile Include="Workspace\Solution\Solution.cs">
       <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
     </Compile>
-    <Compile Include="Workspace\Solution\Solution.LinkedFileDiffMergingSession.cs" />
-    <Compile Include="Workspace\Solution\Solution.LinkedFileMergeResult.cs" />
+    <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingSession.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
+    <Compile Include="LinkedFileDiffMerging\LinkedFileMergeResult.cs" />
     <Compile Include="Workspace\Solution\SolutionChanges.cs" />
     <Compile Include="Workspace\Solution\SolutionId.cs" />
     <Compile Include="Workspace\Solution\SolutionInfo.cs" />
@@ -893,7 +899,7 @@
     <Compile Include="Workspace\Solution\TextAndVersion.cs" />
     <Compile Include="Workspace\Solution\TextLoader.cs" />
     <Compile Include="Workspace\Solution\TreeAndVersion.cs" />
-    <Compile Include="Workspace\Solution\UnmergedDocumentChanges.cs" />
+    <Compile Include="LinkedFileDiffMerging\UnmergedDocumentChanges.cs" />
     <Compile Include="Workspace\Solution\VersionStamp.cs" />
     <Compile Include="Workspace\TextExtensions.cs" />
     <Compile Include="Workspace\Workspace.cs" />
