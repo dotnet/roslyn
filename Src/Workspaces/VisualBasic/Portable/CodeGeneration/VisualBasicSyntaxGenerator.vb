@@ -193,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         ' parenthesize the left-side of a dot or target of an invocation if not unnecessary
         Private Function ParenthesizeLeft(expression As SyntaxNode) As ExpressionSyntax
-            Dim expressionSyntax = DirectCast(expression, ExpressionSyntax)
+            Dim expressionSyntax = DirectCast(expression, expressionSyntax)
             If TypeOf expressionSyntax Is TypeSyntax _
                OrElse expressionSyntax.IsMeMyBaseOrMyClass() _
                OrElse expressionSyntax.IsKind(SyntaxKind.ParenthesizedExpression) _
@@ -251,37 +251,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function TypeExpression(specialType As SpecialType) As SyntaxNode
             Select Case specialType
-                Case SpecialType.System_Boolean
+                Case specialType.System_Boolean
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.BooleanKeyword))
-                Case SpecialType.System_Byte
+                Case specialType.System_Byte
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ByteKeyword))
-                Case SpecialType.System_Char
+                Case specialType.System_Char
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.CharKeyword))
-                Case SpecialType.System_Decimal
+                Case specialType.System_Decimal
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DecimalKeyword))
-                Case SpecialType.System_Double
+                Case specialType.System_Double
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DoubleKeyword))
-                Case SpecialType.System_Int16
+                Case specialType.System_Int16
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ShortKeyword))
-                Case SpecialType.System_Int32
+                Case specialType.System_Int32
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntegerKeyword))
-                Case SpecialType.System_Int64
+                Case specialType.System_Int64
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.LongKeyword))
-                Case SpecialType.System_Object
+                Case specialType.System_Object
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ObjectKeyword))
-                Case SpecialType.System_SByte
+                Case specialType.System_SByte
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.SByteKeyword))
-                Case SpecialType.System_Single
+                Case specialType.System_Single
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.SingleKeyword))
-                Case SpecialType.System_String
+                Case specialType.System_String
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.StringKeyword))
-                Case SpecialType.System_UInt16
+                Case specialType.System_UInt16
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.UShortKeyword))
-                Case SpecialType.System_UInt32
+                Case specialType.System_UInt32
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.UIntegerKeyword))
-                Case SpecialType.System_UInt64
+                Case specialType.System_UInt64
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.ULongKeyword))
-                Case SpecialType.System_DateTime
+                Case specialType.System_DateTime
                     Return SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.DateKeyword))
                 Case Else
                     Throw New NotSupportedException("Unsupported SpecialType")
@@ -534,7 +534,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             If initializer IsNot Nothing Then
                 tokens = tokens.Add(SyntaxFactory.Token(SyntaxKind.OptionalKeyword))
             End If
-            If refKind <> RefKind.None Then
+            If refKind <> refKind.None Then
                 tokens = tokens.Add(SyntaxFactory.Token(SyntaxKind.ByRefKeyword))
             End If
             Return tokens
@@ -1154,18 +1154,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Function InsertAttributesInternal(declaration As SyntaxNode, index As Integer, attributes As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Dim newAttributes = AsAttributeLists(MyBase.ClearTrivia(attributes))
-
             Dim existingAttributes = Me.GetAttributes(declaration)
+
             If index >= 0 AndAlso index < existingAttributes.Count Then
-                Return Me.InsertDeclarationsBefore(declaration, existingAttributes(index), newAttributes)
+                Return Me.InsertNodesBefore(declaration, existingAttributes(index), newAttributes)
+            ElseIf existingAttributes.Count > 0 Then
+                Return Me.InsertNodesAfter(declaration, existingAttributes(existingAttributes.Count - 1), newAttributes)
+            Else
+                Dim lists = Me.GetAttributeLists(declaration)
+                Return Me.WithAttributeLists(declaration, lists.AddRange(AsAttributeLists(attributes)))
             End If
-
-            Dim lists = Me.GetAttributeLists(declaration)
-            If index > 0 Then
-                index = lists.Count
-            End If
-
-            Return Me.WithAttributeLists(declaration, lists.InsertRange(index, AsAttributeLists(attributes)))
         End Function
 
         Private Shared Function HasAssemblyTarget(attr As AttributeSyntax) As Boolean
@@ -1205,19 +1203,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Function InsertReturnAttributesInternal(declaration As SyntaxNode, index As Integer, attributes As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Dim newAttributes = AsAttributeLists(MyBase.ClearTrivia(attributes))
-
             Dim existingReturnAttributes = Me.GetReturnAttributes(declaration)
+
             If index >= 0 AndAlso index < existingReturnAttributes.Count Then
-                Return InsertDeclarationsBefore(declaration, existingReturnAttributes(index), newAttributes)
+                Return Me.InsertNodesBefore(declaration, existingReturnAttributes(index), newAttributes)
+            ElseIf existingReturnAttributes.Count > 0 Then
+                Return Me.InsertNodesAfter(declaration, existingReturnAttributes(existingReturnAttributes.Count - 1), newAttributes)
+            Else
+                Dim lists = Me.GetReturnAttributeLists(declaration)
+                Dim newLists = lists.AddRange(newAttributes)
+                Return Me.WithReturnAttributeLists(declaration, newLists)
             End If
-
-            Dim lists = Me.GetReturnAttributeLists(declaration)
-            If index > 0 Then
-                index = lists.Count
-            End If
-
-            Dim newLists = lists.InsertRange(index, newAttributes)
-            Return Me.WithReturnAttributeLists(declaration, newLists)
         End Function
 
         Private Function GetReturnAttributeLists(declaration As SyntaxNode) As SyntaxList(Of AttributeListSyntax)
@@ -2216,7 +2212,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
 
             Dim tokens = GetModifierTokens(declaration)
-            Dim currentAcc As Accessibility
+            Dim currentAcc As accessibility
             Dim mods As DeclarationModifiers
             Dim isDefault As Boolean
             GetAccessibilityAndModifiers(tokens, currentAcc, mods, isDefault)
@@ -2273,17 +2269,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
 
             Select Case (accessibility)
-                Case Accessibility.Internal
+                Case accessibility.Internal
                     _list = _list.Add(SyntaxFactory.Token(SyntaxKind.FriendKeyword))
-                Case Accessibility.Public
+                Case accessibility.Public
                     _list = _list.Add(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
-                Case Accessibility.Private
+                Case accessibility.Private
                     _list = _list.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
-                Case Accessibility.Protected
+                Case accessibility.Protected
                     _list = _list.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
-                Case Accessibility.ProtectedOrInternal
+                Case accessibility.ProtectedOrInternal
                     _list = _list.Add(SyntaxFactory.Token(SyntaxKind.FriendKeyword)).Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
-                Case Accessibility.NotApplicable
+                Case accessibility.NotApplicable
                 Case Else
                     Throw New NotSupportedException(String.Format("Accessibility '{0}' not supported.", accessibility))
             End Select
@@ -2346,7 +2342,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Sub GetAccessibilityAndModifiers(modifierTokens As SyntaxTokenList, ByRef accessibility As Accessibility, ByRef modifiers As DeclarationModifiers, ByRef isDefault As Boolean)
-            accessibility = Accessibility.NotApplicable
+            accessibility = accessibility.NotApplicable
             modifiers = DeclarationModifiers.None
             isDefault = False
 
@@ -2355,20 +2351,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Case SyntaxKind.DefaultKeyword
                         isDefault = True
                     Case SyntaxKind.PublicKeyword
-                        accessibility = Accessibility.Public
+                        accessibility = accessibility.Public
                     Case SyntaxKind.PrivateKeyword
-                        accessibility = Accessibility.Private
+                        accessibility = accessibility.Private
                     Case SyntaxKind.FriendKeyword
-                        If accessibility = Accessibility.Protected Then
-                            accessibility = Accessibility.ProtectedOrFriend
+                        If accessibility = accessibility.Protected Then
+                            accessibility = accessibility.ProtectedOrFriend
                         Else
-                            accessibility = Accessibility.Friend
+                            accessibility = accessibility.Friend
                         End If
                     Case SyntaxKind.ProtectedKeyword
-                        If accessibility = Accessibility.Friend Then
-                            accessibility = Accessibility.ProtectedOrFriend
+                        If accessibility = accessibility.Friend Then
+                            accessibility = accessibility.ProtectedOrFriend
                         Else
-                            accessibility = Accessibility.Protected
+                            accessibility = accessibility.Protected
                         End If
                     Case SyntaxKind.MustInheritKeyword
                         modifiers = modifiers Or DeclarationModifiers.Abstract
@@ -2810,23 +2806,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Private Function InsertNamespaceImportsInternal(declaration As SyntaxNode, index As Integer, [imports] As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Dim newImports = AsImports(MyBase.ClearTrivia([imports]))
-
             Dim existingImports = Me.GetNamespaceImports(declaration)
+
             If index >= 0 AndAlso index < existingImports.Count Then
-                Return Me.InsertDeclarationsBefore(declaration, existingImports(index), newImports)
+                Return Me.InsertNodesBefore(declaration, existingImports(index), newImports)
+            ElseIf existingImports.Count > 0 Then
+                Return Me.InsertNodesAfter(declaration, existingImports(existingImports.Count - 1), newImports)
+            Else
+                Select Case declaration.Kind
+                    Case SyntaxKind.CompilationUnit
+                        Dim cu = DirectCast(declaration, CompilationUnitSyntax)
+                        Return cu.WithImports(cu.Imports.AddRange(newImports))
+                    Case Else
+                        Return declaration
+                End Select
             End If
-
-            If index > 0 Then
-                index = Me.GetUnflattenedNamespaceImports(declaration).Count
-            End If
-
-            Select Case declaration.Kind
-                Case SyntaxKind.CompilationUnit
-                    Dim cu = DirectCast(declaration, CompilationUnitSyntax)
-                    Return cu.WithImports(cu.Imports.InsertRange(index, newImports))
-                Case Else
-                    Return declaration
-            End Select
         End Function
 
         Public Overrides Function GetMembers(declaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
@@ -2852,7 +2846,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End Select
         End Function
 
-        Private Function AsMembersOf(declaration As SyntaxNode, members As IEnumerable(Of SyntaxNode)) As IEnumerable(Of SyntaxNode)
+        Private Function AsMembersOf(declaration As SyntaxNode, members As IEnumerable(Of SyntaxNode)) As IEnumerable(Of StatementSyntax)
             Select Case declaration.Kind
                 Case SyntaxKind.CompilationUnit
                     Return AsNamespaceMembers(members)
@@ -2867,7 +2861,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Case SyntaxKind.EnumBlock
                     Return AsEnumMembers(members)
                 Case Else
-                    Return SpecializedCollections.EmptyEnumerable(Of SyntaxNode)
+                    Return SpecializedCollections.EmptyEnumerable(Of StatementSyntax)
             End Select
 
         End Function
@@ -2877,36 +2871,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Function InsertMembersInternal(declaration As SyntaxNode, index As Integer, members As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            members = Me.AsMembersOf(declaration, MyBase.ClearTrivia(members))
-
+            Dim newMembers = Me.AsMembersOf(declaration, MyBase.ClearTrivia(members))
             Dim existingMembers = Me.GetMembers(declaration)
-            If index >= 0 AndAlso index < existingMembers.Count Then
-                Return Me.InsertDeclarationsBefore(declaration, existingMembers(index), members)
-            End If
 
-            If index > 0 Then
-                index = Me.GetUnflattenedMembers(declaration).Count
+            If index >= 0 AndAlso index < existingMembers.Count Then
+                Return Me.InsertNodesBefore(declaration, existingMembers(index), members)
+            ElseIf existingMembers.Count > 0 Then
+                Return Me.InsertNodesAfter(declaration, existingMembers(existingMembers.Count - 1), members)
             End If
 
             Select Case declaration.Kind
                 Case SyntaxKind.CompilationUnit
                     Dim cu = DirectCast(declaration, CompilationUnitSyntax)
-                    Return cu.WithMembers(cu.Members.InsertRange(index, AsNamespaceMembers(members)))
+                    Return cu.WithMembers(cu.Members.AddRange(newMembers))
                 Case SyntaxKind.NamespaceBlock
                     Dim ns = DirectCast(declaration, NamespaceBlockSyntax)
-                    Return ns.WithMembers(ns.Members.InsertRange(index, AsNamespaceMembers(members)))
+                    Return ns.WithMembers(ns.Members.AddRange(newMembers))
                 Case SyntaxKind.ClassBlock
                     Dim cb = DirectCast(declaration, ClassBlockSyntax)
-                    Return cb.WithMembers(cb.Members.InsertRange(index, AsClassMembers(members)))
+                    Return cb.WithMembers(cb.Members.AddRange(newMembers))
                 Case SyntaxKind.StructureBlock
                     Dim sb = DirectCast(declaration, StructureBlockSyntax)
-                    Return sb.WithMembers(sb.Members.InsertRange(index, AsStructureMembers(members)))
+                    Return sb.WithMembers(sb.Members.AddRange(newMembers))
                 Case SyntaxKind.InterfaceBlock
                     Dim ib = DirectCast(declaration, InterfaceBlockSyntax)
-                    Return ib.WithMembers(ib.Members.InsertRange(index, AsInterfaceMembers(members)))
+                    Return ib.WithMembers(ib.Members.AddRange(newMembers))
                 Case SyntaxKind.EnumBlock
                     Dim eb = DirectCast(declaration, EnumBlockSyntax)
-                    Return eb.WithMembers(eb.Members.InsertRange(index, AsEnumMembers(members)))
+                    Return eb.WithMembers(eb.Members.AddRange(newMembers))
                 Case Else
                     Return declaration
             End Select
@@ -3071,9 +3063,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 endEventStatement:=SyntaxFactory.EndEventStatement())
         End Function
 
-        Public Overrides Function ReplaceDeclaration(root As SyntaxNode, declaration As SyntaxNode, newDeclaration As SyntaxNode) As SyntaxNode
+        Public Overrides Function ReplaceNode(root As SyntaxNode, declaration As SyntaxNode, newDeclaration As SyntaxNode) As SyntaxNode
             If newDeclaration Is Nothing Then
-                Return Me.RemoveDeclaration(root, declaration)
+                Return Me.RemoveNode(root, declaration)
             End If
 
             Dim newFullDecl = Me.AsIsolatedDeclaration(newDeclaration)
@@ -3086,7 +3078,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 If fullDecl.IsKind(newFullDecl.Kind) AndAlso GetDeclarationCount(newFullDecl) = 1 Then
                     Dim newSubDecl = Me.GetSubDeclarations(newFullDecl)(0)
                     If AreInlineReplaceableSubDeclarations(declaration, newSubDecl) Then
-                        Return MyBase.ReplaceDeclaration(root, declaration, newSubDecl)
+                        Return MyBase.ReplaceNode(root, declaration, newSubDecl)
                     End If
                 End If
 
@@ -3096,7 +3088,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
 
             ' attempt normal replace
-            Return MyBase.ReplaceDeclaration(root, declaration, newFullDecl)
+            Return MyBase.ReplaceNode(root, declaration, newFullDecl)
         End Function
 
         ' return true if one sub-declaration can be replaced in-line with another sub-declaration
@@ -3151,14 +3143,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return False
         End Function
 
-        Public Overrides Function InsertDeclarationsBefore(root As SyntaxNode, declaration As SyntaxNode, newDeclarations As IEnumerable(Of SyntaxNode)) As SyntaxNode
+        Public Overrides Function InsertNodesBefore(root As SyntaxNode, declaration As SyntaxNode, newDeclarations As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Return Isolate(root.TrackNodes(declaration), Function(r) InsertDeclarationsBeforeInternal(r, r.GetCurrentNode(declaration), newDeclarations))
         End Function
 
         Private Function InsertDeclarationsBeforeInternal(root As SyntaxNode, declaration As SyntaxNode, newDeclarations As IEnumerable(Of SyntaxNode)) As SyntaxNode
             Dim fullDecl = Me.GetFullDeclaration(declaration)
             If fullDecl Is declaration OrElse GetDeclarationCount(fullDecl) = 1 Then
-                Return MyBase.InsertDeclarationsBefore(root, declaration, newDeclarations)
+                Return MyBase.InsertNodesBefore(root, declaration, newDeclarations)
             End If
 
             Dim subDecls = Me.GetSubDeclarations(fullDecl)
@@ -3167,14 +3159,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             ' insert New declaration between full declaration split into two
             If index > 0 Then
-                Dim newNodes = New List(Of SyntaxNode)()
-                newNodes.Add(Me.WithSubDeclarationsRemoved(fullDecl, index, count - index).WithTrailingTrivia(SyntaxFactory.ElasticSpace))
-                newNodes.AddRange(newDeclarations)
-                newNodes.Add(Me.WithSubDeclarationsRemoved(fullDecl, 0, index).WithLeadingTrivia(SyntaxFactory.ElasticSpace))
-                Return ReplaceRange(root, fullDecl, newNodes)
+                Return ReplaceRange(root, fullDecl, SplitAndInsert(fullDecl, subDecls, index, newDeclarations))
             End If
 
-            Return MyBase.InsertDeclarationsBefore(root, fullDecl, newDeclarations)
+            Return MyBase.InsertNodesBefore(root, fullDecl, newDeclarations)
+        End Function
+
+        Public Overrides Function InsertNodesAfter(root As SyntaxNode, declaration As SyntaxNode, newDeclarations As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Return Isolate(root.TrackNodes(declaration), Function(r) InsertNodesAfterInternal(r, r.GetCurrentNode(declaration), newDeclarations))
+        End Function
+
+        Private Function InsertNodesAfterInternal(root As SyntaxNode, declaration As SyntaxNode, newDeclarations As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Dim fullDecl = Me.GetFullDeclaration(declaration)
+            If fullDecl Is declaration OrElse GetDeclarationCount(fullDecl) = 1 Then
+                Return MyBase.InsertNodesAfter(root, declaration, newDeclarations)
+            End If
+
+            Dim subDecls = Me.GetSubDeclarations(fullDecl)
+            Dim count = subDecls.Count
+            Dim index = MyBase.IndexOf(subDecls, declaration)
+
+            ' insert New declaration between full declaration split into two
+            If index >= 0 AndAlso index < count - 1 Then
+                Return ReplaceRange(root, fullDecl, SplitAndInsert(fullDecl, subDecls, index + 1, newDeclarations))
+            End If
+
+            Return MyBase.InsertNodesAfter(root, fullDecl, newDeclarations)
+        End Function
+
+        Private Function SplitAndInsert(multiPartDeclaration As SyntaxNode, subDeclarations As IReadOnlyList(Of SyntaxNode), index As Integer, newDeclarations As IEnumerable(Of SyntaxNode)) As IEnumerable(Of SyntaxNode)
+            Dim count = subDeclarations.Count
+            Dim newNodes = New List(Of SyntaxNode)()
+            newNodes.Add(Me.WithSubDeclarationsRemoved(multiPartDeclaration, index, count - index).WithTrailingTrivia(SyntaxFactory.ElasticSpace))
+            newNodes.AddRange(newDeclarations)
+            newNodes.Add(Me.WithSubDeclarationsRemoved(multiPartDeclaration, 0, index).WithLeadingTrivia(SyntaxFactory.ElasticSpace))
+            Return newNodes
         End Function
 
         ' replaces sub-declaration by splitting multi-part declaration first
@@ -3202,8 +3221,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
         End Function
 
+
         Private Function WithSubDeclarationsRemoved(declaration As SyntaxNode, index As Integer, count As Integer) As SyntaxNode
-            Return Me.RemoveDeclarations(declaration, Me.GetSubDeclarations(declaration).Skip(index).Take(count))
+            Return Me.RemoveNodes(declaration, Me.GetSubDeclarations(declaration).Skip(index).Take(count))
         End Function
 
         Private Function GetSubDeclarations(declaration As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
@@ -3226,7 +3246,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Return members
             End If
 
-            Dim list = New List(Of SyntaxNode)
+            Dim list = New list(Of SyntaxNode)
             Flatten(members, list)
             Return list.ToImmutableReadOnlyListOrEmpty()
         End Function
@@ -3256,7 +3276,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Next
         End Sub
 
-        Public Overrides Function RemoveDeclaration(root As SyntaxNode, declaration As SyntaxNode) As SyntaxNode
+        Public Overrides Function RemoveNode(root As SyntaxNode, declaration As SyntaxNode) As SyntaxNode
             Return Isolate(root.TrackNodes(declaration), Function(r) Me.RemoveDeclarationInternal(r, r.GetCurrentNode(declaration)))
         End Function
 
@@ -3301,7 +3321,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Dim imps = DirectCast(declaration.Parent, ImportsStatementSyntax)
                     If imps.ImportsClauses.Count = 1 Then
                         ' remove entire imports statement if this is the only clause
-                        Return RemoveDeclaration(root, declaration.Parent)
+                        Return RemoveNode(root, declaration.Parent)
                     End If
             End Select
 

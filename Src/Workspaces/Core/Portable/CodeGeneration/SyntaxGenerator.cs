@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// </summary>
         public SyntaxNode RemoveAllAttributes(SyntaxNode declaration)
         {
-            return this.RemoveDeclarations(declaration, this.GetAttributes(declaration).Concat(this.GetReturnAttributes(declaration)));
+            return this.RemoveNodes(declaration, this.GetAttributes(declaration).Concat(this.GetReturnAttributes(declaration)));
         }
 
         /// <summary>
@@ -922,46 +922,54 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract SyntaxNode WithSetAccessorStatements(SyntaxNode declaration, IEnumerable<SyntaxNode> statements);
 
         /// <summary>
-        /// Replaces the declaration in the root's tree with the new declaration.
+        /// Replaces the node in the root's tree with the new node.
         /// </summary>
-        public virtual SyntaxNode ReplaceDeclaration(SyntaxNode root, SyntaxNode declaration, SyntaxNode newDeclaration)
+        public virtual SyntaxNode ReplaceNode(SyntaxNode root, SyntaxNode node, SyntaxNode newDeclaration)
         {
             if (newDeclaration != null)
             {
-                return root.ReplaceNode(declaration, newDeclaration);
+                return root.ReplaceNode(node, newDeclaration);
             }
             else
             {
-                return this.RemoveDeclaration(root, declaration);
+                return this.RemoveNode(root, node);
             }
         }
 
         /// <summary>
-        /// Inserts the new declarations before the specified declaration.
+        /// Inserts the new node before the specified declaration.
         /// </summary>
-        public virtual SyntaxNode InsertDeclarationsBefore(SyntaxNode root, SyntaxNode declaration, IEnumerable<SyntaxNode> newDeclarations)
+        public virtual SyntaxNode InsertNodesBefore(SyntaxNode root, SyntaxNode node, IEnumerable<SyntaxNode> newDeclarations)
         {
-            return root.InsertNodesBefore(declaration, newDeclarations);
+            return root.InsertNodesBefore(node, newDeclarations);
         }
 
         /// <summary>
-        /// Removes the declaration from the sub tree starting at the root.
+        /// Inserts the new node before the specified declaration.
         /// </summary>
-        public virtual SyntaxNode RemoveDeclaration(SyntaxNode root, SyntaxNode declaration)
+        public virtual SyntaxNode InsertNodesAfter(SyntaxNode root, SyntaxNode node, IEnumerable<SyntaxNode> newDeclarations)
         {
-            return root.RemoveNode(declaration, DefaultRemoveOptions);
+            return root.InsertNodesAfter(node, newDeclarations);
         }
 
         /// <summary>
-        /// Removes all the declarations form the sub tree starting at the root.
+        /// Removes the node from the sub tree starting at the root.
         /// </summary>
-        public SyntaxNode RemoveDeclarations(SyntaxNode root, IEnumerable<SyntaxNode> declarations)
+        public virtual SyntaxNode RemoveNode(SyntaxNode root, SyntaxNode node)
+        {
+            return root.RemoveNode(node, DefaultRemoveOptions);
+        }
+
+        /// <summary>
+        /// Removes all the declarations from the sub tree starting at the root.
+        /// </summary>
+        public SyntaxNode RemoveNodes(SyntaxNode root, IEnumerable<SyntaxNode> declarations)
         {
             var newRoot = root.TrackNodes(declarations);
 
             foreach (var decl in declarations)
             {
-                newRoot = this.RemoveDeclaration(newRoot, newRoot.GetCurrentNode(decl));
+                newRoot = this.RemoveNode(newRoot, newRoot.GetCurrentNode(decl));
             }
 
             return newRoot;

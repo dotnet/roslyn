@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             var attributeNode = flagsAttribute.ApplicationSyntaxReference.GetSyntax();
             var generator = SyntaxGenerator.GetGenerator(workspace, enumTypeSyntax.Language);
 
-            return generator.RemoveDeclaration(enumTypeSyntax, attributeNode);
+            return generator.RemoveNode(enumTypeSyntax, attributeNode);
         }
     }
 }

@@ -49,8 +49,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         private SyntaxList<MemberDeclarationSyntax> AsNamespaceMembers(IEnumerable<SyntaxNode> declarations)
         {
             return (declarations != null)
-                ? SyntaxFactory.List(declarations.OfType<MemberDeclarationSyntax>())
+                ? SyntaxFactory.List(declarations.Select(AsNamespaceMember).OfType<MemberDeclarationSyntax>())
                 : default(SyntaxList<MemberDeclarationSyntax>);
+        }
+
+        private SyntaxNode AsNamespaceMember(SyntaxNode declaration)
+        {
+            switch (declaration.Kind())
+            {
+                case SyntaxKind.NamespaceDeclaration:
+                case SyntaxKind.ClassDeclaration:
+                case SyntaxKind.StructDeclaration:
+                case SyntaxKind.InterfaceDeclaration:
+                case SyntaxKind.EnumDeclaration:
+                case SyntaxKind.DelegateDeclaration:
+                    return declaration;
+                default:
+                    return null;
+            }
         }
 
         public override SyntaxNode NamespaceImportDeclaration(SyntaxNode name)
@@ -800,18 +816,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var existingAttributes = this.GetAttributes(declaration);
             if (index >= 0 && index < existingAttributes.Count)
             {
-                return this.InsertDeclarationsBefore(declaration, existingAttributes[index], newAttributes);
+                return this.InsertNodesBefore(declaration, existingAttributes[index], newAttributes);
             }
-
-            var lists = GetAttributeLists(declaration);
-
-            if (index > 0)
+            else if (existingAttributes.Count > 0)
             {
-                index = lists.Count;
+                return this.InsertNodesAfter(declaration, existingAttributes[existingAttributes.Count - 1], newAttributes);
             }
-
-            var newList = lists.InsertRange(index, newAttributes);
+            else
+            {
+                var lists = GetAttributeLists(declaration);
+                var newList = lists.AddRange(newAttributes);
             return WithAttributeLists(declaration, newList);
+        }
         }
 
         public override SyntaxNode InsertReturnAttributes(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> attributes)
@@ -835,18 +851,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             var existingAttributes = this.GetReturnAttributes(d);
             if (index >= 0 && index < existingAttributes.Count)
             {
-                return this.InsertDeclarationsBefore(d, existingAttributes[index], newAttributes);
+                return this.InsertNodesBefore(d, existingAttributes[index], newAttributes);
+            }
+            else if (existingAttributes.Count > 0)
+            {
+                return this.InsertNodesAfter(d, existingAttributes[existingAttributes.Count - 1], newAttributes);
             }
             else
             {
                 var lists = GetAttributeLists(d);
-
-                if (index > 0)
-                {
-                    index = lists.Count;
-                }
-
-                var newList = lists.InsertRange(index, newAttributes);
+                var newList = lists.AddRange(newAttributes);
                 return WithAttributeLists(d, newList);
             }
         }
@@ -1167,68 +1181,74 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode InsertMembers(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> members)
         {
-            members = this.AsMembersOf(declaration, this.ClearTrivia(members));
+            var newMembers = this.ClearTrivia(this.AsMembersOf(declaration, members));
 
             var existingMembers = this.GetMembers(declaration);
             if (index >= 0 && index < existingMembers.Count)
             {
-                return this.InsertDeclarationsBefore(declaration, existingMembers[index], members);
+                return this.InsertNodesBefore(declaration, existingMembers[index], newMembers);
             }
-
-            if (index > 0)
+            else if (existingMembers.Count > 0)
             {
-                index = this.GetUnflattenedMembers(declaration).Count;
+                return this.InsertNodesAfter(declaration, existingMembers[existingMembers.Count - 1], newMembers);
             }
-
-            switch (declaration.Kind())
+            else
+            {
+                switch (declaration.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
                     var cd = ((ClassDeclarationSyntax)declaration);
-                    return cd.WithMembers(cd.Members.InsertRange(index, this.AsClassMembers(cd.Identifier.Text, members)));
+                        return cd.WithMembers(cd.Members.AddRange(newMembers));
                 case SyntaxKind.StructDeclaration:
                     var sd = ((StructDeclarationSyntax)declaration);
-                    return sd.WithMembers(sd.Members.InsertRange(index, this.AsClassMembers(sd.Identifier.Text, members)));
+                        return sd.WithMembers(sd.Members.AddRange(newMembers));
                 case SyntaxKind.InterfaceDeclaration:
                     var id = ((InterfaceDeclarationSyntax)declaration);
-                    return id.WithMembers(id.Members.InsertRange(index, this.AsInterfaceMembers(members)));
+                        return id.WithMembers(id.Members.AddRange(newMembers));
                 case SyntaxKind.EnumDeclaration:
                     var ed = ((EnumDeclarationSyntax)declaration);
-                    return ed.WithMembers(ed.Members.InsertRange(index, this.AsEnumMembers(members)));
+                        return ed.WithMembers(ed.Members.AddRange(newMembers.OfType<EnumMemberDeclarationSyntax>()));
                 case SyntaxKind.NamespaceDeclaration:
                     var nd = ((NamespaceDeclarationSyntax)declaration);
-                    return nd.WithMembers(nd.Members.InsertRange(index, this.AsNamespaceMembers(members)));
+                        return nd.WithMembers(nd.Members.AddRange(newMembers));
                 case SyntaxKind.CompilationUnit:
                     var cu = ((CompilationUnitSyntax)declaration);
-                    return cu.WithMembers(cu.Members.InsertRange(index, this.AsNamespaceMembers(members)));
+                        return cu.WithMembers(cu.Members.AddRange(newMembers));
                 default:
                     return declaration;
             }
         }
+        }
 
         private IEnumerable<MemberDeclarationSyntax> AsMembersOf(SyntaxNode declaration, IEnumerable<SyntaxNode> members)
+        {
+            return members != null ? members.Select(m => AsMemberOf(declaration, m)).OfType<MemberDeclarationSyntax>() : null;
+        }
+
+        private SyntaxNode AsMemberOf(SyntaxNode declaration, SyntaxNode member)
         {
             switch (declaration.Kind())
             {
                 case SyntaxKind.ClassDeclaration:
                     var cd = ((ClassDeclarationSyntax)declaration);
-                    return this.AsClassMembers(cd.Identifier.Text, members);
+                    return this.AsClassMember(member, cd.Identifier.Text);
                 case SyntaxKind.StructDeclaration:
                     var sd = ((StructDeclarationSyntax)declaration);
-                    return this.AsClassMembers(sd.Identifier.Text, members);
+                    return this.AsClassMember(member, sd.Identifier.Text);
                 case SyntaxKind.InterfaceDeclaration:
                     var id = ((InterfaceDeclarationSyntax)declaration);
-                    return this.AsInterfaceMembers(members);
+                    return this.AsInterfaceMember(member);
                 case SyntaxKind.EnumDeclaration:
                     var ed = ((EnumDeclarationSyntax)declaration);
-                    return this.AsEnumMembers(members);
+                    return this.AsEnumMember(member);
                 case SyntaxKind.NamespaceDeclaration:
                     var nd = ((NamespaceDeclarationSyntax)declaration);
-                    return this.AsNamespaceMembers(members);
+                    return this.AsNamespaceMember(member);
                 case SyntaxKind.CompilationUnit:
                     var cu = ((CompilationUnitSyntax)declaration);
-                    return this.AsNamespaceMembers(members);
+                    return this.AsNamespaceMember(member);
                 default:
-                    return SpecializedCollections.EmptyEnumerable<MemberDeclarationSyntax>();
+                    return null;
             }
         }
 
@@ -2271,11 +2291,42 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return declaration;
         }
 
-        public override SyntaxNode ReplaceDeclaration(SyntaxNode root, SyntaxNode declaration, SyntaxNode newDeclaration)
+        private IEnumerable<SyntaxNode> AsNodesLike(SyntaxNode existingNode, IEnumerable<SyntaxNode> newNodes)
         {
+            return newNodes != null ? newNodes.Select(n => AsNodeLike(existingNode, n)).Where(n => n != null) : null;
+        }
+
+        private SyntaxNode AsNodeLike(SyntaxNode existingNode, SyntaxNode newNode)
+        {
+            switch (GetDeclarationKind(existingNode))
+            {
+                case DeclarationKind.Class:
+                case DeclarationKind.Interface:
+                case DeclarationKind.Struct:
+                case DeclarationKind.Enum:
+                case DeclarationKind.Namespace:
+                case DeclarationKind.CompilationUnit:
+                    var container = this.GetDeclaration(existingNode.Parent);
+                    if (container != null)
+        {
+                        return this.AsMemberOf(container, newNode);
+                    }
+                    break;
+
+                case DeclarationKind.Attribute:
+                    return this.AsAttributeList(newNode);
+            }
+
+            return newNode;
+        }
+
+        public override SyntaxNode ReplaceNode(SyntaxNode root, SyntaxNode declaration, SyntaxNode newDeclaration)
+        {
+            newDeclaration = this.AsNodeLike(declaration, newDeclaration);
+
             if (newDeclaration == null)
             {
-                return this.RemoveDeclaration(root, declaration);
+                return this.RemoveNode(root, declaration);
             }
 
             var newFullDecl = this.AsIsolatedDeclaration(newDeclaration);
@@ -2290,17 +2341,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     var newSubDecl = this.GetSubDeclarations(newFullDecl)[0];
                     if (AreInlineReplaceableSubDeclarations(declaration, newSubDecl))
                     {
-                        return base.ReplaceDeclaration(root, declaration, newSubDecl);
+                        return base.ReplaceNode(root, declaration, newSubDecl);
                     }
                 }
 
                 // replace sub declaration by splitting full declaration and inserting between
                 var index = IndexOf(this.GetSubDeclarations(fullDecl), declaration);
-                return this.ReplaceSubDeclaration(root, fullDecl, index, newFullDecl);
+
+                // replace declaration with multiple declarations
+                return ReplaceRange(root, fullDecl, this.SplitAndReplace(fullDecl, index, new[] { newDeclaration }));
             }
 
             // attempt normal replace
-            return base.ReplaceDeclaration(root, declaration, newFullDecl);
+            return base.ReplaceNode(root, declaration, newFullDecl);
         }
 
         // returns true if one sub-declaration can be replaced inline with another sub-declaration
@@ -2369,47 +2422,47 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         // replaces sub-declaration by splitting multi-part declaration first
-        private SyntaxNode ReplaceSubDeclaration(SyntaxNode root, SyntaxNode declaration, int index, SyntaxNode newDeclaration)
+        private IEnumerable<SyntaxNode> SplitAndReplace(SyntaxNode multiPartDeclaration, int index, IEnumerable<SyntaxNode> newDeclarations)
         {
-            var newNodes = new List<SyntaxNode>();
-            var count = GetDeclarationCount(declaration);
+            var count = GetDeclarationCount(multiPartDeclaration);
 
             if (index >= 0 && index < count)
             {
+                var newNodes = new List<SyntaxNode>();
+
                 if (index > 0)
                 {
                     // make a single declaration with only sub-declarations before the sub-declaration being replaced
-                    newNodes.Add(this.WithSubDeclarationsRemoved(declaration, index, count - index).WithTrailingTrivia(SyntaxFactory.ElasticSpace));
+                    newNodes.Add(this.WithSubDeclarationsRemoved(multiPartDeclaration, index, count - index).WithTrailingTrivia(SyntaxFactory.ElasticSpace));
                 }
 
-                newNodes.Add(newDeclaration);
+                newNodes.AddRange(newDeclarations);
 
                 if (index < count - 1)
                 {
                     // make a single declaration with only the sub-declarations after the sub-declaration being replaced
-                    newNodes.Add(this.WithSubDeclarationsRemoved(declaration, 0, index + 1).WithLeadingTrivia(SyntaxFactory.ElasticSpace));
+                    newNodes.Add(this.WithSubDeclarationsRemoved(multiPartDeclaration, 0, index + 1).WithLeadingTrivia(SyntaxFactory.ElasticSpace));
                 }
 
-                // replace declaration with multiple declarations
-                return ReplaceRange(root, declaration, newNodes);
+                return newNodes;
             }
             else
             {
-                return root;
+                return newDeclarations;
             }
         }
 
-        public override SyntaxNode InsertDeclarationsBefore(SyntaxNode root, SyntaxNode declaration, IEnumerable<SyntaxNode> newDeclarations)
+        public override SyntaxNode InsertNodesBefore(SyntaxNode root, SyntaxNode declaration, IEnumerable<SyntaxNode> newDeclarations)
         {
-            return Isolate(root.TrackNodes(declaration), r => InsertDeclarationsBeforeInternal(r, r.GetCurrentNode(declaration), newDeclarations));
+            return Isolate(root.TrackNodes(declaration), r => InsertNodesBeforeInternal(r, r.GetCurrentNode(declaration), newDeclarations));
         }
 
-        private SyntaxNode InsertDeclarationsBeforeInternal(SyntaxNode root, SyntaxNode declaration, IEnumerable<SyntaxNode> newDeclarations)
+        private SyntaxNode InsertNodesBeforeInternal(SyntaxNode root, SyntaxNode declaration, IEnumerable<SyntaxNode> newDeclarations)
         { 
             var fullDecl = this.GetFullDeclaration(declaration);
             if (fullDecl == declaration || GetDeclarationCount(fullDecl) == 1)
             {
-                return base.InsertDeclarationsBefore(root, fullDecl, newDeclarations);
+                return base.InsertNodesBefore(root, fullDecl, newDeclarations);
             }
 
             var subDecls = this.GetSubDeclarations(fullDecl);
@@ -2419,19 +2472,51 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             // insert new declaration between full declaration split into two
             if (index > 0)
             {
-                var newNodes = new List<SyntaxNode>();
-                newNodes.Add(this.WithSubDeclarationsRemoved(fullDecl, index, count - index).WithTrailingTrivia(SyntaxFactory.ElasticSpace));
-                newNodes.AddRange(newDeclarations);
-                newNodes.Add(this.WithSubDeclarationsRemoved(fullDecl, 0, index).WithLeadingTrivia(SyntaxFactory.ElasticSpace));
-                return ReplaceRange(root, fullDecl, newNodes);
+                return ReplaceRange(root, fullDecl, this.SplitAndInsert(fullDecl, index, newDeclarations));
             }
 
-            return base.InsertDeclarationsBefore(root, fullDecl, newDeclarations);
+            return base.InsertNodesBefore(root, fullDecl, newDeclarations);
         }
+
+        public override SyntaxNode InsertNodesAfter(SyntaxNode root, SyntaxNode declaration, IEnumerable<SyntaxNode> newDeclarations)
+        {
+            return Isolate(root.TrackNodes(declaration), r => InsertNodesAfterInternal(r, r.GetCurrentNode(declaration), newDeclarations));
+        }
+
+        private SyntaxNode InsertNodesAfterInternal(SyntaxNode root, SyntaxNode declaration, IEnumerable<SyntaxNode> newDeclarations)
+        {
+            var fullDecl = this.GetFullDeclaration(declaration);
+            if (fullDecl == declaration || GetDeclarationCount(fullDecl) == 1)
+            {
+                return base.InsertNodesAfter(root, fullDecl, newDeclarations);
+            }
+
+            var subDecls = this.GetSubDeclarations(fullDecl);
+            var count = subDecls.Count;
+            var index = IndexOf(subDecls, declaration);
+
+            // insert new declaration between full declaration split into two
+            if (index >= 0 && index < count - 1)
+            {
+                return ReplaceRange(root, fullDecl, this.SplitAndInsert(fullDecl, index + 1, newDeclarations));
+            }
+
+            return base.InsertNodesAfter(root, fullDecl, newDeclarations);
+        }
+
+        private IEnumerable<SyntaxNode> SplitAndInsert(SyntaxNode multiPartDeclaration, int index, IEnumerable<SyntaxNode> newDeclarations)
+        {
+            int count = GetDeclarationCount(multiPartDeclaration);
+                var newNodes = new List<SyntaxNode>();
+            newNodes.Add(this.WithSubDeclarationsRemoved(multiPartDeclaration, index, count - index).WithTrailingTrivia(SyntaxFactory.ElasticSpace));
+                newNodes.AddRange(newDeclarations);
+            newNodes.Add(this.WithSubDeclarationsRemoved(multiPartDeclaration, 0, index).WithLeadingTrivia(SyntaxFactory.ElasticSpace));
+            return newNodes;
+            }
 
         private SyntaxNode WithSubDeclarationsRemoved(SyntaxNode declaration, int index, int count)
         {
-            return this.RemoveDeclarations(declaration, this.GetSubDeclarations(declaration).Skip(index).Take(count));
+            return this.RemoveNodes(declaration, this.GetSubDeclarations(declaration).Skip(index).Take(count));
         }
 
         private IReadOnlyList<SyntaxNode> GetSubDeclarations(SyntaxNode declaration)
@@ -2453,7 +2538,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             }
         }
 
-        public override SyntaxNode RemoveDeclaration(SyntaxNode root, SyntaxNode declaration)
+        public override SyntaxNode RemoveNode(SyntaxNode root, SyntaxNode declaration)
         {
             return this.Isolate(root.TrackNodes(declaration), r => RemoveDeclarationInternal(r, r.GetCurrentNode(declaration)));
         }
@@ -2468,7 +2553,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     if (attrList != null && attrList.Attributes.Count == 1)
                     {
                         // remove entire list if only one attribute
-                        return this.RemoveDeclaration(root, attrList);
+                        return this.RemoveNode(root, attrList);
                     }
                     break;
 
@@ -2477,7 +2562,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     if (full != declaration && GetDeclarationCount(full) == 1)
                     {
                         // remove full declaration if only declarator
-                        return this.RemoveDeclaration(root, full);
+                        return this.RemoveNode(root, full);
                     }
                     break;
 
@@ -2485,12 +2570,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                     if (declaration.Parent != null && ((AttributeArgumentListSyntax)declaration.Parent).Arguments.Count == 1)
                     {
                         // remove entire argument list if only argument
-                        return this.RemoveDeclaration(root, declaration.Parent);
+                        return this.RemoveNode(root, declaration.Parent);
                     }
                     break;
             }
 
-            return base.RemoveDeclaration(root, declaration);
+            return base.RemoveNode(root, declaration);
         }
 
         public override IReadOnlyList<SyntaxNode> GetParameters(SyntaxNode declaration)

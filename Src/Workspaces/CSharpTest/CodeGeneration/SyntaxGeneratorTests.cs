@@ -1386,12 +1386,12 @@ public class C { } // end").Members[0];
 
         private void TestRemoveAllNamespaceImports(SyntaxNode declaration)
         {
-            Assert.Equal(0, g.GetNamespaceImports(g.RemoveDeclarations(declaration, g.GetNamespaceImports(declaration))).Count);
+            Assert.Equal(0, g.GetNamespaceImports(g.RemoveNodes(declaration, g.GetNamespaceImports(declaration))).Count);
         }
 
         private void TestRemoveNamespaceImport(SyntaxNode declaration, string name, string[] remainingNames)
         {
-            var newDecl = g.RemoveDeclaration(declaration, g.GetNamespaceImports(declaration).First(m => g.GetName(m) == name));
+            var newDecl = g.RemoveNode(declaration, g.GetNamespaceImports(declaration).First(m => g.GetName(m) == name));
             AssertNamesEqual(remainingNames, g.GetNamespaceImports(newDecl));
         }
 
@@ -1430,12 +1430,12 @@ public class C { } // end").Members[0];
 
         private void TestRemoveAllMembers(SyntaxNode declaration)
         {
-            Assert.Equal(0, g.GetMembers(g.RemoveDeclarations(declaration, g.GetMembers(declaration))).Count);
+            Assert.Equal(0, g.GetMembers(g.RemoveNodes(declaration, g.GetMembers(declaration))).Count);
         }
 
         private void TestRemoveMember(SyntaxNode declaration, string name, string[] remainingNames)
         {
-            var newDecl = g.RemoveDeclaration(declaration, g.GetMembers(declaration).First(m => g.GetName(m) == name));
+            var newDecl = g.RemoveNode(declaration, g.GetMembers(declaration).First(m => g.GetName(m) == name));
             AssertMemberNamesEqual(remainingNames, newDecl);
         }
 
@@ -1965,7 +1965,7 @@ public class C { } // end").Members[0];
 }");
 
             VerifySyntax<ClassDeclarationSyntax>(
-                g.ReplaceDeclaration(declC, declX, xTypedT),
+                g.ReplaceNode(declC, declX, xTypedT),
 @"public class C
 {
     public static T X;
@@ -1973,7 +1973,7 @@ public class C { } // end").Members[0];
 }");
 
             VerifySyntax<ClassDeclarationSyntax>(
-                g.ReplaceDeclaration(declC, declY, g.WithType(declY, g.IdentifierName("T"))),
+                g.ReplaceNode(declC, declY, g.WithType(declY, g.IdentifierName("T"))),
 @"public class C
 {
     public static int X;
@@ -1982,7 +1982,7 @@ public class C { } // end").Members[0];
 }");
 
             VerifySyntax<ClassDeclarationSyntax>(
-                g.ReplaceDeclaration(declC, declZ, g.WithType(declZ, g.IdentifierName("T"))),
+                g.ReplaceNode(declC, declZ, g.WithType(declZ, g.IdentifierName("T"))),
 @"public class C
 {
     public static int X, Y;
@@ -1990,7 +1990,7 @@ public class C { } // end").Members[0];
 }");
 
             VerifySyntax<ClassDeclarationSyntax>(
-                g.ReplaceDeclaration(declC, declX, g.WithAccessibility(declX, Accessibility.Private)),
+                g.ReplaceNode(declC, declX, g.WithAccessibility(declX, Accessibility.Private)),
 @"public class C
 {
     private static int X;
@@ -1998,21 +1998,21 @@ public class C { } // end").Members[0];
 }");
 
             VerifySyntax<ClassDeclarationSyntax>(
-                g.ReplaceDeclaration(declC, declX, g.WithModifiers(declX, DeclarationModifiers.None)),
+                g.ReplaceNode(declC, declX, g.WithModifiers(declX, DeclarationModifiers.None)),
 @"public class C
 {
     public int X;
     public static int Y, Z;
 }");
             VerifySyntax<ClassDeclarationSyntax>(
-                g.ReplaceDeclaration(declC, declX, g.WithName(declX, "Q")),
+                g.ReplaceNode(declC, declX, g.WithName(declX, "Q")),
 @"public class C
 {
     public static int Q, Y, Z;
 }");
 
             VerifySyntax<ClassDeclarationSyntax>(
-                g.ReplaceDeclaration(declC, declX, g.WithExpression(declX, g.IdentifierName("e"))),
+                g.ReplaceNode(declC, declX, g.WithExpression(declX, g.IdentifierName("e"))),
 @"public class C
 {
     public static int X = e, Y, Z;
@@ -2087,77 +2087,77 @@ public class C
 
             // Removing attributes
             VerifySyntax<ClassDeclarationSyntax>(
-                g.RemoveDeclarations(declC, new[] { attrX }),
+                g.RemoveNodes(declC, new[] { attrX }),
 @"[Y, Z]
 public class C
 {
 }");
 
             VerifySyntax<ClassDeclarationSyntax>(
-                g.RemoveDeclarations(declC, new[] { attrY }),
+                g.RemoveNodes(declC, new[] { attrY }),
 @"[X, Z]
 public class C
 {
 }");
 
             VerifySyntax<ClassDeclarationSyntax>(
-                g.RemoveDeclarations(declC, new[] { attrZ }),
+                g.RemoveNodes(declC, new[] { attrZ }),
 @"[X, Y]
 public class C
 {
 }");
 
             VerifySyntax<ClassDeclarationSyntax>(
-                g.RemoveDeclarations(declC, new[] { attrX, attrY }),
+                g.RemoveNodes(declC, new[] { attrX, attrY }),
 @"[Z]
 public class C
 {
 }");
 
             VerifySyntax<ClassDeclarationSyntax>(
-                g.RemoveDeclarations(declC, new[] { attrX, attrZ }),
+                g.RemoveNodes(declC, new[] { attrX, attrZ }),
 @"[Y]
 public class C
 {
 }");
 
             VerifySyntax<ClassDeclarationSyntax>(
-                g.RemoveDeclarations(declC, new[] { attrY, attrZ }),
+                g.RemoveNodes(declC, new[] { attrY, attrZ }),
 @"[X]
 public class C
 {
 }");
 
             VerifySyntax<ClassDeclarationSyntax>(
-                g.RemoveDeclarations(declC, new[] { attrX, attrY, attrZ }),
+                g.RemoveNodes(declC, new[] { attrX, attrY, attrZ }),
 @"public class C
 {
 }");
 
             // Replacing attributes
             VerifySyntax<ClassDeclarationSyntax>(
-                g.ReplaceDeclaration(declC, attrX, g.Attribute("A")),
+                g.ReplaceNode(declC, attrX, g.Attribute("A")),
 @"[A, Y, Z]
 public class C
 {
 }");
 
             VerifySyntax<ClassDeclarationSyntax>(
-                g.ReplaceDeclaration(declC, attrY, g.Attribute("A")),
+                g.ReplaceNode(declC, attrY, g.Attribute("A")),
 @"[X, A, Z]
 public class C
 {
 }");
 
             VerifySyntax<ClassDeclarationSyntax>(
-                g.ReplaceDeclaration(declC, attrZ, g.Attribute("A")),
+                g.ReplaceNode(declC, attrZ, g.Attribute("A")),
 @"[X, Y, A]
 public class C
 {
 }");
 
             VerifySyntax<ClassDeclarationSyntax>(
-                g.ReplaceDeclaration(declC, attrX, g.AddAttributeArguments(attrX, new[] { g.AttributeArgument(g.IdentifierName("e")) })),
+                g.ReplaceNode(declC, attrX, g.AddAttributeArguments(attrX, new[] { g.AttributeArgument(g.IdentifierName("e")) })),
 @"[X(e), Y, Z]
 public class C
 {
@@ -2238,14 +2238,14 @@ public void M()
 
             // replacing
             VerifySyntax<MethodDeclarationSyntax>(
-                g.ReplaceDeclaration(declM, attrX, g.Attribute("Q")),
+                g.ReplaceNode(declM, attrX, g.Attribute("Q")),
 @"[return: Q, Y, Z]
 public void M()
 {
 }");
 
             VerifySyntax<MethodDeclarationSyntax>(
-                g.ReplaceDeclaration(declM, attrX, g.AddAttributeArguments(attrX, new[] { g.AttributeArgument(g.IdentifierName("e")) })),
+                g.ReplaceNode(declM, attrX, g.AddAttributeArguments(attrX, new[] { g.AttributeArgument(g.IdentifierName("e")) })),
 @"[return: X(e), Y, Z]
 public void M()
 {
@@ -2427,8 +2427,8 @@ public void M()
 [return: A]
 [Y, Z]
 [return: B, C, D]
-[P]
 [return: Q]
+[P]
 public void M()
 {
 }");

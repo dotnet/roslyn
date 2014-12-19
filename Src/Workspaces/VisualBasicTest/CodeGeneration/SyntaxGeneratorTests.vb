@@ -2228,11 +2228,11 @@ End Function</x>.Value)
         End Sub
 
         Private Sub TestRemoveAllMembers(declaration As SyntaxNode)
-            Assert.Equal(0, g.GetMembers(g.RemoveDeclarations(declaration, g.GetMembers(declaration))).Count)
+            Assert.Equal(0, g.GetMembers(g.RemoveNodes(declaration, g.GetMembers(declaration))).Count)
         End Sub
 
         Private Sub TestRemoveMember(declaration As SyntaxNode, name As String, remainingNames As String())
-            Dim newDecl = g.RemoveDeclaration(declaration, g.GetMembers(declaration).First(Function(m) g.GetName(m) = name))
+            Dim newDecl = g.RemoveNode(declaration, g.GetMembers(declaration).First(Function(m) g.GetName(m) = name))
             AssertMemberNamesEqual(remainingNames, newDecl)
         End Sub
 
@@ -2372,7 +2372,7 @@ Public Class C
 End Class</x>.Value)
 
             VerifySyntax(Of ClassBlockSyntax)(
-                g.ReplaceDeclaration(declC, declX, g.WithType(declX, g.IdentifierName("T"))),
+                g.ReplaceNode(declC, declX, g.WithType(declX, g.IdentifierName("T"))),
 <x>' Comment
 Public Class C
 
@@ -2382,7 +2382,7 @@ Public Class C
 End Class</x>.Value)
 
             VerifySyntax(Of ClassBlockSyntax)(
-                g.ReplaceDeclaration(declC, declX, g.WithExpression(declX, g.IdentifierName("e"))),
+                g.ReplaceNode(declC, declX, g.WithExpression(declX, g.IdentifierName("e"))),
 <x>' Comment
 Public Class C
 
@@ -2392,7 +2392,7 @@ Public Class C
 End Class</x>.Value)
 
             VerifySyntax(Of ClassBlockSyntax)(
-                g.ReplaceDeclaration(declC, declX, g.WithName(declX, "Q")),
+                g.ReplaceNode(declC, declX, g.WithName(declX, "Q")),
 <x>' Comment
 Public Class C
 
@@ -2400,7 +2400,7 @@ Public Class C
 End Class</x>.Value)
 
             VerifySyntax(Of ClassBlockSyntax)(
-                g.ReplaceDeclaration(declC, declY, g.WithType(declY, g.IdentifierName("T"))),
+                g.ReplaceNode(declC, declY, g.WithType(declY, g.IdentifierName("T"))),
 <x>' Comment
 Public Class C
 
@@ -2412,7 +2412,7 @@ Public Class C
 End Class</x>.Value)
 
             VerifySyntax(Of ClassBlockSyntax)(
-                g.ReplaceDeclaration(declC, declZ, g.WithType(declZ, g.IdentifierName("T"))),
+                g.ReplaceNode(declC, declZ, g.WithType(declZ, g.IdentifierName("T"))),
 <x>' Comment
 Public Class C
 
@@ -2422,7 +2422,7 @@ Public Class C
 End Class</x>.Value)
 
             VerifySyntax(Of ClassBlockSyntax)(
-                g.ReplaceDeclaration(declC, declX, declZ),
+                g.ReplaceNode(declC, declX, declZ),
 <x>' Comment
 Public Class C
 
@@ -2431,7 +2431,7 @@ End Class</x>.Value)
 
             ' Removing 
             VerifySyntax(Of ClassBlockSyntax)(
-                g.RemoveDeclaration(declC, declX),
+                g.RemoveNode(declC, declX),
 <x>' Comment
 Public Class C
 
@@ -2439,7 +2439,7 @@ Public Class C
 End Class</x>.Value)
 
             VerifySyntax(Of ClassBlockSyntax)(
-                g.RemoveDeclaration(declC, declY),
+                g.RemoveNode(declC, declY),
 <x>' Comment
 Public Class C
 
@@ -2447,7 +2447,7 @@ Public Class C
 End Class</x>.Value)
 
             VerifySyntax(Of ClassBlockSyntax)(
-                g.RemoveDeclaration(declC, declZ),
+                g.RemoveNode(declC, declZ),
 <x>' Comment
 Public Class C
 
@@ -2455,7 +2455,7 @@ Public Class C
 End Class</x>.Value)
 
             VerifySyntax(Of ClassBlockSyntax)(
-                g.RemoveDeclarations(declC, {declX, declY}),
+                g.RemoveNodes(declC, {declX, declY}),
 <x>' Comment
 Public Class C
 
@@ -2463,7 +2463,7 @@ Public Class C
 End Class</x>.Value)
 
             VerifySyntax(Of ClassBlockSyntax)(
-                g.RemoveDeclarations(declC, {declX, declZ}),
+                g.RemoveNodes(declC, {declX, declZ}),
 <x>' Comment
 Public Class C
 
@@ -2471,7 +2471,7 @@ Public Class C
 End Class</x>.Value)
 
             VerifySyntax(Of ClassBlockSyntax)(
-                g.RemoveDeclarations(declC, {declY, declZ}),
+                g.RemoveNodes(declC, {declY, declZ}),
 <x>' Comment
 Public Class C
 
@@ -2479,7 +2479,7 @@ Public Class C
 End Class</x>.Value)
 
             VerifySyntax(Of ClassBlockSyntax)(
-                g.RemoveDeclarations(declC, {declX, declY, declZ}),
+                g.RemoveNodes(declC, {declX, declY, declZ}),
 <x>' Comment
 Public Class C
 End Class</x>.Value)
@@ -2556,14 +2556,14 @@ End Class</x>.Value)
 
             ' replacing
             VerifySyntax(Of ClassBlockSyntax)(
-                g.ReplaceDeclaration(declC, declX, g.Attribute("A")),
+                g.ReplaceNode(declC, declX, g.Attribute("A")),
 <x>' Comment
 &lt;A, Y, Z&gt;
 Public Class C
 End Class</x>.Value)
 
             VerifySyntax(Of ClassBlockSyntax)(
-                g.ReplaceDeclaration(declC, declX, g.InsertAttributeArguments(declX, 0, {g.AttributeArgument(g.IdentifierName("e"))})),
+                g.ReplaceNode(declC, declX, g.InsertAttributeArguments(declX, 0, {g.AttributeArgument(g.IdentifierName("e"))})),
 <x>' Comment
 &lt;X(e), Y, Z&gt;
 Public Class C
@@ -2571,49 +2571,49 @@ End Class</x>.Value)
 
             ' removing
             VerifySyntax(Of ClassBlockSyntax)(
-                g.RemoveDeclaration(declC, declX),
+                g.RemoveNode(declC, declX),
 <x>' Comment
 &lt;Y, Z&gt;
 Public Class C
 End Class</x>.Value)
 
             VerifySyntax(Of ClassBlockSyntax)(
-                g.RemoveDeclaration(declC, declY),
+                g.RemoveNode(declC, declY),
 <x>' Comment
 &lt;X, Z&gt;
 Public Class C
 End Class</x>.Value)
 
             VerifySyntax(Of ClassBlockSyntax)(
-                g.RemoveDeclaration(declC, declZ),
+                g.RemoveNode(declC, declZ),
 <x>' Comment
 &lt;X, Y&gt;
 Public Class C
 End Class</x>.Value)
 
             VerifySyntax(Of ClassBlockSyntax)(
-                g.RemoveDeclarations(declC, {declX, declY}),
+                g.RemoveNodes(declC, {declX, declY}),
 <x>' Comment
 &lt;Z&gt;
 Public Class C
 End Class</x>.Value)
 
             VerifySyntax(Of ClassBlockSyntax)(
-                g.RemoveDeclarations(declC, {declX, declZ}),
+                g.RemoveNodes(declC, {declX, declZ}),
 <x>' Comment
 &lt;Y&gt;
 Public Class C
 End Class</x>.Value)
 
             VerifySyntax(Of ClassBlockSyntax)(
-                g.RemoveDeclarations(declC, {declY, declZ}),
+                g.RemoveNodes(declC, {declY, declZ}),
 <x>' Comment
 &lt;X&gt;
 Public Class C
 End Class</x>.Value)
 
             VerifySyntax(Of ClassBlockSyntax)(
-                g.RemoveDeclarations(declC, {declX, declY, declZ}),
+                g.RemoveNodes(declC, {declX, declY, declZ}),
 <x>' Comment
 Public Class C
 End Class</x>.Value)
@@ -2673,56 +2673,56 @@ Imports N
 
             ' Replacing
             VerifySyntax(Of CompilationUnitSyntax)(
-                g.ReplaceDeclaration(declCU, declX, g.NamespaceImportDeclaration("N")),
+                g.ReplaceNode(declCU, declX, g.NamespaceImportDeclaration("N")),
 <x>' Comment
 Imports N, Y, Z
 </x>.Value)
 
             ' Removing
             VerifySyntax(Of CompilationUnitSyntax)(
-                g.RemoveDeclaration(declCU, declX),
+                g.RemoveNode(declCU, declX),
 <x>' Comment
 Imports Y, Z
 </x>.Value)
 
             ' Removing
             VerifySyntax(Of CompilationUnitSyntax)(
-                g.RemoveDeclaration(declCU, declY),
+                g.RemoveNode(declCU, declY),
 <x>' Comment
 Imports X, Z
 </x>.Value)
 
             ' Removing
             VerifySyntax(Of CompilationUnitSyntax)(
-                g.RemoveDeclaration(declCU, declZ),
+                g.RemoveNode(declCU, declZ),
 <x>' Comment
 Imports X, Y
 </x>.Value)
 
             ' Removing
             VerifySyntax(Of CompilationUnitSyntax)(
-                g.RemoveDeclarations(declCU, {declX, declY}),
+                g.RemoveNodes(declCU, {declX, declY}),
 <x>' Comment
 Imports Z
 </x>.Value)
 
             ' Removing
             VerifySyntax(Of CompilationUnitSyntax)(
-                g.RemoveDeclarations(declCU, {declX, declZ}),
+                g.RemoveNodes(declCU, {declX, declZ}),
 <x>' Comment
 Imports Y
 </x>.Value)
 
             ' Removing
             VerifySyntax(Of CompilationUnitSyntax)(
-                g.RemoveDeclarations(declCU, {declY, declZ}),
+                g.RemoveNodes(declCU, {declY, declZ}),
 <x>' Comment
 Imports X
 </x>.Value)
 
             ' Removing
             VerifySyntax(Of CompilationUnitSyntax)(
-                g.RemoveDeclarations(declCU, {declX, declY, declZ}),
+                g.RemoveNodes(declCU, {declX, declY, declZ}),
 <x>' Comment
 </x>.Value)
 

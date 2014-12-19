@@ -294,6 +294,24 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new node from this node with both the leading and trailing trivia of the specified node.
+        /// </summary>
+        public static TSyntax WithTriviaFrom<TSyntax>(this TSyntax syntax, SyntaxNode node)
+            where TSyntax : SyntaxNode
+        {
+            return syntax.WithLeadingTrivia(node.GetLeadingTrivia()).WithTrailingTrivia(node.GetTrailingTrivia());
+        }
+
+        /// <summary>
+        /// Creates a new node from this node without leading or trailing trivia.
+        /// </summary>
+        public static TSyntax WithoutTrivia<TSyntax>(this TSyntax syntax)
+            where TSyntax : SyntaxNode
+        {
+            return syntax.WithoutLeadingTrivia().WithoutTrailingTrivia();
+        }
+
+        /// <summary>
         /// Creates a new node from this node with the leading trivia replaced.
         /// </summary>
         public static TSyntax WithLeadingTrivia<TSyntax>(

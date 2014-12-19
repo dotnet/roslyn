@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             ISymbol declaredSymbol = model.GetDeclaredSymbol(nodeToFix, cancellationToken);
             Contract.ThrowIfNull(declaredSymbol);
 
-            var editor = new SymbolEditor(document);
+            var editor = SymbolEditor.Create(document);
 
             foreach (var customTag in diagnostic.Descriptor.CustomTags)
             {

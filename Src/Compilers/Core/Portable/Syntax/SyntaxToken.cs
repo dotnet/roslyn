@@ -524,30 +524,32 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Clones the token and adds the <paramref name="trivia"/> as leading trivia.
+        /// Creates a new tokne from this token with the leading and trailing trivia from the specified token.
         /// </summary>
-        /// <param name="trivia">The <see cref="SyntaxTriviaList"/> to add as leading trivia.</param>
-        /// <returns>A new token with leading trivia.</returns>
+        public SyntaxToken WithTriviaFrom(SyntaxToken token)
+        {
+            return this.WithLeadingTrivia(token.LeadingTrivia).WithTrailingTrivia(token.TrailingTrivia);
+        }
+
+        /// <summary>
+        /// Creates a new token from this token with the leading trivia specified.
+        /// </summary>
         public SyntaxToken WithLeadingTrivia(SyntaxTriviaList trivia)
         {
             return this.WithLeadingTrivia((IEnumerable<SyntaxTrivia>)trivia);
         }
 
         /// <summary>
-        /// Clones the token and adds the <paramref name="trivia"/> as trailing trivia.
+        /// Creates a new token from this token with the leading trivia specified..
         /// </summary>
-        /// <param name="trivia">The <see cref="SyntaxTriviaList"/> to add as trailing trivia.</param>
-        /// <returns>A new token with trailing trivia.</returns>
-        public SyntaxToken WithTrailingTrivia(SyntaxTriviaList trivia)
-        {
-            return this.WithTrailingTrivia((IEnumerable<SyntaxTrivia>)trivia);
-        }
-
         public SyntaxToken WithLeadingTrivia(params SyntaxTrivia[] trivia)
         {
             return this.WithLeadingTrivia((IEnumerable<SyntaxTrivia>)trivia);
         }
 
+        /// <summary>
+        /// Creates a new token from this token with the leading trivia specified..
+        /// </summary>
         public SyntaxToken WithLeadingTrivia(IEnumerable<SyntaxTrivia> trivia)
         {
             var greenList = trivia == null ? null : trivia.Select(t => t.UnderlyingNode);
@@ -557,11 +559,25 @@ namespace Microsoft.CodeAnalysis
                 : default(SyntaxToken);
         }
 
+        /// <summary>
+        /// Creates a new token from this token with the trailing trivia specified.
+        /// </summary>
+        public SyntaxToken WithTrailingTrivia(SyntaxTriviaList trivia)
+        {
+            return this.WithTrailingTrivia((IEnumerable<SyntaxTrivia>)trivia);
+        }
+
+        /// <summary>
+        /// Creates a new token from this token with the trailing trivia specified.
+        /// </summary>
         public SyntaxToken WithTrailingTrivia(params SyntaxTrivia[] trivia)
         {
             return this.WithTrailingTrivia((IEnumerable<SyntaxTrivia>)trivia);
         }
 
+        /// <summary>
+        /// Creates a new token from this token with the trailing trivia specified.
+        /// </summary>
         public SyntaxToken WithTrailingTrivia(IEnumerable<SyntaxTrivia> trivia)
         {
             var greenList = trivia == null ? null : trivia.Select(t => t.UnderlyingNode);
@@ -698,7 +714,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// SyntaxTree which contains current SyntaxToken.
+        /// The SyntaxTree that contains this token.
         /// </summary>
         public SyntaxTree SyntaxTree
         {

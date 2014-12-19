@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
 
             var solution = GetSolution(code);
             var symbol = GetSymbols(solution, "C").First();
-            var editor = new SymbolEditor(solution);
+            var editor = SymbolEditor.Create(solution);
 
             var newSymbol = (INamedTypeSymbol)editor.EditOneDeclarationAsync(symbol, (e, d) => e.AddMembers(d, new[] { e.Generator.MethodDeclaration("m") })).Result;
             Assert.Equal(1, newSymbol.GetMembers("m").Length);
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
 
             var solution = GetSolution(code);
             var symbol = GetSymbols(solution, "C").First();
-            var editor = new SymbolEditor(solution);
+            var editor = SymbolEditor.Create(solution);
 
             var newSymbol = (INamedTypeSymbol)editor.EditOneDeclarationAsync(symbol, (e, d) => e.AddMembers(d, new[] { g.MethodDeclaration("m") })).Result;
             Assert.Equal(1, newSymbol.GetMembers("m").Length);
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
 
             var solution = GetSolution(code);
             var symbol = GetSymbols(solution, "C").First();
-            var editor = new SymbolEditor(solution);
+            var editor = SymbolEditor.Create(solution);
 
             var newSymbol = (INamedTypeSymbol)editor.EditOneDeclarationAsync(symbol, (e, d) => e.AddMembers(d, new[] { e.Generator.MethodDeclaration("m") })).Result;
             Assert.Equal(1, newSymbol.GetMembers("m").Length);
@@ -179,7 +179,7 @@ class B
             var symbolA = comp.GlobalNamespace.GetMembers("A").First();
             var symbolB = comp.GlobalNamespace.GetMembers("B").First();
 
-            var editor = new SymbolEditor(solution);
+            var editor = SymbolEditor.Create(solution);
 
             var newSymbolA = (INamedTypeSymbol)editor.EditOneDeclarationAsync(symbolA, (e, d) => e.AddMembers(d, new[] { e.Generator.MethodDeclaration("ma") })).Result;
             Assert.Equal(1, newSymbolA.GetMembers("ma").Length);
@@ -225,7 +225,7 @@ class B
             var symbolA = comp.GlobalNamespace.GetMembers("A").First();
             var symbolB = comp.GlobalNamespace.GetMembers("B").First();
 
-            var editor = new SymbolEditor(solution);
+            var editor = SymbolEditor.Create(solution);
 
             var newSymbolA = (INamedTypeSymbol)editor.EditOneDeclarationAsync(symbolA, (e, d) => e.AddMembers(d, new[] { e.Generator.MethodDeclaration("ma") })).Result;
             Assert.Equal(1, newSymbolA.GetMembers("ma").Length);
@@ -264,7 +264,7 @@ internal partial class C
 
             var solution = GetSolution(code);
             var symbol = GetSymbols(solution, "C").First();
-            var editor = new SymbolEditor(solution);
+            var editor = SymbolEditor.Create(solution);
 
             var newSymbol = (INamedTypeSymbol)editor.EditAllDeclarationsAsync(symbol, (e, d) => e.SetAccessibility(d, Accessibility.Internal)).Result;
 
@@ -302,7 +302,7 @@ internal partial class C
             var comp = solution.Projects.First().GetCompilationAsync().Result;
             var symbol = comp.GlobalNamespace.GetMembers("C").First();
 
-            var editor = new SymbolEditor(solution);
+            var editor = SymbolEditor.Create(solution);
             var newSymbol = (INamedTypeSymbol)editor.EditAllDeclarationsAsync(symbol, (e, d) => e.SetAccessibility(d, Accessibility.Public)).Result;
 
             var docs = editor.GetChangedDocuments().ToList();
@@ -340,7 +340,7 @@ partial class C
             var solution = GetSolution(code);
             var symbol = GetSymbols(solution, "C").First();
             var location = symbol.Locations.Last();
-            var editor = new SymbolEditor(solution);
+            var editor = SymbolEditor.Create(solution);
 
             var newSymbol = (INamedTypeSymbol)editor.EditOneDeclarationAsync(symbol, location, (e, d) => e.AddMembers(d, new[] { e.Generator.MethodDeclaration("m") })).Result;
             Assert.Equal(1, newSymbol.GetMembers("m").Length);
@@ -377,7 +377,7 @@ partial class C
             var solution = GetSolution(code);
             var symbol = GetSymbols(solution, "C").First();
             var location = symbol.Locations.First();
-            var editor = new SymbolEditor(solution);
+            var editor = SymbolEditor.Create(solution);
 
             var newSymbol = (INamedTypeSymbol)editor.EditOneDeclarationAsync(symbol, location, (e, d) => e.AddMembers(d, new[] { e.Generator.MethodDeclaration("m") })).Result;
             Assert.Equal(1, newSymbol.GetMembers("m").Length);
@@ -418,7 +418,7 @@ partial class C
             var solution = GetSolution(code);
             var symbol = GetSymbols(solution, "C").First();
             var location = symbol.Locations.Last();
-            var editor = new SymbolEditor(solution);
+            var editor = SymbolEditor.Create(solution);
 
             var newSymbol = (INamedTypeSymbol)editor.EditOneDeclarationAsync(symbol, location, (e, d) => e.AddMembers(d, new[] { e.Generator.MethodDeclaration("m") })).Result;
             Assert.Equal(1, newSymbol.GetMembers("m").Length);
@@ -464,7 +464,7 @@ partial class C
             var solution = GetSolution(code);
             var symbol = GetSymbols(solution, "C").First();
             var location = symbol.Locations.Last();
-            var editor = new SymbolEditor(solution);
+            var editor = SymbolEditor.Create(solution);
 
             var newSymbol = (INamedTypeSymbol)editor.EditOneDeclarationAsync(symbol, location, (e, d) => e.AddMembers(d, new[] { e.Generator.MethodDeclaration("m") })).Result;
             Assert.Equal(1, newSymbol.GetMembers("m").Length);
@@ -514,7 +514,7 @@ partial class C
             var solution = GetSolution(code);
             var symbol = (INamedTypeSymbol)GetSymbols(solution, "C").First();
             var member = symbol.GetMembers("m").First();
-            var editor = new SymbolEditor(solution);
+            var editor = SymbolEditor.Create(solution);
 
             var newSymbol = (INamedTypeSymbol)editor.EditOneDeclarationAsync(symbol, member, (e, d) => e.AddMembers(d, new[] { e.Generator.MethodDeclaration("m2") })).Result;
             Assert.Equal(1, newSymbol.GetMembers("m").Length);
@@ -540,7 +540,7 @@ partial class C
 
             var solution = GetSolution(code);
             var symbol = GetSymbols(solution, "C").First();
-            var editor = new SymbolEditor(solution);
+            var editor = SymbolEditor.Create(solution);
 
             var newSymbol = (INamedTypeSymbol)editor.EditOneDeclarationAsync(symbol, (e, d) => e.SetName(d, "X")).Result;
             Assert.Equal("X", newSymbol.Name);
@@ -577,7 +577,7 @@ partial class X
 }";
             var solution = GetSolution(code);
             var symbol = GetSymbols(solution, "C").First();
-            var editor = new SymbolEditor(solution);
+            var editor = SymbolEditor.Create(solution);
 
             var newSymbol = (INamedTypeSymbol)editor.EditAllDeclarationsAsync(symbol, (e, d) => e.SetName(d, "X")).Result;
             Assert.Equal("X", newSymbol.Name);
@@ -604,7 +604,7 @@ partial class X
 
             var solution = GetSolution(code);
             var symbol = GetSymbols(solution, "C").First();
-            var editor = new SymbolEditor(solution);
+            var editor = SymbolEditor.Create(solution);
 
             var newSymbol = (INamedTypeSymbol)editor.EditOneDeclarationAsync(symbol, (e, d) => e.RemoveNode(d)).Result;
             Assert.Null(newSymbol);
@@ -634,7 +634,7 @@ partial class C
 
             var solution = GetSolution(code);
             var symbol = GetSymbols(solution, "C").First();
-            var editor = new SymbolEditor(solution);
+            var editor = SymbolEditor.Create(solution);
 
             var newSymbol = (INamedTypeSymbol)editor.EditOneDeclarationAsync(symbol, (e, d) => e.RemoveNode(d)).Result;
             Assert.NotNull(newSymbol);
@@ -663,7 +663,7 @@ partial class C
 
             var solution = GetSolution(code);
             var symbol = GetSymbols(solution, "C").First();
-            var editor = new SymbolEditor(solution);
+            var editor = SymbolEditor.Create(solution);
 
             var newSymbol = (INamedTypeSymbol)editor.EditAllDeclarationsAsync(symbol, (e, d) => e.RemoveNode(d)).Result;
             Assert.Null(newSymbol);
@@ -698,7 +698,7 @@ partial class C
             var symbolX = symbol.GetMembers("X").First();
             var symbolY = symbol.GetMembers("Y").First();
 
-            var editor = new SymbolEditor(solution);
+            var editor = SymbolEditor.Create(solution);
 
             // remove X -- should remove only part of the field declaration.
             var newSymbolX = (INamedTypeSymbol)editor.EditOneDeclarationAsync(symbolX, (e, d) => e.RemoveNode(d)).Result;

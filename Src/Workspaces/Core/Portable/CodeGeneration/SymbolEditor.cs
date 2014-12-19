@@ -14,20 +14,35 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     /// <summary>
     /// An editor for making changes to symbol source declarations.
     /// </summary>
-    public class SymbolEditor
+    public sealed class SymbolEditor
     {
         private readonly Solution originalSolution;
         private Solution currentSolution;
 
-        public SymbolEditor(Solution solution)
+        private SymbolEditor(Solution solution)
         {
             this.originalSolution = solution;
             this.currentSolution = solution;
         }
 
-        public SymbolEditor(Document document)
-            : this(document.Project.Solution)
+        public static SymbolEditor Create(Solution solution)
         {
+            if (solution == null)
+            {
+                throw new ArgumentNullException(nameof(solution));
+            }
+
+            return new SymbolEditor(solution);
+        }
+
+        public static SymbolEditor Create(Document document)
+        {
+            if (document == null)
+            {
+                throw new ArgumentNullException(nameof(document));
+            }
+
+            return new SymbolEditor(document.Project.Solution);
         }
 
         /// <summary>
@@ -39,9 +54,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         /// <summary>
-        /// The current solution.
+        /// The solution with the edits applied.
         /// </summary>
-        public Solution CurrentSolution
+        public Solution ChangedSolution
         {
             get { return this.currentSolution; }
         }
@@ -158,37 +173,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         /// <summary>
-        /// Get's the current symbol for a declaration at a specified position within a documment.
-        /// </summary>
-        private Task<ISymbol> GetCurrentSymbolAsync(DocumentId docId, int position, DeclarationKind kind, CancellationToken cancellationToken)
-        {
-            return this.GetSymbolAsync(this.currentSolution, docId, position, kind, cancellationToken);
-        }
-
-        private DeclarationKind GetKind(SyntaxNode declaration)
-        {
-            return SyntaxGenerator.GetGenerator(this.currentSolution.Workspace, declaration.Language).GetDeclarationKind(declaration);
-        }
-
-        private async Task<ISymbol> GetSymbolAsync(Solution solution, DocumentId docId, int position, DeclarationKind kind, CancellationToken cancellationToken)
-        {
-            var doc = solution.GetDocument(docId);
-            var model = await doc.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var generator = SyntaxGenerator.GetGenerator(doc);
-            var node = model.SyntaxTree.GetRoot().FindToken(position).Parent;
-            var decl = generator.GetDeclaration(node, kind);
-
-            if (decl != null)
-            {
-                return model.GetDeclaredSymbol(decl, cancellationToken);
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        /// <summary>
         /// Gets the declaration syntax nodes for a given symbol.
         /// </summary>
         private IEnumerable<SyntaxNode> GetDeclarations(ISymbol symbol)
@@ -246,24 +230,30 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             var doc = this.currentSolution.GetDocument(declaration.SyntaxTree);
             var root = declaration.SyntaxTree.GetRoot();
+
             var editor = SyntaxEditor.Create(this.currentSolution.Workspace, root);
+            editor.TrackNode(declaration);
 
             editAction(editor, declaration);
 
             var newRoot = editor.GetChangedRoot();
-            var newDecl = newRoot.GetCurrentNode(declaration);
-
             var newDoc = doc.WithSyntaxRoot(newRoot);
             this.currentSolution = newDoc.Project.Solution;
 
-            if (newDecl != null)
+            // try to find new symbol by looking up via original declaration
+            var model = await newDoc.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var newDeclaration = model.SyntaxTree.GetRoot().GetCurrentNode(declaration);
+            if (newDeclaration != null)
             {
-                return await this.GetCurrentSymbolAsync(doc.Id, declaration.Span.Start, GetKind(newDecl), cancellationToken).ConfigureAwait(false);
+                var newSymbol = model.GetDeclaredSymbol(newDeclaration, cancellationToken);
+                if (newSymbol != null)
+                {
+                    return newSymbol;
+                }
             }
-            else
-            {
-                return await this.GetCurrentSymbolAsync(currentSymbol, cancellationToken).ConfigureAwait(false);
-            }
+
+            // otherwise fallback to rebinding with original symbol
+            return await this.GetCurrentSymbolAsync(currentSymbol, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -366,50 +356,48 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public async Task<ISymbol> EditAllDeclarationsAsync(ISymbol symbol, DeclarationEditAction editAction, CancellationToken cancellationToken = default(CancellationToken))
         {
             var currentSymbol = await this.GetCurrentSymbolAsync(symbol, cancellationToken).ConfigureAwait(false);
+            CheckSymbolArgument(currentSymbol, symbol);
 
-            var docMap = new Dictionary<SyntaxTree, Document>();
-            var changeMap = new Dictionary<SyntaxNode, SyntaxNode>();
+            var declsByDocId = this.GetDeclarations(currentSymbol).ToLookup(d => this.currentSolution.GetDocument(d.SyntaxTree).Id);
 
-            foreach (var decls in this.GetDeclarations(currentSymbol).GroupBy(d => d.SyntaxTree))
+            foreach (var declGroup in declsByDocId)
             {
-                var doc = this.currentSolution.GetDocument(decls.Key);
-                docMap.Add(decls.Key, doc);
-
-                var root = decls.Key.GetRoot();
+                var doc = this.currentSolution.GetDocument(declGroup.Key);
+                var root = declGroup.First().SyntaxTree.GetRoot();
 
                 var editor = SyntaxEditor.Create(this.currentSolution.Workspace, root);
-
-                foreach (var decl in decls)
+                foreach (var decl in declGroup)
                 {
+                    editor.TrackNode(decl); // ensure the declaration gets tracked
                     editAction(editor, decl);
                 }
 
                 var newRoot = editor.GetChangedRoot();
-
-                foreach (var decl in decls)
-                {
-                    var newDecl = newRoot.GetCurrentNode(decl);
-                    changeMap.Add(decl, newDecl);
-                }
-
                 var newDoc = doc.WithSyntaxRoot(newRoot);
                 this.currentSolution = newDoc.Project.Solution;
             }
 
-            // try to find new symbol using the first lexically changed decl in one of the trees, because the position will not have changed
-            var firstTreeChanges = changeMap.GroupBy(kvp => kvp.Key.SyntaxTree).FirstOrDefault();
-            if (firstTreeChanges != null)
+            // try to find new symbol by looking up via original declarations
+            foreach (var declGroup in declsByDocId)
             {
-                var doc = docMap[firstTreeChanges.Key];
+                var doc = this.currentSolution.GetDocument(declGroup.Key);
+                var model = await doc.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                var firstChangedDecl = firstTreeChanges.OrderBy(kvp => kvp.Key.SpanStart).FirstOrDefault().Value;
-                if (firstChangedDecl != null)
+                foreach (var decl in declGroup)
                 {
-                    return await GetCurrentSymbolAsync(doc.Id, firstChangedDecl.SpanStart, GetKind(firstChangedDecl), cancellationToken).ConfigureAwait(false);
+                    var newDeclaration = model.SyntaxTree.GetRoot().GetCurrentNode(decl);
+                    if (newDeclaration != null)
+                    {
+                        var newSymbol = model.GetDeclaredSymbol(newDeclaration);
+                        if (newSymbol != null)
+                        {
+                            return newSymbol;
+                        }
+                    }
                 }
             }
 
-            // if prior method fails (possibly due to declaration being removed), attempt to rebind the original symbol
+            // otherwise fallback to rebinding with original symbol
             return await GetCurrentSymbolAsync(symbol, cancellationToken).ConfigureAwait(false);
         }
     }

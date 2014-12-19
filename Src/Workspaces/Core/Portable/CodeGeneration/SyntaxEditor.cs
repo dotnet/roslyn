@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     /// <summary>
     /// An editor for making multiple edits to a syntax tree. 
     /// </summary>
-    public class SyntaxEditor
+    public sealed class SyntaxEditor
     {
         private readonly SyntaxGenerator generator;
         private readonly SyntaxNode root;
@@ -22,24 +22,6 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             this.root = root;
             this.generator = generator;
             this.changes = new List<Change>();
-        }
-
-        /// <summary>
-        /// Creates a new <see cref="SyntaxEditor"/> instance.
-        /// </summary>
-        public static SyntaxEditor Create(SyntaxNode root, SyntaxGenerator generator)
-        {
-            if (root == null)
-            {
-                throw new ArgumentNullException(nameof(root));
-            }
-
-            if (generator == null)
-            {
-                throw new ArgumentNullException(nameof(generator));
-            }
-
-            return new SyntaxEditor(root, generator);
         }
 
         /// <summary>
@@ -93,6 +75,15 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         /// <summary>
+        /// Makes sure the node is tracked, even if it is not changed.
+        /// You do not need to call this method if the node is changed via a Remove, Replace or Insert.
+        /// </summary>
+        internal void TrackNode(SyntaxNode node)
+        {
+            this.changes.Add(new NoChange(node));
+        }
+
+        /// <summary>
         /// Remove the node from the tree.
         /// </summary>
         /// <param name="node">The node to remove that currently exists as part of the tree.</param>
@@ -142,6 +133,26 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             this.InsertBefore(node, new[] { newNode });
         }
 
+        /// <summary>
+        /// Insert the new nodes after the specified node already existing in the tree.
+        /// </summary>
+        /// <param name="node">The node already existing in the tree that the new nodes will be placed after. This must be a node this is contained within a syntax list.</param>
+        /// <param name="newNodes">The nodes to place after the existing node. These nodes must be of a compatible type to be placed in the same list containing the existing node.</param>
+        public void InsertAfter(SyntaxNode node, IEnumerable<SyntaxNode> newNodes)
+        {
+            this.changes.Add(new InsertChange(node, newNodes, isBefore: false));
+        }
+
+        /// <summary>
+        /// Insert the new node after the specified node already existing in the tree.
+        /// </summary>
+        /// <param name="node">The node already existing in the tree that the new nodes will be placed after. This must be a node this is contained within a syntax list.</param>
+        /// <param name="newNode">The node to place after the existing node. This node must be of a compatible type to be placed in the same list containing the existing node.</param>
+        public void InsertAfter(SyntaxNode node, SyntaxNode newNode)
+        {
+            this.InsertBefore(node, new[] { newNode });
+        }
+
         private abstract class Change
         {
             internal readonly SyntaxNode Node;
@@ -154,6 +165,19 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             public abstract SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator);
         }
 
+        private class NoChange : Change
+        {
+            public NoChange(SyntaxNode node)
+                : base(node)
+            {
+            }
+
+            public override SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
+            {
+                return root;
+            }
+        }
+
         private class RemoveChange : Change
         {
             public RemoveChange(SyntaxNode node)
@@ -163,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             public override SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
             {
-                return generator.RemoveDeclaration(root, root.GetCurrentNode(this.Node));
+                return generator.RemoveNode(root, root.GetCurrentNode(this.Node));
             }
         }
 
@@ -181,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             {
                 var current = root.GetCurrentNode(this.Node);
                 var newNode = modifier(current, generator);
-                return generator.ReplaceDeclaration(root, current, newNode);
+                return generator.ReplaceNode(root, current, newNode);
             }
         }
 
@@ -199,7 +223,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             public override SyntaxNode Apply(SyntaxNode root, SyntaxGenerator generator)
             {
-                return generator.InsertDeclarationsBefore(root, root.GetCurrentNode(this.Node), this.newNodes);
+                if (this.isBefore)
+                {
+                    return generator.InsertNodesBefore(root, root.GetCurrentNode(this.Node), this.newNodes);
+                }
+                else
+                {
+                    return generator.InsertNodesAfter(root, root.GetCurrentNode(this.Node), this.newNodes);
+                }
             }
         }
     }
