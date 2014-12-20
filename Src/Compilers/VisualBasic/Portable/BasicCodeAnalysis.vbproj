@@ -975,6 +975,7 @@
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Scripting.Common.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Scripting.VisualBasic.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
   </ItemGroup>
   <ItemGroup>

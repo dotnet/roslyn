@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports System.Linq
 Imports Roslyn.Test.Utilities
 
 Public Class VisualBasicParseOptionsTests
@@ -76,16 +77,16 @@ Public Class VisualBasicParseOptionsTests
     End Sub
 
     <Fact>
-    Public Sub PredefinedPreprocessorSymbols()
+    Public Sub PredefinedPreprocessorSymbolsTests()
         Dim options = VisualBasicParseOptions.Default
         Dim empty = ImmutableArray.Create(Of KeyValuePair(Of String, Object))()
 
         Dim symbols = AddPredefinedPreprocessorSymbols(OutputKind.NetModule)
-        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", 11.0), New KeyValuePair(Of String, Object)("TARGET", "module")}, symbols.AsEnumerable)
+        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber), New KeyValuePair(Of String, Object)("TARGET", "module")}, symbols.AsEnumerable)
 
         ' if the symbols are already there, don't change their values
         symbols = AddPredefinedPreprocessorSymbols(OutputKind.DynamicallyLinkedLibrary, symbols)
-        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", 11.0), New KeyValuePair(Of String, Object)("TARGET", "module")}, symbols.AsEnumerable)
+        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber), New KeyValuePair(Of String, Object)("TARGET", "module")}, symbols.AsEnumerable)
 
         symbols = AddPredefinedPreprocessorSymbols(OutputKind.WindowsApplication,
                                                    {New KeyValuePair(Of String, Object)("VBC_VER", "Foo"), New KeyValuePair(Of String, Object)("TARGET", 123)})
@@ -96,10 +97,21 @@ Public Class VisualBasicParseOptionsTests
         AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", "Foo"), New KeyValuePair(Of String, Object)("TARGET", 123)}, symbols.AsEnumerable)
 
         symbols = AddPredefinedPreprocessorSymbols(OutputKind.ConsoleApplication, empty)
-        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", 11.0), New KeyValuePair(Of String, Object)("TARGET", "exe")}, symbols.AsEnumerable)
+        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber), New KeyValuePair(Of String, Object)("TARGET", "exe")}, symbols.AsEnumerable)
 
         symbols = AddPredefinedPreprocessorSymbols(OutputKind.WindowsApplication, empty)
-        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", 11.0), New KeyValuePair(Of String, Object)("TARGET", "winexe")}, symbols.AsEnumerable)
+        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber), New KeyValuePair(Of String, Object)("TARGET", "winexe")}, symbols.AsEnumerable)
+    End Sub
+
+    <Fact>
+    Public Sub CurrentVersionNumber()
+        Dim highest = System.Enum.
+            GetValues(GetType(LanguageVersion)).
+            Cast(Of LanguageVersion).
+            Select(Function(x) CInt(x)).
+            Max()
+
+        Assert.Equal(highest, CInt(PredefinedPreprocessorSymbols.CurrentVersionNumber))
     End Sub
 
     <Fact(Skip:="Win8 targets")>

@@ -1394,7 +1394,7 @@ a.vb
             Assert.Equal(False, parsedArgs.CompilationOptions.OptionInfer)
         End Sub
 
-        Const VBC_VER As Double = 11.0
+        Const VBC_VER As Double = PredefinedPreprocessorSymbols.CurrentVersionNumber
 
         <Fact>
         Public Sub TestDefine()

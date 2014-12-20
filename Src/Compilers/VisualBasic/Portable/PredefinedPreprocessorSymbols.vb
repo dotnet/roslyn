@@ -7,6 +7,9 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Public Module PredefinedPreprocessorSymbols
+
+        Friend Const CurrentVersionNumber = 14.0
+
         ''' <summary>
         ''' Adds predefined preprocessor symbols VBC_VER and TARGET to given list of preprocessor symbols if not included yet.
         ''' </summary>
@@ -46,10 +49,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If symbols.FirstOrDefault(Function(entry) IdentifierComparison.Equals(entry.Key, CompilerVersionSymbol)).Key Is Nothing Then
-                ' This number is hardcoded to Dev11 compiler. 
-                ' It's a bad practice to use the symbol so we should just keep the value as is and not ever rev it again.
-                ' Incorrect usages include conditionally using Framework APIs or language features based upon this number.
-                symbols = symbols.Add(New KeyValuePair(Of String, Object)(CompilerVersionSymbol, 11.0))
+                ' This number should always line up with the current version of the compilerString
+                symbols = symbols.Add(New KeyValuePair(Of String, Object)(CompilerVersionSymbol, CurrentVersionNumber))
             End If
 
             If symbols.FirstOrDefault(Function(entry) IdentifierComparison.Equals(entry.Key, TargetSymbol)).Key Is Nothing Then
@@ -68,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return "library"
 
                 Case OutputKind.NetModule
-                    Return "module"
+                    Return "Module"
 
                 Case OutputKind.WindowsApplication
                     Return "winexe"
