@@ -40,7 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new Conversion(convKind);
         }
 
-
         /// <summary>
         /// IsBaseInterface returns true if baseType is on the base interface list of derivedType or
         /// any base class of derivedType. It may be on the base interface list either directly or

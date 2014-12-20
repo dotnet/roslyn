@@ -749,5 +749,42 @@ class Program
                 //         var x = ICloneable.Clone is object;
                 Diagnostic(ErrorCode.ERR_LambdaInIsAs, "ICloneable.Clone is object").WithLocation(8, 17));
         }
+
+        [Fact]
+        [WorkItem(1084278, "DevDiv")]
+        public void NullableConversionFromConst()
+        {
+            var source =
+@"
+
+using System;
+
+class C
+{
+    static void Main()
+    {
+        Use((int?)3.5f);
+        Use((int?)3.5d);
+    }
+
+    static void Use(int? p) { } 
+}
+";
+
+            var compilation = CompileAndVerify(source);
+            compilation.VerifyIL("C.Main()",
+@"
+{
+  // Code size       23 (0x17)
+  .maxstack  1
+  IL_0000:  ldc.i4.3
+  IL_0001:  newobj     ""int?..ctor(int)""
+  IL_0006:  call       ""void C.Use(int?)""
+  IL_000b:  ldc.i4.3
+  IL_000c:  newobj     ""int?..ctor(int)""
+  IL_0011:  call       ""void C.Use(int?)""
+  IL_0016:  ret
+}");
+        }
     }
 }

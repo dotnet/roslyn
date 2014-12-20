@@ -585,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(false, "Unexpected SyntaxKind " + node.Kind());
                     return BadExpression(node);
             }
-                    }
+        }
 
         private BoundExpression BindRefValue(RefValueExpressionSyntax node, DiagnosticBag diagnostics)
         {
@@ -1279,34 +1279,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool hasErrors = false;
                 if (!IsNameofArgument(node))
                 {
-                if (InFieldInitializer && !currentType.IsScriptClass)
-                {
-                    //can't access "this" in field initializers
-                    Error(diagnostics, ErrorCode.ERR_FieldInitRefNonstatic, node, member);
-                    hasErrors = true;
-                }
-                else if (InConstructorInitializer || InAttributeArgument)
-                {
-                    //can't access "this" in constructor initializers or attribute arguments
-                    Error(diagnostics, ErrorCode.ERR_ObjectRequired, node, member);
-                    hasErrors = true;
-                }
-                else
-                {
-                    // not an instance member if the container is a type, like when binding default parameter values.
-                    var containingMember = ContainingMember();
-                    bool locationIsInstanceMember = !containingMember.IsStatic &&
-                        (containingMember.Kind != SymbolKind.NamedType || currentType.IsScriptClass);
-
-                    if (!locationIsInstanceMember)
+                    if (InFieldInitializer && !currentType.IsScriptClass)
                     {
-                        // error CS0120: An object reference is required for the non-static field, method, or property '{0}'
+                        //can't access "this" in field initializers
+                        Error(diagnostics, ErrorCode.ERR_FieldInitRefNonstatic, node, member);
+                        hasErrors = true;
+                    }
+                    else if (InConstructorInitializer || InAttributeArgument)
+                    {
+                        //can't access "this" in constructor initializers or attribute arguments
                         Error(diagnostics, ErrorCode.ERR_ObjectRequired, node, member);
                         hasErrors = true;
                     }
-                }
+                    else
+                    {
+                        // not an instance member if the container is a type, like when binding default parameter values.
+                        var containingMember = ContainingMember();
+                        bool locationIsInstanceMember = !containingMember.IsStatic &&
+                            (containingMember.Kind != SymbolKind.NamedType || currentType.IsScriptClass);
 
-                hasErrors = hasErrors || IsRefOrOutThisParameterCaptured(node, diagnostics);
+                        if (!locationIsInstanceMember)
+                        {
+                            // error CS0120: An object reference is required for the non-static field, method, or property '{0}'
+                            Error(diagnostics, ErrorCode.ERR_ObjectRequired, node, member);
+                            hasErrors = true;
+                        }
+                    }
+
+                    hasErrors = hasErrors || IsRefOrOutThisParameterCaptured(node, diagnostics);
                 }
 
                 return ThisReference(node, currentType, hasErrors, wasCompilerGenerated: true);
@@ -1518,6 +1518,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression operand = this.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
             TypeSymbol targetType = this.BindType(node.Type, diagnostics);
 
+            if (targetType.IsNullableType() && 
+                !operand.HasAnyErrors && 
+                operand.Type != null && 
+                !operand.Type.IsNullableType() && 
+                targetType.GetNullableUnderlyingType() != operand.Type)
+            {
+                return BindExplicitNullableCastFromNonNullable(node, operand, targetType, diagnostics);
+            }
+
+            return BindCastCore(node, operand, targetType, diagnostics);
+        }
+
+        private BoundExpression BindCastCore(ExpressionSyntax node, BoundExpression operand, TypeSymbol targetType, DiagnosticBag diagnostics)
+        {
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             Conversion conversion = this.Conversions.ClassifyConversionForCast(operand, targetType, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
@@ -1588,6 +1602,66 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return CreateConversion(node, operand, conversion, isCast: true, destination: targetType, diagnostics: diagnostics);
+        }
+
+        /// <summary>
+        /// This implements the casting behavior described in section 6.2.3 of the spec:
+        /// 
+        /// - If the nullable conversion is from S to T?, the conversion is evaluated as the underlying conversion 
+        ///   from S to T followed by a wrapping from T to T?.
+        ///
+        /// This particular check is done in the binder because it involves conversion processing rules (like overflow
+        /// checking and constant folding) which are not handled by Conversions.
+        /// </summary>
+        private BoundExpression BindExplicitNullableCastFromNonNullable(ExpressionSyntax node, BoundExpression operand, TypeSymbol targetType, DiagnosticBag diagnostics)
+        {
+            Debug.Assert(targetType != null && targetType.IsNullableType());
+            Debug.Assert(operand.Type != null && !operand.Type.IsNullableType());
+
+            // Section 6.2.3 of the spec only applies when the non-null version of the types involved have a
+            // built in conversion.
+            HashSet<DiagnosticInfo> unused = null;
+            var underlyingTargetType = targetType.GetNullableUnderlyingType();
+            var underlyingConversion = Conversions.ClassifyConversion(operand.Type, underlyingTargetType, ref unused, builtinOnly: true);
+            if (!underlyingConversion.Exists)
+            {
+                return BindCastCore(node, operand, targetType, diagnostics);
+            }
+
+            var bag = DiagnosticBag.GetInstance();
+            try
+            {
+                var underlyingExpr = BindCastCore(node, operand, targetType.GetNullableUnderlyingType(), bag);
+                if (underlyingExpr.HasErrors || bag.HasAnyErrors())
+                {
+                    Error(diagnostics, ErrorCode.ERR_NoExplicitConv, node, operand.Type, targetType);
+
+                    return new BoundConversion(
+                        node,
+                        operand,
+                        Conversion.NoConversion,
+                        @checked: CheckOverflowAtRuntime,
+                        explicitCastInCode: true,
+                        constantValueOpt: ConstantValue.NotAvailable,
+                        type: targetType,
+                        hasErrors: true);
+                }
+
+                // It's possible for the S -> T conversion to produce a 'better' constant value.  If this 
+                // constant value is produced place it in the tree so that it gets emitted.  This maintains 
+                // parity with the native compiler which also evaluated the conversion at compile time. 
+                if (underlyingExpr.ConstantValue != null)
+                {
+                    underlyingExpr.WasCompilerGenerated = true;
+                    return BindCastCore(node, underlyingExpr, targetType, diagnostics);
+                }
+
+                return BindCastCore(node, operand, targetType, diagnostics);
+            }
+            finally
+            {
+                bag.Free();
+            }
         }
 
         private static NameSyntax GetNameSyntax(CSharpSyntaxNode syntax)
@@ -1852,7 +1926,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     arguments[arg] = CreateConversion(argument.Syntax, argument, kind, false, type, diagnostics);
                 }
-                    }
+            }
         }
 
         private static TypeSymbol GetCorrespondingParameterType(ref MemberAnalysisResult result, ImmutableArray<ParameterSymbol> parameters, int arg)
@@ -2561,7 +2635,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (initializerArgumentListOpt != null && analyzedArguments.HasDynamicArgument)
                 {
-                    diagnostics.Add(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor, 
+                    diagnostics.Add(ErrorCode.ERR_NoDynamicPhantomOnBaseCtor,
                                     ((ConstructorInitializerSyntax)initializerArgumentListOpt.Parent).ThisOrBaseKeyword.GetLocation());
 
                     return new BoundBadExpression(
@@ -3188,15 +3262,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundObjectInitializerMember(
-                namedAssignment.Left, 
-                boundMember.ExpressionSymbol, 
-                arguments, 
-                argumentNamesOpt, 
+                namedAssignment.Left,
+                boundMember.ExpressionSymbol,
+                arguments,
+                argumentNamesOpt,
                 argumentRefKindsOpt,
-                expanded, 
-                argsToParamsOpt, 
-                resultKind, 
-                boundMember.Type, 
+                expanded,
+                argsToParamsOpt,
+                resultKind,
+                boundMember.Type,
                 hasErrors);
         }
 
@@ -4294,7 +4368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-notColorColor:
+                notColorColor:
                 // NOTE: it is up to the caller to call CheckValue on the result.
                 diagnostics.AddRangeAndFree(valueDiagnostics);
                 return boundValue;

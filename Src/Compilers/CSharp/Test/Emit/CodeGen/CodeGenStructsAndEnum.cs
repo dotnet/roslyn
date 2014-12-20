@@ -1612,10 +1612,9 @@ public class Test
             compilation.VerifyIL("NullableTest.EqualEqual",
 @"
 {
-  // Code size      124 (0x7c)
+  // Code size      120 (0x78)
   .maxstack  2
-  .locals init (decimal? V_0,
-  decimal V_1)
+  .locals init (decimal? V_0)
   IL_0000:  ldc.i4.0
   IL_0001:  box        ""bool""
   IL_0006:  ldc.i4.0
@@ -1636,24 +1635,22 @@ public class Test
   IL_0039:  ldc.i4.0
   IL_003a:  box        ""bool""
   IL_003f:  call       ""void Test.Eval(object, object)""
-  IL_0044:  ldloca.s   V_1
-  IL_0046:  initobj    ""decimal""
-  IL_004c:  ldloc.1
-  IL_004d:  ldsfld     ""decimal? NullableTest.NULL""
-  IL_0052:  stloc.0
-  IL_0053:  ldloca.s   V_0
-  IL_0055:  call       ""decimal decimal?.GetValueOrDefault()""
-  IL_005a:  call       ""bool decimal.op_Equality(decimal, decimal)""
-  IL_005f:  brtrue.s   IL_0064
-  IL_0061:  ldc.i4.0
-  IL_0062:  br.s       IL_006b
-  IL_0064:  ldloca.s   V_0
-  IL_0066:  call       ""bool decimal?.HasValue.get""
-  IL_006b:  box        ""bool""
-  IL_0070:  ldc.i4.0
-  IL_0071:  box        ""bool""
-  IL_0076:  call       ""void Test.Eval(object, object)""
-  IL_007b:  ret
+  IL_0044:  ldsfld     ""decimal decimal.Zero""
+  IL_0049:  ldsfld     ""decimal? NullableTest.NULL""
+  IL_004e:  stloc.0
+  IL_004f:  ldloca.s   V_0
+  IL_0051:  call       ""decimal decimal?.GetValueOrDefault()""
+  IL_0056:  call       ""bool decimal.op_Equality(decimal, decimal)""
+  IL_005b:  brtrue.s   IL_0060
+  IL_005d:  ldc.i4.0
+  IL_005e:  br.s       IL_0067
+  IL_0060:  ldloca.s   V_0
+  IL_0062:  call       ""bool decimal?.HasValue.get""
+  IL_0067:  box        ""bool""
+  IL_006c:  ldc.i4.0
+  IL_006d:  box        ""bool""
+  IL_0072:  call       ""void Test.Eval(object, object)""
+  IL_0077:  ret
 }
 ");
         }

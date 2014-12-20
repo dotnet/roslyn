@@ -2741,7 +2741,7 @@ public class D : IEnumerable
             var compVerifier = CompileAndVerify(source, emitOptions: TestEmitters.CCI, expectedOutput: expectedOutput);
             compVerifier.VerifyIL("Test.Main", @"
 {
-  // Code size       71 (0x47)
+  // Code size       66 (0x42)
   .maxstack  4
   .locals init (float? V_0)
   IL_0000:  newobj     ""D..ctor()""
@@ -2759,14 +2759,13 @@ public class D : IEnumerable
   IL_0020:  callvirt   ""void D.Add(int, float?)""
   IL_0025:  dup
   IL_0026:  ldc.i4.3
-  IL_0027:  ldc.r8     4.4
-  IL_0030:  conv.r4
-  IL_0031:  newobj     ""float?..ctor(float)""
-  IL_0036:  callvirt   ""void D.Add(int, float?)""
-  IL_003b:  callvirt   ""System.Collections.IEnumerator D.GetEnumerator()""
-  IL_0040:  call       ""void Test.DisplayCollection(System.Collections.IEnumerator)""
-  IL_0045:  ldc.i4.0
-  IL_0046:  ret
+  IL_0027:  ldc.r4     4.4
+  IL_002c:  newobj     ""float?..ctor(float)""
+  IL_0031:  callvirt   ""void D.Add(int, float?)""
+  IL_0036:  callvirt   ""System.Collections.IEnumerator D.GetEnumerator()""
+  IL_003b:  call       ""void Test.DisplayCollection(System.Collections.IEnumerator)""
+  IL_0040:  ldc.i4.0
+  IL_0041:  ret
 }");
         }
 
