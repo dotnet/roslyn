@@ -1010,8 +1010,7 @@ namespace Microsoft.CodeAnalysis
                     documentId, 
                     doc.Name, 
                     doc.Folders, 
-                    doc.SourceCodeKind, 
-                    defaultEncoding: text.Encoding);
+                    doc.SourceCodeKind);
                 this.AddDocument(info, text);
             }
 
@@ -1023,8 +1022,7 @@ namespace Microsoft.CodeAnalysis
                 var info = DocumentInfo.Create(
                     documentId, 
                     doc.Name, 
-                    doc.Folders, 
-                    defaultEncoding: text.Encoding);
+                    doc.Folders);
                 this.AddAdditionalDocument(info, text);
             }
 

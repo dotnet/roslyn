@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// The stream content can't be decoded using the specified <paramref name="defaultEncoding"/>, or
         /// <paramref name="defaultEncoding"/> is null and the stream appears to be a binary file.
         /// </exception>
-        /// <exception cref="IOException">An IO error occured while reading from the stream.</exception>
+        /// <exception cref="IOException">An IO error occurred while reading from the stream.</exception>
         internal static EncodedStringText Create(Stream stream, Encoding defaultEncoding = null, SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1)
         {
             Debug.Assert(stream != null);

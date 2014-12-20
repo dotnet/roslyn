@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -324,23 +325,23 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             switch (mode)
             {
-                case ReportMode.Throw:
-                    if (createException != null)
-                    {
-                        throw createException(message);
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException(message);
-                    }
+            case ReportMode.Throw:
+                if (createException != null)
+                {
+                    throw createException(message);
+                }
+                else
+                {
+                    throw new InvalidOperationException(message);
+                }
 
-                case ReportMode.Log:
-                    this.OnWorkspaceFailed(new WorkspaceDiagnostic(WorkspaceDiagnosticKind.Failure, message));
-                    break;
+            case ReportMode.Log:
+                this.OnWorkspaceFailed(new WorkspaceDiagnostic(WorkspaceDiagnosticKind.Failure, message));
+                break;
 
-                case ReportMode.Ignore:
-                default:
-                    break;
+            case ReportMode.Ignore:
+            default:
+                break;
             }
         }
 
@@ -657,7 +658,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     projectFile.GetSourceCodeKind(docFileInfo.FilePath),
                     new FileTextLoader(docFileInfo.FilePath, defaultEncoding),
                     docFileInfo.FilePath,
-                    defaultEncoding,
                     docFileInfo.IsGenerated));
             }
 
@@ -671,7 +671,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     SourceCodeKind.Regular,
                     new FileTextLoader(docFileInfo.FilePath, defaultEncoding),
                     docFileInfo.FilePath,
-                    defaultEncoding,
                     docFileInfo.IsGenerated));
             }
 
@@ -869,12 +868,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             switch (feature)
             {
-                case ApplyChangesKind.ChangeDocument:
-                case ApplyChangesKind.AddDocument:
-                case ApplyChangesKind.RemoveDocument:
-                    return true;
-                default:
-                    return false;
+            case ApplyChangesKind.ChangeDocument:
+            case ApplyChangesKind.AddDocument:
+            case ApplyChangesKind.RemoveDocument:
+                return true;
+            default:
+                return false;
             }
         }
 
@@ -942,22 +941,40 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var document = this.CurrentSolution.GetDocument(documentId);
             if (document != null)
             {
-                this.SaveDocumentText(documentId, document.FilePath, text);
+                Encoding encoding = DetermineEncoding(text, document);
+
+                this.SaveDocumentText(documentId, document.FilePath, text, encoding ?? Encoding.UTF8);
                 this.OnDocumentTextChanged(documentId, text, PreservationMode.PreserveValue);
             }
         }
 
-#if false
-        protected override void ChangedAdditionalDocumentText(DocumentId documentId, SourceText text)
+        private static Encoding DetermineEncoding(SourceText text, Document document)
         {
-            var document = this.CurrentSolution.GetAdditionalDocument(documentId);
-            if (document != null)
+            if (text.Encoding != null)
             {
-                this.SaveDocumentText(documentId, document.FilePath, text);
-                this.OnAdditionalDocumentTextChanged(documentId, text, PreservationMode.PreserveValue);
+                return text.Encoding;
             }
+
+            try
+            {
+                using (ExceptionHelpers.SuppressFailFast())
+                {
+                    using (var stream = new FileStream(document.FilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    {
+                        var onDiskText = EncodedStringText.Create(stream);
+                        return onDiskText.Encoding;
+                    }
+                }
+            }
+            catch (IOException)
+            {
+            }
+            catch (InvalidDataException)
+            {
+            }
+
+            return null;
         }
-#endif
 
         protected override void AddDocument(DocumentInfo info, SourceText text)
         {
@@ -971,8 +988,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 var extension = this.applyChangesProjectFile.GetDocumentExtension(info.SourceCodeKind);
                 var fileName = Path.ChangeExtension(info.Name, extension);
 
-                var relativePath = (info.Folders != null && info.Folders.Count > 0) 
-                    ? Path.Combine(Path.Combine(info.Folders.ToArray()), fileName) 
+                var relativePath = (info.Folders != null && info.Folders.Count > 0)
+                    ? Path.Combine(Path.Combine(info.Folders.ToArray()), fileName)
                     : fileName;
 
                 var fullPath = GetAbsolutePath(relativePath, Path.GetDirectoryName(project.FilePath));
@@ -990,24 +1007,28 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 // save text to disk
                 if (text != null)
                 {
-                    this.SaveDocumentText(info.Id, fullPath, text);
+                    this.SaveDocumentText(info.Id, fullPath, text, text.Encoding ?? Encoding.UTF8);
                 }
             }
         }
 
-        private void SaveDocumentText(DocumentId id, string fullPath, SourceText newText)
+        private void SaveDocumentText(DocumentId id, string fullPath, SourceText newText, Encoding encoding)
         {
             try
             {
-                var dir = Path.GetDirectoryName(fullPath);
-                if (!Directory.Exists(dir))
+                using (ExceptionHelpers.SuppressFailFast())
                 {
-                    Directory.CreateDirectory(dir);
-                }
+                    var dir = Path.GetDirectoryName(fullPath);
+                    if (!Directory.Exists(dir))
+                    {
+                        Directory.CreateDirectory(dir);
+                    }
 
-                using (var writer = new StreamWriter(fullPath, append: false, encoding: newText.Encoding ?? Encoding.UTF8))
-                {
-                    newText.Write(writer);
+                    Debug.Assert(encoding != null);
+                    using (var writer = new StreamWriter(fullPath, append: false, encoding: encoding))
+                    {
+                        newText.Write(writer);
+                    }
                 }
             }
             catch (IOException exception)

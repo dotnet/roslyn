@@ -66,9 +66,6 @@ namespace Microsoft.CodeAnalysis
         {
             DateTime prevLastWriteTime = FileUtilities.GetFileTimeStamp(this.path);
 
-            // Open file for reading with FileShare mode read/write/delete so that we do not lock this file.
-            // Allowing other theads/processes to write or delete the file is essential for scenarios such as
-            // Rename refactoring where File.Replace API is invoked for updating the modified file. 
             TextAndVersion textAndVersion;
             using (var stream = FileUtilities.OpenAsyncRead(this.path))
             {

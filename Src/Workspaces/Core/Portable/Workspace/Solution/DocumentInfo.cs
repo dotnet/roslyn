@@ -39,15 +39,6 @@ namespace Microsoft.CodeAnalysis
         public string FilePath { get; private set; }
 
         /// <summary>
-        /// Specifies an encoding to be used if the actual encoding of the file 
-        /// can't be determined from the stream content (the stream doesn't start with Byte Order Mark).
-        /// If <c>null</c> auto-detect heristics are used to determine the encoding. 
-        /// If these heuristics fail the decoding is assumed to be the system encoding.
-        /// Note that if the stream starts with Byte Order Mark the value of <see cref="DefaultEncoding"/> is ignored.
-        /// </summary>
-        internal Encoding DefaultEncoding { get; private set; }
-
-        /// <summary>
         /// A loader that can retrieve the document text.
         /// </summary>
         public TextLoader TextLoader { get; private set; }
@@ -67,7 +58,6 @@ namespace Microsoft.CodeAnalysis
             SourceCodeKind sourceCodeKind,
             TextLoader loader,
             string filePath,
-            Encoding defaultEncoding,
             bool isGenerated)
         {
             if (id == null)
@@ -86,7 +76,6 @@ namespace Microsoft.CodeAnalysis
             this.SourceCodeKind = sourceCodeKind;
             this.TextLoader = loader;
             this.FilePath = filePath;
-            this.DefaultEncoding = defaultEncoding;
         }
 
         public static DocumentInfo Create(
@@ -96,10 +85,9 @@ namespace Microsoft.CodeAnalysis
             SourceCodeKind sourceCodeKind = SourceCodeKind.Regular,
             TextLoader loader = null,
             string filePath = null,
-            Encoding defaultEncoding = null,
             bool isGenerated = false)
         {
-            return new DocumentInfo(id, name, folders, sourceCodeKind, loader, filePath, defaultEncoding, isGenerated);
+            return new DocumentInfo(id, name, folders, sourceCodeKind, loader, filePath, isGenerated);
         }
 
         private DocumentInfo With(
@@ -108,8 +96,7 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<string> folders = null,
             Optional<SourceCodeKind> sourceCodeKind = default(Optional<SourceCodeKind>),
             Optional<TextLoader> loader = default(Optional<TextLoader>),
-            Optional<string> filePath = default(Optional<string>),
-            Optional<Encoding> defaultEncoding = default(Optional<Encoding>))
+            Optional<string> filePath = default(Optional<string>))
         {
             var newId = id ?? this.Id;
             var newName = name ?? this.Name;
@@ -117,20 +104,18 @@ namespace Microsoft.CodeAnalysis
             var newSourceCodeKind = sourceCodeKind.HasValue ? sourceCodeKind.Value : this.SourceCodeKind;
             var newLoader = loader.HasValue ? loader.Value : this.TextLoader;
             var newFilePath = filePath.HasValue ? filePath.Value : this.FilePath;
-            var newEncoding = defaultEncoding.HasValue ? defaultEncoding.Value : this.DefaultEncoding;
 
             if (newId == this.Id &&
                 newName == this.Name &&
                 newFolders == this.Folders &&
                 newSourceCodeKind == this.SourceCodeKind &&
                 newLoader == this.TextLoader &&
-                newFilePath == this.FilePath &&
-                newEncoding == this.DefaultEncoding)
+                newFilePath == this.FilePath)
             {
                 return this;
             }
 
-            return new DocumentInfo(newId, newName, newFolders, newSourceCodeKind, newLoader, newFilePath, newEncoding, this.IsGenerated);
+            return new DocumentInfo(newId, newName, newFolders, newSourceCodeKind, newLoader, newFilePath, this.IsGenerated);
         }
 
         public DocumentInfo WithId(DocumentId id)
@@ -161,11 +146,6 @@ namespace Microsoft.CodeAnalysis
         public DocumentInfo WithFilePath(string filePath)
         {
             return this.With(filePath: filePath);
-        }
-
-        public DocumentInfo WithDefaultEncoding(Encoding encoding)
-        {
-            return this.With(defaultEncoding: encoding);
         }
     }
 }

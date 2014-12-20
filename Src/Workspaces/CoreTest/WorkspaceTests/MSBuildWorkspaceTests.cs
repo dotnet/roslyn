@@ -2354,5 +2354,43 @@ class C1
             Assert.False(weakSolution.IsAlive);
             Assert.False(weakCompilation.IsAlive);
         }
+
+        [Fact, WorkItem(1088127)]
+        public void MSBuildWorkspacePreservesEncoding()
+        {
+            var fileContent = @"//“
+class C { }";
+            var files = new FileSet(new Dictionary<string, object>
+            {
+                { "Encoding.csproj", GetResourceText("Encoding.csproj").Replace("<CodePage>ReplaceMe</CodePage>", string.Empty) },
+                { "class1.cs", Encoding.BigEndianUnicode.GetBytesWithPreamble(fileContent) }
+            });
+
+            CreateFiles(files);
+
+            var projPath = Path.Combine(this.SolutionDirectory.Path, "Encoding.csproj");
+            var project = MSBuildWorkspace.Create().OpenProjectAsync(projPath).Result;
+
+            var document = project.Documents.First(d => d.Name == "class1.cs");
+            var text = document.GetTextAsync().Result;
+            Assert.Equal(Encoding.BigEndianUnicode, text.Encoding);
+            Assert.Equal(fileContent, text.ToString());
+
+            var root = document.GetSyntaxRootAsync().Result;
+            var trivia = SpecializedCollections.SingletonEnumerable(CSharp.SyntaxFactory.CarriageReturnLineFeed).Concat(root.GetLeadingTrivia());
+            var newDocument = document.WithSyntaxRoot(root.WithLeadingTrivia(trivia));
+            var newEncoding = newDocument.GetTextAsync().Result.Encoding;
+            Assert.Null(newEncoding);
+
+            var newSolution = newDocument.Project.Solution;
+            Assert.True(newSolution.Workspace.TryApplyChanges(newSolution));
+
+            var filePath = Path.Combine(this.SolutionDirectory.Path, "Class1.cs");
+            using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            {
+                var reloadedText = EncodedStringText.Create(stream);
+                Assert.Equal(Encoding.BigEndianUnicode, reloadedText.Encoding);
+            }
+        }
     }
 }
