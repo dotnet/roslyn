@@ -11,5 +11,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             result.RemoveRange(index, count)
             Return SyntaxFactory.List(result)
         End Function
+
+        <Extension()>
+        Public Function ToSyntaxList(Of T As SyntaxNode)(sequence As IEnumerable(Of T)) As SyntaxList(Of T)
+            Return SyntaxFactory.List(sequence)
+        End Function
+
+        <Extension()>
+        Public Function Insert(Of T As SyntaxNode)(syntaxList As SyntaxList(Of T), index As Integer, item As T) As SyntaxList(Of T)
+            Return syntaxList.Take(index).Concat(item).Concat(syntaxList.Skip(index)).ToSyntaxList
+        End Function
     End Module
 End Namespace

@@ -51,50 +51,69 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                               ImportsStatementComparer.SystemFirstInstance,
                               ImportsStatementComparer.NormalInstance)
 
-            Dim usings As SyntaxList(Of ImportsStatementSyntax)
+            Dim [imports] = AddImportsStatements(root, importsStatements)
+
+            ' If the user likes to have their Imports statements unsorted, allow them to
             If root.Imports.IsSorted(comparer) Then
-                ' already sorted.  find where it should go into the list.
-                usings = root.Imports
-
-                For Each newImport In importsStatements
-                    Dim list = New List(Of ImportsStatementSyntax)(usings)
-                    Dim index = list.BinarySearch(newImport, comparer)
-                    index = If(index < 0, Not index, index)
-
-                    usings = Insert(usings, index, newImport)
-                Next
-            Else
-                usings = root.Imports.InsertRange(root.Imports.Count, importsStatements.ToArray())
+                [imports].Sort(comparer)
             End If
 
-            Dim newRoot = root.WithImports(usings)
+            ' If any using we added was moved to the first location, then take the trivia from
+            ' the start of the first token And add it to the using we added.  This way things
+            ' Like #define's and #r's will stay above the using.
+            If root.Imports.Count = 0 OrElse [imports](0) IsNot root.Imports(0) Then
+                Dim firstToken = root.GetFirstToken
 
-            Return newRoot.WithAdditionalAnnotations(annotations)
+                ' Move the leading directives from the first directive to the New using.
+                Dim firstImport = [imports](0).WithLeadingTrivia(firstToken.LeadingTrivia.Where(Function(t) Not t.IsKind(SyntaxKind.DocumentationCommentTrivia) AndAlso Not t.IsElastic))
+
+                ' Remove the leading directives from the first token.
+                Dim newFirstToken = firstToken.WithLeadingTrivia(firstToken.LeadingTrivia.Where(Function(t) t.IsKind(SyntaxKind.DocumentationCommentTrivia) OrElse t.IsElastic))
+
+                ' Remove the leading trivia from the first token from the tree.
+                root = root.ReplaceToken(firstToken, newFirstToken)
+
+                ' Create the New list of imports
+                Dim finalImports = New List(Of ImportsStatementSyntax)
+                finalImports.Add(firstImport)
+                finalImports.AddRange(root.Imports)
+                finalImports.AddRange(importsStatements.Except({[imports](0)}))
+                finalImports.Sort(comparer)
+                [imports] = finalImports
+            End If
+
+            Return root.WithImports([imports].ToSyntaxList).WithAdditionalAnnotations(annotations)
         End Function
 
-        Private Function Insert(usings As SyntaxList(Of ImportsStatementSyntax), index As Integer, newImport As ImportsStatementSyntax) As SyntaxList(Of ImportsStatementSyntax)
-            If index = 0 AndAlso usings.Count > 0 Then
-                ' take any leading trivia from the existing first using and add it to the new using
-                ' that is being added.
-                Dim firstImport = usings.First()
-                Dim firstToken = firstImport.GetFirstToken()
+        Private Function AddImportsStatements(root As CompilationUnitSyntax, importsStatements As IList(Of ImportsStatementSyntax)) As List(Of ImportsStatementSyntax)
+            ' We need to try and not place the using inside of a directive if possible.
+            Dim [imports] = New List(Of ImportsStatementSyntax)
+            Dim importsLength = root.Imports.Count
+            Dim endOfList = importsLength - 1
+            Dim startOfLastDirective = -1
+            Dim endOfLastDirective = -1
+            For index = 0 To endOfList
+                If root.Imports(index).GetLeadingTrivia().Any(Function(trivia) trivia.IsKind(SyntaxKind.IfDirectiveTrivia, SyntaxKind.ElseIfDirectiveTrivia, SyntaxKind.ElseDirectiveTrivia)) Then
+                    startOfLastDirective = index
+                End If
 
-                Dim leadingTrivia = firstToken.LeadingTrivia
-                firstImport = firstImport.ReplaceToken(
-                    firstToken,
-                    firstToken.WithLeadingTrivia())
+                If root.Imports(index).GetLeadingTrivia().Any(Function(trivia) trivia.IsKind(SyntaxKind.EndIfDirectiveTrivia)) Then
+                    endOfLastDirective = index
+                End If
+            Next
 
-                Dim statements = New List(Of ImportsStatementSyntax)
-                statements.Add(firstImport)
-                statements.AddRange(usings.Skip(1))
-
-                usings = SyntaxFactory.List(statements)
-                newImport = newImport.ReplaceToken(
-                    newImport.GetFirstToken(),
-                    newImport.GetFirstToken().WithLeadingTrivia(leadingTrivia))
+            ' if the entire using Is in a directive Or there Is a using list at the end outside of the directive add the using at the end, 
+            ' else place it before the last directive.
+            [imports].AddRange(root.Imports)
+            If (startOfLastDirective = 0 AndAlso (endOfLastDirective = endOfList OrElse endOfLastDirective = -1)) OrElse
+                (startOfLastDirective = -1 AndAlso endOfLastDirective = -1) OrElse
+                (endOfLastDirective <> endOfList AndAlso endOfLastDirective <> -1) Then
+                [imports].AddRange(importsStatements)
+            Else
+                [imports].InsertRange(startOfLastDirective, importsStatements)
             End If
 
-            Return usings.Insert(index, newImport)
+            Return [imports]
         End Function
     End Module
 End Namespace

@@ -114,19 +114,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             bool placeSystemNamespaceFirst,
             params SyntaxAnnotation[] annotations)
         {
-            if (!usingDirectives.Any())
+            if (usingDirectives.Count == 0)
             {
                 return root;
             }
 
-            var specialCaseSystem = placeSystemNamespaceFirst;
-            var comparer = specialCaseSystem
+            var comparer = placeSystemNamespaceFirst
                 ? UsingsAndExternAliasesDirectiveComparer.SystemFirstInstance
                 : UsingsAndExternAliasesDirectiveComparer.NormalInstance;
 
-            var usings = new List<UsingDirectiveSyntax>();
-            usings.AddRange(root.Usings);
-            usings.AddRange(usingDirectives);
+            var usings = AddUsingDirectives(root, usingDirectives);
 
             // If the user likes to have their Usings statements unsorted, allow them to
             if (root.Usings.IsSorted(comparer))
@@ -162,6 +159,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             usings = usings.Select(u => u.WithAdditionalAnnotations(annotations)).ToList();
             return root.WithUsings(usings.ToSyntaxList());
+        }
+
+        private static List<UsingDirectiveSyntax> AddUsingDirectives(CompilationUnitSyntax root, IList<UsingDirectiveSyntax> usingDirectives)
+        {
+            // We need to try and not place the using inside of a directive if possible.
+            var usings = new List<UsingDirectiveSyntax>();
+            var endOfList = root.Usings.Count - 1;
+            int startOfLastDirective = -1;
+            int endOfLastDirective = -1;
+            for (int i = 0; i < root.Usings.Count; i++)
+            {
+                if (root.Usings[i].GetLeadingTrivia().Any(trivia => trivia.IsKind(SyntaxKind.IfDirectiveTrivia)))
+                {
+                    startOfLastDirective = i;
+                }
+
+                if (root.Usings[i].GetLeadingTrivia().Any(trivia => trivia.IsKind(SyntaxKind.EndIfDirectiveTrivia)))
+                {
+                    endOfLastDirective = i;
+                }
+            }
+
+            // if the entire using is in a directive or there is a using list at the end outside of the directive add the using at the end, 
+            // else place it before the last directive.
+            usings.AddRange(root.Usings);
+            if ((startOfLastDirective == 0 && (endOfLastDirective == endOfList || endOfLastDirective == -1)) ||
+                (startOfLastDirective == -1 && endOfLastDirective == -1) ||
+                (endOfLastDirective != endOfList && endOfLastDirective != -1))
+            {
+                usings.AddRange(usingDirectives);
+            }
+            else
+            {
+                usings.InsertRange(startOfLastDirective, usingDirectives);
+            }
+            return usings;
         }
     }
 }
