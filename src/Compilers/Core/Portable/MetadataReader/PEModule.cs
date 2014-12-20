@@ -146,6 +146,10 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
+                if (isDisposed)
+                {
+                    throw new ObjectDisposedException(nameof(PEModule));
+                }
                 if (lazyMetadataReader == null)
                 {
                     MetadataReader newReader;
