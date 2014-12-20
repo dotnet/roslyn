@@ -597,6 +597,7 @@ namespace Microsoft.CodeAnalysis
             var id = DocumentId.CreateNewId(this.Id);
 
             // use preserve identity for forked solution directly from syntax node.
+            // this lets us not serialize temporary tree unnecessarily
             return this.Solution.AddDocument(id, name, syntaxRoot, folders, preservationMode: PreservationMode.PreserveIdentity).GetDocument(id);
         }
 
