@@ -69,7 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return "library"
 
                 Case OutputKind.NetModule
-                    Return "Module"
+                    Return "module"
 
                 Case OutputKind.WindowsApplication
                     Return "winexe"
