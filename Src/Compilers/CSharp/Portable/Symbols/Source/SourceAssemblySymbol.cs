@@ -67,12 +67,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private IDictionary<string, NamedTypeSymbol> lazyForwardedTypesFromSource;
 
         /// <summary>
-        /// Indices of duplicate assembly attributes, i.e. attributes that bind to the same constructor and have identical arguments, that must not be emitted.
+        /// Indices of attributes that will not be emitted for one of two reasons:
+        /// - They are duplicates of another attribute (i.e. attributes that bind to the same constructor and have identical arguments)
+        /// - They are InternalsVisibleToAttributes with invalid assembly identities
         /// </summary>
         /// <remarks>
         /// These indices correspond to the merged assembly attributes from source and added net modules, i.e. attributes returned by <see cref="GetAttributes"/> method.
         /// </remarks>
-        private HashSet<int> lazyDuplicateAttributeIndices;
+        private ConcurrentSet<int> lazyOmittedAttributeIndices;
 
         private ThreeState lazyContainsExtensionMethods;
 
@@ -1068,16 +1070,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
+        private void AddOmittedAttributeIndex(int index)
+        {
+            if (this.lazyOmittedAttributeIndices == null)
+            {
+                Interlocked.CompareExchange(ref this.lazyOmittedAttributeIndices, new ConcurrentSet<int>(), null);
+            }
+
+            this.lazyOmittedAttributeIndices.Add(index);
+        }
+
         /// <summary>
         /// Gets unique source assembly attributes that should be emitted,
         /// i.e. filters out attributes with errors and duplicate attributes.
         /// </summary>
-        private HashSet<CSharpAttributeData> GetUniqueSourceAssemblyAttributes(out HashSet<int> attributeIndicesToSkip)
+        private HashSet<CSharpAttributeData> GetUniqueSourceAssemblyAttributes()
         {
             ImmutableArray<CSharpAttributeData> appliedSourceAttributes = this.GetSourceAttributesBag().Attributes;
 
             HashSet<CSharpAttributeData> uniqueAttributes = null;
-            attributeIndicesToSkip = null;
 
             for (int i = 0; i < appliedSourceAttributes.Length; i++)
             {
@@ -1086,12 +1097,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (!AddUniqueAssemblyAttribute(attribute, ref uniqueAttributes))
                     {
-                        if (attributeIndicesToSkip == null)
-                        {
-                            attributeIndicesToSkip = new HashSet<int>();
-                        }
-
-                        attributeIndicesToSkip.Add(i);
+                        AddOmittedAttributeIndex(i);
                     }
                 }
             }
@@ -1205,8 +1211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private WellKnownAttributeData ValidateAttributeUsageAndDecodeWellKnownAttributes(
             ImmutableArray<CSharpAttributeData> attributesFromNetModules,
             ImmutableArray<string> netModuleNames,
-            DiagnosticBag diagnostics,
-            out HashSet<int> attributeIndicesToSkip)
+            DiagnosticBag diagnostics)
         {
             Debug.Assert(attributesFromNetModules.Any());
             Debug.Assert(netModuleNames.Any());
@@ -1218,7 +1223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int sourceAttributesCount = this.GetSourceAttributesBag().Attributes.Length;
 
             // Get unique source assembly attributes.
-            HashSet<CSharpAttributeData> uniqueAttributes = GetUniqueSourceAssemblyAttributes(out attributeIndicesToSkip);
+            HashSet<CSharpAttributeData> uniqueAttributes = GetUniqueSourceAssemblyAttributes();
 
             var arguments = new DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation>();
             arguments.AttributesCount = netModuleAttributesCount;
@@ -1230,6 +1235,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // That is why we are iterating attributes backwards.
             for (int i = netModuleAttributesCount - 1; i >= 0; i--)
             {
+                var totalIndex = i + sourceAttributesCount;
+
                 CSharpAttributeData attribute = attributesFromNetModules[i];
                 if (!attribute.HasErrors && ValidateAttributeUsageForNetModuleAttribute(attribute, netModuleNames[i], diagnostics, ref uniqueAttributes))
                 {
@@ -1239,16 +1246,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // CONSIDER: Provide usable AttributeSyntax node for diagnostics of malformed netmodule assembly attributes
                     arguments.AttributeSyntaxOpt = null;
 
-                    this.DecodeWellKnownAttribute(ref arguments, isFromNetModule: true);
+                    this.DecodeWellKnownAttribute(ref arguments, totalIndex, isFromNetModule: true);
                 }
                 else
                 {
-                    if (attributeIndicesToSkip == null)
-                    {
-                        attributeIndicesToSkip = new HashSet<int>();
-                    }
-
-                    attributeIndicesToSkip.Add(i + sourceAttributesCount);
+                    AddOmittedAttributeIndex(totalIndex);
                 }
             }
 
@@ -1257,13 +1259,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void LoadAndValidateNetModuleAttributes(ref CustomAttributesBag<CSharpAttributeData> lazyNetModuleAttributesBag)
         {
-            // Indices of duplicate assembly attributes, i.e. attributes that bind to the same constructor and have identical arguments, that must not be emitted.
-            HashSet<int> attributeIndicesToSkip;
-
             if (compilation.Options.OutputKind.IsNetModule())
             {
-                // Compute duplicate source assembly attributes, i.e. attributes with same constructor and arguments, that must not be emitted.
-                var unused = GetUniqueSourceAssemblyAttributes(out attributeIndicesToSkip);
                 Interlocked.CompareExchange(ref lazyNetModuleAttributesBag, CustomAttributesBag<CSharpAttributeData>.Empty, null);
             }
             else
@@ -1277,12 +1274,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (attributesFromNetModules.Any())
                 {
-                    wellKnownData = ValidateAttributeUsageAndDecodeWellKnownAttributes(attributesFromNetModules, netModuleNames, diagnostics, out attributeIndicesToSkip);
+                    wellKnownData = ValidateAttributeUsageAndDecodeWellKnownAttributes(attributesFromNetModules, netModuleNames, diagnostics);
                 }
                 else
                 {
                     // Compute duplicate source assembly attributes, i.e. attributes with same constructor and arguments, that must not be emitted.
-                    var unused = GetUniqueSourceAssemblyAttributes(out attributeIndicesToSkip);
+                    var unused = GetUniqueSourceAssemblyAttributes();
                 }
 
                 // Load type forwarders from modules
@@ -1342,22 +1339,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     netModuleAttributesBag = CustomAttributesBag<CSharpAttributeData>.Empty;
                 }
 
-                // Check if we have any duplicate assembly attribute that must not be emitted,
-                // unless we are emitting a net module.
-                if (attributeIndicesToSkip != null)
-                {
-                    Debug.Assert(attributeIndicesToSkip.Any());
-                    Interlocked.CompareExchange(ref lazyDuplicateAttributeIndices, attributeIndicesToSkip, null);
-                }
-
                 if (Interlocked.CompareExchange(ref lazyNetModuleAttributesBag, netModuleAttributesBag, null) == null)
                 {
                     this.AddSemanticDiagnostics(diagnostics);
                 }
 
                 diagnostics.Free();
-                Debug.Assert(attributeIndicesToSkip == null ||
-                             !attributeIndicesToSkip.Any((index) => index < 0 || index >= this.GetAttributes().Length));
             }
 
             Debug.Assert(lazyNetModuleAttributesBag.IsSealed);
@@ -1454,16 +1441,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <remarks>
         /// This method must be invoked only after all the assembly attributes have been bound.
         /// </remarks>
-        internal bool IsIndexOfDuplicateAssemblyAttribute(int index)
+        internal bool IsIndexOfOmittedAssemblyAttribute(int index)
         {
+            Debug.Assert(this.lazyOmittedAttributeIndices == null || !lazyOmittedAttributeIndices.Any(i => i < 0 || i >= this.GetAttributes().Length));
             Debug.Assert(this.lazySourceAttributesBag.IsSealed);
             Debug.Assert(this.lazyNetModuleAttributesBag.IsSealed);
             Debug.Assert(index >= 0);
             Debug.Assert(index < this.GetAttributes().Length);
-            Debug.Assert(this.lazyDuplicateAttributeIndices == null ||
-                !this.DeclaringCompilation.Options.OutputKind.IsNetModule());
 
-            return this.lazyDuplicateAttributeIndices != null && this.lazyDuplicateAttributeIndices.Contains(index);
+            return this.lazyOmittedAttributeIndices != null && this.lazyOmittedAttributeIndices.Contains(index);
         }
 
         /// <summary>
@@ -1948,10 +1934,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private static void DecodeOneInternalsVisibleToAttribute(
+        private void DecodeOneInternalsVisibleToAttribute(
             AttributeSyntax nodeOpt,
             CSharpAttributeData attrData,
             DiagnosticBag diagnostics,
+            int index,
             ref ConcurrentDictionary<string, ConcurrentDictionary<ImmutableArray<byte>, Tuple<Location, string>>> lazyInternalsVisibleToMap)
         {
             // this code won't be called unless we bound a well-formed, semantically correct ctor call.
@@ -1970,6 +1957,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!AssemblyIdentity.TryParseDisplayName(displayName, out identity, out parts))
             {
                 diagnostics.Add(ErrorCode.WRN_InvalidAssemblyName, GetAssemblyAttributeLocationForDiagnostic(nodeOpt), displayName);
+                AddOmittedAttributeIndex(index);
                 return;
             }
 
@@ -2037,10 +2025,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
-            DecodeWellKnownAttribute(ref arguments, isFromNetModule: false);
+            DecodeWellKnownAttribute(ref arguments, arguments.Index, isFromNetModule: false);
         }
 
-        private void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, bool isFromNetModule)
+        private void DecodeWellKnownAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments, int index, bool isFromNetModule)
         {
             var attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
@@ -2049,7 +2037,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (attribute.IsTargetAttribute(this, AttributeDescription.InternalsVisibleToAttribute))
             {
-                DecodeOneInternalsVisibleToAttribute(arguments.AttributeSyntaxOpt, attribute, arguments.Diagnostics, ref lazyInternalsVisibleToMap);
+                DecodeOneInternalsVisibleToAttribute(arguments.AttributeSyntaxOpt, attribute, arguments.Diagnostics, index, ref lazyInternalsVisibleToMap);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.AssemblySignatureKeyAttribute))
             {

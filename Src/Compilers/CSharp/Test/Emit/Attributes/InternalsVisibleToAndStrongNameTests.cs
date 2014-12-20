@@ -1813,5 +1813,24 @@ class B
         CompileAndVerify(cb, expectedOutput: "42", emitOptions: TestEmitters.CCI).Diagnostics.Verify(); 
     }
 
+    [Fact, WorkItem(1095618, "DevDiv")]
+    public void Bug1095618()
+    {
+        const string source = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""System.Runtime.Serialization, PublicKey = 10000000000000000400000000000000"")]";
+
+        var ca = CreateCompilationWithMscorlib(source);
+        ca.VerifyDiagnostics(
+            // (1,12): warning CS1700: Assembly reference 'System.Runtime.Serialization, PublicKey = 10000000000000000400000000000000' is invalid and cannot be resolved
+            // [assembly: System.Runtime.CompilerServices.InternalsVisibleTo("System.Runtime.Serialization, PublicKey = 10000000000000000400000000000000")]
+            Diagnostic(ErrorCode.WRN_InvalidAssemblyName, @"System.Runtime.CompilerServices.InternalsVisibleTo(""System.Runtime.Serialization, PublicKey = 10000000000000000400000000000000"")").WithArguments("System.Runtime.Serialization, PublicKey = 10000000000000000400000000000000").WithLocation(1, 12));
+
+        var verifier = CompileAndVerify(ca, symbolValidator: module =>
+        {
+            var assembly = module.ContainingAssembly;
+            Assert.NotNull(assembly);
+            Assert.False(assembly.GetAttributes().Any(attr => attr.IsTargetAttribute(assembly, AttributeDescription.InternalsVisibleToAttribute)));
+        });
+    }
+
     #endregion
 }

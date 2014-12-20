@@ -527,10 +527,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestParseDisplayName("foo, PublicKeyToken=111111111111111, Version=1.0.0.1", null);
             TestParseDisplayName("foo, PublicKeyToken=1111111111111111111, Version=1.0.0.1", null);
             TestParseDisplayName("foo, PublicKey=1, Version=1.0.0.1", null);
+            TestParseDisplayName("foo, PublicKey=1000000040000000", null);
+            TestParseDisplayName("foo, PublicKey=11, Version=1.0.0.1", null);
 
-            // TODO: fusion doesn't accept the key
-            //TestParseDisplayName("foo, PublicKey=11, Version=1.0.0.1",
-            //    new AssemblyIdentity("foo", new Version(1, 0, 0, 1), publicKeyOrToken: new byte[] { 0x11 }.AsImmutable(), hasPublicKey: true));
+            // TODO: need to calculate the correct token for the ECMA key.
+            // TestParseDisplayName("foo, PublicKey=0000000040000000",
+            //    expectedParts: 0,
+            //    expectedFusion: null, // Fusion rejects the ECMA key.
+            //    expected: new AssemblyIdentity("foo", hasPublicKey: true, publicKeyOrToken: new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0 }.AsImmutable()));
 
             // if public key token calculated from public key matches, then it's ok to specify both
             TestParseDisplayName("foo, Culture=neutral, Version=1.0.0.0, PublicKey=" + StrPublicKey1 + ", PublicKeyToken=" + StrPublicKeyToken1,

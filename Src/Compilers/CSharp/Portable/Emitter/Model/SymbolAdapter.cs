@@ -111,9 +111,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CSharpAttributeData attribute = userDefined[i];
                 if (this.Kind == SymbolKind.Assembly)
                 {
-                    // We need to filter out duplicate assembly attributes,
-                    // i.e. attributes that bind to the same constructor and have identical arguments.
-                    if (((SourceAssemblySymbol)this).IsIndexOfDuplicateAssemblyAttribute(i))
+                    // We need to filter out duplicate assembly attributes (i.e. attributes that
+                    // bind to the same constructor and have identical arguments) and invalid
+                    // InternalsVisibleTo attributes.
+                    if (((SourceAssemblySymbol)this).IsIndexOfOmittedAssemblyAttribute(i))
                     {
                         continue;
                     }

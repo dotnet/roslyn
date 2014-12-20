@@ -1616,4 +1616,17 @@ End Class]]>
         CompileAndVerify(cb, expectedOutput:="42", emitOptions:=TestEmitters.CCI).Diagnostics.Verify()
     End Sub
 
+    <Fact, WorkItem(1095618, "DevDiv")>
+    Public Sub Bug1095618()
+        Dim source As XElement = _
+<compilation name="a">
+    <file name="a.vb"><![CDATA[
+<Assembly: System.Runtime.CompilerServices.InternalsVisibleTo("System.Runtime.Serialization, PublicKey = 10000000000000000400000000000000")>
+    ]]></file>
+</compilation>
+
+        CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            Diagnostic(ERRID.ERR_FriendAssemblyNameInvalid, "Assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""System.Runtime.Serialization, PublicKey = 10000000000000000400000000000000"")").WithArguments("System.Runtime.Serialization, PublicKey = 10000000000000000400000000000000").WithLocation(1, 2))
+    End Sub
+
 End Class
