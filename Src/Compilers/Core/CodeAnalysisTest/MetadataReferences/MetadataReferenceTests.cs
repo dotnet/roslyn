@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var r = MetadataReference.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib);
 
             Assert.Null(r.FilePath);
-            Assert.Equal("<in-memory assembly>", r.Display);
+            Assert.Equal(CodeAnalysisResources.InMemoryAssembly, r.Display);
             Assert.Equal(MetadataImageKind.Assembly, r.Properties.Kind);
             Assert.False(r.Properties.EmbedInteropTypes);
             Assert.True(r.Properties.Aliases.IsDefault);
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(stream.CanRead);
 
             Assert.Null(r.FilePath);
-            Assert.Equal("<in-memory assembly>", r.Display);
+            Assert.Equal(CodeAnalysisResources.InMemoryAssembly, r.Display);
             Assert.Equal(MetadataImageKind.Assembly, r.Properties.Kind);
             Assert.False(r.Properties.EmbedInteropTypes);
             Assert.True(r.Properties.Aliases.IsDefault);
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void CreateFromStream_MemoryStream()
         {
             var r = MetadataReference.CreateFromStream(new MemoryStream(TestResources.SymbolsTests.General.C1, writable: false));
-            Assert.Equal("<in-memory assembly>".NeedsLocalization(), r.Display);
+            Assert.Equal(CodeAnalysisResources.InMemoryAssembly, r.Display);
 
             Assert.Equal("C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9", 
                 ((AssemblyMetadata)r.GetMetadata()).GetAssembly().Identity.GetDisplayName());
@@ -310,10 +310,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             MetadataReference r;
 
             r = MetadataReference.CreateFromImage(TestResources.SymbolsTests.General.C1);
-            Assert.Equal("<in-memory assembly>", r.Display);
+            Assert.Equal(CodeAnalysisResources.InMemoryAssembly, r.Display);
 
             r = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.General.C1).GetReference();
-            Assert.Equal("<in-memory module>", r.Display);
+            Assert.Equal(CodeAnalysisResources.InMemoryModule, r.Display);
 
             r = MetadataReference.CreateFromImage(TestResources.SymbolsTests.General.C1, filePath: @"c:\blah");
             Assert.Equal(@"c:\blah", r.Display);
