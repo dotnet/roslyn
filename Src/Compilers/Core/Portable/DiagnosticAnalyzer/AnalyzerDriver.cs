@@ -294,31 +294,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private async Task ProcessCompilationEventsAsync(CancellationToken cancellationToken)
         {
-            try
+            while (!CompilationEventQueue.IsCompleted || CompilationEventQueue.Count > 0)
             {
-                await ProcessEventsAsync(cancellationToken).ConfigureAwait(false);
-            }
-            catch (TaskCanceledException)
-            {
-                // when the queue is Completed the awaiting tasks get cancelled.
-                // In that case we just return from this task
-            }
-        }
-
-        private async Task ProcessEventsAsync(CancellationToken cancellationToken)
-        {
-            while (true)
-            {
+                CompilationEvent e;
                 try
                 {
-                    var e = await CompilationEventQueue.DequeueAsync(cancellationToken).ConfigureAwait(false);
-                    await ProcessEventAsync(e, cancellationToken).ConfigureAwait(false);
+                    e = await CompilationEventQueue.DequeueAsync(cancellationToken).ConfigureAwait(false);
                 }
                 catch (TaskCanceledException)
                 {
-                    // when the task is cancelled we stop processing events.
-                    // the caller catches this.
-                    throw;
+                    // When the queue is completed with a pending DequeueAsync return then a 
+                    // TaskCanceledException will be thrown.  This just signals the queue is 
+                    // complete and we should finish processing it.
+                    Debug.Assert(CompilationEventQueue.IsCompleted, "DequeueAsync should never throw unless the AsyncQueue<T> is completed.");
+                    break;
+                }
+
+                try
+                {
+                    await ProcessEventAsync(e, cancellationToken).ConfigureAwait(false);
                 }
                 catch (OperationCanceledException)
                 {
