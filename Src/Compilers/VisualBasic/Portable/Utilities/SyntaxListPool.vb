@@ -34,6 +34,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 _freeList.Push(item)
             End If
         End Sub
+
+        Friend Function ToListAndFree(Of TNode As VisualBasicSyntaxNode)(item As SyntaxListBuilder(Of TNode)) As SyntaxList(Of TNode)
+            Dim list = item.ToList()
+            Free(item)
+            Return list
+        End Function
+
     End Class
 End Namespace
 

@@ -123,6 +123,7 @@
     <Compile Include="LocationTests.vb" />
     <Compile Include="Parser\DeclarationTests.vb" />
     <Compile Include="Parser\FuzzTesting.vb" />
+    <Compile Include="Parser\InterpolatedStringParsingTests.vb" />
     <Compile Include="Parser\ParseAsyncTests.vb" />
     <Compile Include="Parser\ParseAttributes.vb" />
     <Compile Include="Parser\ParseDeclarationTests.vb" />

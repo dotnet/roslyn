@@ -432,6 +432,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case SyntaxKind.CharacterLiteralToken
                     t = SyntaxFactory.MissingCharacterLiteralToken()
 
+                Case SyntaxKind.InterpolatedStringTextToken
+                    t = SyntaxFactory.InterpolatedStringTextToken("", "", Nothing, Nothing)
+
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(kind)
             End Select

@@ -74,10 +74,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Shared Sub VerifySyntaxKindOfToken(kind As SyntaxKind)
-            If CInt(kind) < SyntaxKind.AddHandlerKeyword OrElse
-                (CInt(kind) > SyntaxKind.EndOfXmlToken AndAlso kind <> SyntaxKind.NameOfKeyword) Then
-                Throw New ArgumentOutOfRangeException("kind")
-            End If
+            Select Case kind
+                Case SyntaxKind.AddHandlerKeyword To SyntaxKind.EndOfXmlToken,
+                     SyntaxKind.NameOfKeyword,
+                     SyntaxKind.DollarSignDoubleQuoteToken,
+                     SyntaxKind.InterpolatedStringTextToken,
+                     SyntaxKind.EndOfInterpolatedStringToken
+
+                Case Else
+                    Throw New ArgumentOutOfRangeException("kind")
+            End Select
         End Sub
 
         Public Shared Function Token(kind As SyntaxKind, Optional text As String = Nothing) As SyntaxToken

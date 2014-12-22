@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     "Cannot delete a separator from a separated list. Removing an element will remove the corresponding separator.")
                 End If
 
-                If item IsNot visitedItem AndAlso alternate.IsNull Then
+                If (item IsNot visitedItem OrElse separator IsNot visitedSeparator) AndAlso alternate.IsNull Then
                     alternate = New SeparatedSyntaxListBuilder(Of TNode)(itemCount)
                     alternate.AddRange(list, i)
                 End If

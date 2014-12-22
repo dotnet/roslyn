@@ -978,7 +978,7 @@ End Module
             Dim node As MethodBlockSyntax = tree.GetRoot().DescendantNodes.OfType(Of MethodBlockSyntax).Single
 
             ' Use GetLocation() and GetLineSpan() to get file, line and column info for above BlockSyntax.
-            Dim location As location = node.GetLocation()
+            Dim location As Location = node.GetLocation()
             Dim lineSpan As FileLinePositionSpan = location.GetLineSpan()
 
             Assert.IsTrue(location.IsInSource)
@@ -1310,7 +1310,7 @@ End Module
 
             ' Perform ClassifyConversion for expressions from within the above SyntaxTree.
             Dim sourceExpression1 = CType(tree.GetRoot().FindToken(source.IndexOf("jj)")).Parent, ExpressionSyntax)
-            Dim conversion As conversion = model.ClassifyConversion(sourceExpression1, targetType)
+            Dim conversion As Conversion = model.ClassifyConversion(sourceExpression1, targetType)
 
             Assert.IsTrue(conversion.IsWidening AndAlso conversion.IsNumeric)
 

@@ -3134,6 +3134,46 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         NameOfExpression = 779                  ' NameOfExpressionSyntax : ExpressionSyntax
 
+        ''' <summary>
+        ''' Represents an interpolated string expression.
+        ''' </summary>
+        InterpolatedStringExpression = 780                              ' InterpolatedStringExpressionSyntax : ExpressionSyntax
+
+        ''' <summary>
+        ''' Represents literal text content in an interpolated string.
+        ''' </summary>
+        InterpolatedStringText = 781                                    ' InterpolatedStringTextSyntax : InterpolatedStringContentSyntax
+
+        ''' <summary>
+        ''' Represents an embedded expression in an interpolated string expression e.g. '{expression[,alignment][:formatString]}'.
+        ''' </summary>
+        Interpolation = 782                                             ' InterpolationSyntax : InterpolatedStringContentSyntax
+
+        ''' <summary>
+        ''' Represents an alignment clause ', alignment' of an intepolated string embedded expression.
+        ''' </summary>
+        InterpolationAlignmentClause = 783                              ' InterpolationAlignmentClauseSyntax : VisualBasicSyntaxNode
+
+        ''' <summary>
+        ''' Represents a format string clause ':formatString' of an interpolated string embedded expression.
+        ''' </summary>
+        InterpolationFormatClause = 784                                 ' InterpolationFormatClauseSyntax : VisualBasicSyntaxNode
+
+        ''' <summary>
+        ''' Represents a '$"' token in an interpolated string expression.
+        ''' </summary>
+        DollarSignDoubleQuoteToken = 785                                ' DollarSignDoubleQuoteTokenSyntax : PunctuationSyntax
+
+        ''' <summary>
+        ''' Represents literal character data in interpolated string expression.
+        ''' </summary>
+        InterpolatedStringTextToken = 786                               ' InterpolatedStringTextTokenSyntax : SyntaxToken
+
+        ''' <summary>
+        ''' Represents the end of interpolated string when parsing.
+        ''' </summary>
+        EndOfInterpolatedStringToken = 787                              ' PunctuationSyntax : SyntaxToken
+
     End Enum
 
 End Namespace

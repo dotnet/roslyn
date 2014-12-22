@@ -1816,6 +1816,10 @@ Partial Public Class ClsPPMTest003
             Console.WriteLine("Expected Result Occured")
         End If
     End Sub
+
+    Sub InterpolatedString()
+        Dim s = $"The current date = {Date.Today,10:yyyy-MM-dd}."
+    End Sub
 End Class
 </value>
   </data>
@@ -2925,6 +2929,11 @@ Partial Public Class ClsPPMTest003
         End If
 
     End Sub
+
+    Sub InterpolatedString()
+        Dim s = $"The current date = {Date.Today,10:yyyy-MM-dd}."
+    End Sub
+
 End Class</value>
   </data>
   <data name="HelloWorldVisualBasicCode" xml:space="preserve">

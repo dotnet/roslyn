@@ -1752,4 +1752,19 @@
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="Expression" Type="BoundTypeExpression" Null="disallow"/>
   </Node>
+
+  <Node Name="BoundInterpolatedStringExpression" Base="BoundExpression" HasValidate="true">
+    <!-- Type is required for this node type; may not be null -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <Field Name="Contents" Type="ImmutableArray(Of BoundNode)"/>
+  </Node>
+  
+  <!-- There is no BoundInterpolatedStringText because we use BoundLiteral of type string for this purpose. -->
+  
+  <Node Name="BoundInterpolation" Base="BoundNode">
+    <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
+    <Field Name="AlignmentOpt" Type="BoundExpression" Null="allow"/>
+    <Field Name="FormatStringOpt" Type="BoundLiteral" Null="allow"/>
+  </Node>
+
 </Tree>

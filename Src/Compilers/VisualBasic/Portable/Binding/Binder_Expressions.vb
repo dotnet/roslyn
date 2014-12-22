@@ -242,6 +242,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.ConditionalAccessExpression
                     Return BindConditionalAccessExpression(DirectCast(node, ConditionalAccessExpressionSyntax), diagnostics)
 
+                Case SyntaxKind.InterpolatedStringExpression
+                    Return BindInterpolatedStringExpression(DirectCast(node, InterpolatedStringExpressionSyntax), diagnostics)
+
                 Case Else
                     ' e.g. SyntaxKind.MidExpression is handled elsewhere
                     ' NOTE: There were too many "else" cases to justify listing them explicitly and throwing on

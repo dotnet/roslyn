@@ -948,6 +948,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return True
         End Function
 
+        ''' <summary>
+        ''' Attempt to retrieve the specified special member, reporting a use-site diagnostic if the member is not found.
+        ''' </summary>
         Private Function TryGetSpecialMember(Of T As Symbol)(<Out> ByRef result As T,
                                                        memberId As SpecialMember,
                                                        syntax As VisualBasicSyntaxNode) As Boolean

@@ -76,13 +76,13 @@ Unify Enum declarations with other block type declarations.
       <native-equiv name="ParseTreeNode"></native-equiv>
     </node-structure>
     -->
-    
-    <node-structure name="VisualBasicSyntaxNode" abstract="true" partial="true" predefined="true" root="true">      
+
+    <node-structure name="VisualBasicSyntaxNode" abstract="true" partial="true" predefined="true" root="true">
       <description>The base class for all nodes in the VB syntax tree.</description>
       <lm-equiv name="SyntaxNode"></lm-equiv>
       <native-equiv name="ParseTreeNode"></native-equiv>
     </node-structure>
-    
+
     <!--<node-structure name="SyntaxNode" parent="VisualBasicSyntaxNode" abstract="true" partial="true">
       <description>The base class for all nodes in the VB syntax tree except tokens and trivia.</description>
      </node-structure>-->
@@ -476,7 +476,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name="ImportedName"></native-equiv>
       </child>
     </node-structure>
-  
+
     <!--********************
       -  ImportAliasClauseSyntax
       **********************-->
@@ -3052,7 +3052,7 @@ Unify Enum declarations with other block type declarations.
         <lm-equiv name="Value"></lm-equiv>
         <native-equiv name="Operand"></native-equiv>
       </child>
-    </node-structure>      
+    </node-structure>
 
     <!--****************
       -  SingleLineIfStatement
@@ -3088,7 +3088,7 @@ Unify Enum declarations with other block type declarations.
         <description>A list of statements to be executed if the condition expression evaluates as true. Multiple statements must be separated by colons.</description>
         <lm-equiv name="BlockNode.Contents" />
         <native-equiv name="BlockStatement.Children" />
-      </child>    
+      </child>
 
       <child name="ElseClause" optional="true" kind="SingleLineElseClause">
         <description>An "Else" clause to be executed if the condition expression evalues as false.</description>
@@ -3149,7 +3149,7 @@ Unify Enum declarations with other block type declarations.
         <description>A list of statements to be executed if the condition expression evaluates as true.</description>
         <lm-equiv name="BlockNode.Contents"></lm-equiv>
         <native-equiv name="BlockStatement.Children"></native-equiv>
-      </child>                  
+      </child>
 
       <child name="ElseIfBlocks" optional="true" list="true" kind="ElseIfBlock">
         <description>A list of "ElseIf" blocks to be evaluated, in order, if the condition expression of the "If" statement evaluates as false.</description>
@@ -3324,7 +3324,7 @@ Unify Enum declarations with other block type declarations.
       <native-equiv name="ExecutableBlockStatement">A TryBlock corresponds to a Try statement and its following body.</native-equiv>
       <spec-section>10.10.1</spec-section>
       <grammar>TryStatement</grammar>
-          
+
       <node-kind name="TryBlock" />
 
       <child name="TryStatement" kind="TryStatement">
@@ -3792,7 +3792,7 @@ Unify Enum declarations with other block type declarations.
       <child name="Begin" kind="CaseStatement|CaseElseStatement">
         <description>The statement that begins the case block. </description>
       </child>
-       
+
       <child name="Statements" optional="true" list="true" kind="@StatementSyntax">
         <description>The statements contained in the case block. This might be an empty list.</description>
         <lm-equiv name="BlockNode.Contents"></lm-equiv>
@@ -4015,7 +4015,7 @@ Unify Enum declarations with other block type declarations.
       ******************-->
     <node-structure name="DoLoopBlockSyntax" parent="ExecutableStatementSyntax">
       <description>
-        Represents a Do-Loop block. The Kind property can be used to determine 
+        Represents a Do-Loop block. The Kind property can be used to determine
         if this is a Do While, Do Until, Do Loop While, Do Loop Until, or infinite Do Loop.
       </description>
 
@@ -4095,7 +4095,7 @@ Unify Enum declarations with other block type declarations.
         <description>The "Do" keyword.</description>
       </child>
 
-      <child name="WhileOrUntilClause" optional="true" kind="WhileClause|UntilClause">
+      <child name="WhileOrUntilClause" optional="true">
         <description>The "While expression" or "Until expression" clause of the Do statement, if present.</description>
         <kind name="WhileClause" node-kind="DoWhileStatement" />
         <kind name="UntilClause" node-kind="DoUntilStatement" />
@@ -4118,7 +4118,7 @@ Unify Enum declarations with other block type declarations.
         <description>The "Loop" keyword.</description>
       </child>
 
-      <child name="WhileOrUntilClause" optional="true" kind="WhileClause|UntilClause">
+      <child name="WhileOrUntilClause" optional="true">
         <description>The "While expression" or "Until expression" clause of the Loop statement, if present.</description>
         <kind name="WhileClause" node-kind="LoopWhileStatement" />
         <kind name="UntilClause" node-kind="LoopUntilStatement" />
@@ -4188,7 +4188,7 @@ Unify Enum declarations with other block type declarations.
       ******************-->
     <node-structure name="ForOrForEachBlockSyntax" abstract="true" parent="ExecutableStatementSyntax">
       <description>Represents a For or For Each block.</description>
-    
+
       <child name="Statements" optional="true" list="true" kind="@StatementSyntax" order="20">
         <description>The statements contained in the For or For Each loop. This might be an empty list.</description>
         <lm-equiv name="BlockNode.Contents"></lm-equiv>
@@ -4231,7 +4231,7 @@ Unify Enum declarations with other block type declarations.
       </child>
 
     </node-structure>
-    
+
     <!--****************
       -  ForEachBlock
       ******************-->
@@ -4257,7 +4257,7 @@ Unify Enum declarations with other block type declarations.
         <native-equiv name=""></native-equiv>
       </child>
     </node-structure>
-  
+
     <!--****************
       -  ForOrForEachStatement
       ******************-->
@@ -4300,7 +4300,7 @@ Unify Enum declarations with other block type declarations.
         <lm-equiv name="For" />
         <native-equiv name="Statement.Opcodes.ForFromTo" />
       </node-kind>
-      
+
       <child name="EqualsToken" kind="EqualsToken" order="40">
         <description>The "=" token.</description>
         <lm-equiv name="Equal"></lm-equiv>
@@ -6079,7 +6079,7 @@ Unify Enum declarations with other block type declarations.
       <child name="NameColonEquals" kind="NameColonEquals" optional="true">
         <description>The optional name and ":=" prefix of a named argument.</description>
       </child>
-      
+
       <child name="Expression" kind="@ExpressionSyntax">
         <description>The expression that is the argument.</description>
         <lm-equiv name="Value"></lm-equiv>
@@ -8285,18 +8285,18 @@ Unify Enum declarations with other block type declarations.
         <lm-equiv name="DescendingKeyword" />
         <native-equiv name="" />
       </node-kind>
-	    <node-kind name="DisableKeyword" token-text="Disable">
-		    <lm-equiv name="DisableKeyword" />
-		    <native-equiv name="" />
-	    </node-kind>
+      <node-kind name="DisableKeyword" token-text="Disable">
+        <lm-equiv name="DisableKeyword" />
+        <native-equiv name="" />
+      </node-kind>
       <node-kind name="DistinctKeyword" token-text="Distinct">
         <lm-equiv name="DistinctKeyword" />
         <native-equiv name="" />
       </node-kind>
-	    <node-kind name="EnableKeyword" token-text="Enable">
-		    <lm-equiv name="EnableKeyword" />
-		    <native-equiv name="" />
-	    </node-kind>
+      <node-kind name="EnableKeyword" token-text="Enable">
+        <lm-equiv name="EnableKeyword" />
+        <native-equiv name="" />
+      </node-kind>
       <node-kind name="EqualsKeyword" token-text="Equals">
         <lm-equiv name="EqualsKeyword" />
         <native-equiv name="" />
@@ -8393,10 +8393,10 @@ Unify Enum declarations with other block type declarations.
         <lm-equiv name="UntilKeyword" />
         <native-equiv name="" />
       </node-kind>
-  	  <node-kind name="WarningKeyword" token-text="Warning">
-	    	<lm-equiv name="WarningKeyword" />
-		    <native-equiv name="" />
-	    </node-kind>
+      <node-kind name="WarningKeyword" token-text="Warning">
+        <lm-equiv name="WarningKeyword" />
+        <native-equiv name="" />
+      </node-kind>
       <node-kind name="WhereKeyword" token-text="Where">
         <lm-equiv name="WhereKeyword" />
         <native-equiv name="" />
@@ -8598,6 +8598,8 @@ Unify Enum declarations with other block type declarations.
         <lm-equiv name="QuoteToken" />
         <native-equiv name="tkQuote" />
       </node-kind>
+      <node-kind name="DollarSignDoubleQuoteToken" token-text="$&quot;"/>
+      <node-kind name="EndOfInterpolatedStringToken" token-text=""/>
       <node-kind name="StatementTerminatorToken" token-text="vbCrLf">
         <lm-equiv name="" />
         <native-equiv name="tokens.tkEOL" />
@@ -8704,6 +8706,21 @@ Unify Enum declarations with other block type declarations.
         <description>The text of the attribute or pcdata after normalization.</description>
         <lm-equiv name="Value"></lm-equiv>
         <native-equiv name="Value"></native-equiv>
+      </field>
+    </node-structure>
+
+    <!--********************
+      -  InterpolatedStringTextToken
+      **********************-->
+    <node-structure name="InterpolatedStringTextTokenSyntax" parent="SyntaxToken">
+      <description>
+        Represents literal character data in interpolated string expression.
+      </description>
+
+      <node-kind name="InterpolatedStringTextToken" />
+
+      <field name="Value" type="text">
+        <description>The text.</description>
       </field>
     </node-structure>
 
@@ -9038,7 +9055,7 @@ Unify Enum declarations with other block type declarations.
       <description>
         ExpressionSyntax node representing the object conditionally accessed.
       </description>
-      
+
       <grammar>ConditionalAccessExpression</grammar>
 
       <node-kind name="ConditionalAccessExpression">
@@ -9080,7 +9097,111 @@ Unify Enum declarations with other block type declarations.
         <description>The ")" token.</description>
       </child>
     </node-structure>
-    
+
+    <!--****************
+      -  InterpolatedStringExpression
+      ******************-->
+    <node-structure name="InterpolatedStringExpressionSyntax" parent="ExpressionSyntax">
+      <description>Represents an interpolated string expression.</description>
+
+      <node-kind name="InterpolatedStringExpression" />
+
+      <child name="DollarSignDoubleQuoteToken" kind="DollarSignDoubleQuoteToken">
+        <description>The opening '$"', '$“', or '$”' token.</description>
+      </child>
+
+      <child name="Contents" kind="InterpolatedStringText|Interpolation" list="true">
+        <description>The contents of the interpolated string.</description>
+      </child>
+
+      <child name="DoubleQuoteToken" kind="DoubleQuoteToken">
+        <description>The closing '"', '”', or '“' token.</description>
+      </child>
+    </node-structure>
+
+    <!--****************
+      -  InterpolatedStringContent
+      ******************-->
+    <node-structure name="InterpolatedStringContentSyntax" parent="VisualBasicSyntaxNode" abstract="true">
+      <description>Represents either text content or an interpolation.</description>
+    </node-structure>
+
+    <!--****************
+      -  InterpolatedStringText
+      ******************-->
+    <node-structure name="InterpolatedStringTextSyntax" parent="InterpolatedStringContentSyntax">
+      <description>Represents literal text content in an interpolated string.</description>
+
+      <node-kind name="InterpolatedStringText" />
+
+      <child name="TextToken" kind="InterpolatedStringTextToken">
+        <description>The text token.</description>
+      </child>
+    </node-structure>
+
+    <!--****************
+      -  Interpolation
+      ******************-->
+    <node-structure name="InterpolationSyntax" parent="InterpolatedStringContentSyntax">
+      <description>Represents an interpolation of an expression in an interpolated string expression e.g. '{expression[,alignment][:formatString]}'.</description>
+
+      <node-kind name="Interpolation" />
+
+      <child name="OpenBraceToken" kind="OpenBraceToken">
+        <description>The opening curly brace '{' token.</description>
+      </child>
+
+      <child name="Expression" kind="@ExpressionSyntax">
+        <description>The expression whose formatted value should be embedded in the resultant string.</description>
+      </child>
+
+      <child name="AlignmentClause" kind="InterpolationAlignmentClause" optional="true">
+        <description>Optional. The alignment clause ',alignment' of the embedded expression.</description>
+      </child>
+
+      <child name="FormatClause" kind="InterpolationFormatClause" optional="true">
+        <description>Optional. The format string clause ':formatString' of the embedded expression.</description>
+      </child>
+
+      <child name="CloseBraceToken" kind="CloseBraceToken">
+        <description>The closing curly brace '}' token of the embedded expression.</description>
+      </child>
+    </node-structure>
+
+    <!--****************
+      -  InterpolationAlignmentClause
+      ******************-->
+    <node-structure name="InterpolationAlignmentClauseSyntax" parent="VisualBasicSyntaxNode">
+      <description>Represents an alignment clause ',alignment' of an intepolated string embedded expression.</description>
+
+      <node-kind name="InterpolationAlignmentClause" />
+
+      <child name="CommaToken" kind="CommaToken">
+        <description>The comma ',' token.</description>
+      </child>
+
+      <child name="Value" kind="@ExpressionSyntax">
+        <description>An expression representing the alignment of the interpolated expression.</description>
+      </child>
+    </node-structure>
+
+    <!--****************
+      -  InterpolationFormatClause
+      ******************-->
+    <node-structure name="InterpolationFormatClauseSyntax" parent="VisualBasicSyntaxNode">
+      <description>Represents a format string clause ':formatString' of an interpolated string embedded expression.</description>
+
+      <node-kind name="InterpolationFormatClause" />
+
+      <child name="ColonToken" kind="ColonToken">
+        <description>The ':' token.</description>
+      </child>
+
+      <child name="FormatStringToken" kind="InterpolatedStringTextToken">
+        <description>The format string.</description>
+      </child>
+    </node-structure>
+
     <!--********************
       -  Directive
       **********************-->
@@ -9116,7 +9237,7 @@ Unify Enum declarations with other block type declarations.
       <node-kind name="CommentTrivia">
         <description>Represents a comment.</description>
       </node-kind>
-      <node-kind name="LineContinuationTrivia" token-text="&quot;_&quot; &amp; vbCrLf">
+      <node-kind name="LineContinuationTrivia" token-text="_&#13;&#10;">
         <description>Represents an explicit line continuation character at the end of a line, i.e., _</description>
       </node-kind>
       <node-kind name="DocumentationCommentExteriorTrivia" token-text="'''">
@@ -9232,22 +9353,22 @@ Unify Enum declarations with other block type declarations.
       <child name="Checksum" kind="StringLiteralToken"></child>
       <child name="CloseParenToken" kind="CloseParenToken"></child>
     </node-structure>
-	
-	  <node-structure name="EnableWarningDirectiveTriviaSyntax" parent="DirectiveTriviaSyntax">
-	    <description>Represents #Enable Warning pre-processing directive appearing in source.</description>
-	    <node-kind name="EnableWarningDirectiveTrivia"></node-kind>
-        <child name="EnableKeyword" kind="EnableKeyword"></child>
-	    <child name="WarningKeyword" kind="WarningKeyword"></child>
-	    <child name="ErrorCodes" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="@IdentifierNameSyntax"/>
-	  </node-structure>
-	  
-	  <node-structure name="DisableWarningDirectiveTriviaSyntax" parent="DirectiveTriviaSyntax">
-	    <description>Represents #Disable Warning pre-processing directive appearing in source.</description>
-	    <node-kind name="DisableWarningDirectiveTrivia"></node-kind>
-        <child name="DisableKeyword" kind="DisableKeyword"></child>
-	    <child name="WarningKeyword" kind="WarningKeyword"></child>
-	    <child name="ErrorCodes" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="@IdentifierNameSyntax"/>
-	  </node-structure>
+
+    <node-structure name="EnableWarningDirectiveTriviaSyntax" parent="DirectiveTriviaSyntax">
+      <description>Represents #Enable Warning pre-processing directive appearing in source.</description>
+      <node-kind name="EnableWarningDirectiveTrivia"></node-kind>
+      <child name="EnableKeyword" kind="EnableKeyword"></child>
+      <child name="WarningKeyword" kind="WarningKeyword"></child>
+      <child name="ErrorCodes" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="@IdentifierNameSyntax"/>
+    </node-structure>
+
+    <node-structure name="DisableWarningDirectiveTriviaSyntax" parent="DirectiveTriviaSyntax">
+      <description>Represents #Disable Warning pre-processing directive appearing in source.</description>
+      <node-kind name="DisableWarningDirectiveTrivia"></node-kind>
+      <child name="DisableKeyword" kind="DisableKeyword"></child>
+      <child name="WarningKeyword" kind="WarningKeyword"></child>
+      <child name="ErrorCodes" list="true" separator-kind="CommaToken" separator-name="CommaTokens" kind="@IdentifierNameSyntax"/>
+    </node-structure>
 
     <node-structure name="ReferenceDirectiveTriviaSyntax" parent="DirectiveTriviaSyntax">
       <description>Represents an #r directive appearing in scripts.</description>

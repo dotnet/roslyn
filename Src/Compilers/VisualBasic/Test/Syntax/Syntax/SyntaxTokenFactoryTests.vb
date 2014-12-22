@@ -110,8 +110,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             For k = CInt(SyntaxKind.None) To CInt(SyntaxKind.BadDirectiveTrivia)
 
                 ' keywords or punctuation
-                If k >= CInt(SyntaxKind.AddHandlerKeyword) AndAlso k <= CInt(SyntaxKind.YieldKeyword) OrElse
-                    k >= CInt(SyntaxKind.ExclamationToken) AndAlso k <= CInt(SyntaxKind.EndOfXmlToken) Then
+                If (k >= CInt(SyntaxKind.AddHandlerKeyword) AndAlso k <= CInt(SyntaxKind.YieldKeyword)) OrElse
+                   (k >= CInt(SyntaxKind.ExclamationToken) AndAlso k <= CInt(SyntaxKind.EndOfXmlToken)) OrElse
+                   k = SyntaxKind.NameOfKeyword OrElse
+                   k = SyntaxKind.DollarSignDoubleQuoteToken OrElse
+                   k = SyntaxKind.EndOfInterpolatedStringToken _
+                Then
 
                     token = SyntaxFactory.Token(CType(k, SyntaxKind))
                     ' no exception during execution

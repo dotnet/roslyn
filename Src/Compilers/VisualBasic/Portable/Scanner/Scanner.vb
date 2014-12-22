@@ -1148,6 +1148,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Return XmlMakeEndEmbeddedToken(precedingTrivia, _scanSingleLineTriviaFunc)
                     End If
 
+                Case "$"c
+                    If CanGetCharAtOffset(1) AndAlso PeekAheadChar(1) = """"c Then
+                        Return MakePunctuationToken(precedingTrivia, 2, SyntaxKind.DollarSignDoubleQuoteToken)
+                    End If
+
             End Select
 
             If IsIdentifierStartCharacter(ch) Then
@@ -1168,6 +1173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Return Nothing
         End Function
 
+        ' REVIEW: Is there a better way to reuse this logic? 
         Private Function ScanTokenFullWidth(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), ch As Char) As SyntaxToken
             Select Case ch
                 Case UCH_CR, UCH_LF

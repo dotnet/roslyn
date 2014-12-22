@@ -191,6 +191,7 @@
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>TestResource.Designer.cs</LastGenOutput>
       <CustomToolNamespace>Roslyn.Test.Utilities</CustomToolNamespace>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

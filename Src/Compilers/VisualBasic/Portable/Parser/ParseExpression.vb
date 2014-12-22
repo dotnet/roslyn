@@ -396,6 +396,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                      SyntaxKind.FunctionKeyword
                     term = ParseLambda(parseModifiers:=False)
 
+                Case SyntaxKind.DollarSignDoubleQuoteToken
+
+                    term = ParseInterpolatedStringExpression()
+
                 Case Else
 
                     If start.Kind = SyntaxKind.QuestionToken AndAlso CanStartConsequenceExpression(Me.PeekToken(1).Kind, qualified:=False) Then
@@ -1347,7 +1351,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Else
                             ' There is a syntax error of some kind.
 
-                            Dim skipped = ReportSyntaxError(ResyncAt({SyntaxKind.CommaToken, SyntaxKind.CloseParenToken}).Node, ERRID.ERR_ArgumentSyntax)
+                            Dim skipped = ResyncAt({SyntaxKind.CommaToken, SyntaxKind.CloseParenToken}).Node
+                            If skipped IsNot Nothing Then
+                                skipped = ReportSyntaxError(skipped, ERRID.ERR_ArgumentSyntax)
+                            End If
 
                             If CurrentToken.Kind = SyntaxKind.CommaToken Then
                                 comma = DirectCast(CurrentToken, PunctuationSyntax)

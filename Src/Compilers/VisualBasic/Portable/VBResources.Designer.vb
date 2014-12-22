@@ -5586,6 +5586,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Format specifier may not contain trailing whitespace..
+        '''</summary>
+        Friend ReadOnly Property ERR_InterpolationFormatWhitespace() As String
+            Get
+                Return ResourceManager.GetString("ERR_InterpolationFormatWhitespace", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Attribute &apos;{0}&apos; cannot be applied to an assembly..
         '''</summary>
         Friend ReadOnly Property ERR_InvalidAssemblyAttribute1() As String

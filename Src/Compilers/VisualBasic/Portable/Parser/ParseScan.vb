@@ -255,7 +255,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     If IsValidStatementTerminator(CurrentToken) OrElse CurrentToken.Kind = SyntaxKind.EmptyToken Then
                         Exit While
                     End If
-                ElseIf CurrentToken.Kind = SyntaxKind.EndOfXmlToken Then
+                ElseIf CurrentToken.Kind = SyntaxKind.EndOfXmlToken OrElse CurrentToken.Kind = SyntaxKind.EndOfInterpolatedStringToken Then
                     Exit While
                 End If
 

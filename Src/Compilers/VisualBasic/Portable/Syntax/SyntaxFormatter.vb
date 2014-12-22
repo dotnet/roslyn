@@ -450,7 +450,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End If
 
             ' (,,,) instead of ( , , ,) or (a As Char, b as Char) instead of (a As Char , b as Char)
-            If (token.Kind = SyntaxKind.CommaToken AndAlso nextToken.Kind = SyntaxKind.EmptyToken) OrElse
+            ' $"{e,1:C}" instead of $"{e,1:C}"
+            If (token.Kind = SyntaxKind.CommaToken AndAlso (nextToken.Kind = SyntaxKind.EmptyToken OrElse token.Parent.Kind = SyntaxKind.InterpolationAlignmentClause)) OrElse
                nextToken.Kind = SyntaxKind.CommaToken Then
                 Return False
             End If
@@ -462,9 +463,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 Return False
             End If
 
-            ' label: instead of label :
-            If nextToken.Kind = SyntaxKind.ColonToken AndAlso token.Parent.Kind = SyntaxKind.LabelStatement Then
-                Return False
+            If nextToken.Kind = SyntaxKind.ColonToken Then
+                If token.Parent.Kind = SyntaxKind.LabelStatement Then
+                    ' label: instead of label :
+                    Return False
+
+                ElseIf nextToken.Parent.Kind = SyntaxKind.InterpolationFormatClause Then
+                    ' $"{e,1:C}" instead of $"{e,1 :C}"
+                    Return False
+
+                End If
             End If
 
             ' {1 instead of { 1 and 1} instead of 1 }
@@ -585,6 +593,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             End If
 
             If token.Kind = SyntaxKind.XmlTextLiteralToken OrElse token.Kind = SyntaxKind.DocumentationCommentLineBreakToken Then
+                Return False
+            End If
+
+            If token.Kind = SyntaxKind.DollarSignDoubleQuoteToken Then
+                Return False
+            End If
+
+            If token.Kind = SyntaxKind.InterpolatedStringTextToken OrElse nextToken.Kind = SyntaxKind.InterpolatedStringTextToken Then
                 Return False
             End If
 

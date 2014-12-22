@@ -80,8 +80,8 @@ Public Class SyntaxFactsWriter
             For Each kind In nodeStructure.NodeKinds
                 Dim tokenText = kind.TokenText
 
-                If tokenText IsNot Nothing AndAlso tokenText = """" Then
-                    tokenText = """"""
+                If tokenText IsNot Nothing AndAlso tokenText.Contains("""") Then
+                    tokenText = tokenText.Replace("""", """""")
                 End If
 
                 If tokenText <> Nothing Then

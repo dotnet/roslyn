@@ -179,14 +179,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        ' Determines if position is before or within the span of a node, or in the trailing trivia of a node 
-        ' up to, but not including, a newline or colon trivia (which mark the end of a statement.)
+        ''' <summary>
+        ''' Determines if position is before or within the span of a node, or in the trailing trivia of a node 
+        ''' up to, but not including, a newline or colon trivia (which mark the end of a statement.)
+        ''' </summary>
         Private Shared Function InOrBeforeSpanOrEffectiveTrailingOfNode(node As SyntaxNode, position As Integer) As Boolean
             Return position < node.SpanStart OrElse InSpanOrEffectiveTrailingOfNode(node, position)
         End Function
 
-        ' Determines if position is within the span of a node, or in the trailing trivia of a node 
-        ' up to, but not including, a newline or colon trivia (which mark the end of a statement.)
+        ''' <summary>
+        ''' Determines if position is within the span of a node, or in the trailing trivia of a node 
+        ''' up to, but not including, a newline or colon trivia (which mark the end of a statement.)
+        ''' </summary>
         Friend Shared Function InSpanOrEffectiveTrailingOfNode(node As SyntaxNode, position As Integer) As Boolean
             Dim span = node.Span
             If span.Contains(position) Then
@@ -590,7 +594,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shared Function IsPunctuationOrKeyword(kind As SyntaxKind) As Boolean
-            Return kind >= SyntaxKind.AddHandlerKeyword AndAlso kind <= SyntaxKind.EndOfXmlToken
+            Select Case kind
+                Case SyntaxKind.AddHandlerKeyword To SyntaxKind.EndOfXmlToken,
+                     SyntaxKind.NameOfKeyword,
+                     SyntaxKind.DollarSignDoubleQuoteToken,
+                     SyntaxKind.EndOfInterpolatedStringToken
+                    Return True
+
+                Case Else
+                    Return False
+            End Select
         End Function
 
         Public Shared Function VarianceKindFromToken(token As SyntaxToken) As VarianceKind

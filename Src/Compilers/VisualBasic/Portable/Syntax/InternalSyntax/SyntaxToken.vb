@@ -455,7 +455,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 If CInt(kind) <= SyntaxKind.YieldKeyword OrElse kind = SyntaxKind.NameOfKeyword Then
                     Return New KeywordSyntax(kind, tokenText, leading, trailing)
-                ElseIf CInt(kind) <= SyntaxKind.EndOfXmlToken Then
+                ElseIf CInt(kind) <= SyntaxKind.EndOfXmlToken OrElse
+                       kind = SyntaxKind.EndOfInterpolatedStringToken OrElse
+                       kind = SyntaxKind.DollarSignDoubleQuoteToken _
+                Then
                     Return New PunctuationSyntax(kind, tokenText, leading, trailing)
                 End If
             End If
@@ -500,6 +503,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     End Class
 
     Partial Class XmlTextTokenSyntax
+        Friend NotOverridable Overrides ReadOnly Property ValueText As String
+            Get
+                Return Me.Value
+            End Get
+        End Property
+    End Class
+
+    Partial Class InterpolatedStringTextTokenSyntax
         Friend NotOverridable Overrides ReadOnly Property ValueText As String
             Get
                 Return Me.Value

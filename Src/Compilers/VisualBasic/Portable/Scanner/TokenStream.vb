@@ -20,22 +20,102 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     End Module
 
     Friend Enum ScannerState
-        VB          'Scan VB tokens
-        VBAllowLeadingMultilineTrivia 'Scan VB tokens but consume multiline trivia before token. Done at the start of a new statement except after line if.
-        Misc        'Scan tokens in Xml misc state, these are tokens between document declaration and the root element
-        DocType     'Scan tokens inside of <!DOCTYPE ... >
-        Element     'Scan tokens inside of < ... >
-        EndElement  'Scan tokens inside of </ ...>
-        SingleQuotedString 'Scan a single quoted string
-        SmartSingleQuotedString 'Scan a single quoted string DWCH_RSMART_Q
-        QuotedString 'Scan a quoted string
-        SmartQuotedString 'Scan a quoted string DWCH_RSMART_DQ
-        UnQuotedString 'Scan a string that is missing quotes (error recovery)
-        Content     'Scan text between markup
-        CData       'Scan text inside of <![CDATA[ ... ]]>
-        StartProcessingInstruction ' Scan first text inside f <? ... ?>, the first text can have leading trivia
-        ProcessingInstruction 'Scan remaining text inside of <? ... ?>
-        Comment     'Scan text inside of <!-- ... -->
+
+        ''' <summary>
+        ''' Scan VB tokens
+        ''' </summary>
+        VB
+
+        ''' <summary>
+        ''' Scan VB tokens but consume multiline trivia before token. Done at the start of a new statement except after line if.
+        ''' </summary>
+        VBAllowLeadingMultilineTrivia
+
+        ''' <summary>
+        ''' Scan tokens in Xml misc state, these are tokens between document declaration and the root element
+        ''' </summary>
+        Misc
+
+        ''' <summary>
+        ''' Scan tokens inside of &lt;!DOCTYPE ... &gt;
+        ''' </summary>
+        DocType
+
+        ''' <summary>
+        ''' Scan tokens inside of &lt; ... &gt;
+        ''' </summary>
+        Element
+
+        ''' <summary>
+        ''' Scan tokens inside of &lt;/ ...&gt;
+        ''' </summary>
+        EndElement
+
+        ''' <summary>
+        ''' Scan a single quoted string
+        ''' </summary>
+        SingleQuotedString
+
+        ''' <summary>
+        ''' Scan a single quoted string DWCH_RSMART_Q
+        ''' </summary>
+        SmartSingleQuotedString
+
+        ''' <summary>
+        ''' Scan a quoted string
+        ''' </summary>
+        QuotedString
+
+        ''' <summary>
+        ''' Scan a quoted string DWCH_RSMART_DQ
+        ''' </summary>
+        SmartQuotedString
+
+        ''' <summary>
+        ''' Scan a string that is missing quotes (error recovery)
+        ''' </summary>
+        UnQuotedString
+
+        ''' <summary>
+        ''' Scan text between markup
+        ''' </summary>
+        Content
+
+        ''' <summary>
+        ''' Scan text inside of &lt;![CDATA[ ... ]]&gt;
+        ''' </summary>
+        CData
+
+        ''' <summary>
+        ''' Scan first text inside f &lt;? ... ?&gt;, the first text can have leading trivia
+        ''' </summary>
+        StartProcessingInstruction
+
+        ''' <summary>
+        ''' Scan remaining text inside of &lt;? ... ?&gt;
+        ''' </summary>
+        ProcessingInstruction
+
+        ''' <summary>
+        ''' Scan text inside of &lt;!-- ... --&gt;
+        ''' </summary>
+        Comment
+
+        ''' <summary>
+        ''' Scan punctuation in an interpolated string.
+        ''' </summary>
+        InterpolatedStringPunctuation
+
+        ''' <summary>
+        ''' Scan interpolated string text content.
+        ''' </summary>
+        InterpolatedStringContent
+
+        ''' <summary>
+        ''' Scan interpolated string format string text content (no newlines).
+        ''' </summary>
+        InterpolatedStringFormatString
+
     End Enum
 
     Partial Friend Class Scanner
@@ -530,7 +610,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     token = Me.ScanXmlStringSmartDouble()
 
                 Case ScannerState.UnQuotedString
-                    token = Me.ScanXmlStringUnQuoted
+                    token = Me.ScanXmlStringUnQuoted()
+
+                Case ScannerState.InterpolatedStringPunctuation
+                    token = Me.ScanInterpolatedStringPunctuation()
+
+                Case ScannerState.InterpolatedStringContent
+                    token = Me.ScanInterpolatedStringContent()
+
+                Case ScannerState.InterpolatedStringFormatString
+                    token = Me.ScanInterpolatedStringFormatString()
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(state)

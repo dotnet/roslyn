@@ -1674,6 +1674,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_MethodTypeArgsUnexpected = 37246
         ERR_InReferencedAssembly = 37247
         ERR_EncReferenceToAddedMember = 37248
+        ERR_InterpolationFormatWhitespace = 37249
 
         ERR_LastPlusOne
 

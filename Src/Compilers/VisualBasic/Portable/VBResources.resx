@@ -5226,4 +5226,7 @@
   <data name="ERR_InReferencedAssembly" xml:space="preserve">
     <value>There is an error in a referenced assembly '{0}'.</value>
   </data>
+  <data name="ERR_InterpolationFormatWhitespace" xml:space="preserve">
+    <value>Format specifier may not contain trailing whitespace.</value>
+  </data>
 </root>
