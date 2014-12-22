@@ -349,7 +349,7 @@ class Hello
             Assert.True((DateTime.Now - listener.LastProcessedTime.Value) > keepAlive);
         }
 
-        [Fact]
+        [Fact(Skip = "DevDiv 1095079"), WorkItem(1095079)]
         public async Task FirstClientCanOverrideDefaultTimeout()
         {
             var cts = new CancellationTokenSource();
