@@ -3221,6 +3221,8 @@ static class Program
         Console.WriteLine(case1);
         int? case2 = (int?)5.5;
         Console.WriteLine(case2);
+        int? case3 = (int?)5;
+        Console.WriteLine(case3);
     }
 }
 ";
@@ -3232,17 +3234,30 @@ static class Program
             var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
             var init0 = method.Body.Statements[0].DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer.Value;
             var value0 = model.GetConstantValue(init0);
+            var typeInfo0 = model.GetTypeInfo(init0);
             Assert.True(value0.HasValue);
             Assert.Equal(-1, (short)value0.Value);
+            Assert.True(typeInfo0.Type != null && typeInfo0.Type.SpecialType == SpecialType.System_Int16);
 
             // The CodePlex bug indicates this should return a constant value of 5.  While 'case2' should 
             // have that value it is not constant because of the nullable cast
             var init1 = method.Body.Statements[2].DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer.Value;
             var value1 = model.GetConstantValue(init1);
+            var typeInfo1 = model.GetTypeInfo(init1);
+            var type1 = comp.GetSpecialType(SpecialType.System_Nullable_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
             Assert.False(value1.HasValue);
+            Assert.True(typeInfo1.Type != null && typeInfo1.Type.Equals(type1));
+
+            var init2 = method.Body.Statements[4].DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer.Value;
+            var value2 = model.GetConstantValue(init2);
+            var typeInfo2 = model.GetTypeInfo(init2);
+            var type2 = comp.GetSpecialType(SpecialType.System_Nullable_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
+            Assert.False(value2.HasValue);
+            Assert.True(typeInfo2.Type != null && typeInfo2.Type.Equals(type2));
 
             var output = @"
 -1
+5
 5";
             CompileAndVerify(compilation: comp, expectedOutput: output);
         }

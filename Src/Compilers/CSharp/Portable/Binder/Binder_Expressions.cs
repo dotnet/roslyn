@@ -1527,10 +1527,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindExplicitNullableCastFromNonNullable(node, operand, targetType, diagnostics);
             }
 
-            return BindCastCore(node, operand, targetType, diagnostics);
+            return BindCastCore(node, operand, targetType, wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: diagnostics);
         }
 
-        private BoundExpression BindCastCore(ExpressionSyntax node, BoundExpression operand, TypeSymbol targetType, DiagnosticBag diagnostics)
+        private BoundExpression BindCastCore(ExpressionSyntax node, BoundExpression operand, TypeSymbol targetType, bool wasCompilerGenerated, DiagnosticBag diagnostics)
         {
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             Conversion conversion = this.Conversions.ClassifyConversionForCast(operand, targetType, ref useSiteDiagnostics);
@@ -1601,7 +1601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasErrors: true);
             }
 
-            return CreateConversion(node, operand, conversion, isCast: true, destination: targetType, diagnostics: diagnostics);
+            return CreateConversion(node, operand, conversion, isCast: true, wasCompilerGenerated: wasCompilerGenerated, destination: targetType, diagnostics: diagnostics);
         }
 
         /// <summary>
@@ -1625,13 +1625,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var underlyingConversion = Conversions.ClassifyConversion(operand.Type, underlyingTargetType, ref unused, builtinOnly: true);
             if (!underlyingConversion.Exists)
             {
-                return BindCastCore(node, operand, targetType, diagnostics);
+                return BindCastCore(node, operand, targetType, wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: diagnostics);
             }
 
             var bag = DiagnosticBag.GetInstance();
             try
             {
-                var underlyingExpr = BindCastCore(node, operand, targetType.GetNullableUnderlyingType(), bag);
+                var underlyingExpr = BindCastCore(node, operand, targetType.GetNullableUnderlyingType(), wasCompilerGenerated: false, diagnostics: bag);
                 if (underlyingExpr.HasErrors || bag.HasAnyErrors())
                 {
                     Error(diagnostics, ErrorCode.ERR_NoExplicitConv, node, operand.Type, targetType);
@@ -1653,10 +1653,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (underlyingExpr.ConstantValue != null)
                 {
                     underlyingExpr.WasCompilerGenerated = true;
-                    return BindCastCore(node, underlyingExpr, targetType, diagnostics);
+                    return BindCastCore(node, underlyingExpr, targetType, wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: diagnostics);
                 }
 
-                return BindCastCore(node, operand, targetType, diagnostics);
+                return BindCastCore(node, operand, targetType, wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: diagnostics);
             }
             finally
             {
