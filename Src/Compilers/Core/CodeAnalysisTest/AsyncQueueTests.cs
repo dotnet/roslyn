@@ -35,86 +35,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void EnqueueAfterSetException()
-        {
-            var queue = new AsyncQueue<int>();
-            queue.SetException(new Exception());
-            Assert.Throws(typeof(InvalidOperationException), () => queue.Enqueue(42));
-        }
-
-        [Fact]
         public void TryEnqueueAfterComplete()
         {
             var queue = new AsyncQueue<int>();
             Assert.True(queue.TryEnqueue(42));
             queue.Complete();
             Assert.False(queue.TryEnqueue(42));
-        }
-
-        [Fact]
-        public void TryEnqueueAfterSetException()
-        {
-            var queue = new AsyncQueue<int>();
-            Assert.True(queue.TryEnqueue(42));
-            queue.SetException(new Exception());
-            Assert.False(queue.TryEnqueue(42));
-        }
-
-        [Fact]
-        public async Task SetException()
-        {
-            var queue = new AsyncQueue<int>();
-            var exception = new Exception();
-            queue.SetException(exception);
-            Assert.True(queue.IsCompleted);
-            var threw = false;
-            try
-            {
-                await queue.WhenCompletedAsync.ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                Assert.Same(exception, ex);
-                threw = true;
-            }
-
-            Assert.True(threw);
-        }
-
-        [Fact]
-        public void SetExceptionAfterCompleted()
-        {
-            var queue = new AsyncQueue<int>();
-            queue.Complete();
-            Assert.Throws(typeof(InvalidOperationException), () => queue.SetException(new Exception()));
-        }
-
-        [Fact]
-        public async Task SetExceptionThenDequeue()
-        {
-            var queue = new AsyncQueue<int>();
-            var exception = new Exception();
-            queue.SetException(exception);
-            var threw = false;
-            try
-            {
-                await queue.DequeueAsync().ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                Assert.Same(exception, ex);
-                threw = true;
-            }
-
-            Assert.True(threw);
-        }
-
-        [Fact]
-        public void TrySetException()
-        {
-            var queue = new AsyncQueue<int>();
-            Assert.True(queue.TrySetException(new Exception()));
-            Assert.False(queue.TrySetException(new Exception()));
         }
 
         [Fact]
@@ -146,30 +72,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 queue.Enqueue(i);
                 Assert.Equal(i, await task.ConfigureAwait(false));
             }
-        }
-
-        [Fact]
-        public async Task DequeueThenSetException()
-        {
-            var queue = new AsyncQueue<int>();
-            var task = queue.DequeueAsync();
-            Assert.False(task.IsCompleted);
-
-            var exception = new Exception();
-            queue.SetException(exception);
-
-            var threw = false;
-            try
-            {
-                await task.ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                Assert.Same(exception, ex);
-                threw = true;
-            }
-
-            Assert.True(threw);
         }
 
         [Fact]
@@ -242,38 +144,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public async Task DequeueAfterSetExceptionWithData()
-        {
-            var queue = new AsyncQueue<int>();
-            queue.Enqueue(42);
-            queue.SetException(new InvalidOperationException());
-
-            var threw = false;
-            try
-            {
-                await queue.WhenCompletedAsync.ConfigureAwait(false);
-            }
-            catch (InvalidOperationException)
-            {
-                threw = true;
-            }
-            Assert.True(threw);
-
-            Assert.Equal(42, await queue.DequeueAsync().ConfigureAwait(false));
-
-            threw = false;
-            try
-            {
-                await queue.DequeueAsync().ConfigureAwait(false);
-            }
-            catch (InvalidOperationException)
-            {
-                threw = true;
-            }
-            Assert.True(threw);
-        }
-
-        [Fact]
         public void DequeueAsyncWithCancellation()
         {
             var queue = new AsyncQueue<int>();
@@ -323,50 +193,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public async Task TaskCompletesAsyncWithSetException()
-        {
-            var queue = new AsyncQueue<int>();
-
-            var tcs = new TaskCompletionSource<bool>();
-            var task = queue.DequeueAsync().ContinueWith(
-                t =>
-                {
-                    try
-                    {
-                        tcs.Task.Wait();
-                    }
-                    catch
-                    {
-
-                    }
-
-                    return 0;
-                },
-                default(CancellationToken),
-                TaskContinuationOptions.ExecuteSynchronously,
-                TaskScheduler.Default);
-
-            queue.SetException(new Exception());
-            Assert.False(queue.WhenCompletedAsync.IsCompleted);
-            tcs.SetResult(true);
-
-            var threw = false;
-            try
-            {
-                await queue.WhenCompletedAsync.ConfigureAwait(false);
-            }
-            catch
-            {
-                threw = true;
-            }
-
-            // The AsyncQueue<T>.Task property won't complete until all of the 
-            // exitsing DequeueAsync values have also completed.
-            Assert.True(threw);
-            Assert.True(task.IsCompleted);
-        }
-
-        [Fact]
         public void TryDequeue()
         {
             var queue = new AsyncQueue<int>();
@@ -388,29 +214,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             queue.Enqueue(13);
             queue.Complete();
             await queue.WhenCompletedAsync.ConfigureAwait(false);
-
-            int value;
-            Assert.True(queue.TryDequeue(out value));
-            Assert.Equal(13, value);
-        }
-
-        [Fact]
-        public async Task TryDequeueAfterSetException()
-        {
-            var queue = new AsyncQueue<int> ();
-            queue.Enqueue(13);
-            queue.SetException(new Exception());
-
-            var threw = false;
-            try
-            {
-                await queue.WhenCompletedAsync.ConfigureAwait(false);
-            }
-            catch
-            {
-                threw = true;
-            }
-            Assert.True(threw);
 
             int value;
             Assert.True(queue.TryDequeue(out value));

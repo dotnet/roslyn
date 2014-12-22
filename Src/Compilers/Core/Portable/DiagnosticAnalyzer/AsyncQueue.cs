@@ -17,21 +17,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <typeparam name="TElement">The type of values kept by the queue.</typeparam>
     public sealed class AsyncQueue<TElement>
     {
-        private enum State : byte
-        {
-            Active,
-            Completed,
-            CompletedWithException,
-        }
-
         private readonly TaskCompletionSource<bool> whenCompleted = new TaskCompletionSource<bool>();
 
         // Note: All of the below fields are accessed in parallel and may only be accessed
         // when protected by lock (SyncObject)
         private readonly Queue<TElement> data = new Queue<TElement>();
         private Queue<TaskCompletionSource<TElement>> waiters;
-        private Exception thrown;
-        private State state = State.Active;
+        private bool completed;
 
         private object SyncObject
         {
@@ -50,13 +42,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return this.data.Count;
                 }
             }
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="AsyncQueue{TElement}"/> class.
-        /// </summary>
-        public AsyncQueue()
-        {
         }
 
         /// <summary>
@@ -88,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             TaskCompletionSource<TElement> waiter;
             lock (SyncObject)
             {
-                if (this.state != State.Active)
+                if (this.completed)
                 {
                     return false;
                 }
@@ -104,69 +89,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             waiter.SetResult(value);
-            return true;
-        }
-
-        /// <summary>
-        /// Sets the queue to a completed state with the provided <parameref name="exception"/>.  All 
-        /// outstanding and future <see cref="AsyncQueue{TElement}.DequeueAsync"/> Task values will 
-        /// be resolved to this value. 
-        /// </summary>
-        /// <exception cref="InvalidOperationException">The queue is already completed.</exception>
-        /// <param name="exception">The exception to be associated with this queue.</param>
-        public void SetException(Exception exception)
-        {
-            if (!SetExceptionCore(exception))
-            {
-                throw new InvalidOperationException($"Cannot call ${nameof(SetException)} when the queue is already completed.");
-            }
-        }
-
-        /// <summary>
-        /// This has the same effect as <see cref="AsyncQueue{TElement}.SetException"/> except 
-        /// it will not throw an exception if the queue is in a completed state.
-        /// </summary>
-        /// <param name="exception">The exception to be associated with this queue.</param>
-        /// <returns>Whether or not the operation succeeded.</returns>
-        public bool TrySetException(Exception exception)
-        {
-            return SetExceptionCore(exception);
-        }
-
-        private bool SetExceptionCore(Exception exception)
-        {
-            if (exception == null)
-            {
-                throw new ArgumentNullException(nameof(exception));
-            }
-
-            Queue<TaskCompletionSource<TElement>> existingWaiters;
-            lock (SyncObject)
-            {
-                if (this.state != State.Active)
-                {
-                    return false;
-                }
-
-                existingWaiters = this.waiters;
-                this.thrown = exception;
-                this.state = State.CompletedWithException;
-                this.waiters = null;
-            }
-
-            Task.Run(() =>
-            {
-                if (existingWaiters != null)
-                {
-                    foreach (var tcs in existingWaiters)
-                    {
-                        tcs.SetException(exception);
-                    }
-                }
-
-                this.whenCompleted.SetException(exception);
-            });
-
             return true;
         }
 
@@ -189,9 +111,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Gets a value indicating whether the queue has completed.  This is true 
-        /// when the method <see cref="AsyncQueue{TElement}.Complete"/>, <see cref="AsyncQueue{TElement}.SetException(Exception)" /> 
-        /// or their Try variants have been called.
+        /// Gets a value indicating whether the queue has completed.
         /// </summary>
         public bool IsCompleted
         {
@@ -199,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 lock (SyncObject)
                 {
-                    return this.state != State.Active;
+                    return this.completed;
                 }
             }
         }
@@ -232,14 +152,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Queue<TaskCompletionSource<TElement>> existingWaiters;
             lock (SyncObject)
             {
-                if (this.state != State.Active)
+                if (this.completed)
                 {
                     return false;
                 }
 
-                Debug.Assert(this.thrown == null);
                 existingWaiters = this.waiters;
-                this.state = State.Completed;
+                this.completed = true;
                 this.waiters = null;
             }
 
@@ -260,9 +179,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Gets a task that transitions to a completed state when <see cref="Complete"/>,
-        /// <see cref="SetException"/> or their Try variants is called.  This transition 
-        /// will not happen synchronously. 
+        /// Gets a task that transitions to a completed state when <see cref="Complete"/> or
+        /// <see cref="TryComplete"/> is called.  This transition will not happen synchronously.
         /// 
         /// This Task will not complete until it has completed all existing values returned
         /// from <see cref="DequeueAsync"/>.
@@ -278,9 +196,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Gets a task whose result is the element at the head of the queue. If the queue
         /// is empty, the returned task waits for an element to be enqueued. If <see cref="Complete"/> 
-        /// is called before an element becomes available, the returned task is cancelled. If
-        /// <see cref="SetException"/> is called before an element becomes available, the
-        /// returned task is resolved to that exception.
+        /// is called before an element becomes available, the returned task is cancelled.
         /// </summary>
         public Task<TElement> DequeueAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -317,37 +233,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return Task.FromResult(this.data.Dequeue());
                 }
 
-                switch (this.state)
+                if (this.completed)
                 {
-                    case State.Active:
-                        {
-                            var waiter = new TaskCompletionSource<TElement>();
-                            if (this.waiters == null)
-                            {
-                                this.waiters = new Queue<TaskCompletionSource<TElement>>();
-                            }
+                    var tcs = new TaskCompletionSource<TElement>();
+                    tcs.SetCanceled();
+                    return tcs.Task;
+                }
+                else
+                {
+                    if (this.waiters == null)
+                    {
+                        this.waiters = new Queue<TaskCompletionSource<TElement>>();
+                    }
 
-                            this.waiters.Enqueue(waiter);
-                            return waiter.Task;
-                        }
-
-                    case State.Completed:
-                        {
-                            var tcs = new TaskCompletionSource<TElement>();
-                            tcs.SetCanceled();
-                            return tcs.Task;
-                        }
-
-                    case State.CompletedWithException:
-                        {
-                            Debug.Assert(this.thrown != null);
-                            var tcs = new TaskCompletionSource<TElement>();
-                            tcs.SetException(this.thrown);
-                            return tcs.Task;
-                        }
-
-                    default:
-                        throw ExceptionUtilities.Unreachable;
+                    var waiter = new TaskCompletionSource<TElement>();
+                    this.waiters.Enqueue(waiter);
+                    return waiter.Task;
                 }
             }
         }
