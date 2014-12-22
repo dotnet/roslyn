@@ -23,5 +23,14 @@ Namespace Roslyn.Diagnostics.Analyzers.VisualBasic
         Protected Overrides Function GetRightOfMemberAccess(memberAccess As MemberAccessExpressionSyntax) As SyntaxNode
             Return memberAccess.Name
         End Function
+
+        Protected Overrides Function IsThisOrBaseOrMeOrMyBaseExpression(node As SyntaxNode) As Boolean
+            Select Case node.Kind
+                Case SyntaxKind.MeExpression, SyntaxKind.MyBaseExpression
+                    Return True
+                Case Else
+                    Return False
+            End Select
+        End Function
     End Class
 End Namespace

@@ -41,6 +41,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
         protected abstract SyntaxNode GetLeftOfMemberAccess(TMemberAccessExpressionSyntax memberAccess);
         protected abstract SyntaxNode GetRightOfMemberAccess(TMemberAccessExpressionSyntax memberAccess);
+        protected abstract bool IsThisOrBaseOrMeOrMyBaseExpression(SyntaxNode node);
 
         protected override void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
@@ -53,7 +54,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             var left = GetLeftOfMemberAccess(memberAccess);
             var leftType = context.SemanticModel.GetTypeInfo(left).Type;
-            if (leftType != null && leftType.ToDisplayString() == DiagnosticTypeFullName)
+            if (leftType != null && leftType.ToDisplayString() == DiagnosticTypeFullName && !IsThisOrBaseOrMeOrMyBaseExpression(left))
             {
                 var nameOfMember = string.Empty;
                 var parentMemberAccess = memberAccess.Parent as TMemberAccessExpressionSyntax;

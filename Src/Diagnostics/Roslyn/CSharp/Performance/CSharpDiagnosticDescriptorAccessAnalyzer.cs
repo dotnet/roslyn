@@ -27,5 +27,18 @@ namespace Roslyn.Diagnostics.Analyzers.CSharp
         {
             return memberAccess.Name;
         }
+
+        protected override bool IsThisOrBaseOrMeOrMyBaseExpression(SyntaxNode node)
+        {
+            switch (node.Kind())
+            {
+                case SyntaxKind.ThisExpression:
+                case SyntaxKind.BaseExpression:
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
     }
 }
