@@ -18,13 +18,17 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     public abstract class CA1024DiagnosticAnalyzer<TLanguageKindEnum> : DiagnosticAnalyzer where TLanguageKindEnum : struct
     {
         internal const string RuleId = "CA1024";
+        private static LocalizableString localizableTitle = new LocalizableResourceString(nameof(FxCopRulesResources.UsePropertiesWhereAppropriate), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString localizableMessage = new LocalizableResourceString(nameof(FxCopRulesResources.ChangeToAPropertyIfAppropriate), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString localizableDescription = new LocalizableResourceString(nameof(FxCopRulesResources.UsePropertiesWhereAppropriateDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
-                                                                         FxCopRulesResources.UsePropertiesWhereAppropriate,
-                                                                         FxCopRulesResources.ChangeToAPropertyIfAppropriate,
+                                                                         localizableTitle,
+                                                                         localizableMessage,
                                                                          FxCopDiagnosticCategory.Design,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: false,
-                                                                         description: FxCopRulesResources.UsePropertiesWhereAppropriateDescription,
+                                                                         description: localizableDescription,
                                                                          helpLink: "http://msdn.microsoft.com/library/ms182181.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
         private const string GetHashCodeName = "GetHashCode";

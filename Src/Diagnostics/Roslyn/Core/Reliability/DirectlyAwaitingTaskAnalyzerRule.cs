@@ -6,10 +6,13 @@ namespace Roslyn.Diagnostics.Analyzers
 {
     internal static class DirectlyAwaitingTaskAnalyzerRule
     {
+        private static LocalizableString localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DirectlyAwaitingTaskDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DirectlyAwaitingTaskMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        
         public static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             RoslynDiagnosticIds.DirectlyAwaitingTaskAnalyzerRuleId,
-            RoslynDiagnosticsResources.DirectlyAwaitingTaskDescription,
-            RoslynDiagnosticsResources.DirectlyAwaitingTaskMessage,
+            localizableTitle,
+            localizableMessage,
             "Reliability",
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,

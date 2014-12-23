@@ -14,22 +14,25 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
         internal const string CA1016RuleName = "CA1016";
         internal const string CA1014RuleName = "CA1014";
 
+        private static LocalizableString localizableMessageCA1016 = new LocalizableResourceString(nameof(FxCopRulesResources.AssembliesShouldBeMarkedWithAssemblyVersionAttribute), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
         internal static DiagnosticDescriptor CA1016Rule = new DiagnosticDescriptor(CA1016RuleName,
-                                                                         FxCopRulesResources.AssembliesShouldBeMarkedWithAssemblyVersionAttribute,
-                                                                         FxCopRulesResources.AssembliesShouldBeMarkedWithAssemblyVersionAttribute,
+                                                                         localizableMessageCA1016,
+                                                                         localizableMessageCA1016,
                                                                          FxCopDiagnosticCategory.Design,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
                                                                          helpLink: "http://msdn.microsoft.com/library/ms182155.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 
+        private static LocalizableString localizableMessageCA1014 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkAssembliesWithCLSCompliantAttribute), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString localizableDescriptionCA1014 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkAssembliesWithCLSCompliantDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
         internal static DiagnosticDescriptor CA1014Rule = new DiagnosticDescriptor(CA1014RuleName,
-                                                                         FxCopRulesResources.MarkAssembliesWithCLSCompliantAttribute,
-                                                                         FxCopRulesResources.MarkAssembliesWithCLSCompliantAttribute,
+                                                                         localizableMessageCA1014,
+                                                                         localizableMessageCA1014,
                                                                          FxCopDiagnosticCategory.Design,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: false,
-                                                                         description: FxCopRulesResources.MarkAssembliesWithCLSCompliantDescription,
+                                                                         description: localizableDescriptionCA1014,
                                                                          helpLink: "http://msdn.microsoft.com/library/ms182156.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 

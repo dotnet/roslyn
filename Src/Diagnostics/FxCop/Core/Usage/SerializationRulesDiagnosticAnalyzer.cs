@@ -16,37 +16,48 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
     {
         // Implement serialization constructors
         internal const string RuleCA2229Id = "CA2229";
+        private static LocalizableString localizableTitleCA2229 = new LocalizableResourceString(nameof(FxCopRulesResources.ImplementSerializationConstructor), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString localizableDescriptionCA2229 = new LocalizableResourceString(nameof(FxCopRulesResources.ImplementSerializationConstructorDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+
         internal static DiagnosticDescriptor RuleCA2229 = new DiagnosticDescriptor(RuleCA2229Id,
-                                                                         FxCopRulesResources.ImplementSerializationConstructor,
+                                                                         localizableTitleCA2229,
                                                                          "{0}",
                                                                          FxCopDiagnosticCategory.Usage,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
-                                                                         description: FxCopRulesResources.ImplementSerializationConstructorDescription,
+                                                                         description: localizableDescriptionCA2229,
                                                                          helpLink: "http://msdn.microsoft.com/library/ms182343.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 
         // Mark ISerializable types with SerializableAttribute
         internal const string RuleCA2237Id = "CA2237";
+        private static LocalizableString localizableTitleCA2237 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkISerializableTypesWithAttribute), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString localizableMessageCA2237 = new LocalizableResourceString(nameof(FxCopRulesResources.AddSerializableAttributeToType), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString localizableDescriptionCA2237 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkISerializableTypesWithAttributeDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+
         internal static DiagnosticDescriptor RuleCA2237 = new DiagnosticDescriptor(RuleCA2237Id,
-                                                                         FxCopRulesResources.MarkISerializableTypesWithAttribute,
-                                                                         FxCopRulesResources.AddSerializableAttributeToType,
+                                                                         localizableTitleCA2237,
+                                                                         localizableMessageCA2237,
                                                                          FxCopDiagnosticCategory.Usage,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
-                                                                         description: FxCopRulesResources.MarkISerializableTypesWithAttributeDescription,
+                                                                         description: localizableDescriptionCA2237,
                                                                          helpLink: "http://msdn.microsoft.com/library/ms182350.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 
         // Mark all non-serializable fields
         internal const string RuleCA2235Id = "CA2235";
+        private static LocalizableString localizableTitleCA2235 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkAllNonSerializableFields), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString localizableMessageCA2235 = new LocalizableResourceString(nameof(FxCopRulesResources.FieldIsOfNonSerializableType), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString localizableDescriptionCA2235 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkAllNonSerializableFieldsDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+
         internal static DiagnosticDescriptor RuleCA2235 = new DiagnosticDescriptor(RuleCA2235Id,
-                                                                         FxCopRulesResources.MarkAllNonSerializableFields,
-                                                                         FxCopRulesResources.FieldIsOfNonSerializableType,
+                                                                         localizableTitleCA2235,
+                                                                         localizableMessageCA2235,
                                                                          FxCopDiagnosticCategory.Usage,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
-                                                                         description: FxCopRulesResources.MarkAllNonSerializableFieldsDescription,
+                                                                         description: localizableDescriptionCA2235,
                                                                          helpLink: "http://msdn.microsoft.com/library/ms182349.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 

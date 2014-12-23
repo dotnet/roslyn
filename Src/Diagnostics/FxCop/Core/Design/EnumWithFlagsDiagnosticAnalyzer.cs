@@ -33,23 +33,29 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
         internal const string RuleIdDoNotMarkEnumsWithFlags = "CA2217";
         internal const string RuleNameForExportAttribute = "EnumWithFlagsAttributeRules";
 
+        private static LocalizableString localizableTitleCA1027 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkEnumsWithFlags), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString localizableMessageCA1027 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkEnumsWithFlagsMessage), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString localizableDescriptionCA1027 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkEnumsWithFlagsDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
         internal static DiagnosticDescriptor Rule1027 = new DiagnosticDescriptor(RuleIdMarkEnumsWithFlags,
-                                                                             FxCopRulesResources.MarkEnumsWithFlags,
-                                                                             FxCopRulesResources.MarkEnumsWithFlagsMessage,
+                                                                             localizableTitleCA1027,
+                                                                             localizableMessageCA1027,
                                                                              FxCopDiagnosticCategory.Design,
                                                                              DiagnosticSeverity.Warning,
                                                                              isEnabledByDefault: false,
-                                                                             description: FxCopRulesResources.MarkEnumsWithFlagsDescription,
+                                                                             description: localizableDescriptionCA1027,
                                                                              helpLink: "http://msdn.microsoft.com/library/ms182159.aspx",
                                                                              customTags: DiagnosticCustomTags.Microsoft);
 
+        private static LocalizableString localizableTitleCA2217 = new LocalizableResourceString(nameof(FxCopRulesResources.DoNotMarkEnumsWithFlags), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString localizableMessageCA2217 = new LocalizableResourceString(nameof(FxCopRulesResources.DoNotMarkEnumsWithFlagsMessage), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString localizableDescriptionCA2217 = new LocalizableResourceString(nameof(FxCopRulesResources.DoNotMarkEnumsWithFlagsDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
         internal static DiagnosticDescriptor Rule2217 = new DiagnosticDescriptor(RuleIdDoNotMarkEnumsWithFlags,
-                                                                             FxCopRulesResources.DoNotMarkEnumsWithFlags,
-                                                                             FxCopRulesResources.DoNotMarkEnumsWithFlagsMessage,
+                                                                             localizableTitleCA2217,
+                                                                             localizableMessageCA2217,
                                                                              FxCopDiagnosticCategory.Usage,
                                                                              DiagnosticSeverity.Warning,
                                                                              isEnabledByDefault: false,
-                                                                             description: FxCopRulesResources.DoNotMarkEnumsWithFlagsDescription,
+                                                                             description: localizableDescriptionCA2217,
                                                                              helpLink: "http://msdn.microsoft.com/library/ms182335.aspx",
                                                                              customTags: DiagnosticCustomTags.Microsoft);
 

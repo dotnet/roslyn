@@ -13,18 +13,21 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
     public sealed class CA1715DiagnosticAnalyzer : DiagnosticAnalyzer
     {
         internal const string RuleId = "CA1715";
+
+        private static LocalizableString localizableMessageAndTitleInterfaceRule = new LocalizableResourceString(nameof(FxCopRulesResources.InterfaceNamesShouldStartWithI), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
         internal static readonly DiagnosticDescriptor InterfaceRule = new DiagnosticDescriptor(RuleId,
-                                                                                      FxCopRulesResources.InterfaceNamesShouldStartWithI,
-                                                                                      FxCopRulesResources.InterfaceNamesShouldStartWithI,
+                                                                                      localizableMessageAndTitleInterfaceRule,
+                                                                                      localizableMessageAndTitleInterfaceRule,
                                                                                       FxCopDiagnosticCategory.Naming,
                                                                                       DiagnosticSeverity.Warning,
                                                                                       isEnabledByDefault: true,
                                                                                       helpLink: "http://msdn.microsoft.com/library/ms182243.aspx",
                                                                                       customTags: DiagnosticCustomTags.Microsoft);
 
+        private static LocalizableString localizableMessageAndTitleTypeParameterRule = new LocalizableResourceString(nameof(FxCopRulesResources.TypeParameterNamesShouldStartWithT), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
         internal static readonly DiagnosticDescriptor TypeParameterRule = new DiagnosticDescriptor(RuleId,
-                                                                                      FxCopRulesResources.TypeParameterNamesShouldStartWithT,
-                                                                                      FxCopRulesResources.TypeParameterNamesShouldStartWithT,
+                                                                                      localizableMessageAndTitleTypeParameterRule,
+                                                                                      localizableMessageAndTitleTypeParameterRule,
                                                                                       FxCopDiagnosticCategory.Naming,
                                                                                       DiagnosticSeverity.Warning,
                                                                                       isEnabledByDefault: true,

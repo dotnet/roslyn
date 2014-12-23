@@ -11,10 +11,13 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
     [DiagnosticAnalyzer]
     public class CancellationTokenMustBeLastAnalyzer : DiagnosticAnalyzer
     {
+        private static LocalizableString localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.CancellationTokenMustBeLastMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.CancellationTokenMustBeLastDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             RoslynDiagnosticIds.CancellationTokenMustBeLastRuleId,
-            RoslynDiagnosticsResources.CancellationTokenMustBeLastDescription,
-            RoslynDiagnosticsResources.CancellationTokenMustBeLastMessage,
+            localizableTitle,
+            localizableMessage,
             "ApiDesign",
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);

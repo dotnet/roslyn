@@ -24,9 +24,11 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Reliability
     public abstract class CA2002DiagnosticAnalyzer : DiagnosticAnalyzer
     {
         internal const string RuleId = "CA2002";
+        private static LocalizableString localizableTitle = new LocalizableResourceString(nameof(FxCopRulesResources.DoNotLockOnObjectsWithWeakIdentity), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString localizableMessage = new LocalizableResourceString(nameof(FxCopRulesResources.DoNotLockOnWeakIdentity), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
-                                                                         FxCopRulesResources.DoNotLockOnObjectsWithWeakIdentity,
-                                                                         FxCopRulesResources.DoNotLockOnWeakIdentity,
+                                                                         localizableTitle,
+                                                                         localizableMessage,
                                                                          FxCopDiagnosticCategory.Reliability,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,

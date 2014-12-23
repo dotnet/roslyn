@@ -13,9 +13,12 @@ Namespace Roslyn.Diagnostics.Analyzers.VisualBasic
     Public Class BasicUseSiteDiagnosticsCheckEnforcerAnalyzer
         Inherits AbstractSyntaxNodeAnalyzer(Of SyntaxKind)
 
+        Private Shared localizableTitle As LocalizableString = New LocalizableResourceString(NameOf(RoslynDiagnosticsResources.UseSiteDiagnosticsCheckerDescription), RoslynDiagnosticsResources.ResourceManager, GetType(RoslynDiagnosticsResources))
+        Private Shared localizableMessage As LocalizableString = New LocalizableResourceString(NameOf(RoslynDiagnosticsResources.UseSiteDiagnosticsCheckerMessage), RoslynDiagnosticsResources.ResourceManager, GetType(RoslynDiagnosticsResources))
+
         Private Shared _descriptor As DiagnosticDescriptor = New DiagnosticDescriptor(RoslynDiagnosticIds.UseSiteDiagnosticsCheckerRuleId,
-                                                                             RoslynDiagnosticsResources.UseSiteDiagnosticsCheckerDescription,
-                                                                             RoslynDiagnosticsResources.UseSiteDiagnosticsCheckerMessage,
+                                                                             localizableTitle,
+                                                                             localizableMessage,
                                                                              "Usage",
                                                                              DiagnosticSeverity.Error,
                                                                              False,

@@ -13,13 +13,16 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     public sealed class CA1017DiagnosticAnalyzer : DiagnosticAnalyzer
     {
         internal const string RuleId = "CA1017";
+        private static LocalizableString localizableTitle = new LocalizableResourceString(nameof(FxCopRulesResources.MarkAllAssembliesWithComVisible), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString localizableDescription = new LocalizableResourceString(nameof(FxCopRulesResources.MarkAllAssembliesWithComVisibleDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+
         internal static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
-                                                                                      FxCopRulesResources.MarkAllAssembliesWithComVisible,
+                                                                                      localizableTitle,
                                                                                       "{0}",
                                                                                       FxCopDiagnosticCategory.Design,
                                                                                       DiagnosticSeverity.Warning,
                                                                                       isEnabledByDefault: false,
-                                                                                      description: FxCopRulesResources.MarkAllAssembliesWithComVisibleDescription,
+                                                                                      description: localizableDescription,
                                                                                       helpLink: "http://msdn.microsoft.com/library/ms182157.aspx",
                                                                                       customTags: DiagnosticCustomTags.Microsoft);
 

@@ -13,13 +13,17 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     public sealed class CA1036DiagnosticAnalyzer : AbstractNamedTypeAnalyzer
     {
         internal const string RuleId = "CA1036";
+        private static LocalizableString localizableTitle = new LocalizableResourceString(nameof(FxCopRulesResources.OverloadOperatorEqualsOnIComparableInterface), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString localizableMessage = new LocalizableResourceString(nameof(FxCopRulesResources.OverloadOperatorEqualsOnIComparableInterface), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString localizableDescription = new LocalizableResourceString(nameof(FxCopRulesResources.OverloadOperatorEqualsOnIComparableInterfaceDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+
         internal static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
-                                                                                  FxCopRulesResources.OverloadOperatorEqualsOnIComparableInterface,
-                                                                                  FxCopRulesResources.OverloadOperatorEqualsOnIComparableInterface,
+                                                                                  localizableTitle,
+                                                                                  localizableMessage,
                                                                                   FxCopDiagnosticCategory.Design,
                                                                                   DiagnosticSeverity.Warning,
                                                                                   isEnabledByDefault: true,
-                                                                                  description: FxCopRulesResources.OverloadOperatorEqualsOnIComparableInterfaceDescription,
+                                                                                  description: localizableDescription,
                                                                                   helpLink: "http://msdn.microsoft.com/library/ms182163.aspx",
                                                                                   customTags: DiagnosticCustomTags.Microsoft);
 

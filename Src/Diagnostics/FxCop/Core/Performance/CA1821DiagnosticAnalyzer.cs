@@ -4,23 +4,13 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.FxCopAnalyzers.Performance;
 using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
 {
     public abstract class CA1821DiagnosticAnalyzer<TLanguageKindEnum> : DiagnosticAnalyzer where TLanguageKindEnum : struct
     {
-        internal const string RuleId = "CA1821";
-        internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
-                                                                         FxCopRulesResources.RemoveEmptyFinalizers,
-                                                                         FxCopRulesResources.RemoveEmptyFinalizers,
-                                                                         FxCopDiagnosticCategory.Performance,
-                                                                         DiagnosticSeverity.Warning,
-                                                                         isEnabledByDefault: true,
-                                                                         description: FxCopRulesResources.RemoveEmptyFinalizersDescription,
-                                                                         helpLink: "http://msdn.microsoft.com/library/bb264476.aspx",
-                                                                         customTags: DiagnosticCustomTags.Microsoft);
-
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
@@ -33,17 +23,17 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
         {
             analysisContext.RegisterCodeBlockStartAction<TLanguageKindEnum>(
                 (context) =>
-        {
+                {
                     var method = context.OwningSymbol as IMethodSymbol;
-            if (method == null)
-            {
+                    if (method == null)
+                    {
                         return;
-            }
+                    }
 
-            if (!IsDestructor(method))
-            {
+                    if (!IsDestructor(method))
+                    {
                         return;
-            }
+                    }
 
                     context.RegisterCodeBlockEndAction(GetCodeBlockEndedAnalyzer().AnalyzeCodeBlock);
                 });

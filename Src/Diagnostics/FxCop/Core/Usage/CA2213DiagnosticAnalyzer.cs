@@ -24,9 +24,11 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
     {
         internal const string RuleId = "CA2213";
         internal const string Dispose = "Dispose";
+        private static LocalizableString localizableMessageAndTitle = new LocalizableResourceString(nameof(FxCopRulesResources.DisposableFieldsShouldBeDisposed), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
-                                                                         FxCopRulesResources.DisposableFieldsShouldBeDisposed,
-                                                                         FxCopRulesResources.DisposableFieldsShouldBeDisposed,
+                                                                         localizableMessageAndTitle,
+                                                                         localizableMessageAndTitle,
                                                                          FxCopDiagnosticCategory.Usage,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,

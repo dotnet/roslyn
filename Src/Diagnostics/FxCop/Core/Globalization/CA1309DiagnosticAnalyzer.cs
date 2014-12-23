@@ -11,13 +11,16 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Globalization
     public abstract class CA1309DiagnosticAnalyzer : DiagnosticAnalyzer
     {
         internal const string RuleId = "CA1309";
+
+        private static LocalizableString localizableMessageAndTitle = new LocalizableResourceString(nameof(FxCopRulesResources.StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString localizableDescription = new LocalizableResourceString(nameof(FxCopRulesResources.StringComparisonShouldBeOrdinalDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(RuleId,
-                                                                             FxCopRulesResources.StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase,
-                                                                             FxCopRulesResources.StringComparisonShouldBeOrdinalOrOrdinalIgnoreCase,
+                                                                             localizableMessageAndTitle,
+                                                                             localizableMessageAndTitle,
                                                                              FxCopDiagnosticCategory.Globalization,
                                                                              DiagnosticSeverity.Warning,
                                                                              isEnabledByDefault: false,
-                                                                             description: FxCopRulesResources.StringComparisonShouldBeOrdinalDescription,
+                                                                             description: localizableDescription,
                                                                              helpLink: "http://msdn.microsoft.com/library/bb385972.aspx",
                                                                              customTags: DiagnosticCustomTags.Microsoft);
 

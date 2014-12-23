@@ -11,14 +11,18 @@ namespace Roslyn.Diagnostics.Analyzers
     {
         private static readonly string DiagnosticTypeFullName = typeof(Diagnostic).FullName;
 
+        private static LocalizableString localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DiagnosticDescriptorAccessTitle), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DiagnosticDescriptorAccessMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DiagnosticDescriptorAccessDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+
         internal static readonly DiagnosticDescriptor DoNotRealizeDiagnosticDescriptorRule = new DiagnosticDescriptor(
             RoslynDiagnosticIds.DoNotAccessDiagnosticDescriptorRuleId,
-            RoslynDiagnosticsResources.DiagnosticDescriptorAccessTitle,
-            RoslynDiagnosticsResources.DiagnosticDescriptorAccessMessage,
+            localizableTitle,
+            localizableMessage,
             "Performance",
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,
-            description: RoslynDiagnosticsResources.DiagnosticDescriptorAccessDescription,
+            description: localizableDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         protected sealed override DiagnosticDescriptor Descriptor

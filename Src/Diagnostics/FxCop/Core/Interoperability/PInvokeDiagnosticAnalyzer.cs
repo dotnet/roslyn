@@ -15,22 +15,27 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
     {
         public const string CA1401 = "CA1401";
         public const string CA2101 = "CA2101";
+
+        private static LocalizableString localizableTitleCA1401 = new LocalizableResourceString(nameof(FxCopRulesResources.PInvokesShouldNotBeVisible), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString localizableMessageCA1401 = new LocalizableResourceString(nameof(FxCopRulesResources.PInvokeMethodShouldNotBeVisible), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
         internal static DiagnosticDescriptor RuleCA1401 = new DiagnosticDescriptor(CA1401,
-                                                                         FxCopRulesResources.PInvokesShouldNotBeVisible,
-                                                                         FxCopRulesResources.PInvokeMethodShouldNotBeVisible,
+                                                                         localizableTitleCA1401,
+                                                                         localizableMessageCA1401,
                                                                          FxCopDiagnosticCategory.Interoperability,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
                                                                          helpLink: "http://msdn.microsoft.com/library/ms182209.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 
+        private static LocalizableString localizableMessageAndTitleCA2101 = new LocalizableResourceString(nameof(FxCopRulesResources.SpecifyMarshalingForPInvokeStringArguments), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString localizableDescriptionCA2101 = new LocalizableResourceString(nameof(FxCopRulesResources.SpecifyMarshalingForPInvokeStringArgumentsDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
         internal static DiagnosticDescriptor RuleCA2101 = new DiagnosticDescriptor(CA2101,
-                                                                         FxCopRulesResources.SpecifyMarshalingForPInvokeStringArguments,
-                                                                         FxCopRulesResources.SpecifyMarshalingForPInvokeStringArguments,
+                                                                         localizableMessageAndTitleCA2101,
+                                                                         localizableMessageAndTitleCA2101,
                                                                          FxCopDiagnosticCategory.Globalization,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
-                                                                         description: FxCopRulesResources.SpecifyMarshalingForPInvokeStringArgumentsDescription,
+                                                                         description: localizableDescriptionCA2101,
                                                                          helpLink: "http://msdn.microsoft.com/library/ms182319.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 

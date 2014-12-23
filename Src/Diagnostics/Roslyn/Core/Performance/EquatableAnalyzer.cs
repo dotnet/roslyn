@@ -12,18 +12,24 @@ namespace Roslyn.Diagnostics.Analyzers
     {
         private const string IEquatableMetadataName = "System.IEquatable`1";
 
+        private static LocalizableString localizableTitleImplementIEquatable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.ImplementIEquatableDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString localizableMessageImplementIEquatable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.ImplementIEquatableMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+
         private static readonly DiagnosticDescriptor ImplementIEquatableDescriptor = new DiagnosticDescriptor(
             RoslynDiagnosticIds.ImplementIEquatableRuleId,
-            RoslynDiagnosticsResources.ImplementIEquatableDescription,
-            RoslynDiagnosticsResources.ImplementIEquatableMessage,
+            localizableTitleImplementIEquatable,
+            localizableMessageImplementIEquatable,
             "Performance",
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);
 
+        private static LocalizableString localizableTitleOverridesObjectEquals = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.OverrideObjectEqualsDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString localizableMessageOverridesObjectEquals = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.OverrideObjectEqualsMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+
         private static readonly DiagnosticDescriptor OverridesObjectEqualsDescriptor = new DiagnosticDescriptor(
             RoslynDiagnosticIds.OverrideObjectEqualsRuleId,
-            RoslynDiagnosticsResources.OverrideObjectEqualsDescription,
-            RoslynDiagnosticsResources.OverrideObjectEqualsMessage,
+            localizableTitleOverridesObjectEquals,
+            localizableMessageOverridesObjectEquals,
             "Reliability",
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);

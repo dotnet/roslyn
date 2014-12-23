@@ -40,33 +40,39 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
         internal const string RuleMultipleZeroCustomTag = "RuleMultipleZero";
         internal const string RuleNoZeroCustomTag = "RuleNoZero";
 
+        private static LocalizableString localizableTitle = new LocalizableResourceString(nameof(FxCopRulesResources.EnumsShouldHaveZeroValue), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString localizableDescription = new LocalizableResourceString(nameof(FxCopRulesResources.EnumsShouldHaveZeroValueDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+
+        private static LocalizableString localizableMessageRuleRename = new LocalizableResourceString(nameof(FxCopRulesResources.EnumsShouldZeroValueFlagsRename), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
         internal static DiagnosticDescriptor RuleRename = new DiagnosticDescriptor(RuleId,
-                                                                       FxCopRulesResources.EnumsShouldHaveZeroValue,
-                                                                       FxCopRulesResources.EnumsShouldZeroValueFlagsRename,
+                                                                       localizableTitle,
+                                                                       localizableMessageRuleRename,
                                                                        FxCopDiagnosticCategory.Design,
                                                                        DiagnosticSeverity.Warning,
                                                                        isEnabledByDefault: false,
-                                                                       description: FxCopRulesResources.EnumsShouldHaveZeroValueDescription,
+                                                                       description: localizableDescription,
                                                                        helpLink: "http://msdn.microsoft.com/library/ms182149.aspx",
                                                                        customTags: DiagnosticCustomTags.Microsoft.Concat(RuleRenameCustomTag).ToArray());
 
+        private static LocalizableString localizableMessageRuleMultipleZero = new LocalizableResourceString(nameof(FxCopRulesResources.EnumsShouldZeroValueFlagsMultipleZero), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
         internal static DiagnosticDescriptor RuleMultipleZero = new DiagnosticDescriptor(RuleId,
-                                                               FxCopRulesResources.EnumsShouldHaveZeroValue,
-                                                               FxCopRulesResources.EnumsShouldZeroValueFlagsMultipleZero,
+                                                               localizableTitle,
+                                                               localizableMessageRuleMultipleZero,
                                                                FxCopDiagnosticCategory.Design,
                                                                DiagnosticSeverity.Warning,
                                                                isEnabledByDefault: false,
-                                                               description: FxCopRulesResources.EnumsShouldHaveZeroValueDescription,
+                                                               description: localizableDescription,
                                                                helpLink: "http://msdn.microsoft.com/library/ms182149.aspx",
                                                                customTags: DiagnosticCustomTags.Microsoft.Concat(RuleMultipleZeroCustomTag).ToArray());
 
+        private static LocalizableString localizableMessageRuleNoZero = new LocalizableResourceString(nameof(FxCopRulesResources.EnumsShouldZeroValueNotFlagsNoZeroValue), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
         internal static DiagnosticDescriptor RuleNoZero = new DiagnosticDescriptor(RuleId,
-                                                               FxCopRulesResources.EnumsShouldHaveZeroValue,
-                                                               FxCopRulesResources.EnumsShouldZeroValueNotFlagsNoZeroValue,
+                                                               localizableTitle,
+                                                               localizableMessageRuleNoZero,
                                                                FxCopDiagnosticCategory.Design,
                                                                DiagnosticSeverity.Warning,
                                                                isEnabledByDefault: false,
-                                                               description: FxCopRulesResources.EnumsShouldHaveZeroValueDescription,
+                                                               description: localizableDescription,
                                                                helpLink: "http://msdn.microsoft.com/library/ms182149.aspx",
                                                                customTags: DiagnosticCustomTags.Microsoft.Concat(RuleNoZeroCustomTag).ToArray());
 

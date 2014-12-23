@@ -19,19 +19,25 @@ namespace Roslyn.Diagnostics.Analyzers
         internal const string LinqEnumerableMetadataName = "System.Linq.Enumerable";
         internal const string EmptyMethodName = "Empty";
 
+        private static LocalizableString localizableTitleUseEmptyEnumerable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UseEmptyEnumerableDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString localizableMessageUseEmptyEnumerable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UseEmptyEnumerableMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+
         internal static readonly DiagnosticDescriptor UseEmptyEnumerableRule = new DiagnosticDescriptor(
             RoslynDiagnosticIds.UseEmptyEnumerableRuleId,
-            RoslynDiagnosticsResources.UseEmptyEnumerableDescription,
-            RoslynDiagnosticsResources.UseEmptyEnumerableMessage,
+            localizableTitleUseEmptyEnumerable,
+            localizableMessageUseEmptyEnumerable,
             "Performance",
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
+        private static LocalizableString localizableTitleUseSingletonEnumerable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UseSingletonEnumerableDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString localizableMessageUseSingletonEnumerable = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UseSingletonEnumerableMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+
         internal static readonly DiagnosticDescriptor UseSingletonEnumerableRule = new DiagnosticDescriptor(
             RoslynDiagnosticIds.UseSingletonEnumerableRuleId,
-            RoslynDiagnosticsResources.UseSingletonEnumerableDescription,
-            RoslynDiagnosticsResources.UseSingletonEnumerableMessage,
+            localizableTitleUseSingletonEnumerable,
+            localizableMessageUseSingletonEnumerable,
             "Performance",
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,

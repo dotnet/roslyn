@@ -14,10 +14,12 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     public abstract class CA1003DiagnosticAnalyzer : DiagnosticAnalyzer
     {
         internal const string RuleId = "CA1003";
+        private static LocalizableString localizableMessageAndTitle = new LocalizableResourceString(nameof(FxCopRulesResources.UseGenericEventHandlerInstances), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             RuleId,
-            FxCopRulesResources.UseGenericEventHandlerInstances,
-            FxCopRulesResources.UseGenericEventHandlerInstances,
+            localizableMessageAndTitle,
+            localizableMessageAndTitle,
             FxCopDiagnosticCategory.Design,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: false,

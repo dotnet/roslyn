@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FxCopAnalyzers;
+using Microsoft.CodeAnalysis.FxCopAnalyzers.Naming;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -48,20 +49,7 @@ public class Class6<TTypeParameter>
         }
 
 #region "Test_Class"
-        internal const string RuleId = "CA1715_Test";
-        internal static readonly DiagnosticDescriptor InterfaceRule = new DiagnosticDescriptor(RuleId,
-                                                                                      FxCopRulesResources.InterfaceNamesShouldStartWithI,
-                                                                                      FxCopRulesResources.InterfaceNamesShouldStartWithI,
-                                                                                      FxCopDiagnosticCategory.Naming,
-                                                                                      DiagnosticSeverity.Warning,
-                                                                                      isEnabledByDefault: true);
-        internal static readonly DiagnosticDescriptor TypeParameterRule = new DiagnosticDescriptor(RuleId,
-                                                                                      FxCopRulesResources.TypeParameterNamesShouldStartWithT,
-                                                                                      FxCopRulesResources.TypeParameterNamesShouldStartWithT,
-                                                                                      FxCopDiagnosticCategory.Naming,
-                                                                                      DiagnosticSeverity.Warning,
-                                                                                      isEnabledByDefault: true);
-        private static readonly ImmutableArray<DiagnosticDescriptor> SupportedRules = ImmutableArray.Create(InterfaceRule, TypeParameterRule);
+        private static readonly ImmutableArray<DiagnosticDescriptor> SupportedRules = ImmutableArray.Create(CA1715DiagnosticAnalyzer.InterfaceRule, CA1715DiagnosticAnalyzer.TypeParameterRule);
 
         [DiagnosticAnalyzer]
         internal class ExceptionThrowingSymbolAnalyzer_ThrowSymbolKindsOfInterest : DiagnosticAnalyzer

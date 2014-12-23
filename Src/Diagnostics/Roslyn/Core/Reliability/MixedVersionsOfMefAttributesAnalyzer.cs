@@ -14,10 +14,13 @@ namespace Roslyn.Diagnostics.Analyzers.Reliability
     {
         private static readonly string[] MefNamespaces = new[] { "System.ComponentModel.Composition", "System.Composition" };
 
+        private static LocalizableString localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.MixedVersionsOfMefAttributesDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.MixedVersionsOfMefAttributesMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+
         public static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             RoslynDiagnosticIds.MixedVersionsOfMefAttributesRuleId,
-            RoslynDiagnosticsResources.MixedVersionsOfMefAttributesDescription,
-            RoslynDiagnosticsResources.MixedVersionsOfMefAttributesMessage,
+            localizableTitle,
+            localizableMessage,
             "Reliability",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true,

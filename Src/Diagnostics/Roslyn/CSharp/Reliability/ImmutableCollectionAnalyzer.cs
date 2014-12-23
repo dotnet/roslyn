@@ -13,10 +13,12 @@ namespace Roslyn.Diagnostics.Analyzers.CSharp.Reliability
     {
         private const string ImmutableArrayMetadataName = "System.Collections.Immutable.ImmutableArray`1";
 
+        private static LocalizableString localizableMessageAndTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DoNotCallToImmutableArrayMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+
         public static readonly DiagnosticDescriptor DoNotCallToImmutableArrayDescriptor = new DiagnosticDescriptor(
             RoslynDiagnosticIds.DoNotCallToImmutableArrayRuleId,
-            RoslynDiagnosticsResources.DoNotCallToImmutableArrayMessage,
-            RoslynDiagnosticsResources.DoNotCallToImmutableArrayMessage,
+            localizableMessageAndTitle,
+            localizableMessageAndTitle,
             "Reliability",
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true);

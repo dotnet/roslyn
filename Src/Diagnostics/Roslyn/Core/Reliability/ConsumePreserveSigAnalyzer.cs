@@ -9,14 +9,18 @@ namespace Roslyn.Diagnostics.Analyzers
     public abstract class ConsumePreserveSigAnalyzer<TSyntaxKind> : DiagnosticAnalyzer
         where TSyntaxKind : struct
     {
+        private static LocalizableString localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.ConsumePreserveSigTitle), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.ConsumePreserveSigMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.ConsumePreserveSigDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+
         internal static readonly DiagnosticDescriptor ConsumePreserveSigAnalyzerDescriptor = new DiagnosticDescriptor(
             RoslynDiagnosticIds.ConsumePreserveSigRuleId,
-            RoslynDiagnosticsResources.ConsumePreserveSigTitle,
-            RoslynDiagnosticsResources.ConsumePreserveSigMessage,
+            localizableTitle,
+            localizableMessage,
             "Reliability",
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: RoslynDiagnosticsResources.ConsumePreserveSigDescription,
+            description: localizableDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         private INamedTypeSymbol lazyPreserveSigType;

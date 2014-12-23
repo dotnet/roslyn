@@ -19,18 +19,23 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
         internal const string RuleNameForExportAttribute = "StaticHolderTypeRules";
         internal const string CA1052RuleId = "CA1052";
         internal const string CA1053RuleId = "CA1053";
+
+        private static LocalizableString localizableTitleCA1052 = new LocalizableResourceString(nameof(FxCopRulesResources.StaticHolderTypesShouldBeStaticOrNotInheritable), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString localizableMessageCA1052 = new LocalizableResourceString(nameof(FxCopRulesResources.StaticHolderTypeIsNotStatic), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
         internal static readonly DiagnosticDescriptor CA1052Rule = new DiagnosticDescriptor(CA1052RuleId,
-                                                                          FxCopRulesResources.StaticHolderTypesShouldBeStaticOrNotInheritable,
-                                                                          FxCopRulesResources.StaticHolderTypeIsNotStatic,
+                                                                          localizableTitleCA1052,
+                                                                          localizableMessageCA1052,
                                                                           FxCopDiagnosticCategory.Usage,
                                                                           DiagnosticSeverity.Warning,
                                                                           isEnabledByDefault: false,
                                                                           helpLink: "http://msdn.microsoft.com/library/ms182168.aspx",
                                                                           customTags: DiagnosticCustomTags.Microsoft);
 
+        private static LocalizableString localizableTitleCA1053 = new LocalizableResourceString(nameof(FxCopRulesResources.StaticHolderTypesShouldNotHaveConstructors), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
+        private static LocalizableString localizableMessageCA1053 = new LocalizableResourceString(nameof(FxCopRulesResources.StaticHolderTypesShouldNotHaveConstructorsMessage), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
         internal static readonly DiagnosticDescriptor CA1053Rule = new DiagnosticDescriptor(CA1053RuleId,
-                                                                          FxCopRulesResources.StaticHolderTypesShouldNotHaveConstructors,
-                                                                          FxCopRulesResources.StaticHolderTypesShouldNotHaveConstructorsMessage,
+                                                                          localizableTitleCA1053,
+                                                                          localizableMessageCA1053,
                                                                           FxCopDiagnosticCategory.Usage,
                                                                           DiagnosticSeverity.Warning,
                                                                           isEnabledByDefault: false,

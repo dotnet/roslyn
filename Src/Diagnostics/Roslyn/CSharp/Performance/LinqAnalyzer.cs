@@ -20,14 +20,17 @@ namespace Roslyn.Diagnostics.Analyzers.CSharp.Performance
         private const string IListMetadataName = "System.Collections.Generic.IList`1";
         private const string EnumerableMetadataName = "System.Linq.Enumerable";
 
+        private static LocalizableString localizableMessageAndTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DoNotUseLinqOnIndexableCollectionMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.DoNotUseLinqOnIndexableCollectionDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+
         public static readonly DiagnosticDescriptor DoNotCallLastOnIndexableDescriptor = new DiagnosticDescriptor(
             RoslynDiagnosticIds.DoNotCallLinqOnIndexable,
-            RoslynDiagnosticsResources.DoNotUseLinqOnIndexableCollectionMessage,
-            RoslynDiagnosticsResources.DoNotUseLinqOnIndexableCollectionMessage,
+            localizableMessageAndTitle,
+            localizableMessageAndTitle,
             "Performance",
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
-            description: RoslynDiagnosticsResources.DoNotUseLinqOnIndexableCollectionDescription);
+            description: localizableDescription);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {

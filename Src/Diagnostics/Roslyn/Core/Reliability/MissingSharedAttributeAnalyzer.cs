@@ -12,10 +12,13 @@ namespace Roslyn.Diagnostics.Analyzers.Reliability
     [DiagnosticAnalyzer]
     public class MissingSharedAttributeAnalyzer : DiagnosticAnalyzer
     {
+        private static LocalizableString localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.MissingSharedAttributeDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.MissingSharedAttributeMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+
         public static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             RoslynDiagnosticIds.MissingSharedAttributeRuleId,
-            RoslynDiagnosticsResources.MissingSharedAttributeDescription,
-            RoslynDiagnosticsResources.MissingSharedAttributeMessage,
+            localizableTitle,
+            localizableMessage,
             "Reliability",
             DiagnosticSeverity.Error,
             isEnabledByDefault: true,

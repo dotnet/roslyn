@@ -11,15 +11,19 @@ namespace Roslyn.Diagnostics.Analyzers.Documentation
 {
     public abstract class DoNotUseVerbatimCrefsAnalyzer : DiagnosticAnalyzer
     {
+        private static LocalizableString localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UseProperCrefTagsTitle), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UseProperCrefTagsMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UseProperCrefTagsDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+
         internal static DiagnosticDescriptor Rule = new DiagnosticDescriptor(
             RoslynDiagnosticIds.DoNotUseVerbatimCrefsRuleId,
-            title: RoslynDiagnosticsResources.UseProperCrefTagsTitle,
-            messageFormat: RoslynDiagnosticsResources.UseProperCrefTagsMessage,
+            title: localizableTitle,
+            messageFormat: localizableMessage,
             category: "Documentation",
             defaultSeverity: DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry,
-            description: RoslynDiagnosticsResources.UseProperCrefTagsDescription);
+            description: localizableDescription);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
