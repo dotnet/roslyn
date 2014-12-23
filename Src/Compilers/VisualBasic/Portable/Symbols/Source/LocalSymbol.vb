@@ -335,7 +335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Friend Overridable Function GetConstantValueDiagnostics(binder As Binder) As IEnumerable(Of Diagnostic)
+        Friend Overridable Function GetConstantValueDiagnostics(binder As Binder) As ImmutableArray(Of Diagnostic)
             Throw ExceptionUtilities.Unreachable
         End Function
 
@@ -866,9 +866,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return If(_evaluatedConstant IsNot Nothing, _evaluatedConstant.Value, Nothing)
             End Function
 
-            Friend Overrides Function GetConstantValueDiagnostics(containingBinder As Binder) As IEnumerable(Of Diagnostic)
+            Friend Overrides Function GetConstantValueDiagnostics(containingBinder As Binder) As ImmutableArray(Of Diagnostic)
                 GetConstantValue(containingBinder)
-                Return If(_evaluatedConstant IsNot Nothing, _evaluatedConstant.Diagnostics, Nothing)
+                Return If(_evaluatedConstant IsNot Nothing, _evaluatedConstant.Diagnostics, ImmutableArray(Of Diagnostic).Empty)
             End Function
 
             Private Sub SetConstantExpression(type As TypeSymbol, constantValue As ConstantValue, diagnostics As ImmutableArray(Of Diagnostic))
@@ -973,7 +973,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return _originalVariable.GetConstantValue(binder)
             End Function
 
-            Friend Overrides Function GetConstantValueDiagnostics(binder As Binder) As IEnumerable(Of Diagnostic)
+            Friend Overrides Function GetConstantValueDiagnostics(binder As Binder) As ImmutableArray(Of Diagnostic)
                 Return _originalVariable.GetConstantValueDiagnostics(binder)
             End Function
 

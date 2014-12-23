@@ -1,10 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
-Imports System.Diagnostics
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -12,17 +8,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     Friend NotInheritable Class EvaluatedConstant
         Public Shared ReadOnly None As New EvaluatedConstant(Nothing, Nothing, Nothing)
 
-        Public Sub New(value As ConstantValue, type As TypeSymbol, diagnostics As IEnumerable(Of Diagnostic))
+        Public Sub New(value As ConstantValue, type As TypeSymbol, diagnostics As ImmutableArray(Of Diagnostic))
             ' If a value is provided, a corresponding type must be provided.
             Debug.Assert((value Is Nothing) OrElse value.IsNull OrElse (type IsNot Nothing))
             Me.Value = value
             Me.Type = type
-            Me.Diagnostics = diagnostics
+            Me.Diagnostics = diagnostics.NullToEmpty()
         End Sub
 
         Public ReadOnly Value As ConstantValue
         Public ReadOnly Type As TypeSymbol
-        Public ReadOnly Diagnostics As IEnumerable(Of Diagnostic)
+        Public ReadOnly Diagnostics As ImmutableArray(Of Diagnostic)
     End Class
 
     Friend Module ConstantValueUtils

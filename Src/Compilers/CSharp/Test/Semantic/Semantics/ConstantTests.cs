@@ -2710,7 +2710,69 @@ Inline  : -1";
 
             CompileAndVerify(source, expectedOutput: expectedOutput);
         }
+
+        [Fact, WorkItem(1098197, "DevDiv")]
+        public static void Bug1098197_01()
+        {
+            var source =
+@"
+class Program
+{
+    static void Main(string[] args)
+    {
+        void f() { if () const int i = 0; }
     }
+}
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+    // (6,9): error CS1547: Keyword 'void' cannot be used in this context
+    //         void f() { if () const int i = 0; }
+    Diagnostic(ErrorCode.ERR_NoVoidHere, "void").WithLocation(6, 9),
+    // (6,15): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+    //         void f() { if () const int i = 0; }
+    Diagnostic(ErrorCode.ERR_BadVarDecl, "() ").WithLocation(6, 15),
+    // (6,15): error CS1003: Syntax error, '[' expected
+    //         void f() { if () const int i = 0; }
+    Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(6, 15),
+    // (6,16): error CS1525: Invalid expression term ')'
+    //         void f() { if () const int i = 0; }
+    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 16),
+    // (6,18): error CS1003: Syntax error, ']' expected
+    //         void f() { if () const int i = 0; }
+    Diagnostic(ErrorCode.ERR_SyntaxError, "{").WithArguments("]", "{").WithLocation(6, 18),
+    // (6,18): error CS1002: ; expected
+    //         void f() { if () const int i = 0; }
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "{").WithLocation(6, 18),
+    // (6,24): error CS1525: Invalid expression term ')'
+    //         void f() { if () const int i = 0; }
+    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 24),
+    // (6,26): error CS1023: Embedded statement cannot be a declaration or labeled statement
+    //         void f() { if () const int i = 0; }
+    Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "const int i = 0;").WithLocation(6, 26),
+    // (6,14): warning CS0168: The variable 'f' is declared but never used
+    //         void f() { if () const int i = 0; }
+    Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(6, 14)
+                );
+        }
+
+        [Fact, WorkItem(1098197, "DevDiv")]
+        public static void Bug1098197_02()
+        {
+            var source =
+@"
+void f() { if () const int i = 0; }
+";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+    // (2,16): error CS1525: Invalid expression term ')'
+    // void f() { if () const int i = 0; }
+    Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(2, 16),
+    // (2,18): error CS1023: Embedded statement cannot be a declaration or labeled statement
+    // void f() { if () const int i = 0; }
+    Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "const int i = 0;").WithLocation(2, 18)
+                );
+        }
+    }
+
 
     internal sealed class BoundTreeSequencer : BoundTreeWalker
     {

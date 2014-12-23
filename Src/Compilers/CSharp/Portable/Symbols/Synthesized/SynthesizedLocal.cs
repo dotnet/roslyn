@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<Diagnostic> GetConstantValueDiagnostics(BoundExpression boundInitValue)
         {
-            return default(ImmutableArray<Diagnostic>);
+            return ImmutableArray<Diagnostic>.Empty;
         }
 
         private new string GetDebuggerDisplay()

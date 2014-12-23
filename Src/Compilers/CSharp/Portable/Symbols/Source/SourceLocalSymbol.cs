@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<Diagnostic> GetConstantValueDiagnostics(BoundExpression boundInitValue)
         {
-            return default(ImmutableArray<Diagnostic>);
+            return ImmutableArray<Diagnostic>.Empty;
         }
 
         internal override RefKind RefKind
@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(boundInitValue != null);
                 MakeConstantTuple(inProgress: null, boundInitValue: boundInitValue);
-                return this.constantTuple == null ? default(ImmutableArray<Diagnostic>) : this.constantTuple.Diagnostics;
+                return this.constantTuple == null ? ImmutableArray<Diagnostic>.Empty : this.constantTuple.Diagnostics;
             }
         }
 

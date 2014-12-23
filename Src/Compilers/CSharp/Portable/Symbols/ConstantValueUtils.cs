@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public EvaluatedConstant(ConstantValue value, ImmutableArray<Diagnostic> diagnostics)
         {
             this.Value = value;
-            this.Diagnostics = diagnostics;
+            this.Diagnostics = diagnostics.NullToEmpty();
         }
     }
 
