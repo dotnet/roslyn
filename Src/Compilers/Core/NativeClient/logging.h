@@ -29,5 +29,6 @@ void LogWin32Error(UINT loadResource);
 void LogWin32Error(_In_z_ LPCWSTR message);
 void FailWithGetLastError(UINT loadResource);
 void FailWithGetLastError(_In_z_ LPCWSTR optionalPrefix = nullptr);
+void FailWithGetLastError(_In_ const std::wstring& optionalPrefix);
 void FailFormatted(UINT loadResource, ...);
 void FailFormatted(_In_z_ LPCWSTR message, ...);

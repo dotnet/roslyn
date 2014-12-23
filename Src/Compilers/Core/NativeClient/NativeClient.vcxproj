@@ -185,7 +185,7 @@
     <ClCompile Include="native_client.cpp" />
     <ClCompile Include="pipe_utils.cpp" />
     <ClCompile Include="protocol.cpp" />
-    <ClCompile Include="run_csc.cpp" />
+    <ClCompile Include="run_inproc_compiler.cpp" />
     <ClCompile Include="satellite.cpp" />
     <ClCompile Include="smart_resources.cpp" />
     <ClCompile Include="stdafx.cpp">

@@ -301,6 +301,82 @@ class Hello
         }
 
         [Fact]
+        public void CscFallBackOutputNoUtf8()
+        {
+            var files = new Dictionary<string, string> { { "hello.cs", "♕" } };
+
+            // Delete VBCSCompiler.exe so csc2 is forced to fall back to csc.exe
+            File.Delete(CompilerServerExecutable);
+            var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/nologo hello.cs", tempDirectory, files);
+            Assert.Equal(result.ExitCode, 1);
+            Assert.True(result.ContainsErrors);
+            Assert.Equal("hello.cs(1,1): error CS1056: Unexpected character '?'", result.Output.Trim());
+        }
+
+        [Fact]
+        public void CscFallBackOutputUtf8()
+        {
+            var srcFile = tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
+            var tempOut = tempDirectory.CreateFile("output.txt");
+
+            // Delete VBCSCompiler.exe so csc2 is forced to fall back to csc.exe
+            File.Delete(CompilerServerExecutable);
+
+            var result = ProcessLauncher.Run("cmd",
+                string.Format("/C {0} /utf8output /nologo /t:library {1} > {2}",
+                CSharpCompilerClientExecutable,
+                srcFile, tempOut.Path));
+
+            Assert.Equal("", result.Output.Trim());
+            Assert.Equal("test.cs(1,1): error CS1056: Unexpected character '♕'".Trim(),
+                tempOut.ReadAllText().Trim().Replace(srcFile, "test.cs"));
+            Assert.Equal(1, result.ExitCode);
+        }
+
+        [Fact]
+        public void VbcFallbackNoUtf8()
+        {
+            var srcFile = tempDirectory.CreateFile("test.vb").WriteAllText("♕").Path;
+
+            // Delete VBCSCompiler.exe so csc2 is forced to fall back to csc.exe
+            File.Delete(CompilerServerExecutable);
+
+            var result = ProcessLauncher.Run(
+                BasicCompilerClientExecutable,
+                "/nologo test.vb",
+                tempDirectory.Path);
+
+            Assert.Equal(result.ExitCode, 1);
+            Assert.True(result.ContainsErrors);
+            Assert.Equal(@"test.vb(1) : error BC30037: Character is not valid.
+
+?
+~", result.Output.Trim().Replace(srcFile, "test.vb"));
+        }
+
+        [Fact]
+        public void VbcFallbackUtf8()
+        {
+            var srcFile = tempDirectory.CreateFile("test.vb").WriteAllText("♕").Path;
+            var tempOut = tempDirectory.CreateFile("output.txt");
+
+            // Delete VBCSCompiler.exe so csc2 is forced to fall back to csc.exe
+            File.Delete(CompilerServerExecutable);
+
+            var result = ProcessLauncher.Run("cmd",
+                string.Format("/C {0} /utf8output /nologo /t:library {1} > {2}",
+                BasicCompilerClientExecutable,
+                srcFile, tempOut.Path));
+
+            Assert.Equal("", result.Output.Trim());
+            Assert.Equal(@"test.vb(1) : error BC30037: Character is not valid.
+
+♕
+~", tempOut.ReadAllText().Trim().Replace(srcFile, "test.vb"));
+            Assert.Equal(1, result.ExitCode);
+        }
+
+        [Fact]
         public void FallbackToVbc()
         {
             var files = new Dictionary<string, string> { { "hello.vb",
@@ -1705,7 +1781,7 @@ class Hello
             Assert.Equal(1, result.ExitCode);
         }
 
-        [ConditionalFact(typeof(RunKeepAliveTests))]
+        [Fact]
         public async Task ServerRespectsAppConfig()
         {
             var exeConfigPath = Path.Combine(compilerDirectory, CompilerServerExeName + ".config");

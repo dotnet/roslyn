@@ -189,6 +189,11 @@ void FailWithGetLastError(_In_z_ LPCWSTR optionalPrefix)
     throw FatalError(move(buffer));
 }
 
+void FailWithGetLastError(_In_ const wstring& optionalPrefix)
+{
+    FailWithGetLastError(optionalPrefix.c_str());
+}
+
 void FailFormatted(UINT loadResource, ...)
 {
     va_list varargs;

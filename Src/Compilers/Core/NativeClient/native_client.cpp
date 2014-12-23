@@ -10,6 +10,12 @@
 #include "satellite.h"
 #include "UIStrings.h"
 
+int RunInProcCompiler(
+    _In_ const std::wstring& processPath,
+    _In_ const std::list<std::wstring> args,
+    _Out_ std::vector<BYTE>& stdOut,
+    _Out_ std::vector<BYTE>& stdErr);
+
 // This is small, native code executable which opens a named pipe 
 // to the compiler server to do the actual compilation. It is a native code
 // executable because the entire point is to start fast, and then use the 
@@ -56,9 +62,11 @@ wstring GetCurrentDirectory()
 
 // Returns the arguments passed to the executable (including
 // the executable name)
-std::unique_ptr<LPCWSTR, decltype(&::LocalFree)> GetCommandLineArgs(_Out_ int& argsCount)
+std::unique_ptr<LPCWSTR, decltype(&::LocalFree)> GetCommandLineArgs(
+    _In_z_ LPCWSTR rawArgs,
+    _Out_ int& argsCount)
 {
-    auto args = const_cast<LPCWSTR*>(CommandLineToArgvW(GetCommandLine(), &argsCount));
+    auto args = const_cast<LPCWSTR*>(CommandLineToArgvW(rawArgs, &argsCount));
     if (args == nullptr)
     {
         FailWithGetLastError(IDS_CommandLineToArgvWFailed);
@@ -133,7 +141,7 @@ bool GetExpectedProcessPath(
     processPath.clear();
     processPath.resize(MAX_PATH);
     while (GetModuleFileNameW(NULL, &processPath[0],
-		static_cast<DWORD>(processPath.size())) == 0)
+        static_cast<DWORD>(processPath.size())) == 0)
     {
         if (GetLastError() == ERROR_INSUFFICIENT_BUFFER) 
         {
@@ -607,10 +615,6 @@ bool TryRunServerCompilation(
     return false;
 }
 
-int RunCsc(
-    _In_ const wstring& processPath,
-    _In_ const list<wstring> args);
-
 bool ProcessSlashes(_Inout_ WCHAR * & outBuffer, _Inout_ LPCWSTR * pszCur)
 {
     // All this weird slash stuff follows the standard argument processing routines
@@ -755,71 +759,101 @@ void SetPreferredUILangForMessages(LPCWSTR rawCommandLineArgs[], int argsCount, 
     }
 }
 
-int Run(RequestLanguage language)
+// Shared helper for compilation.
+// If printOutput is true then the output will be directly printed to stdout
+// and stderr. Otherwise, it will be returned through the out parameters.
+// If print output is true the value in the output parameters is undefined.
+int Run(_In_ RequestLanguage language,
+        _In_ LPCWSTR cmdLineString,
+        _In_ LPCWSTR currentDirectory,
+        _In_ LPCWSTR libDirectory)
 {
-    try
+    int exitCode = 1;
+    LPCWSTR uiDllname = L"vbcsc2ui.dll";
+    LPCWSTR clientExeName = language == RequestLanguage::CSHARPCOMPILE
+        ? L"csc.exe" : L"vbc.exe";
+
+    int commandLineCount;
+    auto commandLine = GetCommandLineArgs(cmdLineString, commandLineCount);
+    auto args = commandLine.get();
+    auto argsCount = commandLineCount;
+
+    // Omit process name
+    args += 1;
+    argsCount -= 1;
+
+    g_hinstMessages = GetMessageDll(uiDllname);
+
+    if (!g_hinstMessages)
     {
-        LPCWSTR uiDllname = L"vbcsc2ui.dll";
-        LPCWSTR clientExeName = language == RequestLanguage::CSHARPCOMPILE
-            ? L"csc.exe" : L"vbc.exe";
-        g_hinstMessages = GetMessageDll(uiDllname);
+        // Fall back to this module if none was found.
+        g_hinstMessages = GetModuleHandle(NULL);
+    }
+    wstring libEnvVariable;
 
-        if (!g_hinstMessages)
-        {
-            // Fall back to this module if none was found.
-            g_hinstMessages = GetModuleHandle(NULL);
-        }
+    // Change stderr, stdout to binary, because the output we get from the server already 
+    // has CR and LF in it. If we don't do this, we get CR CR LF at each newline.
+    (void)_setmode(_fileno(stdout), _O_BINARY);
+    (void)_setmode(_fileno(stderr), _O_BINARY);
 
-        auto currentDirectory = GetCurrentDirectory();
-        int commandLineCount;
-        auto commandLine = GetCommandLineArgs(commandLineCount);
-        // Omit process name
-        auto rawArgs = commandLine.get() + 1;
-        auto rawArgsCount = commandLineCount - 1;
-        wstring libEnvVariable;
+    // Process the /preferreduilang switch and refetch the resource dll
+    SetPreferredUILangForMessages(
+        args,
+        argsCount,
+        uiDllname);
 
-        // Change stderr, stdout to binary, because the output we get from the server already 
-        // has CR and LF in it. If we don't do this, we get CR CR LF at each newline.
-        (void)_setmode(_fileno(stdout), _O_BINARY);
-        (void)_setmode(_fileno(stderr), _O_BINARY);
+    // Get the args without the native client-specific arguments
+    list<wstring> argsList(args, args + argsCount);
+    wstring keepAlive;
+    // Throws FatalError if parsing fails
+    ParseAndValidateClientArguments(argsList, keepAlive);
 
-        // Process the /preferreduilang switch and refetch the resource dll
-        SetPreferredUILangForMessages(
-            rawArgs,
-            rawArgsCount,
-            uiDllname);
-
-        // Get the args without the native client-specific arguments
-        list<wstring> argsList(rawArgs, rawArgs + rawArgsCount);
-        wstring keepAlive;
-        // Throws FatalError if parsing fails
-        ParseAndValidateClientArguments(argsList, keepAlive);
-
-        // Try to use the compiler server
-        CompletedResponse response;
-        if (TryRunServerCompilation(
-                language,
-                currentDirectory.c_str(),
-                argsList,
-                keepAlive,
-                GetEnvVar(L"LIB", libEnvVariable) ? libEnvVariable.c_str() : nullptr,
-                response))
-        {
-            OutputResponse(response);
-            return response.ExitCode;
-        }
-
+    // Try to use the compiler server
+    CompletedResponse response;
+    if (TryRunServerCompilation(
+        language,
+        currentDirectory,
+        argsList,
+        keepAlive,
+        libDirectory,
+        response))
+    {
+        exitCode = response.ExitCode;
+        OutputResponse(response);
+    }
+    else
+    {
         // Fallback to csc.exe
         wstring processPath;
         if (!GetExpectedProcessPath(clientExeName, processPath))
         {
-            throw FatalError(GetResourceString(IDS_CreateClientProcessFailed));
+            FailWithGetLastError(GetResourceString(IDS_ConnectToInProcCompilerFailed));
         }
-        return RunCsc(processPath, argsList);
+        vector<BYTE> rawOutOutput, rawErrOutput;
+        exitCode = RunInProcCompiler(processPath, argsList, rawOutOutput, rawErrOutput);
+
+        if (exitCode != 0 && rawOutOutput.empty() && rawErrOutput.empty())
+        {
+            OutputWideString(stderr, GetResourceString(IDS_ExceptionFilterCrash), true);
+            exitCode = -1;
+        }
+        else
+        {
+            fwrite(rawOutOutput.data(), sizeof(BYTE), rawOutOutput.size(), stdout);
+            fwrite(rawErrOutput.data(), sizeof(BYTE), rawErrOutput.size(), stderr);
+        }
     }
-    catch (FatalError &e)
-    {
-        OutputWideString(stderr, e.message, true);
-    }
-    return 1;
+    return exitCode;
+}
+
+int Run(RequestLanguage language)
+{
+    auto currentDirectory = GetCurrentDirectory();
+    wstring libEnvVariable;
+
+    return Run(
+        language,
+        GetCommandLineW(),
+        currentDirectory.c_str(),
+        GetEnvVar(L"LIB", libEnvVariable) ? libEnvVariable.c_str() : nullptr);
 }
