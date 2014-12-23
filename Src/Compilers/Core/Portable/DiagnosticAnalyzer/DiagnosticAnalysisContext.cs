@@ -36,37 +36,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </item>
     /// </list>
     /// </summary>
-    public struct AnalysisContext
+    public abstract class AnalysisContext
     {
-        private readonly SessionStartAnalysisScope scope;
-
-        internal AnalysisContext(SessionStartAnalysisScope scope)
-        {
-            this.scope = scope;
-        }        
-
         /// <summary>
         /// Register an action to be executed at compilation start.
         /// A compilation start action can register other actions and/or collect state information to be used in diagnostic analysis,
         /// but cannot itself report any <see cref="Diagnostic"/>s.
         /// </summary>
         /// <param name="action">Action to be executed at compilation start.</param>
-        public void RegisterCompilationStartAction(Action<CompilationStartAnalysisContext> action)
-        {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
-            this.scope.RegisterCompilationStartAction(action);
-        }
+        public abstract void RegisterCompilationStartAction(Action<CompilationStartAnalysisContext> action);
 
         /// <summary>
         /// Register an action to be executed at compilation end.
         /// A compilation end action reports <see cref="Diagnostic"/>s about the <see cref="Compilation"/>.
         /// </summary>
         /// <param name="action">Action to be executed at compilation end.</param>
-        public void RegisterCompilationEndAction(Action<CompilationEndAnalysisContext> action)
-        {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
-            this.scope.RegisterCompilationEndAction(action);
-        }
+        public abstract void RegisterCompilationEndAction(Action<CompilationEndAnalysisContext> action);
 
         /// <summary>
         /// Register an action to be executed at completion of semantic analysis of a document,
@@ -74,11 +59,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// reports <see cref="Diagnostic"/>s about the model.
         /// </summary>
         /// <param name="action">Action to be executed for a document's <see cref="SemanticModel"/>.</param>
-        public void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext> action)
-        {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
-            this.scope.RegisterSemanticModelAction(action);
-        }
+        public abstract void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext> action);
 
         /// <summary>
         /// Register an action to be executed at completion of semantic analysis of an <see cref="ISymbol"/> with an appropriate Kind.>
@@ -97,11 +78,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="action">Action to be executed for an <see cref="ISymbol"/>.</param>
         /// <param name="symbolKinds">Action will be executed only if an <see cref="ISymbol"/>'s Kind matches one of the <see cref="SymbolKind"/> values.</param>
-        public void RegisterSymbolAction(Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> symbolKinds)
-        {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(action, symbolKinds);
-            this.scope.RegisterSymbolAction(action, symbolKinds);
-        }
+        public abstract void RegisterSymbolAction(Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> symbolKinds);
 
         /// <summary>
         /// Register an action to be executed at the start of semantic analysis of a method body or an expression appearing outside a method body.
@@ -110,11 +87,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <typeparam name="TLanguageKindEnum">Enum type giving the syntax node kinds of the source language for which the action applies.</typeparam>
         /// <param name="action">Action to be executed at the start of semantic analysis of a code block.</param>
-        public void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) where TLanguageKindEnum : struct
-        {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
-            this.scope.RegisterCodeBlockStartAction(action);
-        }
+        public abstract void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) where TLanguageKindEnum : struct;
 
         /// <summary>
         /// Register an action to be executed at the end of semantic analysis of a method body or an expression appearing outside a method body.
@@ -122,22 +95,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <typeparam name="TLanguageKindEnum">Enum type giving the syntax node kinds of the source language for which the action applies.</typeparam>
         /// <param name="action">Action to be executed at the end of semantic analysis of a code block.</param>
-        public void RegisterCodeBlockEndAction<TLanguageKindEnum>(Action<CodeBlockEndAnalysisContext> action) where TLanguageKindEnum : struct
-        {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
-            this.scope.RegisterCodeBlockEndAction<TLanguageKindEnum>(action);
-        }
+        public abstract void RegisterCodeBlockEndAction<TLanguageKindEnum>(Action<CodeBlockEndAnalysisContext> action) where TLanguageKindEnum : struct;
 
         /// <summary>
         /// Register an action to be executed at completion of parsing of a code document.
         /// A syntax tree action reports <see cref="Diagnostic"/>s about the <see cref="SyntaxTree"/> of a document.
         /// </summary>
         /// <param name="action">Action to be executed at completion of parsing of a document.</param>
-        public void RegisterSyntaxTreeAction(Action<SyntaxTreeAnalysisContext> action)
-        {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
-            this.scope.RegisterSyntaxTreeAction(action);
-        }
+        public abstract void RegisterSyntaxTreeAction(Action<SyntaxTreeAnalysisContext> action);
 
         /// <summary>
         /// Register an action to be executed at completion of semantic analysis of a <see cref="SyntaxNode"/> with an appropriate Kind.
@@ -160,11 +125,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <typeparam name="TLanguageKindEnum">Enum type giving the syntax node kinds of the source language for which the action applies.</typeparam>
         /// <param name="action">Action to be executed at completion of semantic analysis of a <see cref="SyntaxNode"/>.</param>
         /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
-        public void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds) where TLanguageKindEnum : struct
-        {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(action, syntaxKinds);
-            this.scope.RegisterSyntaxNodeAction(action, syntaxKinds);
-        }
+        public abstract void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds) where TLanguageKindEnum : struct;
     }
 
     /// <summary>
@@ -194,9 +155,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </item>
     /// </list>
     /// </summary>
-    public struct CompilationStartAnalysisContext
+    public abstract class CompilationStartAnalysisContext
     {
-        private readonly CompilationStartAnalysisScope scope;
         private readonly Compilation compilation;
         private readonly AnalyzerOptions options;
         private readonly CancellationToken cancellationToken;
@@ -216,9 +176,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return this.cancellationToken; } }
 
-        internal CompilationStartAnalysisContext(CompilationStartAnalysisScope scope, Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
+        protected CompilationStartAnalysisContext(Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
         {
-            this.scope = scope;
             this.compilation = compilation;
             this.options = options;
             this.cancellationToken = cancellationToken;
@@ -229,11 +188,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// A compilation end action reports <see cref="Diagnostic"/>s about the <see cref="CodeAnalysis.Compilation"/>.
         /// </summary>
         /// <param name="action">Action to be executed at compilation end.</param>
-        public void RegisterCompilationEndAction(Action<CompilationEndAnalysisContext> action)
-        {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
-            this.scope.RegisterCompilationEndAction(action);
-        }
+        public abstract void RegisterCompilationEndAction(Action<CompilationEndAnalysisContext> action);
 
         /// <summary>
         /// Register an action to be executed at completion of semantic analysis of a document,
@@ -241,11 +196,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// reports <see cref="Diagnostic"/>s about the model.
         /// </summary>
         /// <param name="action">Action to be executed for a document's <see cref="SemanticModel"/>.</param>
-        public void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext> action)
-        {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
-            this.scope.RegisterSemanticModelAction(action);
-        }
+        public abstract void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext> action);
 
         /// <summary>
         /// Register an action to be executed at completion of semantic analysis of an <see cref="ISymbol"/> with an appropriate Kind.>
@@ -264,11 +215,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="action">Action to be executed for an <see cref="ISymbol"/>.</param>
         /// <param name="symbolKinds">Action will be executed only if an <see cref="ISymbol"/>'s Kind matches one of the <see cref="SymbolKind"/> values.</param>
-        public void RegisterSymbolAction(Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> symbolKinds)
-        {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(action, symbolKinds);
-            this.scope.RegisterSymbolAction(action, symbolKinds);
-        }
+        public abstract void RegisterSymbolAction(Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> symbolKinds);
 
         /// <summary>
         /// Register an action to be executed at the start of semantic analysis of a method body or an expression appearing outside a method body.
@@ -277,11 +224,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <typeparam name="TLanguageKindEnum">Enum type giving the syntax node kinds of the source language for which the action applies.</typeparam>
         /// <param name="action">Action to be executed at the start of semantic analysis of a code block.</param>
-        public void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) where TLanguageKindEnum : struct
-        {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
-            this.scope.RegisterCodeBlockStartAction(action);
-        }
+        public abstract void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) where TLanguageKindEnum : struct;
 
         /// <summary>
         /// Register an action to be executed at the end of semantic analysis of a method body or an expression appearing outside a method body.
@@ -289,22 +232,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <typeparam name="TLanguageKindEnum">Enum type giving the syntax node kinds of the source language for which the action applies.</typeparam>
         /// <param name="action">Action to be executed at the end of semantic analysis of a code block.</param>
-        public void RegisterCodeBlockEndAction<TLanguageKindEnum>(Action<CodeBlockEndAnalysisContext> action) where TLanguageKindEnum : struct
-        {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
-            this.scope.RegisterCodeBlockEndAction<TLanguageKindEnum>(action);
-        }
+        public abstract void RegisterCodeBlockEndAction<TLanguageKindEnum>(Action<CodeBlockEndAnalysisContext> action) where TLanguageKindEnum : struct;
 
         /// <summary>
         /// Register an action to be executed at completion of parsing of a code document.
         /// A syntax tree action reports <see cref="Diagnostic"/>s about the <see cref="SyntaxTree"/> of a document.
         /// </summary>
         /// <param name="action">Action to be executed at completion of parsing of a document.</param>
-        public void RegisterSyntaxTreeAction(Action<SyntaxTreeAnalysisContext> action)
-        {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
-            this.scope.RegisterSyntaxTreeAction(action);
-        }
+        public abstract void RegisterSyntaxTreeAction(Action<SyntaxTreeAnalysisContext> action);
 
         /// <summary>
         /// Register an action to be executed at completion of semantic analysis of a <see cref="SyntaxNode"/> with an appropriate Kind.
@@ -327,11 +262,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <typeparam name="TLanguageKindEnum">Enum type giving the syntax node kinds of the source language for which the action applies.</typeparam>
         /// <param name="action">Action to be executed at completion of semantic analysis of a <see cref="SyntaxNode"/>.</param>
         /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
-        public void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds) where TLanguageKindEnum : struct
-        {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(action, syntaxKinds);
-            this.scope.RegisterSyntaxNodeAction(action, syntaxKinds);
-        }
+        public abstract void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds) where TLanguageKindEnum : struct;
     }
 
     /// <summary>
@@ -360,7 +291,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return this.cancellationToken; } }
 
-        internal CompilationEndAnalysisContext(Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
+        public CompilationEndAnalysisContext(Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
         {
             this.compilation = compilation;
             this.options = options;
@@ -408,7 +339,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return this.cancellationToken; } }
 
-        internal SemanticModelAnalysisContext(SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
+        public SemanticModelAnalysisContext(SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
         {
             this.semanticModel = semanticModel;
             this.options = options;
@@ -462,7 +393,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return this.cancellationToken; } }
 
-        internal SymbolAnalysisContext(ISymbol symbol, Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
+        public SymbolAnalysisContext(ISymbol symbol, Compilation compilation, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
         {
             this.symbol = symbol;
             this.compilation = compilation;
@@ -498,9 +429,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </item>
     /// </list>
     /// </summary>
-    public struct CodeBlockStartAnalysisContext<TLanguageKindEnum> where TLanguageKindEnum : struct
+    public abstract class CodeBlockStartAnalysisContext<TLanguageKindEnum> where TLanguageKindEnum : struct
     {
-        private readonly CodeBlockStartAnalysisScope<TLanguageKindEnum> scope;
         private readonly SyntaxNode codeBlock;
         private readonly ISymbol owningSymbol;
         private readonly SemanticModel semanticModel;
@@ -532,9 +462,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return this.cancellationToken; } }
 
-        internal CodeBlockStartAnalysisContext(CodeBlockStartAnalysisScope<TLanguageKindEnum> scope, SyntaxNode codeBlock, ISymbol owningSymbol, SemanticModel semanticModel, AnalyzerOptions options, CancellationToken cancellationToken)
+        protected CodeBlockStartAnalysisContext(SyntaxNode codeBlock, ISymbol owningSymbol, SemanticModel semanticModel, AnalyzerOptions options, CancellationToken cancellationToken)
         {
-            this.scope = scope;
             this.codeBlock = codeBlock;
             this.owningSymbol = owningSymbol;
             this.semanticModel = semanticModel;
@@ -547,11 +476,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// A code block end action reports <see cref="Diagnostic"/>s about code blocks.
         /// </summary>
         /// <param name="action">Action to be executed at the end of semantic analysis of a code block.</param>
-        public void RegisterCodeBlockEndAction(Action<CodeBlockEndAnalysisContext> action)
-        {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
-            this.scope.RegisterCodeBlockEndAction(action);
-        }
+        public abstract void RegisterCodeBlockEndAction(Action<CodeBlockEndAnalysisContext> action);
 
         /// <summary>
         /// Register an action to be executed at completion of semantic analysis of a <see cref="SyntaxNode"/> with an appropriate Kind.
@@ -572,11 +497,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="action">Action to be executed at completion of semantic analysis of a <see cref="SyntaxNode"/>.</param>
         /// <param name="syntaxKinds">Action will be executed only if a <see cref="SyntaxNode"/>'s Kind matches one of the syntax kind values.</param>
-        public void RegisterSyntaxNodeAction(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds)
-        {
-            DiagnosticAnalysisContextHelpers.VerifyArguments(action, syntaxKinds);
-            this.scope.RegisterSyntaxNodeAction(action, syntaxKinds);
-        }
+        public abstract void RegisterSyntaxNodeAction(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds);
     }
 
     /// <summary>
@@ -617,7 +538,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return this.cancellationToken; } }
 
-        internal CodeBlockEndAnalysisContext(SyntaxNode codeBlock, ISymbol owningSymbol, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
+        public CodeBlockEndAnalysisContext(SyntaxNode codeBlock, ISymbol owningSymbol, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
         {
             this.codeBlock = codeBlock;
             this.owningSymbol = owningSymbol;
@@ -667,7 +588,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return this.cancellationToken; } }
 
-        internal SyntaxTreeAnalysisContext(SyntaxTree tree, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
+        public SyntaxTreeAnalysisContext(SyntaxTree tree, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
         {
             this.tree = tree;
             this.options = options;
@@ -721,7 +642,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public CancellationToken CancellationToken { get { return this.cancellationToken; } }
 
-        internal SyntaxNodeAnalysisContext(SyntaxNode node, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
+        public SyntaxNodeAnalysisContext(SyntaxNode node, SemanticModel semanticModel, AnalyzerOptions options, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
         {
             this.node = node;
             this.semanticModel = semanticModel;

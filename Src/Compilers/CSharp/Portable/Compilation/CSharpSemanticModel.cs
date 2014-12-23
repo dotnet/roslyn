@@ -4532,30 +4532,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ImmutableArray.Create<ISymbol>();
         }
 
-        private static bool InvalidLevel(int? level)
+        internal override ImmutableArray<DeclarationInfo> GetDeclarationsInSpan(TextSpan span, bool getSymbol, CancellationToken cancellationToken)
         {
-            return level.HasValue && level.Value <= 0;
+            return CSharpDeclarationComputer.GetDeclarationsInSpan(this, span, getSymbol, cancellationToken);
         }
 
-        private static int? DecrementLevel(int? level)
+        internal override ImmutableArray<DeclarationInfo> GetDeclarationsInNode(SyntaxNode node, bool getSymbol, CancellationToken cancellationToken, int? levelsToCompute = null)
         {
-            return level.HasValue ? level - 1 : level;
-        }
-
-        public override ImmutableArray<DeclarationInfo> GetDeclarationsInSpan(TextSpan span, bool getSymbol, CancellationToken cancellationToken)
-        {
-            var builder = ArrayBuilder<DeclarationInfo>.GetInstance();
-            ComputeDeclarationsCore(this.SyntaxTree.GetRoot(), 
-                (node, level) => !node.Span.OverlapsWith(span) || InvalidLevel(level), 
-                getSymbol, builder, null, cancellationToken);
-            return builder.ToImmutable();
-        }
-
-        protected internal override ImmutableArray<DeclarationInfo> GetDeclarationsInNode(SyntaxNode node, bool getSymbol, CancellationToken cancellationToken, int? levelsToCompute = null)
-        {
-            var builder = ArrayBuilder<DeclarationInfo>.GetInstance();
-            ComputeDeclarationsCore(node, (n, level) => InvalidLevel(level), getSymbol, builder, levelsToCompute, cancellationToken);
-            return builder.ToImmutable();
+            return CSharpDeclarationComputer.GetDeclarationsInNode(this, node, getSymbol, cancellationToken, levelsToCompute);
         }
 
         protected internal override SyntaxNode GetTopmostNodeForDiagnosticAnalysis(ISymbol symbol, SyntaxNode declaringSyntax)
@@ -4574,173 +4558,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return declaringSyntax;
-        }
-
-        private void ComputeDeclarationsCore(
-            SyntaxNode node, 
-            Func<SyntaxNode, int?, bool> shouldSkip,
-            bool getSymbol, 
-            ArrayBuilder<DeclarationInfo> builder, 
-            int? levelsToCompute,
-            CancellationToken cancellationToken)
-        {
-            if (shouldSkip(node, levelsToCompute))
-            {
-                return;
-            }
-
-            var newLevel = DecrementLevel(levelsToCompute);
-
-            switch (node.Kind())
-            {
-                case SyntaxKind.NamespaceDeclaration:
-                    {
-                        var ns = (NamespaceDeclarationSyntax)node;
-                        foreach (var decl in ns.Members) ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
-                        builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken));
-
-                        NameSyntax name = ns.Name;
-                        while (name.Kind() == SyntaxKind.QualifiedName)
-                        {
-                            name = ((QualifiedNameSyntax)name).Left;
-                            var declaredSymbol = getSymbol ? GetSymbolInfo(name, cancellationToken).Symbol : null;
-                            builder.Add(new DeclarationInfo(name, ImmutableArray<SyntaxNode>.Empty, declaredSymbol));
-                        }
-
-                        return;
-                    }
-
-                case SyntaxKind.ClassDeclaration:
-                case SyntaxKind.StructDeclaration:
-                case SyntaxKind.InterfaceDeclaration:
-                    {
-                        var t = (TypeDeclarationSyntax)node;
-                        foreach (var decl in t.Members) ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
-                        builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken));
-                        return;
-                    }
-
-                case SyntaxKind.EnumDeclaration:
-                    {
-                        var t = (EnumDeclarationSyntax)node;
-                        foreach (var decl in t.Members) ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
-                        builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken));
-                        return;
-                    }
-
-                case SyntaxKind.EnumMemberDeclaration:
-                    {
-                        var t = (EnumMemberDeclarationSyntax)node;
-                        builder.Add(GetDeclarationInfo(node, getSymbol, t.EqualsValue, cancellationToken));
-                        return;
-                    }
-
-                case SyntaxKind.DelegateDeclaration:
-                    {
-                        var t = (DelegateDeclarationSyntax)node;
-                        builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken));
-                        return;
-                    }
-
-                case SyntaxKind.EventDeclaration:
-                    {
-                        var t = (EventDeclarationSyntax)node;
-                        foreach (var decl in t.AccessorList.Accessors) ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
-                        builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken));
-                        return;
-                    }
-
-                case SyntaxKind.EventFieldDeclaration:
-                case SyntaxKind.FieldDeclaration:
-                    {
-                        var t = (BaseFieldDeclarationSyntax)node;
-                        foreach (var decl in t.Declaration.Variables)
-                        {
-                            builder.Add(GetDeclarationInfo(decl, getSymbol, decl.Initializer, cancellationToken));
-                        }
-
-                        return;
-                    }
-
-                case SyntaxKind.PropertyDeclaration:
-                    {
-                        var t = (PropertyDeclarationSyntax)node;
-                        if (t.AccessorList != null)
-                        {
-                            foreach (var decl in t.AccessorList.Accessors) ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
-                        }
-
-                        builder.Add(GetDeclarationInfo(node, getSymbol, cancellationToken, t.Initializer, t.ExpressionBody));
-                        return;
-                    }
-
-                case SyntaxKind.IndexerDeclaration:
-                    {
-                        var t = (IndexerDeclarationSyntax)node;
-                        if (t.AccessorList != null)
-                        {
-                            foreach (var decl in t.AccessorList.Accessors)
-                            {
-                                ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
-                            }
-                        }
-
-                        var codeBlocks = t.ParameterList != null ? t.ParameterList.Parameters.Select(p => p.Default) : SpecializedCollections.EmptyEnumerable<SyntaxNode>();
-                        if (t.ExpressionBody != null)
-                        {
-                            codeBlocks = codeBlocks.Concat(t.ExpressionBody);
-                        }
-
-                        builder.Add(GetDeclarationInfo(node, getSymbol, codeBlocks, cancellationToken));
-                        return;
-                    }
-
-                case SyntaxKind.AddAccessorDeclaration:
-                case SyntaxKind.RemoveAccessorDeclaration:
-                case SyntaxKind.SetAccessorDeclaration:
-                case SyntaxKind.GetAccessorDeclaration:
-                    {
-                        var t = (AccessorDeclarationSyntax)node;
-                        builder.Add(GetDeclarationInfo(node, getSymbol, t.Body, cancellationToken));
-                        return;
-                    }
-
-                case SyntaxKind.ConstructorDeclaration:
-                case SyntaxKind.ConversionOperatorDeclaration:
-                case SyntaxKind.DestructorDeclaration:
-                case SyntaxKind.MethodDeclaration:
-                case SyntaxKind.OperatorDeclaration:
-                    {
-                        var t = (BaseMethodDeclarationSyntax)node;
-                        var codeBlocks = t.ParameterList != null ? t.ParameterList.Parameters.Select(p => p.Default) : SpecializedCollections.EmptyEnumerable<SyntaxNode>();
-                        codeBlocks = codeBlocks.Concat(t.Body);
-
-                        var ctorDecl = t as ConstructorDeclarationSyntax;
-                        if (ctorDecl != null && ctorDecl.Initializer != null)
-                        {
-                            codeBlocks = codeBlocks.Concat(ctorDecl.Initializer);
-                        }
-
-                        var expressionBody = t.GetExpressionBodySyntax();
-                        if (expressionBody != null)
-                        {
-                            codeBlocks = codeBlocks.Concat(expressionBody);
-                        }
-
-                        builder.Add(GetDeclarationInfo(node, getSymbol, codeBlocks, cancellationToken));
-                        return;
-                    }
-
-                case SyntaxKind.CompilationUnit:
-                    {
-                        var t = (CompilationUnitSyntax)node;
-                        foreach (var decl in t.Members) ComputeDeclarationsCore(decl, shouldSkip, getSymbol, builder, newLevel, cancellationToken);
-                        return;
-                    }
-
-                default:
-                    return;
-            }
         }
 
         protected sealed override ImmutableArray<ISymbol> LookupSymbolsCore(int position, INamespaceOrTypeSymbol container, string name, bool includeReducedExtensionMethods)

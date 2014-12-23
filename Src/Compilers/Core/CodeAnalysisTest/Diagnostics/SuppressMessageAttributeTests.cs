@@ -1122,7 +1122,7 @@ public class C2
 ",
                 new[] { new ThrowExceptionForEachNamedTypeAnalyzer() },
                 continueOnAnalyzerException,
-                Diagnostic("AnalyzerDriver", null).WithLocation(1, 1));
+                Diagnostic("AD0001", null).WithLocation(1, 1));
         }
 
         #endregion

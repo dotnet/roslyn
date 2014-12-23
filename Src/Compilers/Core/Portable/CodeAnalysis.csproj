@@ -97,8 +97,6 @@
     <Compile Include="CodeGen\TokenMap.cs" />
     <Compile Include="CodeGen\VariableSlotAllocator.cs" />
     <Compile Include="CodeGen\Win32Res.cs" />
-    <Compile Include="Collections\ArrayBuilder.Enumerator.cs" />
-    <Compile Include="Collections\ArrayBuilder.cs" />
     <Compile Include="Collections\ArrayBuilderExtensions.cs" />
     <Compile Include="Collections\ArrayElement.cs" />
     <Compile Include="Collections\BitArray.cs" />
@@ -118,7 +116,6 @@
     <Compile Include="Compilation\SymbolFilter.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilerDiagnosticAnalyzer.CompilationAnalyzer.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilerDiagnosticAnalyzer.cs" />
-    <Compile Include="DiagnosticAnalyzer\DiagnosticAnalysisContextHelpers.cs" />
     <Compile Include="Diagnostic\LocalizableResourceString.cs" />
     <Compile Include="Diagnostic\LocalizableString.cs" />
     <Compile Include="Emit\DebugInformationFormat.cs" />
@@ -136,8 +133,6 @@
     <Compile Include="InternalUtilities\IReadOnlySet.cs" />
     <Compile Include="Collections\KeyedStack.cs" />
     <Compile Include="Collections\OrderPreservingMultiDictionary.cs" />
-    <Compile Include="Collections\PooledDictionary.cs" />
-    <Compile Include="Collections\PooledHashSet.cs" />
     <Compile Include="Collections\PooledStringBuilder.cs" />
     <Compile Include="Collections\SmallConcurrentSetOfInts.cs" />
     <Compile Include="Collections\SmallDictionary.cs" />
@@ -151,7 +146,6 @@
     <Compile Include="Compilation\CompilationStage.cs" />
     <Compile Include="Compilation\ControlFlowAnalysis.cs" />
     <Compile Include="Compilation\DataFlowAnalysis.cs" />
-    <Compile Include="Compilation\DeclarationInfo.cs" />
     <Compile Include="Compilation\EmitResult.cs" />
     <Compile Include="Compilation\Extensions.cs" />
     <Compile Include="Compilation\OptimizationLevel.cs" />
@@ -187,8 +181,6 @@
     <Compile Include="Diagnostic\Diagnostic_SimpleDiagnostic.cs" />
     <Compile Include="DiagnosticAnalyzer\DiagnosticAnalysisContext.cs" />
     <Compile Include="DiagnosticAnalyzer\DiagnosticAnalyzer.cs" />
-    <Compile Include="DiagnosticAnalyzer\DiagnosticAnalyzerAction.cs" />
-    <Compile Include="DiagnosticAnalyzer\DiagnosticStartAnalysisScope.cs" />
     <Compile Include="Diagnostic\DiagnosticBag.cs" />
     <Compile Include="Diagnostic\DiagnosticDescriptor.cs" />
     <Compile Include="Diagnostic\DiagnosticFormatter.cs" />
@@ -659,6 +651,8 @@
       <HintPath>..\..\..\..\packages\System.Reflection.Metadata.1.0.18-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
     </Reference>
   </ItemGroup>
+  <Import Project="..\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
+  <Import Project="..\SharedCollections\SharedCollections.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets" Condition="Exists('..\..\..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets')" />

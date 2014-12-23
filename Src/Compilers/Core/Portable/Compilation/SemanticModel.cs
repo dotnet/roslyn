@@ -819,12 +819,12 @@ namespace Microsoft.CodeAnalysis
         /// <param name="getSymbol">Flag indicating whether <see cref="DeclarationInfo.DeclaredSymbol"/> should be computed for the returned declaration infos.
         /// If false, then <see cref="DeclarationInfo.DeclaredSymbol"/> is always null.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
-        public abstract ImmutableArray<DeclarationInfo> GetDeclarationsInSpan(TextSpan span, bool getSymbol, CancellationToken cancellationToken);
+        internal abstract ImmutableArray<DeclarationInfo> GetDeclarationsInSpan(TextSpan span, bool getSymbol, CancellationToken cancellationToken);
 
         /// <summary>
         /// Takes a node and returns a set of declarations that overlap the node's span.
         /// </summary>
-        protected internal abstract ImmutableArray<DeclarationInfo> GetDeclarationsInNode(SyntaxNode node, bool getSymbol, CancellationToken cancellationToken, int? levelsToCompute = null);
+        internal abstract ImmutableArray<DeclarationInfo> GetDeclarationsInNode(SyntaxNode node, bool getSymbol, CancellationToken cancellationToken, int? levelsToCompute = null);
 
         /// <summary>
         /// Takes a Symbol and syntax for one of its declaring syntax reference and returns the topmost syntax node to be used by syntax analyzer.
@@ -832,32 +832,6 @@ namespace Microsoft.CodeAnalysis
         protected internal virtual SyntaxNode GetTopmostNodeForDiagnosticAnalysis(ISymbol symbol, SyntaxNode declaringSyntax)
         {
             return declaringSyntax;
-        }
-
-        internal DeclarationInfo GetDeclarationInfo(SyntaxNode node, bool getSymbol, IEnumerable<SyntaxNode> executableCodeBlocks, CancellationToken cancellationToken)
-        {
-            var declaredSymbol = getSymbol ? GetDeclaredSymbolCore(node, cancellationToken) : null;
-            var codeBlocks = executableCodeBlocks == null ?
-                ImmutableArray<SyntaxNode>.Empty :
-                executableCodeBlocks.Where(c => c != null).AsImmutableOrEmpty();
-            return new DeclarationInfo(node, codeBlocks, declaredSymbol);
-        }
-
-        internal DeclarationInfo GetDeclarationInfo(SyntaxNode node, bool getSymbol, CancellationToken cancellationToken)
-        {
-            return GetDeclarationInfo(node, getSymbol, (IEnumerable<SyntaxNode>)null, cancellationToken);
-        }
-
-        internal DeclarationInfo GetDeclarationInfo(SyntaxNode node, bool getSymbol, SyntaxNode executableCodeBlock, CancellationToken cancellationToken)
-        {
-            var declaredSymbol = getSymbol ? GetDeclaredSymbolCore(node, cancellationToken) : null;
-            var codeBlock = executableCodeBlock == null ? ImmutableArray<SyntaxNode>.Empty : ImmutableArray.Create(executableCodeBlock);
-            return new DeclarationInfo(node, codeBlock, declaredSymbol);
-        }
-
-        internal DeclarationInfo GetDeclarationInfo(SyntaxNode node, bool getSymbol, CancellationToken cancellationToken, params SyntaxNode[] executableCodeBlocks)
-        {
-            return GetDeclarationInfo(node, getSymbol, executableCodeBlocks.AsEnumerable(), cancellationToken);
         }
     }
 }
