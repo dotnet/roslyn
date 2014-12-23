@@ -9,20 +9,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal static class DiagnosticAnalysisContextHelpers
     {
         internal static void VerifyArguments<TContext>(Action<TContext> action)
-            where TContext : struct
         {
             VerifyAction(action);
         }
 
         internal static void VerifyArguments<TContext>(Action<TContext> action, ImmutableArray<SymbolKind> symbolKinds)
-            where TContext : struct
         {
             VerifyAction(action);
             VerifySymbolKinds(symbolKinds);
         }
 
         internal static void VerifyArguments<TContext, TLanguageKindEnum>(Action<TContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds)
-            where TContext : struct
             where TLanguageKindEnum : struct
         {
             VerifyAction(action);
@@ -38,7 +35,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         private static void VerifyAction<TContext>(Action<TContext> action)
-            where TContext : struct
         {
             if (action == null)
             {
@@ -55,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (symbolKinds.IsEmpty)
             {
-                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(symbolKinds));
+                throw new ArgumentException(AnalyzerDriverResources.ArgumentCannotBeEmpty, nameof(symbolKinds));
             }
         }
 
@@ -69,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (syntaxKinds.IsEmpty)
             {
-                throw new ArgumentException(CodeAnalysisResources.ArgumentCannotBeEmpty, nameof(syntaxKinds));
+                throw new ArgumentException(AnalyzerDriverResources.ArgumentCannotBeEmpty, nameof(syntaxKinds));
             }
         }
     }

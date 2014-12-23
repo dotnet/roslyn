@@ -4,63 +4,19 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     /// <summary>
-    /// Scope for setting up analyzers for an entire session.
-    /// </summary>
-    internal abstract class SessionStartAnalysisScope
-    {
-        public abstract void RegisterCompilationStartAction(Action<CompilationStartAnalysisContext> action);
-        public abstract void RegisterCompilationEndAction(Action<CompilationEndAnalysisContext> action);
-
-        public abstract void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext> action);
-        public abstract void RegisterSymbolAction(Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> symbolKinds);
-
-        public abstract void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) where TLanguageKindEnum : struct;
-        public abstract void RegisterCodeBlockEndAction<TLanguageKindEnum>(Action<CodeBlockEndAnalysisContext> action) where TLanguageKindEnum : struct;
-
-        public abstract void RegisterSyntaxTreeAction(Action<SyntaxTreeAnalysisContext> action);
-        public abstract void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds) where TLanguageKindEnum : struct;
-    }
-
-    /// <summary>
-    /// Scope for setting up analyzers for a compilation.
-    /// </summary>
-    internal abstract class CompilationStartAnalysisScope
-    {
-        public abstract void RegisterCompilationEndAction(Action<CompilationEndAnalysisContext> action);
-
-        public abstract void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext> action);
-        public abstract void RegisterSymbolAction(Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> symbolKinds);
-
-        public abstract void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action) where TLanguageKindEnum : struct;
-        public abstract void RegisterCodeBlockEndAction<TLanguageKindEnum>(Action<CodeBlockEndAnalysisContext> action) where TLanguageKindEnum : struct;
-
-        public abstract void RegisterSyntaxTreeAction(Action<SyntaxTreeAnalysisContext> action);
-        public abstract void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds) where TLanguageKindEnum : struct;
-    }
-
-    /// <summary>
-    /// Scope for setting up analyzers for a code block.
-    /// </summary>
-    internal abstract class CodeBlockStartAnalysisScope<TLanguageKindEnum> where TLanguageKindEnum : struct
-    {
-        public abstract void RegisterCodeBlockEndAction(Action<CodeBlockEndAnalysisContext> action);
-
-        public abstract void RegisterSyntaxNodeAction(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds);
-    }
-
-    /// <summary>
     /// Scope for setting up analyzers for an entire session, automatically associating actions with analyzers.
     /// </summary>
-    internal sealed class AnalyzerSessionStartAnalysisScope : SessionStartAnalysisScope
+    internal sealed class AnalyzerAnalysisContext : AnalysisContext
     {
         private readonly DiagnosticAnalyzer analyzer;
         private readonly HostSessionStartAnalysisScope scope;
 
-        public AnalyzerSessionStartAnalysisScope(DiagnosticAnalyzer analyzer, HostSessionStartAnalysisScope scope)
+        public AnalyzerAnalysisContext(DiagnosticAnalyzer analyzer, HostSessionStartAnalysisScope scope)
         {
             this.analyzer = analyzer;
             this.scope = scope;
@@ -68,41 +24,49 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override void RegisterCompilationStartAction(Action<CompilationStartAnalysisContext> action)
         {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
             this.scope.RegisterCompilationStartAction(this.analyzer, action);
         }
 
         public override void RegisterCompilationEndAction(Action<CompilationEndAnalysisContext> action)
         {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
             this.scope.RegisterCompilationEndAction(this.analyzer, action);
         }
 
         public override void RegisterSyntaxTreeAction(Action<SyntaxTreeAnalysisContext> action)
         {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
             this.scope.RegisterSyntaxTreeAction(this.analyzer, action);
         }
 
         public override void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext> action)
         {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
             this.scope.RegisterSemanticModelAction(this.analyzer, action);
         }
 
         public override void RegisterSymbolAction(Action<SymbolAnalysisContext> action, ImmutableArray<SymbolKind> symbolKinds)
         {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action, symbolKinds);
             this.scope.RegisterSymbolAction(this.analyzer, action, symbolKinds);
         }
 
         public override void RegisterCodeBlockStartAction<TLanguageKindEnum>(Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> action)
         {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
             this.scope.RegisterCodeBlockStartAction<TLanguageKindEnum>(this.analyzer, action);
         }
 
         public override void RegisterCodeBlockEndAction<TLanguageKindEnum>(Action<CodeBlockEndAnalysisContext> action)
         {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action);
             this.scope.RegisterCodeBlockEndAction<TLanguageKindEnum>(this.analyzer, action);
         }
 
         public override void RegisterSyntaxNodeAction<TLanguageKindEnum>(Action<SyntaxNodeAnalysisContext> action, ImmutableArray<TLanguageKindEnum> syntaxKinds)
         {
+            DiagnosticAnalysisContextHelpers.VerifyArguments(action, syntaxKinds);
             this.scope.RegisterSyntaxNodeAction(this.analyzer, action, syntaxKinds);
         }
     }
@@ -110,12 +74,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <summary>
     /// Scope for setting up analyzers for a compilation, automatically associating actions with analyzers.
     /// </summary>
-    internal sealed class AnalyzerCompilationStartAnalysisScope : CompilationStartAnalysisScope
+    internal sealed class AnalyzerCompilationStartAnalysisContext : CompilationStartAnalysisContext
     {
         private readonly DiagnosticAnalyzer analyzer;
         private readonly HostCompilationStartAnalysisScope scope;
 
-        public AnalyzerCompilationStartAnalysisScope(DiagnosticAnalyzer analyzer, HostCompilationStartAnalysisScope scope)
+        public AnalyzerCompilationStartAnalysisContext(DiagnosticAnalyzer analyzer, HostCompilationStartAnalysisScope scope, Compilation compilation, AnalyzerOptions options, CancellationToken cancellationToken)
+            : base(compilation, options, cancellationToken)
         {
             this.analyzer = analyzer;
             this.scope = scope;
@@ -160,12 +125,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <summary>
     /// Scope for setting up analyzers for a code block, automatically associating actions with analyzers.
     /// </summary>
-    internal sealed class AnalyzerCodeBlockStartAnalysisScope<TLanguageKindEnum> : CodeBlockStartAnalysisScope<TLanguageKindEnum> where TLanguageKindEnum : struct
+    internal sealed class AnalyzerCodeBlockStartAnalysisContext<TLanguageKindEnum> : CodeBlockStartAnalysisContext<TLanguageKindEnum> where TLanguageKindEnum : struct
     {
         private readonly DiagnosticAnalyzer analyzer;
         private readonly HostCodeBlockStartAnalysisScope<TLanguageKindEnum> scope;
 
-        internal AnalyzerCodeBlockStartAnalysisScope(DiagnosticAnalyzer analyzer, HostCodeBlockStartAnalysisScope<TLanguageKindEnum> scope)
+        internal AnalyzerCodeBlockStartAnalysisContext(DiagnosticAnalyzer analyzer, 
+                                                       HostCodeBlockStartAnalysisScope<TLanguageKindEnum> scope,
+                                                       SyntaxNode codeBlock,
+                                                       ISymbol owningSymbol,
+                                                       SemanticModel semanticModel,
+                                                       AnalyzerOptions options,
+                                                       CancellationToken cancellationToken)
+            : base(codeBlock, owningSymbol, semanticModel, options, cancellationToken)
         {
             this.analyzer = analyzer;
             this.scope = scope;
@@ -216,22 +188,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override ImmutableArray<CompilationEndAnalyzerAction> CompilationEndActions
         {
-            get { return base.CompilationEndActions.Concat(this.sessionScope.CompilationEndActions); }
+            get { return base.CompilationEndActions.AddRange(this.sessionScope.CompilationEndActions); }
         }
 
         public override ImmutableArray<SemanticModelAnalyzerAction> SemanticModelActions
         {
-            get { return base.SemanticModelActions.Concat(this.sessionScope.SemanticModelActions); }
+            get { return base.SemanticModelActions.AddRange(this.sessionScope.SemanticModelActions); }
         }
 
         public override ImmutableArray<SyntaxTreeAnalyzerAction> SyntaxTreeActions
         {
-            get { return base.SyntaxTreeActions.Concat(this.sessionScope.SyntaxTreeActions); }
+            get { return base.SyntaxTreeActions.AddRange(this.sessionScope.SyntaxTreeActions); }
         }
 
         public override ImmutableArray<SymbolAnalyzerAction> SymbolActions
         {
-            get { return base.SymbolActions.Concat(this.sessionScope.SymbolActions); }
+            get { return base.SymbolActions.AddRange(this.sessionScope.SymbolActions); }
         }
 
         public override bool HasCodeBlockStartActions<TLanguageKindEnum>()
@@ -243,7 +215,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>> GetCodeBlockStartActions<TLanguageKindEnum>()
         {
-            return base.GetCodeBlockStartActions<TLanguageKindEnum>().Concat(this.sessionScope.GetCodeBlockStartActions<TLanguageKindEnum>());
+            return base.GetCodeBlockStartActions<TLanguageKindEnum>().AddRange(this.sessionScope.GetCodeBlockStartActions<TLanguageKindEnum>());
         }
 
         public override bool HasCodeBlockEndActions<TLanguageKindEnum>()
@@ -255,12 +227,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override ImmutableArray<CodeBlockEndAnalyzerAction<TLanguageKindEnum>> GetCodeBlockEndActions<TLanguageKindEnum>()
         {
-            return base.GetCodeBlockEndActions<TLanguageKindEnum>().Concat(this.sessionScope.GetCodeBlockEndActions<TLanguageKindEnum>());
+            return base.GetCodeBlockEndActions<TLanguageKindEnum>().AddRange(this.sessionScope.GetCodeBlockEndActions<TLanguageKindEnum>());
         }
 
         public override ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>> GetSyntaxNodeActions<TLanguageKindEnum>()
         {
-            return base.GetSyntaxNodeActions<TLanguageKindEnum>().Concat(this.sessionScope.GetSyntaxNodeActions<TLanguageKindEnum>());
+            return base.GetSyntaxNodeActions<TLanguageKindEnum>().AddRange(this.sessionScope.GetSyntaxNodeActions<TLanguageKindEnum>());
         }
 
         public override AnalyzerActions GetAnalyzerActions(DiagnosticAnalyzer analyzer)
@@ -440,14 +412,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
     }
 
+    /// <summary>
+    /// Actions registered by a particular analyzer.
+    /// </summary>
     // ToDo: AnalyzerActions, and all of the mechanism around it, can be eliminated if the IDE diagnostic analyzer driver
     // moves from an analyzer-centric model to an action-centric model. For example, the driver would need to stop asking
     // if a particular analyzer can analyze syntax trees, and instead ask if any syntax tree actions are present. Also,
     // the driver needs to apply all relevant actions rather then applying the actions of individual analyzers.
-    /// <summary>
-    /// Actions registered by a particular analyzer.
-    /// </summary>
-    public sealed class AnalyzerActions
+    internal sealed class AnalyzerActions
     {
         private ImmutableArray<CompilationStartAnalyzerAction> compilationStartActions = ImmutableArray<CompilationStartAnalyzerAction>.Empty;
         private ImmutableArray<CompilationEndAnalyzerAction> compilationEndActions = ImmutableArray<CompilationEndAnalyzerAction>.Empty;
