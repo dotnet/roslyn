@@ -8621,11 +8621,29 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Unused extern alias..
+        /// </summary>
+        internal static string HDN_UnusedExternAlias_Title {
+            get {
+                return ResourceManager.GetString("HDN_UnusedExternAlias_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Unnecessary using directive..
         /// </summary>
         internal static string HDN_UnusedUsingDirective {
             get {
                 return ResourceManager.GetString("HDN_UnusedUsingDirective", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unnecessary using directive..
+        /// </summary>
+        internal static string HDN_UnusedUsingDirective_Title {
+            get {
+                return ResourceManager.GetString("HDN_UnusedUsingDirective_Title", resourceCulture);
             }
         }
         
@@ -9441,6 +9459,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Skip loading types in analyzer assembly that fail due to a ReflectionTypeLoadException..
+        /// </summary>
+        internal static string INF_UnableToLoadSomeTypesInAnalyzer_Title {
+            get {
+                return ResourceManager.GetString("INF_UnableToLoadSomeTypesInAnalyzer_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Called GetDeclarationName for a declaration node that can possibly contain multiple variable declarators..
         /// </summary>
         internal static string InvalidGetDeclarationNameMultipleDeclarators {
@@ -9725,6 +9752,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_AlignmentMagnitude {
             get {
                 return ResourceManager.GetString("WRN_AlignmentMagnitude", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Alignment value has a magnitude that may result in a large formatted string..
+        /// </summary>
+        internal static string WRN_AlignmentMagnitude_Title {
+            get {
+                return ResourceManager.GetString("WRN_AlignmentMagnitude_Title", resourceCulture);
             }
         }
         
@@ -11189,9 +11225,9 @@ namespace Microsoft.CodeAnalysis.CSharp {
         /// <summary>
         ///   Looks up a localized string similar to Type defines operator == or operator != but does not override Object.Equals(object o).
         /// </summary>
-        internal static string WRN_EqualityOpWithoutEquals_Type {
+        internal static string WRN_EqualityOpWithoutEquals_Title {
             get {
-                return ResourceManager.GetString("WRN_EqualityOpWithoutEquals_Type", resourceCulture);
+                return ResourceManager.GetString("WRN_EqualityOpWithoutEquals_Title", resourceCulture);
             }
         }
         

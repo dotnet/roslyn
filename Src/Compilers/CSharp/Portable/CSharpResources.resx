@@ -1769,7 +1769,7 @@ If such a class is used as a base class and if the deriving class defines a dest
   <data name="WRN_EqualityOpWithoutEquals" xml:space="preserve">
     <value>'{0}' defines operator == or operator != but does not override Object.Equals(object o)</value>
   </data>
-  <data name="WRN_EqualityOpWithoutEquals_Type" xml:space="preserve">
+  <data name="WRN_EqualityOpWithoutEquals_Title" xml:space="preserve">
     <value>Type defines operator == or operator != but does not override Object.Equals(object o)</value>
   </data>
   <data name="WRN_EqualityOpWithoutGetHashCode" xml:space="preserve">
@@ -2924,7 +2924,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
     <value>Assembly reference is invalid and cannot be resolved</value>
   </data>
   <data name="WRN_InvalidAssemblyName_Description" xml:space="preserve">
-     <value>This warning indicates that an attribute, such as InternalsVisibleToAttribute, was not specified correctly.</value>
+    <value>This warning indicates that an attribute, such as InternalsVisibleToAttribute, was not specified correctly.</value>
   </data>
   <data name="WRN_UnifyReferenceMajMin" xml:space="preserve">
     <value>Assuming assembly reference '{0}' used by '{1}' matches identity '{2}' of '{3}', you may need to supply runtime policy</value>
@@ -4606,5 +4606,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="WRN_AlignmentMagnitude" xml:space="preserve">
     <value>Alignment value {0} has a magnitude greater than {1} and may result in a large formatted string.</value>
+  </data>
+  <data name="HDN_UnusedExternAlias_Title" xml:space="preserve">
+    <value>Unused extern alias.</value>
+  </data>
+  <data name="HDN_UnusedUsingDirective_Title" xml:space="preserve">
+    <value>Unnecessary using directive.</value>
+  </data>
+  <data name="INF_UnableToLoadSomeTypesInAnalyzer_Title" xml:space="preserve">
+    <value>Skip loading types in analyzer assembly that fail due to a ReflectionTypeLoadException.</value>
+  </data>
+  <data name="WRN_AlignmentMagnitude_Title" xml:space="preserve">
+    <value>Alignment value has a magnitude that may result in a large formatted string.</value>
   </data>
 </root>

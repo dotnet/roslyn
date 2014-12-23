@@ -197,7 +197,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_GlobalAliasDefn:
                 case ErrorCode.WRN_AlwaysNull:
                 case ErrorCode.WRN_CmpAlwaysFalse:
-                case ErrorCode.WRN_AmbigLookupMeth:
                 case ErrorCode.WRN_GotoCaseShouldConvert:
                 case ErrorCode.WRN_NubExprIsConstBool:
                 case ErrorCode.WRN_NubExprIsConstBool2:
@@ -211,7 +210,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_UnmatchedParamTag:
                 case ErrorCode.WRN_UnprocessedXMLComment:
                 case ErrorCode.WRN_InvalidSearchPathDir:
-                case ErrorCode.WRN_AssumedMatchThis:
                 case ErrorCode.WRN_UnifyReferenceMajMin:
                 case ErrorCode.WRN_DuplicateTypeParamTag:
                 case ErrorCode.WRN_UnmatchedTypeParamTag:
@@ -266,11 +264,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_IllegalPPChecksum:
                 case ErrorCode.WRN_EndOfPPLineExpected:
                 case ErrorCode.WRN_ConflictingChecksum:
-                case ErrorCode.WRN_EmptyFileName:
                 case ErrorCode.WRN_DotOnDefault:
                 case ErrorCode.WRN_BadXMLRefTypeVar:
                 case ErrorCode.WRN_ReferencedAssemblyReferencesLinkedPIA:
-                case ErrorCode.WRN_TypeNotFoundForNoPIAWarning:
                 case ErrorCode.WRN_MultipleRuntimeImplementationMatches:
                 case ErrorCode.WRN_MultipleRuntimeOverrideMatches:
                 case ErrorCode.WRN_FileAlreadyIncluded:

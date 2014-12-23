@@ -5,6 +5,7 @@ Imports System.Globalization
 Imports System.Runtime.Serialization
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Diagnostics.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
@@ -582,6 +583,39 @@ End Class
 
             compilation.VerifyDiagnostics()
             compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, AnalyzerDiagnostic("CodeBlockDiagnostic", <![CDATA[Public Sub Method()]]>))
+        End Sub
+
+        <Fact, WorkItem(1096600)>
+        Private Sub TestDescriptorForConfigurableCompilerDiagnostics()
+            ' Verify that all configurable compiler diagnostics, i.e. all non-error diagnostics,
+            ' have a non-null and non-empty Title and Category.
+            ' These diagnostic descriptor fields show up in the ruleset editor and hence must have a valid value.
+
+            Dim analyzer = New VisualBasicCompilerDiagnosticAnalyzer()
+            For Each descriptor In analyzer.SupportedDiagnostics
+                Assert.Equal(descriptor.IsEnabledByDefault, True)
+
+                If descriptor.IsNotConfigurable() Then
+                    Continue For
+                End If
+
+                Dim title = descriptor.Title.ToString()
+                If String.IsNullOrEmpty(title) Then
+                    Dim id = Integer.Parse(descriptor.Id.Substring(2))
+                    Dim missingResource = [Enum].GetName(GetType(ERRID), id) & "_Title"
+                    Dim message = String.Format("Add resource string named '{0}' for Title of '{1}' to '{2}'", missingResource, descriptor.Id, NameOf(VBResources))
+
+                    ' This assert will fire if you are adding a new compiler diagnostic (non-error severity),
+                    ' but did not add a title resource string for the diagnostic.
+                    Assert.True(False, message)
+                End If
+
+                Dim category = descriptor.Category
+                If String.IsNullOrEmpty(title) Then
+                    Dim message = String.Format("'{0}' must have a non-null non-empty 'Category'", descriptor.Id)
+                    Assert.True(False, message)
+                End If
+            Next
         End Sub
     End Class
 End Namespace

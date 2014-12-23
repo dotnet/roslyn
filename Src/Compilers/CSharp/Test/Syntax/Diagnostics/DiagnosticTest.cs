@@ -165,7 +165,6 @@ class X
             Assert.Equal(2, ErrorFacts.GetWarningLevel(ErrorCode.WRN_UnmatchedParamRefTag));
             Assert.Equal(2, ErrorFacts.GetWarningLevel(ErrorCode.WRN_UnmatchedTypeParamRefTag));
             Assert.Equal(1, ErrorFacts.GetWarningLevel(ErrorCode.WRN_ReferencedAssemblyReferencesLinkedPIA));
-            Assert.Equal(1, ErrorFacts.GetWarningLevel(ErrorCode.WRN_TypeNotFoundForNoPIAWarning));
             Assert.Equal(2, ErrorFacts.GetWarningLevel(ErrorCode.WRN_DynamicDispatchToConditionalMethod));
             Assert.Equal(3, ErrorFacts.GetWarningLevel(ErrorCode.WRN_IsDynamicIsConfusing));
             Assert.Equal(2, ErrorFacts.GetWarningLevel(ErrorCode.WRN_NoSources));

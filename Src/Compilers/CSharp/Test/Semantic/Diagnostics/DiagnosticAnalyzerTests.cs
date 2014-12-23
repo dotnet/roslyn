@@ -10,6 +10,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Diagnostics.CSharp;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -811,6 +812,44 @@ public class B
                 .VerifyDiagnostics()
                 .VerifyCSharpAnalyzerDiagnostics(analyzers, null, null,
                      Diagnostic("MyFieldDiagnostic", @"public string field = ""field"";").WithLocation(4, 5));
+        }
+
+        [Fact, WorkItem(1096600)]
+        void TestDescriptorForConfigurableCompilerDiagnostics()
+        {
+            // Verify that all configurable compiler diagnostics, i.e. all non-error diagnostics,
+            // have a non-null and non-empty Title and Category.
+            // These diagnostic descriptor fields show up in the ruleset editor and hence must have a valid value.
+
+            var analyzer = new CSharpCompilerDiagnosticAnalyzer();
+            foreach (var descriptor in analyzer.SupportedDiagnostics)
+            {
+                Assert.Equal(descriptor.IsEnabledByDefault, true);
+
+                if (descriptor.IsNotConfigurable())
+                {
+                    continue;
+                }
+
+                var title = descriptor.Title.ToString();
+                if (string.IsNullOrEmpty(title))
+                {
+                    var id = Int32.Parse(descriptor.Id.Substring(2));
+                    var missingResource = Enum.GetName(typeof(ErrorCode), id) + "_Title";
+                    var message = string.Format("Add resource string named '{0}' for Title of '{1}' to '{2}'", missingResource, descriptor.Id, nameof(CSharpResources));
+
+                    // This assert will fire if you are adding a new compiler diagnostic (non-error severity),
+                    // but did not add a title resource string for the diagnostic.
+                    Assert.True(false, message);
+                }
+
+                var category = descriptor.Category;
+                if (string.IsNullOrEmpty(title))
+                {
+                    var message = string.Format("'{0}' must have a non-null non-empty 'Category'", descriptor.Id);
+                    Assert.True(false, message);
+                }
+            }
         }
     }
 }

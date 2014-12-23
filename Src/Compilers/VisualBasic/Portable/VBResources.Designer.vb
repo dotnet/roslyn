@@ -11569,11 +11569,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Unused import clause..
+        '''</summary>
+        Friend ReadOnly Property HDN_UnusedImportClause_Title() As String
+            Get
+                Return ResourceManager.GetString("HDN_UnusedImportClause_Title", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Unused import statement..
         '''</summary>
         Friend ReadOnly Property HDN_UnusedImportStatement() As String
             Get
                 Return ResourceManager.GetString("HDN_UnusedImportStatement", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Unused import statement..
+        '''</summary>
+        Friend ReadOnly Property HDN_UnusedImportStatement_Title() As String
+            Get
+                Return ResourceManager.GetString("HDN_UnusedImportStatement_Title", resourceCulture)
             End Get
         End Property
         
@@ -11700,6 +11718,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property INF_UnableToLoadSomeTypesInAnalyzer() As String
             Get
                 Return ResourceManager.GetString("INF_UnableToLoadSomeTypesInAnalyzer", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Skip loading types in analyzer assembly that fail due to a ReflectionTypeLoadException..
+        '''</summary>
+        Friend ReadOnly Property INF_UnableToLoadSomeTypesInAnalyzer_Title() As String
+            Get
+                Return ResourceManager.GetString("INF_UnableToLoadSomeTypesInAnalyzer_Title", resourceCulture)
             End Get
         End Property
         

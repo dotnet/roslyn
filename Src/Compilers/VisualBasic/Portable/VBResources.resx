@@ -5172,6 +5172,9 @@
   <data name="INF_UnableToLoadSomeTypesInAnalyzer" xml:space="preserve">
     <value>Skipping some types in analyzer assembly {0} due to a ReflectionTypeLoadException : {1}.</value>
   </data>
+  <data name="INF_UnableToLoadSomeTypesInAnalyzer_Title" xml:space="preserve">
+    <value>Skip loading types in analyzer assembly that fail due to a ReflectionTypeLoadException.</value>
+  </data>
   <data name="ERR_CantReadRulesetFile" xml:space="preserve">
     <value>Error reading ruleset file {0} - {1}</value>
   </data>
@@ -5228,5 +5231,11 @@
   </data>
   <data name="ERR_InterpolationFormatWhitespace" xml:space="preserve">
     <value>Format specifier may not contain trailing whitespace.</value>
+  </data>
+  <data name="HDN_UnusedImportClause_Title" xml:space="preserve">
+    <value>Unused import clause.</value>
+  </data>
+  <data name="HDN_UnusedImportStatement_Title" xml:space="preserve">
+    <value>Unused import statement.</value>
   </data>
 </root>

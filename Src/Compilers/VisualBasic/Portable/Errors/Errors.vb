@@ -1694,10 +1694,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_SynthMemberShadowsSynthMember7 = 40018
         WRN_UseOfObsoletePropertyAccessor3 = 40019
         WRN_UseOfObsoletePropertyAccessor2 = 40020
-        WRN_MemberShadowsMemberInModule5 = 40021      ' no repro in legacy test, most probably not reachable
-        WRN_SynthMemberShadowsMemberInModule5 = 40022 ' no repro in legacy test, most probably not reachable
-        WRN_MemberShadowsSynthMemberInModule6 = 40023 ' no repro in legacy test, most probably not reachable
-        WRN_SynthMemberShadowsSynthMemberMod7 = 40024 ' no repro in legacy test, most probably not reachable
+        ' WRN_MemberShadowsMemberInModule5 = 40021      ' no repro in legacy test, most probably not reachable. Unused in Roslyn.
+        ' WRN_SynthMemberShadowsMemberInModule5 = 40022 ' no repro in legacy test, most probably not reachable. Unused in Roslyn.
+        ' WRN_MemberShadowsSynthMemberInModule6 = 40023 ' no repro in legacy test, most probably not reachable. Unused in Roslyn.
+        ' WRN_SynthMemberShadowsSynthMemberMod7 = 40024 ' no repro in legacy test, most probably not reachable. Unused in Roslyn.
         WRN_FieldNotCLSCompliant1 = 40025
         WRN_BaseClassNotCLSCompliant2 = 40026
         WRN_ProcTypeNotCLSCompliant1 = 40027
@@ -1716,7 +1716,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_OptionalValueNotCLSCompliant1 = 40042
         WRN_CLSAttrInvalidOnGetSet = 40043
         WRN_TypeConflictButMerged6 = 40046
-        WRN_TypeConflictButMerged7 = 40047  ' deprecated
+        ' WRN_TypeConflictButMerged7 = 40047  ' deprecated
         WRN_ShadowingGenericParamWithParam1 = 40048
         WRN_CannotFindStandardLibrary1 = 40049
         WRN_EventDelegateTypeNotCLSCompliant2 = 40050
@@ -1749,11 +1749,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_RecursiveAddHandlerCall = 41998
         WRN_ImplicitConversionCopyBack = 41999
         WRN_MustShadowOnMultipleInheritance2 = 42000
-        WRN_ObsoleteClassInitialize = 42001     ' deprecated
-        WRN_ObsoleteClassTerminate = 42002      ' deprecated
+        ' WRN_ObsoleteClassInitialize = 42001     ' deprecated
+        ' WRN_ObsoleteClassTerminate = 42002      ' deprecated
         WRN_RecursiveOperatorCall = 42004
-        WRN_IndirectlyImplementedBaseMember5 = 42014 ' deprecated
-        WRN_ImplementedBaseMember4 = 42015 ' deprecated
+        ' WRN_IndirectlyImplementedBaseMember5 = 42014 ' deprecated
+        ' WRN_ImplementedBaseMember4 = 42015 ' deprecated
 
         WRN_ImplicitConversionSubst1 = 42016 '// populated by 42350/42332/42336/42337/42338/42339/42340
         WRN_LateBindingResolution = 42017
@@ -1834,10 +1834,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_LambdaPassedToRemoveHandler = 42326
         WRN_LiftControlVariableQuery = 42327
         WRN_RelDelegatePassedToRemoveHandler = 42328
-        WRN_QueryMissingAsClauseinVarDecl = 42329
+        ' WRN_QueryMissingAsClauseinVarDecl = 42329     ' unused in Roslyn.
 
-        WRN_LiftUsingVariableInLambda1 = 42330
-        WRN_LiftUsingVariableInQuery1 = 42331
+        ' WRN_LiftUsingVariableInLambda1 = 42330     ' unused in Roslyn.
+        ' WRN_LiftUsingVariableInQuery1 = 42331     ' unused in Roslyn.
         WRN_AmbiguousCastConversion2 = 42332 '// substitutes into 42016
         WRN_VarianceDeclarationAmbiguous3 = 42333
         WRN_ArrayInitNoTypeObjectAssumed = 42334
