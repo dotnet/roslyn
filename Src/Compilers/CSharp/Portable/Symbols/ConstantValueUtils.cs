@@ -88,6 +88,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         unconvertedBoundValue = conversion.Operand;
                     }
 
+                    // If we have already computed the unconverted constant value, then this call is cheap
+                    // because BoundConversions store their constant values (i.e. not recomputing anything).
+                    var constantValue = boundValue.ConstantValue;
+
                     var unconvertedConstantValue = unconvertedBoundValue.ConstantValue;
                     if (unconvertedConstantValue != null &&
                         !unconvertedConstantValue.IsNull &&
@@ -104,18 +108,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         //
                         // Give a special error for that case.
                         diagnostics.Add(ErrorCode.ERR_NotNullConstRefField, initValueNodeLocation, thisSymbol, typeSymbol);
+
+                        // If we get here, then the constantValue will likely be null.
+                        // However, it seems reasonable to assume that the programmer will correct the error not
+                        // by changing the value to "null", but by updating the type of the constant.  Consequently,
+                        // we retain the unconverted constant value so that it can propagate through the rest of
+                        // constant folding.
+                        constantValue = constantValue ?? unconvertedConstantValue;
                     }
-
-                    // If we have already computed the unconverted constant value, then this call is cheap
-                    // because BoundConversions store their constant values (i.e. not recomputing anything).
-                    var constantValue = boundValue.ConstantValue;
-
-                    // If we saw ERR_NotNullConstRefField above, then the constant value will likely be null.
-                    // However, it seems reasonable to assume that the programmer will correct the error not
-                    // by changing the value to "null", but by updating the type of the constant.  Consequently,
-                    // we retain the unconverted constant value so that it can propagate through the rest of
-                    // constant folding.
-                    constantValue = constantValue ?? unconvertedConstantValue;
 
                     if (constantValue != null && !hasDynamicConversion)
                     {
