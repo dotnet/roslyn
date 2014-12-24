@@ -15,6 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression rewrittenExpression = VisitExpression(node.Expression);
             BoundExpression rewrittenIndex = VisitExpression(node.Index);
 
+            return RewritePointerElementAccess(node, rewrittenExpression, rewrittenIndex);
+        }
+
+        private BoundExpression RewritePointerElementAccess(BoundPointerElementAccess node, BoundExpression rewrittenExpression, BoundExpression rewrittenIndex)
+        {
             // Optimization: p[0] == *p
             if (rewrittenIndex.IsDefaultValue())
             {

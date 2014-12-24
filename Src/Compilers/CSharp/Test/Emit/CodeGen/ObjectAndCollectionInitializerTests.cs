@@ -3339,6 +3339,77 @@ partial class C : IEnumerable
 ");
         }
 
+        [Fact, WorkItem(1089276, "DevDiv")]
+        public void PointerIndexing_01()
+        {
+            var source = @"
+unsafe class C
+{
+    int* X;
+    static void Main()
+    {
+        var array = new[] { 0 };
+
+        fixed (int* p = array)
+        {
+            new C(p) { X = {[0] = 1 } };
+        }
+
+        System.Console.WriteLine(array[0]); 
+    }
+
+    C(int* x)
+    {
+        X = x;
+    }
+}";
+            CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: "1");
+        }
+
+        [Fact, WorkItem(1089276, "DevDiv")]
+        public void PointerIndexing_02()
+        {
+            var source = @"
+unsafe class C
+{
+    int** X;
+    static void Main()
+    {
+        var array = new[] { 0, 0 };
+
+        fixed (int* p = array)
+        {
+            var array2 = new[] { p };
+
+            fixed (int** pp = array2 )
+            {
+                new C(pp) { X = {[Index] = {[0] = 2, [1] = 3} } };
+            }
+        }
+
+        System.Console.WriteLine(array[0]); 
+        System.Console.WriteLine(array[1]); 
+    }
+
+    static int Index
+    {
+        get
+        {
+            System.Console.WriteLine(""get_Index"");
+            return 0;
+        }
+    }
+
+    C(int** x)
+    {
+        X = x;
+    }
+}";
+            CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: 
+@"get_Index
+2
+3");
+        }
         #endregion
     }
 }

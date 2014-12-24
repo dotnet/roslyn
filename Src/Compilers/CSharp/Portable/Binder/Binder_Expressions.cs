@@ -3241,6 +3241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.ArrayAccess:
+                case BoundKind.PointerElementAccess: 
                     return boundMember;
 
                 default:

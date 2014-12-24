@@ -211,13 +211,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Update the receiver for the field/property access as we might have introduced a temp for the initializer rewrite.
 
-            BoundExpression rewrittenLeft = VisitExpression(assignment.Left);            
+            BoundExpression rewrittenLeft = null;
+
+            // Do not lower pointer access yet, we'll do it later.
+            if (assignment.Left.Kind != BoundKind.PointerElementAccess)
+            {
+                rewrittenLeft = VisitExpression(assignment.Left);
+            }
 
             BoundKind rhsKind = assignment.Right.Kind;
             bool isRhsNestedInitializer = rhsKind == BoundKind.ObjectInitializerExpression || rhsKind == BoundKind.CollectionInitializerExpression;
 
             BoundExpression rewrittenAccess;
-            switch (rewrittenLeft.Kind)
+            switch ((rewrittenLeft ?? assignment.Left).Kind)
             {
                 case BoundKind.ObjectInitializerMember:
                     {
@@ -323,8 +329,41 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
 
+                case BoundKind.PointerElementAccess:
+                    {
+                        // Remember we haven't lowered this node yet.
+                        var pointerAccess = (BoundPointerElementAccess)assignment.Left;
+                        var rewrittenIndex = VisitExpression(pointerAccess.Index);
+
+                        if (IntroducingReadCanBeObservable(rewrittenIndex))
+                        {
+                            BoundAssignmentOperator store;
+                            var temp = this.factory.StoreToTemp(rewrittenIndex, out store);
+                            rewrittenIndex = temp;
+
+                            if (temps == null)
+                            {
+                                temps = ArrayBuilder<LocalSymbol>.GetInstance();
+                            }
+                            temps.Add(temp.LocalSymbol);
+                            result.Add(store);
+                        }
+
+                        rewrittenAccess = RewritePointerElementAccess(pointerAccess, rewrittenReceiver, rewrittenIndex);
+
+                        if (!isRhsNestedInitializer)
+                        {
+                            // Rewrite as simple assignment.
+                            var rewrittenRight = VisitExpression(assignment.Right);
+                            result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, assignment.Type, used: false));
+                            return;
+                        }
+
+                        break;
+                    }
+
                 default:
-                    throw ExceptionUtilities.UnexpectedValue(rewrittenLeft.Kind);
+                    throw ExceptionUtilities.UnexpectedValue((rewrittenLeft ?? assignment.Left).Kind);
             }
 
             AddObjectOrCollectionInitializers(ref dynamicSiteInitializers, ref temps, result, rewrittenAccess, assignment.Right);
