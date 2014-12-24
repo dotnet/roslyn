@@ -394,54 +394,6 @@ End Module"}};
             VerifyResultAndOutput(result, tempDirectory, "Hello from VB\r\n");
         }
 
-        [WorkItem(1081437)]
-        [Fact(Skip = "Bug 1081437")]
-        public void TestAssemblyLoadFailureCs()
-        {
-            var files = new Dictionary<string, string> { { "hello.cs",
-@"using System;
-using System.Diagnostics;
-class Hello 
-{
-    static void Main()
-    { 
-        var obj = new Process();
-        Console.WriteLine(""Hello, world.""); 
-    }
-}"}};
-            // Delete VBCSCompiler.exe so csc2 is forced to fall back to csc.exe
-            File.Delete(CompilerServerExecutable);
-            // Delete CodeAnalysis so we get a FileNotFoundException
-            File.Delete(Path.Combine(compilerDirectory, "Microsoft.CodeAnalysis.dll"));
-            var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/nologo hello.cs", tempDirectory, files);
-            Assert.NotEqual(0, result.ExitCode);
-            Assert.True(result.ContainsErrors);
-            Assert.True(result.Errors.TrimStart().StartsWith("Unhandled Exception: System.IO.FileNotFoundException"));
-        }
-
-        [WorkItem(1081437)]
-        [Fact(Skip = "Bug 1081437")]
-        public void TestAssemblyLoadFailureVb()
-        {
-            var files = new Dictionary<string, string> { { "hello.vb",
-@"Imports System.Diagnostics
-
-Module Module1
-    Sub Main()
-        Dim p As New Process()
-        Console.WriteLine(""Hello from VB"")
-    End Sub
-End Module"}};
-            // Delete VBCSCompiler.exe so vbc2 is forced to fall back to vbc.exe
-            File.Delete(CompilerServerExecutable);
-            // Delete CodeAnalysis so we get a FileNotFoundException
-            File.Delete(Path.Combine(compilerDirectory, "Microsoft.CodeAnalysis.dll"));
-            var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/nologo hello.vb", tempDirectory, files);
-            Assert.NotEqual(0, result.ExitCode);
-            Assert.True(result.ContainsErrors);
-            Assert.True(result.Errors.TrimStart().StartsWith("Unhandled Exception: System.IO.FileNotFoundException"));
-        }
-
         [Fact]
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public void HelloWorldCS()
@@ -1781,7 +1733,7 @@ class Hello
             Assert.Equal(1, result.ExitCode);
         }
 
-        [Fact]
+        [Fact(Skip = "DevDiv 1095079"), WorkItem(1095079)]
         public async Task ServerRespectsAppConfig()
         {
             var exeConfigPath = Path.Combine(compilerDirectory, CompilerServerExeName + ".config");
@@ -1796,7 +1748,7 @@ class Hello
             doc.Save(exeConfigPath);
 
             var proc = ProcessLauncher.StartProcess(CompilerServerExecutable, "");
-            await Task.Delay(3000).ConfigureAwait(false); // Give 2s leeway
+            await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false); // Give 2s leeway
 
             var exited = proc.HasExited;
             if (!exited)
