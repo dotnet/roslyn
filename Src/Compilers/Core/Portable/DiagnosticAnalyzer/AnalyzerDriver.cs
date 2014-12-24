@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// Driver to execute diagnostic analyzers for a given compilation.
     /// It uses a <see cref="AsyncQueue{TElement}"/> of <see cref="CompilationEvent"/>s to drive its analysis.
     /// </summary>
-    public abstract class AnalyzerDriver : IDisposable
+    internal abstract class AnalyzerDriver : IDisposable
     {
-        private static readonly ConditionalWeakTable<Compilation, SuppressMessageAttributeState> suppressMessageStateByCompilation = new ConditionalWeakTable<Compilation, SuppressMessageAttributeState>();
+        internal static readonly ConditionalWeakTable<Compilation, SuppressMessageAttributeState> SuppressMessageStateByCompilation = new ConditionalWeakTable<Compilation, SuppressMessageAttributeState>();
 
         private readonly Action<Diagnostic> addDiagnostic;
         private Compilation compilation;
@@ -87,44 +87,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             AnalyzerDriver analyzerDriver = compilation.AnalyzerForLanguage(analyzers, options, cancellationToken);
             newCompilation = compilation.WithEventQueue(analyzerDriver.CompilationEventQueue);
             return analyzerDriver;
-        }
-
-        /// <summary>
-        /// Returns all diagnostics computed by the analyzers for the compilation.
-        /// </summary>
-        /// <param name="compilation">The compilation to run analysis against</param>
-        /// <param name="analyzers">The set of analyzers to include in the analysis</param>
-        /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
-        public static Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsAsync(
-            Compilation compilation, 
-            ImmutableArray<DiagnosticAnalyzer> analyzers, 
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return GetAnalyzerDiagnosticsAsync(compilation, analyzers, null, cancellationToken);
-        }
-
-        /// <summary>
-        /// Returns all diagnostics computed by the analyzers for the compilation.
-        /// </summary>
-        /// <param name="compilation">The compilation to run analysis against</param>
-        /// <param name="analyzers">The set of analyzers to include in the analysis</param>
-        /// <param name="options">Options that are passed to analyzers</param>
-        /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
-        public static Task<ImmutableArray<Diagnostic>> GetAnalyzerDiagnosticsAsync(
-            Compilation compilation, 
-            ImmutableArray<DiagnosticAnalyzer> analyzers, 
-            AnalyzerOptions options, 
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            options = options ?? AnalyzerOptions.Empty;
-            Compilation newCompilation = null;
-            var analyzerDriver = AnalyzerDriver.Create(compilation, analyzers, options, out newCompilation, cancellationToken);
-
-            // We need to generate compiler events in order for the event queue to be populated and the analyzer driver to return diagnostics.
-            // So we'll call GetDiagnostics which will generate all events except for those on emit.
-            newCompilation.GetDiagnostics(cancellationToken);
-
-            return analyzerDriver.GetDiagnosticsAsync();
         }
 
         /// <summary>
@@ -466,71 +428,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var d = compilation.FilterDiagnostic(diagnostic);
                 if (d != null)
                 {
-                    var suppressMessageState = suppressMessageStateByCompilation.GetValue(compilation, (c) => new SuppressMessageAttributeState(c));
+                    var suppressMessageState = SuppressMessageStateByCompilation.GetValue(compilation, (c) => new SuppressMessageAttributeState(c));
                     if (!suppressMessageState.IsDiagnosticSuppressed(d, symbolOpt: symbolOpt))
                     {
                         DiagnosticQueue.Enqueue(d);
                     }
                 }
             };
-        }
-
-        /// <summary>
-        /// Given a set of compiler or <see cref="DiagnosticAnalyzer"/> generated <paramref name="diagnostics"/>, returns the effective diagnostics after applying the below filters:
-        /// 1) <see cref="CompilationOptions.SpecificDiagnosticOptions"/> specified for the given <paramref name="compilation"/>.
-        /// 2) <see cref="CompilationOptions.GeneralDiagnosticOption"/> specified for the given <paramref name="compilation"/>.
-        /// 3) Diagnostic suppression through applied <see cref="System.Diagnostics.CodeAnalysis.SuppressMessageAttribute"/>.
-        /// 4) Pragma directives for the given <paramref name="compilation"/>.
-        /// </summary>
-        public static IEnumerable<Diagnostic> GetEffectiveDiagnostics(IEnumerable<Diagnostic> diagnostics, Compilation compilation)
-        {
-            if (diagnostics == null)
-            {
-                throw new ArgumentNullException(nameof(diagnostics));
-            }
-
-            if (compilation == null)
-            {
-                throw new ArgumentNullException(nameof(compilation));
-            }
-
-            var suppressMessageState = suppressMessageStateByCompilation.GetValue(compilation, (c) => new SuppressMessageAttributeState(c));
-            foreach (var diagnostic in diagnostics)
-            {
-                if (diagnostic != null)
-                {
-                    var effectiveDiagnostic = compilation.FilterDiagnostic(diagnostic);
-                    if (effectiveDiagnostic != null && !suppressMessageState.IsDiagnosticSuppressed(effectiveDiagnostic))
-                    {
-                        yield return effectiveDiagnostic;
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options.
-        /// <paramref name="continueOnAnalyzerException"/> says whether the caller would like the exception thrown by the analyzers to be handled or not. If true - Handles ; False - Not handled.
-        /// </summary>
-        public static bool IsDiagnosticAnalyzerSuppressed(DiagnosticAnalyzer analyzer, CompilationOptions options, Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException)
-        {
-            if (analyzer == null)
-            {
-                throw new ArgumentNullException(nameof(analyzer));
-            }
-
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-
-            if (continueOnAnalyzerException == null)
-            {
-                throw new ArgumentNullException(nameof(continueOnAnalyzerException));
-            }
-
-            Action<Diagnostic> dummy = _ => { };
-            return IsDiagnosticAnalyzerSuppressed(analyzer, options, dummy, continueOnAnalyzerException, CancellationToken.None);
         }
 
         private static HostSessionStartAnalysisScope GetSessionAnalysisScope(
@@ -726,7 +630,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Returns true if all the diagnostics that can be produced by this analyzer are suppressed through options.
         /// </summary>
-        private static bool IsDiagnosticAnalyzerSuppressed(
+        internal static bool IsDiagnosticAnalyzerSuppressed(
             DiagnosticAnalyzer analyzer,
             CompilationOptions options,
             Action<Diagnostic> addDiagnostic,

@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static IEnumerable<Diagnostic> GetEffectiveDiagnostics(this Compilation compilation, IEnumerable<Diagnostic> diagnostics)
         {
-            return AnalyzerDriver.GetEffectiveDiagnostics(diagnostics, compilation);
+            return CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilation);
         }
 
         /// <summary>
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static bool IsDiagnosticAnalyzerSuppressed(this DiagnosticAnalyzer analyzer, CompilationOptions options)
         {
-            return AnalyzerDriver.IsDiagnosticAnalyzerSuppressed(analyzer, options, (exception, throwingAnalyzer) => true);
+            return CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(analyzer, options, (exception, throwingAnalyzer) => true);
         }
 
         public static TCompilation VerifyEmitDiagnostics<TCompilation>(this TCompilation c, EmitOptions options, params DiagnosticDescription[] expected)
