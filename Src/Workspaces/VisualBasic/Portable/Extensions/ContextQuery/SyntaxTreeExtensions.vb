@@ -1,10 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.CompilerServices
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Extensions
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 Imports System.Threading
@@ -309,6 +305,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                targetToken.IsChildToken(Of IfStatementSyntax)(Function(ifStatement) ifStatement.IfKeyword) OrElse
                targetToken.IsChildToken(Of ElseIfStatementSyntax)(Function(elseIfStatement) elseIfStatement.ElseIfKeyword) OrElse
                targetToken.IsChildToken(Of InferredFieldInitializerSyntax)(Function(inferredField) inferredField.KeyKeyword) OrElse
+               targetToken.IsChildToken(Of InterpolationSyntax)(Function(interpolation) interpolation.OpenBraceToken) OrElse
                targetToken.IsChildToken(Of EqualsValueSyntax)(Function(initializer) initializer.EqualsToken) OrElse
                targetToken.IsChildToken(Of JoinClauseSyntax)(Function(joinQuery) joinQuery.OnKeyword) OrElse
                targetToken.IsChildSeparatorToken(Of JoinClauseSyntax, JoinConditionSyntax)(Function(joinQuery) joinQuery.JoinConditions) OrElse

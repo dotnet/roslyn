@@ -4018,5 +4018,123 @@ End Module
 
             AssertFormatLf2CrLf(text.Value, expected.Value)
         End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        Public Sub InterpolatedString1()
+            Dim text = <Code>
+Class C
+    Sub M()
+        Dim a = "World"
+        Dim b =$"Hello,  {a}"
+    End Sub
+End Class
+</Code>
+
+            Dim expected = <Code>
+Class C
+    Sub M()
+        Dim a = "World"
+        Dim b = $"Hello,  {a}"
+    End Sub
+End Class
+</Code>
+
+            AssertFormatLf2CrLf(text.Value, expected.Value)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        Public Sub InterpolatedString2()
+            Dim text = <Code>
+Class C
+    Sub M()
+        Dim a = "Hello"
+        Dim b = "World"
+        Dim c = $"{a}, {b}"
+    End Sub
+End Class
+</Code>
+
+            Dim expected = <Code>
+Class C
+    Sub M()
+        Dim a = "Hello"
+        Dim b = "World"
+        Dim c = $"{a}, {b}"
+    End Sub
+End Class
+</Code>
+
+            AssertFormatLf2CrLf(text.Value, expected.Value)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        Public Sub InterpolatedString3()
+            Dim text = <Code>
+Class C
+    Sub M()
+        Dim a = "World"
+        Dim b = $"Hello, { a }"
+    End Sub
+End Class
+</Code>
+
+            Dim expected = <Code>
+Class C
+    Sub M()
+        Dim a = "World"
+        Dim b = $"Hello, { a }"
+    End Sub
+End Class
+</Code>
+
+            AssertFormatLf2CrLf(text.Value, expected.Value)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        Public Sub InterpolatedString4()
+            Dim text = <Code>
+Class C
+    Sub M()
+        Dim a = "Hello"
+        Dim b = "World"
+        Dim c = $"{ a }, { b }"
+    End Sub
+End Class
+</Code>
+
+            Dim expected = <Code>
+Class C
+    Sub M()
+        Dim a = "Hello"
+        Dim b = "World"
+        Dim c = $"{ a }, { b }"
+    End Sub
+End Class
+</Code>
+
+            AssertFormatLf2CrLf(text.Value, expected.Value)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Formatting)>
+        Public Sub InterpolatedString5()
+            Dim text = <Code>
+Class C
+    Sub M()
+        Dim s = $"{42 , -4 :x}"
+    End Sub
+End Class
+</Code>
+
+            Dim expected = <Code>
+Class C
+    Sub M()
+        Dim s = $"{42,-4:x}"
+    End Sub
+End Class
+</Code>
+
+            AssertFormatLf2CrLf(text.Value, expected.Value)
+        End Sub
+
     End Class
 End Namespace

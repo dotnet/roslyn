@@ -258,6 +258,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Return CreateAdjustSpacesOperation(1, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 
+            ' No space after $" at the start of an interpolated string
+            If previousToken.Kind = SyntaxKind.DollarSignDoubleQuoteToken AndAlso previousToken.Parent.IsKind(SyntaxKind.InterpolatedStringExpression) Then
+                Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces)
+            End If
+
+            ' No space before " at the end of an interpolated string
+            If currentToken.Kind = SyntaxKind.DoubleQuoteToken AndAlso currentToken.Parent.IsKind(SyntaxKind.InterpolatedStringExpression) Then
+                Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces)
+            End If
+
+            ' No space before { Or after } in interpolations
+            If (currentToken.Kind = SyntaxKind.OpenBraceToken AndAlso currentToken.Parent.IsKind(SyntaxKind.Interpolation)) OrElse
+               (previousToken.Kind = SyntaxKind.CloseBraceToken AndAlso previousToken.Parent.IsKind(SyntaxKind.Interpolation)) Then
+                Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces)
+            End If
+
+            ' Preserve space after { Or before } in interpolations (i.e. between the braces And the expression)
+            If (previousToken.Kind = SyntaxKind.OpenBraceToken AndAlso previousToken.Parent.IsKind(SyntaxKind.Interpolation)) OrElse
+               (currentToken.Kind = SyntaxKind.CloseBraceToken AndAlso currentToken.Parent.IsKind(SyntaxKind.Interpolation)) Then
+                Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.PreserveSpaces)
+            End If
+
+            ' No space before Or after , in interpolation alignment clause
+            If (previousToken.Kind = SyntaxKind.CommaToken AndAlso previousToken.Parent.IsKind(SyntaxKind.InterpolationAlignmentClause)) OrElse
+               (currentToken.Kind = SyntaxKind.CommaToken AndAlso currentToken.Parent.IsKind(SyntaxKind.InterpolationAlignmentClause)) Then
+                Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces)
+            End If
+
+            ' No space before Or after : in interpolation format clause
+            If (previousToken.Kind = SyntaxKind.ColonToken AndAlso previousToken.Parent.IsKind(SyntaxKind.InterpolationFormatClause)) OrElse
+               (currentToken.Kind = SyntaxKind.ColonToken AndAlso currentToken.Parent.IsKind(SyntaxKind.InterpolationFormatClause)) Then
+                Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpaces)
+            End If
+
             ' * }
             ' * )
             ' * ,
@@ -352,7 +386,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                currentToken.Kind = SyntaxKind.ColonToken Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
-
 
             Return nextFunc.Invoke()
         End Function

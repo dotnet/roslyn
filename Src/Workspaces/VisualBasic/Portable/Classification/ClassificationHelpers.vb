@@ -17,12 +17,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
         Public Function GetClassification(token As SyntaxToken) As String
             If SyntaxFacts.IsKeywordKind(token.Kind) Then
                 Return ClassificationTypeNames.Keyword
+            ElseIf IsStringToken(token) Then
+                Return ClassificationTypeNames.StringLiteral
             ElseIf SyntaxFacts.IsPunctuation(token.Kind) Then
                 Return ClassifyPunctuation(token)
             ElseIf token.Kind = SyntaxKind.IdentifierToken Then
                 Return ClassifyIdentifierSyntax(token)
-            ElseIf token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.CharacterLiteralToken) Then
-                Return ClassificationTypeNames.StringLiteral
             ElseIf token.IsNumericLiteral() Then
                 Return ClassificationTypeNames.NumericLiteral
             ElseIf token.Kind = SyntaxKind.XmlNameToken Then
@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             ElseIf token.IsKind(SyntaxKind.None, SyntaxKind.BadToken) Then
                 Return Nothing
             Else
-                Return Contract.FailWithReturn(Of String)("Unhandled token kind: " & token.Kind)
+                Return Contract.FailWithReturn(Of String)("Unhandled token kind: " & token.Kind().ToString())
             End If
         End Function
 
@@ -86,6 +86,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             Else
                 Return ClassificationTypeNames.Identifier
             End If
+        End Function
+
+        Private Function IsStringToken(token As SyntaxToken) As Boolean
+            If token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.CharacterLiteralToken, SyntaxKind.InterpolatedStringTextToken) Then
+                Return True
+            End If
+
+            Return token.IsKind(SyntaxKind.DollarSignDoubleQuoteToken, SyntaxKind.DoubleQuoteToken) AndAlso
+                   token.Parent.IsKind(SyntaxKind.InterpolatedStringExpression)
         End Function
 
         Private Function ClassifyTypeDeclarationIdentifier(identifier As SyntaxToken) As String
