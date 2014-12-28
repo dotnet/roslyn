@@ -219,4 +219,31 @@
   <data name="ConsumePreserveSigDescription" xml:space="preserve">
     <value>PreserveSigAttribute indicates that a method will return an HRESULT, rather than throwing an exception.  Therefore, it is important to consume the HRESULT returned by the method, so that errors can be detected.  Generally, this is done by calling Marshal.ThrowExceptionForHR.</value>
   </data>
+  <data name="MissingAttributeMessage" xml:space="preserve">
+    <value>Missing '{0}' attribute.</value>
+  </data>
+  <data name="MissingDiagnosticAnalyzerAttributeTitle" xml:space="preserve">
+    <value>Missing diagnostic analyzer attribute.</value>
+  </data>
+  <data name="ApplyDiagnosticAnalyzerAttribute_1" xml:space="preserve">
+    <value>Apply language-agnostic DiagnosticAnalyzer attribute.</value>
+  </data>
+  <data name="ApplyDiagnosticAnalyzerAttribute_2" xml:space="preserve">
+    <value>Apply '{0}' DiagnosticAnalyzer attribute.</value>
+  </data>
+  <data name="ApplyDiagnosticAnalyzerAttribute_3" xml:space="preserve">
+    <value>Apply DiagnosticAnalyzer attributes for both: '{0}' and '{1}'.</value>
+  </data>
+  <data name="MissingKindArgumentToRegisterActionMessage" xml:space="preserve">
+    <value>Specify at least one '{0}' of interest while registering a {1} analyzer action.</value>
+  </data>
+  <data name="MissingKindArgumentToRegisterActionTitle" xml:space="preserve">
+    <value>Missing kind argument while registering an analyzer action.</value>
+  </data>
+  <data name="UnsupportedSymbolKindArgumentToRegisterActionMessage" xml:space="preserve">
+    <value>SymbolKind '{0}' is not supported for symbol analyzer actions.</value>
+  </data>
+  <data name="UnsupportedSymbolKindArgumentToRegisterActionTitle" xml:space="preserve">
+    <value>Unsupported SymbolKind argument while registering a symbol analyzer action.</value>
+  </data>
 </root>

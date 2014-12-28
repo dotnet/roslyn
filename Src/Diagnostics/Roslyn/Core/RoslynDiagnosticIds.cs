@@ -20,5 +20,11 @@ namespace Roslyn.Diagnostics.Analyzers
         public const string DoNotAccessDiagnosticDescriptorRuleId = "RS0013";
         public const string DoNotCallLinqOnIndexable = "RS0014";
         public const string ConsumePreserveSigRuleId = "RS0015";
+
+        // Meta analyzers: Analyzers validating implementation of DiagnosticAnalyzers.
+        // TODO: Refactor these into a separate project as these are not specific to Roslyn.sln
+        public const string MissingDiagnosticAnalyzerAttributeRuleId = "RS1001";
+        public const string MissingKindArgumentToRegisterActionRuleId = "RS1002";
+        public const string UnsupportedSymbolKindArgumentRuleId = "RS1003";
     }
 }
