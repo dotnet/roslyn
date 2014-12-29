@@ -5710,7 +5710,7 @@ class C : I
 
             var @class = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             var classEvents = new EventSymbol[numEvents];
-            classEvents[0] = @class.GetMember<EventSymbol>("I.E");
+            classEvents[0] = @class.GetEvent("I.E");
             classEvents[1] = @class.GetMember<EventSymbol>("F");
             classEvents[2] = @class.GetMember<EventSymbol>("G");
 

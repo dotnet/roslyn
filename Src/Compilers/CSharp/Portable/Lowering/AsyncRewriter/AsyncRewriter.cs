@@ -12,12 +12,14 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private readonly AsyncMethodBuilderMemberCollection asyncMethodBuilderMemberCollection;
         private readonly bool constructedSuccessfully;
+        private readonly int methodOrdinal;
 
         private FieldSymbol builderField;
 
         private AsyncRewriter(
             BoundStatement body,
             SourceMethodSymbol method,
+            int methodOrdinal,
             AsyncStateMachine stateMachineType,
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
@@ -33,6 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ex.Diagnostic);
                 constructedSuccessfully = false;
             }
+
+            this.methodOrdinal = methodOrdinal;
         }
 
         /// <summary>
@@ -41,6 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static BoundStatement Rewrite(
             BoundStatement body,
             MethodSymbol method,
+            int methodOrdinal,
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics,
@@ -57,9 +62,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var bodyWithAwaitLifted = AwaitExpressionSpiller.Rewrite(body, method, compilationState, diagnostics);
 
-            stateMachineType = new AsyncStateMachine(slotAllocatorOpt, method, typeKind);
+            stateMachineType = new AsyncStateMachine(slotAllocatorOpt, method, methodOrdinal, typeKind);
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType);
-            var rewriter = new AsyncRewriter(bodyWithAwaitLifted, (SourceMethodSymbol)method, stateMachineType, slotAllocatorOpt, compilationState, diagnostics);
+            var rewriter = new AsyncRewriter(bodyWithAwaitLifted, (SourceMethodSymbol)method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics);
             if (!rewriter.constructedSuccessfully)
             {
                 return body;
@@ -208,6 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var rewriter = new AsyncMethodToStateMachineRewriter(
                 method: method,
+                methodOrdinal: methodOrdinal,
                 asyncMethodBuilderMemberCollection: asyncMethodBuilderMemberCollection,
                 F: F,
                 state: stateField,

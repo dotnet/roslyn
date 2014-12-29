@@ -2923,7 +2923,7 @@ unsafe class C
 ";
             // Cleanup in finally.
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
-                VerifyIL("C.<>c__DisplayClass0.<Test>b__1()", @"
+                VerifyIL("C.<>c.<Test>b__0_0()", @"
 {
   // Code size       27 (0x1b)
   .maxstack  2
@@ -2987,7 +2987,7 @@ unsafe class C
 ";
             // Cleanup not in finally.
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
-                VerifyIL("C.<>c__DisplayClass0.<Test>b__1()", @"
+                VerifyIL("C.<>c.<Test>b__0_0()", @"
 {
   // Code size       23 (0x17)
   .maxstack  2
@@ -3032,7 +3032,7 @@ unsafe class C
 ";
             // Cleanup in finally.
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
-                VerifyIL("C.<>c__DisplayClass0.<Test>b__1()", @"
+                VerifyIL("C.<>c.<Test>b__0_0()", @"
 {
   // Code size       26 (0x1a)
   .maxstack  2
@@ -3086,7 +3086,7 @@ unsafe class C
 ";
             // Cleanup in finally.
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
-                VerifyIL("C.<>c__DisplayClass0.<_ctor>b__1()", @"
+                VerifyIL("C.<>c.<.ctor>b__1_0()", @"
 {
   // Code size       27 (0x1b)
   .maxstack  2
@@ -3143,7 +3143,7 @@ unsafe class C
 ";
             // Cleanup in finally.
             CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, emitOptions: TestEmitters.All).
-                VerifyIL("C.<>c__DisplayClass0.<_ctor>b__1()", @"
+                VerifyIL("C.<>c.<.ctor>b__1_0()", @"
 {
   // Code size       26 (0x1a)
   .maxstack  2
@@ -7807,9 +7807,9 @@ unsafe class C
 {
   // Code size       28 (0x1c)
   .maxstack  2
-  .locals init (C.<>c__DisplayClass0 V_0, //CS$<>8__locals0
+  .locals init (C.<>c__DisplayClass0_0 V_0, //CS$<>8__locals0
                 int* V_1)
-  IL_0000:  newobj     ""C.<>c__DisplayClass0..ctor()""
+  IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldc.i4.2
   IL_0007:  conv.u
@@ -7819,7 +7819,7 @@ unsafe class C
   IL_000c:  stloc.1
   IL_000d:  ldloc.0
   IL_000e:  ldloc.1
-  IL_000f:  stfld      ""int* C.<>c__DisplayClass0.p""
+  IL_000f:  stfld      ""int* C.<>c__DisplayClass0_0.p""
   IL_0014:  ldc.i4.2
   IL_0015:  conv.u
   IL_0016:  ldc.i4.4
@@ -7831,17 +7831,17 @@ unsafe class C
 ");
 
             // Check that the same thing works inside a lambda.
-            verifier.VerifyIL("C.<>c__DisplayClass0.<Main>b__2", @"
+            verifier.VerifyIL("C.<>c__DisplayClass0_0.<Main>b__0", @"
 {
   // Code size       35 (0x23)
   .maxstack  2
-  .locals init (C.<>c__DisplayClass1 V_0, //CS$<>8__locals0
+  .locals init (C.<>c__DisplayClass0_1 V_0, //CS$<>8__locals0
                 int* V_1)
-  IL_0000:  newobj     ""C.<>c__DisplayClass1..ctor()""
+  IL_0000:  newobj     ""C.<>c__DisplayClass0_1..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldarg.0
-  IL_0008:  stfld      ""C.<>c__DisplayClass0 C.<>c__DisplayClass1.CS$<>8__locals1""
+  IL_0008:  stfld      ""C.<>c__DisplayClass0_0 C.<>c__DisplayClass0_1.CS$<>8__locals1""
   IL_000d:  ldc.i4.2
   IL_000e:  conv.u
   IL_000f:  ldc.i4.4
@@ -7850,7 +7850,7 @@ unsafe class C
   IL_0013:  stloc.1
   IL_0014:  ldloc.0
   IL_0015:  ldloc.1
-  IL_0016:  stfld      ""int* C.<>c__DisplayClass1.r""
+  IL_0016:  stfld      ""int* C.<>c__DisplayClass0_1.r""
   IL_001b:  ldc.i4.2
   IL_001c:  conv.u
   IL_001d:  ldc.i4.4
@@ -7884,9 +7884,9 @@ unsafe class T
 {
   // Code size       43 (0x2b)
   .maxstack  2
-  .locals init (T.<>c__DisplayClass0 V_0, //CS$<>8__locals0
+  .locals init (T.<>c__DisplayClass1_0 V_0, //CS$<>8__locals0
                 int* V_1)
-  IL_0000:  newobj     ""T.<>c__DisplayClass0..ctor()""
+  IL_0000:  newobj     ""T.<>c__DisplayClass1_0..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldc.i4.1
   IL_0007:  conv.u
@@ -7896,9 +7896,9 @@ unsafe class T
   IL_000c:  stloc.1
   IL_000d:  ldloc.0
   IL_000e:  ldloc.1
-  IL_000f:  stfld      ""int* T.<>c__DisplayClass0.v""
+  IL_000f:  stfld      ""int* T.<>c__DisplayClass1_0.v""
   IL_0014:  ldloc.0
-  IL_0015:  ldftn      ""int T.<>c__DisplayClass0.<Main>b__1()""
+  IL_0015:  ldftn      ""int T.<>c__DisplayClass1_0.<Main>b__0()""
   IL_001b:  newobj     ""T.D..ctor(object, System.IntPtr)""
   IL_0020:  callvirt   ""int T.D.Invoke()""
   IL_0025:  call       ""void System.Console.WriteLine(int)""
@@ -7909,9 +7909,9 @@ unsafe class T
 {
   // Code size       43 (0x2b)
   .maxstack  2
-  .locals init (T.<>c__DisplayClass0 V_0, //CS$<>8__locals0
-      int* V_1)
-  IL_0000:  newobj     ""T.<>c__DisplayClass0..ctor()""
+  .locals init (T.<>c__DisplayClass1_0 V_0, //CS$<>8__locals0
+                int* V_1)
+  IL_0000:  newobj     ""T.<>c__DisplayClass1_0..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldc.i4.1
   IL_0007:  conv.u
@@ -7921,9 +7921,9 @@ unsafe class T
   IL_000c:  stloc.1
   IL_000d:  ldloc.0
   IL_000e:  ldloc.1
-  IL_000f:  stfld      ""int* T.<>c__DisplayClass0.v""
+  IL_000f:  stfld      ""int* T.<>c__DisplayClass1_0.v""
   IL_0014:  ldloc.0
-  IL_0015:  ldftn      ""int T.<>c__DisplayClass0.<Main>b__1()""
+  IL_0015:  ldftn      ""int T.<>c__DisplayClass1_0.<Main>b__0()""
   IL_001b:  newobj     ""T.D..ctor(object, System.IntPtr)""
   IL_0020:  callvirt   ""int T.D.Invoke()""
   IL_0025:  call       ""void System.Console.WriteLine(int)""

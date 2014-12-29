@@ -1,8 +1,5 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -489,15 +486,15 @@ class Test
   .try
   {
     IL_000c:  ldstr      ""ABC""
-    IL_0011:  ldsfld     ""System.Func<char, char> Test.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+    IL_0011:  ldsfld     ""System.Func<char, char> Test.<>c.<>9__0_0""
     IL_0016:  dup
     IL_0017:  brtrue.s   IL_0030
     IL_0019:  pop
-    IL_001a:  ldsfld     ""Test.<>c__DisplayClass0 Test.<>c__DisplayClass0.CS$<>9__inst""
-    IL_001f:  ldftn      ""char Test.<>c__DisplayClass0.<Main>b__1(char)""
+    IL_001a:  ldsfld     ""Test.<>c Test.<>c.<>9""
+    IL_001f:  ldftn      ""char Test.<>c.<Main>b__0_0(char)""
     IL_0025:  newobj     ""System.Func<char, char>..ctor(object, System.IntPtr)""
     IL_002a:  dup
-    IL_002b:  stsfld     ""System.Func<char, char> Test.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+    IL_002b:  stsfld     ""System.Func<char, char> Test.<>c.<>9__0_0""
     IL_0030:  call       ""System.Collections.Generic.IEnumerable<char> System.Linq.Enumerable.Select<char, char>(System.Collections.Generic.IEnumerable<char>, System.Func<char, char>)""
     IL_0035:  stloc.0
     IL_0036:  ldloc.0
@@ -1211,10 +1208,10 @@ class Test
   // Code size       15 (0xf)
   .maxstack  3
   IL_0000:  ldc.i4.s   -2
-  IL_0002:  newobj     ""Test.<Values>d__1..ctor(int)""
+  IL_0002:  newobj     ""Test.<Values>d__2..ctor(int)""
   IL_0007:  dup
   IL_0008:  ldarg.0
-  IL_0009:  stfld      ""Test Test.<Values>d__1.<>4__this""
+  IL_0009:  stfld      ""Test Test.<Values>d__2.<>4__this""
   IL_000e:  ret
 }");
         }

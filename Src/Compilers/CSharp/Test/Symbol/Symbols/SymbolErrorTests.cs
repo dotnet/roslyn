@@ -4357,7 +4357,7 @@ public class A : IA
                 Diagnostic(ErrorCode.ERR_BadIndexerNameAttr, @"Alias").WithArguments("Alias"));
 
             // Note: invalid attribute had no effect on metadata name.
-            var indexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<PropertySymbol>("IA." + WellKnownMemberNames.Indexer);
+            var indexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetProperty("IA." + WellKnownMemberNames.Indexer);
             Assert.Equal("IA.Item", indexer.MetadataName);
         }
 

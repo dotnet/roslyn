@@ -418,7 +418,7 @@ class Program : TestBase
         int z = 1;
         DCheck<D>(
             x => y => F(x+y+z),
-            ""Lambda((Parameter(y Type:System.Int32)) => Call(null.[D F(Int32)](Add(Add(Parameter(x Type:System.Int32) Parameter(y Type:System.Int32) Type:System.Int32) MemberAccess(Constant(Program+<>c__DisplayClass0 Type:Program+<>c__DisplayClass0).z Type:System.Int32) Type:System.Int32)) Type:D) ReturnType:D Type:D)"");
+            ""Lambda((Parameter(y Type:System.Int32)) => Call(null.[D F(Int32)](Add(Add(Parameter(x Type:System.Int32) Parameter(y Type:System.Int32) Type:System.Int32) MemberAccess(Constant(Program+<>c__DisplayClass1_0 Type:Program+<>c__DisplayClass1_0).z Type:System.Int32) Type:System.Int32)) Type:D) ReturnType:D Type:D)"");
         Console.Write('k');
     }
 }";
@@ -451,7 +451,7 @@ class Program : TestBase
         int z = 1;
         DCheck<D>(
             x => y => F(x + y + z),
-            ""Quote(Lambda((Parameter(y Type:System.Int32)) => Call(null.[System.Linq.Expressions.Expression`1[D] F(Int32)](Add(Add(Parameter(x Type:System.Int32) Parameter(y Type:System.Int32) Type:System.Int32) MemberAccess(Constant(Program+<>c__DisplayClass0 Type:Program+<>c__DisplayClass0).z Type:System.Int32) Type:System.Int32)) Type:System.Linq.Expressions.Expression`1[D]) ReturnType:System.Linq.Expressions.Expression`1[D] Type:D) Type:System.Linq.Expressions.Expression`1[D])"");
+            ""Quote(Lambda((Parameter(y Type:System.Int32)) => Call(null.[System.Linq.Expressions.Expression`1[D] F(Int32)](Add(Add(Parameter(x Type:System.Int32) Parameter(y Type:System.Int32) Type:System.Int32) MemberAccess(Constant(Program+<>c__DisplayClass1_0 Type:Program+<>c__DisplayClass1_0).z Type:System.Int32) Type:System.Int32)) Type:System.Linq.Expressions.Expression`1[D]) ReturnType:System.Linq.Expressions.Expression`1[D] Type:D) Type:System.Linq.Expressions.Expression`1[D])"");
         Console.Write('k');
     }
 }";
@@ -568,11 +568,11 @@ class Program : TestBase
     {
         Check<int, string>(
             i => args[i],
-            ""ArrayIndex(MemberAccess(Constant(Program+<>c__DisplayClass0 Type:Program+<>c__DisplayClass0).args Type:System.String[]) Parameter(i Type:System.Int32) Type:System.String)"");
+            ""ArrayIndex(MemberAccess(Constant(Program+<>c__DisplayClass0_0 Type:Program+<>c__DisplayClass0_0).args Type:System.String[]) Parameter(i Type:System.Int32) Type:System.String)"");
         string[,] s2 = new string[2, 2];
         Check<int, string>(
             i => s2[i,i],
-            ""Call(MemberAccess(Constant(Program+<>c__DisplayClass0 Type:Program+<>c__DisplayClass0).s2 Type:System.String[,]).[System.String Get(Int32, Int32)](Parameter(i Type:System.Int32), Parameter(i Type:System.Int32)) Type:System.String)"");
+            ""Call(MemberAccess(Constant(Program+<>c__DisplayClass0_0 Type:Program+<>c__DisplayClass0_0).s2 Type:System.String[,]).[System.String Get(Int32, Int32)](Parameter(i Type:System.Int32), Parameter(i Type:System.Int32)) Type:System.String)"");
         Console.Write('k');
     }
 }";
@@ -1311,8 +1311,8 @@ class P
                 new[] { source, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 expectedOutput:
-@"Invoke(MemberAccess(Constant(P+<>c__DisplayClass0 Type:P+<>c__DisplayClass0).f Type:System.Func`2[System.Int32,System.Int32])(Constant(12 Type:System.Int32)) Type:System.Int32)
-() => Invoke(value(P+<>c__DisplayClass0).f, 12)");
+@"Invoke(MemberAccess(Constant(P+<>c__DisplayClass0_0 Type:P+<>c__DisplayClass0_0).f Type:System.Func`2[System.Int32,System.Int32])(Constant(12 Type:System.Int32)) Type:System.Int32)
+() => Invoke(value(P+<>c__DisplayClass0_0).f, 12)");
         }
 
         [Fact]

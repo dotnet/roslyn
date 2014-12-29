@@ -11,12 +11,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class LoweredDynamicOperationFactory
     {
         private readonly SyntheticBoundNodeFactory factory;
+        private readonly int methodOrdinal;
         private NamedTypeSymbol currentDynamicCallSiteContainer;
+        private int callSiteIdDispenser;
 
-        internal LoweredDynamicOperationFactory(SyntheticBoundNodeFactory factory)
+        internal LoweredDynamicOperationFactory(SyntheticBoundNodeFactory factory, int methodOrdinal)
         {
             Debug.Assert(factory != null);
             this.factory = factory;
+            this.methodOrdinal = methodOrdinal;
         }
 
         // We could read the values of the following enums from metadata instead of hardcoding them here but 
@@ -636,7 +639,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)this.currentDynamicCallSiteContainer == null)
             {
-                this.currentDynamicCallSiteContainer = CreateCallSiteContainer(this.factory);
+                this.currentDynamicCallSiteContainer = CreateCallSiteContainer(this.factory, this.methodOrdinal);
             }
 
             var containerDef = (SynthesizedContainer)this.currentDynamicCallSiteContainer.OriginalDefinition;
@@ -665,12 +668,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new LoweredDynamicOperation(factory, siteInitialization, siteInvocation, resultType);
         }
 
-        private static NamedTypeSymbol CreateCallSiteContainer(SyntheticBoundNodeFactory factory)
+        private static NamedTypeSymbol CreateCallSiteContainer(SyntheticBoundNodeFactory factory, int methodOrdinal)
         {
-            // TODO (tomat): consider - why do we need to include a method name at all? We could save some metadata bytes by not including it.
-            // Dev11 uses an empty string for explicit interface method implementation:
-            var containerName = GeneratedNames.MakeDynamicCallSiteContainerName(
-                factory.TopLevelMethod.IsExplicitInterfaceImplementation ? "" : factory.TopLevelMethod.Name, factory.CompilationState.GenerateTempNumber());
+            var containerName = GeneratedNames.MakeDynamicCallSiteContainerName(methodOrdinal);
 
             var synthesizedContainer = new DynamicSiteContainer(containerName, factory.TopLevelMethod);
             factory.AddNestedType(synthesizedContainer);
@@ -685,7 +685,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal FieldSymbol DefineCallSiteStorageSymbol(NamedTypeSymbol containerDefinition, NamedTypeSymbol delegateTypeOverMethodTypeParameters, TypeMap methodToContainerTypeParametersMap)
         {
-            var fieldName = GeneratedNames.MakeDynamicCallSiteFieldName(factory.CompilationState.GenerateTempNumber());
+            var fieldName = GeneratedNames.MakeDynamicCallSiteFieldName(callSiteIdDispenser++);
             var delegateTypeOverContainerTypeParameters = methodToContainerTypeParametersMap.SubstituteNamedType(delegateTypeOverMethodTypeParameters);
             var callSiteType = factory.Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_CallSite_T).Construct(new[] { delegateTypeOverContainerTypeParameters });
             var field = new SynthesizedFieldSymbol(containerDefinition, callSiteType, fieldName, isPublic: true, isStatic: true);

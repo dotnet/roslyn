@@ -1,33 +1,34 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
-using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal static partial class GeneratedNames
     {
         internal const string SynthesizedLocalNamePrefix = "CS$";
+        internal const char DotReplacementInTypeNames = '-';
 
-        internal static bool IsGeneratedName(string memberName)
+        private static readonly ImmutableArray<string> numericStrings = ImmutableArray.Create("0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
+
+        private static string GetString(int number)
+        {
+            Debug.Assert(number >= 0);
+            return (number < numericStrings.Length) ? numericStrings[number] : number.ToString();
+        }
+
+        internal static bool IsGeneratedMemberName(string memberName)
         {
             return memberName.Length > 0 && memberName[0] == '<';
         }
 
         internal static string MakeBackingFieldName(string propertyName)
         {
-            propertyName = EnsureNoDotsInName(propertyName);
             return "<" + propertyName + ">k__BackingField";
-        }
-
-        internal static string MakeLambdaMethodName(string containingMethodName, int uniqueId)
-        {
-            containingMethodName = EnsureNoDotsInName(containingMethodName);
-            return "<" + containingMethodName + ">b__" + uniqueId;
         }
 
         internal static string MakeIteratorFinallyMethodName(int iteratorState)
@@ -38,22 +39,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // <>m__Finally3
             // . . . 
             // that will roughly match native naming scheme and may also be easier when need to debug.
-            return "<>m__Finally" + Math.Abs(iteratorState + 2);
+            return "<>m__Finally" + GetString(Math.Abs(iteratorState + 2));
         }
 
-        internal static string MakeLambdaDisplayClassName(int uniqueId)
+        internal static string MakeStaticLambdaDisplayClassName()
         {
-            Debug.Assert((char)GeneratedNameKind.LambdaDisplayClassType == 'c');
-            return "<>c__DisplayClass" + uniqueId;
+            return "<>c";
+        }
+
+        internal static string MakeLambdaDisplayClassName(int methodOrdinal, int scopeOrdinal)
+        {
+            // -1 for singleton static lambdas
+            Debug.Assert(scopeOrdinal >= -1);
+            Debug.Assert(methodOrdinal >= 0);
+
+            return MakeMethodScopedSynthesizedName(GeneratedNameKind.LambdaDisplayClassType, methodOrdinal, suffix: "DisplayClass", uniqueId: scopeOrdinal, isTypeName: true);
         }
 
         internal static string MakeAnonymousTypeTemplateName(int index, int submissionSlotIndex, string moduleId)
         {
-            var name = "<" + moduleId + ">f__AnonymousType" + index;
+            var name = "<" + moduleId + ">f__AnonymousType" + GetString(index);
             if (submissionSlotIndex >= 0)
             {
-                name += "#" + submissionSlotIndex;
+                name += "#" + GetString(submissionSlotIndex);
             }
+
             return name;
         }
 
@@ -77,13 +87,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static string MakeAnonymousTypeBackingFieldName(string propertyName)
         {
-            Debug.Assert(propertyName == EnsureNoDotsInName(propertyName));
             return "<" + propertyName + ">i__Field";
         }
 
         internal static string MakeAnonymousTypeParameterName(string propertyName)
         {
-            Debug.Assert(propertyName == EnsureNoDotsInName(propertyName));
             return "<" + propertyName + ">j__TPar";
         }
 
@@ -100,37 +108,86 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal static string MakeStateMachineTypeName(string methodName, int uniqueId)
+        internal static string MakeStateMachineTypeName(string methodName, int methodOrdinal)
         {
-            methodName = EnsureNoDotsInName(methodName);
-
-            Debug.Assert((char)GeneratedNameKind.StateMachineType == 'd');
-            return "<" + methodName + ">d__" + uniqueId;
+            Debug.Assert(methodOrdinal >= -1);
+            return MakeMethodScopedSynthesizedName(GeneratedNameKind.StateMachineType, methodOrdinal, methodName, isTypeName: true);
         }
 
-        internal static string EnsureNoDotsInName(string name)
+        internal static string MakeBaseMethodWrapperName(int uniqueId)
         {
-            // CLR generally allows names with dots, however some APIs like IMetaDataImport
-            // can only return full type names combined with namespaces. 
-            // see: http://msdn.microsoft.com/en-us/library/ms230143.aspx (IMetaDataImport::GetTypeDefProps)
-            // When working with such APIs, names with dots become ambiguous since metadata 
-            // consumer cannot figure where namespace ends and actual type name starts.
-            // Therefore it is a good practice to avoid type names with dots.
-            if (name.IndexOf('.') >= 0)
+            return "<>n__" + GetString(uniqueId);
+        }
+
+        internal static string MakeLambdaMethodName(string methodName, int methodOrdinal, int lambdaOrdinal)
+        {
+            Debug.Assert(methodOrdinal >= -1);
+            Debug.Assert(lambdaOrdinal >= 0);
+
+            // The EE displays the containing method name and unique id in the stack trace,
+            // and uses it to find the original binding context.
+            return MakeMethodScopedSynthesizedName(GeneratedNameKind.LambdaMethod, methodOrdinal, methodName, uniqueId: lambdaOrdinal);
+        }
+
+        internal static string MakeLambdaCacheFieldName(int methodOrdinal, int lambdaOrdinal)
+        {
+            Debug.Assert(methodOrdinal >= -1);
+            Debug.Assert(lambdaOrdinal >= 0);
+
+            return MakeMethodScopedSynthesizedName(GeneratedNameKind.LambdaCacheField, methodOrdinal, uniqueId: lambdaOrdinal);
+        }
+
+        private static string MakeMethodScopedSynthesizedName(GeneratedNameKind kind, int methodOrdinal, string methodNameOpt = null, string suffix = null, int uniqueId = -1, bool isTypeName = false)
+        {
+            Debug.Assert(methodOrdinal >= -1);
+            Debug.Assert(uniqueId >= -1);
+
+            var result = PooledStringBuilder.GetInstance();
+            var builder = result.Builder;
+            builder.Append('<');
+
+            if (methodNameOpt != null)
             {
-                name = name.Replace('.', '_');
+                builder.Append(methodNameOpt);
+
+                // CLR generally allows names with dots, however some APIs like IMetaDataImport
+                // can only return full type names combined with namespaces. 
+                // see: http://msdn.microsoft.com/en-us/library/ms230143.aspx (IMetaDataImport::GetTypeDefProps)
+                // When working with such APIs, names with dots become ambiguous since metadata 
+                // consumer cannot figure where namespace ends and actual type name starts.
+                // Therefore it is a good practice to avoid type names with dots.
+                // As a replacement use a character not allowed in C# identifier to avoid conflicts.
+                if (isTypeName)
+                {
+                    builder.Replace('.', DotReplacementInTypeNames);
+                }
             }
-            return name;
-        }
 
-        internal static string MakeFabricatedMethodName(int uniqueId)
-        {
-            return "<>n__FabricatedMethod" + uniqueId;
-        }
+            builder.Append('>');
+            builder.Append((char)kind);
 
-        internal static string MakeLambdaCacheFieldName(int uniqueId)
-        {
-            return "CS$<>9__CachedAnonymousMethodDelegate" + uniqueId;
+            if (suffix != null || methodOrdinal >= 0 || uniqueId >= 0)
+            {
+                builder.Append("__");
+                builder.Append(suffix);
+
+                if (methodOrdinal >= 0)
+                {
+                    builder.Append(methodOrdinal);
+                }
+
+                if (uniqueId >= 0)
+                {
+                    if (methodOrdinal >= 0)
+                    {
+                        builder.Append('_');
+                    }
+
+                    builder.Append(uniqueId);
+                }
+            }
+
+            return result.ToStringAndFree();
         }
 
         internal static string MakeHoistedLocalFieldName(SynthesizedLocalKind kind, int slotIndex, string localNameOpt = null)
@@ -178,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static string AsyncAwaiterFieldName(int slotIndex)
         {
-            return "<>u__" + (slotIndex + 1);
+            return "<>u__" + GetString(slotIndex + 1);
         }
 
         // Extracts the slot index from a name of a field that stores hoisted variables or awaiters.
@@ -205,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static string MakeCachedFrameInstanceName()
         {
-            return "CS$<>9__inst";
+            return "<>9";
         }
 
         internal static string MakeSynthesizedLocalName(SynthesizedLocalKind kind, ref int uniqueId)
@@ -224,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static string MakeLambdaDisplayLocalName(int uniqueId)
         {
             Debug.Assert((char)GeneratedNameKind.DisplayClassLocalOrField == '8');
-            return SynthesizedLocalNamePrefix + "<>8__locals" + uniqueId;
+            return SynthesizedLocalNamePrefix + "<>8__locals" + GetString(uniqueId);
         }
 
         internal static bool IsSynthesizedLocalName(string name)
@@ -235,8 +292,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static string MakeFixedFieldImplementationName(string fieldName)
         {
             // the native compiler adds numeric digits at the end.  Roslyn does not.
-            Debug.Assert(fieldName == EnsureNoDotsInName(fieldName));
-            return "<" + fieldName + ">" + "e__FixedBuffer";
+            return "<" + fieldName + ">e__FixedBuffer";
         }
 
         internal static string MakeStateMachineStateName()
@@ -305,16 +361,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>3__" + parameterName;
         }
 
-        internal static string MakeDynamicCallSiteContainerName(string methodName, int uniqueId)
+        internal static string MakeDynamicCallSiteContainerName(int methodOrdinal)
         {
-            methodName = EnsureNoDotsInName(methodName);
-
-            return "<" + methodName + ">o__SiteContainer" + uniqueId;
+            return MakeMethodScopedSynthesizedName(GeneratedNameKind.DynamicCallSiteContainer, methodOrdinal, isTypeName: true);
         }
 
         internal static string MakeDynamicCallSiteFieldName(int uniqueId)
         {
-            return "<>p__Site" + uniqueId;
+            return "<>p__" + GetString(uniqueId);
         }
 
         internal static string AsyncBuilderFieldName()
@@ -325,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static string ReusableHoistedLocalFieldName(int number)
         {
-            return "<>7__wrap" + number;
+            return "<>7__wrap" + GetString(number);
         }
     }
 }

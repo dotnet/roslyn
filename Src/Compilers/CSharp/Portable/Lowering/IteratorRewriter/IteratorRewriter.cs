@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static BoundStatement Rewrite(
             BoundStatement body,
             MethodSymbol method,
+            int methodOrdinal,
             VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics,
@@ -71,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(method.ReturnType.OriginalDefinition.SpecialType);
             }
 
-            stateMachineType = new IteratorStateMachine(slotAllocatorOpt, method, isEnumerable, elementType, compilationState);
+            stateMachineType = new IteratorStateMachine(slotAllocatorOpt, method, methodOrdinal, isEnumerable, elementType, compilationState);
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType);
             return new IteratorRewriter(body, method, isEnumerable, stateMachineType, slotAllocatorOpt, compilationState, diagnostics).Rewrite();
         }

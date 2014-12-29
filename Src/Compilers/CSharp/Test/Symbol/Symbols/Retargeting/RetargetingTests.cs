@@ -265,54 +265,54 @@ class C<CT> : I<CT>
             PropertySymbol implemented_p;
 
             var b = assembly2.GetTypeByMetadataName("B");
-            var m = b.GetMember<MethodSymbol>("I<A>.M");
+            var m = b.GetMethod("I<A>.M");
             implemented_m = m.ExplicitInterfaceImplementations[0];
 
             Assert.Equal("void I<A>.M<U>(I<U> o)", implemented_m.ToTestDisplayString());
 
             var a_v2 = compilation1_v2.GetTypeByMetadataName("A");
             var i_a_v2 = compilation1_v2.GetTypeByMetadataName("I`1").Construct(ImmutableArray.Create<TypeSymbol>(a_v2));
-            var i_a_m_v2 = i_a_v2.GetMember<MethodSymbol>("M");
+            var i_a_m_v2 = i_a_v2.GetMethod("M");
             Assert.Equal(i_a_m_v2, implemented_m);
 
-            var n = b.GetMember<MethodSymbol>("I<A>.N");
+            var n = b.GetMethod("I<A>.N");
             implemented_n = n.ExplicitInterfaceImplementations[0];
 
             Assert.Equal("void I<A>.N(I<A> o)", implemented_n.ToTestDisplayString());
 
-            var i_a_n_v2 = i_a_v2.GetMember<MethodSymbol>("N");
+            var i_a_n_v2 = i_a_v2.GetMethod("N");
             Assert.Equal(i_a_n_v2, implemented_n);
 
-            var p = b.GetMember<PropertySymbol>("I<A>.P");
+            var p = b.GetProperty("I<A>.P");
             implemented_p = p.ExplicitInterfaceImplementations[0];
 
             Assert.Equal("I<A> I<A>.P { get; }", implemented_p.ToTestDisplayString());
 
-            var i_a_p_v2 = i_a_v2.GetMember<PropertySymbol>("P");
+            var i_a_p_v2 = i_a_v2.GetProperty("P");
             Assert.Equal(i_a_p_v2, implemented_p);
 
             var c = assembly2.GetTypeByMetadataName("C`1");
             var i_ct_v2 = compilation1_v2.GetTypeByMetadataName("I`1").Construct(ImmutableArray.Create<TypeSymbol>(c.TypeParameters[0]));
 
-            implemented_m = c.GetMember<MethodSymbol>("I<CT>.M").ExplicitInterfaceImplementations[0];
+            implemented_m = c.GetMethod("I<CT>.M").ExplicitInterfaceImplementations[0];
 
             Assert.Equal("void I<CT>.M<U>(I<U> o)", implemented_m.ToTestDisplayString());
 
-            var i_ct_m_v2 = i_ct_v2.GetMember<MethodSymbol>("M");
+            var i_ct_m_v2 = i_ct_v2.GetMethod("M");
             Assert.Equal(i_ct_m_v2, implemented_m);
 
-            implemented_n = c.GetMember<MethodSymbol>("I<CT>.N").ExplicitInterfaceImplementations[0];
+            implemented_n = c.GetMethod("I<CT>.N").ExplicitInterfaceImplementations[0];
 
             Assert.Equal("void I<CT>.N(I<CT> o)", implemented_n.ToTestDisplayString());
 
-            var i_ct_n_v2 = i_ct_v2.GetMember<MethodSymbol>("N");
+            var i_ct_n_v2 = i_ct_v2.GetMethod("N");
             Assert.Equal(i_ct_n_v2, implemented_n);
 
-            implemented_p = c.GetMember<PropertySymbol>("I<CT>.P").ExplicitInterfaceImplementations[0];
+            implemented_p = c.GetProperty("I<CT>.P").ExplicitInterfaceImplementations[0];
 
             Assert.Equal("I<CT> I<CT>.P { get; }", implemented_p.ToTestDisplayString());
 
-            var i_ct_p_v2 = i_ct_v2.GetMember<PropertySymbol>("P");
+            var i_ct_p_v2 = i_ct_v2.GetProperty("P");
             Assert.Equal(i_ct_p_v2, implemented_p);
         }
 

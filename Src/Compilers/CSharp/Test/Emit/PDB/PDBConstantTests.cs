@@ -27,8 +27,7 @@ class C
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.DebugDll, "C.M");
-            string expected = @"
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb("C.M", @"
 <symbols>
   <methods>
     <method containingType=""C"" name=""M"" parameterNames="""">
@@ -55,8 +54,7 @@ class C
       </scope>
     </method>
   </methods>
-</symbols>";
-            AssertXmlEqual(expected, actual);
+</symbols>");
         }
 
         [Fact]
@@ -80,53 +78,52 @@ class C
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.DebugDll);
-            string expected = @"
+            var c = CompileAndVerify(text, options: TestOptions.DebugDll);
+            c.VerifyPdb(@"
 <symbols>
-    <methods>
-        <method containingType=""C"" name=""M"" parameterNames=""a"">
-            <customDebugInfo version=""4"" count=""1"">
-                <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
-                    <namespace usingCount=""1""/>
-                </using>
-            </customDebugInfo>
-            <sequencepoints total=""3"">
-                <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0""/>
-                <entry il_offset=""0x1"" start_row=""9"" start_column=""9"" end_row=""15"" end_column=""12"" file_ref=""0""/>
-                <entry il_offset=""0x27"" start_row=""16"" start_column=""5"" end_row=""16"" end_column=""6"" file_ref=""0""/>
-            </sequencepoints>
-            <locals>
-                <constant name=""x"" value=""1"" type=""Int32""/>
-            </locals>
-            <scope startOffset=""0x0"" endOffset=""0x28"">
-                <namespace name=""System""/>
-                <constant name=""x"" value=""1"" type=""Int32""/>
-            </scope>
-        </method>
-        <method containingType=""C+&lt;&gt;c__DisplayClass0"" name=""&lt;M&gt;b__1"" parameterNames="""">
-            <customDebugInfo version=""4"" count=""1"">
-                <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""M"" parameterNames=""a""/>
-            </customDebugInfo>
-            <sequencepoints total=""4"">
-                <entry il_offset=""0x0"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""10"" file_ref=""0""/>
-                <entry il_offset=""0x1"" start_row=""12"" start_column=""13"" end_row=""12"" end_column=""14"" file_ref=""0""/>
-                <entry il_offset=""0x2"" start_row=""14"" start_column=""13"" end_row=""14"" end_column=""14"" file_ref=""0""/>
-                <entry il_offset=""0x5"" start_row=""15"" start_column=""9"" end_row=""15"" end_column=""10"" file_ref=""0""/>
-            </sequencepoints>
-            <locals>
-                <constant name=""y"" value=""2"" type=""Int32""/>
-                <constant name=""z"" value=""3"" type=""Int32""/>
-            </locals>
-            <scope startOffset=""0x0"" endOffset=""0x6"">
-                <constant name=""y"" value=""2"" type=""Int32""/>
-                <scope startOffset=""0x1"" endOffset=""0x3"">
-                    <constant name=""z"" value=""3"" type=""Int32""/>
-                </scope>
-            </scope>
-        </method>
-    </methods>
-</symbols>";
-            AssertXmlEqual(expected, actual);
+  <methods>
+    <method containingType=""C"" name=""M"" parameterNames=""a"">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""3"">
+        <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""9"" start_column=""9"" end_row=""15"" end_column=""12"" file_ref=""0"" />
+        <entry il_offset=""0x27"" start_row=""16"" start_column=""5"" end_row=""16"" end_column=""6"" file_ref=""0"" />
+      </sequencepoints>
+      <locals>
+        <constant name=""x"" value=""1"" type=""Int32"" />
+      </locals>
+      <scope startOffset=""0x0"" endOffset=""0x28"">
+        <namespace name=""System"" />
+        <constant name=""x"" value=""1"" type=""Int32"" />
+      </scope>
+    </method>
+    <method containingType=""C+&lt;&gt;c"" name=""&lt;M&gt;b__0_0"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""M"" parameterNames=""a"" />
+      </customDebugInfo>
+      <sequencepoints total=""4"">
+        <entry il_offset=""0x0"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""10"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""12"" start_column=""13"" end_row=""12"" end_column=""14"" file_ref=""0"" />
+        <entry il_offset=""0x2"" start_row=""14"" start_column=""13"" end_row=""14"" end_column=""14"" file_ref=""0"" />
+        <entry il_offset=""0x5"" start_row=""15"" start_column=""9"" end_row=""15"" end_column=""10"" file_ref=""0"" />
+      </sequencepoints>
+      <locals>
+        <constant name=""y"" value=""2"" type=""Int32"" />
+        <constant name=""z"" value=""3"" type=""Int32"" />
+      </locals>
+      <scope startOffset=""0x0"" endOffset=""0x6"">
+        <constant name=""y"" value=""2"" type=""Int32"" />
+        <scope startOffset=""0x1"" endOffset=""0x3"">
+          <constant name=""z"" value=""3"" type=""Int32"" />
+        </scope>
+      </scope>
+    </method>
+  </methods>
+</symbols>");
         }
 
         [WorkItem(543342, "DevDiv")]
@@ -162,13 +159,13 @@ class C
                     "<>l__initialThreadId",
                     "<>4__this",
                     "<i>5__1"
-                }, module.GetFieldNames("C.<M>d__1"));
+                }, module.GetFieldNames("C.<M>d__0"));
             });
 
-            v.VerifyPdb("C+<M>d__1.MoveNext", @"
+            v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <methods>
-    <method containingType=""C+&lt;M&gt;d__1"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""3"">
         <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
           <namespace usingCount=""1"" />
@@ -230,8 +227,9 @@ class C
     }
 }
 ";
-
-            string expected = @"
+            using (new CultureContext("en-US"))
+            {
+                CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb("C.M", @"
 <symbols>
   <methods>
     <method containingType=""C"" name=""M"" parameterNames="""">
@@ -258,12 +256,7 @@ class C
       </scope>
     </method>
   </methods>
-</symbols>";
-
-            using (new CultureContext("en-US"))
-            {
-                string actual = GetPdbXml(text, TestOptions.DebugDll, "C.M");
-                AssertXmlEqual(expected, actual);
+</symbols>");
             }
         }
 
@@ -315,8 +308,7 @@ this is a string constant that is too long to fit into the PDB"";
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.DebugDll, "C.M");
-            string expected = @"
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb("C.M", @"
 <symbols>
   <methods>
     <method containingType=""C"" name=""M"" parameterNames="""">
@@ -332,8 +324,7 @@ this is a string constant that is too long to fit into the PDB"";
       <locals />
     </method>
   </methods>
-</symbols>";
-            AssertXmlEqual(expected, actual);
+</symbols>");
         }
 
         [Fact]
@@ -348,7 +339,9 @@ class C
     }
 }
 ";
-            string expected = @"
+            using (new CultureContext("en-US"))
+            {
+                CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb("C.M", @"
 <symbols>
   <methods>
     <method containingType=""C"" name=""M"" parameterNames="""">
@@ -369,12 +362,7 @@ class C
       </scope>
     </method>
   </methods>
-</symbols>";
-
-            using (new CultureContext("en-US"))
-            {
-                string actual = GetPdbXml(text, TestOptions.DebugDll, "C.M");
-                AssertXmlEqual(expected, actual);
+</symbols>");
             }
         }
     }

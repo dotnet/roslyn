@@ -178,6 +178,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             public CompilationVerifier VerifyPdb(
+                string expectedPdb,
+                [CallerLineNumber]int expectedValueSourceLine = 0,
+                [CallerFilePath]string expectedValueSourcePath = null)
+            {
+                this.compilation.VerifyPdb(expectedPdb, expectedValueSourceLine, expectedValueSourcePath);
+                return this;
+            }
+
+            public CompilationVerifier VerifyPdb(
                 string qualifiedMethodName,
                 string expectedPdb,
                 [CallerLineNumber]int expectedValueSourceLine = 0,

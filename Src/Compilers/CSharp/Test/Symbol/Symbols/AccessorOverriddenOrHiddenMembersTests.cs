@@ -391,7 +391,7 @@ public class C : I
 
             var ilGetter = global.GetMember<NamedTypeSymbol>("I").GetMember<PropertySymbol>("P").GetMethod;
             var @class = global.GetMember<SourceNamedTypeSymbol>("C");
-            var csharpGetter = @class.GetMember<PropertySymbol>("I.P").GetMethod;
+            var csharpGetter = @class.GetProperty("I.P").GetMethod;
 
             Assert.Equal("I.getter", csharpGetter.Name);
             Assert.Equal(0, @class.GetSynthesizedExplicitImplementations(CancellationToken.None).Length); //not needed

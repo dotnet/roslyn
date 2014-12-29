@@ -12,7 +12,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         [Fact]
         public void Goto()
         {
-            string source = @"using System;
+            string source = @"
+using System;
 
 public class Program
 {
@@ -37,7 +38,8 @@ bar
         [Fact]
         public void GotoWithoutReturn()
         {
-            string source = @"using System;
+            string source = @"
+using System;
 
 public class Program
 {
@@ -84,7 +86,7 @@ class C
     }
 }
 ";
-            string expectedIL = @"
+            CompileAndVerify(text).VerifyIL("C.Main", @"
 {
   // Code size       58 (0x3a)
   .maxstack  2
@@ -108,10 +110,7 @@ class C
   IL_0033:  call       ""bool string.op_Equality(string, string)""
   IL_0038:  pop
   IL_0039:  ret
-}
-";
-            CompileAndVerify(text).
-                VerifyIL("C.Main", expectedIL);
+}");
         }
 
         // Goto location outside enclosing block 
@@ -139,8 +138,7 @@ class C
     }
 }
 ";
-            string expectedIL =
-@"
+            CompileAndVerify(text).VerifyIL("C.Main", @"
 {
   // Code size       11 (0xb)
   .maxstack  2
@@ -151,10 +149,7 @@ class C
   IL_0004:  ldc.i4.3
   IL_0005:  call       ""void System.Console.WriteLine(int)""
   IL_000a:  ret
-}
-";
-            CompileAndVerify(text).
-                VerifyIL("C.Main", expectedIL);
+}");
         }
 
         // Goto location in enclosing block  
@@ -182,7 +177,7 @@ class C
     }
 }
 ";
-            string expectedIL = @"
+            CompileAndVerify(text).VerifyIL("C.Main", @"
 {
   // Code size       11 (0xb)
   .maxstack  2
@@ -193,9 +188,7 @@ class C
   IL_0004:  ldc.i4.3
   IL_0005:  call       ""void System.Console.WriteLine(int)""
   IL_000a:  ret
-}";
-            CompileAndVerify(text).
-                VerifyIL("C.Main", expectedIL);
+}");
         }
 
         // Same label in different scope  
@@ -220,22 +213,24 @@ class C
     }
 }
 ";
-            string expectedIL = @"{
+            var c = CompileAndVerify(text);
+
+            c.VerifyDiagnostics(
+                // (11,9): warning CS0162: Unreachable code detected
+                //         Lab1:
+                Diagnostic(ErrorCode.WRN_UnreachableCode, "Lab1"),
+                // (11,9): warning CS0164: This label has not been referenced
+                //         Lab1:
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "Lab1"));
+
+            c.VerifyIL("C.Main", @"
+{
   // Code size        2 (0x2)
   .maxstack  0
   IL_0000:  br.s       IL_0000
 }
-";
-            CompileAndVerify(text).
-                VerifyIL("C.Main", expectedIL).
-                VerifyDiagnostics(
-            // (11,9): warning CS0162: Unreachable code detected
-            //         Lab1:
-                    Diagnostic(ErrorCode.WRN_UnreachableCode, "Lab1"),
-            // (11,9): warning CS0164: This label has not been referenced
-            //         Lab1:
-                    Diagnostic(ErrorCode.WRN_UnreferencedLabel, "Lab1")
-                );
+");
+                
         }
 
         // Label Next to Label  
@@ -257,14 +252,13 @@ class C
     }
 }
 ";
-            string expectedIL = @"{
+            CompileAndVerify(text).VerifyIL("C.Main", @"
+{
   // Code size        2 (0x2)
   .maxstack  0
   IL_0000:  br.s       IL_0000
 }
-";
-            CompileAndVerify(text).
-                VerifyIL("C.Main", expectedIL);
+");
         }
 
         // Infinite loop
@@ -285,15 +279,13 @@ class C
     }
 }
 ";
-            string expectedIL = @"{
+            CompileAndVerify(text).VerifyDiagnostics().VerifyIL("C.Main", @"
+{
   // Code size        2 (0x2)
   .maxstack  0
   IL_0000:  br.s       IL_0000
 }
-";
-            CompileAndVerify(text).
-                VerifyIL("C.Main", expectedIL).
-                VerifyDiagnostics();
+");
         }
 
         // unreachable code
@@ -318,7 +310,12 @@ class C
     }
 }
 ";
-            string expectedIL = @"{
+            var c = CompileAndVerify(text);
+
+            c.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreachableCode, "i"));
+
+            c.VerifyIL("C.Main", @"
+{
   // Code size       12 (0xc)
   .maxstack  2
   .locals init (int V_0) //i
@@ -333,10 +330,7 @@ class C
   IL_0009:  blt.s      IL_0004
   IL_000b:  ret       
 }
-";
-            CompileAndVerify(text).
-                VerifyIL("C.Main", expectedIL).
-                VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreachableCode, "i"));
+");
         }
 
         // Declare variable after goto
@@ -357,20 +351,21 @@ class C
     }
 }
 ";
-            string expectedIL = @"{
+            var c = CompileAndVerify(text);
+            c.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreachableCode, "string"));
+
+            c.VerifyIL("C.Main", @"
+{
   // Code size       11 (0xb)
   .maxstack  1
   IL_0000:  ldstr      ""B""
   IL_0005:  call       ""void System.Console.WriteLine(string)""
   IL_000a:  ret
 }
-";
-            CompileAndVerify(text).
-                VerifyIL("C.Main", expectedIL).
-                VerifyDiagnostics(Diagnostic(ErrorCode.WRN_UnreachableCode, "string"));
+");                
         }
 
-        // Finally is executed while use ‘goto’ to exit try block
+        // Finally is executed while use 'goto' to exit try block
         [WorkItem(540721, "DevDiv")]
         [Fact]
         public void GotoInTry()
@@ -390,7 +385,10 @@ class C
     }
 }
 ";
-            string expectedIL = @"
+            var c = CompileAndVerify(text, expectedOutput: @"a
+1");
+
+            c.VerifyIL("C.Main", @"
 {
   // Code size       29 (0x1d)
   .maxstack  1
@@ -422,10 +420,7 @@ class C
   IL_0016:  ldloc.0
   IL_0017:  call       ""void System.Console.WriteLine(int)""
   IL_001c:  ret
-}";
-            CompileAndVerify(text, expectedOutput: @"a
-1").
-                VerifyIL("C.Main", expectedIL);
+}");
         }
 
         [WorkItem(540716, "DevDiv")]
@@ -446,7 +441,7 @@ class C
     }
 }
 ";
-            string expectedIL = @"
+            CompileAndVerify(text).VerifyIL("C.Main", @"
 {
   // Code size       17 (0x11)
   .maxstack  1
@@ -476,9 +471,7 @@ class C
   IL_000d:  br.s       IL_000b
 }
   IL_000f:  br.s       IL_000f
-}";
-            CompileAndVerify(text).
-                VerifyIL("C.Main", expectedIL);
+}");
         }
 
         // Optimization redundant branch for code generate
@@ -533,25 +526,23 @@ class C
     }
 }
 ";
-            string expectedIL = @"
+            CompileAndVerify(text).VerifyIL("C.Main", @"
 {
   // Code size       37 (0x25)
   .maxstack  2
-  IL_0000:  ldsfld     ""del C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_0000:  ldsfld     ""del C.<>c.<>9__0_0""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001f
   IL_0008:  pop
-  IL_0009:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
-  IL_000e:  ldftn      ""int C.<>c__DisplayClass0.<Main>b__1(int)""
+  IL_0009:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_000e:  ldftn      ""int C.<>c.<Main>b__0_0(int)""
   IL_0014:  newobj     ""del..ctor(object, System.IntPtr)""
   IL_0019:  dup
-  IL_001a:  stsfld     ""del C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_001a:  stsfld     ""del C.<>c.<>9__0_0""
   IL_001f:  call       ""void System.Console.WriteLine(object)""
   IL_0024:  ret
 }
-";
-            CompileAndVerify(text).
-                VerifyIL("C.Main", expectedIL);
+");
         }
 
         // Definition same label in different lambdas
@@ -584,35 +575,33 @@ class C
     }
 }
 ";
-            string expectedIL = @"
+            CompileAndVerify(text).VerifyIL("C.Main", @"
 {
   // Code size       73 (0x49)
   .maxstack  2
-  IL_0000:  ldsfld     ""del C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_0000:  ldsfld     ""del C.<>c.<>9__0_0""
   IL_0005:  dup
   IL_0006:  brtrue.s   IL_001f
   IL_0008:  pop
-  IL_0009:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
-  IL_000e:  ldftn      ""int C.<>c__DisplayClass0.<Main>b__1(int)""
+  IL_0009:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_000e:  ldftn      ""int C.<>c.<Main>b__0_0(int)""
   IL_0014:  newobj     ""del..ctor(object, System.IntPtr)""
   IL_0019:  dup
-  IL_001a:  stsfld     ""del C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_001a:  stsfld     ""del C.<>c.<>9__0_0""
   IL_001f:  call       ""void System.Console.WriteLine(object)""
-  IL_0024:  ldsfld     ""del C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_0024:  ldsfld     ""del C.<>c.<>9__0_1""
   IL_0029:  dup
   IL_002a:  brtrue.s   IL_0043
   IL_002c:  pop
-  IL_002d:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
-  IL_0032:  ldftn      ""int C.<>c__DisplayClass0.<Main>b__3(int)""
+  IL_002d:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_0032:  ldftn      ""int C.<>c.<Main>b__0_1(int)""
   IL_0038:  newobj     ""del..ctor(object, System.IntPtr)""
   IL_003d:  dup
-  IL_003e:  stsfld     ""del C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_003e:  stsfld     ""del C.<>c.<>9__0_1""
   IL_0043:  call       ""void System.Console.WriteLine(object)""
   IL_0048:  ret
 }
-";
-            CompileAndVerify(text).
-                VerifyIL("C.Main", expectedIL);
+");
         }
 
         // Control is transferred to the target of the goto statement after finally
@@ -636,10 +625,10 @@ class C
     { System.Console.WriteLine(""Label""); }
 }
 ";
-            string expectedOutput = @"Finally
+            CompileAndVerify(text, expectedOutput: @"
+Finally
 Label
-";
-            CompileAndVerify(text, expectedOutput: expectedOutput);
+");
         }
 
         // Control is transferred to the target of the goto statement in nested try
@@ -666,11 +655,11 @@ class C
     }
 }
 ";
-            string expectedOutput = @"inner finally
+            CompileAndVerify(text, expectedOutput: @"
+inner finally
 outer finally
 label
-";
-            CompileAndVerify(text, expectedOutput: expectedOutput);
+");
         }
 
         [Fact]

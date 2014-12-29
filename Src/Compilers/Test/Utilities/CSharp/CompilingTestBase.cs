@@ -54,12 +54,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                 StateMachineTypeSymbol stateMachineTypeOpt;
                 VariableSlotAllocator variableSlotAllocatorOpt;
+                int lambdaIndexDispenser = 0;
+                int scopeIndexDispenser = 0;
+
                 var body = MethodCompiler.LowerBodyOrInitializer(
                     method: method,
+                    methodOrdinal: 0,
                     body: block,
                     previousSubmissionFields: null,
                     compilationState: compilationState,
                     diagnostics: diagnostics,
+                    lambdaOrdinalDispenser: ref lambdaIndexDispenser,
+                    scopeOrdinalDispenser: ref scopeIndexDispenser,
                     stateMachineTypeOpt: out stateMachineTypeOpt,
                     variableSlotAllocatorOpt: out variableSlotAllocatorOpt);
 

@@ -357,6 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Find the constructor of a script class.
             MethodSymbol scriptCtor = null;
+            int submissionCtorOrdinal = -1;
             if (symbol.IsScriptClass)
             {
                 // The field initializers of a script class could be arbitrary statements,
@@ -392,8 +393,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // so we can decide to synthesize a static constructor.
             bool hasStaticConstructor = false;
 
-            foreach (var member in symbol.GetMembers())
+            var members = symbol.GetMembers();
+            for (int memberOrdinal = 0; memberOrdinal < members.Length; memberOrdinal++)
             {
+                var member = members[memberOrdinal];
+
                 //When a filter is supplied, limit the compilation of members passing the filter.
                 if (!PassesFilter(this.filterOpt, member))
                 {
@@ -409,13 +413,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SymbolKind.Method:
                         {
                             MethodSymbol method = (MethodSymbol)member;
-                            if (method.IsSubmissionConstructor || IsFieldLikeEventAccessor(method))
+                            if (method.IsSubmissionConstructor)
+                            {
+                                Debug.Assert(submissionCtorOrdinal == -1);
+                                submissionCtorOrdinal = memberOrdinal;
+                                continue;
+                            }
+                                
+                            if (IsFieldLikeEventAccessor(method))
                             {
                                 continue;
                             }
 
-                                if (method.IsPartialDefinition())
-                                {
+                            if (method.IsPartialDefinition())
+                            {
                                 method = method.PartialImplementationPart;
                                 if ((object)method == null)
                                 {
@@ -428,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 method.MethodKind == MethodKind.StaticConstructor ? processedStaticInitializers :
                                 default(Binder.ProcessedFieldInitializers);
 
-                            CompileMethod(method, ref processedInitializers, synthesizedSubmissionFields, compilationState);
+                            CompileMethod(method, memberOrdinal, ref processedInitializers, synthesizedSubmissionFields, compilationState);
 
                             // Set a flag to indicate that a static constructor is created.
                             if (method.MethodKind == MethodKind.StaticConstructor)
@@ -487,13 +498,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(symbol.TypeKind != TypeKind.Submission || ((object)scriptCtor != null && scriptCtor.IsSubmissionConstructor));
 
-            //  process additional anonymous type members
+            // process additional anonymous type members
             if (AnonymousTypeManager.IsAnonymousTypeTemplate(symbol))
             {
                 var processedInitializers = default(Binder.ProcessedFieldInitializers);
                 foreach (var method in AnonymousTypeManager.GetAnonymousTypeHiddenMethods(symbol))
                 {
-                    CompileMethod(method, ref processedInitializers, synthesizedSubmissionFields, compilationState);
+                    CompileMethod(method, -1, ref processedInitializers, synthesizedSubmissionFields, compilationState);
                 }
             }
 
@@ -508,10 +519,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 MethodSymbol method = new SynthesizedStaticConstructor(sourceTypeSymbol);
                 if (PassesFilter(this.filterOpt, method))
                 {
-                    CompileMethod(method, ref processedStaticInitializers, synthesizedSubmissionFields, compilationState);
+                    CompileMethod(method, -1, ref processedStaticInitializers, synthesizedSubmissionFields, compilationState);
+
                     // If this method has been successfully built, we emit it.
                     if (moduleBeingBuiltOpt.GetMethodBody(method) != null)
+                    {
                         moduleBeingBuiltOpt.AddSynthesizedDefinition(sourceTypeSymbol, method);
+                    }
                 }
             }
 
@@ -519,11 +533,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (synthesizedSubmissionFields != null && compilationState.Emitting)
             {
                 Debug.Assert(scriptCtor.IsSubmissionConstructor);
-                CompileMethod(scriptCtor, ref processedInstanceInitializers, synthesizedSubmissionFields, compilationState);
+                CompileMethod(scriptCtor, submissionCtorOrdinal, ref processedInstanceInitializers, synthesizedSubmissionFields, compilationState);
                 synthesizedSubmissionFields.AddToType(scriptCtor.ContainingType, compilationState.ModuleBuilderOpt);
             }
 
-            //  Emit synthesized methods produced during lowering if any
+            // Emit synthesized methods produced during lowering if any
             if (moduleBeingBuiltOpt != null)
             {
                 CompileSynthesizedMethods(compilationState);
@@ -586,7 +600,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var diagnosticsThisMethod = DiagnosticBag.GetInstance();
 
                 AsyncStateMachine stateMachineType;
-                BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(methodWithBody.Body, method, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out stateMachineType);
+
+                // In case of async lambdas, the method has already been uniquely named, so there is no need to
+                // produce a unique method ordinal for the corresponding state machine type, whose name includes the (unique) method name.
+                const int methodOrdinal = -1;
+                BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(methodWithBody.Body, method, methodOrdinal, variableSlotAllocatorOpt, compilationState, diagnosticsThisMethod, out stateMachineType);
 
                 MethodBody emittedBody = null;
                 if (!diagnosticsThisMethod.HasAnyErrors() && !globalHasErrors)
@@ -730,6 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CompileMethod(
             MethodSymbol methodSymbol,
+            int methodOrdinal,
             ref Binder.ProcessedFieldInitializers processedInitializers,
             SynthesizedSubmissionFields previousSubmissionFields,
             TypeCompilationState compilationState)
@@ -924,16 +943,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool hasBody = flowAnalyzedBody != null;
                 VariableSlotAllocator variableSlotAllocatorOpt = null;
                 StateMachineTypeSymbol stateMachineTypeOpt = null;
+                int lambdaOrdinalDispenser = 0;
+                int scopeOrdinalDispenser = 0;
                 BoundStatement loweredBodyOpt = null;
 
                 if (hasBody)
                 {
                     loweredBodyOpt = LowerBodyOrInitializer(
                         methodSymbol,
+                        methodOrdinal,
                         flowAnalyzedBody,
                         previousSubmissionFields,
                         compilationState,
                         diagsForCurrentMethod,
+                        ref lambdaOrdinalDispenser,
+                        ref scopeOrdinalDispenser,
                         out stateMachineTypeOpt,
                         out variableSlotAllocatorOpt);
 
@@ -968,10 +992,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             processedInitializers.LoweredInitializers = (BoundStatementList)LowerBodyOrInitializer(
                                 methodSymbol,
+                                methodOrdinal,
                                 analyzedInitializers,
                                 previousSubmissionFields,
                                 compilationState,
                                 diagsForCurrentMethod,
+                                ref lambdaOrdinalDispenser,
+                                ref scopeOrdinalDispenser,
                                 out stateMachineTypeOpt,
                                 out variableSlotAllocatorOpt);
 
@@ -1010,13 +1037,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var chain = ChainImplicitStructConstructor(methodSymbol, container);
                         chain = LowerBodyOrInitializer(
-                                methodSymbol,
-                                chain,
-                                previousSubmissionFields,
-                                compilationState,
-                                diagsForCurrentMethod,
-                                out stateMachineTypeOpt,
-                                out variableSlotAllocatorOpt);
+                            methodSymbol,
+                            methodOrdinal,
+                            chain,
+                            previousSubmissionFields,
+                            compilationState,
+                            diagsForCurrentMethod,
+                            ref lambdaOrdinalDispenser,
+                            ref scopeOrdinalDispenser,
+                            out stateMachineTypeOpt,
+                            out variableSlotAllocatorOpt);
 
                         boundStatements = boundStatements.Insert(0, chain);
                     }
@@ -1072,10 +1102,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         // internal for testing
         internal static BoundStatement LowerBodyOrInitializer(
             MethodSymbol method,
+            int methodOrdinal,
             BoundStatement body,
             SynthesizedSubmissionFields previousSubmissionFields,
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics,
+            ref int lambdaOrdinalDispenser,
+            ref int scopeOrdinalDispenser,
             out StateMachineTypeSymbol stateMachineTypeOpt,
             out VariableSlotAllocator variableSlotAllocatorOpt)
         {
@@ -1094,6 +1127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var loweredBody = LocalRewriter.Rewrite(
                 method.DeclaringCompilation,
                 method,
+                methodOrdinal,
                 method.ContainingType,
                 body,
                 compilationState,
@@ -1138,13 +1172,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return loweredBody;
             }
 
+            variableSlotAllocatorOpt = compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method);
+
             BoundStatement bodyWithoutLambdas = loweredBody;
             if (sawLambdas)
             {
                 var lambdaAnalysis = LambdaRewriter.Analysis.Analyze(loweredBody, method);
                 if (lambdaAnalysis.SeenLambda)
                 {
-                    bodyWithoutLambdas = LambdaRewriter.Rewrite(loweredBody, method.ContainingType, method.ThisParameter, method, compilationState, diagnostics, lambdaAnalysis);
+                    bodyWithoutLambdas = LambdaRewriter.Rewrite(loweredBody, method.ContainingType, method.ThisParameter, method, methodOrdinal, ref lambdaOrdinalDispenser, ref scopeOrdinalDispenser, variableSlotAllocatorOpt, compilationState, diagnostics, lambdaAnalysis);
                 }
             }
 
@@ -1153,10 +1189,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return bodyWithoutLambdas;
             }
 
-            variableSlotAllocatorOpt = compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method);
-
             IteratorStateMachine iteratorStateMachine;
-            BoundStatement bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLambdas, method, variableSlotAllocatorOpt, compilationState, diagnostics, out iteratorStateMachine);
+            BoundStatement bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLambdas, method, methodOrdinal, variableSlotAllocatorOpt, compilationState, diagnostics, out iteratorStateMachine);
 
             if (bodyWithoutIterators.HasErrors)
             {
@@ -1164,7 +1198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             AsyncStateMachine asyncStateMachine;
-            BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators, method, variableSlotAllocatorOpt, compilationState, diagnostics, out asyncStateMachine);
+            BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators, method, methodOrdinal, variableSlotAllocatorOpt, compilationState, diagnostics, out asyncStateMachine);
 
             Debug.Assert(iteratorStateMachine == null || asyncStateMachine == null);
             stateMachineTypeOpt = (StateMachineTypeSymbol)iteratorStateMachine ?? asyncStateMachine;

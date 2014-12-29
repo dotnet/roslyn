@@ -389,11 +389,11 @@ class C : I, J, K
             var implements = prop.ContainingType.FindImplementationForInterfaceMember(iP);
             Assert.Equal(prop, implements);
 
-            prop = c.GetMember<SourcePropertySymbol>("I.Q");
+            prop = (SourcePropertySymbol)c.GetProperty("I.Q");
             Assert.True(prop.IsReadOnly);
             Assert.True(prop.IsExplicitInterfaceImplementation);
 
-            prop = c.GetMember<SourcePropertySymbol>("J.Q");
+            prop = (SourcePropertySymbol)c.GetProperty("J.Q");
             Assert.True(prop.IsReadOnly);
             Assert.True(prop.IsExplicitInterfaceImplementation);
 

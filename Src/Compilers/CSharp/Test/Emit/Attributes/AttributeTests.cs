@@ -751,7 +751,7 @@ class C
                 // Invoke method
                 // 1) Has return type attributes from delegate declaration syntax
                 // 2) Has parameter attributes from delegate declaration syntax
-                var invokeMethod = (MethodSymbol)delegateType.GetMember("Invoke");
+                var invokeMethod = delegateType.GetMethod("Invoke");
                 Assert.Equal(1, invokeMethod.GetReturnTypeAttributes().Where(a => a.AttributeClass == returnTypeAttrType).Count());
                 Assert.Equal(typeParameters[0], invokeMethod.ReturnType);
                 var parameters = invokeMethod.GetParameters();
@@ -766,7 +766,7 @@ class C
                 // Delegate Constructor:
                 // 1) Doesn't have any return type attributes
                 // 2) Doesn't have any parameter attributes
-                var ctor = (MethodSymbol)delegateType.GetMember(".ctor");
+                var ctor = delegateType.GetMethod(".ctor");
                 Assert.Equal(0, ctor.GetReturnTypeAttributes().Length);
                 parameters = ctor.GetParameters();
                 Assert.Equal(2, parameters.Length);

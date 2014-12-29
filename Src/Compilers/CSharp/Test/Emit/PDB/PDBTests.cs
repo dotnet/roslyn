@@ -287,7 +287,7 @@ class C
         <namespace name=""System"" />
       </scope>
     </method>
-    <method containingType=""C+&lt;&gt;c__DisplayClass0"" name=""&lt;_cctor&gt;b__6"" parameterNames=""y"">
+    <method containingType=""C+&lt;&gt;c__DisplayClass2_0"" name=""&lt;.cctor&gt;b__3"" parameterNames=""y"">
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".cctor"" parameterNames="""" />
       </customDebugInfo>
@@ -296,7 +296,7 @@ class C
       </sequencepoints>
       <locals />
     </method>
-    <method containingType=""C+&lt;&gt;c__DisplayClass1"" name=""&lt;_cctor&gt;b__2"" parameterNames=""x"">
+    <method containingType=""C+&lt;&gt;c"" name=""&lt;.cctor&gt;b__2_0"" parameterNames=""x"">
       <customDebugInfo version=""4"" count=""2"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".cctor"" parameterNames="""" />
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
@@ -321,7 +321,7 @@ class C
         <local name=""g"" il_index=""1"" il_start=""0x0"" il_end=""0x53"" attributes=""0"" />
       </scope>
     </method>
-    <method containingType=""C+&lt;&gt;c__DisplayClass1"" name=""&lt;_cctor&gt;b__3"" parameterNames=""o"">
+    <method containingType=""C+&lt;&gt;c"" name=""&lt;.cctor&gt;b__2_1"" parameterNames=""o"">
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".cctor"" parameterNames="""" />
       </customDebugInfo>
@@ -330,7 +330,7 @@ class C
       </sequencepoints>
       <locals />
     </method>
-    <method containingType=""C+&lt;&gt;c__DisplayClass1"" name=""&lt;_cctor&gt;b__5"" parameterNames=""h"">
+    <method containingType=""C+&lt;&gt;c"" name=""&lt;.cctor&gt;b__2_2"" parameterNames=""h"">
       <customDebugInfo version=""4"" count=""2"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".cctor"" parameterNames="""" />
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
@@ -1640,7 +1640,7 @@ class C
         <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0x29"" attributes=""0"" />
       </scope>
     </method>
-    <method containingType=""C+&lt;&gt;c__DisplayClass0"" name=""&lt;Main&gt;b__1"" parameterNames="""">
+    <method containingType=""C+&lt;&gt;c"" name=""&lt;Main&gt;b__0_0"" parameterNames="""">
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""Main"" parameterNames="""" />
       </customDebugInfo>
@@ -1734,7 +1734,7 @@ class Test
         <local name=""f1"" il_index=""1"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
       </scope>
     </method>
-    <method containingType=""Test+&lt;&gt;c__DisplayClass0"" name=""&lt;M&gt;b__2"" parameterNames=""x"">
+    <method containingType=""Test+&lt;&gt;c__DisplayClass1_0"" name=""&lt;M&gt;b__0"" parameterNames=""x"">
       <customDebugInfo version=""4"" count=""2"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test"" methodName=""Main"" parameterNames="""" />
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
@@ -1760,7 +1760,7 @@ class Test
         <local name=""f2"" il_index=""1"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
       </scope>
     </method>
-    <method containingType=""Test+&lt;&gt;c__DisplayClass1"" name=""&lt;M&gt;b__3"" parameterNames=""y"">
+    <method containingType=""Test+&lt;&gt;c__DisplayClass1_1"" name=""&lt;M&gt;b__1"" parameterNames=""y"">
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test"" methodName=""Main"" parameterNames="""" />
       </customDebugInfo>
@@ -1819,7 +1819,7 @@ class Test
         <local name=""f1"" il_index=""1"" il_start=""0x0"" il_end=""0x23"" attributes=""0"" />
       </scope>
     </method>
-    <method containingType=""Test+&lt;&gt;c__DisplayClass0"" name=""&lt;Foo&gt;b__1"" parameterNames="""">
+    <method containingType=""Test+&lt;&gt;c__DisplayClass0_0"" name=""&lt;Foo&gt;b__0"" parameterNames="""">
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test"" methodName=""Foo"" parameterNames=""p"" />
       </customDebugInfo>
@@ -1911,7 +1911,7 @@ class Test
         <local name=""f1"" il_index=""1"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
       </scope>
     </method>
-    <method containingType=""Test+&lt;&gt;c__DisplayClass0"" name=""&lt;M&gt;b__2"" parameterNames=""x"">
+    <method containingType=""Test+&lt;&gt;c__DisplayClass1_0"" name=""&lt;M&gt;b__0"" parameterNames=""x"">
       <customDebugInfo version=""4"" count=""2"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test"" methodName=""Main"" parameterNames="""" />
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
@@ -1937,7 +1937,7 @@ class Test
         <local name=""f2"" il_index=""1"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
       </scope>
     </method>
-    <method containingType=""Test+&lt;&gt;c__DisplayClass1"" name=""&lt;M&gt;b__3"" parameterNames=""y"">
+    <method containingType=""Test+&lt;&gt;c__DisplayClass1_1"" name=""&lt;M&gt;b__1"" parameterNames=""y"">
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test"" methodName=""Main"" parameterNames="""" />
       </customDebugInfo>
@@ -2131,7 +2131,7 @@ class C
       </sequencepoints>
       <locals />
     </method>
-    <method containingType=""C+&lt;&gt;c__DisplayClass0"" name=""&lt;_ctor&gt;b__1"" parameterNames=""z"">
+    <method containingType=""C+&lt;&gt;c"" name=""&lt;.ctor&gt;b__1_0"" parameterNames=""z"">
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".ctor"" parameterNames="""" />
       </customDebugInfo>

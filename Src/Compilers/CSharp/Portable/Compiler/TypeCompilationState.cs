@@ -44,9 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// only need one wrapper to call it non-virtually.
         /// </summary>
         private Dictionary<MethodSymbol, MethodSymbol> wrappers;
-
-        private int nextTempNumber;
-
+        
         private readonly NamedTypeSymbol type;
 
         /// <summary>
@@ -88,11 +86,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool Emitting
         {
             get { return ModuleBuilderOpt != null; }
-        }
-
-        public int GenerateTempNumber()
-        {
-            return nextTempNumber++;
         }
 
         /// <summary> 

@@ -50,11 +50,11 @@ class Class : CppCli.CppInterface1
             var @class = global.GetMember<SourceNamedTypeSymbol>("Class");
 
             // explicit implementation copies custom modifiers
-            var classMethod1 = @class.GetMember<MethodSymbol>("CppCli.CppInterface1.Method1");
+            var classMethod1 = @class.GetMethod("CppCli.CppInterface1.Method1");
             AssertAllParametersHaveConstModOpt(classMethod1);
 
             // implicit implementation does not copy custom modifiers
-            var classMethod2 = @class.GetMember<MethodSymbol>("Method2");
+            var classMethod2 = @class.GetMethod("Method2");
             AssertNoParameterHasModOpts(classMethod2);
 
             // bridge method for implicit implementation has custom modifiers
@@ -93,11 +93,11 @@ class Class : CppCli.CppInterface1, CppCli.CppInterface2
             var @class = global.GetMember<SourceNamedTypeSymbol>("Class");
 
             // explicit implementation copies custom modifiers
-            var classMethod1a = @class.GetMember<MethodSymbol>("CppCli.CppInterface1.Method1");
+            var classMethod1a = @class.GetMethod("CppCli.CppInterface1.Method1");
             AssertAllParametersHaveConstModOpt(classMethod1a);
 
             // explicit implementation copies custom modifiers
-            var classMethod1b = @class.GetMember<MethodSymbol>("CppCli.CppInterface2.Method1");
+            var classMethod1b = @class.GetMethod("CppCli.CppInterface2.Method1");
             AssertAllParametersHaveConstModOpt(classMethod1b);
 
             // implicit implementation does not copy custom modifiers
@@ -469,7 +469,7 @@ class Class : I2
             var @class = global.GetMember<SourceNamedTypeSymbol>("Class");
 
             // explicit implementation copies custom modifiers
-            var classMethod1 = @class.GetMember<MethodSymbol>("I2.M1");
+            var classMethod1 = @class.GetMethod("I2.M1");
             var classMethod1CustomModifiers = classMethod1.Parameters.Single().CustomModifiers;
             Assert.Equal(2, classMethod1CustomModifiers.Length);
             foreach (var customModifier in classMethod1CustomModifiers)
@@ -737,7 +737,7 @@ class Test
                 symbolValidator: m =>
             {
                 var Bug813305 = m.GlobalNamespace.GetTypeMember("Bug813305");
-                var method = Bug813305.GetMember<MethodSymbol>("IBug813305.M");
+                var method = Bug813305.GetMethod("IBug813305.M");
                 Assert.Equal("Bug813305.IBug813305.M(dynamic)", method.ToDisplayString());
             });
         }
@@ -767,7 +767,7 @@ class C : I
 
             var global = comp.GlobalNamespace;
             var interfaceMethod = global.GetMember<NamedTypeSymbol>("I").GetMember<MethodSymbol>("M");
-            var classMethod = global.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("I.M");
+            var classMethod = global.GetMember<NamedTypeSymbol>("C").GetMethod("I.M");
 
             Assert.Equal(SpecialType.System_Object, interfaceMethod.ParameterTypes.Single().SpecialType);
             Assert.Equal(TypeKind.Dynamic, classMethod.ParameterTypes.Single().TypeKind);
@@ -810,8 +810,8 @@ class C : I
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
-            var interfaceMethod = global.GetMember<NamedTypeSymbol>("I").GetMember<MethodSymbol>("M");
-            var classMethod = global.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("I.M");
+            var interfaceMethod = global.GetMember<MethodSymbol>("I.M");
+            var classMethod = global.GetMember<NamedTypeSymbol>("C").GetMethod("I.M");
 
             Assert.Equal(TypeKind.Dynamic, interfaceMethod.ParameterTypes.Single().TypeKind);
             Assert.Equal(SpecialType.System_Object, classMethod.ParameterTypes.Single().SpecialType);
@@ -854,8 +854,8 @@ class C : I
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
-            var interfaceMethod = global.GetMember<NamedTypeSymbol>("I").GetMember<MethodSymbol>("M");
-            var classMethod = global.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("I.M");
+            var interfaceMethod = global.GetMember<MethodSymbol>("I.M");
+            var classMethod = global.GetMember<NamedTypeSymbol>("C").GetMethod("I.M");
 
             Assert.Equal(TypeKind.Dynamic, interfaceMethod.ReturnType.TypeKind);
             Assert.Equal(SpecialType.System_Object, classMethod.ReturnType.SpecialType);
@@ -895,7 +895,7 @@ class C : I
 
             var global = comp.GlobalNamespace;
             var interfaceMethod = global.GetMember<NamedTypeSymbol>("I").GetMember<MethodSymbol>("M");
-            var classMethod = global.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("I.M");
+            var classMethod = global.GetMember<NamedTypeSymbol>("C").GetMethod("I.M");
 
             Assert.Equal(SpecialType.System_Object, interfaceMethod.ReturnType.SpecialType);
             Assert.Equal(TypeKind.Dynamic, classMethod.ReturnType.TypeKind);

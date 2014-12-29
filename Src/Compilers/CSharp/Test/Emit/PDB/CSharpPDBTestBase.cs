@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using System.Xml;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -16,7 +17,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             TextSpan? expectedSpan;
             string source;
             MarkupTestFile.GetPositionAndSpan(markup, out source, out position, out expectedSpan);
-            var pdb = GetPdbXml(source, compilationOptions, methodName, parseOptions);
+
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: compilationOptions, parseOptions: parseOptions);
+            compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
+
+            var pdb = GetPdbXml(compilation, methodName);
             bool hasBreakpoint = CheckIfSpanWithinSequencePoints(expectedSpan.GetValueOrDefault(), source, pdb);
 
             Assert.True(hasBreakpoint);

@@ -5021,75 +5021,75 @@ class AllMembers
 {
   // Code size      213 (0xd5)
   .maxstack  6
-  .locals init (AllMembers.<>c__DisplayClass0 V_0, //CS$<>8__locals0
-  System.Linq.Expressions.ParameterExpression V_1)
-  IL_0000:  newobj     ""AllMembers.<>c__DisplayClass0..ctor()""
+  .locals init (AllMembers.<>c__DisplayClass3_0 V_0, //CS$<>8__locals0
+                System.Linq.Expressions.ParameterExpression V_1)
+  IL_0000:  newobj     ""AllMembers.<>c__DisplayClass3_0..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  newobj     ""Windows.Languages.WinRTTest.IVectorInt..ctor()""
-  IL_000c:  stfld      ""Windows.Languages.WinRTTest.IVectorInt AllMembers.<>c__DisplayClass0.v""
+  IL_000c:  stfld      ""Windows.Languages.WinRTTest.IVectorInt AllMembers.<>c__DisplayClass3_0.v""
   .try
-{
-  IL_0011:  ldstr      ""Dev11:205875""
-  IL_0016:  call       ""void System.Console.WriteLine(string)""
-  IL_001b:  ldc.i4.1
-  IL_001c:  box        ""bool""
-  IL_0021:  ldc.i4.1
-  IL_0022:  box        ""bool""
-  IL_0027:  call       ""bool AllMembers.ValidateValue(object, object)""
-  IL_002c:  pop
-  IL_002d:  ldtoken    ""int""
-  IL_0032:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_0037:  ldstr      ""val""
-  IL_003c:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
-  IL_0041:  stloc.1
-  IL_0042:  ldloc.0
-  IL_0043:  ldtoken    ""AllMembers.<>c__DisplayClass0""
-  IL_0048:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_004d:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
-  IL_0052:  ldtoken    ""Windows.Languages.WinRTTest.IVectorInt AllMembers.<>c__DisplayClass0.v""
-  IL_0057:  call       ""System.Reflection.FieldInfo System.Reflection.FieldInfo.GetFieldFromHandle(System.RuntimeFieldHandle)""
-  IL_005c:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Field(System.Linq.Expressions.Expression, System.Reflection.FieldInfo)""
-  IL_0061:  ldtoken    ""void System.Collections.Generic.ICollection<int>.Add(int)""
-  IL_0066:  ldtoken    ""System.Collections.Generic.ICollection<int>""
-  IL_006b:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle, System.RuntimeTypeHandle)""
-  IL_0070:  castclass  ""System.Reflection.MethodInfo""
-  IL_0075:  ldc.i4.1
-  IL_0076:  newarr     ""System.Linq.Expressions.Expression""
-  IL_007b:  dup
-  IL_007c:  ldc.i4.0
-  IL_007d:  ldloc.1
-  IL_007e:  stelem.ref
-  IL_007f:  call       ""System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])""
-  IL_0084:  ldc.i4.1
-  IL_0085:  newarr     ""System.Linq.Expressions.ParameterExpression""
-  IL_008a:  dup
-  IL_008b:  ldc.i4.0
-  IL_008c:  ldloc.1
-  IL_008d:  stelem.ref
-  IL_008e:  call       ""System.Linq.Expressions.Expression<System.Action<int>> System.Linq.Expressions.Expression.Lambda<System.Action<int>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
-  IL_0093:  ldloc.0
-  IL_0094:  ldfld      ""Windows.Languages.WinRTTest.IVectorInt AllMembers.<>c__DisplayClass0.v""
-  IL_0099:  callvirt   ""void Windows.Languages.WinRTTest.IVectorInt.ClearFlag()""
-  IL_009e:  callvirt   ""System.Action<int> System.Linq.Expressions.Expression<System.Action<int>>.Compile()""
-  IL_00a3:  ldc.i4.1
-  IL_00a4:  callvirt   ""void System.Action<int>.Invoke(int)""
-  IL_00a9:  ldloc.0
-  IL_00aa:  ldfld      ""Windows.Languages.WinRTTest.IVectorInt AllMembers.<>c__DisplayClass0.v""
-  IL_00af:  callvirt   ""Windows.Languages.WinRTTest.TestMethodCalled Windows.Languages.WinRTTest.IVectorInt.GetFlagState()""
-  IL_00b4:  ldc.i4.s   9
-  IL_00b6:  call       ""bool AllMembers.ValidateMethod(Windows.Languages.WinRTTest.TestMethodCalled, Windows.Languages.WinRTTest.TestMethodCalled)""
-  IL_00bb:  pop
-  IL_00bc:  leave.s    IL_00d4
-}
+  {
+    IL_0011:  ldstr      ""Dev11:205875""
+    IL_0016:  call       ""void System.Console.WriteLine(string)""
+    IL_001b:  ldc.i4.1
+    IL_001c:  box        ""bool""
+    IL_0021:  ldc.i4.1
+    IL_0022:  box        ""bool""
+    IL_0027:  call       ""bool AllMembers.ValidateValue(object, object)""
+    IL_002c:  pop
+    IL_002d:  ldtoken    ""int""
+    IL_0032:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+    IL_0037:  ldstr      ""val""
+    IL_003c:  call       ""System.Linq.Expressions.ParameterExpression System.Linq.Expressions.Expression.Parameter(System.Type, string)""
+    IL_0041:  stloc.1
+    IL_0042:  ldloc.0
+    IL_0043:  ldtoken    ""AllMembers.<>c__DisplayClass3_0""
+    IL_0048:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+    IL_004d:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
+    IL_0052:  ldtoken    ""Windows.Languages.WinRTTest.IVectorInt AllMembers.<>c__DisplayClass3_0.v""
+    IL_0057:  call       ""System.Reflection.FieldInfo System.Reflection.FieldInfo.GetFieldFromHandle(System.RuntimeFieldHandle)""
+    IL_005c:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Field(System.Linq.Expressions.Expression, System.Reflection.FieldInfo)""
+    IL_0061:  ldtoken    ""void System.Collections.Generic.ICollection<int>.Add(int)""
+    IL_0066:  ldtoken    ""System.Collections.Generic.ICollection<int>""
+    IL_006b:  call       ""System.Reflection.MethodBase System.Reflection.MethodBase.GetMethodFromHandle(System.RuntimeMethodHandle, System.RuntimeTypeHandle)""
+    IL_0070:  castclass  ""System.Reflection.MethodInfo""
+    IL_0075:  ldc.i4.1
+    IL_0076:  newarr     ""System.Linq.Expressions.Expression""
+    IL_007b:  dup
+    IL_007c:  ldc.i4.0
+    IL_007d:  ldloc.1
+    IL_007e:  stelem.ref
+    IL_007f:  call       ""System.Linq.Expressions.MethodCallExpression System.Linq.Expressions.Expression.Call(System.Linq.Expressions.Expression, System.Reflection.MethodInfo, params System.Linq.Expressions.Expression[])""
+    IL_0084:  ldc.i4.1
+    IL_0085:  newarr     ""System.Linq.Expressions.ParameterExpression""
+    IL_008a:  dup
+    IL_008b:  ldc.i4.0
+    IL_008c:  ldloc.1
+    IL_008d:  stelem.ref
+    IL_008e:  call       ""System.Linq.Expressions.Expression<System.Action<int>> System.Linq.Expressions.Expression.Lambda<System.Action<int>>(System.Linq.Expressions.Expression, params System.Linq.Expressions.ParameterExpression[])""
+    IL_0093:  ldloc.0
+    IL_0094:  ldfld      ""Windows.Languages.WinRTTest.IVectorInt AllMembers.<>c__DisplayClass3_0.v""
+    IL_0099:  callvirt   ""void Windows.Languages.WinRTTest.IVectorInt.ClearFlag()""
+    IL_009e:  callvirt   ""System.Action<int> System.Linq.Expressions.Expression<System.Action<int>>.Compile()""
+    IL_00a3:  ldc.i4.1
+    IL_00a4:  callvirt   ""void System.Action<int>.Invoke(int)""
+    IL_00a9:  ldloc.0
+    IL_00aa:  ldfld      ""Windows.Languages.WinRTTest.IVectorInt AllMembers.<>c__DisplayClass3_0.v""
+    IL_00af:  callvirt   ""Windows.Languages.WinRTTest.TestMethodCalled Windows.Languages.WinRTTest.IVectorInt.GetFlagState()""
+    IL_00b4:  ldc.i4.s   9
+    IL_00b6:  call       ""bool AllMembers.ValidateMethod(Windows.Languages.WinRTTest.TestMethodCalled, Windows.Languages.WinRTTest.TestMethodCalled)""
+    IL_00bb:  pop
+    IL_00bc:  leave.s    IL_00d4
+  }
   catch System.Exception
-{
-  IL_00be:  ldstr      ""ExprTree compiler""
-  IL_00c3:  call       ""void System.Console.WriteLine(string)""
-  IL_00c8:  callvirt   ""string System.Exception.Message.get""
-  IL_00cd:  call       ""void System.Console.WriteLine(string)""
-  IL_00d2:  leave.s    IL_00d4
-}
+  {
+    IL_00be:  ldstr      ""ExprTree compiler""
+    IL_00c3:  call       ""void System.Console.WriteLine(string)""
+    IL_00c8:  callvirt   ""string System.Exception.Message.get""
+    IL_00cd:  call       ""void System.Console.WriteLine(string)""
+    IL_00d2:  leave.s    IL_00d4
+  }
   IL_00d4:  ret
 }");
         }
@@ -5219,8 +5219,8 @@ class AllMembers
 {
   // Code size      360 (0x168)
   .maxstack  4
-  .locals init (AllMembers.<>c__DisplayClass0 V_0) //CS$<>8__locals0
-  IL_0000:  newobj     ""AllMembers.<>c__DisplayClass0..ctor()""
+  .locals init (AllMembers.<>c__DisplayClass3_0 V_0) //CS$<>8__locals0
+  IL_0000:  newobj     ""AllMembers.<>c__DisplayClass3_0..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  newobj     ""Windows.Languages.WinRTTest.IVectorInt..ctor()""
@@ -5239,9 +5239,9 @@ class AllMembers
   IL_0028:  dup
   IL_0029:  ldc.i4.5
   IL_002a:  callvirt   ""void System.Collections.Generic.ICollection<int>.Add(int)""
-  IL_002f:  stfld      ""Windows.Languages.WinRTTest.IVectorInt AllMembers.<>c__DisplayClass0.v""
+  IL_002f:  stfld      ""Windows.Languages.WinRTTest.IVectorInt AllMembers.<>c__DisplayClass3_0.v""
   IL_0034:  ldloc.0
-  IL_0035:  ldfld      ""Windows.Languages.WinRTTest.IVectorInt AllMembers.<>c__DisplayClass0.v""
+  IL_0035:  ldfld      ""Windows.Languages.WinRTTest.IVectorInt AllMembers.<>c__DisplayClass3_0.v""
   IL_003a:  callvirt   ""int System.Collections.Generic.ICollection<int>.Count.get""
   IL_003f:  box        ""int""
   IL_0044:  ldc.i4.5
@@ -5249,7 +5249,7 @@ class AllMembers
   IL_004a:  call       ""bool AllMembers.ValidateValue(object, object)""
   IL_004f:  pop
   IL_0050:  ldloc.0
-  IL_0051:  ldfld      ""Windows.Languages.WinRTTest.IVectorInt AllMembers.<>c__DisplayClass0.v""
+  IL_0051:  ldfld      ""Windows.Languages.WinRTTest.IVectorInt AllMembers.<>c__DisplayClass3_0.v""
   IL_0056:  callvirt   ""void Windows.Languages.WinRTTest.IVectorInt.ClearFlag()""
   IL_005b:  ldc.i4.5
   IL_005c:  newarr     ""int""
@@ -5257,12 +5257,12 @@ class AllMembers
   IL_0062:  ldtoken    ""<PrivateImplementationDetails>.__StaticArrayInitTypeSize=20 <PrivateImplementationDetails>.$$method0x6000001-864782BF337E3DBC1A27023D5C0C065C80F17087""
   IL_0067:  call       ""void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)""
   IL_006c:  ldloc.0
-  IL_006d:  ldftn      ""bool AllMembers.<>c__DisplayClass0.<TestLINQ>b__1(int)""
+  IL_006d:  ldftn      ""bool AllMembers.<>c__DisplayClass3_0.<TestLINQ>b__0(int)""
   IL_0073:  newobj     ""System.Func<int, bool>..ctor(object, System.IntPtr)""
   IL_0078:  call       ""System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Where<int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, bool>)""
   IL_007d:  call       ""System.Collections.Generic.List<int> System.Linq.Enumerable.ToList<int>(System.Collections.Generic.IEnumerable<int>)""
   IL_0082:  ldloc.0
-  IL_0083:  ldfld      ""Windows.Languages.WinRTTest.IVectorInt AllMembers.<>c__DisplayClass0.v""
+  IL_0083:  ldfld      ""Windows.Languages.WinRTTest.IVectorInt AllMembers.<>c__DisplayClass3_0.v""
   IL_0088:  callvirt   ""Windows.Languages.WinRTTest.TestMethodCalled Windows.Languages.WinRTTest.IVectorInt.GetFlagState()""
   IL_008d:  ldc.i4.5
   IL_008e:  call       ""bool AllMembers.ValidateMethod(Windows.Languages.WinRTTest.TestMethodCalled, Windows.Languages.WinRTTest.TestMethodCalled)""
@@ -5292,20 +5292,20 @@ class AllMembers
   IL_00d6:  call       ""bool AllMembers.ValidateValue(object, object)""
   IL_00db:  pop
   IL_00dc:  ldloc.0
-  IL_00dd:  ldfld      ""Windows.Languages.WinRTTest.IVectorInt AllMembers.<>c__DisplayClass0.v""
-  IL_00e2:  ldsfld     ""System.Func<int, bool> AllMembers.<>c__DisplayClass2.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_00dd:  ldfld      ""Windows.Languages.WinRTTest.IVectorInt AllMembers.<>c__DisplayClass3_0.v""
+  IL_00e2:  ldsfld     ""System.Func<int, bool> AllMembers.<>c.<>9__3_1""
   IL_00e7:  dup
   IL_00e8:  brtrue.s   IL_0101
   IL_00ea:  pop
-  IL_00eb:  ldsfld     ""AllMembers.<>c__DisplayClass2 AllMembers.<>c__DisplayClass2.CS$<>9__inst""
-  IL_00f0:  ldftn      ""bool AllMembers.<>c__DisplayClass2.<TestLINQ>b__3(int)""
+  IL_00eb:  ldsfld     ""AllMembers.<>c AllMembers.<>c.<>9""
+  IL_00f0:  ldftn      ""bool AllMembers.<>c.<TestLINQ>b__3_1(int)""
   IL_00f6:  newobj     ""System.Func<int, bool>..ctor(object, System.IntPtr)""
   IL_00fb:  dup
-  IL_00fc:  stsfld     ""System.Func<int, bool> AllMembers.<>c__DisplayClass2.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_00fc:  stsfld     ""System.Func<int, bool> AllMembers.<>c.<>9__3_1""
   IL_0101:  call       ""System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Where<int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, bool>)""
   IL_0106:  call       ""System.Collections.Generic.List<int> System.Linq.Enumerable.ToList<int>(System.Collections.Generic.IEnumerable<int>)""
   IL_010b:  ldloc.0
-  IL_010c:  ldfld      ""Windows.Languages.WinRTTest.IVectorInt AllMembers.<>c__DisplayClass0.v""
+  IL_010c:  ldfld      ""Windows.Languages.WinRTTest.IVectorInt AllMembers.<>c__DisplayClass3_0.v""
   IL_0111:  callvirt   ""Windows.Languages.WinRTTest.TestMethodCalled Windows.Languages.WinRTTest.IVectorInt.GetFlagState()""
   IL_0116:  ldc.i4.1
   IL_0117:  call       ""bool AllMembers.ValidateMethod(Windows.Languages.WinRTTest.TestMethodCalled, Windows.Languages.WinRTTest.TestMethodCalled)""

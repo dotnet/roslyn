@@ -10,8 +10,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-using Cci = Microsoft.Cci;
-
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class InterfaceImplementationTests : CSharpTestBase
@@ -182,9 +180,9 @@ class Class : Interface
 
             var @class = (NamedTypeSymbol)global.GetMembers("Class").Single();
 
-            var classExplicitImplementationBase = @class.GetMember<PropertySymbol>("BaseInterface.this[]");
-            var classExplicitImplementation = @class.GetMember<PropertySymbol>("Interface.this[]");
-            var classImplicitImplementation = @class.GetMember<PropertySymbol>("this[]");
+            var classExplicitImplementationBase = @class.GetProperty("BaseInterface.this[]");
+            var classExplicitImplementation = @class.GetProperty("Interface.this[]");
+            var classImplicitImplementation = @class.GetProperty("this[]");
 
             Assert.NotSame(classImplicitImplementation, classExplicitImplementation);
             Assert.NotSame(classImplicitImplementation, classExplicitImplementationBase);

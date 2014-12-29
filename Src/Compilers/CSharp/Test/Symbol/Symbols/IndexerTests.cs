@@ -545,7 +545,7 @@ class C : I1
             Assert.Equal(interfaceIndexers[0].ToTestDisplayString(), interfaceIndexers[1].ToTestDisplayString());
 
             var @class = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var classIndexer = @class.GetMember<PropertySymbol>("I1.this[]");
+            var classIndexer = @class.GetProperty("I1.this[]");
 
             // One is implemented, the other is not (unspecified which)
             var indexer0Impl = @class.FindImplementationForInterfaceMember(interfaceIndexers[0]);

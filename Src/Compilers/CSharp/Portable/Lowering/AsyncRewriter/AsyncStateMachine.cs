@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly MethodSymbol constructor;
         private readonly ImmutableArray<NamedTypeSymbol> interfaces;
 
-        public AsyncStateMachine(VariableSlotAllocator variableAllocatorOpt, MethodSymbol asyncMethod, TypeKind typeKind)
-            : base(variableAllocatorOpt, asyncMethod)
+        public AsyncStateMachine(VariableSlotAllocator variableAllocatorOpt, MethodSymbol asyncMethod, int asyncMethodOrdinal, TypeKind typeKind)
+            : base(variableAllocatorOpt, asyncMethod, asyncMethodOrdinal)
         {
             // TODO: report use-site errors on these types
             this.typeKind = typeKind;

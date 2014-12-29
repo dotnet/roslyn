@@ -3,9 +3,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1012,14 +1010,14 @@ class Test
 {
   // Code size       31 (0x1f)
   .maxstack  2
-  .locals init (Test.<>c__DisplayClass0 V_0) //CS$<>8__locals0
-  IL_0000:  newobj     ""Test.<>c__DisplayClass0..ctor()""
+  .locals init (Test.<>c__DisplayClass1_0 V_0) //CS$<>8__locals0
+  IL_0000:  newobj     ""Test.<>c__DisplayClass1_0..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldc.i4.0
-  IL_0008:  stfld      ""int Test.<>c__DisplayClass0.i""
+  IL_0008:  stfld      ""int Test.<>c__DisplayClass1_0.i""
   IL_000d:  ldloc.0
-  IL_000e:  ldftn      ""void Test.<>c__DisplayClass0.<Main>b__1()""
+  IL_000e:  ldftn      ""void Test.<>c__DisplayClass1_0.<Main>b__0()""
   IL_0014:  newobj     ""Test.D..ctor(object, System.IntPtr)""
   IL_0019:  callvirt   ""void Test.D.Invoke()""
   IL_001e:  ret

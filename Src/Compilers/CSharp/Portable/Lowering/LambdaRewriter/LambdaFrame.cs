@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
@@ -20,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly FieldSymbol singletonCache;
         internal readonly CSharpSyntaxNode ScopeSyntaxOpt;
 
-        internal LambdaFrame(TypeCompilationState compilationState, MethodSymbol topLevelMethod, CSharpSyntaxNode scopeSyntax, bool isStatic)
-            : base(GeneratedNames.MakeLambdaDisplayClassName(compilationState.GenerateTempNumber()), topLevelMethod)
+        internal LambdaFrame(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, MethodSymbol topLevelMethod, int overloadOrdinal, CSharpSyntaxNode scopeSyntax, int scopeOrdinal, bool isStatic)
+            : base(MakeName(slotAllocatorOpt, overloadOrdinal, scopeOrdinal, isStatic), topLevelMethod)
         {
             this.topLevelMethod = topLevelMethod;
             this.constructor = new LambdaFrameConstructor(this);
@@ -40,6 +41,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             AssertIsLambdaScopeSyntax(this.ScopeSyntaxOpt);
+        }
+
+        private static string MakeName(VariableSlotAllocator slotAllocatorOpt, int methodOrdinal, int scopeOrdinal, bool isStatic)
+        {
+            if (isStatic)
+            {
+                return GeneratedNames.MakeStaticLambdaDisplayClassName();
+            }
+
+            return // TODO: slotAllocatorOpt?.GetPrevious() ??
+                   GeneratedNames.MakeLambdaDisplayClassName(methodOrdinal, scopeOrdinal);
         }
 
         [Conditional("DEBUG")]

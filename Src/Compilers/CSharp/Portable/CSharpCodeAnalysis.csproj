@@ -386,6 +386,7 @@
     <Compile Include="Lowering\IteratorRewriter\IteratorRewriter.cs" />
     <Compile Include="Lowering\IteratorRewriter\IteratorStateMachine.cs" />
     <Compile Include="Lowering\IteratorRewriter\IteratorMethodToStateMachineRewriter.YieldsInTryAnalysis.cs" />
+    <Compile Include="Lowering\LambdaRewriter\ClosureKind.cs" />
     <Compile Include="Lowering\LambdaRewriter\ExpressionLambdaRewriter.cs" />
     <Compile Include="Lowering\LambdaRewriter\LambdaCapturedVariable.cs" />
     <Compile Include="Lowering\LambdaRewriter\LambdaFrameConstructor.cs" />

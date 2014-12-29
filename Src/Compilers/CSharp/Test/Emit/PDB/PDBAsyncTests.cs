@@ -56,7 +56,8 @@ class Driver
 }";
             var compilation = CreateCompilationWithMscorlib45(text, options: TestOptions.DebugDll).VerifyDiagnostics();
 
-            compilation.VerifyPdb(@"<symbols>
+            compilation.VerifyPdb(@"
+<symbols>
   <methods>
     <method containingType=""DynamicMembers"" name=""get_Prop"" parameterNames="""">
       <sequencepoints total=""1"">
@@ -169,7 +170,7 @@ class Driver
         <await yield=""0x6d"" resume=""0x8b"" declaringType=""TestCase+&lt;Run&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
-    <method containingType=""TestCase+&lt;&gt;c__DisplayClass0+&lt;&lt;Run&gt;b__1&gt;d__0"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""TestCase+&lt;&gt;c+&lt;&lt;Run&gt;b__1_0&gt;d"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""1"">
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
           <slot kind=""27"" offset=""0"" />
@@ -191,8 +192,8 @@ class Driver
       </sequencepoints>
       <locals />
       <async-info>
-        <kickoff-method declaringType=""TestCase+&lt;&gt;c__DisplayClass0"" methodName=""&lt;Run&gt;b__1"" parameterNames="""" />
-        <await yield=""0x31"" resume=""0x4c"" declaringType=""TestCase+&lt;&gt;c__DisplayClass0+&lt;&lt;Run&gt;b__1&gt;d__0"" methodName=""MoveNext"" parameterNames="""" />
+        <kickoff-method declaringType=""TestCase+&lt;&gt;c"" methodName=""&lt;Run&gt;b__1_0"" parameterNames="""" />
+        <await yield=""0x31"" resume=""0x4c"" declaringType=""TestCase+&lt;&gt;c+&lt;&lt;Run&gt;b__1_0&gt;d"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
   </methods>
@@ -261,14 +262,14 @@ namespace ConsoleApplication1
     </method>
     <method containingType=""ConsoleApplication1.Program"" name=""QBar"" parameterNames="""">
       <customDebugInfo version=""4"" count=""1"">
-        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""32"" name=""&lt;QBar&gt;d__1"" />
+        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""32"" name=""&lt;QBar&gt;d__2"" />
       </customDebugInfo>
       <sequencepoints total=""0"" />
       <locals />
     </method>
     <method containingType=""ConsoleApplication1.Program"" name=""ZBar"" parameterNames="""">
       <customDebugInfo version=""4"" count=""2"">
-        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""32"" name=""&lt;ZBar&gt;d__1"" />
+        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""32"" name=""&lt;ZBar&gt;d__3"" />
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""24"">
           <slot kind=""0"" offset=""19"" />
           <slot kind=""6"" offset=""61"" />
@@ -301,7 +302,7 @@ namespace ConsoleApplication1
       </sequencepoints>
       <locals />
     </method>
-    <method containingType=""ConsoleApplication1.Program+&lt;QBar&gt;d__1"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""ConsoleApplication1.Program+&lt;QBar&gt;d__2"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""2"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""ConsoleApplication1.Program"" methodName=""Main"" parameterNames=""args"" />
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
@@ -323,10 +324,10 @@ namespace ConsoleApplication1
       <locals />
       <async-info catch-IL-offset=""0x7c"">
         <kickoff-method declaringType=""ConsoleApplication1.Program"" methodName=""QBar"" parameterNames="""" />
-        <await yield=""0x32"" resume=""0x4d"" declaringType=""ConsoleApplication1.Program+&lt;QBar&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
+        <await yield=""0x32"" resume=""0x4d"" declaringType=""ConsoleApplication1.Program+&lt;QBar&gt;d__2"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
-    <method containingType=""ConsoleApplication1.Program+&lt;ZBar&gt;d__1"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""ConsoleApplication1.Program+&lt;ZBar&gt;d__3"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""3"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""ConsoleApplication1.Program"" methodName=""Main"" parameterNames=""args"" />
         <hoistedLocalScopes version=""4"" kind=""StateMachineHoistedLocalScopes"" size=""52"" count=""5"">
@@ -368,7 +369,7 @@ namespace ConsoleApplication1
       <locals />
       <async-info>
         <kickoff-method declaringType=""ConsoleApplication1.Program"" methodName=""ZBar"" parameterNames="""" />
-        <await yield=""0x7d"" resume=""0x9c"" declaringType=""ConsoleApplication1.Program+&lt;ZBar&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
+        <await yield=""0x7d"" resume=""0x9c"" declaringType=""ConsoleApplication1.Program+&lt;ZBar&gt;d__3"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
   </methods>
@@ -396,7 +397,7 @@ class TestCase
             compilation.VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""TestCase+&lt;Await&gt;d__1"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""TestCase+&lt;Await&gt;d__0"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""3"">
         <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
           <namespace usingCount=""0"" />
@@ -426,7 +427,7 @@ class TestCase
       <locals />
       <async-info catch-IL-offset=""0x235"">
         <kickoff-method declaringType=""TestCase"" methodName=""Await"" parameterNames=""d"" />
-        <await yield=""0x148"" resume=""0x190"" declaringType=""TestCase+&lt;Await&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
+        <await yield=""0x148"" resume=""0x190"" declaringType=""TestCase+&lt;Await&gt;d__0"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
   </methods>
@@ -468,13 +469,13 @@ class C
                     "<>1__state",
                     "<>t__builder",
                     "<>u__1",  // awaiter
-                }, module.GetFieldNames("C.<M>d__1"));
+                }, module.GetFieldNames("C.<M>d__0"));
             });
 
-            v.VerifyPdb("C+<M>d__1.MoveNext", @"
+            v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <methods>
-    <method containingType=""C+&lt;M&gt;d__1"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""F"" parameterNames="""" />
       </customDebugInfo>
@@ -501,7 +502,7 @@ class C
       </scope>
       <async-info>
         <kickoff-method declaringType=""C"" methodName=""M"" parameterNames=""b"" />
-        <await yield=""0x67"" resume=""0x7e"" declaringType=""C+&lt;M&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
+        <await yield=""0x67"" resume=""0x7e"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
   </methods>
@@ -512,7 +513,7 @@ class C
   <methods>
     <method containingType=""C"" name=""M"" parameterNames=""b"">
       <customDebugInfo version=""4"" count=""1"">
-        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;M&gt;d__1"" />
+        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;M&gt;d__0"" />
       </customDebugInfo>
       <sequencepoints total=""0"" />
       <locals />
@@ -558,13 +559,13 @@ class C
                     "b",
                     "<>8__1",  // display class
                     "<>u__1",  // awaiter
-                }, module.GetFieldNames("C.<M>d__1"));
+                }, module.GetFieldNames("C.<M>d__0"));
             });
 
-            v.VerifyPdb("C+<M>d__1.MoveNext", @"
+            v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <methods>
-    <method containingType=""C+&lt;M&gt;d__1"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""3"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""F"" parameterNames="""" />
         <hoistedLocalScopes version=""4"" kind=""StateMachineHoistedLocalScopes"" size=""20"" count=""1"">
@@ -594,7 +595,7 @@ class C
       <locals />
       <async-info>
         <kickoff-method declaringType=""C"" methodName=""M"" parameterNames=""b"" />
-        <await yield=""0x98"" resume=""0xb3"" declaringType=""C+&lt;M&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
+        <await yield=""0x98"" resume=""0xb3"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
   </methods>
@@ -605,7 +606,7 @@ class C
   <methods>
     <method containingType=""C"" name=""M"" parameterNames=""b"">
       <customDebugInfo version=""4"" count=""2"">
-        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;M&gt;d__1"" />
+        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;M&gt;d__0"" />
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
           <slot kind=""30"" offset=""0"" />
         </encLocalSlotMap>
@@ -652,13 +653,13 @@ class C
                     "<>t__builder",
                     "<>8__1",  // display class
                     "<>u__1",  // awaiter
-                }, module.GetFieldNames("C.<M>d__1"));
+                }, module.GetFieldNames("C.<M>d__0"));
             });
 
-            v.VerifyPdb("C+<M>d__1.MoveNext", @"
+            v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <methods>
-    <method containingType=""C+&lt;M&gt;d__1"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""2"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""F"" parameterNames="""" />
         <hoistedLocalScopes version=""4"" kind=""StateMachineHoistedLocalScopes"" size=""20"" count=""1"">
@@ -682,7 +683,7 @@ class C
       <locals />
       <async-info>
         <kickoff-method declaringType=""C"" methodName=""M"" parameterNames=""b"" />
-        <await yield=""0x6d"" resume=""0x84"" declaringType=""C+&lt;M&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
+        <await yield=""0x6d"" resume=""0x84"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
   </methods>
@@ -693,7 +694,7 @@ class C
   <methods>
     <method containingType=""C"" name=""M"" parameterNames=""b"">
       <customDebugInfo version=""4"" count=""1"">
-        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;M&gt;d__1"" />
+        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;M&gt;d__0"" />
       </customDebugInfo>
       <sequencepoints total=""0"" />
       <locals />
@@ -738,13 +739,13 @@ class C
                     "b",
                     "<>8__1",  // display class
                     "<>u__1",  // awaiter
-                }, module.GetFieldNames("C.<M>d__1"));
+                }, module.GetFieldNames("C.<M>d__0"));
             });
 
-            v.VerifyPdb("C+<M>d__1.MoveNext", @"
+            v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <methods>
-    <method containingType=""C+&lt;M&gt;d__1"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""3"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""F"" parameterNames="""" />
         <hoistedLocalScopes version=""4"" kind=""StateMachineHoistedLocalScopes"" size=""20"" count=""1"">
@@ -775,7 +776,7 @@ class C
       <locals />
       <async-info>
         <kickoff-method declaringType=""C"" methodName=""M"" parameterNames=""b"" />
-        <await yield=""0x76"" resume=""0x91"" declaringType=""C+&lt;M&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
+        <await yield=""0x76"" resume=""0x91"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
   </methods>
@@ -786,7 +787,7 @@ class C
   <methods>
     <method containingType=""C"" name=""M"" parameterNames=""b"">
       <customDebugInfo version=""4"" count=""2"">
-        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;M&gt;d__1"" />
+        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;M&gt;d__0"" />
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
           <slot kind=""30"" offset=""0"" />
         </encLocalSlotMap>
@@ -826,15 +827,15 @@ class C
                     "<>t__builder",
                     "<d>5__1",
                     "<>u__1",  // awaiter
-                }, module.GetFieldNames("C.<M>d__1"));
+                }, module.GetFieldNames("C.<M>d__0"));
             });
 
             // CHANGE: Dev12 emits a <dynamiclocal> entry for "d", but gives it slot "-1", preventing it from matching
             // any locals when consumed by the EE (i.e. it has no effect).  See FUNCBRECEE::IsLocalDynamic.
-            v.VerifyPdb("C+<M>d__1.MoveNext", @"
+            v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <methods>
-    <method containingType=""C+&lt;M&gt;d__1"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""3"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""F"" parameterNames="""" />
         <hoistedLocalScopes version=""4"" kind=""StateMachineHoistedLocalScopes"" size=""20"" count=""1"">
@@ -861,7 +862,7 @@ class C
       <locals />
       <async-info>
         <kickoff-method declaringType=""C"" methodName=""M"" parameterNames="""" />
-        <await yield=""0x39"" resume=""0x57"" declaringType=""C+&lt;M&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
+        <await yield=""0x39"" resume=""0x57"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
   </methods>
@@ -872,7 +873,7 @@ class C
   <methods>
     <method containingType=""C"" name=""M"" parameterNames="""">
       <customDebugInfo version=""4"" count=""2"">
-        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;M&gt;d__1"" />
+        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;M&gt;d__0"" />
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
           <slot kind=""0"" offset=""19"" />
         </encLocalSlotMap>
@@ -913,13 +914,13 @@ class C
                     "<>1__state",
                     "<>t__builder",
                     "<>u__1", // awaiter
-                }, module.GetFieldNames("C.<M>d__1"));
+                }, module.GetFieldNames("C.<M>d__0"));
             });
 
-            v.VerifyPdb("C+<M>d__1.MoveNext", @"
+            v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <methods>
-    <method containingType=""C+&lt;M&gt;d__1"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""2"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""F"" parameterNames="""" />
         <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""212"" bucketCount=""1"">
@@ -946,7 +947,7 @@ class C
       </scope>
       <async-info>
         <kickoff-method declaringType=""C"" methodName=""M"" parameterNames="""" />
-        <await yield=""0x82"" resume=""0x99"" declaringType=""C+&lt;M&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
+        <await yield=""0x82"" resume=""0x99"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
   </methods>
@@ -957,7 +958,7 @@ class C
   <methods>
     <method containingType=""C"" name=""M"" parameterNames="""">
       <customDebugInfo version=""4"" count=""1"">
-        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;M&gt;d__1"" />
+        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;M&gt;d__0"" />
       </customDebugInfo>
       <sequencepoints total=""0"" />
       <locals />
@@ -997,13 +998,13 @@ class C
                     "<>t__builder",
                     "<d>5__1",
                     "<>u__1", // awaiter
-                }, module.GetFieldNames("C.<M>d__1"));
+                }, module.GetFieldNames("C.<M>d__0"));
             });
 
-            v.VerifyPdb("C+<M>d__1.MoveNext", @"
+            v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <methods>
-    <method containingType=""C+&lt;M&gt;d__1"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""3"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""F"" parameterNames="""" />
         <hoistedLocalScopes version=""4"" kind=""StateMachineHoistedLocalScopes"" size=""20"" count=""1"">
@@ -1030,7 +1031,7 @@ class C
       <locals />
       <async-info>
         <kickoff-method declaringType=""C"" methodName=""M"" parameterNames="""" />
-        <await yield=""0x94"" resume=""0xaf"" declaringType=""C+&lt;M&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
+        <await yield=""0x94"" resume=""0xaf"" declaringType=""C+&lt;M&gt;d__0"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
   </methods>
@@ -1041,7 +1042,7 @@ class C
   <methods>
     <method containingType=""C"" name=""M"" parameterNames="""">
       <customDebugInfo version=""4"" count=""2"">
-        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;M&gt;d__1"" />
+        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;M&gt;d__0"" />
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
           <slot kind=""0"" offset=""19"" />
         </encLocalSlotMap>
@@ -1095,7 +1096,7 @@ class C
                     "<>t__builder",
                     "<x>5__1",
                     "<>u__1", // awaiter
-                }, module.GetFieldNames("C.<M>d__1"));
+                }, module.GetFieldNames("C.<M>d__0"));
             });
         }
 
@@ -1136,7 +1137,7 @@ class C
                     "<>s__3",
                     "<>s__4",
                     "<>u__1", // awaiter
-                }, module.GetFieldNames("C.<G>d__1"));
+                }, module.GetFieldNames("C.<G>d__0"));
             });
 
             v.VerifyPdb("C.G", @"
@@ -1144,7 +1145,7 @@ class C
   <methods>
     <method containingType=""C"" name=""G"" parameterNames="""">
       <customDebugInfo version=""4"" count=""2"">
-        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;G&gt;d__1"" />
+        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;G&gt;d__0"" />
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
           <slot kind=""0"" offset=""15"" />
           <slot kind=""22"" offset=""34"" />
@@ -1158,7 +1159,7 @@ class C
   </methods>
 </symbols>");
 
-            v.VerifyIL("C.<G>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
+            v.VerifyIL("C.<G>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
   // Code size      287 (0x11f)
   .maxstack  3
@@ -1167,10 +1168,10 @@ class C
                 object V_2,
                 System.Runtime.CompilerServices.TaskAwaiter<int> V_3,
                 int V_4,
-                C.<G>d__1 V_5,
+                C.<G>d__0 V_5,
                 System.Exception V_6)
  ~IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<G>d__1.<>1__state""
+  IL_0001:  ldfld      ""int C.<G>d__0.<>1__state""
   IL_0006:  stloc.0
   .try
   {
@@ -1181,13 +1182,13 @@ class C
    -IL_000e:  nop
    -IL_000f:  ldarg.0
     IL_0010:  ldc.i4.s   42
-    IL_0012:  stfld      ""int C.<G>d__1.<x>5__1""
+    IL_0012:  stfld      ""int C.<G>d__0.<x>5__1""
    ~IL_0017:  ldarg.0
     IL_0018:  ldnull
-    IL_0019:  stfld      ""object C.<G>d__1.<>s__2""
+    IL_0019:  stfld      ""object C.<G>d__0.<>s__2""
     IL_001e:  ldarg.0
     IL_001f:  ldc.i4.0
-    IL_0020:  stfld      ""int C.<G>d__1.<>s__3""
+    IL_0020:  stfld      ""int C.<G>d__0.<>s__3""
     .try
     {
      -IL_0025:  nop
@@ -1199,7 +1200,7 @@ class C
      ~IL_0029:  stloc.2
       IL_002a:  ldarg.0
       IL_002b:  ldloc.2
-      IL_002c:  stfld      ""object C.<G>d__1.<>s__2""
+      IL_002c:  stfld      ""object C.<G>d__0.<>s__2""
       IL_0031:  leave.s    IL_0033
     }
    -IL_0033:  nop
@@ -1213,30 +1214,30 @@ class C
     IL_0049:  ldc.i4.0
     IL_004a:  dup
     IL_004b:  stloc.0
-    IL_004c:  stfld      ""int C.<G>d__1.<>1__state""
+    IL_004c:  stfld      ""int C.<G>d__0.<>1__state""
     IL_0051:  ldarg.0
     IL_0052:  ldloc.3
-    IL_0053:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<G>d__1.<>u__1""
+    IL_0053:  stfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<G>d__0.<>u__1""
     IL_0058:  ldarg.0
     IL_0059:  stloc.s    V_5
     IL_005b:  ldarg.0
-    IL_005c:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<G>d__1.<>t__builder""
+    IL_005c:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<G>d__0.<>t__builder""
     IL_0061:  ldloca.s   V_3
     IL_0063:  ldloca.s   V_5
-    IL_0065:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, C.<G>d__1>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref C.<G>d__1)""
+    IL_0065:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.AwaitUnsafeOnCompleted<System.Runtime.CompilerServices.TaskAwaiter<int>, C.<G>d__0>(ref System.Runtime.CompilerServices.TaskAwaiter<int>, ref C.<G>d__0)""
     IL_006a:  nop
     IL_006b:  leave      IL_011e
     IL_0070:  ldarg.0
-    IL_0071:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<G>d__1.<>u__1""
+    IL_0071:  ldfld      ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<G>d__0.<>u__1""
     IL_0076:  stloc.3
     IL_0077:  ldarg.0
-    IL_0078:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<G>d__1.<>u__1""
+    IL_0078:  ldflda     ""System.Runtime.CompilerServices.TaskAwaiter<int> C.<G>d__0.<>u__1""
     IL_007d:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
     IL_0083:  ldarg.0
     IL_0084:  ldc.i4.m1
     IL_0085:  dup
     IL_0086:  stloc.0
-    IL_0087:  stfld      ""int C.<G>d__1.<>1__state""
+    IL_0087:  stfld      ""int C.<G>d__0.<>1__state""
     IL_008c:  ldloca.s   V_3
     IL_008e:  call       ""int System.Runtime.CompilerServices.TaskAwaiter<int>.GetResult()""
     IL_0093:  stloc.s    V_4
@@ -1244,14 +1245,14 @@ class C
     IL_0097:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter<int>""
     IL_009d:  ldarg.0
     IL_009e:  ldloc.s    V_4
-    IL_00a0:  stfld      ""int C.<G>d__1.<>s__4""
+    IL_00a0:  stfld      ""int C.<G>d__0.<>s__4""
     IL_00a5:  ldarg.0
     IL_00a6:  ldarg.0
-    IL_00a7:  ldfld      ""int C.<G>d__1.<>s__4""
-    IL_00ac:  stfld      ""int C.<G>d__1.<x>5__1""
+    IL_00a7:  ldfld      ""int C.<G>d__0.<>s__4""
+    IL_00ac:  stfld      ""int C.<G>d__0.<x>5__1""
    -IL_00b1:  nop
    ~IL_00b2:  ldarg.0
-    IL_00b3:  ldfld      ""object C.<G>d__1.<>s__2""
+    IL_00b3:  ldfld      ""object C.<G>d__0.<>s__2""
     IL_00b8:  stloc.2
     IL_00b9:  ldloc.2
     IL_00ba:  brfalse.s  IL_00d7
@@ -1267,13 +1268,13 @@ class C
     IL_00d1:  callvirt   ""void System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()""
     IL_00d6:  nop
     IL_00d7:  ldarg.0
-    IL_00d8:  ldfld      ""int C.<G>d__1.<>s__3""
+    IL_00d8:  ldfld      ""int C.<G>d__0.<>s__3""
     IL_00dd:  pop
     IL_00de:  ldarg.0
     IL_00df:  ldnull
-    IL_00e0:  stfld      ""object C.<G>d__1.<>s__2""
+    IL_00e0:  stfld      ""object C.<G>d__0.<>s__2""
    -IL_00e5:  ldarg.0
-    IL_00e6:  ldfld      ""int C.<G>d__1.<x>5__1""
+    IL_00e6:  ldfld      ""int C.<G>d__0.<x>5__1""
     IL_00eb:  stloc.1
     IL_00ec:  leave.s    IL_0109
   }
@@ -1283,9 +1284,9 @@ class C
     IL_00f0:  nop
     IL_00f1:  ldarg.0
     IL_00f2:  ldc.i4.s   -2
-    IL_00f4:  stfld      ""int C.<G>d__1.<>1__state""
+    IL_00f4:  stfld      ""int C.<G>d__0.<>1__state""
     IL_00f9:  ldarg.0
-    IL_00fa:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<G>d__1.<>t__builder""
+    IL_00fa:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<G>d__0.<>t__builder""
     IL_00ff:  ldloc.s    V_6
     IL_0101:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetException(System.Exception)""
     IL_0106:  nop
@@ -1293,19 +1294,19 @@ class C
   }
  -IL_0109:  ldarg.0
   IL_010a:  ldc.i4.s   -2
-  IL_010c:  stfld      ""int C.<G>d__1.<>1__state""
+  IL_010c:  stfld      ""int C.<G>d__0.<>1__state""
  ~IL_0111:  ldarg.0
-  IL_0112:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<G>d__1.<>t__builder""
+  IL_0112:  ldflda     ""System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int> C.<G>d__0.<>t__builder""
   IL_0117:  ldloc.1
   IL_0118:  call       ""void System.Runtime.CompilerServices.AsyncTaskMethodBuilder<int>.SetResult(int)""
   IL_011d:  nop
   IL_011e:  ret
-}", sequencePoints: "C+<G>d__1.MoveNext");
+}", sequencePoints: "C+<G>d__0.MoveNext");
 
-            v.VerifyPdb("C+<G>d__1.MoveNext", @"
+            v.VerifyPdb("C+<G>d__0.MoveNext", @"
 <symbols>
   <methods>
-    <method containingType=""C+&lt;G&gt;d__1"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""C+&lt;G&gt;d__0"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""3"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""F"" parameterNames="""" />
         <hoistedLocalScopes version=""4"" kind=""StateMachineHoistedLocalScopes"" size=""20"" count=""1"">
@@ -1343,7 +1344,7 @@ class C
       <locals />
       <async-info>
         <kickoff-method declaringType=""C"" methodName=""G"" parameterNames="""" />
-        <await yield=""0x51"" resume=""0x70"" declaringType=""C+&lt;G&gt;d__1"" methodName=""MoveNext"" parameterNames="""" />
+        <await yield=""0x51"" resume=""0x70"" declaringType=""C+&lt;G&gt;d__0"" methodName=""MoveNext"" parameterNames="""" />
       </async-info>
     </method>
   </methods>

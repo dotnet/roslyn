@@ -181,7 +181,7 @@ far";
         [Fact]
         public void AnonymousMethodToRemovalOrConcatenation()
         {
-            var text =@"
+            var text = @"
 using System;
 delegate void boo(int x);
 class C
@@ -199,21 +199,21 @@ class C
     }
 }
 ";
-            var expectedIL = @"
+            CompileAndVerify(text, expectedOutput:"10").VerifyIL("C.Main", @"
 {
   // Code size       77 (0x4d)
   .maxstack  3
   .locals init (System.Delegate[] V_0) //del
   IL_0000:  ldnull
-  IL_0001:  ldsfld     ""boo C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_0001:  ldsfld     ""boo C.<>c.<>9__0_0""
   IL_0006:  dup
   IL_0007:  brtrue.s   IL_0020
   IL_0009:  pop
-  IL_000a:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
-  IL_000f:  ldftn      ""void C.<>c__DisplayClass0.<Main>b__1(int)""
+  IL_000a:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_000f:  ldftn      ""void C.<>c.<Main>b__0_0(int)""
   IL_0015:  newobj     ""boo..ctor(object, System.IntPtr)""
   IL_001a:  dup
-  IL_001b:  stsfld     ""boo C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_001b:  stsfld     ""boo C.<>c.<>9__0_0""
   IL_0020:  call       ""System.Delegate System.Delegate.Combine(System.Delegate, System.Delegate)""
   IL_0025:  castclass  ""boo""
   IL_002a:  dup
@@ -231,8 +231,7 @@ class C
   IL_004b:  pop
   IL_004c:  ret
 }
-";
-            CompileAndVerify(text, expectedOutput:"10").VerifyIL("C.Main", expectedIL);
+");
         }
 
         [Fact]
@@ -256,21 +255,21 @@ class C
     }
 }
 ";
-            var expectedIL = @"
+            CompileAndVerify(text, expectedOutput:"Hello").VerifyIL("C.Main()", @"
 {
   // Code size       80 (0x50)
   .maxstack  3
   .locals init (System.Delegate[] V_0) //del
   IL_0000:  ldnull
-  IL_0001:  ldsfld     ""boo C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_0001:  ldsfld     ""boo C.<>c.<>9__0_0""
   IL_0006:  dup
   IL_0007:  brtrue.s   IL_0020
   IL_0009:  pop
-  IL_000a:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
-  IL_000f:  ldftn      ""void C.<>c__DisplayClass0.<Main>b__1(string)""
+  IL_000a:  ldsfld     ""C.<>c C.<>c.<>9""
+  IL_000f:  ldftn      ""void C.<>c.<Main>b__0_0(string)""
   IL_0015:  newobj     ""boo..ctor(object, System.IntPtr)""
   IL_001a:  dup
-  IL_001b:  stsfld     ""boo C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_001b:  stsfld     ""boo C.<>c.<>9__0_0""
   IL_0020:  call       ""System.Delegate System.Delegate.Combine(System.Delegate, System.Delegate)""
   IL_0025:  castclass  ""boo""
   IL_002a:  dup
@@ -288,8 +287,7 @@ class C
   IL_004e:  pop
   IL_004f:  ret
 }
-";
-            CompileAndVerify(text, expectedOutput:"Hello").VerifyIL("C.Main()", expectedIL);
+");
         }
 
         // Mixed named method and Lambda expression to removal or concatenation

@@ -1158,8 +1158,8 @@ class C
             CompileAndVerify(source, additionalRefs: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var iterator = c.GetMember<NamedTypeSymbol>("<Foo>d__1");
-                var getEnumerator = iterator.GetMember<MethodSymbol>("System.Collections.Generic.IEnumerable<dynamic>.GetEnumerator");
+                var iterator = c.GetMember<NamedTypeSymbol>("<Foo>d__0");
+                var getEnumerator = iterator.GetMethod("System.Collections.Generic.IEnumerable<dynamic>.GetEnumerator");
                 var attrs = getEnumerator.GetAttributes();
 
                 foreach (var attr in attrs)

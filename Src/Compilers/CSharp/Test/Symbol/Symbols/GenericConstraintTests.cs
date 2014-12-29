@@ -109,7 +109,7 @@ class C : I<C, object>
             Action<ModuleSymbol> validator = module =>
             {
                 var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var method = type.GetMember<MethodSymbol>("I<C,System.Object>.M");
+                var method = type.GetMethod("I<C,System.Object>.M");
                 CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, true, "C", "C", "C");
             };
 
@@ -4690,7 +4690,7 @@ abstract class E : D, IB
                 CheckTypeParameterContainingSymbols(method, typeParameter.EffectiveBaseClassNoUseSiteDiagnostics, 2);
                 CheckTypeParameterContainingSymbols(method, typeParameter.ConstraintTypes[0], 2);
 
-                method = type.GetMember<MethodSymbol>("IB.M2");
+                method = type.GetMethod("IB.M2");
                 typeParameter = method.TypeParameters[0];
                 Assert.Equal("IA<A<X>.B<object>>", typeParameter.ConstraintTypes[0].ToDisplayString());
                 CheckTypeParameterContainingSymbols(method, typeParameter.EffectiveBaseClassNoUseSiteDiagnostics, 0);
@@ -5324,7 +5324,7 @@ class D0 : D<object>
             type = @namespace.GetMember<NamedTypeSymbol>("C1");
             CheckConstraints(type.GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("C2");
-            CheckConstraints(type.GetMember<MethodSymbol>("I<System.Object>.M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
+            CheckConstraints(type.GetMethod("I<System.Object>.M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("D0");
             CheckConstraints(type.BaseType.GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
         }

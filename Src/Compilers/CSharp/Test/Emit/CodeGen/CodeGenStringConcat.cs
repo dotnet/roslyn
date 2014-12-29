@@ -1,10 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -727,11 +723,11 @@ public class Test
 {
   // Code size       38 (0x26)
   .maxstack  3
-  IL_0000:  newobj     ""Test.<>c__DisplayClass0..ctor()""
+  IL_0000:  newobj     ""Test.<>c__DisplayClass0_0..ctor()""
   IL_0005:  dup
   IL_0006:  ldstr      ""bye""
-  IL_000b:  stfld      ""string Test.<>c__DisplayClass0.expr2""
-  IL_0010:  ldftn      ""string Test.<>c__DisplayClass0.<Main>b__1()""
+  IL_000b:  stfld      ""string Test.<>c__DisplayClass0_0.expr2""
+  IL_0010:  ldftn      ""string Test.<>c__DisplayClass0_0.<Main>b__0()""
   IL_0016:  newobj     ""System.Func<string>..ctor(object, System.IntPtr)""
   IL_001b:  callvirt   ""string System.Func<string>.Invoke()""
   IL_0020:  call       ""void System.Console.WriteLine(string)""

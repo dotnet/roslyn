@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private LocalRewriter(
             CSharpCompilation compilation,
             MethodSymbol containingMethod,
+            int containingMethodOrdinal,
             NamedTypeSymbol containingType,
             SyntheticBoundNodeFactory factory,
             SynthesizedSubmissionFields previousSubmissionFields,
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.factory = factory;
             this.factory.CurrentMethod = containingMethod;
             Debug.Assert(factory.CurrentType == (containingType ?? containingMethod.ContainingType));
-            this.dynamicFactory = new LoweredDynamicOperationFactory(factory);
+            this.dynamicFactory = new LoweredDynamicOperationFactory(factory, containingMethodOrdinal);
             this.previousSubmissionFields = previousSubmissionFields;
             this.allowOmissionOfConditionalCalls = allowOmissionOfConditionalCalls;
             this.diagnostics = diagnostics;
@@ -48,7 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static BoundStatement Rewrite(
             CSharpCompilation compilation,
-            MethodSymbol containingSymbol,
+            MethodSymbol method,
+            int methodOrdinal,
             NamedTypeSymbol containingType,
             BoundStatement statement,
             TypeCompilationState compilationState,
@@ -64,14 +66,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             try
             {
-                var factory = new SyntheticBoundNodeFactory(containingSymbol, statement.Syntax, compilationState, diagnostics);
-                var localRewriter = new LocalRewriter(compilation, containingSymbol, containingType, factory, previousSubmissionFields, allowOmissionOfConditionalCalls, diagnostics);
+                var factory = new SyntheticBoundNodeFactory(method, statement.Syntax, compilationState, diagnostics);
+                var localRewriter = new LocalRewriter(compilation, method, methodOrdinal, containingType, factory, previousSubmissionFields, allowOmissionOfConditionalCalls, diagnostics);
                 var loweredStatement = (BoundStatement)localRewriter.Visit(statement);
                 sawLambdas = localRewriter.sawLambdas;
                 sawAwaitInExceptionHandler = localRewriter.sawAwaitInExceptionHandler;
                 sawDynamicOperations = localRewriter.dynamicFactory.GeneratedDynamicOperations;
                 var block = loweredStatement as BoundBlock;
-                var result = (block == null) ? loweredStatement : InsertPrologueSequencePoint(block, containingSymbol);
+                var result = (block == null) ? loweredStatement : InsertPrologueSequencePoint(block, method);
                 return result;
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)

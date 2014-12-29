@@ -1654,15 +1654,15 @@ class C
       IL_001b:  ldc.i4.0
       IL_001c:  br.s       IL_0046
       IL_001e:  pop
-      IL_001f:  ldsfld     ""System.Func<bool> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+      IL_001f:  ldsfld     ""System.Func<bool> C.<>c.<>9__1_0""
       IL_0024:  dup
       IL_0025:  brtrue.s   IL_003e
       IL_0027:  pop
-      IL_0028:  ldsfld     ""C.<>c__DisplayClass0 C.<>c__DisplayClass0.CS$<>9__inst""
-      IL_002d:  ldftn      ""bool C.<>c__DisplayClass0.<Main>b__1()""
+      IL_0028:  ldsfld     ""C.<>c C.<>c.<>9""
+      IL_002d:  ldftn      ""bool C.<>c.<Main>b__1_0()""
       IL_0033:  newobj     ""System.Func<bool>..ctor(object, System.IntPtr)""
       IL_0038:  dup
-      IL_0039:  stsfld     ""System.Func<bool> C.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+      IL_0039:  stsfld     ""System.Func<bool> C.<>c.<>9__1_0""
       IL_003e:  callvirt   ""bool System.Func<bool>.Invoke()""
       IL_0043:  ldc.i4.0
       IL_0044:  cgt.un

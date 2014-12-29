@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CodeGen;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -40,14 +41,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected readonly TypeCompilationState CompilationState;
 
         protected readonly DiagnosticBag Diagnostics;
+        protected readonly VariableSlotAllocator slotAllocatorOpt;
 
-        protected MethodToClassRewriter(TypeCompilationState compilationState, DiagnosticBag diagnostics)
+        protected MethodToClassRewriter(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
             Debug.Assert(compilationState != null);
             Debug.Assert(diagnostics != null);
 
             this.CompilationState = compilationState;
             this.Diagnostics = diagnostics;
+            this.slotAllocatorOpt = slotAllocatorOpt;
         }
 
         /// <summary>
@@ -264,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var containingType = this.ContainingType;
 
             //  create a method symbol
-            string methodName = GeneratedNames.MakeFabricatedMethodName(this.CompilationState.NextWrapperMethodIndex);
+            string methodName = GeneratedNames.MakeBaseMethodWrapperName(this.CompilationState.NextWrapperMethodIndex);
             wrapper = new BaseMethodWrapperSymbol(containingType, methodBeingWrapped, syntax, methodName);
 
             //  add the method to module

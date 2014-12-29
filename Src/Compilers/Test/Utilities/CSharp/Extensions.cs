@@ -139,12 +139,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static ImmutableArray<string> SplitMemberName(string name)
         {
-            var builder = ArrayBuilder<string>.GetInstance();
-            var curr = name;
-            while (curr.Length > 0)
+            if (name.StartsWith(".", StringComparison.Ordinal))
             {
-                builder.Add(MetadataHelpers.SplitQualifiedName(curr, out curr));
+                return ImmutableArray.Create(name);
             }
+
+            var builder = ArrayBuilder<string>.GetInstance();
+            string part = name;
+            while (part.Length > 0)
+            {
+                builder.Add(MetadataHelpers.SplitQualifiedName(part, out part));
+            }
+
             builder.ReverseContents();
             return builder.ToImmutableAndFree();
         }
@@ -159,51 +165,69 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return (T)((CSharpCompilation)compilation).GlobalNamespace.GetMember(qualifiedName);
         }
 
-        public static ImmutableArray<Symbol> GetMembers(this Compilation compilation, string name)
+        public static ImmutableArray<Symbol> GetMembers(this Compilation compilation, string qualifiedName)
         {
-            NamespaceOrTypeSymbol lastSymbol;
-            return GetMembers(((CSharpCompilation)compilation).GlobalNamespace, name, out lastSymbol);
+            NamespaceOrTypeSymbol lastContainer;
+            return GetMembers(((CSharpCompilation)compilation).GlobalNamespace, qualifiedName, out lastContainer);
         }
 
-        private static ImmutableArray<Symbol> GetMembers(NamespaceSymbol @namespace, string qualifiedName, out NamespaceOrTypeSymbol lastSymbol)
+        private static ImmutableArray<Symbol> GetMembers(NamespaceOrTypeSymbol container, string qualifiedName, out NamespaceOrTypeSymbol lastContainer)
         {
             var parts = SplitMemberName(qualifiedName);
             
-            lastSymbol = @namespace;
+            lastContainer = container;
             for (int i = 0; i < parts.Length - 1; i++)
             {
-                lastSymbol = (NamespaceOrTypeSymbol)lastSymbol.GetMember(parts[i]);
+                lastContainer = (NamespaceOrTypeSymbol)lastContainer.GetMember(parts[i]);
             }
 
-            return lastSymbol.GetMembers(parts[parts.Length - 1]);
+            return lastContainer.GetMembers(parts[parts.Length - 1]);
         }
 
-        public static Symbol GetMember(this NamespaceSymbol @namespace, string qualifiedName)
+        public static Symbol GetMember(this NamespaceOrTypeSymbol container, string qualifiedName)
         {
-            NamespaceOrTypeSymbol lastSymbol;
-            var members = GetMembers(@namespace, qualifiedName, out lastSymbol);
-            Assert.True(members.Length == 1, "Available members:\r\n" + string.Join("\r\n", lastSymbol.GetMembers()));
+            NamespaceOrTypeSymbol lastContainer;
+            var members = GetMembers(container, qualifiedName, out lastContainer);
+            if (members.Length == 0)
+            {
+                Assert.True(false, "Available members:\r\n" + string.Join("\r\n", lastContainer.GetMembers()));
+            }
+            else if (members.Length > 1)
+            {
+                Assert.True(false, "Found multiple members of specified name:\r\n" + string.Join("\r\n", members));
+            }
+
             return members.Single();
         }
 
-        public static Symbol GetMember(this NamespaceOrTypeSymbol symbol, string name)
+        public static T GetMember<T>(this NamespaceOrTypeSymbol symbol, string qualifiedName) where T : Symbol
         {
-            return symbol.GetMembers(name).Single();
+            return (T)symbol.GetMember(qualifiedName);
         }
 
-        public static T GetMember<T>(this NamespaceOrTypeSymbol symbol, string name) where T : Symbol
+        public static PropertySymbol GetProperty(this NamedTypeSymbol symbol, string name)
         {
-            return (T)symbol.GetMember(name);
+            return (PropertySymbol)symbol.GetMembers(name).Single();
+        }
+
+        public static EventSymbol GetEvent(this NamedTypeSymbol symbol, string name)
+        {
+            return (EventSymbol)symbol.GetMembers(name).Single();
+        }
+
+        public static MethodSymbol GetMethod(this NamedTypeSymbol symbol, string name)
+        {
+            return (MethodSymbol)symbol.GetMembers(name).Single();
+        }
+
+        public static FieldSymbol GetField(this NamedTypeSymbol symbol, string name)
+        {
+            return (FieldSymbol)symbol.GetMembers(name).Single();
         }
 
         public static NamedTypeSymbol GetTypeMember(this NamespaceOrTypeSymbol symbol, string name)
         {
             return symbol.GetTypeMembers(name).Single();
-        }
-
-        public static NamespaceSymbol GetNamespace(this NamespaceSymbol symbol, string name)
-        {
-            return (NamespaceSymbol)symbol.GetMembers(name).Single();
         }
 
         public static string[] GetFieldNames(this ModuleSymbol module, string qualifiedTypeName)

@@ -98,7 +98,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly IReadOnlySet<Symbol> hoistedVariables;
 
         private readonly SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals;
-        protected readonly VariableSlotAllocator slotAllocatorOpt;
         private int nextFreeHoistedLocalSlot;
 
         // new:
@@ -113,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int nextFreeHoistedLocalSlot,
             DiagnosticBag diagnostics,
             bool useFinalizerBookkeeping)
-            : base(F.CompilationState, diagnostics)
+            : base(slotAllocatorOpt, F.CompilationState, diagnostics)
         {
             Debug.Assert(F != null);
             Debug.Assert(originalMethod != null);
@@ -130,7 +129,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.hasFinalizerState = useFinalizerBookkeeping;
             this.OriginalMethod = originalMethod;
             this.hoistedVariables = hoistedVariables;
-            this.slotAllocatorOpt = slotAllocatorOpt;
             this.synthesizedLocalOrdinals = synthesizedLocalOrdinals;
             this.nextFreeHoistedLocalSlot = nextFreeHoistedLocalSlot;
 

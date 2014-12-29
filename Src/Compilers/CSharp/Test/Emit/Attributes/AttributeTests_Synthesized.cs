@@ -172,7 +172,7 @@ class C
 
                 CompileAndVerify(comp, symbolValidator: m =>
                 {
-                    var displayClass = m.ContainingAssembly.GetTypeByMetadataName("C+<>c__DisplayClass0");
+                    var displayClass = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<>c__DisplayClass0_0");
                     AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(displayClass.GetAttributes()));
 
                     foreach (var member in displayClass.GetMembers())
@@ -341,7 +341,7 @@ public class C
 
                 CompileAndVerify(comp, symbolValidator: module =>
                 {
-                    var iter = module.ContainingAssembly.GetTypeByMetadataName("C+<Iterator>d__1");
+                    var iter = module.ContainingAssembly.GetTypeByMetadataName("C+<Iterator>d__0");
                     AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(iter.GetAttributes()));
 
                     foreach (var member in iter.GetMembers().Where(member => member is MethodSymbol))
@@ -397,10 +397,10 @@ class C
 
                 CompileAndVerify(comp, symbolValidator: m =>
                 {
-                    var foo = m.ContainingAssembly.GetTypeByMetadataName("C").GetMember<MethodSymbol>("Foo");
+                    var foo = m.GlobalNamespace.GetMember<MethodSymbol>("C.Foo");
                     AssertEx.SetEqual(new[] { "AsyncStateMachineAttribute" }, GetAttributeNames(foo.GetAttributes()));
 
-                    var iter = m.ContainingAssembly.GetTypeByMetadataName("C+<Foo>d__1");
+                    var iter = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C.<Foo>d__0");
                     AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(iter.GetAttributes()));
 
                     foreach (var member in iter.GetMembers().Where(s => s.Kind == SymbolKind.Method))
@@ -1353,7 +1353,7 @@ class Test
             var reference = CreateCompilationWithMscorlib45(source).EmitToImageReference();
             var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            var stateMachine = comp.GetMember<NamedTypeSymbol>("Test.<F>d__1");
+            var stateMachine = comp.GetMember<NamedTypeSymbol>("Test.<F>d__0");
             var asyncMethod = comp.GetMember<MethodSymbol>("Test.F");
 
             var asyncMethodAttributes = asyncMethod.GetAttributes();
@@ -1381,8 +1381,8 @@ class Test
             var reference = CreateCompilationWithMscorlib45(source).EmitToImageReference();
             var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            var stateMachine = comp.GetMember<NamedTypeSymbol>("Test.<>c__DisplayClass0.<<F>b__1>d__0");
-            var asyncMethod = comp.GetMember<MethodSymbol>("Test.<>c__DisplayClass0.<F>b__1");
+            var stateMachine = comp.GetMember<NamedTypeSymbol>("Test.<>c.<<F>b__0_0>d");
+            var asyncMethod = comp.GetMember<MethodSymbol>("Test.<>c.<F>b__0_0");
 
             var asyncMethodAttributes = asyncMethod.GetAttributes();
             AssertEx.SetEqual(new[] { "AsyncStateMachineAttribute" }, GetAttributeNames(asyncMethodAttributes));
@@ -1408,7 +1408,7 @@ public class Test<T>
             var reference = CreateCompilationWithMscorlib45(source).EmitToImageReference();
             var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            var stateMachine = comp.GetMember<NamedTypeSymbol>("Test.<F>d__1");
+            var stateMachine = comp.GetMember<NamedTypeSymbol>("Test.<F>d__0");
             var asyncMethod = comp.GetMember<MethodSymbol>("Test.F");
 
             var asyncMethodAttributes = asyncMethod.GetAttributes();
@@ -1467,7 +1467,7 @@ class Test
             var reference = CreateCompilationWithMscorlib45(source).EmitToImageReference();
             var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            var stateMachine = comp.GetMember<NamedTypeSymbol>("Test.<F>d__1");
+            var stateMachine = comp.GetMember<NamedTypeSymbol>("Test.<F>d__0");
             var asyncMethod = comp.GetMember<MethodSymbol>("Test.F");
 
             var asyncMethodAttributes = asyncMethod.GetAttributes();
@@ -1494,7 +1494,7 @@ public class Test<T>
             var reference = CreateCompilationWithMscorlib45(source).EmitToImageReference();
             var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
-            var stateMachine = comp.GetMember<NamedTypeSymbol>("Test.<F>d__1");
+            var stateMachine = comp.GetMember<NamedTypeSymbol>("Test.<F>d__0");
             var iteratorMethod = comp.GetMember<MethodSymbol>("Test.F");
 
             var iteratorMethodAttributes = iteratorMethod.GetAttributes();

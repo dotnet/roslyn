@@ -448,7 +448,7 @@ class C
     }}
 }}
 ";
-            int padding = GeneratedNames.MakeLambdaMethodName("A", 1).Length - 1;
+            int padding = GeneratedNames.MakeLambdaMethodName("A", -1, 1).Length - 1;
             string longName = LongSymbolName.Substring(padding);
             var source = string.Format(sourceTemplate, longName);
             var comp = CreateCompilationWithMscorlib(source);
@@ -456,7 +456,7 @@ class C
             comp.VerifyEmitDiagnostics(
                 // (13,16): error CS7013: Name '<longName + 1>b__3' exceeds the maximum length allowed in metadata.
                 //         return () => p + 1;
-                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "() => p + 1").WithArguments("<" + longName + 1 + ">b__3").WithLocation(13, 16));
+                Diagnostic(ErrorCode.ERR_MetadataNameTooLong, "() => p + 1").WithArguments("<" + longName + "1>b__0").WithLocation(13, 16));
         }
 
         [Fact]

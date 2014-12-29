@@ -46,8 +46,7 @@ namespace X
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.DebugDll);
-            string expected = @"
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <methods>
     <method containingType=""X.Y.C"" name=""M"" parameterNames="""">
@@ -102,8 +101,7 @@ namespace X
       </scope>
     </method>
   </methods>
-</symbols>";
-            AssertXmlEqual(expected, actual);
+</symbols>");
         }
 
         [Fact]
@@ -128,8 +126,7 @@ namespace X
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.DebugDll);
-            string expected = @"
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <methods>
     <method containingType=""X.Y.C"" name=""M"" parameterNames="""">
@@ -184,8 +181,7 @@ namespace X
       </scope>
     </method>
   </methods>
-</symbols>";
-            AssertXmlEqual(expected, actual);
+</symbols>");
         }
 
         [Fact]
@@ -210,8 +206,7 @@ namespace X
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.DebugDll);
-            string expected = @"
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <methods>
     <method containingType=""X.Y.C"" name=""M"" parameterNames="""">
@@ -266,8 +261,7 @@ namespace X
       </scope>
     </method>
   </methods>
-</symbols>";
-            AssertXmlEqual(expected, actual);
+</symbols>");
         }
 
         [Fact]
@@ -292,8 +286,7 @@ namespace X
     }
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.DebugDll);
-            string expected = @"
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <methods>
     <method containingType=""X.Y.C"" name=""M"" parameterNames="""">
@@ -348,8 +341,7 @@ namespace X
       </scope>
     </method>
   </methods>
-</symbols>";
-            AssertXmlEqual(expected, actual);
+</symbols>");
         }
 
         [Fact]
@@ -1180,8 +1172,7 @@ namespace X
                 //     extern alias S;
                 Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias S;"));
 
-            string actual = GetPdbXml(compilation);
-            string expected = @"
+            compilation.VerifyPdb(@"
 <symbols>
   <methods>
     <method containingType=""X.C"" name=""M"" parameterNames="""">
@@ -1260,8 +1251,7 @@ namespace X
       </scope>
     </method>
   </methods>
-</symbols>";
-            AssertXmlEqual(expected, actual);
+</symbols>");
         }
 
         [Fact]
@@ -1291,8 +1281,7 @@ namespace X
 }
 ";
 
-            string actual = GetPdbXml(text, TestOptions.DebugDll);
-            string expected = @"
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
     <methods>
         <method containingType=""X.C"" name="".ctor"" parameterNames="""">
@@ -1322,8 +1311,7 @@ namespace X
             <locals/>
         </method>
     </methods>
-</symbols>";
-            AssertXmlEqual(expected, actual);
+</symbols>");
         }
 
         [Fact]
@@ -1341,58 +1329,56 @@ class C
     });
 }
 ";
-            string actual = GetPdbXml(text, TestOptions.DebugDll);
-            string expected = @"
+            CompileAndVerify(text, new[] { SystemCoreRef }, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
-    <methods>
-        <method containingType=""C"" name="".ctor"" parameterNames="""">
-            <customDebugInfo version=""4"" count=""1"">
-                <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
-                    <namespace usingCount=""1""/>
-                </using>
-            </customDebugInfo>
-            <sequencepoints total=""1"">
-                <entry il_offset=""0x0"" start_row=""6"" start_column=""5"" end_row=""6"" end_column=""59"" file_ref=""0""/>
-            </sequencepoints>
-            <locals/>
-            <scope startOffset=""0x0"" endOffset=""0x38"">
-                <namespace name=""System.Linq""/>
-            </scope>
-        </method>
-        <method containingType=""C"" name="".cctor"" parameterNames="""">
-            <customDebugInfo version=""4"" count=""1"">
-                <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".ctor"" parameterNames=""""/>
-            </customDebugInfo>
-            <sequencepoints total=""1"">
-                <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""10"" end_column=""8"" file_ref=""0""/>
-            </sequencepoints>
-            <locals/>
-        </method>
-        <method containingType=""C+&lt;&gt;c__DisplayClass0"" name=""&lt;_ctor&gt;b__1"" parameterNames=""x"">
-            <customDebugInfo version=""4"" count=""1"">
-                <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".ctor"" parameterNames=""""/>
-            </customDebugInfo>
-            <sequencepoints total=""3"">
-                <entry il_offset=""0x0"" start_row=""6"" start_column=""35"" end_row=""6"" end_column=""36"" file_ref=""0""/>
-                <entry il_offset=""0x1"" start_row=""6"" start_column=""37"" end_row=""6"" end_column=""55"" file_ref=""0""/>
-                <entry il_offset=""0xa"" start_row=""6"" start_column=""56"" end_row=""6"" end_column=""57"" file_ref=""0""/>
-            </sequencepoints>
-            <locals/>
-        </method>
-        <method containingType=""C+&lt;&gt;c__DisplayClass3"" name=""&lt;_cctor&gt;b__4"" parameterNames=""x"">
-            <customDebugInfo version=""4"" count=""1"">
-                <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".ctor"" parameterNames=""""/>
-            </customDebugInfo>
-            <sequencepoints total=""3"">
-                <entry il_offset=""0x0"" start_row=""8"" start_column=""5"" end_row=""8"" end_column=""6"" file_ref=""0""/>
-                <entry il_offset=""0x1"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""27"" file_ref=""0""/>
-                <entry il_offset=""0xa"" start_row=""10"" start_column=""5"" end_row=""10"" end_column=""6"" file_ref=""0""/>
-            </sequencepoints>
-            <locals/>
-        </method>
-    </methods>
-</symbols>";
-            AssertXmlEqual(expected, actual);
+  <methods>
+    <method containingType=""C"" name="".ctor"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+          <namespace usingCount=""1"" />
+        </using>
+      </customDebugInfo>
+      <sequencepoints total=""1"">
+        <entry il_offset=""0x0"" start_row=""6"" start_column=""5"" end_row=""6"" end_column=""59"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x38"">
+        <namespace name=""System.Linq"" />
+      </scope>
+    </method>
+    <method containingType=""C"" name="".cctor"" parameterNames="""">
+      <customDebugInfo version=""4"" count=""1"">
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".ctor"" parameterNames="""" />
+      </customDebugInfo>
+      <sequencepoints total=""1"">
+        <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""10"" end_column=""8"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+    </method>
+    <method containingType=""C+&lt;&gt;c"" name=""&lt;.ctor&gt;b__2_0"" parameterNames=""x"">
+      <customDebugInfo version=""4"" count=""1"">
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".ctor"" parameterNames="""" />
+      </customDebugInfo>
+      <sequencepoints total=""3"">
+        <entry il_offset=""0x0"" start_row=""6"" start_column=""35"" end_row=""6"" end_column=""36"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""6"" start_column=""37"" end_row=""6"" end_column=""55"" file_ref=""0"" />
+        <entry il_offset=""0xa"" start_row=""6"" start_column=""56"" end_row=""6"" end_column=""57"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+    </method>
+    <method containingType=""C+&lt;&gt;c"" name=""&lt;.cctor&gt;b__3_0"" parameterNames=""x"">
+      <customDebugInfo version=""4"" count=""1"">
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".ctor"" parameterNames="""" />
+      </customDebugInfo>
+      <sequencepoints total=""3"">
+        <entry il_offset=""0x0"" start_row=""8"" start_column=""5"" end_row=""8"" end_column=""6"" file_ref=""0"" />
+        <entry il_offset=""0x1"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""27"" file_ref=""0"" />
+        <entry il_offset=""0xa"" start_row=""10"" start_column=""5"" end_row=""10"" end_column=""6"" file_ref=""0"" />
+      </sequencepoints>
+      <locals />
+    </method>
+  </methods>
+</symbols>");
         }
 
         [Fact]
@@ -1411,8 +1397,7 @@ class C
 }
 ";
 
-            string actual = GetPdbXml(text, TestOptions.DebugDll);
-            string expected = @"
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <methods>
     <method containingType=""C"" name=""get_P1"" parameterNames="""">
@@ -1495,8 +1480,7 @@ class C
       <locals />
     </method>
   </methods>
-</symbols>";
-            AssertXmlEqual(expected, actual);
+</symbols>");
         }
 
         [Fact]
@@ -1516,8 +1500,7 @@ class Derived : Base
 }
 ";
 
-            string actual = GetPdbXml(text, TestOptions.DebugDll);
-            string expected = @"
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <methods>
     <method containingType=""Base"" name=""get_P"" parameterNames="""">
@@ -1548,8 +1531,7 @@ class Derived : Base
       </scope>
     </method>
   </methods>
-</symbols>";
-            AssertXmlEqual(expected, actual);
+</symbols>");
         }
 
         [Fact]
@@ -1576,8 +1558,7 @@ class C : I1, I2
 }
 ";
 
-            string actual = GetPdbXml(text, TestOptions.DebugDll);
-            string expected = @"
+            CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <methods>
     <method containingType=""C"" name=""get_Item"" parameterNames=""x"">
@@ -1607,9 +1588,7 @@ class C : I1, I2
       <locals />
     </method>
   </methods>
-</symbols>";
-
-            AssertXmlEqual(expected, actual);
+</symbols>");
         }
 
         [WorkItem(692496, "DevDiv")]
@@ -1684,7 +1663,7 @@ public class Test
     }
 }
 ";
-            var expectedXml = @"
+            CompileAndVerify(source, new[] { libRef }, options: TestOptions.DebugExe).VerifyPdb("Test.Main", @"
 <symbols>
   <entryPoint declaringType=""Test"" methodName=""Main"" parameterNames="""" />
   <methods>
@@ -1704,9 +1683,7 @@ public class Test
       </scope>
     </method>
   </methods>
-</symbols>";
-
-            AssertXmlEqual(expectedXml, GetPdbXml(source, TestOptions.DebugExe, "Test.Main", references: new[] { libRef }));
+</symbols>");
         }
 
         [Fact]
@@ -1908,8 +1885,7 @@ public class Y<T>
   public class Z<U> {}
 }
 ";
-            string compName = GetUniqueName();
-            var comp = CreateCompilationWithMscorlib(source1, assemblyName: compName, options: TestOptions.DebugDll);
+            var comp1 = CreateCompilationWithMscorlib(source1, options: TestOptions.DebugDll, assemblyName: "Comp1");
 
             var source2 = @"
 using t1 = Y<W[]>;
@@ -1926,8 +1902,9 @@ public class C1
     }
 }
 ";
-            string actual = GetPdbXml(source2, TestOptions.DebugExe, references: new[] { comp.ToMetadataReference() });
-            string expected = string.Format(@"
+            var comp2 = CreateCompilationWithMscorlib(source2, new[] { comp1.ToMetadataReference() }, options: TestOptions.DebugExe);
+
+            comp2.VerifyPdb(@"
 <symbols>
   <entryPoint declaringType=""C1"" methodName=""Main"" parameterNames="""" />
   <methods>
@@ -1943,18 +1920,16 @@ public class C1
       </sequencepoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
-        <alias name=""t1"" target=""Y`1[[W[], {0}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], {0}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" kind=""type"" />
-        <alias name=""t2"" target=""Y`1[[W[,], {0}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], {0}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" kind=""type"" />
-        <alias name=""t3"" target=""Y`1[[W[][,], {0}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], {0}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" kind=""type"" />
-        <alias name=""t4"" target=""Y`1[[Y`1[[W, {0}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]][,][], {0}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], {0}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" kind=""type"" />
-        <alias name=""t5"" target=""Y`1+Z`1[[W[][,], {0}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null],[W[,,][], {0}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], {0}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" kind=""type"" />
-        <alias name=""t6"" target=""Y`1[[Y`1+Z`1[[Y`1+F[[System.Int32[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]][][,], {0}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null],[Y`1+F[[W[][,], {0}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]][], {0}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]][][], {0}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], {0}, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" kind=""type"" />
+        <alias name=""t1"" target=""Y`1[[W[], Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" kind=""type"" />
+        <alias name=""t2"" target=""Y`1[[W[,], Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" kind=""type"" />
+        <alias name=""t3"" target=""Y`1[[W[][,], Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" kind=""type"" />
+        <alias name=""t4"" target=""Y`1[[Y`1[[W, Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]][,][], Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" kind=""type"" />
+        <alias name=""t5"" target=""Y`1+Z`1[[W[][,], Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null],[W[,,][], Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" kind=""type"" />
+        <alias name=""t6"" target=""Y`1[[Y`1+Z`1[[Y`1+F[[System.Int32[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]][][,], Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null],[Y`1+F[[W[][,], Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]][], Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]][][], Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" kind=""type"" />
       </scope>
     </method>
   </methods>
-</symbols>", compName);
-
-            AssertXmlEqual(expected, actual);
+</symbols>");
         }
 
         [Fact, WorkItem(543615, "DevDiv")]

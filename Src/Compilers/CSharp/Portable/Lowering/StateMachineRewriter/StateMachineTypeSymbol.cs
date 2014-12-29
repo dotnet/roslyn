@@ -10,17 +10,17 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public readonly MethodSymbol KickoffMethod;
 
-        public StateMachineTypeSymbol(VariableSlotAllocator slotAllocatorOpt, MethodSymbol kickoffMethod)
-            : base(MakeName(slotAllocatorOpt, kickoffMethod), kickoffMethod)
+        public StateMachineTypeSymbol(VariableSlotAllocator slotAllocatorOpt, MethodSymbol kickoffMethod, int kickoffMethodOrdinal)
+            : base(MakeName(slotAllocatorOpt, kickoffMethod, kickoffMethodOrdinal),  kickoffMethod)
         {
             Debug.Assert(kickoffMethod != null);
             this.KickoffMethod = kickoffMethod;
         }
 
-        private static string MakeName(VariableSlotAllocator slotAllocatorOpt, MethodSymbol kickoffMethod)
+        private static string MakeName(VariableSlotAllocator slotAllocatorOpt, MethodSymbol kickoffMethod, int kickoffMethodOrdinal)
         {
             return slotAllocatorOpt?.PreviousStateMachineTypeName ?? 
-                   GeneratedNames.MakeStateMachineTypeName(kickoffMethod.Name, SequenceNumber(kickoffMethod));
+                   GeneratedNames.MakeStateMachineTypeName(kickoffMethod.Name, kickoffMethodOrdinal);
         }
 
         private static int SequenceNumber(MethodSymbol kickoffMethod)
@@ -36,9 +36,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // It is possible we did not find any such members, e.g. for methods that result from the translation of
-            // async lambdas.  In that case the method has already been uniquely named, so there is no need to
-            // produce a unique sequence number for the corresponding class, which already includes the (unique) method name.
             return count;
         }
 

@@ -32,7 +32,7 @@ class Program
   <methods>
     <method containingType=""Program"" name=""Foo"" parameterNames="""">
       <customDebugInfo version=""4"" count=""1"">
-        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""28"" name=""&lt;Foo&gt;d__1"" />
+        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""28"" name=""&lt;Foo&gt;d__0"" />
       </customDebugInfo>
       <sequencepoints total=""0"" />
       <locals />
@@ -49,7 +49,7 @@ class Program
       </sequencepoints>
       <locals />
     </method>
-    <method containingType=""Program+&lt;Foo&gt;d__1"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""Program+&lt;Foo&gt;d__0"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""2"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Program"" methodName=""F"" parameterNames="""" />
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
@@ -90,7 +90,7 @@ class Program
   <methods>
     <method containingType=""Program"" name=""Foo"" parameterNames="""">
       <customDebugInfo version=""4"" count=""1"">
-        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""28"" name=""&lt;Foo&gt;d__1"" />
+        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""28"" name=""&lt;Foo&gt;d__0"" />
       </customDebugInfo>
       <sequencepoints total=""0"" />
       <locals />
@@ -107,7 +107,7 @@ class Program
       </sequencepoints>
       <locals />
     </method>
-    <method containingType=""Program+&lt;Foo&gt;d__1"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""Program+&lt;Foo&gt;d__0"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""2"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Program"" methodName=""F"" parameterNames="""" />
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
@@ -148,7 +148,7 @@ class Program
   <methods>
     <method containingType=""Program"" name=""Foo"" parameterNames="""">
       <customDebugInfo version=""4"" count=""1"">
-        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""28"" name=""&lt;Foo&gt;d__1"" />
+        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""28"" name=""&lt;Foo&gt;d__0"" />
       </customDebugInfo>
       <sequencepoints total=""0"" />
       <locals />
@@ -165,7 +165,7 @@ class Program
       </sequencepoints>
       <locals />
     </method>
-    <method containingType=""Program+&lt;Foo&gt;d__1"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""Program+&lt;Foo&gt;d__0"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""2"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Program"" methodName=""F"" parameterNames="""" />
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
@@ -214,7 +214,7 @@ class Program
   <methods>
     <method containingType=""Program"" name=""IEI"" parameterNames=""i0, i1"">
       <customDebugInfo version=""4"" count=""1"">
-        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""28"" name=""&lt;IEI&gt;d__1"" />
+        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""28"" name=""&lt;IEI&gt;d__0"" />
       </customDebugInfo>
       <sequencepoints total=""0"" />
       <locals />
@@ -230,7 +230,7 @@ class Program
       </sequencepoints>
       <locals />
     </method>
-    <method containingType=""Program+&lt;IEI&gt;d__1`1"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""Program+&lt;IEI&gt;d__0`1"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""2"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Program"" methodName=""F"" parameterNames="""" />
         <hoistedLocalScopes version=""4"" kind=""StateMachineHoistedLocalScopes"" size=""28"" count=""2"">
@@ -286,7 +286,7 @@ class Program
   <methods>
     <method containingType=""Program"" name=""IEI"" parameterNames=""i0, i1"">
       <customDebugInfo version=""4"" count=""2"">
-        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""28"" name=""&lt;IEI&gt;d__1"" />
+        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""28"" name=""&lt;IEI&gt;d__0"" />
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
           <slot kind=""0"" offset=""15"" />
           <slot kind=""0"" offset=""101"" />
@@ -307,7 +307,7 @@ class Program
       </sequencepoints>
       <locals />
     </method>
-    <method containingType=""Program+&lt;IEI&gt;d__1`1"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""Program+&lt;IEI&gt;d__0`1"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""3"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Program"" methodName=""F"" parameterNames="""" />
         <hoistedLocalScopes version=""4"" kind=""StateMachineHoistedLocalScopes"" size=""28"" count=""2"">
@@ -372,7 +372,7 @@ class Test<T>
   <methods>
     <method containingType=""Test`1"" name=""M"" parameterNames=""items"">
       <customDebugInfo version=""4"" count=""2"">
-        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;M&gt;d__1"" />
+        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;M&gt;d__0"" />
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
           <slot kind=""0"" offset=""13"" />
           <slot kind=""5"" offset=""42"" />
@@ -398,7 +398,7 @@ class Test<T>
         <namespace name=""System.Collections.Generic"" />
       </scope>
     </method>
-    <method containingType=""Test`1+&lt;M&gt;d__1"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""Test`1+&lt;M&gt;d__0"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""3"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test`1"" methodName=""F"" parameterNames="""" />
         <hoistedLocalScopes version=""4"" kind=""StateMachineHoistedLocalScopes"" size=""36"" count=""3"">
@@ -477,7 +477,7 @@ class C
   <methods>
     <method containingType=""C"" name=""M"" parameterNames="""">
       <customDebugInfo version=""4"" count=""1"">
-        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;M&gt;d__1"" />
+        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;M&gt;d__0"" />
       </customDebugInfo>
       <sequencepoints total=""0"" />
       <locals />
@@ -502,7 +502,7 @@ class C
         <namespace name=""System.Collections.Generic"" />
       </scope>
     </method>
-    <method containingType=""C+&lt;M&gt;d__1"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""Main"" parameterNames="""" />
       </customDebugInfo>
@@ -627,14 +627,14 @@ public class Test
     </method>
     <method containingType=""Test`1"" name=""get_IterProp"" parameterNames="""">
       <customDebugInfo version=""4"" count=""1"">
-        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""48"" name=""&lt;get_IterProp&gt;d__1"" />
+        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""48"" name=""&lt;get_IterProp&gt;d__3"" />
       </customDebugInfo>
       <sequencepoints total=""0"" />
       <locals />
     </method>
     <method containingType=""Test`1"" name=""IterMethod"" parameterNames="""">
       <customDebugInfo version=""4"" count=""1"">
-        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""44"" name=""&lt;IterMethod&gt;d__1"" />
+        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""44"" name=""&lt;IterMethod&gt;d__4"" />
       </customDebugInfo>
       <sequencepoints total=""0"" />
       <locals />
@@ -709,7 +709,7 @@ public class Test
       </sequencepoints>
       <locals />
     </method>
-    <method containingType=""Test`1+&lt;get_IterProp&gt;d__1"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""Test`1+&lt;get_IterProp&gt;d__3"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""2"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test`1"" methodName=""System.Collections.IEnumerable.GetEnumerator"" parameterNames="""" />
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
@@ -728,7 +728,7 @@ public class Test
       </sequencepoints>
       <locals />
     </method>
-    <method containingType=""Test`1+&lt;IterMethod&gt;d__1"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""Test`1+&lt;IterMethod&gt;d__4"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""2"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test`1"" methodName=""System.Collections.IEnumerable.GetEnumerator"" parameterNames="""" />
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
@@ -778,13 +778,13 @@ class C
                     "o", "<>3__o",
                     "<i>5__1",
                     "<t>5__2"
-                }, module.GetFieldNames("C.<F>d__1"));
+                }, module.GetFieldNames("C.<F>d__0"));
             });
 
-            v.VerifyPdb("C+<F>d__1`1.MoveNext", @"
+            v.VerifyPdb("C+<F>d__0`1.MoveNext", @"
 <symbols>
   <methods>
-    <method containingType=""C+&lt;F&gt;d__1`1"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""C+&lt;F&gt;d__0`1"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""3"">
         <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
           <namespace usingCount=""1"" />
@@ -971,7 +971,7 @@ class C
                     "<>7__wrap3",
                     "<>7__wrap4",
                     "<>7__wrap5",
-                }, module.GetFieldNames("C.<M>d__1"));
+                }, module.GetFieldNames("C.<M>d__0"));
             });
 
             var v = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
@@ -1000,7 +1000,7 @@ class C
                     "<>s__14",
                     "<>s__15",
                     "<>s__16"
-                }, module.GetFieldNames("C.<M>d__1"));
+                }, module.GetFieldNames("C.<M>d__0"));
             });
 
             v.VerifyPdb("C.M", @"
@@ -1008,7 +1008,7 @@ class C
   <methods>
     <method containingType=""C"" name=""M"" parameterNames=""disposable"">
       <customDebugInfo version=""4"" count=""2"">
-        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;M&gt;d__1"" />
+        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;M&gt;d__0"" />
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""48"">
           <slot kind=""6"" offset=""11"" />
           <slot kind=""8"" offset=""11"" />
@@ -1067,16 +1067,16 @@ class C
                     "<>2__current",
                     "<>l__initialThreadId",
                     "<>8__1",                   // hoisted display class
-                }, module.GetFieldNames("C.<M>d__1"));
+                }, module.GetFieldNames("C.<M>d__0"));
             });
 
             // One iterator local entry for the lambda local.
-            v.VerifyPdb("C+<M>d__1.MoveNext", @"
+            v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <methods>
-    <method containingType=""C+&lt;M&gt;d__1"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""3"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C+&lt;&gt;c__DisplayClass0"" methodName=""&lt;M&gt;b__1"" parameterNames="""" />
+        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C+&lt;&gt;c__DisplayClass0_0"" methodName=""&lt;M&gt;b__0"" parameterNames="""" />
         <hoistedLocalScopes version=""4"" kind=""StateMachineHoistedLocalScopes"" size=""20"" count=""1"">
           <slot startOffset=""0x32"" endOffset=""0xfb"" />
         </hoistedLocalScopes>
@@ -1141,16 +1141,16 @@ class C
                     "<>1__state",
                     "<>2__current",
                     "<>l__initialThreadId",
-                }, module.GetFieldNames("C.<M>d__1"));
+                }, module.GetFieldNames("C.<M>d__0"));
             });
 
-            v.VerifyIL("C.<M>d__1.System.Collections.IEnumerator.MoveNext", @"
+            v.VerifyIL("C.<M>d__0.System.Collections.IEnumerator.MoveNext", @"
 {
   // Code size       90 (0x5a)
   .maxstack  3
   .locals init (int V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<M>d__1.<>1__state""
+  IL_0001:  ldfld      ""int C.<M>d__0.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  brfalse.s  IL_0010
@@ -1161,40 +1161,40 @@ class C
   IL_000f:  ret
   IL_0010:  ldarg.0
   IL_0011:  ldc.i4.m1
-  IL_0012:  stfld      ""int C.<M>d__1.<>1__state""
-  IL_0017:  newobj     ""C.<>c__DisplayClass0..ctor()""
+  IL_0012:  stfld      ""int C.<M>d__0.<>1__state""
+  IL_0017:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
   IL_001c:  dup
   IL_001d:  ldc.i4.1
-  IL_001e:  stfld      ""byte C.<>c__DisplayClass0.x1""
+  IL_001e:  stfld      ""byte C.<>c__DisplayClass0_0.x1""
   IL_0023:  dup
   IL_0024:  ldc.i4.1
-  IL_0025:  stfld      ""byte C.<>c__DisplayClass0.x2""
+  IL_0025:  stfld      ""byte C.<>c__DisplayClass0_0.x2""
   IL_002a:  dup
   IL_002b:  ldc.i4.1
-  IL_002c:  stfld      ""byte C.<>c__DisplayClass0.x3""
-  IL_0031:  ldftn      ""void C.<>c__DisplayClass0.<M>b__1()""
+  IL_002c:  stfld      ""byte C.<>c__DisplayClass0_0.x3""
+  IL_0031:  ldftn      ""void C.<>c__DisplayClass0_0.<M>b__0()""
   IL_0037:  newobj     ""System.Action..ctor(object, System.IntPtr)""
   IL_003c:  callvirt   ""void System.Action.Invoke()""
   IL_0041:  ldarg.0
   IL_0042:  ldc.i4.1
-  IL_0043:  stfld      ""int C.<M>d__1.<>2__current""
+  IL_0043:  stfld      ""int C.<M>d__0.<>2__current""
   IL_0048:  ldarg.0
   IL_0049:  ldc.i4.1
-  IL_004a:  stfld      ""int C.<M>d__1.<>1__state""
+  IL_004a:  stfld      ""int C.<M>d__0.<>1__state""
   IL_004f:  ldc.i4.1
   IL_0050:  ret
   IL_0051:  ldarg.0
   IL_0052:  ldc.i4.m1
-  IL_0053:  stfld      ""int C.<M>d__1.<>1__state""
+  IL_0053:  stfld      ""int C.<M>d__0.<>1__state""
   IL_0058:  ldc.i4.0
   IL_0059:  ret
 }
 ");
 
-            v.VerifyPdb("C+<M>d__1.MoveNext", @"
+            v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <methods>
-    <method containingType=""C+&lt;M&gt;d__1"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""1"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""F"" parameterNames="""" />
       </customDebugInfo>
@@ -1219,7 +1219,7 @@ class C
   <methods>
     <method containingType=""C"" name=""M"" parameterNames="""">
       <customDebugInfo version=""4"" count=""1"">
-        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;M&gt;d__1"" />
+        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;M&gt;d__0"" />
       </customDebugInfo>
       <sequencepoints total=""0"" />
       <locals />
@@ -1265,17 +1265,17 @@ class C
                     "<>2__current",
                     "<>l__initialThreadId",
                     "<>8__1",                   // hoisted display class
-                }, module.GetFieldNames("C.<M>d__1"));
+                }, module.GetFieldNames("C.<M>d__0"));
             });
 
-            v.VerifyIL("C.<M>d__1.System.Collections.IEnumerator.MoveNext", @"
+            v.VerifyIL("C.<M>d__0.System.Collections.IEnumerator.MoveNext", @"
 {
   // Code size      133 (0x85)
   .maxstack  2
   .locals init (int V_0,
                 bool V_1)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<M>d__1.<>1__state""
+  IL_0001:  ldfld      ""int C.<M>d__0.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  brfalse.s  IL_0012
@@ -1292,51 +1292,51 @@ class C
   IL_0019:  ret
   IL_001a:  ldarg.0
   IL_001b:  ldc.i4.m1
-  IL_001c:  stfld      ""int C.<M>d__1.<>1__state""
+  IL_001c:  stfld      ""int C.<M>d__0.<>1__state""
   IL_0021:  ldarg.0
-  IL_0022:  newobj     ""C.<>c__DisplayClass0..ctor()""
-  IL_0027:  stfld      ""C.<>c__DisplayClass0 C.<M>d__1.<>8__1""
+  IL_0022:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+  IL_0027:  stfld      ""C.<>c__DisplayClass0_0 C.<M>d__0.<>8__1""
   IL_002c:  nop
   IL_002d:  ldarg.0
-  IL_002e:  ldfld      ""C.<>c__DisplayClass0 C.<M>d__1.<>8__1""
+  IL_002e:  ldfld      ""C.<>c__DisplayClass0_0 C.<M>d__0.<>8__1""
   IL_0033:  ldc.i4.1
-  IL_0034:  stfld      ""byte C.<>c__DisplayClass0.x1""
+  IL_0034:  stfld      ""byte C.<>c__DisplayClass0_0.x1""
   IL_0039:  ldarg.0
-  IL_003a:  ldfld      ""C.<>c__DisplayClass0 C.<M>d__1.<>8__1""
+  IL_003a:  ldfld      ""C.<>c__DisplayClass0_0 C.<M>d__0.<>8__1""
   IL_003f:  ldc.i4.1
-  IL_0040:  stfld      ""byte C.<>c__DisplayClass0.x2""
+  IL_0040:  stfld      ""byte C.<>c__DisplayClass0_0.x2""
   IL_0045:  ldarg.0
-  IL_0046:  ldfld      ""C.<>c__DisplayClass0 C.<M>d__1.<>8__1""
+  IL_0046:  ldfld      ""C.<>c__DisplayClass0_0 C.<M>d__0.<>8__1""
   IL_004b:  ldc.i4.1
-  IL_004c:  stfld      ""byte C.<>c__DisplayClass0.x3""
+  IL_004c:  stfld      ""byte C.<>c__DisplayClass0_0.x3""
   IL_0051:  ldarg.0
-  IL_0052:  ldfld      ""C.<>c__DisplayClass0 C.<M>d__1.<>8__1""
-  IL_0057:  ldftn      ""void C.<>c__DisplayClass0.<M>b__1()""
+  IL_0052:  ldfld      ""C.<>c__DisplayClass0_0 C.<M>d__0.<>8__1""
+  IL_0057:  ldftn      ""void C.<>c__DisplayClass0_0.<M>b__0()""
   IL_005d:  newobj     ""System.Action..ctor(object, System.IntPtr)""
   IL_0062:  callvirt   ""void System.Action.Invoke()""
   IL_0067:  nop
   IL_0068:  ldarg.0
   IL_0069:  ldc.i4.1
-  IL_006a:  stfld      ""int C.<M>d__1.<>2__current""
+  IL_006a:  stfld      ""int C.<M>d__0.<>2__current""
   IL_006f:  ldarg.0
   IL_0070:  ldc.i4.1
-  IL_0071:  stfld      ""int C.<M>d__1.<>1__state""
+  IL_0071:  stfld      ""int C.<M>d__0.<>1__state""
   IL_0076:  ldc.i4.1
   IL_0077:  stloc.1
   IL_0078:  br.s       IL_0018
   IL_007a:  ldarg.0
   IL_007b:  ldc.i4.m1
-  IL_007c:  stfld      ""int C.<M>d__1.<>1__state""
+  IL_007c:  stfld      ""int C.<M>d__0.<>1__state""
   IL_0081:  ldc.i4.0
   IL_0082:  stloc.1
   IL_0083:  br.s       IL_0018
 }
 ");
 
-            v.VerifyPdb("C+<M>d__1.MoveNext", @"
+            v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <methods>
-    <method containingType=""C+&lt;M&gt;d__1"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""3"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""F"" parameterNames="""" />
         <hoistedLocalScopes version=""4"" kind=""StateMachineHoistedLocalScopes"" size=""20"" count=""1"">
@@ -1369,7 +1369,7 @@ class C
   <methods>
     <method containingType=""C"" name=""M"" parameterNames="""">
       <customDebugInfo version=""4"" count=""2"">
-        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;M&gt;d__1"" />
+        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;M&gt;d__0"" />
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
           <slot kind=""30"" offset=""0"" />
         </encLocalSlotMap>
@@ -1409,15 +1409,15 @@ class C
                     "<>2__current",
                     "<>l__initialThreadId",
                     "<d>5__1"
-                }, module.GetFieldNames("C.<M>d__1"));
+                }, module.GetFieldNames("C.<M>d__0"));
             });
 
             // CHANGE: Dev12 emits a <dynamiclocal> entry for "d", but gives it slot "-1", preventing it from matching
             // any locals when consumed by the EE (i.e. it has no effect).  See FUNCBRECEE::IsLocalDynamic.
-            v.VerifyPdb("C+<M>d__1.MoveNext", @"
+            v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <methods>
-    <method containingType=""C+&lt;M&gt;d__1"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""3"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""F"" parameterNames="""" />
         <hoistedLocalScopes version=""4"" kind=""StateMachineHoistedLocalScopes"" size=""20"" count=""1"">
@@ -1447,7 +1447,7 @@ class C
   <methods>
     <method containingType=""C"" name=""M"" parameterNames="""">
       <customDebugInfo version=""4"" count=""2"">
-        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;M&gt;d__1"" />
+        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;M&gt;d__0"" />
         <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
           <slot kind=""0"" offset=""19"" />
         </encLocalSlotMap>
@@ -1487,13 +1487,13 @@ class C
                     "<>1__state",
                     "<>2__current",
                     "<>l__initialThreadId",
-                }, module.GetFieldNames("C.<M>d__1"));
+                }, module.GetFieldNames("C.<M>d__0"));
             });
 
-            v.VerifyPdb("C+<M>d__1.MoveNext", @"
+            v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <methods>
-    <method containingType=""C+&lt;M&gt;d__1"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""2"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""F"" parameterNames="""" />
         <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""212"" bucketCount=""1"">
@@ -1549,13 +1549,13 @@ class C
                     "<>2__current",
                     "<>l__initialThreadId",
                     "<d>5__1",
-                }, module.GetFieldNames("C.<M>d__1"));
+                }, module.GetFieldNames("C.<M>d__0"));
             });
 
-            v.VerifyPdb("C+<M>d__1.MoveNext", @"
+            v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <methods>
-    <method containingType=""C+&lt;M&gt;d__1"" name=""MoveNext"" parameterNames="""">
+    <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"" parameterNames="""">
       <customDebugInfo version=""4"" count=""3"">
         <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""F"" parameterNames="""" />
         <hoistedLocalScopes version=""4"" kind=""StateMachineHoistedLocalScopes"" size=""20"" count=""1"">

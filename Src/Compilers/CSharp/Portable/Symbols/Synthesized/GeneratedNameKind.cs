@@ -19,6 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Used by EnC:
         AwaiterField = 'u',
         HoistedSynthesizedLocalField = 's',
+
+        // Currently not parsed:
+        DynamicCallSiteContainer = 'o',
+        LambdaCacheField = '9',
     }
 
     internal static partial class GeneratedNames
@@ -33,9 +37,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // Parse the generated name. Returns true for names of the form
-        // [CS$]<[middle]>c__[suffix] where [CS$] is included for certain
-        // generated names, where [middle] and [suffix] are optional,
-        // and where c is a single character in [1-9a-z].
+        // [CS$]<[middle]>c[__[suffix]] where [CS$] is included for certain
+        // generated names, where [middle] and [__[suffix]] are optional,
+        // and where c is a single character in [1-9a-z]
+        // (csharp\LanguageAnalysis\LIB\SpecialName.cpp).
         internal static bool TryParseGeneratedName(
             string name,
             out GeneratedNameKind kind,
@@ -56,10 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 closeBracketOffset = -1;
                 int depth = 1;
-                // Find matching '>'. Since a valid generated name
-                // ends with ">c__[suffix]" we only need to search
-                // up to 3 characters from the end.
-                for (int i = openBracketOffset + 1; i < name.Length - 3; i++)
+                for (int i = openBracketOffset + 1; i < name.Length; i++)
                 {
                     switch (name[i])
                     {
@@ -77,10 +79,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-found:
-                if (closeBracketOffset > openBracketOffset &&
-                    name[closeBracketOffset + 2] == '_' &&
-                    name[closeBracketOffset + 3] == '_') // Not out of range since loop ended early.
+                found:
+                if (closeBracketOffset >= 0 && closeBracketOffset + 1 < name.Length)
                 {
                     int c = name[closeBracketOffset + 1];
                     if ((c >= '1' && c <= '9') || (c >= 'a' && c <= 'z')) // Note '0' is not special.

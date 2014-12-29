@@ -162,80 +162,81 @@ class Program
         foreach (var i in new C(4).IE(5, 6)) Console.Write(i);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "12324565")
-                .VerifyIL("C.<IE>d__1<T>.System.Collections.Generic.IEnumerable<T>.GetEnumerator()", @"
+            var compilation = CompileAndVerify(source, expectedOutput: "12324565");
+
+            compilation.VerifyIL("C.<IE>d__2<T>.System.Collections.Generic.IEnumerable<T>.GetEnumerator()", @"
 {
   // Code size       84 (0x54)
   .maxstack  2
-  .locals init (C.<IE>d__1<T> V_0)
+  .locals init (C.<IE>d__2<T> V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int C.<IE>d__1<T>.<>1__state""
+  IL_0001:  ldfld      ""int C.<IE>d__2<T>.<>1__state""
   IL_0006:  ldc.i4.s   -2
   IL_0008:  bne.un.s   IL_0027
   IL_000a:  ldarg.0
-  IL_000b:  ldfld      ""int C.<IE>d__1<T>.<>l__initialThreadId""
+  IL_000b:  ldfld      ""int C.<IE>d__2<T>.<>l__initialThreadId""
   IL_0010:  call       ""System.Threading.Thread System.Threading.Thread.CurrentThread.get""
   IL_0015:  callvirt   ""int System.Threading.Thread.ManagedThreadId.get""
   IL_001a:  bne.un.s   IL_0027
   IL_001c:  ldarg.0
   IL_001d:  ldc.i4.0
-  IL_001e:  stfld      ""int C.<IE>d__1<T>.<>1__state""
+  IL_001e:  stfld      ""int C.<IE>d__2<T>.<>1__state""
   IL_0023:  ldarg.0
   IL_0024:  stloc.0
   IL_0025:  br.s       IL_003a
   IL_0027:  ldc.i4.0
-  IL_0028:  newobj     ""C.<IE>d__1<T>..ctor(int)""
+  IL_0028:  newobj     ""C.<IE>d__2<T>..ctor(int)""
   IL_002d:  stloc.0
   IL_002e:  ldloc.0
   IL_002f:  ldarg.0
-  IL_0030:  ldfld      ""C C.<IE>d__1<T>.<>4__this""
-  IL_0035:  stfld      ""C C.<IE>d__1<T>.<>4__this""
+  IL_0030:  ldfld      ""C C.<IE>d__2<T>.<>4__this""
+  IL_0035:  stfld      ""C C.<IE>d__2<T>.<>4__this""
   IL_003a:  ldloc.0
   IL_003b:  ldarg.0
-  IL_003c:  ldfld      ""T C.<IE>d__1<T>.<>3__i0""
-  IL_0041:  stfld      ""T C.<IE>d__1<T>.i0""
+  IL_003c:  ldfld      ""T C.<IE>d__2<T>.<>3__i0""
+  IL_0041:  stfld      ""T C.<IE>d__2<T>.i0""
   IL_0046:  ldloc.0
   IL_0047:  ldarg.0
-  IL_0048:  ldfld      ""T C.<IE>d__1<T>.<>3__i1""
-  IL_004d:  stfld      ""T C.<IE>d__1<T>.i1""
+  IL_0048:  ldfld      ""T C.<IE>d__2<T>.<>3__i1""
+  IL_004d:  stfld      ""T C.<IE>d__2<T>.i1""
   IL_0052:  ldloc.0
   IL_0053:  ret
-}")
-                .VerifyIL("S.<IE>d__1<T>.System.Collections.Generic.IEnumerable<T>.GetEnumerator()", @"
+}");
+            compilation.VerifyIL("S.<IE>d__2<T>.System.Collections.Generic.IEnumerable<T>.GetEnumerator()", @"
 {
   // Code size       84 (0x54)
   .maxstack  2
-  .locals init (S.<IE>d__1<T> V_0)
+  .locals init (S.<IE>d__2<T> V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int S.<IE>d__1<T>.<>1__state""
+  IL_0001:  ldfld      ""int S.<IE>d__2<T>.<>1__state""
   IL_0006:  ldc.i4.s   -2
   IL_0008:  bne.un.s   IL_0027
   IL_000a:  ldarg.0
-  IL_000b:  ldfld      ""int S.<IE>d__1<T>.<>l__initialThreadId""
+  IL_000b:  ldfld      ""int S.<IE>d__2<T>.<>l__initialThreadId""
   IL_0010:  call       ""System.Threading.Thread System.Threading.Thread.CurrentThread.get""
   IL_0015:  callvirt   ""int System.Threading.Thread.ManagedThreadId.get""
   IL_001a:  bne.un.s   IL_0027
   IL_001c:  ldarg.0
   IL_001d:  ldc.i4.0
-  IL_001e:  stfld      ""int S.<IE>d__1<T>.<>1__state""
+  IL_001e:  stfld      ""int S.<IE>d__2<T>.<>1__state""
   IL_0023:  ldarg.0
   IL_0024:  stloc.0
   IL_0025:  br.s       IL_002e
   IL_0027:  ldc.i4.0
-  IL_0028:  newobj     ""S.<IE>d__1<T>..ctor(int)""
+  IL_0028:  newobj     ""S.<IE>d__2<T>..ctor(int)""
   IL_002d:  stloc.0
   IL_002e:  ldloc.0
   IL_002f:  ldarg.0
-  IL_0030:  ldfld      ""S S.<IE>d__1<T>.<>3__<>4__this""
-  IL_0035:  stfld      ""S S.<IE>d__1<T>.<>4__this""
+  IL_0030:  ldfld      ""S S.<IE>d__2<T>.<>3__<>4__this""
+  IL_0035:  stfld      ""S S.<IE>d__2<T>.<>4__this""
   IL_003a:  ldloc.0
   IL_003b:  ldarg.0
-  IL_003c:  ldfld      ""T S.<IE>d__1<T>.<>3__i0""
-  IL_0041:  stfld      ""T S.<IE>d__1<T>.i0""
+  IL_003c:  ldfld      ""T S.<IE>d__2<T>.<>3__i0""
+  IL_0041:  stfld      ""T S.<IE>d__2<T>.i0""
   IL_0046:  ldloc.0
   IL_0047:  ldarg.0
-  IL_0048:  ldfld      ""T S.<IE>d__1<T>.<>3__i1""
-  IL_004d:  stfld      ""T S.<IE>d__1<T>.i1""
+  IL_0048:  ldfld      ""T S.<IE>d__2<T>.<>3__i1""
+  IL_004d:  stfld      ""T S.<IE>d__2<T>.i1""
   IL_0052:  ldloc.0
   IL_0053:  ret
 }");
@@ -295,18 +296,18 @@ class Program
         }
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "0|01Z|012XZ|012X3Z|012X34YZ|012X34Y5Z|012X34Y5Z6").
-                VerifyIL("Program.<Int0>d__1.System.Collections.IEnumerator.MoveNext()",
-@"
+            var compilation = CompileAndVerify(source, expectedOutput: "0|01Z|012XZ|012X3Z|012X34YZ|012X34Y5Z|012X34Y5Z6");
+
+            compilation.VerifyIL("Program.<Int0>d__0.System.Collections.IEnumerator.MoveNext()", @"
 {
   // Code size      303 (0x12f)
   .maxstack  2
   .locals init (bool V_0,
-  int V_1)
+                int V_1)
   .try
-{
-  IL_0000:  ldarg.0
-    IL_0001:  ldfld      ""int Program.<Int0>d__1.<>1__state""
+  {
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      ""int Program.<Int0>d__0.<>1__state""
     IL_0006:  stloc.1
     IL_0007:  ldloc.1
     IL_0008:  switch    (
@@ -323,106 +324,106 @@ class Program
     IL_002f:  leave      IL_012d
     IL_0034:  ldarg.0
     IL_0035:  ldc.i4.m1
-    IL_0036:  stfld      ""int Program.<Int0>d__1.<>1__state""
+    IL_0036:  stfld      ""int Program.<Int0>d__0.<>1__state""
     IL_003b:  ldarg.0
     IL_003c:  ldc.i4.0
-    IL_003d:  stfld      ""int Program.<Int0>d__1.<>2__current""
+    IL_003d:  stfld      ""int Program.<Int0>d__0.<>2__current""
     IL_0042:  ldarg.0
     IL_0043:  ldc.i4.1
-    IL_0044:  stfld      ""int Program.<Int0>d__1.<>1__state""
+    IL_0044:  stfld      ""int Program.<Int0>d__0.<>1__state""
     IL_0049:  ldc.i4.1
     IL_004a:  stloc.0
     IL_004b:  leave      IL_012d
     IL_0050:  ldarg.0
     IL_0051:  ldc.i4.m1
-    IL_0052:  stfld      ""int Program.<Int0>d__1.<>1__state""
+    IL_0052:  stfld      ""int Program.<Int0>d__0.<>1__state""
     IL_0057:  ldarg.0
     IL_0058:  ldc.i4.s   -3
-    IL_005a:  stfld      ""int Program.<Int0>d__1.<>1__state""
+    IL_005a:  stfld      ""int Program.<Int0>d__0.<>1__state""
     IL_005f:  ldarg.0
     IL_0060:  ldc.i4.1
-    IL_0061:  stfld      ""int Program.<Int0>d__1.<>2__current""
+    IL_0061:  stfld      ""int Program.<Int0>d__0.<>2__current""
     IL_0066:  ldarg.0
     IL_0067:  ldc.i4.2
-    IL_0068:  stfld      ""int Program.<Int0>d__1.<>1__state""
+    IL_0068:  stfld      ""int Program.<Int0>d__0.<>1__state""
     IL_006d:  ldc.i4.1
     IL_006e:  stloc.0
     IL_006f:  leave      IL_012d
     IL_0074:  ldarg.0
     IL_0075:  ldc.i4.s   -3
-    IL_0077:  stfld      ""int Program.<Int0>d__1.<>1__state""
+    IL_0077:  stfld      ""int Program.<Int0>d__0.<>1__state""
     IL_007c:  ldarg.0
     IL_007d:  ldc.i4.s   -4
-    IL_007f:  stfld      ""int Program.<Int0>d__1.<>1__state""
+    IL_007f:  stfld      ""int Program.<Int0>d__0.<>1__state""
     IL_0084:  ldarg.0
     IL_0085:  ldc.i4.2
-    IL_0086:  stfld      ""int Program.<Int0>d__1.<>2__current""
+    IL_0086:  stfld      ""int Program.<Int0>d__0.<>2__current""
     IL_008b:  ldarg.0
     IL_008c:  ldc.i4.3
-    IL_008d:  stfld      ""int Program.<Int0>d__1.<>1__state""
+    IL_008d:  stfld      ""int Program.<Int0>d__0.<>1__state""
     IL_0092:  ldc.i4.1
     IL_0093:  stloc.0
     IL_0094:  leave      IL_012d
     IL_0099:  ldarg.0
     IL_009a:  ldc.i4.s   -4
-    IL_009c:  stfld      ""int Program.<Int0>d__1.<>1__state""
+    IL_009c:  stfld      ""int Program.<Int0>d__0.<>1__state""
     IL_00a1:  ldarg.0
-    IL_00a2:  call       ""void Program.<Int0>d__1.<>m__Finally2()""
+    IL_00a2:  call       ""void Program.<Int0>d__0.<>m__Finally2()""
     IL_00a7:  ldarg.0
     IL_00a8:  ldc.i4.3
-    IL_00a9:  stfld      ""int Program.<Int0>d__1.<>2__current""
+    IL_00a9:  stfld      ""int Program.<Int0>d__0.<>2__current""
     IL_00ae:  ldarg.0
     IL_00af:  ldc.i4.4
-    IL_00b0:  stfld      ""int Program.<Int0>d__1.<>1__state""
+    IL_00b0:  stfld      ""int Program.<Int0>d__0.<>1__state""
     IL_00b5:  ldc.i4.1
     IL_00b6:  stloc.0
     IL_00b7:  leave.s    IL_012d
     IL_00b9:  ldarg.0
     IL_00ba:  ldc.i4.s   -3
-    IL_00bc:  stfld      ""int Program.<Int0>d__1.<>1__state""
+    IL_00bc:  stfld      ""int Program.<Int0>d__0.<>1__state""
     IL_00c1:  ldarg.0
     IL_00c2:  ldc.i4.s   -5
-    IL_00c4:  stfld      ""int Program.<Int0>d__1.<>1__state""
+    IL_00c4:  stfld      ""int Program.<Int0>d__0.<>1__state""
     IL_00c9:  ldarg.0
     IL_00ca:  ldc.i4.4
-    IL_00cb:  stfld      ""int Program.<Int0>d__1.<>2__current""
+    IL_00cb:  stfld      ""int Program.<Int0>d__0.<>2__current""
     IL_00d0:  ldarg.0
     IL_00d1:  ldc.i4.5
-    IL_00d2:  stfld      ""int Program.<Int0>d__1.<>1__state""
+    IL_00d2:  stfld      ""int Program.<Int0>d__0.<>1__state""
     IL_00d7:  ldc.i4.1
     IL_00d8:  stloc.0
     IL_00d9:  leave.s    IL_012d
     IL_00db:  ldarg.0
     IL_00dc:  ldc.i4.s   -5
-    IL_00de:  stfld      ""int Program.<Int0>d__1.<>1__state""
+    IL_00de:  stfld      ""int Program.<Int0>d__0.<>1__state""
     IL_00e3:  ldarg.0
-    IL_00e4:  call       ""void Program.<Int0>d__1.<>m__Finally3()""
+    IL_00e4:  call       ""void Program.<Int0>d__0.<>m__Finally3()""
     IL_00e9:  ldarg.0
     IL_00ea:  ldc.i4.5
-    IL_00eb:  stfld      ""int Program.<Int0>d__1.<>2__current""
+    IL_00eb:  stfld      ""int Program.<Int0>d__0.<>2__current""
     IL_00f0:  ldarg.0
     IL_00f1:  ldc.i4.6
-    IL_00f2:  stfld      ""int Program.<Int0>d__1.<>1__state""
+    IL_00f2:  stfld      ""int Program.<Int0>d__0.<>1__state""
     IL_00f7:  ldc.i4.1
     IL_00f8:  stloc.0
     IL_00f9:  leave.s    IL_012d
     IL_00fb:  ldarg.0
     IL_00fc:  ldc.i4.s   -3
-    IL_00fe:  stfld      ""int Program.<Int0>d__1.<>1__state""
+    IL_00fe:  stfld      ""int Program.<Int0>d__0.<>1__state""
     IL_0103:  ldarg.0
-    IL_0104:  call       ""void Program.<Int0>d__1.<>m__Finally1()""
+    IL_0104:  call       ""void Program.<Int0>d__0.<>m__Finally1()""
     IL_0109:  ldarg.0
     IL_010a:  ldc.i4.6
-    IL_010b:  stfld      ""int Program.<Int0>d__1.<>2__current""
+    IL_010b:  stfld      ""int Program.<Int0>d__0.<>2__current""
     IL_0110:  ldarg.0
     IL_0111:  ldc.i4.7
-    IL_0112:  stfld      ""int Program.<Int0>d__1.<>1__state""
+    IL_0112:  stfld      ""int Program.<Int0>d__0.<>1__state""
     IL_0117:  ldc.i4.1
     IL_0118:  stloc.0
     IL_0119:  leave.s    IL_012d
     IL_011b:  ldarg.0
     IL_011c:  ldc.i4.m1
-    IL_011d:  stfld      ""int Program.<Int0>d__1.<>1__state""
+    IL_011d:  stfld      ""int Program.<Int0>d__0.<>1__state""
     IL_0122:  ldc.i4.0
     IL_0123:  stloc.0
     IL_0124:  leave.s    IL_012d
@@ -430,21 +431,20 @@ class Program
   fault
   {
     IL_0126:  ldarg.0
-    IL_0127:  call       ""void Program.<Int0>d__1.Dispose()""
+    IL_0127:  call       ""void Program.<Int0>d__0.Dispose()""
     IL_012c:  endfinally
   }
   IL_012d:  ldloc.0
   IL_012e:  ret
 }
-")
- .VerifyIL("Program.<Int0>d__1.System.IDisposable.Dispose()",
-@"
+");
+            compilation.VerifyIL("Program.<Int0>d__0.System.IDisposable.Dispose()", @"
 {
   // Code size      121 (0x79)
   .maxstack  2
   .locals init (int V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""int Program.<Int0>d__1.<>1__state""
+  IL_0001:  ldfld      ""int Program.<Int0>d__0.<>1__state""
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  ldc.i4.s   -5
@@ -491,7 +491,7 @@ class Program
     finally
     {
       IL_0060:  ldarg.0
-      IL_0061:  call       ""void Program.<Int0>d__1.<>m__Finally2()""
+      IL_0061:  call       ""void Program.<Int0>d__0.<>m__Finally2()""
       IL_0066:  endfinally
     }
     IL_0067:  nop
@@ -502,14 +502,14 @@ class Program
     finally
     {
       IL_006a:  ldarg.0
-      IL_006b:  call       ""void Program.<Int0>d__1.<>m__Finally3()""
+      IL_006b:  call       ""void Program.<Int0>d__0.<>m__Finally3()""
       IL_0070:  endfinally
     }
   }
   finally
   {
     IL_0071:  ldarg.0
-    IL_0072:  call       ""void Program.<Int0>d__1.<>m__Finally1()""
+    IL_0072:  call       ""void Program.<Int0>d__0.<>m__Finally1()""
     IL_0077:  endfinally
   }
   IL_0078:  ret
@@ -1235,7 +1235,7 @@ struct Test
                     "<>3__z",
                     "y",
                     "<>3__y",
-                }, module.GetFieldNames("Test.<F>d__1"));
+                }, module.GetFieldNames("Test.<F>d__0"));
             });
 
             CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
@@ -1251,7 +1251,7 @@ struct Test
                     "<>3__y",
                     "z",
                     "<>3__z",
-                }, module.GetFieldNames("Test.<F>d__1"));
+                }, module.GetFieldNames("Test.<F>d__0"));
             });
         }
 
@@ -1279,7 +1279,7 @@ struct Test
                     "x",
                     "z",
                     "y",
-                }, module.GetFieldNames("Test.<F>d__1"));
+                }, module.GetFieldNames("Test.<F>d__0"));
             });
 
             CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
@@ -1291,7 +1291,7 @@ struct Test
                     "x",
                     "y",
                     "z",
-                }, module.GetFieldNames("Test.<F>d__1"));
+                }, module.GetFieldNames("Test.<F>d__0"));
             });
         }
 
@@ -1322,7 +1322,7 @@ class Test
     }
 }";
             CompileAndVerify(source, expectedOutput: "abcdef").
-                VerifyIL("Test.<M>d__1<T>.System.Collections.IEnumerator.MoveNext()",
+                VerifyIL("Test.<M>d__0<T>.System.Collections.IEnumerator.MoveNext()",
 @"{
   // Code size      129 (0x81)
   .maxstack  2
@@ -1332,7 +1332,7 @@ class Test
   .try
   {
     IL_0000:  ldarg.0
-    IL_0001:  ldfld      ""int Test.<M>d__1<T>.<>1__state""
+    IL_0001:  ldfld      ""int Test.<M>d__0<T>.<>1__state""
     IL_0006:  stloc.1
     IL_0007:  ldloc.1
     IL_0008:  brfalse.s  IL_0012
@@ -1344,41 +1344,41 @@ class Test
     IL_0010:  leave.s    IL_007f
     IL_0012:  ldarg.0
     IL_0013:  ldc.i4.m1
-    IL_0014:  stfld      ""int Test.<M>d__1<T>.<>1__state""
+    IL_0014:  stfld      ""int Test.<M>d__0<T>.<>1__state""
     IL_0019:  ldarg.0
     IL_001a:  ldarg.0
-    IL_001b:  ldfld      ""System.Collections.Generic.IEnumerable<T> Test.<M>d__1<T>.col""
+    IL_001b:  ldfld      ""System.Collections.Generic.IEnumerable<T> Test.<M>d__0<T>.col""
     IL_0020:  callvirt   ""System.Collections.Generic.IEnumerator<T> System.Collections.Generic.IEnumerable<T>.GetEnumerator()""
-    IL_0025:  stfld      ""System.Collections.Generic.IEnumerator<T> Test.<M>d__1<T>.<>7__wrap1""
+    IL_0025:  stfld      ""System.Collections.Generic.IEnumerator<T> Test.<M>d__0<T>.<>7__wrap1""
     IL_002a:  ldarg.0
     IL_002b:  ldc.i4.s   -3
-    IL_002d:  stfld      ""int Test.<M>d__1<T>.<>1__state""
+    IL_002d:  stfld      ""int Test.<M>d__0<T>.<>1__state""
     IL_0032:  br.s       IL_005a
     IL_0034:  ldarg.0
-    IL_0035:  ldfld      ""System.Collections.Generic.IEnumerator<T> Test.<M>d__1<T>.<>7__wrap1""
+    IL_0035:  ldfld      ""System.Collections.Generic.IEnumerator<T> Test.<M>d__0<T>.<>7__wrap1""
     IL_003a:  callvirt   ""T System.Collections.Generic.IEnumerator<T>.Current.get""
     IL_003f:  stloc.2
     IL_0040:  ldarg.0
     IL_0041:  ldloc.2
-    IL_0042:  stfld      ""T Test.<M>d__1<T>.<>2__current""
+    IL_0042:  stfld      ""T Test.<M>d__0<T>.<>2__current""
     IL_0047:  ldarg.0
     IL_0048:  ldc.i4.1
-    IL_0049:  stfld      ""int Test.<M>d__1<T>.<>1__state""
+    IL_0049:  stfld      ""int Test.<M>d__0<T>.<>1__state""
     IL_004e:  ldc.i4.1
     IL_004f:  stloc.0
     IL_0050:  leave.s    IL_007f
     IL_0052:  ldarg.0
     IL_0053:  ldc.i4.s   -3
-    IL_0055:  stfld      ""int Test.<M>d__1<T>.<>1__state""
+    IL_0055:  stfld      ""int Test.<M>d__0<T>.<>1__state""
     IL_005a:  ldarg.0
-    IL_005b:  ldfld      ""System.Collections.Generic.IEnumerator<T> Test.<M>d__1<T>.<>7__wrap1""
+    IL_005b:  ldfld      ""System.Collections.Generic.IEnumerator<T> Test.<M>d__0<T>.<>7__wrap1""
     IL_0060:  callvirt   ""bool System.Collections.IEnumerator.MoveNext()""
     IL_0065:  brtrue.s   IL_0034
     IL_0067:  ldarg.0
-    IL_0068:  call       ""void Test.<M>d__1<T>.<>m__Finally1()""
+    IL_0068:  call       ""void Test.<M>d__0<T>.<>m__Finally1()""
     IL_006d:  ldarg.0
     IL_006e:  ldnull
-    IL_006f:  stfld      ""System.Collections.Generic.IEnumerator<T> Test.<M>d__1<T>.<>7__wrap1""
+    IL_006f:  stfld      ""System.Collections.Generic.IEnumerator<T> Test.<M>d__0<T>.<>7__wrap1""
     IL_0074:  ldc.i4.0
     IL_0075:  stloc.0
     IL_0076:  leave.s    IL_007f
@@ -1386,7 +1386,7 @@ class Test
   fault
   {
     IL_0078:  ldarg.0
-    IL_0079:  call       ""void Test.<M>d__1<T>.Dispose()""
+    IL_0079:  call       ""void Test.<M>d__0<T>.Dispose()""
     IL_007e:  endfinally
   }
   IL_007f:  ldloc.0
@@ -1933,7 +1933,7 @@ class Program
             var parsed = new [] {Parse(source)};
             var comp = CreateCompilationWithMscorlib45(parsed);
             var verifier = this.CompileAndVerify(comp);
-            var il = verifier.VisualizeIL("Program.<Foo>d__1.System.Collections.Generic.IEnumerable<int>.GetEnumerator()");
+            var il = verifier.VisualizeIL("Program.<Foo>d__0.System.Collections.Generic.IEnumerable<int>.GetEnumerator()");
             Assert.Contains("System.Environment.CurrentManagedThreadId.get", il);
         }
 
@@ -1966,7 +1966,7 @@ namespace System
             var comp = CreateCompilationWithMscorlib(parsed);
             comp.MakeMemberMissing(WellKnownMember.System_Threading_Thread__ManagedThreadId);
             var verifier = this.CompileAndVerify(comp);
-            var il = verifier.VisualizeIL("Program.<Foo>d__1.System.Collections.Generic.IEnumerable<int>.GetEnumerator()");
+            var il = verifier.VisualizeIL("Program.<Foo>d__0.System.Collections.Generic.IEnumerable<int>.GetEnumerator()");
             Assert.Contains("System.Environment.CurrentManagedThreadId.get", il);
         }
 
@@ -2229,7 +2229,7 @@ class Program
     }
 }";
             string expectedIL;
-            CompileAndVerify(source).VerifyIL("C<T>.<F>d__1.System.Collections.IEnumerator.MoveNext()", expectedIL =
+            CompileAndVerify(source).VerifyIL("C<T>.<F>d__0.System.Collections.IEnumerator.MoveNext()", expectedIL =
 @"{
   // Code size      176 (0xb0)
   .maxstack  3
@@ -2238,8 +2238,8 @@ class Program
                 T V_2) //o
   .try
   {
-  IL_0000:  ldarg.0
-    IL_0001:  ldfld      ""int C<T>.<F>d__1.<>1__state""
+    IL_0000:  ldarg.0
+    IL_0001:  ldfld      ""int C<T>.<F>d__0.<>1__state""
     IL_0006:  stloc.1
     IL_0007:  ldloc.1
     IL_0008:  brfalse.s  IL_0015
@@ -2251,61 +2251,61 @@ class Program
     IL_0010:  leave      IL_00ae
     IL_0015:  ldarg.0
     IL_0016:  ldc.i4.m1
-    IL_0017:  stfld      ""int C<T>.<F>d__1.<>1__state""
+    IL_0017:  stfld      ""int C<T>.<F>d__0.<>1__state""
     IL_001c:  ldarg.0
     IL_001d:  ldarg.0
-    IL_001e:  ldfld      ""System.IDisposable C<T>.<F>d__1.x""
-    IL_0023:  stfld      ""System.IDisposable C<T>.<F>d__1.<>7__wrap1""
+    IL_001e:  ldfld      ""System.IDisposable C<T>.<F>d__0.x""
+    IL_0023:  stfld      ""System.IDisposable C<T>.<F>d__0.<>7__wrap1""
     IL_0028:  ldarg.0
     IL_0029:  ldc.i4.s   -3
-    IL_002b:  stfld      ""int C<T>.<F>d__1.<>1__state""
+    IL_002b:  stfld      ""int C<T>.<F>d__0.<>1__state""
     IL_0030:  ldarg.0
     IL_0031:  ldarg.0
-    IL_0032:  ldfld      ""T[] C<T>.<F>d__1.y""
-    IL_0037:  stfld      ""T[] C<T>.<F>d__1.<>7__wrap2""
+    IL_0032:  ldfld      ""T[] C<T>.<F>d__0.y""
+    IL_0037:  stfld      ""T[] C<T>.<F>d__0.<>7__wrap2""
     IL_003c:  ldarg.0
     IL_003d:  ldc.i4.0
-    IL_003e:  stfld      ""int C<T>.<F>d__1.<>7__wrap3""
+    IL_003e:  stfld      ""int C<T>.<F>d__0.<>7__wrap3""
     IL_0043:  br.s       IL_007f
     IL_0045:  ldarg.0
-    IL_0046:  ldfld      ""T[] C<T>.<F>d__1.<>7__wrap2""
+    IL_0046:  ldfld      ""T[] C<T>.<F>d__0.<>7__wrap2""
     IL_004b:  ldarg.0
-    IL_004c:  ldfld      ""int C<T>.<F>d__1.<>7__wrap3""
+    IL_004c:  ldfld      ""int C<T>.<F>d__0.<>7__wrap3""
     IL_0051:  ldelem     ""T""
     IL_0056:  stloc.2
     IL_0057:  ldarg.0
     IL_0058:  ldloc.2
-    IL_0059:  stfld      ""T C<T>.<F>d__1.<>2__current""
+    IL_0059:  stfld      ""T C<T>.<F>d__0.<>2__current""
     IL_005e:  ldarg.0
     IL_005f:  ldc.i4.1
-    IL_0060:  stfld      ""int C<T>.<F>d__1.<>1__state""
+    IL_0060:  stfld      ""int C<T>.<F>d__0.<>1__state""
     IL_0065:  ldc.i4.1
     IL_0066:  stloc.0
     IL_0067:  leave.s    IL_00ae
     IL_0069:  ldarg.0
     IL_006a:  ldc.i4.s   -3
-    IL_006c:  stfld      ""int C<T>.<F>d__1.<>1__state""
+    IL_006c:  stfld      ""int C<T>.<F>d__0.<>1__state""
     IL_0071:  ldarg.0
     IL_0072:  ldarg.0
-    IL_0073:  ldfld      ""int C<T>.<F>d__1.<>7__wrap3""
+    IL_0073:  ldfld      ""int C<T>.<F>d__0.<>7__wrap3""
     IL_0078:  ldc.i4.1
     IL_0079:  add
-    IL_007a:  stfld      ""int C<T>.<F>d__1.<>7__wrap3""
+    IL_007a:  stfld      ""int C<T>.<F>d__0.<>7__wrap3""
     IL_007f:  ldarg.0
-    IL_0080:  ldfld      ""int C<T>.<F>d__1.<>7__wrap3""
+    IL_0080:  ldfld      ""int C<T>.<F>d__0.<>7__wrap3""
     IL_0085:  ldarg.0
-    IL_0086:  ldfld      ""T[] C<T>.<F>d__1.<>7__wrap2""
+    IL_0086:  ldfld      ""T[] C<T>.<F>d__0.<>7__wrap2""
     IL_008b:  ldlen
     IL_008c:  conv.i4
     IL_008d:  blt.s      IL_0045
     IL_008f:  ldarg.0
     IL_0090:  ldnull
-    IL_0091:  stfld      ""T[] C<T>.<F>d__1.<>7__wrap2""
+    IL_0091:  stfld      ""T[] C<T>.<F>d__0.<>7__wrap2""
     IL_0096:  ldarg.0
-    IL_0097:  call       ""void C<T>.<F>d__1.<>m__Finally1()""
+    IL_0097:  call       ""void C<T>.<F>d__0.<>m__Finally1()""
     IL_009c:  ldarg.0
     IL_009d:  ldnull
-    IL_009e:  stfld      ""System.IDisposable C<T>.<F>d__1.<>7__wrap1""
+    IL_009e:  stfld      ""System.IDisposable C<T>.<F>d__0.<>7__wrap1""
     IL_00a3:  ldc.i4.0
     IL_00a4:  stloc.0
     IL_00a5:  leave.s    IL_00ae
@@ -2313,7 +2313,7 @@ class Program
   fault
   {
     IL_00a7:  ldarg.0
-    IL_00a8:  call       ""void C<T>.<F>d__1.Dispose()""
+    IL_00a8:  call       ""void C<T>.<F>d__0.Dispose()""
     IL_00ad:  endfinally
   }
   IL_00ae:  ldloc.0

@@ -1080,9 +1080,9 @@ class C : I
                 CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "I", "C");
                 CheckNames(reader0, reader0.GetMethodDefNames(), "M", "I.M", ".ctor");
 
-                var method0 = compilation0.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("I.M");
+                var method0 = compilation0.GetMember<NamedTypeSymbol>("C").GetMethod("I.M");
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
-                var method1 = compilation1.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("I.M");
+                var method1 = compilation1.GetMember<NamedTypeSymbol>("C").GetMethod("I.M");
                 var diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1)));
@@ -1147,7 +1147,7 @@ class B : I
             {
                 var reader0 = md0.MetadataReader;
                 var generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider);
-                var method1 = compilation1.GetMember<NamedTypeSymbol>("B").GetMember<MethodSymbol>("I.M");
+                var method1 = compilation1.GetMember<NamedTypeSymbol>("B").GetMethod("I.M");
                 var diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Insert, null, method1)));
@@ -1171,7 +1171,7 @@ class B : I
                         Handle(2, TableIndex.AssemblyRef));
 
                     var generation1 = diff1.NextGeneration;
-                    var method2 = compilation2.GetMember<NamedTypeSymbol>("B").GetMember<MethodSymbol>("I.M");
+                    var method2 = compilation2.GetMember<NamedTypeSymbol>("B").GetMethod("I.M");
                     var diff2 = compilation2.EmitDifference(
                         generation1,
                         ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method1, method2)));

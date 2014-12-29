@@ -1208,14 +1208,14 @@ public class C : B
 {
   // Code size       85 (0x55)
   .maxstack  3
-  IL_0000:  newobj     ""C.<>c__DisplayClass0..ctor()""
+  IL_0000:  newobj     ""C.<>c__DisplayClass2_0..ctor()""
   IL_0005:  dup
   IL_0006:  newobj     ""C..ctor()""
-  IL_000b:  stfld      ""C C.<>c__DisplayClass0.c""
-  IL_0010:  ldtoken    ""C.<>c__DisplayClass0""
+  IL_000b:  stfld      ""C C.<>c__DisplayClass2_0.c""
+  IL_0010:  ldtoken    ""C.<>c__DisplayClass2_0""
   IL_0015:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_001a:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
-  IL_001f:  ldtoken    ""C C.<>c__DisplayClass0.c""
+  IL_001f:  ldtoken    ""C C.<>c__DisplayClass2_0.c""
   IL_0024:  call       ""System.Reflection.FieldInfo System.Reflection.FieldInfo.GetFieldFromHandle(System.RuntimeFieldHandle)""
   IL_0029:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Field(System.Linq.Expressions.Expression, System.Reflection.FieldInfo)""
   IL_002e:  ldtoken    ""void B.M()""
@@ -1330,14 +1330,14 @@ public class D : C
 {
   // Code size       85 (0x55)
   .maxstack  3
-  IL_0000:  newobj     ""D.<>c__DisplayClass0..ctor()""
+  IL_0000:  newobj     ""D.<>c__DisplayClass2_0..ctor()""
   IL_0005:  dup
   IL_0006:  newobj     ""D..ctor()""
-  IL_000b:  stfld      ""D D.<>c__DisplayClass0.d""
-  IL_0010:  ldtoken    ""D.<>c__DisplayClass0""
+  IL_000b:  stfld      ""D D.<>c__DisplayClass2_0.d""
+  IL_0010:  ldtoken    ""D.<>c__DisplayClass2_0""
   IL_0015:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
   IL_001a:  call       ""System.Linq.Expressions.ConstantExpression System.Linq.Expressions.Expression.Constant(object, System.Type)""
-  IL_001f:  ldtoken    ""D D.<>c__DisplayClass0.d""
+  IL_001f:  ldtoken    ""D D.<>c__DisplayClass2_0.d""
   IL_0024:  call       ""System.Reflection.FieldInfo System.Reflection.FieldInfo.GetFieldFromHandle(System.RuntimeFieldHandle)""
   IL_0029:  call       ""System.Linq.Expressions.MemberExpression System.Linq.Expressions.Expression.Field(System.Linq.Expressions.Expression, System.Reflection.FieldInfo)""
   IL_002e:  ldtoken    ""void C.M()""

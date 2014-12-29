@@ -284,12 +284,12 @@ class C : I, J, K
             var implements = method.ContainingType.FindImplementationForInterfaceMember(iM);
             Assert.Equal(implements, method);
 
-            method = c.GetMember<SourceMethodSymbol>("I.N");
+            method = (SourceMethodSymbol)c.GetMethod("I.N");
             implements = c.FindImplementationForInterfaceMember(iN);
             Assert.True(method.IsExplicitInterfaceImplementation);
             Assert.Equal(implements, method);
 
-            method = c.GetMember<SourceMethodSymbol>("J.N");
+            method = (SourceMethodSymbol)c.GetMethod("J.N");
             implements = c.FindImplementationForInterfaceMember(jN);
             Assert.True(method.IsExplicitInterfaceImplementation);
             Assert.Equal(implements, method);

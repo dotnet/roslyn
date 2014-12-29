@@ -4,11 +4,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Roslyn.Test.Utilities
@@ -383,10 +385,10 @@ namespace Roslyn.Test.Utilities
         }
 
         public static void AssertEqualToleratingWhitespaceDifferences(
-            string expected, 
-            string actual, 
-            bool escapeQuotes = true, 
-            [CallerFilePath]string expectedValueSourcePath = null, 
+            string expected,
+            string actual,
+            bool escapeQuotes = true,
+            [CallerFilePath]string expectedValueSourcePath = null,
             [CallerLineNumber]int expectedValueSourceLine = 0)
         {
             var normalizedExpected = NormalizeWhitespace(expected);
@@ -440,10 +442,10 @@ namespace Roslyn.Test.Utilities
         private static readonly string DiffToolPath = Environment.GetEnvironmentVariable("ROSLYN_DIFFTOOL");
 
         public static string GetAssertMessage<T>(
-            IEnumerable<T> expected, 
-            IEnumerable<T> actual, 
-            IEqualityComparer<T> comparer = null, 
-            Func<T, string> toString = null, 
+            IEnumerable<T> expected,
+            IEnumerable<T> actual,
+            IEqualityComparer<T> comparer = null,
+            Func<T, string> toString = null,
             string separator = ",\r\n",
             string expectedValueSourcePath = null,
             int expectedValueSourceLine = 0)
@@ -487,11 +489,28 @@ namespace Roslyn.Test.Utilities
                 File.WriteAllText(compareCmd, string.Format("\"{0}\" \"{1}\" \"{2}\"", DiffToolPath, actualFile, expectedValueSourcePath));
 
                 link = "file://" + compareCmd;
+
+                DiffLinks.Value.Add(Tuple.Create(expectedValueSourcePath, expectedValueSourceLine, link));
                 return true;
             }
 
             link = null;
             return false;
         }
+
+        private static Lazy<List<Tuple<string, int, string>>> DiffLinks = new Lazy<List<Tuple<string, int, string>>>(() =>
+        {
+            AppDomain.CurrentDomain.DomainUnload += (_, __) =>
+            {
+                Debug.WriteLine("All error diffs:");
+
+                foreach (var link in DiffLinks.Value.OrderBy(l => l.Item1).ThenBy(l => l.Item2))
+                {
+                    Debug.WriteLine(link.Item3);
+                }
+            };
+
+            return new List<Tuple<string, int, string>>();
+        });
     }
 }

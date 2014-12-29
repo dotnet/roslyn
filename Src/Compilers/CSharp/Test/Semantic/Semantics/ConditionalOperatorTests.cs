@@ -230,17 +230,15 @@ class Program
     }
 }
 ";
-
-            string expectedOutput = @"B
+            var verifier = CompileAndVerify(source, expectedOutput: @"B
 D
 B
-D";
-
+D");
             // Note no castclass instructions
             // to be completely sure that stack states merge with expected types
             // we use "stloc;ldloc" as a surrogate "static cast" for values
             // in different branches
-            string expectedIL = @"
+            verifier.VerifyIL("Program.Main", @"
 {
   // Code size      136 (0x88)
   .maxstack  2
@@ -252,25 +250,25 @@ D";
                 D<Base> V_5)
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
-  IL_0002:  ldsfld     ""D<Base> Program.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_0002:  ldsfld     ""D<Base> Program.<>c.<>9__0_0""
   IL_0007:  dup
   IL_0008:  brtrue.s   IL_0021
   IL_000a:  pop
-  IL_000b:  ldsfld     ""Program.<>c__DisplayClass0 Program.<>c__DisplayClass0.CS$<>9__inst""
-  IL_0010:  ldftn      ""void Program.<>c__DisplayClass0.<Main>b__1()""
+  IL_000b:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_0010:  ldftn      ""void Program.<>c.<Main>b__0_0()""
   IL_0016:  newobj     ""D<Base>..ctor(object, System.IntPtr)""
   IL_001b:  dup
-  IL_001c:  stsfld     ""D<Base> Program.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_001c:  stsfld     ""D<Base> Program.<>c.<>9__0_0""
   IL_0021:  stloc.1
-  IL_0022:  ldsfld     ""D<Derived> Program.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_0022:  ldsfld     ""D<Derived> Program.<>c.<>9__0_1""
   IL_0027:  dup
   IL_0028:  brtrue.s   IL_0041
   IL_002a:  pop
-  IL_002b:  ldsfld     ""Program.<>c__DisplayClass0 Program.<>c__DisplayClass0.CS$<>9__inst""
-  IL_0030:  ldftn      ""void Program.<>c__DisplayClass0.<Main>b__3()""
+  IL_002b:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_0030:  ldftn      ""void Program.<>c.<Main>b__0_1()""
   IL_0036:  newobj     ""D<Derived>..ctor(object, System.IntPtr)""
   IL_003b:  dup
-  IL_003c:  stsfld     ""D<Derived> Program.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_003c:  stsfld     ""D<Derived> Program.<>c.<>9__0_1""
   IL_0041:  stloc.2
   IL_0042:  ldloc.0
   IL_0043:  brtrue.s   IL_004c
@@ -311,11 +309,7 @@ D";
   IL_0085:  ldloc.0
   IL_0086:  pop
   IL_0087:  ret
-}
-
-";
-            var verifier = CompileAndVerify(source, expectedOutput: expectedOutput );
-            verifier.VerifyIL("Program.Main", expectedIL);
+}");
         }
 
         [WorkItem(545408, "DevDiv")]
@@ -355,7 +349,8 @@ class Program
     }
 }
 ";
-            string expectedIL = @"
+            var verifier = CompileAndVerify(source, expectedOutput: @"BDBD");
+            verifier.VerifyIL("Program.Main", @"
 {
   // Code size      121 (0x79)
   .maxstack  2
@@ -365,25 +360,25 @@ class Program
                 D<Derived> V_3)
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
-  IL_0002:  ldsfld     ""D<Base> Program.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_0002:  ldsfld     ""D<Base> Program.<>c.<>9__0_0""
   IL_0007:  dup
   IL_0008:  brtrue.s   IL_0021
   IL_000a:  pop
-  IL_000b:  ldsfld     ""Program.<>c__DisplayClass0 Program.<>c__DisplayClass0.CS$<>9__inst""
-  IL_0010:  ldftn      ""void Program.<>c__DisplayClass0.<Main>b__1()""
+  IL_000b:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_0010:  ldftn      ""void Program.<>c.<Main>b__0_0()""
   IL_0016:  newobj     ""D<Base>..ctor(object, System.IntPtr)""
   IL_001b:  dup
-  IL_001c:  stsfld     ""D<Base> Program.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate2""
+  IL_001c:  stsfld     ""D<Base> Program.<>c.<>9__0_0""
   IL_0021:  stloc.1
-  IL_0022:  ldsfld     ""D<Derived> Program.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_0022:  ldsfld     ""D<Derived> Program.<>c.<>9__0_1""
   IL_0027:  dup
   IL_0028:  brtrue.s   IL_0041
   IL_002a:  pop
-  IL_002b:  ldsfld     ""Program.<>c__DisplayClass0 Program.<>c__DisplayClass0.CS$<>9__inst""
-  IL_0030:  ldftn      ""void Program.<>c__DisplayClass0.<Main>b__3()""
+  IL_002b:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_0030:  ldftn      ""void Program.<>c.<Main>b__0_1()""
   IL_0036:  newobj     ""D<Derived>..ctor(object, System.IntPtr)""
   IL_003b:  dup
-  IL_003c:  stsfld     ""D<Derived> Program.<>c__DisplayClass0.CS$<>9__CachedAnonymousMethodDelegate4""
+  IL_003c:  stsfld     ""D<Derived> Program.<>c.<>9__0_1""
   IL_0041:  stloc.2
   IL_0042:  ldloc.0
   IL_0043:  brtrue.s   IL_0048
@@ -418,12 +413,7 @@ class Program
   IL_0072:  ldloc.3
   IL_0073:  callvirt   ""void D<Derived>.Invoke()""
   IL_0078:  ret
-}
-
-";
-
-            var verifier = CompileAndVerify(source, expectedOutput: @"BDBD");
-            verifier.VerifyIL("Program.Main", expectedIL);
+}");
         }
 
         [WorkItem(545408, "DevDiv")]

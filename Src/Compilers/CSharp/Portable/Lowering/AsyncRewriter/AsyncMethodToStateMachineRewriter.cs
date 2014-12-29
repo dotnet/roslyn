@@ -57,6 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal AsyncMethodToStateMachineRewriter(
             MethodSymbol method,
+            int methodOrdinal,
             AsyncMethodBuilderMemberCollection asyncMethodBuilderMemberCollection,
             SyntheticBoundNodeFactory F,
             FieldSymbol state,
@@ -79,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? F.SynthesizedLocal(asyncMethodBuilderMemberCollection.ResultType, syntax: F.Syntax, kind: SynthesizedLocalKind.AsyncMethodReturnValue)
                 : null;
 
-            this.dynamicFactory = new LoweredDynamicOperationFactory(F);
+            this.dynamicFactory = new LoweredDynamicOperationFactory(F, methodOrdinal);
             this.awaiterFields = new Dictionary<TypeSymbol, FieldSymbol>(TypeSymbol.EqualsIgnoringDynamicComparer);
             this.nextAwaiterId = slotAllocatorOpt?.PreviousAwaiterSlotCount ?? 0;
         }
