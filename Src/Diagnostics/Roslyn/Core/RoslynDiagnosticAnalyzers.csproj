@@ -70,6 +70,10 @@
     <Compile Include="CodeFixProviderBase.cs" />
     <Compile Include="Documentation\DoNotUseVerbatimCrefsAnalyzer.cs" />
     <Compile Include="DocumentChangedAction.cs" />
+    <Compile Include="MetaAnalyzers\ReportDiagnosticAnalyzer.cs" />
+    <Compile Include="MetaAnalyzers\DiagnosticAnalyzerCorrectnessAnalyzer.CompilationAnalyzer.cs" />
+    <Compile Include="MetaAnalyzers\DiagnosticAnalyzerCorrectnessAnalyzer.InvocationCompilationAnalyzer.cs" />
+    <Compile Include="MetaAnalyzers\CompilationEndActionAnalyzer.cs" />
     <Compile Include="MetaAnalyzers\RegisterActionAnalyzer.cs" />
     <Compile Include="MetaAnalyzers\DiagnosticAnalyzerAttributeAnalyzer.cs" />
     <Compile Include="MetaAnalyzers\DiagnosticAnalyzerCorrectnessAnalyzer.cs" />

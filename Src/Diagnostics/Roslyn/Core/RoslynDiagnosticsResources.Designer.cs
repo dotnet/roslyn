@@ -61,6 +61,24 @@ namespace Roslyn.Diagnostics.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; seems to be a language-agnostic diagnostic analyzer. Consider either removing the argument to DiagnosticAnalyzerAttribute or adding a new DiagnosticAnalyzerAttribute for &apos;{1}&apos; language support..
+        /// </summary>
+        internal static string AddLanguageSupportToAnalyzerMessage {
+            get {
+                return ResourceManager.GetString("AddLanguageSupportToAnalyzerMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Recommend adding language support to diagnostic analyzer..
+        /// </summary>
+        internal static string AddLanguageSupportToAnalyzerTitle {
+            get {
+                return ResourceManager.GetString("AddLanguageSupportToAnalyzerTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Apply language-agnostic DiagnosticAnalyzer attribute..
         /// </summary>
         internal static string ApplyDiagnosticAnalyzerAttribute_1 {
@@ -223,6 +241,35 @@ namespace Roslyn.Diagnostics.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The compilation end actions registered on &apos;{0}&apos; can be executed only after all other actions registered on it have been executed on the entire compilation. This can hurt the typing performance when the analyzer is executed in the Visual Studio IDE.
+        ///If the analysis done within your compilation end action is independent of analyses done in other actions registered on &apos;{0}&apos;, then consider registering this end action on &apos;{1}&apos; in &apos;{2}&apos; method instead of registering it here.
+        ///This should improve the IDE performa [rest of string was truncated]&quot;;.
+        /// </summary>
+        internal static string ExpensiveEndActionDescription {
+            get {
+                return ResourceManager.GetString("ExpensiveEndActionDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Consider registering the compilation end action on &apos;{0}&apos; instead of &apos;{1}&apos; if the end action is independent of other actions registered on &apos;{1}&apos;..
+        /// </summary>
+        internal static string ExpensiveEndActionMessage {
+            get {
+                return ResourceManager.GetString("ExpensiveEndActionMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Analyzer has an expensive compilation end action..
+        /// </summary>
+        internal static string ExpensiveEndActionTitle {
+            get {
+                return ResourceManager.GetString("ExpensiveEndActionTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Implement IEquatable&lt;T&gt; when overriding Object.Equals.
         /// </summary>
         internal static string ImplementIEquatableDescription {
@@ -237,6 +284,24 @@ namespace Roslyn.Diagnostics.Analyzers {
         internal static string ImplementIEquatableMessage {
             get {
                 return ResourceManager.GetString("ImplementIEquatableMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ReportDiagnostic invoked with an unsupported DiagnosticDescriptor &apos;{0}&apos;..
+        /// </summary>
+        internal static string InvalidReportDiagnosticMessage {
+            get {
+                return ResourceManager.GetString("InvalidReportDiagnosticMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ReportDiagnostic invoked with an unsupported DiagnosticDescriptor..
+        /// </summary>
+        internal static string InvalidReportDiagnosticTitle {
+            get {
+                return ResourceManager.GetString("InvalidReportDiagnosticTitle", resourceCulture);
             }
         }
         

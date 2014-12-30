@@ -1,26 +1,32 @@
 ﻿using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Roslyn.Diagnostics.Analyzers.MetaAnalyzers
 {
-    public abstract class DiagnosticAnalyzerCorrectnessAnalyzer : DiagnosticAnalyzer
+    public abstract partial class DiagnosticAnalyzerCorrectnessAnalyzer : DiagnosticAnalyzer
     {
-        protected static readonly string DiagnosticAnalyzerTypeFullName = typeof(DiagnosticAnalyzer).FullName;
+        internal static readonly string DiagnosticAnalyzerTypeFullName = typeof(DiagnosticAnalyzer).FullName;
         internal static readonly string DiagnosticAnalyzerAttributeFullName = typeof(DiagnosticAnalyzerAttribute).FullName;
+        internal static readonly string DiagnosticFullName = typeof(Diagnostic).FullName;
+        internal static readonly string DiagnosticDescriptorFullName = typeof(DiagnosticDescriptor).FullName;
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-        {
-            get
-            {
-                return ImmutableArray.Create(Descriptor);
-            }
-        }
+        internal static readonly string AnalysisContextFullName = typeof(AnalysisContext).FullName;
+        internal static readonly string CompilationStartAnalysisContextFullName = typeof(CompilationStartAnalysisContext).FullName;
+        internal static readonly string CompilationEndAnalysisContextFullName = typeof(CompilationEndAnalysisContext).FullName;
+        internal static readonly string SemanticModelAnalysisContextFullName = typeof(SemanticModelAnalysisContext).FullName;
+        internal static readonly string SymbolAnalysisContextFullName = typeof(SymbolAnalysisContext).FullName;
+        internal static readonly string SyntaxNodeAnalysisContextFullName = typeof(SyntaxNodeAnalysisContext).FullName;
+        internal static readonly string SyntaxTreeAnalysisContextFullName = typeof(SyntaxTreeAnalysisContext).FullName;
+        internal static readonly string CodeBlockStartAnalysisContextFullName = typeof(CodeBlockStartAnalysisContext<>).FullName;
+        internal static readonly string CodeBlockEndAnalysisContextFullName = typeof(CodeBlockEndAnalysisContext).FullName;
+        internal static readonly string SymbolKindFullName = typeof(SymbolKind).FullName;
 
-        protected abstract DiagnosticDescriptor Descriptor { get; }
+        internal static readonly string RegisterSyntaxNodeActionName = nameof(AnalysisContext.RegisterSyntaxNodeAction);
+        internal static readonly string RegisterSymbolActionName = nameof(AnalysisContext.RegisterSymbolAction);
+        internal static readonly string RegisterCompilationEndActionName = nameof(CompilationStartAnalysisContext.RegisterCompilationEndAction);
+        internal static readonly string ReportDiagnosticName = nameof(CompilationEndAnalysisContext.ReportDiagnostic);
+        internal static readonly string SupportedDiagnosticsName = nameof(DiagnosticAnalyzer.SupportedDiagnostics);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -46,36 +52,5 @@ namespace Roslyn.Diagnostics.Analyzers.MetaAnalyzers
         }
 
         protected abstract CompilationAnalyzer GetCompilationAnalyzer(Compilation compilation, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute);
-
-        protected abstract class CompilationAnalyzer
-        {
-            private readonly INamedTypeSymbol diagnosticAnalyzer;
-            private readonly INamedTypeSymbol diagnosticAnalyzerAttribute;
-
-            public CompilationAnalyzer(INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
-            {
-                this.diagnosticAnalyzer = diagnosticAnalyzer;
-                this.diagnosticAnalyzerAttribute = diagnosticAnalyzerAttribute;
-            }
-
-            protected INamedTypeSymbol DiagnosticAnalyzer { get { return this.diagnosticAnalyzer; } }
-            protected INamedTypeSymbol DiagnosticAnalyzerAttribute { get { return this.diagnosticAnalyzerAttribute; } }
-
-            protected bool IsDiagnosticAnalyzer(INamedTypeSymbol type)
-            {
-                return SymbolEquivalenceComparer.Instance.Equals(type, this.diagnosticAnalyzer);
-            }
-
-            internal void AnalyzeSymbol(SymbolAnalysisContext symbolContext)
-            {
-                var namedType = (INamedTypeSymbol)symbolContext.Symbol;
-                if (namedType.GetBaseTypes().Any(IsDiagnosticAnalyzer))
-                {
-                    AnalyzeDiagnosticAnalyzer(symbolContext);
-                }
-            }
-
-            protected abstract void AnalyzeDiagnosticAnalyzer(SymbolAnalysisContext symbolContext);
-        }
     }
 }

@@ -13,11 +13,6 @@ namespace Roslyn.Diagnostics.Analyzers.MetaAnalyzers
         where TInvocationExpressionSyntax : SyntaxNode
         where TLanguageKindEnum : struct
     {
-        internal static readonly string AnalysisContextFullName = typeof(AnalysisContext).FullName;
-        internal static readonly string CompilationStartAnalysisContextFullName = typeof(CompilationStartAnalysisContext).FullName;
-        internal static readonly string CodeBlockStartAnalysisContextFullName = typeof(CodeBlockStartAnalysisContext<>).FullName;
-        internal static readonly string SymbolKindFullName = typeof(SymbolKind).FullName;
-
         private static LocalizableString localizableTitleMissingKindArgument = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.MissingKindArgumentToRegisterActionTitle), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
         private static LocalizableString localizableMessageMissingKindArgument = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.MissingKindArgumentToRegisterActionMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
 
@@ -42,7 +37,13 @@ namespace Roslyn.Diagnostics.Analyzers.MetaAnalyzers
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        protected override DiagnosticDescriptor Descriptor { get { return MissingKindArgumentRule; } }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+        {
+            get
+            {
+                return ImmutableArray.Create(MissingKindArgumentRule, UnsupportedSymbolKindArgumentRule);
+            }
+        }
 
         protected override CompilationAnalyzer GetCompilationAnalyzer(Compilation compilation, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
         {
@@ -75,11 +76,8 @@ namespace Roslyn.Diagnostics.Analyzers.MetaAnalyzers
 
         protected abstract RegisterActionCompilationAnalyzer GetAnalyzer(INamedTypeSymbol analysisContext, INamedTypeSymbol compilationStartAnalysisContext, INamedTypeSymbol codeBlockStartAnalysisContext, INamedTypeSymbol symbolKind, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute);
 
-        protected abstract class RegisterActionCompilationAnalyzer : CompilationAnalyzer
+        protected abstract class RegisterActionCompilationAnalyzer : InvocationCompilationAnalyzer<TClassDeclarationSyntax, TInvocationExpressionSyntax>
         {
-            internal static readonly string RegisterSyntaxNodeActionName = nameof(AnalysisContext.RegisterSyntaxNodeAction);
-            internal static readonly string RegisterSymbolActionName = nameof(AnalysisContext.RegisterSymbolAction);
-
             private readonly INamedTypeSymbol analysisContext;
             private readonly INamedTypeSymbol compilationStartAnalysisContext;
             private readonly INamedTypeSymbol codeBlockStartAnalysisContext;
@@ -111,95 +109,63 @@ namespace Roslyn.Diagnostics.Analyzers.MetaAnalyzers
 
             protected abstract IEnumerable<SyntaxNode> GetArgumentExpressions(TInvocationExpressionSyntax invocation);
 
-            internal IEnumerable<TClassDeclarationSyntax> GetClassDeclarationNodes(INamedTypeSymbol namedType, CancellationToken cancellationToken)
+            protected override void AnalyzeInvocation(SymbolAnalysisContext symbolContext, TInvocationExpressionSyntax invocation, ISymbol symbol, SemanticModel semanticModel)
             {
-                foreach (var syntax in namedType.DeclaringSyntaxReferences.Select(s => s.GetSyntax(cancellationToken)))
-                {
-                    if (syntax != null)
-                    {
-                        var classDecl = syntax.FirstAncestorOrSelf<TClassDeclarationSyntax>(ascendOutOfTrivia: false);
-                        if (classDecl != null)
-                        {
-                            yield return classDecl;
-                        }
-                    }
-                }
-            }
-
-            protected override void AnalyzeDiagnosticAnalyzer(SymbolAnalysisContext symbolContext)
-            {
-                var namedType = (INamedTypeSymbol)symbolContext.Symbol;
-                var classDecls = GetClassDeclarationNodes(namedType, symbolContext.CancellationToken);
-                foreach (var classDecl in classDecls)
-                {
-                    var invocations = classDecl.DescendantNodes().OfType<TInvocationExpressionSyntax>();
-                    if (invocations.Any())
-                    {
-                        var semanticModel = symbolContext.Compilation.GetSemanticModel(classDecl.SyntaxTree);
-                        foreach (var invocation in invocations)
-                        {
-                            var symbol = semanticModel.GetSymbolInfo(invocation, symbolContext.CancellationToken).Symbol;
-                            if (symbol != null)
-                            {
-                                var isRegisterSymbolAction = symbol.Name.Equals(RegisterSymbolActionName) &&
+                var isRegisterSymbolAction = symbol.Name.Equals(RegisterSymbolActionName, StringComparison.OrdinalIgnoreCase) &&
                                     symbol.Kind == SymbolKind.Method &&
-                                    (symbol.ContainingType.Equals(analysisContext) || 
+                                    (symbol.ContainingType.Equals(analysisContext) ||
                                     symbol.ContainingType.Equals(compilationStartAnalysisContext));
 
-                                var isRegisterSyntaxNodeAction = !isRegisterSymbolAction &&
-                                    symbol.Name.Equals(RegisterSyntaxNodeActionName) &&
-                                    symbol.Kind == SymbolKind.Method &&
-                                    (symbol.ContainingType.Equals(analysisContext) || 
-                                    symbol.ContainingType.Equals(compilationStartAnalysisContext) ||
-                                    symbol.ContainingType.Equals(codeBlockStartAnalysisContext));
+                var isRegisterSyntaxNodeAction = !isRegisterSymbolAction &&
+                    symbol.Name.Equals(RegisterSyntaxNodeActionName, StringComparison.OrdinalIgnoreCase) &&
+                    symbol.Kind == SymbolKind.Method &&
+                    (symbol.ContainingType.Equals(analysisContext) ||
+                    symbol.ContainingType.Equals(compilationStartAnalysisContext) ||
+                    symbol.ContainingType.Equals(codeBlockStartAnalysisContext));
 
-                                if (isRegisterSymbolAction || isRegisterSyntaxNodeAction)
+                if (isRegisterSymbolAction || isRegisterSyntaxNodeAction)
+                {
+                    var method = (IMethodSymbol)symbol;
+                    if (method.Parameters.Length == 2 && method.Parameters[1].IsParams)
+                    {
+                        var arguments = GetArgumentExpressions(invocation);
+                        if (arguments != null)
+                        {
+                            var argumentCount = arguments.Count();
+                            if (argumentCount >= 1)
+                            {
+                                var type = semanticModel.GetTypeInfo(arguments.First(), symbolContext.CancellationToken).ConvertedType;
+                                if (type == null || type.Name.Equals(nameof(Action)))
                                 {
-                                    var method = (IMethodSymbol)symbol;
-                                    if (method.Parameters.Length == 2 && method.Parameters[1].IsParams)
+                                    if (argumentCount == 1)
                                     {
-                                        var arguments = GetArgumentExpressions(invocation);
-                                        if (arguments != null)
+                                        string arg1, arg2;
+                                        if (isRegisterSymbolAction)
                                         {
-                                            var argumentCount = arguments.Count();
-                                            if (argumentCount >= 1)
-                                            {
-                                                var type = semanticModel.GetTypeInfo(arguments.First(), symbolContext.CancellationToken).ConvertedType;
-                                                if (type == null || type.Name.Equals(nameof(Action)))
-                                                {
-                                                    if (argumentCount == 1)
-                                                    {
-                                                        string arg1, arg2;
-                                                        if (isRegisterSymbolAction)
-                                                        {
-                                                            arg1 = nameof(SymbolKind);
-                                                            arg2 = "symbol";
-                                                        }
-                                                        else
-                                                        {
-                                                            arg1 = nameof(TLanguageKindEnum);
-                                                            arg2 = "syntax";
-                                                        }
+                                            arg1 = nameof(SymbolKind);
+                                            arg2 = "symbol";
+                                        }
+                                        else
+                                        {
+                                            arg1 = "SyntaxKind";
+                                            arg2 = "syntax";
+                                        }
 
-                                                        var diagnostic = Diagnostic.Create(MissingKindArgumentRule, invocation.GetLocation(), arg1, arg2);
-                                                        symbolContext.ReportDiagnostic(diagnostic);
-                                                    }
-                                                    else if (isRegisterSymbolAction)
-                                                    {
-                                                        foreach (var argument in arguments.Skip(1))
-                                                        {
-                                                            symbol = semanticModel.GetSymbolInfo(argument, symbolContext.CancellationToken).Symbol;
-                                                            if (symbol != null &&
-                                                                symbol.Kind == SymbolKind.Field &&
-                                                                symbolKind.Equals(symbol.ContainingType) &&
-                                                                !supportedSymbolKinds.Contains(symbol.Name))
-                                                            {
-                                                                var diagnostic = Diagnostic.Create(UnsupportedSymbolKindArgumentRule, argument.GetLocation(), symbol.Name);
-                                                                symbolContext.ReportDiagnostic(diagnostic);
-                                                            }
-                                                        }
-                                                    }
-                                                }
+                                        var diagnostic = Diagnostic.Create(MissingKindArgumentRule, invocation.GetLocation(), arg1, arg2);
+                                        symbolContext.ReportDiagnostic(diagnostic);
+                                    }
+                                    else if (isRegisterSymbolAction)
+                                    {
+                                        foreach (var argument in arguments.Skip(1))
+                                        {
+                                            symbol = semanticModel.GetSymbolInfo(argument, symbolContext.CancellationToken).Symbol;
+                                            if (symbol != null &&
+                                                symbol.Kind == SymbolKind.Field &&
+                                                symbolKind.Equals(symbol.ContainingType) &&
+                                                !supportedSymbolKinds.Contains(symbol.Name))
+                                            {
+                                                var diagnostic = Diagnostic.Create(UnsupportedSymbolKindArgumentRule, argument.GetLocation(), symbol.Name);
+                                                symbolContext.ReportDiagnostic(diagnostic);
                                             }
                                         }
                                     }
