@@ -42,9 +42,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>m__Finally" + GetString(Math.Abs(iteratorState + 2));
         }
 
-        internal static string MakeStaticLambdaDisplayClassName()
+        internal static string MakeStaticLambdaDisplayClassName(int methodOrdinal)
         {
-            return "<>c";
+            const string prefix = "<>c";
+            return (methodOrdinal >= 0) ? prefix + GetString(methodOrdinal) : prefix;
         }
 
         internal static string MakeLambdaDisplayClassName(int methodOrdinal, int scopeOrdinal)

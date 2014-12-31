@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly FieldSymbol singletonCache;
         internal readonly CSharpSyntaxNode ScopeSyntaxOpt;
 
-        internal LambdaFrame(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, MethodSymbol topLevelMethod, int overloadOrdinal, CSharpSyntaxNode scopeSyntax, int scopeOrdinal, bool isStatic)
-            : base(MakeName(slotAllocatorOpt, overloadOrdinal, scopeOrdinal, isStatic), topLevelMethod)
+        internal LambdaFrame(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, MethodSymbol topLevelMethod, int methodOrdinal, CSharpSyntaxNode scopeSyntax, int scopeOrdinal, bool isStatic)
+            : base(MakeName(slotAllocatorOpt, methodOrdinal, scopeOrdinal, isStatic), topLevelMethod)
         {
             this.topLevelMethod = topLevelMethod;
             this.constructor = new LambdaFrameConstructor(this);
@@ -45,13 +45,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static string MakeName(VariableSlotAllocator slotAllocatorOpt, int methodOrdinal, int scopeOrdinal, bool isStatic)
         {
+            // TODO: slotAllocatorOpt?.GetPrevious()
+
             if (isStatic)
             {
-                return GeneratedNames.MakeStaticLambdaDisplayClassName();
+                // Display class is shared among static non-generic lambdas, method ordinal is -1.
+                // Generic display classes don't share lambdas and need to include the ordinal to avoid duplicate names.
+                Debug.Assert(methodOrdinal >= -1);
+                return GeneratedNames.MakeStaticLambdaDisplayClassName(methodOrdinal);
             }
 
-            return // TODO: slotAllocatorOpt?.GetPrevious() ??
-                   GeneratedNames.MakeLambdaDisplayClassName(methodOrdinal, scopeOrdinal);
+            Debug.Assert(methodOrdinal >= 0);
+            return GeneratedNames.MakeLambdaDisplayClassName(methodOrdinal, scopeOrdinal);
         }
 
         [Conditional("DEBUG")]

@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -937,7 +939,7 @@ class Program
     }
 }";
             var verifier = CompileAndVerify(source, expectedOutput: "pass");
-            verifier.VerifyIL("Program.<>c<T>.<F>b__1_0", @"
+            verifier.VerifyIL("Program.<>c1<T>.<F>b__1_0", @"
 {
   // Code size       67 (0x43)
   .maxstack  2
@@ -3829,6 +3831,165 @@ class C
     }
 }";
             CompileAndVerify(source);
+        }
+
+        [Fact]
+        public void GenericStaticFrames()
+        {
+            string source = @"
+using System;
+
+public class C
+{
+	public static void F<TF>()
+	{
+	    var f = new Func<TF>(() => default(TF));
+	}
+	
+	public static void G<TG>()
+	{
+		var f = new Func<TG>(() => default(TG));
+	}
+	
+	public static void F<TF1, TF2>()
+	{
+		var f = new Func<TF1, TF2>(a => default(TF2));
+	}
+	
+	public static void G<TG1, TG2>()
+	{
+		var f = new Func<TG1, TG2>(a => default(TG2));
+	}
+}";
+            CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: m =>
+            {
+                var c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                AssertEx.Equal(new[]
+                {
+                    "C.<>c0<TF>",
+                    "C.<>c1<TG>",
+                    "C.<>c2<TF1, TF2>",
+                    "C.<>c3<TG1, TG2>"
+                }, c.GetMembers().Where(member => member.Kind == SymbolKind.NamedType).Select(member => member.ToString()));
+
+                var c0 = c.GetMember<NamedTypeSymbol>("<>c0"); 
+                AssertEx.SetEqual(new[]
+                {
+                    "C.<>c0<TF>.<>9",
+                    "C.<>c0<TF>.<>9__0_0",
+                    "C.<>c0<TF>.<>c0()",
+                    "C.<>c0<TF>.<>c0()",
+                    "C.<>c0<TF>.<F>b__0_0()",
+                }, c0.GetMembers().Select(member => member.ToString()));
+
+                var c1 = c.GetMember<NamedTypeSymbol>("<>c1");
+                AssertEx.SetEqual(new[]
+                {
+                    "C.<>c1<TG>.<>9",
+                    "C.<>c1<TG>.<>9__1_0",
+                    "C.<>c1<TG>.<>c1()",
+                    "C.<>c1<TG>.<>c1()",
+                    "C.<>c1<TG>.<G>b__1_0()",
+                }, c1.GetMembers().Select(member => member.ToString()));
+
+                var c2 = c.GetMember<NamedTypeSymbol>("<>c2");
+                AssertEx.SetEqual(new[]
+                {
+                    "C.<>c2<TF1, TF2>.<>9",
+                    "C.<>c2<TF1, TF2>.<>9__2_0",
+                    "C.<>c2<TF1, TF2>.<>c2()",
+                    "C.<>c2<TF1, TF2>.<>c2()",
+                    "C.<>c2<TF1, TF2>.<F>b__2_0(TF1)",
+                }, c2.GetMembers().Select(member => member.ToString()));
+
+                var c3 = c.GetMember<NamedTypeSymbol>("<>c3");
+                AssertEx.SetEqual(new[]
+                {
+                    "C.<>c3<TG1, TG2>.<>9",
+                    "C.<>c3<TG1, TG2>.<>9__3_0",
+                    "C.<>c3<TG1, TG2>.<>c3()",
+                    "C.<>c3<TG1, TG2>.<>c3()",
+                    "C.<>c3<TG1, TG2>.<G>b__3_0(TG1)",
+                }, c3.GetMembers().Select(member => member.ToString()));
+            });
+        }
+
+        [Fact]
+        public void GenericStaticFramesWithConstraints()
+        {
+            string source = @"
+using System;
+
+public class C
+{
+	public static void F<TF>() where TF : class
+	{
+	    var f = new Func<TF>(() => default(TF));
+	}
+	
+	public static void G<TG>() where TG : struct
+	{
+		var f = new Func<TG>(() => default(TG));
+	}
+}";
+            CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: m =>
+            {
+                var c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                AssertEx.Equal(new[]
+                {
+                    "C.<>c0<TF>",
+                    "C.<>c1<TG>",
+                }, c.GetMembers().Where(member => member.Kind == SymbolKind.NamedType).Select(member => member.ToString()));
+            });
+        }
+
+        [Fact]
+        public void GenericInstance()
+        {
+            string source = @"
+using System;
+
+public class C
+{
+	public void F<TF>()
+	{
+	    var f = new Func<TF>(() => { this.F(); return default(TF); });
+	}
+	
+	public void G<TG>()
+	{
+		var f = new Func<TG>(() => { this.F(); return default(TG); });
+	}
+	
+	public void F<TF1, TF2>()
+	{
+		var f = new Func<TF1, TF2>(a => { this.F(); return default(TF2); });
+	}
+	
+	public void G<TG1, TG2>()
+	{
+		var f = new Func<TG1, TG2>(a => { this.F(); return default(TG2); });
+	}
+
+    private void F() {}
+}";
+            CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: m =>
+            {
+                var c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                AssertEx.SetEqual(new[]
+                {
+                    "C.F<TF>()",
+                    "C.G<TG>()",
+                    "C.F<TF1, TF2>()",
+                    "C.G<TG1, TG2>()",
+                    "C.F()",
+                    "C.C()",
+                    "C.<F>b__0_0<TF>()",
+                    "C.<G>b__1_0<TG>()",
+                    "C.<F>b__2_0<TF1, TF2>(TF1)",
+                    "C.<G>b__3_0<TG1, TG2>(TG1)",  
+                }, c.GetMembers().Select(member => member.ToString()));
+            });
         }
 
         #region "Regressions"

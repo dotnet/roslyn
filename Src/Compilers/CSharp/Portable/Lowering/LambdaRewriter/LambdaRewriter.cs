@@ -328,7 +328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // therefore could have no syntax.
                     CSharpSyntaxNode syntax = lambda.Syntax;
 
-                    this.lazyStaticLambdaFrame = new LambdaFrame(slotAllocatorOpt, CompilationState, topLevelMethod, topLevelMethodOrdinal, syntax, scopeOrdinal: -1, isStatic: true);
+                    this.lazyStaticLambdaFrame = new LambdaFrame(slotAllocatorOpt, CompilationState, topLevelMethod, isNonGeneric ? -1 : topLevelMethodOrdinal, syntax, scopeOrdinal: -1, isStatic: true);
 
                     // nongeneric static lambdas can share the frame
                     if (isNonGeneric)
@@ -907,20 +907,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             NamedTypeSymbol translatedLambdaContainer;
             BoundNode lambdaScope = null;
+            LambdaFrame containerAsFrame;
 
             ClosureKind closureKind;
             if (analysis.lambdaScopes.TryGetValue(node.Symbol, out lambdaScope))
             {
-                translatedLambdaContainer = frames[lambdaScope];
+                translatedLambdaContainer = containerAsFrame = frames[lambdaScope];
                 closureKind = ClosureKind.General;
             }
             else if (analysis.capturedVariablesByLambda[node.Symbol].Count == 0)
             {
-                translatedLambdaContainer = GetStaticFrame(Diagnostics, node);
+                translatedLambdaContainer = containerAsFrame = GetStaticFrame(Diagnostics, node);
                 closureKind = ClosureKind.Static;
             }
             else
             {
+                containerAsFrame = null;
                 translatedLambdaContainer = topLevelMethod.ContainingType;
                 closureKind = ClosureKind.ThisOnly;
             }
@@ -964,7 +966,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 framePointers.TryGetValue(translatedLambdaContainer, out innermostFramePointer);
             }
 
-            if (translatedLambdaContainer.OriginalDefinition is LambdaFrame)
+            if ((object)containerAsFrame != null)
             {
                 currentTypeParameters = translatedLambdaContainer.TypeParameters;
                 currentLambdaBodyTypeMap = ((LambdaFrame)translatedLambdaContainer).TypeMap;
@@ -990,7 +992,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             addedStatements = oldAddedStatements;
 
             // Rewrite the lambda expression (and the enclosing anonymous method conversion) as a delegate creation expression
-            var containerAsFrame = translatedLambdaContainer as LambdaFrame;
             NamedTypeSymbol constructedFrame = (object)containerAsFrame != null ? 
                 translatedLambdaContainer.ConstructIfGeneric(StaticCast<TypeSymbol>.From(currentTypeParameters)) : 
                 translatedLambdaContainer;

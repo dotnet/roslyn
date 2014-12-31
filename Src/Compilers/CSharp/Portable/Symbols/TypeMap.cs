@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var tp in oldTypeParameters)
             {
                 var newTp = synthesized ?
-                    new SynthesizedTypeParameterSymbol(newOwner, result, tp) :
+                    new SynthesizedSubstitutedTypeParameterSymbol(newOwner, result, tp) :
                     new SubstitutedTypeParameterSymbol(newOwner, result, tp);
                 result.Mapping.Add(tp, newTp);
                 newTypeParametersBuilder.Add(newTp);
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal TypeMap WithAlphaRename(MethodSymbol oldOwner, Symbol newOwner, out ImmutableArray<TypeParameterSymbol> newTypeParameters)
         {
             Debug.Assert(oldOwner.ConstructedFrom == oldOwner);
-            return WithAlphaRename(((MethodSymbol)oldOwner.OriginalDefinition).TypeParameters, newOwner, out newTypeParameters);
+            return WithAlphaRename(oldOwner.OriginalDefinition.TypeParameters, newOwner, out newTypeParameters);
         }
 
         private static SmallDictionary<TypeParameterSymbol, TypeSymbol> ConstructMapping(ImmutableArray<TypeParameterSymbol> from, ImmutableArray<TypeSymbol> to)

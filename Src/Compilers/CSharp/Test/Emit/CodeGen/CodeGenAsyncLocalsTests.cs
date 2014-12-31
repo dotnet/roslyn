@@ -756,5 +756,61 @@ IL_019b:  ldarg.0
 IL_019c:  ldflda     ""System.Runtime.CompilerServices.AsyncVoidMethodBuilder Test.<M>d__3.<>t__builder""
 ", actual);
         }
+
+        [Fact]
+        public void ManySynthesizedNames()
+        {
+            string source = @"
+using System;
+using System.Threading.Tasks;
+
+public class C
+{
+    public async Task F()
+    {
+        var a1 = await Task.FromResult(default(Tuple<char, char, char>));
+        var a2 = await Task.FromResult(default(Tuple<char, char, byte>));
+        var a3 = await Task.FromResult(default(Tuple<char, byte, char>));
+        var a4 = await Task.FromResult(default(Tuple<char, byte, byte>));
+        var a5 = await Task.FromResult(default(Tuple<byte, char, char>));
+        var a6 = await Task.FromResult(default(Tuple<byte, char, byte>));
+        var a7 = await Task.FromResult(default(Tuple<byte, byte, char>));
+        var a8 = await Task.FromResult(default(Tuple<byte, byte, byte>));
+
+        var b1 = await Task.FromResult(default(Tuple<int, int, int>));
+        var b2 = await Task.FromResult(default(Tuple<int, int, long>));
+        var b3 = await Task.FromResult(default(Tuple<int, long, int>));
+        var b4 = await Task.FromResult(default(Tuple<int, long, long>));
+        var b5 = await Task.FromResult(default(Tuple<long, int, int>));
+        var b6 = await Task.FromResult(default(Tuple<long, int, long>));
+        var b7 = await Task.FromResult(default(Tuple<long, long, int>));
+        var b8 = await Task.FromResult(default(Tuple<long, long, long>));
+    }
+}";
+            CompileAndVerify(source, additionalRefs: AsyncRefs, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            {
+                AssertEx.Equal(new[]
+                {
+                    "<>1__state",
+                    "<>t__builder",
+                    "<>u__1",
+                    "<>u__2",
+                    "<>u__3",
+                    "<>u__4",
+                    "<>u__5",
+                    "<>u__6",
+                    "<>u__7",
+                    "<>u__8",
+                    "<>u__9",
+                    "<>u__10",
+                    "<>u__11",
+                    "<>u__12",
+                    "<>u__13",
+                    "<>u__14",
+                    "<>u__15",
+                    "<>u__16",
+                }, module.GetFieldNames("C.<F>d__0"));
+            });
+        }
     }
 }

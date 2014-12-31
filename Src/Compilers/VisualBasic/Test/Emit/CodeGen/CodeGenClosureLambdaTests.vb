@@ -1,8 +1,9 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -3463,6 +3464,139 @@ Module Module1
 end Module
     </file>
 </compilation>, expectedOutput:="hello")
+        End Sub
+
+        <Fact>
+        Public Sub GenericStaticFrames()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Public Class C
+	Shared Sub F(Of TF)()
+	    Dim f = New Func(Of TF)(Function() Nothing)
+	End Sub
+	
+	Shared Sub G(Of TG)()
+		Dim f = New Func(Of TG)(Function() Nothing)
+	End Sub
+	
+	Shared Sub F(Of TF1, TF2)()
+		Dim f = New Func(Of TF1, TF2)(Function(a) Nothing)
+	End Sub
+	
+	Shared Sub G(Of TG1, TG2)()
+		Dim f = New Func(Of TG1, TG2)(Function(a) Nothing)
+	End Sub
+End Class
+    </file>
+</compilation>
+            CompileAndVerify(source, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator:=
+            Sub(m)
+                Dim c = m.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
+                AssertEx.Equal({
+                    "C._Closure$__1(Of $CLS0)",
+                    "C._Closure$__4(Of $CLS0)",
+                    "C._Closure$__7(Of $CLS0, $CLS1)",
+                    "C._Closure$__10(Of $CLS0, $CLS1)"
+                }, c.GetMembers().Where(Function(member) member.Kind = SymbolKind.NamedType).Select(Function(member) member.ToString()))
+
+                Dim c0 = c.GetMember(Of NamedTypeSymbol)("_Closure$__1")
+                AssertEx.SetEqual({
+                    "Public Shared ReadOnly $I As C._Closure$__1(Of $CLS0)",
+                    "Public Shared _ClosureCache$__3 As System.Func(Of $CLS0)",
+                    "Public Sub New()",
+                    "Private Shared Sub New()",
+                    "Friend Function _Lambda$__2() As $CLS0"
+                }, c0.GetMembers().Select(Function(member) member.ToString()))
+
+                Dim c1 = c.GetMember(Of NamedTypeSymbol)("_Closure$__4")
+                AssertEx.SetEqual({
+                    "Public Shared ReadOnly $I As C._Closure$__4(Of $CLS0)",
+                    "Public Shared _ClosureCache$__6 As System.Func(Of $CLS0)",
+                    "Public Sub New()",
+                    "Private Shared Sub New()",
+                    "Friend Function _Lambda$__5() As $CLS0"
+                }, c1.GetMembers().Select(Function(member) member.ToString()))
+
+                Dim c2 = c.GetMember(Of NamedTypeSymbol)("_Closure$__7")
+                AssertEx.SetEqual({
+                    "Public Shared ReadOnly $I As C._Closure$__7(Of $CLS0, $CLS1)",
+                    "Public Shared _ClosureCache$__9 As System.Func(Of $CLS0, $CLS1)",
+                    "Public Sub New()",
+                    "Private Shared Sub New()",
+                    "Friend Function _Lambda$__8(a As $CLS0) As $CLS1"
+                }, c2.GetMembers().Select(Function(member) member.ToString()))
+
+                Dim c3 = c.GetMember(Of NamedTypeSymbol)("_Closure$__10")
+                AssertEx.SetEqual({
+                    "Public Shared ReadOnly $I As C._Closure$__10(Of $CLS0, $CLS1)",
+                    "Public Shared _ClosureCache$__12 As System.Func(Of $CLS0, $CLS1)",
+                    "Public Sub New()",
+                    "Private Shared Sub New()",
+                    "Friend Function _Lambda$__11(a As $CLS0) As $CLS1"
+                }, c3.GetMembers().Select(Function(member) member.ToString()))
+            End Sub)
+        End Sub
+
+        <Fact>
+        Public Sub GenericInstance()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Public Class C
+	Sub F(Of TF)()
+	    Dim f = New Func(Of TF)(Function() 
+                                    Me.F()
+                                    Return Nothing
+                                End Function)
+	End Sub
+	
+	Sub G(Of TG)()
+		Dim f = New Func(Of TG)(Function() 
+                                    Me.F()
+                                    Return Nothing
+                                End Function)
+	End Sub
+	
+	Sub F(Of TF1, TF2)()
+		Dim f = New Func(Of TF1, TF2)(Function(a) 
+                                          Me.F()
+                                          Return Nothing
+                                      End Function)
+	End Sub
+	
+	Sub G(Of TG1, TG2)()
+		Dim f = New Func(Of TG1, TG2)(Function(a) 
+                                          Me.F()
+                                          Return Nothing
+                                      End Function)
+	End Sub
+
+    Sub F()
+    End Sub
+End Class
+    </file>
+</compilation>
+            CompileAndVerify(source, options:=TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator:=
+            Sub(m)
+                Dim c = m.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
+                AssertEx.SetEqual({
+                    "Public Sub New()",
+                    "Public Sub F(Of TF)()",
+                    "Public Sub G(Of TG)()",
+                    "Public Sub F(Of TF1, TF2)()",
+                    "Public Sub G(Of TG1, TG2)()",
+                    "Public Sub F()",
+                    "Private Function _Lambda$__1(Of $CLS0)() As $CLS0",
+                    "Private Function _Lambda$__2(Of $CLS0)() As $CLS0",
+                    "Private Function _Lambda$__3(Of $CLS0, $CLS1)(a As $CLS0) As $CLS1",
+                    "Private Function _Lambda$__4(Of $CLS0, $CLS1)(a As $CLS0) As $CLS1"
+                }, c.GetMembers().Select(Function(member) member.ToString()))
+            End Sub)
         End Sub
     End Class
 End Namespace
