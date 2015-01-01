@@ -19,7 +19,7 @@ namespace Roslyn.Diagnostics.Analyzers.MetaAnalyzers
             localizableMessageMissingAttribute,
             "AnalyzerCorrectness",
             DiagnosticSeverity.Warning,
-            isEnabledByDefault: true,
+            isEnabledByDefault: false,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         private static LocalizableString localizableTitleAddLanguageSupportToAnalyzer = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.AddLanguageSupportToAnalyzerTitle), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
@@ -31,7 +31,7 @@ namespace Roslyn.Diagnostics.Analyzers.MetaAnalyzers
             localizableMessageAddLanguageSupportToAnalyzer,
             "AnalyzerCorrectness",
             DiagnosticSeverity.Warning,
-            isEnabledByDefault: true,
+            isEnabledByDefault: false,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics

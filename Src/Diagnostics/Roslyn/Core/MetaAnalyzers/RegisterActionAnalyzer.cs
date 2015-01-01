@@ -22,7 +22,7 @@ namespace Roslyn.Diagnostics.Analyzers.MetaAnalyzers
             localizableMessageMissingKindArgument,
             "AnalyzerCorrectness",
             DiagnosticSeverity.Warning,
-            isEnabledByDefault: true,
+            isEnabledByDefault: false,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         private static LocalizableString localizableTitleUnsupportedSymbolKindArgument = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UnsupportedSymbolKindArgumentToRegisterActionTitle), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
@@ -34,7 +34,7 @@ namespace Roslyn.Diagnostics.Analyzers.MetaAnalyzers
             localizableMessageUnsupportedSymbolKindArgument,
             "AnalyzerCorrectness",
             DiagnosticSeverity.Warning,
-            isEnabledByDefault: true,
+            isEnabledByDefault: false,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics

@@ -20,7 +20,7 @@ namespace Roslyn.Diagnostics.Analyzers.MetaAnalyzers
             localizableMessage,
             "AnalyzerPerformance",
             DiagnosticSeverity.Warning,
-            isEnabledByDefault: true,
+            isEnabledByDefault: false,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
