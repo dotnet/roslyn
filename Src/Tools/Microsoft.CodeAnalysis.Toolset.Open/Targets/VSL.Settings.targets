@@ -1,4 +1,4 @@
-<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="OutDir;Configuration">
+<Project DefaultTargets="Build" InitialTargets="EnsureGlobalNugets" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" TreatAsLocalProperty="OutDir;Configuration">
   <!-- This file is imported by all projects at the beginning of the project files -->
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
           Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props') AND '$(MSBuildProjectExtension)' != '.vcxproj'" />
@@ -57,13 +57,21 @@
   </PropertyGroup>
 
   <!-- Import the global NuGet packages -->
+  <PropertyGroup>
+    <ToolsetCompilerPackageName>Microsoft.Net.ToolsetCompilers</ToolsetCompilerPackageName>
+    <ToolsetCompilerPropsFilePath>$(NuGetPackagesPath)\Microsoft.Net.ToolsetCompilers.1.0.0-beta2-20141223-03\build\Microsoft.Net.ToolsetCompilers.props</ToolsetCompilerPropsFilePath>
+    <RoslynDiagnosticsPropsFilePath>$(NuGetPackagesPath)\Microsoft.Net.RoslynDiagnostics.1.0.0-beta2-20141223-03\build\Microsoft.Net.RoslynDiagnostics.props</RoslynDiagnosticsPropsFilePath>
+  </PropertyGroup>
   <ImportGroup Label="GlobalNuGets">
-    <Import Project="$(NuGetPackagesPath)\Microsoft.Net.ToolsetCompilers.1.0.0-beta2-20141223-03\build\Microsoft.Net.ToolsetCompilers.props"
-            Condition="Exists('$(NuGetPackagesPath)\Microsoft.Net.ToolsetCompilers.1.0.0-beta2-20141223-03\build\Microsoft.Net.ToolsetCompilers.props')" />
-    <Import Project="$(NuGetPackagesPath)\Microsoft.Net.RoslynDiagnostics.1.0.0-beta2-20141223-03\build\Microsoft.Net.RoslynDiagnostics.props"
-            Condition="(Exists('$(NuGetPackagesPath)\Microsoft.Net.RoslynDiagnostics.1.0.0-beta2-20141223-03\build\Microsoft.Net.RoslynDiagnostics.props'))
-                       And ('$(UseRoslynAnalyzers)' == 'true')" />
+    <Import Project="$(ToolsetCompilerPropsFilePath)"
+            Condition="Exists('$(ToolsetCompilerPropsFilePath)')" />
+    <Import Project="$(RoslynDiagnosticsPropsFilePath)"
+            Condition="Exists('$(RoslynDiagnosticsPropsFilePath)') And ('$(UseRoslynAnalyzers)' == 'true')" />
   </ImportGroup>
+  <Target Name="EnsureGlobalNuGets">
+    <Error Condition="!$(CscToolPath.Contains('$(ToolsetCompilerPackageName)'))"
+           Text="This project requires the $(ToolsetCompilerPackageName) NuGet package to build. Use NuGet Package Restore to download the required files (&quot;powershell .nuget\NuGetRestore.ps1&quot;). The missing file is &quot;$(ToolsetCompilerPropsFilePath)&quot;." />
+  </Target>
 
   <!-- Common project settings -->
   <PropertyGroup>
