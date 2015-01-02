@@ -542,5 +542,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
             return token.Parent is PrefixUnaryExpressionSyntax;
         }
+
+        public static bool IsInterpolation(this SyntaxToken currentToken)
+        {
+            return currentToken.Parent != null && currentToken.Parent.IsKind(SyntaxKind.Interpolation);
+        }
     }
 }

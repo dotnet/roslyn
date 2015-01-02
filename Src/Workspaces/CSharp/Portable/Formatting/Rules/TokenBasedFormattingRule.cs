@@ -22,6 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             switch (currentToken.Kind())
             {
                 case SyntaxKind.OpenBraceToken:
+                    if (currentToken.IsInterpolation())
+                    {
+                        return null;
+                    }
+
                     if (!previousToken.IsParenInParenthesizedExpression() && previousToken.Parent != null && !previousToken.Parent.IsKind(SyntaxKind.ArrayRankSpecifier))
                     {
                         return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
@@ -30,6 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     break;
 
                 case SyntaxKind.CloseBraceToken:
+                    if (currentToken.IsInterpolation())
+                    {
+                        return null;
+                    }
+
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
             }
 
@@ -43,6 +53,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             switch (previousToken.Kind())
             {
                 case SyntaxKind.CloseBraceToken:
+                    if (previousToken.IsInterpolation())
+                    {
+                        return null;
+                    }
+
                     if (!previousToken.IsCloseBraceOfExpression())
                     {
                         if (currentToken.Kind() != SyntaxKind.SemicolonToken &&
@@ -60,6 +75,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                     break;
 
                 case SyntaxKind.OpenBraceToken:
+                    if (previousToken.IsInterpolation())
+                    {
+                        return null;
+                    }
+
                     return CreateAdjustNewLinesOperation(1, AdjustNewLinesOption.PreserveLines);
             }
 

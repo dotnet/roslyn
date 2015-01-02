@@ -5772,5 +5772,24 @@ class Program
     }
 }", false, optionSet);
         }
+
+        [WorkItem(1100920)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public void NoLineOperationAroundInterpolationSyntax()
+        {
+            AssertFormat(@"class Program
+{
+    static string F(int a, int b, int c)
+    {
+        return $""{a} (index: 0x{ b}, size: { c}): ""
+    }
+}", @"class Program
+{
+    static string F(int a, int b, int c)
+    {
+        return $""{a} (index: 0x{ b}, size: { c}): ""
+    }
+}");
+        }
     }
 }
