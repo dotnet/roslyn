@@ -4,10 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-#if COMPILERCORE
-using Microsoft.CodeAnalysis;
-#endif
-
 namespace Roslyn.Utilities
 {
     internal static class IDictionaryExtensions

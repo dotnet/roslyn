@@ -39,18 +39,10 @@ namespace Microsoft.CodeAnalysis
 
         public OrderableMetadata(IDictionary<string, object> data)
         {
-            this.AfterTyped = GetEnumerableMetadata<string>(data, "After");
-            this.BeforeTyped = GetEnumerableMetadata<string>(data, "Before");
+            var readOnlyData = (IReadOnlyDictionary<string, object>)data;
+            this.AfterTyped = readOnlyData.GetEnumerableMetadata<string>("After");
+            this.BeforeTyped = readOnlyData.GetEnumerableMetadata<string>("Before");
             this.Name = (string)data.GetValueOrDefault("Name");
-        }
-
-        protected static IEnumerable<T> GetEnumerableMetadata<T>(IDictionary<string, object> data, string name)
-        {
-            var metadata = data.GetValueOrDefault(name);
-
-            return metadata.TypeSwitch((IEnumerable<T> enumerable) => enumerable,
-                                (T s) => SpecializedCollections.SingletonEnumerable(s),
-                                _ => SpecializedCollections.EmptyEnumerable<T>());
         }
 
         public OrderableMetadata(string name, IEnumerable<string> after = null, IEnumerable<string> before = null)

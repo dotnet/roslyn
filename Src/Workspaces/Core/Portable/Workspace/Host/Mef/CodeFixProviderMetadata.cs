@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         public CodeFixProviderMetadata(IDictionary<string, object> data)
             : base(data)
         {
-            this.LanguagesTyped = GetEnumerableMetadata<string>(data, "Languages");
+            this.LanguagesTyped = ((IReadOnlyDictionary<string, object>)data).GetEnumerableMetadata<string>("Languages");
         }
 
         public CodeFixProviderMetadata(string name, IEnumerable<string> after = null, IEnumerable<string> before = null, params string[] languages)

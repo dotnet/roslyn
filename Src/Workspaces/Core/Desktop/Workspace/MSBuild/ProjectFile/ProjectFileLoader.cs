@@ -88,14 +88,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public static IProjectFileLoader GetLoaderForProjectTypeGuid(Workspace workspace, Guid guid)
         {
             return workspace.Services.FindLanguageServices<IProjectFileLoader>(
-                d => ((string[])d["ProjectTypeGuid"]).Any(g => guid == new Guid(g)))
+                d => d.GetEnumerableMetadata<string>("ProjectTypeGuid").Any(g => guid == new Guid(g)))
                 .FirstOrDefault();
         }
 
         public static IProjectFileLoader GetLoaderForProjectFileExtension(Workspace workspace, string extension)
         {
             return workspace.Services.FindLanguageServices<IProjectFileLoader>(
-                d => string.Equals((string)d["ProjectFileExtension"], extension, StringComparison.OrdinalIgnoreCase))
+                d => d.GetEnumerableMetadata<string>("ProjectFileExtension").Any(e => string.Equals(e, extension, StringComparison.OrdinalIgnoreCase)))
                 .FirstOrDefault();
         }
     }
