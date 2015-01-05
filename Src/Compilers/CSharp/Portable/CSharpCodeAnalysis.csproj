@@ -148,6 +148,7 @@
     <Compile Include="Binder\NamespaceOrTypeAndUsingDirective.cs" />
     <Compile Include="Binder\Semantics\AccessCheck.cs" />
     <Compile Include="Binder\Semantics\BestTypeInferrer.cs" />
+    <Compile Include="Binder\Semantics\Conversions\BestIndex.cs" />
     <Compile Include="Binder\Semantics\Conversions\Conversion.cs" />
     <Compile Include="Binder\Semantics\Conversions\ConversionEasyOut.cs" />
     <Compile Include="Binder\Semantics\Conversions\ConversionKind.cs" />
@@ -713,6 +714,7 @@
     <Compile Include="Symbols\TypeSymbol.cs" />
     <Compile Include="Symbols\TypeSymbol.SymbolAndDiagnostics.cs" />
     <Compile Include="Symbols\TypeSymbolExtensions.cs" />
+    <Compile Include="Symbols\TypeUnification.cs" />
     <Compile Include="Symbols\UnboundGenericType.cs" />
     <Compile Include="Symbols\UnsupportedMetadataTypeSymbol.cs" />
     <Compile Include="Symbols\VarianceSafety.cs" />
@@ -773,6 +775,7 @@
     <Compile Include="Syntax\InternalSyntax\SyntaxFirstTokenReplacer.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxTrivia.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxVisitor.cs" />
+    <Compile Include="Syntax\LookupPosition.cs" />
     <Compile Include="Syntax\MethodDeclarationSyntax.cs" />
     <Compile Include="Syntax\NamespaceDeclarationSyntax.cs" />
     <Compile Include="Syntax\NamespaceDeclarationSyntaxReference.cs" />
@@ -816,11 +819,7 @@
     <Compile Include="Utilities\EnumExtensions.cs" />
     <Compile Include="Utilities\FirstAmongEqualsSet.cs" />
     <Compile Include="Utilities\FunctionExtensions.cs" />
-    <Compile Include="Utilities\ImmutableArrayExtensions.cs" />
-    <Compile Include="Utilities\LookupPosition.cs" />
-    <Compile Include="Utilities\StringExtensions.cs" />
     <Compile Include="Utilities\TypeSymbolExtensions.cs" />
-    <Compile Include="Utilities\TypeUnification.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Syntax\CSharpSyntaxTree.Dummy.cs" />

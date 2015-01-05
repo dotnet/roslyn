@@ -419,7 +419,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // best operator that converts from the source type to the target type with liftings
             // on neither side.
 
-            BestIndex bestUnlifted = u.UniqueIndex(
+            BestIndex bestUnlifted = UniqueIndex(u,
                 conv =>
                 conv.FromType == sx &&
                 conv.ToType == tx &&
@@ -449,7 +449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (in the sense that we are not checking the source to see if it is null.)
             // 
 
-            BestIndex bestHalfLifted = u.UniqueIndex(
+            BestIndex bestHalfLifted = UniqueIndex(u,
                 conv =>
                 conv.FromType == sx &&
                 conv.ToType == tx &&
@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Finally, see if there is a unique best *fully lifted* operator.
 
-            BestIndex bestFullyLifted = u.UniqueIndex(
+            BestIndex bestFullyLifted = UniqueIndex(u,
                 conv =>
                 conv.FromType == sx &&
                 conv.ToType == tx &&
@@ -486,6 +486,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+        }
+
+        // Return the index of the *unique* item in the array that matches the predicate,
+        // or null if there is not one.
+        private static BestIndex UniqueIndex<T>(ImmutableArray<T> items, Func<T, bool> predicate)
+        {
+            if (items.IsEmpty)
+            {
+                return BestIndex.None();
+            }
+
+            int? result = null;
+            for (int i = 0; i < items.Length; ++i)
+            {
+                if (predicate(items[i]))
+                {
+                    if (result == null)
+                    {
+                        result = i;
+                    }
+                    else
+                    {
+                        // Not unique.
+                        return BestIndex.IsAmbiguous(result.Value, i);
+                    }
+                }
+            }
+
+            return result == null ? BestIndex.None() : BestIndex.HasBest(result.Value);
         }
 
         // Is A encompassed by B?
@@ -611,7 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // by Y but Y is not encompassed by X".
 
             HashSet<DiagnosticInfo> _useSiteDiagnostics = useSiteDiagnostics;
-            int? best = items.UniqueBestValidIndex(valid,
+            int? best = UniqueBestValidIndex(items, valid,
                 (left, right) =>
                 {
                     TypeSymbol leftType = extract(left);
@@ -642,7 +671,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return MostEncompassingType<T>(items, x => true, extract, ref useSiteDiagnostics);
         }
 
-
         private TypeSymbol MostEncompassingType<T>(
             ImmutableArray<T> items,
             Func<T, bool> valid,
@@ -652,7 +680,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // See comments above.
             HashSet<DiagnosticInfo> _useSiteDiagnostics = useSiteDiagnostics;
-            int? best = items.UniqueBestValidIndex(valid,
+            int? best = UniqueBestValidIndex(items, valid,
                 (left, right) =>
                 {
                     TypeSymbol leftType = extract(left);
@@ -673,6 +701,101 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             useSiteDiagnostics = _useSiteDiagnostics;
             return best == null ? null : extract(items[best.Value]);
+        }
+
+        // This method takes an array of items and a predicate which filters out the valid items.
+        // From the valid items we find the index of the *unique best item* in the array.
+        // In order for a valid item x to be considered best, x must be better than every other
+        // item. The "better" relation must be consistent; that is:
+        //
+        // better(x,y) == Left     requires that    better(y,x) == Right
+        // better(x,y) == Right    requires that    better(y,x) == Left
+        // better(x,y) == Neither  requires that    better(y,x) == Neither 
+        //
+        // It is possible for the array to contain the same item twice; if it does then
+        // the duplicate is ignored. That is, having the "best" item twice does not preclude
+        // it from being the best.
+
+        // UNDONE: Update this to give a BestIndex result that indicates ambiguity.
+        private static int? UniqueBestValidIndex<T>(ImmutableArray<T> items, Func<T, bool> valid, Func<T, T, BetterResult> better)
+        {
+            if (items.IsEmpty)
+            {
+                return null;
+            }
+
+            int? candidateIndex = null;
+            T candidateItem = default(T);
+
+            for (int currentIndex = 0; currentIndex < items.Length; ++currentIndex)
+            {
+                T currentItem = items[currentIndex];
+                if (!valid(currentItem))
+                {
+                    continue;
+                }
+
+                if (candidateIndex == null)
+                {
+                    candidateIndex = currentIndex;
+                    candidateItem = currentItem;
+                    continue;
+                }
+
+                BetterResult result = better(candidateItem, currentItem);
+
+                if (result == BetterResult.Equal)
+                {
+                    // The list had the same item twice. Just ignore it.
+                    continue;
+                }
+                else if (result == BetterResult.Neither)
+                {
+                    // Neither the current item nor the candidate item are better,
+                    // and therefore neither of them can be the best. We no longer
+                    // have a candidate for best item.
+                    candidateIndex = null;
+                    candidateItem = default(T);
+                }
+                else if (result == BetterResult.Right)
+                {
+                    // The candidate is worse than the current item, so replace it
+                    // with the current item.
+                    candidateIndex = currentIndex;
+                    candidateItem = currentItem;
+                }
+                // Otherwise, the candidate is better than the current item, so
+                // it continues to be the candidate.
+            }
+
+            if (candidateIndex == null)
+            {
+                return null;
+            }
+
+            // We had a candidate that was better than everything that came *after* it.
+            // Now verify that it was better than everything that came before it.
+
+            for (int currentIndex = 0; currentIndex < candidateIndex.Value; ++currentIndex)
+            {
+                T currentItem = items[currentIndex];
+                if (!valid(currentItem))
+                {
+                    continue;
+                }
+
+                BetterResult result = better(candidateItem, currentItem);
+                if (result != BetterResult.Left && result != BetterResult.Equal)
+                {
+                    // The candidate was not better than everything that came before it. There is 
+                    // no best item.
+                    return null;
+                }
+            }
+
+            // The candidate was better than everything that came before it.
+
+            return candidateIndex;
         }
 
         private NamedTypeSymbol MakeNullableType(TypeSymbol type)

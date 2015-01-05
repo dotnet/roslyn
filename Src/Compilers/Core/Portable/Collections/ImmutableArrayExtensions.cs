@@ -459,6 +459,24 @@ namespace Microsoft.CodeAnalysis
                     return false;
             }
         }
+
+        public static int Count<T>(this ImmutableArray<T> items, Func<T, bool> predicate)
+        {
+            if (items.IsEmpty)
+            {
+                return 0;
+            }
+
+            int count = 0;
+            for (int i = 0; i < items.Length; ++i)
+            {
+                if (predicate(items[i]))
+                {
+                    ++count;
+                }
+            }
+            return count;
+        }
     }
 
     internal static class StaticCast<T>
