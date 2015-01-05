@@ -7,6 +7,7 @@ using Roslyn.Utilities;
 namespace Microsoft.Cci
 {
     [SuppressMessage("Performance", "RS0008", Justification = "Equality not actually implemented")]
+    [DebuggerDisplay("{" + nameof(GetDebuggerDisplay) + "(),nq}")]
     internal struct SequencePoint
     {
         public readonly int Offset;
@@ -34,6 +35,14 @@ namespace Microsoft.Cci
             Document = document;
         }
 
+        public bool IsHidden
+        {
+            get
+            {
+                return StartLine == 0xfeefee;
+            }
+        }
+
         public override int GetHashCode()
         {
             throw ExceptionUtilities.Unreachable;
@@ -42,6 +51,11 @@ namespace Microsoft.Cci
         public override bool Equals(object obj)
         {
             throw ExceptionUtilities.Unreachable;
+        }
+
+        private string GetDebuggerDisplay()
+        {
+            return IsHidden ? "<hidden>" : $"{Offset}: ({StartLine}, {StartColumn}) - ({EndLine}, {EndColumn})";
         }
     }
 }

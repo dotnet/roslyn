@@ -42,8 +42,6 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly HeapOrReferenceIndex<uint> standAloneSignatureIndex;
         private readonly Dictionary<IMethodDefinition, AddedOrChangedMethodInfo> addedOrChangedMethods;
 
-        private uint unalignedStringStreamLength;
-
         public DeltaMetadataWriter(
             EmitContext context,
             CommonMessageProvider messageProvider,
@@ -51,8 +49,8 @@ namespace Microsoft.CodeAnalysis.Emit
             Guid encId,
             DefinitionMap definitionMap,
             SymbolChanges changes,
-            CancellationToken cancellationToken) 
-            : base(context, messageProvider, false, false, cancellationToken)
+            CancellationToken cancellationToken)
+            : base(MakeHeapsBuilder(previousGeneration), context, messageProvider, false, false, cancellationToken)
         {
             Debug.Assert(previousGeneration != null);
             Debug.Assert(encId != default(Guid));
@@ -62,8 +60,6 @@ namespace Microsoft.CodeAnalysis.Emit
             this.encId = encId;
             this.definitionMap = definitionMap;
             this.changes = changes;
-
-            this.guidWriter.Pad(this.previousGeneration.GuidStreamLength);
 
             var sizes = previousGeneration.TableSizes;
 
@@ -88,6 +84,15 @@ namespace Microsoft.CodeAnalysis.Emit
             this.standAloneSignatureIndex = new HeapOrReferenceIndex<uint>(this, lastRowId: (uint)sizes[(int)TableIndex.StandAloneSig]);
 
             this.addedOrChangedMethods = new Dictionary<IMethodDefinition, AddedOrChangedMethodInfo>();
+        }
+
+        private static MetadataHeapsBuilder MakeHeapsBuilder(EmitBaseline previousGeneration)
+        {
+            return new MetadataHeapsBuilder(
+                previousGeneration.UserStringStreamLength,
+                previousGeneration.StringStreamLength,
+                previousGeneration.BlobStreamLength,
+                previousGeneration.GuidStreamLength);
         }
 
         private ImmutableArray<int> GetDeltaTableSizes(ImmutableArray<int> rowCounts)
@@ -119,8 +124,6 @@ namespace Microsoft.CodeAnalysis.Emit
 
         internal EmitBaseline GetDelta(EmitBaseline baseline, Compilation compilation, Guid encId, MetadataSizes metadataSizes)
         {
-            Debug.Assert(this.unalignedStringStreamLength > 0); // OnSerializedMetadataTables should have been called.
-
             var moduleBuilder = (CommonPEModuleBuilder)this.module;
 
             var addedOrChangedMethodsByIndex = new Dictionary<uint, AddedOrChangedMethodInfo>();
@@ -157,13 +160,13 @@ namespace Microsoft.CodeAnalysis.Emit
                 methodImplsAdded: AddRange(this.previousGeneration.MethodImplsAdded, this.methodImpls.GetAdded()),
                 tableEntriesAdded: ImmutableArray.Create(tableSizes),
                 // Blob stream is concatenated aligned.
-                blobStreamLengthAdded: (int)this.blobWriter.BaseStream.Length + this.previousGeneration.BlobStreamLengthAdded,
+                blobStreamLengthAdded: metadataSizes.GetAlignedHeapSize(HeapIndex.Blob) + this.previousGeneration.BlobStreamLengthAdded,
                 // String stream is concatenated unaligned.
-                stringStreamLengthAdded: (int)this.unalignedStringStreamLength + this.previousGeneration.StringStreamLengthAdded,
+                stringStreamLengthAdded: metadataSizes.HeapSizes[(int)HeapIndex.String] + this.previousGeneration.StringStreamLengthAdded,
                 // UserString stream is concatenated aligned.
-                userStringStreamLengthAdded: (int)this.userStringWriter.BaseStream.Length + this.previousGeneration.UserStringStreamLengthAdded,
+                userStringStreamLengthAdded: metadataSizes.GetAlignedHeapSize(HeapIndex.UserString) + this.previousGeneration.UserStringStreamLengthAdded,
                 // Guid stream is always aligned (the size if a multiple of 16 = sizeof(Guid))
-                guidStreamLengthAdded: (int)this.guidWriter.BaseStream.Length + this.previousGeneration.GuidStreamLengthAdded,
+                guidStreamLengthAdded: metadataSizes.HeapSizes[(int)HeapIndex.Guid] + this.previousGeneration.GuidStreamLengthAdded,
                 anonymousTypeMap: ((IPEDeltaAssemblyBuilder)moduleBuilder).GetAnonymousTypeMap(),
                 synthesizedMembers: synthesizedMembers,
                 addedOrChangedMethods: AddRange(addedOrChangedMethodsByIndex, this.previousGeneration.AddedOrChangedMethods, replace: true),
@@ -571,21 +574,6 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
-        protected override uint GetBlobStreamOffset()
-        {
-            return (uint)this.previousGeneration.BlobStreamLength;
-        }
-
-        protected override uint GetStringStreamOffset()
-        {
-            return (uint)this.previousGeneration.StringStreamLength;
-        }
-
-        protected override uint GetUserStringStreamOffset()
-        {
-            return (uint)this.previousGeneration.UserStringStreamLength;
-        }
-
         protected override ReferenceIndexer CreateReferenceVisitor()
         {
             return new DeltaReferenceIndexer(this);
@@ -651,7 +639,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     encInfos.Add(CreateEncLocalInfo(local, signature));
                 }
 
-                uint blobIndex = this.GetBlobIndex(writer.BaseStream);
+                uint blobIndex = heaps.GetBlobIndex(writer.BaseStream);
                 uint signatureIndex = this.GetOrAddStandAloneSignatureIndex(blobIndex);
                 stream.Free();
 
@@ -683,16 +671,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             return new EncLocalInfo(localDef.SlotInfo, localDef.Type, localDef.Constraints, signature);
         }
-
-        protected override void OnBeforeHeapsAligned()
-        {
-            // Capture the size of the String heap before the heaps
-            // are aligned to 4-byte boundaries since the String heap deltas are
-            // concatenated to the unaligned heap.
-            Debug.Assert(this.unalignedStringStreamLength == 0);
-            this.unalignedStringStreamLength = this.stringWriter.BaseStream.Length;
-        }
-
+        
         protected override void PopulateEncLogTableRows(List<EncLogRow> table, ImmutableArray<int> rowCounts)
         {
             // The EncLog table is a log of all the operations needed

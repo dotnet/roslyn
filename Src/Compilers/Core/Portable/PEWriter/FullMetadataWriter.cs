@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Emit;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
@@ -31,13 +32,25 @@ namespace Microsoft.Cci
         private readonly InstanceAndStructuralReferenceIndex<ITypeReference> typeSpecIndex;
         private readonly HeapOrReferenceIndex<uint> standAloneSignatureIndex;
 
-        public FullMetadataWriter(
+        public static MetadataWriter Create(
             EmitContext context,
             CommonMessageProvider messageProvider,
             bool allowMissingMethodBodies,
             bool deterministic,
             CancellationToken cancellationToken)
-            : base(context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken)
+        {
+            var heaps = new MetadataHeapsBuilder();
+            return new FullMetadataWriter(context, heaps, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
+        }
+
+        private FullMetadataWriter(
+            EmitContext context,
+            MetadataHeapsBuilder heaps, 
+            CommonMessageProvider messageProvider,
+            bool allowMissingMethodBodies,
+            bool deterministic,
+            CancellationToken cancellationToken)
+            : base(heaps, context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken)
         {
             // EDMAURER make some intelligent guesses for the initial sizes of these things.
             int numMethods = this.module.HintNumberOfMethodDefinitions;
@@ -259,21 +272,6 @@ namespace Microsoft.Cci
         protected override IReadOnlyList<uint> GetStandAloneSignatures()
         {
             return this.standAloneSignatureIndex.Rows;
-        }
-
-        protected override uint GetBlobStreamOffset()
-        {
-            return 0;
-        }
-
-        protected override uint GetStringStreamOffset()
-        {
-            return 0;
-        }
-
-        protected override uint GetUserStringStreamOffset()
-        {
-            return 0;
         }
 
         protected override ReferenceIndexer CreateReferenceVisitor()

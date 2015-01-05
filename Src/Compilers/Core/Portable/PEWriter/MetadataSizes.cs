@@ -202,6 +202,8 @@ namespace Microsoft.Cci
             this.MetadataStreamStorageSize = size;
         }
 
+        public bool IsEmpty(TableIndex table) => RowCounts[(int)table] == 0;
+
         /// <summary>
         /// Metadata header size.
         /// Includes:

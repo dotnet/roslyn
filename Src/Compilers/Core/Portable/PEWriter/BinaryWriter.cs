@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace Microsoft.Cci
 {
@@ -21,6 +23,8 @@ namespace Microsoft.Cci
             this.BaseStream = output;
             this.utf8 = !unicode;
         }
+
+        public bool IsDefault => BaseStream == null;
 
         internal void Align(uint alignment)
         {
@@ -245,6 +249,21 @@ namespace Microsoft.Cci
                 buffer[i + 5] = (byte)(hi >> 8);
                 buffer[i + 6] = (byte)(hi >> 16);
                 buffer[i + 7] = (byte)(hi >> 24);
+            }
+        }
+
+        public void WriteReference(uint reference, int size)
+        {
+            Debug.Assert(size == 2 || size == 4);
+
+            if (size == 2)
+            {
+                Debug.Assert((ushort)reference == reference);
+                WriteUshort((ushort)reference);
+            }
+            else
+            {
+                WriteUint(reference);
             }
         }
 
@@ -516,6 +535,79 @@ namespace Microsoft.Cci
         private static bool IsLowSurrogateChar(char ch)
         {
             return 0xDC00 <= ch && ch <= 0xDFFF;
+        }
+
+        public void WriteConstantValueBlob(object value)
+        {
+            if (value == null)
+            {
+                // The encoding of Type for the nullref value for FieldInit is ELEMENT_TYPE_CLASS with a Value of a 32-bit.
+                WriteUint(0);
+                return;
+            }
+
+            var type = value.GetType();
+            if (type.GetTypeInfo().IsEnum)
+            {
+                type = Enum.GetUnderlyingType(type);
+            }
+
+            if (type == typeof(bool))
+            {
+                WriteBool((bool)value);
+            }
+            else if (type == typeof(int))
+            {
+                WriteInt((int)value);
+            }
+            else if (type == typeof(string))
+            {
+                WriteString((string)value);
+            }
+            else if (type == typeof(byte))
+            {
+                WriteByte((byte)value);
+            }
+            else if (type == typeof(char))
+            {
+                WriteUshort((char)value);
+            }
+            else if (type == typeof(double))
+            {
+                WriteDouble((double)value);
+            }
+            else if (type == typeof(short))
+            {
+                WriteShort((short)value);
+            }
+            else if (type == typeof(long))
+            {
+                WriteLong((long)value);
+            }
+            else if (type == typeof(sbyte))
+            {
+                WriteSbyte((sbyte)value);
+            }
+            else if (type == typeof(float))
+            {
+                WriteFloat((float)value);
+            }
+            else if (type == typeof(ushort))
+            {
+                WriteUshort((ushort)value);
+            }
+            else if (type == typeof(uint))
+            {
+                WriteUint((uint)value);
+            }
+            else if (type == typeof(ulong))
+            {
+                WriteUlong((ulong)value);
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

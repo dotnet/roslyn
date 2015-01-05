@@ -102,7 +102,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             Debug.Assert(namespaceOrType is TypeSymbol);
-                            Debug.Assert(namespaceOrType.IsStatic);
                             usedNamespaces.Add(Cci.UsedNamespaceOrType.CreateCSharpType(namespaceOrTypeString));
                         }
                     }

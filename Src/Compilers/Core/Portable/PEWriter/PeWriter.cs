@@ -66,7 +66,7 @@ namespace Microsoft.Cci
         {
             var peWriter = new PeWriter(context.Module, pdbWriterOpt, deterministic);
 
-            var mdWriter = new FullMetadataWriter(context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
+            var mdWriter = FullMetadataWriter.Create(context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
 
             if (pdbWriterOpt != null)
             {

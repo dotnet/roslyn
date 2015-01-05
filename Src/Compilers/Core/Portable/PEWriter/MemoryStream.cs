@@ -83,6 +83,19 @@ namespace Microsoft.Cci
             return ImmutableArray.Create(this.Buffer, 0, (int)this.Length);
         }
 
+        internal void Write(byte value, int count)
+        {
+            int position = (int)this.position;
+            
+            // resize, if needed
+            this.Position += (uint)count;
+
+            for (int i = 0; i < count; i++)
+            {
+                this.Buffer[position + i] = value;
+            }
+        }
+
         internal void Write(byte[] buffer, int index, int length)
         {
             int position = (int)this.position;
