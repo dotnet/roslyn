@@ -26,9 +26,6 @@
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ComStreamWrapper.cs">
       <Link>InternalUtilities\ComStreamWrapper.cs</Link>
     </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ObjectPool`1.cs">
-      <Link>InternalUtilities\ObjectPool`1.cs</Link>
-    </Compile>
   </ItemGroup>
   <ItemGroup Label="File References">
     <Reference Include="..\..\..\packages\MDbg.0.1.0\lib\net40\CorApi.dll" />

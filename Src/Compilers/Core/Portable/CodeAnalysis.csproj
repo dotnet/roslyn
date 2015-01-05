@@ -113,6 +113,7 @@
     <Compile Include="Collections\ImmutableArrayExtensions.cs" />
     <Compile Include="Collections\ImmutableMemoryStream.cs" />
     <Compile Include="Collections\OrderedSet.cs" />
+    <Compile Include="Collections\StaticCast.cs" />
     <Compile Include="Compilation\SymbolFilter.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilerDiagnosticAnalyzer.CompilationAnalyzer.cs" />
     <Compile Include="DiagnosticAnalyzer\CompilerDiagnosticAnalyzer.cs" />
@@ -265,7 +266,6 @@
     <Compile Include="InternalUtilities\ISetExtensions.cs" />
     <Compile Include="InternalUtilities\KeyValuePair.cs" />
     <Compile Include="InternalUtilities\MultiDictionary.cs" />
-    <Compile Include="InternalUtilities\ObjectPool`1.cs" />
     <Compile Include="InternalUtilities\OneOrMany.cs" />
     <Compile Include="InternalUtilities\ReaderWriterLockSlimExtensions.cs" />
     <Compile Include="InternalUtilities\ReadOnlyUnmanagedMemoryStream.cs" />

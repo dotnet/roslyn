@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -136,8 +137,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // Now we update the constraints.
             foreach (var newTypeParameter in newTypeParameters)
             {
-                newTypeParameter.ConstraintTypes = newTypeParameter.ConstraintTypes.Select(
-                    t => t.SubstituteTypes(mapping, typeGenerator)).AsImmutable();
+                newTypeParameter.ConstraintTypes = ImmutableArray.CreateRange(newTypeParameter.ConstraintTypes, t => t.SubstituteTypes(mapping, typeGenerator));
             }
 
             return newTypeParameters.Cast<ITypeParameterSymbol>().ToList();

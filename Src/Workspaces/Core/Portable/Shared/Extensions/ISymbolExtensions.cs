@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 containingType = containingType.ContainingType;
             }
 
-            return results.AsImmutable();
+            return ImmutableArray.CreateRange(results);
         }
 
         public static bool IsAttribute(this ISymbol symbol)

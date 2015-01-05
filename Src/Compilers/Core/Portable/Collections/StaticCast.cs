@@ -1,0 +1,14 @@
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Immutable;
+
+namespace Microsoft.CodeAnalysis
+{
+    internal static class StaticCast<T>
+    {
+        internal static ImmutableArray<T> From<TDerived>(ImmutableArray<TDerived> from) where TDerived : class, T
+        {
+            return ImmutableArray.Create<T, TDerived>(from);
+        }
+    }
+}

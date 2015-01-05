@@ -15,6 +15,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ArrayBuilder.Enumerator.cs">
       <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
     </Compile>
+    <Compile Include="$(MSBuildThisFileDirectory)ObjectPool`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PooledDictionary.cs">
       <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
     </Compile>

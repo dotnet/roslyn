@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return this.typeArguments.AsImmutable();
+                return ImmutableArray.CreateRange(this.typeArguments);
             }
         }
 
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override ImmutableArray<INamedTypeSymbol> GetTypeMembers()
         {
             // TODO(cyrusn): construct these.
-            return this.constructedFrom.TypeMembers.Cast<INamedTypeSymbol>().AsImmutable();
+            return ImmutableArray.CreateRange(this.constructedFrom.TypeMembers.Cast<INamedTypeSymbol>());
         }
 
         public override TypeKind TypeKind

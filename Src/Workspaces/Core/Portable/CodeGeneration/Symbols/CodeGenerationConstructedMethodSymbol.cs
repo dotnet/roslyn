@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return this.typeArguments.AsImmutable();
+                return ImmutableArray.CreateRange(this.typeArguments);
             }
         }
 

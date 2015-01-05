@@ -6,16 +6,14 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// The collection of extension methods for the <see cref="ImmutableArray{T}"/> type
     /// </summary>
-    public static partial class ImmutableArrayExtensions
+    internal static class ImmutableArrayExtensions
     {
         /// <summary>
         /// Converts a sequence to an immutable array.
@@ -213,11 +211,13 @@ namespace Microsoft.CodeAnalysis
                     {
                         continue;
                     }
+
                     Debug.Assert(i > 0);
                     if (builder == null)
                     {
                         builder = ArrayBuilder<T>.GetInstance();
                     }
+
                     builder.Add(a);
                 }
                 else
@@ -227,6 +227,7 @@ namespace Microsoft.CodeAnalysis
                         all = false;
                         continue;
                     }
+
                     Debug.Assert(i > 0);
                     if (all)
                     {
@@ -259,29 +260,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Adds all elements of the immutable array into the list; The list must not be null.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <typeparam name="U"></typeparam>
-        /// <param name="list"></param>
-        /// <param name="items"></param>
-        public static void AddRange<T, U>(this List<T> list, ImmutableArray<U> items) where U : T
-        {
-            Debug.Assert(list != null);
-
-            foreach (var u in items)
-            {
-                list.Add(u);
-            }
-        }
-
-        /// <summary>
         /// Casts the immutable array of a Type to an immutable array of its base type.
         /// </summary>
-        /// <typeparam name="TDerived"></typeparam>
-        /// <typeparam name="TBase"></typeparam>
-        /// <param name="items"></param>
-        /// <returns></returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static ImmutableArray<TBase> Cast<TDerived, TBase>(this ImmutableArray<TDerived> items)
             where TDerived : class, TBase
@@ -311,7 +291,7 @@ namespace Microsoft.CodeAnalysis
             var count1 = array1.Length;
             var count2 = array2.Length;
 
-            //avoid constructing HashSets in these common cases
+            // avoid constructing HashSets in these common cases
             if (count1 == 0)
             {
                 return count2 == 0;
@@ -338,9 +318,6 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns an empty array if the input array is null (defaut)
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="array"></param>
-        /// <returns></returns>
         public static ImmutableArray<T> NullToEmpty<T>(this ImmutableArray<T> array)
         {
             return array.IsDefault ? ImmutableArray<T>.Empty : array;
@@ -350,10 +327,6 @@ namespace Microsoft.CodeAnalysis
         /// Returns an array of distinct elements, preserving the order in the original array.
         /// If the array has no duplicates, the original array is returned. The original array must not be null.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="array"></param>
-        /// <param name="comparer"></param>
-        /// <returns></returns>
         public static ImmutableArray<T> Distinct<T>(this ImmutableArray<T> array, IEqualityComparer<T> comparer = null)
         {
             Debug.Assert(!array.IsDefault);
@@ -447,13 +420,18 @@ namespace Microsoft.CodeAnalysis
                 case 0:
                 case 1:
                     return false;
+
                 case 2:
                     return comparer.Equals(array[0], array[1]);
+
                 default:
                     var set = new HashSet<T>(comparer);
                     foreach (var i in array)
                     {
-                        if (!set.Add(i)) return true;
+                        if (!set.Add(i))
+                        {
+                            return true;
+                        }
                     }
 
                     return false;
@@ -475,15 +453,8 @@ namespace Microsoft.CodeAnalysis
                     ++count;
                 }
             }
-            return count;
-        }
-    }
 
-    internal static class StaticCast<T>
-    {
-        internal static ImmutableArray<T> From<TDerived>(ImmutableArray<TDerived> from) where TDerived : class, T
-        {
-            return ImmutableArray.Create<T, TDerived>(from);
+            return count;
         }
     }
 }

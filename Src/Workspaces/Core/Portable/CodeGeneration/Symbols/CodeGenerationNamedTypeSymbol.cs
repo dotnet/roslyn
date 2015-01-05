@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return this.typeParameters.AsImmutable();
+                return ImmutableArray.CreateRange(this.typeParameters);
             }
         }
 
@@ -184,18 +184,18 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             get
             {
-                return this.interfaces.AsImmutable();
+                return ImmutableArray.CreateRange(this.interfaces);
             }
         }
 
         public override ImmutableArray<ISymbol> GetMembers()
         {
-            return this.members.Concat(this.TypeMembers).AsImmutable();
+            return ImmutableArray.CreateRange(this.members.Concat(this.TypeMembers));
         }
 
         public override ImmutableArray<INamedTypeSymbol> GetTypeMembers()
         {
-            return this.TypeMembers.Cast<INamedTypeSymbol>().AsImmutable();
+            return ImmutableArray.CreateRange(this.TypeMembers.Cast<INamedTypeSymbol>());
         }
 
         public override ImmutableArray<IMethodSymbol> InstanceConstructors
@@ -203,9 +203,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             get
             {
                 // NOTE(cyrusn): remember to Construct the result if we implement this.
-                return this.GetMembers().OfType<IMethodSymbol>()
-                                        .Where(m => m.MethodKind == MethodKind.Constructor && !m.IsStatic)
-                                        .AsImmutable();
+                return ImmutableArray.CreateRange(
+                    this.GetMembers().OfType<IMethodSymbol>().Where(m => m.MethodKind == MethodKind.Constructor && !m.IsStatic));
             }
         }
 
@@ -214,9 +213,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             get
             {
                 // NOTE(cyrusn): remember to Construct the result if we implement this.
-                return this.GetMembers().OfType<IMethodSymbol>()
-                                        .Where(m => m.MethodKind == MethodKind.StaticConstructor && m.IsStatic)
-                                        .AsImmutable();
+                return ImmutableArray.CreateRange(
+                    this.GetMembers().OfType<IMethodSymbol>().Where(m => m.MethodKind == MethodKind.StaticConstructor && m.IsStatic));
             }
         }
 

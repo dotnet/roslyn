@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
                 "Microsoft.CodeAnalysis.VisualBasic.Workspaces.Desktop",
             };
 
-            return MefHostServices.DefaultAssemblies.Concat(MefHostServices.LoadNearbyAssemblies(assemblyNames)).ToImmutableArray();
+            return MefHostServices.DefaultAssemblies.Concat(MefHostServices.LoadNearbyAssemblies(assemblyNames));
         }
     }
 }
