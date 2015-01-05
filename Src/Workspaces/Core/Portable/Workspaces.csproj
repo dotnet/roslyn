@@ -406,7 +406,9 @@
     <Compile Include="Differencing\TreeComparer.cs" />
     <Compile Include="ExtensionManager\AbstractExtensionManager.cs" />
     <Compile Include="ExtensionManager\IExtensionManager.cs" />
-    <Compile Include="ExtensionManager\IExtensionManagerExtensions.cs" />
+    <Compile Include="ExtensionManager\IExtensionManagerExtensions.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
     <Compile Include="ExtensionManager\ServicesLayerExtensionManager.cs" />
     <Compile Include="ExtensionOrderAttribute.cs" />
     <Compile Include="FindSymbols\Extensions.cs" />

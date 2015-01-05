@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Extensions
             {
                 throw;
             }
-            catch (Exception e)
+            catch (Exception e) when (extensionManager.CanHandleException(extension, e))
             {
                 extensionManager.HandleException(extension, e);
             }
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Extensions
             {
                 throw;
             }
-            catch (Exception e)
+            catch (Exception e) when (extensionManager.CanHandleException(extension, e))
             {
                 extensionManager.HandleException(extension, e);
             }
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Extensions
             {
                 throw;
             }
-            catch (Exception e)
+            catch (Exception e) when (extensionManager.CanHandleException(extension, e))
             {
                 extensionManager.HandleException(extension, e);
             }
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Extensions
             {
                 throw;
             }
-            catch (Exception e)
+            catch (Exception e) when (extensionManager.CanHandleException(extension, e))
             {
                 extensionManager.HandleException(extension, e);
             }

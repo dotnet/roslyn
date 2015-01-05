@@ -9,6 +9,8 @@ namespace Microsoft.CodeAnalysis.Extensions
     {
         bool IsDisabled(object provider);
 
+        bool CanHandleException(object provider, Exception exception);
+
         void HandleException(object provider, Exception exception);
     }
 }
