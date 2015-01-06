@@ -147,17 +147,6 @@ namespace Microsoft.CodeAnalysis
         public abstract Compilation WithEventQueue(AsyncQueue<CompilationEvent> eventQueue);
 
         /// <summary>
-        /// Returns a new compilation with attached diagnostic analyzers.
-        /// </summary>
-        /// <param name="analyzers">The set of analyzers to include in future analyses.</param>
-        /// <param name="options">Options that are passed to analyzers.</param>
-        /// <param name="cancellationToken">A cancellation token that can be used to abort analysis.</param>
-        public CompilationWithAnalyzers WithAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerOptions options = null, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return new CompilationWithAnalyzers(this, analyzers, options, cancellationToken);
-        }
-
-        /// <summary>
         /// Gets a new <see cref="SemanticModel"/> for the specified syntax tree.
         /// </summary>
         public SemanticModel GetSemanticModel(SyntaxTree syntaxTree)
