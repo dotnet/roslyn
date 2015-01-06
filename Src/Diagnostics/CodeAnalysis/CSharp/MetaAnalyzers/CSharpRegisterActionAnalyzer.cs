@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp;
@@ -11,16 +12,33 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.CSharp
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpRegisterActionAnalyzer : RegisterActionAnalyzer<ClassDeclarationSyntax, InvocationExpressionSyntax, SyntaxKind>
     {
-        protected override RegisterActionCompilationAnalyzer GetAnalyzer(INamedTypeSymbol analysisContext, INamedTypeSymbol compilationStartAnalysisContext, INamedTypeSymbol codeBlockStartAnalysisContext, INamedTypeSymbol symbolKind, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
+        internal static readonly string CSharpSyntaxKindName = typeof(SyntaxKind).FullName;
+        internal static readonly string BasicSyntaxKindName = @"Microsoft.CodeAnalysis.VisualBasic.SyntaxKind";
+
+        protected override RegisterActionCompilationAnalyzer GetAnalyzer(Compilation compilation, INamedTypeSymbol analysisContext, INamedTypeSymbol compilationStartAnalysisContext, INamedTypeSymbol codeBlockStartAnalysisContext, INamedTypeSymbol symbolKind, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
         {
-            return new CSharpRegisterActionCompilationAnalyzer(analysisContext, compilationStartAnalysisContext, codeBlockStartAnalysisContext, symbolKind, diagnosticAnalyzer, diagnosticAnalyzerAttribute);
+            var csharpSyntaxKind = compilation.GetTypeByMetadataName(CSharpSyntaxKindName);
+            var basicSyntaxKind = compilation.GetTypeByMetadataName(BasicSyntaxKindName);
+            return new CSharpRegisterActionCompilationAnalyzer(csharpSyntaxKind, basicSyntaxKind, analysisContext, compilationStartAnalysisContext, codeBlockStartAnalysisContext, symbolKind, diagnosticAnalyzer, diagnosticAnalyzerAttribute);
         }
 
         private sealed class CSharpRegisterActionCompilationAnalyzer : RegisterActionCompilationAnalyzer
         {
-            public CSharpRegisterActionCompilationAnalyzer(INamedTypeSymbol analysisContext, INamedTypeSymbol compilationStartAnalysisContext, INamedTypeSymbol codeBlockStartAnalysisContext, INamedTypeSymbol symbolKind, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
+            private readonly ITypeSymbol csharpSyntaxKind, basicSyntaxKind;
+
+            public CSharpRegisterActionCompilationAnalyzer(
+                INamedTypeSymbol csharpSyntaxKind,
+                INamedTypeSymbol basicSyntaxKind,
+                INamedTypeSymbol analysisContext,
+                INamedTypeSymbol compilationStartAnalysisContext,
+                INamedTypeSymbol codeBlockStartAnalysisContext, 
+                INamedTypeSymbol symbolKind, 
+                INamedTypeSymbol diagnosticAnalyzer, 
+                INamedTypeSymbol diagnosticAnalyzerAttribute)
                 : base(analysisContext, compilationStartAnalysisContext, codeBlockStartAnalysisContext, symbolKind, diagnosticAnalyzer, diagnosticAnalyzerAttribute)
             {
+                this.csharpSyntaxKind = csharpSyntaxKind;
+                this.basicSyntaxKind = basicSyntaxKind;
             }
 
             protected override IEnumerable<SyntaxNode> GetArgumentExpressions(InvocationExpressionSyntax invocation)
@@ -31,6 +49,17 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.CSharp
                 }
 
                 return null;
+            }
+
+            protected override SyntaxNode GetInvocationExpression(InvocationExpressionSyntax invocation)
+            {
+                return invocation.Expression;
+            }
+
+            protected override bool IsSyntaxKind(ITypeSymbol type)
+            {
+                return (csharpSyntaxKind != null && type.Equals(csharpSyntaxKind)) ||
+                    (basicSyntaxKind != null && type.Equals(basicSyntaxKind));
             }
         }
     }

@@ -10,6 +10,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{2FCCB9BE-DD4E-48F2-B678-80E6FB196948}</ProjectGuid>
     <OutputType>Library</OutputType>
+    <AnalyzerProject>true</AnalyzerProject>
     <AssemblyName>Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers</AssemblyName>
     <DocumentationFile>Microsoft.CodeAnalysis.VisualBasic.FxCopRules.DiagnosticAnalyzers.xml</DocumentationFile>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>

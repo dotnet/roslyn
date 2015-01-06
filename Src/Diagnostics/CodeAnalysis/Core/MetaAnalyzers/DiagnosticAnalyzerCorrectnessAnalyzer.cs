@@ -1,4 +1,7 @@
-﻿using Microsoft.CodeAnalysis.Diagnostics;
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
@@ -8,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         internal static readonly string DiagnosticAnalyzerAttributeFullName = typeof(DiagnosticAnalyzerAttribute).FullName;
         internal static readonly string DiagnosticFullName = typeof(Diagnostic).FullName;
         internal static readonly string DiagnosticDescriptorFullName = typeof(DiagnosticDescriptor).FullName;
+        internal static readonly string LocalizableStringFullName = typeof(LocalizableString).FullName;
 
         internal static readonly string AnalysisContextFullName = typeof(AnalysisContext).FullName;
         internal static readonly string CompilationStartAnalysisContextFullName = typeof(CompilationStartAnalysisContext).FullName;
@@ -22,9 +26,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         internal static readonly string RegisterSyntaxNodeActionName = nameof(AnalysisContext.RegisterSyntaxNodeAction);
         internal static readonly string RegisterSymbolActionName = nameof(AnalysisContext.RegisterSymbolAction);
+        internal static readonly string RegisterCodeBlockStartActionName = nameof(AnalysisContext.RegisterCodeBlockStartAction);
+        internal static readonly string RegisterCodeBlockEndActionName = nameof(AnalysisContext.RegisterCodeBlockEndAction);
         internal static readonly string RegisterCompilationEndActionName = nameof(CompilationStartAnalysisContext.RegisterCompilationEndAction);
         internal static readonly string ReportDiagnosticName = nameof(CompilationEndAnalysisContext.ReportDiagnostic);
         internal static readonly string SupportedDiagnosticsName = nameof(DiagnosticAnalyzer.SupportedDiagnostics);
+        internal static readonly string TLanguageKindEnumName = @"TLanguageKindEnum";
 
         public override void Initialize(AnalysisContext context)
         {

@@ -9,25 +9,39 @@ Namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.VisualBasic
     Public Class BasicRegisterActionAnalyzer
         Inherits RegisterActionAnalyzer(Of ClassBlockSyntax, InvocationExpressionSyntax, SyntaxKind)
 
-        Protected Overrides Function GetAnalyzer(analysisContext As INamedTypeSymbol,
+        Private Shared ReadOnly BasicSyntaxKindFullName As String = GetType(SyntaxKind).FullName
+        Private Shared ReadOnly CSharpSyntaxKindFullName As String = "Microsoft.CodeAnalysis.CSharp.SyntaxKind"
+
+        Protected Overrides Function GetAnalyzer(compilation As Compilation,
+                                                 analysisContext As INamedTypeSymbol,
                                                  compilationStartAnalysisContext As INamedTypeSymbol,
                                                  codeBlockStartAnalysisContext As INamedTypeSymbol,
                                                  symbolKind As INamedTypeSymbol,
                                                  diagnosticAnalyzer As INamedTypeSymbol,
                                                  diagnosticAnalyzerAttribute As INamedTypeSymbol) As RegisterActionCompilationAnalyzer
-            Return New BasicRegisterActionCompilationAnalyzer(analysisContext, compilationStartAnalysisContext, codeBlockStartAnalysisContext, symbolKind, diagnosticAnalyzer, diagnosticAnalyzerAttribute)
+            Dim basicSyntaxKind = compilation.GetTypeByMetadataName(BasicSyntaxKindFullName)
+            Dim csharpSyntaxKind = compilation.GetTypeByMetadataName(CSharpSyntaxKindFullName)
+            Return New BasicRegisterActionCompilationAnalyzer(basicSyntaxKind, csharpSyntaxKind, analysisContext, compilationStartAnalysisContext, codeBlockStartAnalysisContext, symbolKind, diagnosticAnalyzer, diagnosticAnalyzerAttribute)
         End Function
 
         Private NotInheritable Class BasicRegisterActionCompilationAnalyzer
             Inherits RegisterActionCompilationAnalyzer
 
-            Public Sub New(analysisContext As INamedTypeSymbol,
+            Private ReadOnly csharpSyntaxKind As ITypeSymbol
+            Private ReadOnly basicSyntaxKind As ITypeSymbol
+
+            Public Sub New(basicSyntaxKind As INamedTypeSymbol,
+                           csharpSyntaxKind As INamedTypeSymbol,
+                           analysisContext As INamedTypeSymbol,
                            compilationStartAnalysisContext As INamedTypeSymbol,
                            codeBlockStartAnalysisContext As INamedTypeSymbol,
                            symbolKind As INamedTypeSymbol,
                            diagnosticAnalyzer As INamedTypeSymbol,
                            diagnosticAnalyzerAttribute As INamedTypeSymbol)
                 MyBase.New(analysisContext, compilationStartAnalysisContext, codeBlockStartAnalysisContext, symbolKind, diagnosticAnalyzer, diagnosticAnalyzerAttribute)
+
+                Me.basicSyntaxKind = basicSyntaxKind
+                Me.csharpSyntaxKind = csharpSyntaxKind
             End Sub
 
             Protected Overrides Function GetArgumentExpressions(invocation As InvocationExpressionSyntax) As IEnumerable(Of SyntaxNode)
@@ -36,6 +50,14 @@ Namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.VisualBasic
                 End If
 
                 Return Nothing
+            End Function
+
+            Protected Overrides Function GetInvocationExpression(invocation As InvocationExpressionSyntax) As SyntaxNode
+                Return invocation.Expression
+            End Function
+
+            Protected Overrides Function IsSyntaxKind(type As ITypeSymbol) As Boolean
+                Throw New NotImplementedException()
             End Function
         End Class
     End Class

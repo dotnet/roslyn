@@ -168,4 +168,22 @@
   <data name="InvalidReportDiagnosticDescription" xml:space="preserve">
     <value>ReportDiagnostic should only be invoked with supported DiagnosticDescriptors that are returned from DiagnosticAnalyzer.SupportedDiagnostics property. Otherwise, the reported diagnostic will be filtered out by the analysis engine.</value>
   </data>
+  <data name="InvalidSyntaxKindTypeArgumentMessage" xml:space="preserve">
+    <value>Type argument '{0}' for type parameter '{1}' of method '{2}' is not a SyntaxKind enum.</value>
+  </data>
+  <data name="InvalidSyntaxKindTypeArgumentTitle" xml:space="preserve">
+    <value>Invalid type argument for DiagnosticAnalyzer's Register method.</value>
+  </data>
+  <data name="InvalidSyntaxKindTypeArgumentDescription" xml:space="preserve">
+    <value>DiagnosticAnalyzer's language-specific Register methods, such as RegisterSyntaxNodeAction, RegisterCodeBlockStartAction and RegisterCodeBlockEndAction, expect a language-specific 'SyntaxKind' type argument for it's '{0}' type parameter. Otherwise, the registered analyzer action can never be invoked during analysis.</value>
+  </data>
+  <data name="UseLocalizableStringsInDescriptorMessage" xml:space="preserve">
+    <value>Consider providing localizable arguments of type '{0}' to diagnostic descriptor constructor to ensure the descriptor is localizable.</value>
+  </data>
+  <data name="UseLocalizableStringsInDescriptorTitle" xml:space="preserve">
+    <value>Provide localizable arguments to diagnostic descriptor constructor.</value>
+  </data>
+  <data name="UseLocalizableStringsInDescriptorDescription" xml:space="preserve">
+    <value>If your diagnostic analyzer and it's reported diagnostics need to be localizable, then the supported DiagnosticDescriptors used for constructing the diagnostics must also be localizable. If so, then localizable argument(s) must be provided for parameter 'title' (and optionally 'description') to the diagnostic descriptor constructor to ensure that the descriptor is localizable.</value>
+  </data>
 </root>

@@ -11,6 +11,7 @@
     <ProjectGuid>{B82F1C54-2D3E-497B-8C31-4AB16D6508FA}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
+    <AnalyzerProject>true</AnalyzerProject>
     <RootNamespace>Roslyn.Diagnostics.Analyzers.CSharp</RootNamespace>
     <AssemblyName>Roslyn.Diagnostics.Analyzers.CSharp</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>

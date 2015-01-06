@@ -11,6 +11,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{921B412A-5551-4853-82B4-46AD5A05A03E}</ProjectGuid>
     <OutputType>Library</OutputType>
+    <AnalyzerProject>true</AnalyzerProject>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.Analyzers</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.CSharp.Analyzers</AssemblyName>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -70,6 +71,7 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <Compile Include="MetaAnalyzers\CSharpDiagnosticDescriptorCreationAnalyzer.cs" />
     <Compile Include="MetaAnalyzers\CSharpRegisterActionAnalyzer.cs" />
     <Compile Include="MetaAnalyzers\CSharpReportDiagnosticAnalyzer.cs" />
     <Compile Include="MetaAnalyzers\Fixers\CSharpApplyDiagnosticAnalyzerAttributeFix.cs" />

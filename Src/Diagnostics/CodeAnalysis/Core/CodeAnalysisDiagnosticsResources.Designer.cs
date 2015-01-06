@@ -143,6 +143,33 @@ namespace Microsoft.CodeAnalysis.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to DiagnosticAnalyzer&apos;s language-specific Register methods, such as RegisterSyntaxNodeAction, RegisterCodeBlockStartAction and RegisterCodeBlockEndAction, expect a language-specific &apos;SyntaxKind&apos; type argument for it&apos;s &apos;{0}&apos; type parameter. Otherwise, the registered analyzer action can never be invoked during analysis..
+        /// </summary>
+        internal static string InvalidSyntaxKindTypeArgumentDescription {
+            get {
+                return ResourceManager.GetString("InvalidSyntaxKindTypeArgumentDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type argument &apos;{0}&apos; for type parameter &apos;{1}&apos; of method &apos;{2}&apos; is not a SyntaxKind enum..
+        /// </summary>
+        internal static string InvalidSyntaxKindTypeArgumentMessage {
+            get {
+                return ResourceManager.GetString("InvalidSyntaxKindTypeArgumentMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid type argument for DiagnosticAnalyzer&apos;s Register method..
+        /// </summary>
+        internal static string InvalidSyntaxKindTypeArgumentTitle {
+            get {
+                return ResourceManager.GetString("InvalidSyntaxKindTypeArgumentTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Missing &apos;{0}&apos; attribute..
         /// </summary>
         internal static string MissingAttributeMessage {
@@ -211,6 +238,33 @@ namespace Microsoft.CodeAnalysis.Analyzers {
         internal static string UnsupportedSymbolKindArgumentToRegisterActionTitle {
             get {
                 return ResourceManager.GetString("UnsupportedSymbolKindArgumentToRegisterActionTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to If your diagnostic analyzer and it&apos;s reported diagnostics need to be localizable, then the supported DiagnosticDescriptors used for constructing the diagnostics must also be localizable. If so, then localizable argument(s) must be provided for parameter &apos;title&apos; (and optionally &apos;description&apos;) to the diagnostic descriptor constructor to ensure that the descriptor is localizable..
+        /// </summary>
+        internal static string UseLocalizableStringsInDescriptorDescription {
+            get {
+                return ResourceManager.GetString("UseLocalizableStringsInDescriptorDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Consider providing localizable arguments of type &apos;{0}&apos; to diagnostic descriptor constructor to ensure the descriptor is localizable..
+        /// </summary>
+        internal static string UseLocalizableStringsInDescriptorMessage {
+            get {
+                return ResourceManager.GetString("UseLocalizableStringsInDescriptorMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Provide localizable arguments to diagnostic descriptor constructor..
+        /// </summary>
+        internal static string UseLocalizableStringsInDescriptorTitle {
+            get {
+                return ResourceManager.GetString("UseLocalizableStringsInDescriptorTitle", resourceCulture);
             }
         }
     }

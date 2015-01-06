@@ -11,6 +11,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{D8762A0A-3832-47BE-BCF6-8B1060BE6B28}</ProjectGuid>
     <OutputType>Library</OutputType>
+    <AnalyzerProject>true</AnalyzerProject>
     <RootNamespace>Microsoft.CodeAnalysis.Analyzers</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.Analyzers</AssemblyName>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -62,6 +63,7 @@
     <Compile Include="MetaAnalyzers\DiagnosticAnalyzerCorrectnessAnalyzer.CompilationAnalyzer.cs" />
     <Compile Include="MetaAnalyzers\DiagnosticAnalyzerCorrectnessAnalyzer.cs" />
     <Compile Include="MetaAnalyzers\DiagnosticAnalyzerCorrectnessAnalyzer.InvocationCompilationAnalyzer.cs" />
+    <Compile Include="MetaAnalyzers\DiagnosticDescriptorCreationAnalyzer.cs" />
     <Compile Include="MetaAnalyzers\Fixers\ApplyDiagnosticAnalyzerAttributeFix.cs" />
     <Compile Include="MetaAnalyzers\RegisterActionAnalyzer.cs" />
     <Compile Include="MetaAnalyzers\ReportDiagnosticAnalyzer.cs" />

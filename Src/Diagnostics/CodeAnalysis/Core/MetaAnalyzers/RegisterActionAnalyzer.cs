@@ -1,9 +1,13 @@
-﻿using System;
+﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
@@ -38,11 +42,25 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
+        private static LocalizableString localizableTitleInvalidSyntaxKindTypeArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidSyntaxKindTypeArgumentTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static LocalizableString localizableMessageInvalidSyntaxKindTypeArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidSyntaxKindTypeArgumentMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static LocalizableString localizableDescriptionInvalidSyntaxKindTypeArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidSyntaxKindTypeArgumentDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources), nameof(TLanguageKindEnumName));
+
+        public static DiagnosticDescriptor InvalidSyntaxKindTypeArgumentRule = new DiagnosticDescriptor(
+            DiagnosticIds.InvalidSyntaxKindTypeArgumentRuleId,
+            localizableTitleInvalidSyntaxKindTypeArgument,
+            localizableMessageInvalidSyntaxKindTypeArgument,
+            "AnalyzerCorrectness",
+            DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            description: localizableDescriptionInvalidSyntaxKindTypeArgument,
+            customTags: WellKnownDiagnosticTags.Telemetry);
+
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
             get
             {
-                return ImmutableArray.Create(MissingKindArgumentRule, UnsupportedSymbolKindArgumentRule);
+                return ImmutableArray.Create(MissingKindArgumentRule, UnsupportedSymbolKindArgumentRule, InvalidSyntaxKindTypeArgumentRule);
             }
         }
 
@@ -72,10 +90,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return null;
             }
 
-            return GetAnalyzer(analysisContext, compilationStartAnalysisContext, codeBlockStartAnalysisContext, symbolKind, diagnosticAnalyzer, diagnosticAnalyzerAttribute);
+            return GetAnalyzer(compilation, analysisContext, compilationStartAnalysisContext, codeBlockStartAnalysisContext, symbolKind, diagnosticAnalyzer, diagnosticAnalyzerAttribute);
         }
 
-        protected abstract RegisterActionCompilationAnalyzer GetAnalyzer(INamedTypeSymbol analysisContext, INamedTypeSymbol compilationStartAnalysisContext, INamedTypeSymbol codeBlockStartAnalysisContext, INamedTypeSymbol symbolKind, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute);
+        protected abstract RegisterActionCompilationAnalyzer GetAnalyzer(Compilation compilation, INamedTypeSymbol analysisContext, INamedTypeSymbol compilationStartAnalysisContext, INamedTypeSymbol codeBlockStartAnalysisContext, INamedTypeSymbol symbolKind, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute);
 
         protected abstract class RegisterActionCompilationAnalyzer : InvocationCompilationAnalyzer<TClassDeclarationSyntax, TInvocationExpressionSyntax>
         {
@@ -83,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             private readonly INamedTypeSymbol compilationStartAnalysisContext;
             private readonly INamedTypeSymbol codeBlockStartAnalysisContext;
             private readonly INamedTypeSymbol symbolKind;
-
+            
             private static readonly ImmutableHashSet<string> supportedSymbolKinds =
                 ImmutableHashSet.Create(
                     nameof(SymbolKind.Event),
@@ -93,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     nameof(SymbolKind.Namespace), 
                     nameof(SymbolKind.Property));
 
-            public RegisterActionCompilationAnalyzer(
+            protected RegisterActionCompilationAnalyzer(
                 INamedTypeSymbol analysisContext, 
                 INamedTypeSymbol compilationStartAnalysisContext,
                 INamedTypeSymbol codeBlockStartAnalysisContext,
@@ -109,24 +127,40 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             }
 
             protected abstract IEnumerable<SyntaxNode> GetArgumentExpressions(TInvocationExpressionSyntax invocation);
+            protected abstract SyntaxNode GetInvocationExpression(TInvocationExpressionSyntax invocation);
+            protected abstract bool IsSyntaxKind(ITypeSymbol type);
+
+            private static bool IsRegisterAction(string expectedName, IMethodSymbol method, params INamedTypeSymbol[] allowedContainginTypes)
+            {
+                if (method.Name.Equals(expectedName))
+                {
+                    foreach (var containingType in allowedContainginTypes)
+                    {
+                        if (method.ContainingType.Equals(containingType))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            }
 
             protected override void AnalyzeInvocation(SymbolAnalysisContext symbolContext, TInvocationExpressionSyntax invocation, ISymbol symbol, SemanticModel semanticModel)
             {
-                var isRegisterSymbolAction = symbol.Name.Equals(RegisterSymbolActionName, StringComparison.OrdinalIgnoreCase) &&
-                                    symbol.Kind == SymbolKind.Method &&
-                                    (symbol.ContainingType.Equals(analysisContext) ||
-                                    symbol.ContainingType.Equals(compilationStartAnalysisContext));
+                if (symbol.Kind != SymbolKind.Method || !symbol.Name.StartsWith("Register"))
+                {
+                    return;
+                }
 
-                var isRegisterSyntaxNodeAction = !isRegisterSymbolAction &&
-                    symbol.Name.Equals(RegisterSyntaxNodeActionName, StringComparison.OrdinalIgnoreCase) &&
-                    symbol.Kind == SymbolKind.Method &&
-                    (symbol.ContainingType.Equals(analysisContext) ||
-                    symbol.ContainingType.Equals(compilationStartAnalysisContext) ||
-                    symbol.ContainingType.Equals(codeBlockStartAnalysisContext));
+                var method = (IMethodSymbol)symbol;
+                var isRegisterSymbolAction = IsRegisterAction(RegisterSymbolActionName, method, analysisContext, compilationStartAnalysisContext);
+                var isRegisterSyntaxNodeAction = IsRegisterAction(RegisterSyntaxNodeActionName, method, analysisContext, compilationStartAnalysisContext, codeBlockStartAnalysisContext);
+                var isRegisterCodeBlockStartAction = IsRegisterAction(RegisterCodeBlockStartActionName, method, analysisContext, compilationStartAnalysisContext);
+                var isRegisterCodeBlockEndAction = IsRegisterAction(RegisterCodeBlockEndActionName, method, analysisContext, compilationStartAnalysisContext);
 
                 if (isRegisterSymbolAction || isRegisterSyntaxNodeAction)
                 {
-                    var method = (IMethodSymbol)symbol;
                     if (method.Parameters.Length == 2 && method.Parameters[1].IsParams)
                     {
                         var arguments = GetArgumentExpressions(invocation);
@@ -152,7 +186,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                                             arg2 = "syntax";
                                         }
 
-                                        var diagnostic = Diagnostic.Create(MissingKindArgumentRule, invocation.GetLocation(), arg1, arg2);
+                                        var invocationExpression = GetInvocationExpression(invocation);
+                                        var diagnostic = Diagnostic.Create(MissingKindArgumentRule, invocationExpression.GetLocation(), arg1, arg2);
                                         symbolContext.ReportDiagnostic(diagnostic);
                                     }
                                     else if (isRegisterSymbolAction)
@@ -173,6 +208,45 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                                 }
                             }
                         }
+                    }
+                }
+
+                if (isRegisterSyntaxNodeAction || isRegisterCodeBlockStartAction || isRegisterCodeBlockEndAction)
+                {
+                    Debug.Assert(method.TypeParameters.Length > 0);
+
+                    ITypeSymbol typeArgument = null;
+                    if (method.TypeParameters.Length == 1)
+                    {
+                        if (method.TypeParameters[0].Name == TLanguageKindEnumName)
+                        {
+                            typeArgument = method.TypeArguments[0];
+                        }
+                    }
+                    else
+                    {
+                        var typeParam = method.TypeParameters.SingleOrDefault(t => t.Name == TLanguageKindEnumName);
+                        if (typeParam != null)
+                        {
+                            var index = method.TypeParameters.IndexOf(typeParam);
+                            typeArgument = method.TypeArguments[index];
+                        }
+                    }
+
+                    if (typeArgument != null &&
+                        typeArgument.TypeKind != TypeKind.TypeParameter &&
+                        typeArgument.TypeKind != TypeKind.Error &&
+                        !IsSyntaxKind(typeArgument))
+                    {
+                        var location = typeArgument.Locations[0];
+                        if (!location.IsInSource)
+                        {
+                            var invocationExpression = GetInvocationExpression(invocation);
+                            location = invocationExpression.GetLocation();
+                        }
+
+                        var diagnostic = Diagnostic.Create(InvalidSyntaxKindTypeArgumentRule, location, typeArgument.Name, TLanguageKindEnumName, method.Name);
+                        symbolContext.ReportDiagnostic(diagnostic);
                     }
                 }
             }

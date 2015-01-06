@@ -11,6 +11,7 @@
     <ProjectGuid>{DCC1F13B-F51C-445B-BDAE-92135BD58364}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.Diagnostics.Analyzers</RootNamespace>
+    <AnalyzerProject>true</AnalyzerProject>
     <AssemblyName>Roslyn.Diagnostics.Analyzers</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <NeedsFakeSign>true</NeedsFakeSign>

@@ -10,6 +10,7 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{640B92E8-ED8A-44AC-85C6-50B53837DB91}</ProjectGuid>
     <OutputType>Library</OutputType>
+    <AnalyzerProject>true</AnalyzerProject>
     <AssemblyName>Roslyn.Diagnostics.Analyzers.VisualBasic</AssemblyName>
     <DocumentationFile>Roslyn.Diagnostics.Analyzers.VisualBasic.xml</DocumentationFile>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
