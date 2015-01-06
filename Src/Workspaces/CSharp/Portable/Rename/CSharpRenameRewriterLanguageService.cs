@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -296,103 +297,110 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
 
             private async Task<SyntaxToken> RenameAndAnnotateAsync(SyntaxToken token, SyntaxToken newToken, bool isRenameLocation, bool isOldText)
             {
-                if (this.isProcessingComplexifiedSpans)
+                try
                 {
-                    // Rename Token
-                    if (isRenameLocation)
+                    if (this.isProcessingComplexifiedSpans)
                     {
-                        var annotation = this.renameAnnotations.GetAnnotations(token).OfType<RenameActionAnnotation>().FirstOrDefault();
-                        if (annotation != null)
+                        // Rename Token
+                        if (isRenameLocation)
                         {
-                            newToken = RenameToken(token, newToken, annotation.Suffix, annotation.IsAccessorLocation);
-                            AddModifiedSpan(annotation.OriginalSpan, newToken.Span);
+                            var annotation = this.renameAnnotations.GetAnnotations(token).OfType<RenameActionAnnotation>().FirstOrDefault();
+                            if (annotation != null)
+                            {
+                                newToken = RenameToken(token, newToken, annotation.Suffix, annotation.IsAccessorLocation);
+                                AddModifiedSpan(annotation.OriginalSpan, newToken.Span);
+                            }
+                            else
+                            {
+                                newToken = RenameToken(token, newToken, suffix: null, isAccessorLocation: false);
+                            }
                         }
-                        else
+
+                        return newToken;
+                    }
+
+                    var symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, this.semanticModel, this.solution.Workspace, this.cancellationToken);
+
+                    string suffix = null;
+                    if (symbols.Count() == 1)
+                    {
+                        var symbol = symbols.Single();
+
+                        if (symbol.IsConstructor())
                         {
-                            newToken = RenameToken(token, newToken, suffix: null, isAccessorLocation: false);
+                            symbol = symbol.ContainingSymbol;
                         }
+
+                        var sourceDefinition = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
+                        symbol = sourceDefinition ?? symbol;
+
+                        if (symbol is INamedTypeSymbol)
+                        {
+                            var namedTypeSymbol = (INamedTypeSymbol)symbol;
+                            if (namedTypeSymbol.IsImplicitlyDeclared &&
+                                namedTypeSymbol.IsDelegateType() &&
+                                namedTypeSymbol.AssociatedSymbol != null)
+                            {
+                                suffix = "EventHandler";
+                            }
+                        }
+
+                        // This is a conflicting namespace declaration token. Even if the rename results in conflict with this namespace
+                        // conflict is not shown for the namespace so we are tracking this token
+                        if (!isRenameLocation && symbol is INamespaceSymbol && token.GetPreviousToken().IsKind(SyntaxKind.NamespaceKeyword))
+                        {
+                            return newToken;
+                        }
+                    }
+
+                    // Rename Token
+                    if (isRenameLocation && !this.AnnotateForComplexification)
+                    {
+                        var oldSpan = token.Span;
+                        newToken = RenameToken(
+                            token,
+                            newToken,
+                            suffix: suffix,
+                            isAccessorLocation: isRenameLocation && this.renameLocations[token.Span].IsRenamableAccessor);
+
+                        AddModifiedSpan(oldSpan, newToken.Span);
+                    }
+
+                    RenameDeclarationLocationReference[] renameDeclarationLocations =
+                        ConflictResolver.CreateDeclarationLocationAnnotationsAsync(solution, symbols, cancellationToken)
+                                .WaitAndGetResult(cancellationToken);
+
+                    var isNamespaceDeclarationReference = false;
+                    if (isRenameLocation && token.GetPreviousToken().IsKind(SyntaxKind.NamespaceKeyword))
+                    {
+                        isNamespaceDeclarationReference = true;
+                    }
+
+                    var renameAnnotation =
+                            new RenameActionAnnotation(
+                                token.Span,
+                                isRenameLocation,
+                                isRenameLocation ? this.renameLocations[token.Span].IsRenamableAccessor : false,
+                                suffix,
+                                renameDeclarationLocations: renameDeclarationLocations,
+                                isOriginalTextLocation: isOldText,
+                                isNamespaceDeclarationReference: isNamespaceDeclarationReference,
+                                isInvocationExpression: false);
+
+                    newToken = this.renameAnnotations.WithAdditionalAnnotations(newToken, renameAnnotation, new RenameTokenSimplificationAnnotation() { OriginalTextSpan = token.Span });
+
+                    annotatedIdentifierTokens.Add(token);
+                    if (this.renameRenamableSymbolDeclaration != null && renamableDeclarationLocation == token.GetLocation())
+                    {
+                        newToken = this.renameAnnotations.WithAdditionalAnnotations(newToken, this.renameRenamableSymbolDeclaration);
                     }
 
                     return newToken;
                 }
-
-                var symbols = RenameUtilities.GetSymbolsTouchingPosition(token.Span.Start, this.semanticModel, this.solution.Workspace, this.cancellationToken);
-
-                string suffix = null;
-                if (symbols.Count() == 1)
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
-                    var symbol = symbols.Single();
-
-                    if (symbol.IsConstructor())
-                    {
-                        symbol = symbol.ContainingSymbol;
-                    }
-
-                    var sourceDefinition = await SymbolFinder.FindSourceDefinitionAsync(symbol, solution, cancellationToken).ConfigureAwait(false);
-                    symbol = sourceDefinition ?? symbol;
-
-                    if (symbol is INamedTypeSymbol)
-                    {
-                        var namedTypeSymbol = (INamedTypeSymbol)symbol;
-                        if (namedTypeSymbol.IsImplicitlyDeclared &&
-                            namedTypeSymbol.IsDelegateType() &&
-                            namedTypeSymbol.AssociatedSymbol != null)
-                        {
-                            suffix = "EventHandler";
-                        }
-                    }
-
-                    // This is a conflicting namespace declaration token. Even if the rename results in conflict with this namespace
-                    // conflict is not shown for the namespace so we are tracking this token
-                    if (!isRenameLocation && symbol is INamespaceSymbol && token.GetPreviousToken().IsKind(SyntaxKind.NamespaceKeyword))
-                    {
-                        return newToken;
-                    }
+                    throw ExceptionUtilities.Unreachable;
                 }
-
-                // Rename Token
-                if (isRenameLocation && !this.AnnotateForComplexification)
-                {
-                    var oldSpan = token.Span;
-                    newToken = RenameToken(
-                        token,
-                        newToken,
-                        suffix: suffix,
-                        isAccessorLocation: isRenameLocation && this.renameLocations[token.Span].IsRenamableAccessor);
-
-                    AddModifiedSpan(oldSpan, newToken.Span);
-                }
-
-                RenameDeclarationLocationReference[] renameDeclarationLocations =
-                    ConflictResolver.CreateDeclarationLocationAnnotationsAsync(solution, symbols, cancellationToken)
-                            .WaitAndGetResult(cancellationToken);
-
-                var isNamespaceDeclarationReference = false;
-                if (isRenameLocation && token.GetPreviousToken().IsKind(SyntaxKind.NamespaceKeyword))
-                {
-                    isNamespaceDeclarationReference = true;
-                }
-
-                var renameAnnotation =
-                        new RenameActionAnnotation(
-                            token.Span,
-                            isRenameLocation,
-                            isRenameLocation ? this.renameLocations[token.Span].IsRenamableAccessor : false,
-                            suffix,
-                            renameDeclarationLocations: renameDeclarationLocations,
-                            isOriginalTextLocation: isOldText,
-                            isNamespaceDeclarationReference: isNamespaceDeclarationReference,
-                            isInvocationExpression: false);
-
-                newToken = this.renameAnnotations.WithAdditionalAnnotations(newToken, renameAnnotation, new RenameTokenSimplificationAnnotation() { OriginalTextSpan = token.Span });
-
-                annotatedIdentifierTokens.Add(token);
-                if (this.renameRenamableSymbolDeclaration != null && renamableDeclarationLocation == token.GetLocation())
-                {
-                    newToken = this.renameAnnotations.WithAdditionalAnnotations(newToken, this.renameRenamableSymbolDeclaration);
-                }
-
-                return newToken;
             }
 
             private RenameActionAnnotation GetAnnotationForInvocationExpression(InvocationExpressionSyntax invocationExpression)
@@ -722,148 +730,162 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             IDictionary<Location, Location> reverseMappedLocations,
             CancellationToken cancellationToken)
         {
-            var conflicts = new List<Location>();
-
-            // If we're renaming a named type, we can conflict with members w/ our same name.  Note:
-            // this doesn't apply to enums.
-            if (renamedSymbol.Kind == SymbolKind.NamedType &&
-                ((INamedTypeSymbol)renamedSymbol).TypeKind != TypeKind.Enum)
+            try
             {
-                var namedType = (INamedTypeSymbol)renamedSymbol;
-                AddSymbolSourceSpans(conflicts, namedType.GetMembers(renamedSymbol.Name), reverseMappedLocations);
-            }
+                var conflicts = new List<Location>();
 
-            // If we're contained in a named type (we may be a named type ourself!) then we have a
-            // conflict.  NOTE(cyrusn): This does not apply to enums. 
-            if (renamedSymbol.ContainingSymbol is INamedTypeSymbol &&
-                renamedSymbol.ContainingType.Name == renamedSymbol.Name &&
-                renamedSymbol.ContainingType.TypeKind != TypeKind.Enum)
-            {
-                AddSymbolSourceSpans(conflicts, SpecializedCollections.SingletonEnumerable(renamedSymbol.ContainingType), reverseMappedLocations);
-            }
-
-            if (renamedSymbol.Kind == SymbolKind.Parameter ||
-                renamedSymbol.Kind == SymbolKind.Local ||
-                renamedSymbol.Kind == SymbolKind.RangeVariable)
-            {
-                var token = renamedSymbol.Locations.Single().FindToken(cancellationToken);
-
-                var methodDeclaration = token.GetAncestor<MemberDeclarationSyntax>();
-                var visitor = new LocalConflictVisitor(token);
-                visitor.Visit(methodDeclaration);
-                conflicts.AddRange(visitor.ConflictingTokens.Select(t => reverseMappedLocations[t.GetLocation()]));
-            }
-            else if (renamedSymbol.Kind == SymbolKind.Label)
-            {
-                var token = renamedSymbol.Locations.Single().FindToken(cancellationToken);
-
-                var methodDeclaration = token.GetAncestor<MemberDeclarationSyntax>();
-                var visitor = new LabelConflictVisitor(token);
-                visitor.Visit(methodDeclaration);
-                conflicts.AddRange(visitor.ConflictingTokens.Select(t => reverseMappedLocations[t.GetLocation()]));
-            }
-            else if (renamedSymbol.Kind == SymbolKind.Method)
-            {
-                conflicts.AddRange(DeclarationConflictHelpers.GetMembersWithConflictingSignatures((IMethodSymbol)renamedSymbol, trimOptionalParameters: false).Select(t => reverseMappedLocations[t]));
-
-                // we allow renaming overrides of VB property accessors with parameters in C#.
-                // VB has a special rule that properties are not allowed to have the same name as any of the parameters. 
-                // Because this declaration in C# affects the property declaration in VB, we need to check this VB rule here in C#.
-                var properties = new List<ISymbol>();
-                foreach (var referencedSymbol in referencedSymbols)
+                // If we're renaming a named type, we can conflict with members w/ our same name.  Note:
+                // this doesn't apply to enums.
+                if (renamedSymbol.Kind == SymbolKind.NamedType &&
+                    ((INamedTypeSymbol)renamedSymbol).TypeKind != TypeKind.Enum)
                 {
-                    var property = await RenameLocationSet.ReferenceProcessing.GetPropertyFromAccessorOrAnOverride(
-                        referencedSymbol, baseSolution, cancellationToken).ConfigureAwait(false);
-                    if (property != null)
+                    var namedType = (INamedTypeSymbol)renamedSymbol;
+                    AddSymbolSourceSpans(conflicts, namedType.GetMembers(renamedSymbol.Name), reverseMappedLocations);
+                }
+
+                // If we're contained in a named type (we may be a named type ourself!) then we have a
+                // conflict.  NOTE(cyrusn): This does not apply to enums. 
+                if (renamedSymbol.ContainingSymbol is INamedTypeSymbol &&
+                    renamedSymbol.ContainingType.Name == renamedSymbol.Name &&
+                    renamedSymbol.ContainingType.TypeKind != TypeKind.Enum)
+                {
+                    AddSymbolSourceSpans(conflicts, SpecializedCollections.SingletonEnumerable(renamedSymbol.ContainingType), reverseMappedLocations);
+                }
+
+                if (renamedSymbol.Kind == SymbolKind.Parameter ||
+                    renamedSymbol.Kind == SymbolKind.Local ||
+                    renamedSymbol.Kind == SymbolKind.RangeVariable)
+                {
+                    var token = renamedSymbol.Locations.Single().FindToken(cancellationToken);
+
+                    var methodDeclaration = token.GetAncestor<MemberDeclarationSyntax>();
+                    var visitor = new LocalConflictVisitor(token);
+                    visitor.Visit(methodDeclaration);
+                    conflicts.AddRange(visitor.ConflictingTokens.Select(t => reverseMappedLocations[t.GetLocation()]));
+                }
+                else if (renamedSymbol.Kind == SymbolKind.Label)
+                {
+                    var token = renamedSymbol.Locations.Single().FindToken(cancellationToken);
+
+                    var methodDeclaration = token.GetAncestor<MemberDeclarationSyntax>();
+                    var visitor = new LabelConflictVisitor(token);
+                    visitor.Visit(methodDeclaration);
+                    conflicts.AddRange(visitor.ConflictingTokens.Select(t => reverseMappedLocations[t.GetLocation()]));
+                }
+                else if (renamedSymbol.Kind == SymbolKind.Method)
+                {
+                    conflicts.AddRange(DeclarationConflictHelpers.GetMembersWithConflictingSignatures((IMethodSymbol)renamedSymbol, trimOptionalParameters: false).Select(t => reverseMappedLocations[t]));
+
+                    // we allow renaming overrides of VB property accessors with parameters in C#.
+                    // VB has a special rule that properties are not allowed to have the same name as any of the parameters. 
+                    // Because this declaration in C# affects the property declaration in VB, we need to check this VB rule here in C#.
+                    var properties = new List<ISymbol>();
+                    foreach (var referencedSymbol in referencedSymbols)
                     {
-                        properties.Add(property);
-                    }
-                }
-
-                ConflictResolver.AddConflictingParametersOfProperties(properties.Distinct(), replacementText, conflicts);
-            }
-            else if (renamedSymbol.Kind == SymbolKind.Alias)
-            {
-                // in C# there can only be one using with the same alias name in the same block (top of file of namespace). 
-                // It's ok to redefine the alias in different blocks.
-                var location = renamedSymbol.Locations.Single();
-                var token = location.SourceTree.GetTouchingToken(location.SourceSpan.Start, cancellationToken, findInsideTrivia: true);
-                var currentUsing = (UsingDirectiveSyntax)token.Parent.Parent.Parent;
-
-                var namespaceDecl = token.Parent.GetAncestorsOrThis(n => n.Kind() == SyntaxKind.NamespaceDeclaration).FirstOrDefault();
-                SyntaxList<UsingDirectiveSyntax> usings;
-                if (namespaceDecl != null)
-                {
-                    usings = ((NamespaceDeclarationSyntax)namespaceDecl).Usings;
-                }
-                else
-                {
-                    var compilationUnit = (CompilationUnitSyntax)token.Parent.GetAncestorsOrThis(n => n.Kind() == SyntaxKind.CompilationUnit).Single();
-                    usings = compilationUnit.Usings;
-                }
-
-                foreach (var usingDirective in usings)
-                {
-                    if (usingDirective.Alias != null && usingDirective != currentUsing)
-                    {
-                        if (usingDirective.Alias.Name.Identifier.ValueText == currentUsing.Alias.Name.Identifier.ValueText)
+                        var property = await RenameLocationSet.ReferenceProcessing.GetPropertyFromAccessorOrAnOverride(
+                            referencedSymbol, baseSolution, cancellationToken).ConfigureAwait(false);
+                        if (property != null)
                         {
-                            conflicts.Add(reverseMappedLocations[usingDirective.Alias.Name.GetLocation()]);
+                            properties.Add(property);
+                        }
+                    }
+
+                    ConflictResolver.AddConflictingParametersOfProperties(properties.Distinct(), replacementText, conflicts);
+                }
+                else if (renamedSymbol.Kind == SymbolKind.Alias)
+                {
+                    // in C# there can only be one using with the same alias name in the same block (top of file of namespace). 
+                    // It's ok to redefine the alias in different blocks.
+                    var location = renamedSymbol.Locations.Single();
+                    var token = location.SourceTree.GetTouchingToken(location.SourceSpan.Start, cancellationToken, findInsideTrivia: true);
+                    var currentUsing = (UsingDirectiveSyntax)token.Parent.Parent.Parent;
+
+                    var namespaceDecl = token.Parent.GetAncestorsOrThis(n => n.Kind() == SyntaxKind.NamespaceDeclaration).FirstOrDefault();
+                    SyntaxList<UsingDirectiveSyntax> usings;
+                    if (namespaceDecl != null)
+                    {
+                        usings = ((NamespaceDeclarationSyntax)namespaceDecl).Usings;
+                    }
+                    else
+                    {
+                        var compilationUnit = (CompilationUnitSyntax)token.Parent.GetAncestorsOrThis(n => n.Kind() == SyntaxKind.CompilationUnit).Single();
+                        usings = compilationUnit.Usings;
+                    }
+
+                    foreach (var usingDirective in usings)
+                    {
+                        if (usingDirective.Alias != null && usingDirective != currentUsing)
+                        {
+                            if (usingDirective.Alias.Name.Identifier.ValueText == currentUsing.Alias.Name.Identifier.ValueText)
+                            {
+                                conflicts.Add(reverseMappedLocations[usingDirective.Alias.Name.GetLocation()]);
+                            }
                         }
                     }
                 }
-            }
-            else if (renamedSymbol.Kind == SymbolKind.TypeParameter)
-            {
-                var location = renamedSymbol.Locations.Single();
-                var token = location.SourceTree.GetTouchingToken(location.SourceSpan.Start, cancellationToken, findInsideTrivia: true);
-                var currentTypeParameter = token.Parent;
-
-                foreach (var typeParameter in ((TypeParameterListSyntax)currentTypeParameter.Parent).Parameters)
+                else if (renamedSymbol.Kind == SymbolKind.TypeParameter)
                 {
-                    if (typeParameter != currentTypeParameter && token.ValueText == typeParameter.Identifier.ValueText)
+                    var location = renamedSymbol.Locations.Single();
+                    var token = location.SourceTree.GetTouchingToken(location.SourceSpan.Start, cancellationToken, findInsideTrivia: true);
+                    var currentTypeParameter = token.Parent;
+
+                    foreach (var typeParameter in ((TypeParameterListSyntax)currentTypeParameter.Parent).Parameters)
                     {
-                        conflicts.Add(reverseMappedLocations[typeParameter.Identifier.GetLocation()]);
+                        if (typeParameter != currentTypeParameter && token.ValueText == typeParameter.Identifier.ValueText)
+                        {
+                            conflicts.Add(reverseMappedLocations[typeParameter.Identifier.GetLocation()]);
+                        }
                     }
                 }
-            }
 
-            // if the renamed symbol is a type member, it's name should not coflict with a type parameter
-            if (renamedSymbol.ContainingType != null && renamedSymbol.ContainingType.GetMembers(renamedSymbol.Name).Contains(renamedSymbol))
-            {
-                foreach (var typeParameter in renamedSymbol.ContainingType.TypeParameters)
+                // if the renamed symbol is a type member, it's name should not coflict with a type parameter
+                if (renamedSymbol.ContainingType != null && renamedSymbol.ContainingType.GetMembers(renamedSymbol.Name).Contains(renamedSymbol))
                 {
-                    if (typeParameter.Name == renamedSymbol.Name)
+                    foreach (var typeParameter in renamedSymbol.ContainingType.TypeParameters)
                     {
-                        var typeParameterToken = typeParameter.Locations.Single().FindToken(cancellationToken);
-                        conflicts.Add(reverseMappedLocations[typeParameterToken.GetLocation()]);
+                        if (typeParameter.Name == renamedSymbol.Name)
+                        {
+                            var typeParameterToken = typeParameter.Locations.Single().FindToken(cancellationToken);
+                            conflicts.Add(reverseMappedLocations[typeParameterToken.GetLocation()]);
+                        }
                     }
                 }
-            }
 
-            return conflicts;
+                return conflicts;
+            }
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         private static async Task<ISymbol> GetVBPropertyFromAccessorOrAnOverrideAsync(ISymbol symbol, Solution solution, CancellationToken cancellationToken)
         {
-            if (symbol.IsPropertyAccessor())
+            try
             {
-                var property = ((IMethodSymbol)symbol).AssociatedSymbol;
-
-                return property.Language == LanguageNames.VisualBasic ? property : null;
-            }
-
-            if (symbol.IsOverride && symbol.OverriddenMember() != null)
-            {
-                var originalSourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol.OverriddenMember(), solution, cancellationToken).ConfigureAwait(false);
-
-                if (originalSourceSymbol != null)
+                if (symbol.IsPropertyAccessor())
                 {
-                    return await GetVBPropertyFromAccessorOrAnOverrideAsync(originalSourceSymbol, solution, cancellationToken).ConfigureAwait(false);
-                }
-            }
+                    var property = ((IMethodSymbol)symbol).AssociatedSymbol;
 
-            return null;
+                    return property.Language == LanguageNames.VisualBasic ? property : null;
+                }
+
+                if (symbol.IsOverride && symbol.OverriddenMember() != null)
+                {
+                    var originalSourceSymbol = await SymbolFinder.FindSourceDefinitionAsync(symbol.OverriddenMember(), solution, cancellationToken).ConfigureAwait(false);
+
+                    if (originalSourceSymbol != null)
+                    {
+                        return await GetVBPropertyFromAccessorOrAnOverrideAsync(originalSourceSymbol, solution, cancellationToken).ConfigureAwait(false);
+                    }
+                }
+
+                return null;
+            }
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         private void AddSymbolSourceSpans(List<Location> conflicts, IEnumerable<ISymbol> symbols, IDictionary<Location, Location> reverseMappedLocations)
