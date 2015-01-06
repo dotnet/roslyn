@@ -75,10 +75,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim trees(sourceFiles.Length - 1) As SyntaxTree
 
             If Arguments.CompilationOptions.ConcurrentBuild Then
+                Dim threadId As Integer = Threading.Thread.CurrentThread.ManagedThreadId
+                Dim uiCulture As System.Globalization.CultureInfo = Threading.Thread.CurrentThread.CurrentUICulture
+
                 Parallel.For(0, sourceFiles.Length,
                              Sub(i As Integer)
-                                 ' NOTE: order of trees is important!!
-                                 trees(i) = ParseFile(consoleOutput, parseOptions, scriptParseOptions, hadErrors, sourceFiles(i))
+                                 Dim currentThread = Threading.Thread.CurrentThread
+                                 Dim currentThreadId As Integer = currentThread.ManagedThreadId
+                                 Dim saveUICulture As System.Globalization.CultureInfo = Nothing
+                                 If currentThreadId <> threadId Then
+                                     ' New threads created by Parallel.For do not inherit CurrentUICulture by default.
+                                     saveUICulture = currentThread.CurrentUICulture
+                                     currentThread.CurrentUICulture = uiCulture
+                                 End If
+
+                                 Try
+                                     ' NOTE: order of trees is important!!
+                                     trees(i) = ParseFile(consoleOutput, parseOptions, scriptParseOptions, hadErrors, sourceFiles(i))
+                                 Finally
+                                     If currentThreadId <> threadId Then
+                                         currentThread.CurrentUICulture = saveUICulture
+                                     End If
+                                 End Try
                              End Sub)
             Else
                 For i = 0 To sourceFiles.Length - 1

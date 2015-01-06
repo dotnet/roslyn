@@ -263,9 +263,15 @@ Imports System
 Module EmitTest
 
     Sub Main()
-        Dim ex As Exception
-        foo(ex)
-        Console.Write(ex.Message)
+        Dim saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture
+        Try
+            Dim ex As Exception
+            foo(ex)
+            Console.Write(ex.Message)
+        Finally
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
+        End Try
     End Sub
 
     Sub foo(ByRef ex As Exception)
@@ -403,6 +409,16 @@ expectedOutput:="TryFilterCatchFinally").
 Imports System        
 Module EmitTest
     Sub Main()
+        Dim saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture
+        Try
+            Test()
+        Finally
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
+        End Try
+    End Sub
+
+    Sub Test()
         Dim x as integer = 0
 
         Try
@@ -421,7 +437,7 @@ End Module
     </file>
 </compilation>,
 expectedOutput:="TryCatch228Finally").
-            VerifyIL("EmitTest.Main",
+            VerifyIL("EmitTest.Test",
             <![CDATA[
 {
   // Code size      156 (0x9c)

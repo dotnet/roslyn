@@ -515,8 +515,8 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
 
             compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOptionInfer(False).WithOptionStrict(OptionStrict.Custom))
             compilation.VerifyDiagnostics(
-                Diagnostic(ERRID.WRN_ObjectAssumedVar1, "a").WithArguments("warning BC42346: Variable declaration without an 'As' clause; type of Object assumed."),
-                Diagnostic(ERRID.WRN_ObjectAssumedVar1, "b").WithArguments("warning BC42346: Variable declaration without an 'As' clause; type of Object assumed."))
+                Diagnostic(ERRID.WRN_ObjectAssumedVar1, "a").WithArguments("Variable declaration without an 'As' clause; type of Object assumed."),
+                Diagnostic(ERRID.WRN_ObjectAssumedVar1, "b").WithArguments("Variable declaration without an 'As' clause; type of Object assumed."))
             model = compilation.GetSemanticModel(tree)
             CheckVariableType(tree, model, "Test:a", "System.Int32")
             CheckVariableType(tree, model, "Test:b", "System.Object")
@@ -572,7 +572,7 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
             CheckVariableType(tree, model, "Test:b", "System.Object")
 
             compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOptionInfer(True).WithOptionStrict(OptionStrict.Custom))
-            compilation.VerifyDiagnostics(Diagnostic(ERRID.WRN_ObjectAssumedVar1, "b").WithArguments("warning BC42111: Static variable declared without an 'As' clause; type of Object assumed."))
+            compilation.VerifyDiagnostics(Diagnostic(ERRID.WRN_ObjectAssumedVar1, "b").WithArguments("Static variable declared without an 'As' clause; type of Object assumed."))
 
             model = compilation.GetSemanticModel(tree)
 
@@ -581,8 +581,8 @@ BC30209: Option Strict On requires all variable declarations to have an 'As' cla
 
             compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOptionInfer(False).WithOptionStrict(OptionStrict.Custom))
             compilation.VerifyDiagnostics(
-                   Diagnostic(ERRID.WRN_ObjectAssumedVar1, "a").WithArguments("warning BC42346: Variable declaration without an 'As' clause; type of Object assumed."),
-                   Diagnostic(ERRID.WRN_ObjectAssumedVar1, "b").WithArguments("warning BC42111: Static variable declared without an 'As' clause; type of Object assumed."))
+                   Diagnostic(ERRID.WRN_ObjectAssumedVar1, "a").WithArguments("Variable declaration without an 'As' clause; type of Object assumed."),
+                   Diagnostic(ERRID.WRN_ObjectAssumedVar1, "b").WithArguments("Static variable declared without an 'As' clause; type of Object assumed."))
             model = compilation.GetSemanticModel(tree)
             CheckVariableType(tree, model, "Test:a", "System.Int32")
             CheckVariableType(tree, model, "Test:b", "System.Object")

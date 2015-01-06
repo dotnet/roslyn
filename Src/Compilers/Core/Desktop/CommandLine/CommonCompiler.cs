@@ -262,6 +262,28 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public virtual int Run(TextWriter consoleOutput, CancellationToken cancellationToken)
         {
+            var saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+
+            try
+            {
+                // Messages from exceptions can be used as arguments for errors and they are often localized.
+                // Ensure they are localized to the right language.
+                var culture = this.Culture;
+                if (culture != null)
+                {
+                    Thread.CurrentThread.CurrentUICulture = culture;
+                }
+
+                return RunCore(consoleOutput, cancellationToken);
+            }
+            finally
+            {
+                Thread.CurrentThread.CurrentUICulture = saveUICulture;
+            }
+        }
+
+        private int RunCore(TextWriter consoleOutput, CancellationToken cancellationToken)
+        {
             Debug.Assert(!Arguments.IsInteractive);
 
             cancellationToken.ThrowIfCancellationRequested();

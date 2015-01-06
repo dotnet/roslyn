@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.MetadataUtilities;
 using Roslyn.Utilities;
 using Xunit;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -785,15 +786,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         internal static string GetDocumentationCommentText(CSharpCompilation compilation, params DiagnosticDescription[] expectedDiagnostics)
         {
-            return GetDocumentationCommentText(compilation, outputName: null, filterTree: null, expectedDiagnostics: expectedDiagnostics);
+            return GetDocumentationCommentText(compilation, outputName: null, filterTree: null, ensureEnglishUICulture: false, expectedDiagnostics: expectedDiagnostics);
         }
 
-        internal static string GetDocumentationCommentText(CSharpCompilation compilation, string outputName = null, SyntaxTree filterTree = null, TextSpan? filterSpanWithinTree = null, params DiagnosticDescription[] expectedDiagnostics)
+        internal static string GetDocumentationCommentText(CSharpCompilation compilation, bool ensureEnglishUICulture, params DiagnosticDescription[] expectedDiagnostics)
+        {
+            return GetDocumentationCommentText(compilation, outputName: null, filterTree: null, ensureEnglishUICulture: ensureEnglishUICulture, expectedDiagnostics: expectedDiagnostics);
+        }
+
+        internal static string GetDocumentationCommentText(CSharpCompilation compilation, string outputName = null, SyntaxTree filterTree = null, TextSpan? filterSpanWithinTree = null, bool ensureEnglishUICulture = false, params DiagnosticDescription[] expectedDiagnostics)
         {
             using (MemoryStream stream = new MemoryStream())
             {
                 DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
-                DocumentationCommentCompiler.WriteDocumentationCommentXml(compilation, outputName, stream, diagnostics, default(CancellationToken), filterTree, filterSpanWithinTree);
+                System.Globalization.CultureInfo saveUICulture = null;
+
+                if (ensureEnglishUICulture)
+                {
+                    var preferred = EnsureEnglishUICulture.PreferredOrNull;
+
+                    if (preferred == null)
+                    {
+                        ensureEnglishUICulture = false;
+                    }
+                    else
+                    {
+                        saveUICulture = Thread.CurrentThread.CurrentUICulture;
+                        Thread.CurrentThread.CurrentUICulture = preferred;
+                    }
+                }
+
+                try
+                {
+                    DocumentationCommentCompiler.WriteDocumentationCommentXml(compilation, outputName, stream, diagnostics, default(CancellationToken), filterTree, filterSpanWithinTree);
+                }
+                finally
+                {
+                    if (ensureEnglishUICulture)
+                    {
+                        Thread.CurrentThread.CurrentUICulture = saveUICulture;
+                    }
+                }
+
                 if (expectedDiagnostics != null)
                 {
                     diagnostics.Verify(expectedDiagnostics);

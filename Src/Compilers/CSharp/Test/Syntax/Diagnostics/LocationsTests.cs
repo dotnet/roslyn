@@ -429,7 +429,7 @@ class MainClass
             Location location = Location.Create("test.txt",new TextSpan(), new LinePositionSpan(new LinePosition(2,1), new LinePosition(3,1)));
             var diagnostic = Diagnostic.Create("CS0000", "", "msg", DiagnosticSeverity.Warning, DiagnosticSeverity.Warning, true, 1, location: location);
 
-            Assert.Equal("test.txt(3,2): warning CS0000: msg", CSharpDiagnosticFormatter.Instance.Format(diagnostic));
+            Assert.Equal("test.txt(3,2): warning CS0000: msg", CSharpDiagnosticFormatter.Instance.Format(diagnostic, EnsureEnglishUICulture.PreferredOrNull));
         }
 
         [WorkItem(1097381)]

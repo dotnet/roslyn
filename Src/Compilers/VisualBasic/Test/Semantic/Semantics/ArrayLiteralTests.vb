@@ -509,8 +509,8 @@ End Module
             comp.VerifyDiagnostics(
                 Diagnostic(ERRID.ERR_RestrictedType1, "= {a}").WithArguments("System.ArgIterator"),
                 Diagnostic(ERRID.ERR_RestrictedType1, "{a}").WithArguments("System.ArgIterator"),
-                Diagnostic(ERRID.WRN_ObjectAssumed1, "{1, 1D, ""a""}").WithArguments("warning BC42343: Cannot infer an element type because more than one type is possible; 'Object' assumed."),
-                Diagnostic(ERRID.WRN_ObjectAssumed1, "{""a"", New c}").WithArguments("warning BC42334: Cannot infer an element type; 'Object' assumed."))
+                Diagnostic(ERRID.WRN_ObjectAssumed1, "{1, 1D, ""a""}").WithArguments("Cannot infer an element type because more than one type is possible; 'Object' assumed."),
+                Diagnostic(ERRID.WRN_ObjectAssumed1, "{""a"", New c}").WithArguments("Cannot infer an element type; 'Object' assumed."))
         End Sub
 
         <Fact(Skip:="529377")>
@@ -801,7 +801,7 @@ End Module
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, options:=strictOffOverflowChecksOff)
             comp.VerifyDiagnostics(
-                   Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Test2").WithArguments("Test2", "error BC0000: " & vbCrLf &
+                   Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Test2").WithArguments("Test2", vbCrLf &
             "    'Public Sub Test2(x As Integer(), y As Integer)': Argument matching parameter 'x' narrows to 'Integer()'." & vbCrLf &
             "    'Public Sub Test2(x As Short(), y As Byte)': Argument matching parameter 'x' narrows to 'Short()'."))
 
@@ -809,7 +809,7 @@ End Module
 
             comp = comp.WithOptions(strictOnOverflowChecksOff)
             comp.VerifyDiagnostics(
-                 Diagnostic(ERRID.ERR_NoCallableOverloadCandidates2, "Test2").WithArguments("Test2", "error BC0000: " & vbCrLf &
+                 Diagnostic(ERRID.ERR_NoCallableOverloadCandidates2, "Test2").WithArguments("Test2", vbCrLf &
           "    'Public Sub Test2(x As Integer(), y As Integer)': Option Strict On disallows implicit conversions from 'Double' to 'Integer'." & vbCrLf &
           "    'Public Sub Test2(x As Short(), y As Byte)': Option Strict On disallows implicit conversions from 'Double' to 'Short'."))
         End Sub
@@ -976,13 +976,13 @@ End Module
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, options:=strictOff)
             comp.VerifyDiagnostics(
-            Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Test2").WithArguments("Test2", "error BC0000: " & vbCrLf &
+            Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Test2").WithArguments("Test2", vbCrLf &
      "    'Public Sub Test2(x As m.B1, y As Integer)': Argument matching parameter 'x' narrows to 'm.B1'." & vbCrLf &
      "    'Public Sub Test2(x As m.B2, y As Byte)': Argument matching parameter 'x' narrows to 'm.B2'."))
 
             comp = comp.WithOptions(strictOn)
             comp.VerifyDiagnostics(
-            Diagnostic(ERRID.ERR_NoCallableOverloadCandidates2, "Test2").WithArguments("Test2", "error BC0000: " & vbCrLf &
+            Diagnostic(ERRID.ERR_NoCallableOverloadCandidates2, "Test2").WithArguments("Test2", vbCrLf &
      "    'Public Sub Test2(x As m.B1, y As Integer)': Option Strict On disallows implicit conversions from 'Integer' to 'Short'." & vbCrLf &
      "    'Public Sub Test2(x As m.B2, y As Byte)': Option Strict On disallows implicit conversions from 'Integer' to 'Byte'."))
         End Sub

@@ -377,6 +377,10 @@ Module Program
         obj(c(1)) = c(40)                   ' assignment    (IndexSet)
         Console.WriteLine(obj(c(1)))           ' value         (IndexGet)
 
+        Dim saveCulture = System.Threading.Thread.CurrentThread.CurrentCulture
+        Dim saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture
+        System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture
         Try
             obj(Sub()
 
@@ -384,6 +388,9 @@ Module Program
 
         Catch ex As InvalidCastException
             Console.WriteLine(ex.Message)
+        Finally
+            System.Threading.Thread.CurrentThread.CurrentCulture = saveCulture
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
         End Try
     End Sub
 
@@ -2198,6 +2205,8 @@ Module Program1
     End Sub
 
     Sub Main()
+        Dim saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture
         Try
             Dim var As Object
             var = New foo(AddressOf foo1)
@@ -2208,6 +2217,8 @@ Module Program1
             var.Invoke(var3, y:=var2)
         Catch ex As Exception
             Console.WriteLine(ex.Message)
+        Finally
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
         End Try
     End Sub
 End Module

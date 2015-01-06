@@ -794,7 +794,7 @@ End Module
         Dim oldText = SourceText.From(source)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         Assert.Equal(1, oldTree.GetDiagnostics().Count)
-        Assert.Equal("Syntax error.", oldTree.GetDiagnostics()(0).GetMessage)
+        Assert.Equal("Syntax error.", oldTree.GetDiagnostics()(0).GetMessage(EnsureEnglishUICulture.PreferredOrNull))
         Assert.Equal("[131..134)", oldTree.GetDiagnostics()(0).Location.SourceSpan.ToString)
 
         ' commenting out the goto
@@ -805,7 +805,7 @@ End Module
 
         Dim tmpTree = VisualBasicSyntaxTree.ParseText(newText)
         Assert.Equal(1, tmpTree.GetDiagnostics().Count)
-        Assert.Equal("Syntax error.", tmpTree.GetDiagnostics()(0).GetMessage)
+        Assert.Equal("Syntax error.", tmpTree.GetDiagnostics()(0).GetMessage(EnsureEnglishUICulture.PreferredOrNull))
         Assert.Equal("[132..135)", tmpTree.GetDiagnostics()(0).Location.SourceSpan.ToString)
     End Sub
 

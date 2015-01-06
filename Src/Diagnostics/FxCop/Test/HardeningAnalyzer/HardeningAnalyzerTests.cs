@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.FxCopAnalyzers;
 using Microsoft.CodeAnalysis.FxCopAnalyzers.Naming;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.HardeningAnalyzer
@@ -45,7 +46,8 @@ public class Class6<TTypeParameter>
             AnalyzeDocumentCore(GetCSharpDiagnosticAnalyzer(), documentsAndSpan.Item1[0], diagnosticsBag.Add, null, continueOnAnalyzerException: DiagnosticExtensions.AlwaysCatchAnalyzerExceptions);
             var diagnostics = diagnosticsBag.ToReadOnlyAndFree();
             Assert.True(diagnostics.Length > 0);
-            Assert.Equal("info AD0001: The Compiler Analyzer '" + GetCSharpDiagnosticAnalyzer().GetType() + "' threw an exception with message 'The method or operation is not implemented.'.", diagnostics[0].ToString());
+            Assert.Equal(string.Format("info AD0001: " + AnalyzerDriverResources.AnalyzerThrows, GetCSharpDiagnosticAnalyzer().GetType(), "The method or operation is not implemented."), 
+                DiagnosticFormatter.Instance.Format(diagnostics[0], EnsureEnglishUICulture.PreferredOrNull));
         }
 
 #region "Test_Class"
@@ -58,7 +60,10 @@ public class Class6<TTypeParameter>
             {
                 get
                 {
-                    throw new NotImplementedException();
+                    using (new EnsureEnglishUICulture())
+                    {
+                        throw new NotImplementedException();
+                    }
                 }
             }
 

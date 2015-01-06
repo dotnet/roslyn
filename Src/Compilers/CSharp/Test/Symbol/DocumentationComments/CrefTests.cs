@@ -30,7 +30,7 @@ class Program { }
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, @"""").WithArguments(""),
                 // (3,20): warning CS1658: Identifier expected. See also error CS1001.
                 // /// See <see cref=""/>.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, @"""").WithArguments("error CS1001: Identifier expected", "1001"));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, @"""").WithArguments("Identifier expected", "1001"));
         }
 
         [Fact]
@@ -48,7 +48,7 @@ class Program { }
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, @"""").WithArguments(""),
                 // (3,20): warning CS1658: Identifier expected. See also error CS1001.
                 // /// See <see cref=""/>.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, @"""").WithArguments("error CS1001: Identifier expected", "1001"));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, @"""").WithArguments("Identifier expected", "1001"));
         }
 
         [Fact] //Lexer makes bad token with diagnostic and parser produces additional diagnostic when it consumes the bad token.
@@ -66,10 +66,10 @@ class Program { }
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "#").WithArguments("#"),
                 // (3,20): warning CS1658: Identifier expected. See also error CS1001.
                 // /// See <see cref="#"/>.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "#").WithArguments("error CS1001: Identifier expected", "1001"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "#").WithArguments("Identifier expected", "1001"),
                 // (3,20): warning CS1658: Unexpected character '#'. See also error CS1056.
                 // /// See <see cref="#"/>.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("error CS1056: Unexpected character '#'", "1056"));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("Unexpected character '#'", "1056"));
         }
 
         [Fact]
@@ -87,10 +87,10 @@ class Program { }
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, " ").WithArguments(" `"),
                 // (3,21): warning CS1658: Identifier expected. See also error CS1001.
                 // /// See <see cref=" `"/>.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "`").WithArguments("error CS1001: Identifier expected", "1001"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "`").WithArguments("Identifier expected", "1001"),
                 // (3,20): warning CS1658: Unexpected character '`'. See also error CS1056.
                 // /// See <see cref=" `"/>.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("error CS1056: Unexpected character '`'", "1056"));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("Unexpected character '`'", "1056"));
         }
 
         [Fact]
@@ -108,7 +108,7 @@ class Program { }
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "<").WithArguments(""),
                 // (4,5): warning CS1658: Identifier expected. See also error CS1001.
                 // /// </summary>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "<").WithArguments("error CS1001: Identifier expected", "1001"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "<").WithArguments("Identifier expected", "1001"),
                 // (3,20): warning CS1570: XML comment has badly formed XML -- 'Missing closing quotation mark for string literal.'
                 // /// See <see cref="
                 Diagnostic(ErrorCode.WRN_XMLParseError, ""),
@@ -129,7 +129,7 @@ class Program { }
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "").WithArguments(""),
                 // (3,20): warning CS1658: Identifier expected. See also error CS1001.
                 // /// See <see cref='
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("error CS1001: Identifier expected", "1001"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("Identifier expected", "1001"),
                 // (3,20): warning CS1570: XML comment has badly formed XML -- 'Missing closing quotation mark for string literal.'
                 // /// See <see cref='
                 Diagnostic(ErrorCode.WRN_XMLParseError, ""),
@@ -157,7 +157,7 @@ class Program { }
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "M(T,").WithArguments("M(T, ///"),
                 // (3,25): warning CS1658: ) expected. See also error CS1026.
                 // /// See <see cref='M(T, /// </summary>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "/").WithArguments("error CS1026: ) expected", "1026"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "/").WithArguments(") expected", "1026"),
                 // (3,28): warning CS1570: XML comment has badly formed XML -- 'Missing closing quotation mark for string literal.'
                 // /// See <see cref='M(T, /// </summary>
                 Diagnostic(ErrorCode.WRN_XMLParseError, ""),
@@ -182,10 +182,10 @@ class Program { }
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "M{").WithArguments("M{"),
                 // (3,22): warning CS1658: Identifier expected. See also error CS1001.
                 // /// See <see cref='M{
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("error CS1001: Identifier expected", "1001"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("Identifier expected", "1001"),
                 // (3,22): warning CS1658: Syntax error, '>' expected. See also error CS1003.
                 // /// See <see cref='M{
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("error CS1003: Syntax error, '>' expected", "1003"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("Syntax error, '>' expected", "1003"),
                 // (3,22): warning CS1570: XML comment has badly formed XML -- 'Missing closing quotation mark for string literal.'
                 // /// See <see cref='M{
                 Diagnostic(ErrorCode.WRN_XMLParseError, ""),
@@ -276,19 +276,19 @@ class Program { }
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, ":").WithArguments(":"),
                 // (4,20): warning CS1658: Identifier expected. See also error CS1001.
                 // /// See <see cref=":"/> - first character is colon.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, ":").WithArguments("error CS1001: Identifier expected", "1001"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, ":").WithArguments("Identifier expected", "1001"),
                 // (5,20): warning CS1584: XML comment has syntactically incorrect cref attribute '::'
                 // /// See <see cref="::"/> - first character is colon.
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, ":").WithArguments("::"),
                 // (5,20): warning CS1658: Identifier expected. See also error CS1001.
                 // /// See <see cref="::"/> - first character is colon.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "::").WithArguments("error CS1001: Identifier expected", "1001"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "::").WithArguments("Identifier expected", "1001"),
                 // (6,20): warning CS1584: XML comment has syntactically incorrect cref attribute '&#58;&#58;Gibberish'
                 // /// See <see cref="&#58;&#58;Gibberish"/> - first character is colon.
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "&").WithArguments("&#58;&#58;Gibberish"),
                 // (6,20): warning CS1658: Identifier expected. See also error CS1001.
                 // /// See <see cref="&#58;&#58;Gibberish"/> - first character is colon.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "&#58;&#58;").WithArguments("error CS1001: Identifier expected", "1001"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "&#58;&#58;").WithArguments("Identifier expected", "1001"),
                 // (3,20): warning CS1574: XML comment has cref attribute 'A' that could not be resolved
                 // /// See <see cref="A"/> - only one character.
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "A").WithArguments("A"));
@@ -318,7 +318,7 @@ class Program { }
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, ".").WithArguments(".ctor"),
                 // (3,20): warning CS1658: Identifier expected. See also error CS1001.
                 // /// See <see cref=".ctor"/>.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, ".").WithArguments("error CS1001: Identifier expected", "1001"));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, ".").WithArguments("Identifier expected", "1001"));
 
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
 
@@ -347,7 +347,7 @@ class Program { }
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, ".").WithArguments(".cctor"),
                 // (3,20): warning CS1658: Identifier expected. See also error CS1001.
                 // /// See <see cref=".cctor"/>.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, ".").WithArguments("error CS1001: Identifier expected", "1001"));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, ".").WithArguments("Identifier expected", "1001"));
 
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
 
@@ -376,7 +376,7 @@ class Program { }
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "~").WithArguments("~Program"),
                 // (3,20): warning CS1658: Identifier expected. See also error CS1001.
                 // /// See <see cref="~Program"/>.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "~").WithArguments("error CS1001: Identifier expected", "1001"));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "~").WithArguments("Identifier expected", "1001"));
 
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
 
@@ -3378,20 +3378,20 @@ class C
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "2").WithArguments("2"),
                 // (3,22): warning CS1658: Identifier expected. See also error CS1001.
                 // /// Error <see cref="2"/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "2").WithArguments("error CS1001: Identifier expected", "1001"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "2").WithArguments("Identifier expected", "1001"),
                 // (3,22): warning CS1658: Unexpected character '2'. See also error CS1056.
                 // /// Error <see cref="2"/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("error CS1056: Unexpected character '2'", "1056"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("Unexpected character '2'", "1056"),
 
                 // (4,22): warning CS1584: XML comment has syntactically incorrect cref attribute '3A'
                 // /// Error <see cref="3A"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "3").WithArguments("3A"),
                 // (4,22): warning CS1658: Identifier expected. See also error CS1001.
                 // /// Error <see cref="3A"/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "3").WithArguments("error CS1001: Identifier expected", "1001"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "3").WithArguments("Identifier expected", "1001"),
                 // (4,22): warning CS1658: Unexpected character '3'. See also error CS1056.
                 // /// Error <see cref="3A"/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("error CS1056: Unexpected character '3'", "1056"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("Unexpected character '3'", "1056"),
 
                 // (5,22): warning CS1584: XML comment has syntactically incorrect cref attribute '@4'
                 // /// Error <see cref="@4"/>
@@ -3401,7 +3401,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, ""),
                 // (5,23): warning CS1658: Unexpected character '4'. See also error CS1056.
                 // /// Error <see cref="@4"/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("error CS1056: Unexpected character '4'", "1056"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("Unexpected character '4'", "1056"),
 
                 // (6,22): warning CS1584: XML comment has syntactically incorrect cref attribute '&#64;5'
                 // /// Error <see cref="&#64;5"/>
@@ -3411,7 +3411,7 @@ class C
                 Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, ""),
                 // (6,27): warning CS1658: Unexpected character '5'. See also error CS1056.
                 // /// Error <see cref="&#64;5"/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("error CS1056: Unexpected character '5'", "1056"));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("Unexpected character '5'", "1056"));
         }
 
         [Fact]
@@ -3434,25 +3434,25 @@ class G<T>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "G&lt;").WithArguments("G&lt;3&gt;"),
                 // (3,27): warning CS1658: Identifier expected. See also error CS1001.
                 // /// Error <see cref="G&lt;3&gt;"/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "3").WithArguments("error CS1001: Identifier expected", "1001"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "3").WithArguments("Identifier expected", "1001"),
                 // (3,27): warning CS1658: Syntax error, '>' expected. See also error CS1003.
                 // /// Error <see cref="G&lt;3&gt;"/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "3").WithArguments("error CS1003: Syntax error, '>' expected", "1003"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "3").WithArguments("Syntax error, '>' expected", "1003"),
                 // (3,27): warning CS1658: Unexpected character '3'. See also error CS1056.
                 // /// Error <see cref="G&lt;3&gt;"/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("error CS1056: Unexpected character '3'", "1056"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("Unexpected character '3'", "1056"),
                 // (4,22): warning CS1584: XML comment has syntactically incorrect cref attribute 'G{T}.M&lt;3&gt;'
                 // /// Error <see cref="G{T}.M&lt;3&gt;"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "G{T}.M&lt;").WithArguments("G{T}.M&lt;3&gt;"),
                 // (4,32): warning CS1658: Identifier expected. See also error CS1001.
                 // /// Error <see cref="G{T}.M&lt;3&gt;"/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "3").WithArguments("error CS1001: Identifier expected", "1001"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "3").WithArguments("Identifier expected", "1001"),
                 // (4,32): warning CS1658: Syntax error, '>' expected. See also error CS1003.
                 // /// Error <see cref="G{T}.M&lt;3&gt;"/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "3").WithArguments("error CS1003: Syntax error, '>' expected", "1003"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "3").WithArguments("Syntax error, '>' expected", "1003"),
                 // (4,32): warning CS1658: Unexpected character '3'. See also error CS1056.
                 // /// Error <see cref="G{T}.M&lt;3&gt;"/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("error CS1056: Unexpected character '3'", "1056"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("Unexpected character '3'", "1056"),
                 // (8,22): error CS1001: Identifier expected
                 //     void M<U>(G<G<U>>) { }
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, ")"));
@@ -3495,37 +3495,37 @@ class A
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "G{int}").WithArguments("G{int}"),
                 // (3,24): warning CS1658: Type parameter declaration must be an identifier not a type. See also error CS0081.
                 // /// Error <see cref="G{int}"/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "int").WithArguments("error CS0081: Type parameter declaration must be an identifier not a type", "0081"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "int").WithArguments("Type parameter declaration must be an identifier not a type", "0081"),
                 // (4,22): warning CS1584: XML comment has syntactically incorrect cref attribute 'G{A.B}'
                 // /// Error <see cref="G{A.B}"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "G{A.B}").WithArguments("G{A.B}"),
                 // (4,24): warning CS1658: Type parameter declaration must be an identifier not a type. See also error CS0081.
                 // /// Error <see cref="G{A.B}"/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "A.B").WithArguments("error CS0081: Type parameter declaration must be an identifier not a type", "0081"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "A.B").WithArguments("Type parameter declaration must be an identifier not a type", "0081"),
                 // (5,22): warning CS1584: XML comment has syntactically incorrect cref attribute 'G{G{T}}}'
                 // /// Error <see cref="G{G{T}}}"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "G{G{T}}").WithArguments("G{G{T}}}"),
                 // (5,24): warning CS1658: Type parameter declaration must be an identifier not a type. See also error CS0081.
                 // /// Error <see cref="G{G{T}}}"/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "G{T}").WithArguments("error CS0081: Type parameter declaration must be an identifier not a type", "0081"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "G{T}").WithArguments("Type parameter declaration must be an identifier not a type", "0081"),
                 // (7,22): warning CS1584: XML comment has syntactically incorrect cref attribute 'G{T}.M{int}'
                 // /// Error <see cref="G{T}.M{int}"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "G{T}.M{int}").WithArguments("G{T}.M{int}"),
                 // (7,29): warning CS1658: Type parameter declaration must be an identifier not a type. See also error CS0081.
                 // /// Error <see cref="G{T}.M{int}"/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "int").WithArguments("error CS0081: Type parameter declaration must be an identifier not a type", "0081"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "int").WithArguments("Type parameter declaration must be an identifier not a type", "0081"),
                 // (8,22): warning CS1584: XML comment has syntactically incorrect cref attribute 'G{T}.M{A.B}'
                 // /// Error <see cref="G{T}.M{A.B}"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "G{T}.M{A.B}").WithArguments("G{T}.M{A.B}"),
                 // (8,29): warning CS1658: Type parameter declaration must be an identifier not a type. See also error CS0081.
                 // /// Error <see cref="G{T}.M{A.B}"/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "A.B").WithArguments("error CS0081: Type parameter declaration must be an identifier not a type", "0081"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "A.B").WithArguments("Type parameter declaration must be an identifier not a type", "0081"),
                 // (9,22): warning CS1584: XML comment has syntactically incorrect cref attribute 'G{T}.M{G{T}}'
                 // /// Error <see cref="G{T}.M{G{T}}"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "G{T}.M{G{T}}").WithArguments("G{T}.M{G{T}}"),
                 // (9,29): warning CS1658: Type parameter declaration must be an identifier not a type. See also error CS0081.
                 // /// Error <see cref="G{T}.M{G{T}}"/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "G{T}").WithArguments("error CS0081: Type parameter declaration must be an identifier not a type", "0081"));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "G{T}").WithArguments("Type parameter declaration must be an identifier not a type", "0081"));
         }
 
         [Fact]
@@ -4623,19 +4623,19 @@ class A<T>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "A{A{T}}").WithArguments("A{A{T}}"),
                 // (3,24): warning CS1658: Type parameter declaration must be an identifier not a type. See also error CS0081.
                 // /// Error <see cref="A{A{T}}"/>.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "A{T}").WithArguments("error CS0081: Type parameter declaration must be an identifier not a type", "0081"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "A{T}").WithArguments("Type parameter declaration must be an identifier not a type", "0081"),
                 // (4,22): warning CS1584: XML comment has syntactically incorrect cref attribute 'A{T}.B{A{T}}'
                 // /// Error <see cref="A{T}.B{A{T}}"/>.
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "A{T}.B{A{T}}").WithArguments("A{T}.B{A{T}}"),
                 // (4,29): warning CS1658: Type parameter declaration must be an identifier not a type. See also error CS0081.
                 // /// Error <see cref="A{T}.B{A{T}}"/>.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "A{T}").WithArguments("error CS0081: Type parameter declaration must be an identifier not a type", "0081"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "A{T}").WithArguments("Type parameter declaration must be an identifier not a type", "0081"),
                 // (5,22): warning CS1584: XML comment has syntactically incorrect cref attribute 'A{T}.B{U}.M{A{T}}'
                 // /// Error <see cref="A{T}.B{U}.M{A{T}}"/>.
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "A{T}.B{U}.M{A{T}}").WithArguments("A{T}.B{U}.M{A{T}}"),
                 // (5,34): warning CS1658: Type parameter declaration must be an identifier not a type. See also error CS0081.
                 // /// Error <see cref="A{T}.B{U}.M{A{T}}"/>.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "A{T}").WithArguments("error CS0081: Type parameter declaration must be an identifier not a type", "0081"));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "A{T}").WithArguments("Type parameter declaration must be an identifier not a type", "0081"));
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var crefSyntaxes = GetCrefSyntaxes(compilation);
@@ -4679,19 +4679,19 @@ class A<T>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "A{int}").WithArguments("A{int}"),
                 // (3,24): warning CS1658: Type parameter declaration must be an identifier not a type. See also error CS0081.
                 // /// Error <see cref="A{int}"/>.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "int").WithArguments("error CS0081: Type parameter declaration must be an identifier not a type", "0081"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "int").WithArguments("Type parameter declaration must be an identifier not a type", "0081"),
                 // (4,22): warning CS1584: XML comment has syntactically incorrect cref attribute 'A{T}.B{int}'
                 // /// Error <see cref="A{T}.B{int}"/>.
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "A{T}.B{int}").WithArguments("A{T}.B{int}"),
                 // (4,29): warning CS1658: Type parameter declaration must be an identifier not a type. See also error CS0081.
                 // /// Error <see cref="A{T}.B{int}"/>.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "int").WithArguments("error CS0081: Type parameter declaration must be an identifier not a type", "0081"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "int").WithArguments("Type parameter declaration must be an identifier not a type", "0081"),
                 // (5,22): warning CS1584: XML comment has syntactically incorrect cref attribute 'A{T}.B{U}.M{int}'
                 // /// Error <see cref="A{T}.B{U}.M{int}"/>.
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "A{T}.B{U}.M{int}").WithArguments("A{T}.B{U}.M{int}"),
                 // (5,34): warning CS1658: Type parameter declaration must be an identifier not a type. See also error CS0081.
                 // /// Error <see cref="A{T}.B{U}.M{int}"/>.
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "int").WithArguments("error CS0081: Type parameter declaration must be an identifier not a type", "0081"));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "int").WithArguments("Type parameter declaration must be an identifier not a type", "0081"));
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var crefSyntaxes = GetCrefSyntaxes(compilation);
@@ -5215,10 +5215,10 @@ class Program
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "Console.WriteLine(,,)").WithArguments("Console.WriteLine(,,)"),
                 // (4,34): warning CS1658: Identifier expected. See also error CS1001.
                 // /// <see cref="Console.WriteLine(,,)"/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, ",").WithArguments("error CS1001: Identifier expected", "1001"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, ",").WithArguments("Identifier expected", "1001"),
                 // (4,35): warning CS1658: Identifier expected. See also error CS1001.
                 // /// <see cref="Console.WriteLine(,,)"/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, ",").WithArguments("error CS1001: Identifier expected", "1001"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, ",").WithArguments("Identifier expected", "1001"),
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
@@ -5247,7 +5247,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator").WithArguments("operator ="),
                 // (2,25): warning CS1658: Overloadable operator expected. See also error CS1037.
                 // /// <see cref="operator ="/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "=").WithArguments("error CS1037: Overloadable operator expected", "1037"));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "=").WithArguments("Overloadable operator expected", "1037"));
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var cref = GetCrefSyntaxes(compilation).Single();
@@ -5273,7 +5273,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator").WithArguments("operator q"),
                 // (4,25): warning CS1658: Overloadable operator expected. See also error CS1037.
                 // /// <see cref="operator q"/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "q").WithArguments("error CS1037: Overloadable operator expected", "1037"));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "q").WithArguments("Overloadable operator expected", "1037"));
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var cref = GetCrefSyntaxes(compilation).Single();
@@ -5588,13 +5588,13 @@ class C { }
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, " {").WithArguments(" {"),
                 // (2,17): warning CS1658: Identifier expected. See also error CS1001.
                 // /// <see cref=' {'/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "{").WithArguments("error CS1001: Identifier expected", "1001"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "{").WithArguments("Identifier expected", "1001"),
                 // (2,18): warning CS1658: Identifier expected. See also error CS1001.
                 // /// <see cref=' {'/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "'").WithArguments("error CS1001: Identifier expected", "1001"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "'").WithArguments("Identifier expected", "1001"),
                 // (2,18): warning CS1658: Syntax error, '>' expected. See also error CS1003.
                 // /// <see cref=' {'/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "'").WithArguments("error CS1003: Syntax error, '>' expected", "1003"));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "'").WithArguments("Syntax error, '>' expected", "1003"));
 
             var tree = compilation.SyntaxTrees.Single();
             var cref = GetCrefSyntaxes(compilation).Single();
@@ -5768,7 +5768,7 @@ class C { }
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "operator").WithArguments("operator }}="),
                 // (2,24): warning CS1658: Overloadable operator expected. See also error CS1037.
                 // /// <see cref="operator }}="/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, " }}").WithArguments("error CS1037: Overloadable operator expected", "1037"));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, " }}").WithArguments("Overloadable operator expected", "1037"));
         }
 
         [WorkItem(554077, "DevDiv")]
@@ -6475,7 +6475,7 @@ class C<T>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "C{}").WithArguments("C{}"),
                 // (3,18): warning CS1658: Identifier expected. See also error CS1001.
                 // /// <see cref="C{}" />
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "}").WithArguments("error CS1001: Identifier expected", "1001"));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "}").WithArguments("Identifier expected", "1001"));
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var crefs = GetCrefSyntaxes(compilation).ToArray();

@@ -263,7 +263,7 @@ End Namespace
             )
 
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_RecordCycle2, "enumerator").WithArguments("s2",
-                                                                                                          "error BC0000: " & vbCrLf &
+                                                                                                          vbCrLf &
             "    's2' contains 'List(Of s2).Enumerator' (variable 'enumerator')." & vbCrLf &
             "    'List(Of s2).Enumerator' contains 's2' (variable 'current')."))
         End Sub

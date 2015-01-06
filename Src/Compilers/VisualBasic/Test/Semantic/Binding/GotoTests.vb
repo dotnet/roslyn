@@ -68,9 +68,14 @@ Module Module1
     End Sub
 End Module
     </file>
-</compilation>, {MsvbRef, SystemCoreRef}).VerifyDiagnostics(
-            Diagnostic(ERRID.ERR_ExpectedExpression, ""),
-            Diagnostic(ERRID.ERR_NoCallableOverloadCandidates2, "Where").WithArguments("Where", "error BC0000: "))
+</compilation>, {MsvbRef, SystemCoreRef}).AssertTheseDiagnostics(<expected>
+BC30518: Overload resolution failed because no accessible 'Where' can be called with these arguments:
+        lists.Where(Function(ByVal item) GoTo lab1)
+              ~~~~~
+BC30201: Expression expected.
+        lists.Where(Function(ByVal item) GoTo lab1)
+                                         ~
+                                                                 </expected>)
 
         End Sub
 

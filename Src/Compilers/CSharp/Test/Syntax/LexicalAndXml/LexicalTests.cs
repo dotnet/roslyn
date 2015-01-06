@@ -2468,7 +2468,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_LegacyObjectIdSyntax, errors[0].Code);
-            Assert.Equal("error CS2043: 'id#' syntax is no longer supported. Use '$id' instead.", errors[0].ToString());
+            Assert.Equal("error CS2043: 'id#' syntax is no longer supported. Use '$id' instead.", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
             Assert.Equal(text, token.Text);
             Assert.Equal(text, token.Value);
 

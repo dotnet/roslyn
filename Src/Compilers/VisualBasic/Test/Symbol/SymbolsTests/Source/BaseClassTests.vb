@@ -866,7 +866,7 @@ BC30916: Type 'ClassB' is not supported because it either directly or indirectly
             Dim A2 = [global].GetTypeMembers("ClassA", 0).Single()
             Dim errorBase1 = TryCast(A2.BaseType, ErrorTypeSymbol)
             Dim er = errorBase1.ErrorInfo
-            Assert.Equal("error BC30916: Type 'ClassA' is not supported because it either directly or indirectly inherits from itself.", er.ToString())
+            Assert.Equal("error BC30916: Type 'ClassA' is not supported because it either directly or indirectly inherits from itself.", er.ToString(EnsureEnglishUICulture.PreferredOrNull))
 
         End Sub
 
@@ -928,7 +928,7 @@ BC30916: Type 'ClassB' is not supported because it either directly or indirectly
             Dim A2 = [global].GetTypeMembers("ClassA", 0).Single()
             Dim errorBase1 = TryCast(A2.BaseType, ErrorTypeSymbol)
             Dim er = errorBase1.ErrorInfo
-            Assert.Equal("error BC30916: Type 'ClassA' is not supported because it either directly or indirectly inherits from itself.", er.ToString())
+            Assert.Equal("error BC30916: Type 'ClassA' is not supported because it either directly or indirectly inherits from itself.", er.ToString(EnsureEnglishUICulture.PreferredOrNull))
         End Sub
 
 
@@ -971,7 +971,7 @@ BC30257: Class 'ClassB' cannot inherit from itself:
 
             Dim errorBase1 = TryCast(A_base, ErrorTypeSymbol)
             Dim er = errorBase1.ErrorInfo
-            Assert.Equal("error BC30916: Type 'ClassA' is not supported because it either directly or indirectly inherits from itself.", er.ToString())
+            Assert.Equal("error BC30916: Type 'ClassA' is not supported because it either directly or indirectly inherits from itself.", er.ToString(EnsureEnglishUICulture.PreferredOrNull))
 
             Dim ClassAv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassA.dll
             Dim Comp2 = CompilationUtils.CreateCompilationWithReferences(
@@ -1026,11 +1026,11 @@ New MetadataReference() {TestReferences.NetFx.v4_0_30319.mscorlib, ClassAv1, New
             Assert.IsType(Of PENamedTypeSymbol)(B1)
             Dim errorBase = TryCast(B_base, ErrorTypeSymbol)
             Dim er = errorBase.ErrorInfo
-            Assert.Equal("error BC30916: Type 'ClassB' is not supported because it either directly or indirectly inherits from itself.", er.ToString())
+            Assert.Equal("error BC30916: Type 'ClassB' is not supported because it either directly or indirectly inherits from itself.", er.ToString(EnsureEnglishUICulture.PreferredOrNull))
 
             Dim errorBase1 = TryCast(A_base, ErrorTypeSymbol)
             er = errorBase1.ErrorInfo
-            Assert.Equal("error BC30916: Type 'ClassA' is not supported because it either directly or indirectly inherits from itself.", er.ToString())
+            Assert.Equal("error BC30916: Type 'ClassA' is not supported because it either directly or indirectly inherits from itself.", er.ToString(EnsureEnglishUICulture.PreferredOrNull))
 
 
             Dim ClassAv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassA.dll
@@ -1102,7 +1102,7 @@ BC30257: Class 'ClassB' cannot inherit from itself:
 
             Dim errorBase1 = TryCast(A_base, ErrorTypeSymbol)
             Dim er = errorBase1.ErrorInfo
-            Assert.Equal("error BC30916: Type 'ClassA' is not supported because it either directly or indirectly inherits from itself.", er.ToString())
+            Assert.Equal("error BC30916: Type 'ClassA' is not supported because it either directly or indirectly inherits from itself.", er.ToString(EnsureEnglishUICulture.PreferredOrNull))
 
             Dim ClassAv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassA.dll
             Dim Comp2 = CompilationUtils.CreateCompilationWithReferences(

@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             return string.Format("'{0}' {1}",
                 diagnostic.Location.SourceTree.GetText().ToString(diagnostic.Location.SourceSpan),
-                diagnostic.WithLocation(Location.None).ToString());
+                DiagnosticFormatter.Instance.Format(diagnostic.WithLocation(Location.None), EnsureEnglishUICulture.PreferredOrNull));
         }
 
         public static void TestDiagnostics(IEnumerable<Diagnostic> diagnostics, params string[] diagStrings)

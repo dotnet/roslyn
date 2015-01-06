@@ -1798,7 +1798,7 @@ public sealed class ContentType
             var result = compilation.Emit(new MemoryStream(), options: new EmitOptions(outputNameOverride: "x\0x"));
             result.Diagnostics.Verify(
                 // error CS2041: Invalid output name: Name contains invalid characters.
-                Diagnostic(ErrorCode.ERR_InvalidOutputName).WithArguments("Name contains invalid characters."));
+                Diagnostic(ErrorCode.ERR_InvalidOutputName).WithArguments(CodeAnalysisResources.NameContainsInvalidCharacter));
 
             Assert.False(result.Success);
         }
@@ -2665,16 +2665,24 @@ class Viewable
             var pdb = new BrokenStream();
             pdb.BreakHow = 2;
             var result = compilation.Emit(output, pdb);
-            result.Diagnostics.Verify(
-                Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("Exception from HRESULT: 0x806D0004")
-            );
+
+            // error CS0041: Unexpected error writing debug information -- 'Exception from HRESULT: 0x806D0004'
+            var err = result.Diagnostics.Single();
+
+            Assert.Equal((int)ErrorCode.FTL_DebugEmitFailure, err.Code);
+            Assert.Equal(1, err.Arguments.Count);
+            Assert.True(((string)err.Arguments[0]).EndsWith(" HRESULT: 0x806D0004"));
 
             pdb.Dispose();
             result = compilation.Emit(output, pdb);
 
-            result.Diagnostics.Verify(
-                Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments("Exception from HRESULT: 0x806D0004")
-            );
+            // error CS0041: Unexpected error writing debug information -- 'Exception from HRESULT: 0x806D0004'
+            err = result.Diagnostics.Single();
+
+            Assert.Equal((int)ErrorCode.FTL_DebugEmitFailure, err.Code);
+            Assert.Equal(1, err.Arguments.Count);
+            Assert.True(((string)err.Arguments[0]).EndsWith(" HRESULT: 0x806D0004"));
+
         }
     }
 }

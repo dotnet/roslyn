@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis
 
             if (providerOpt == null)
             {
-                var diagnostic = GetError(keyFilePath, keyContainerName, CodeAnalysisResources.AssemblySigningNotSupported, messageProvider);
+                var diagnostic = GetError(keyFilePath, keyContainerName, new CodeAnalysisResourcesLocalizableErrorArgument(nameof(CodeAnalysisResources.AssemblySigningNotSupported)), messageProvider);
                 return new StrongNameKeys(diagnostic);
             }
 
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal static Diagnostic GetError(string keyFilePath, string keyContainerName, string message, CommonMessageProvider messageProvider)
+        internal static Diagnostic GetError(string keyFilePath, string keyContainerName, object message, CommonMessageProvider messageProvider)
         {
             if (keyContainerName != null)
             {
@@ -104,12 +104,12 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal static Diagnostic GetContainerError(CommonMessageProvider messageProvider, string name, string message)
+        internal static Diagnostic GetContainerError(CommonMessageProvider messageProvider, string name, object message)
         {
             return messageProvider.CreateDiagnostic(messageProvider.ERR_PublicKeyContainerFailure, Location.None, name, message);
         }
 
-        internal static Diagnostic GetKeyFileError(CommonMessageProvider messageProvider, string path, string message)
+        internal static Diagnostic GetKeyFileError(CommonMessageProvider messageProvider, string path, object message)
         {
             return messageProvider.CreateDiagnostic(messageProvider.ERR_PublicKeyFileFailure, Location.None, path, message);
         }

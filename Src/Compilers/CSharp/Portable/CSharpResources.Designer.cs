@@ -9216,6 +9216,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Operation caused a stack overflow..
+        /// </summary>
+        internal static string IDS_OperationCausedStackOverflow {
+            get {
+                return ResourceManager.GetString("IDS_OperationCausedStackOverflow", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &lt;path list&gt;.
         /// </summary>
         internal static string IDS_PathList {
@@ -9536,15 +9545,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string NotACSharpSymbol {
             get {
                 return ResourceManager.GetString("NotACSharpSymbol", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Operation caused a stack overflow..
-        /// </summary>
-        internal static string OperationCausedStackOverflow {
-            get {
-                return ResourceManager.GetString("OperationCausedStackOverflow", resourceCulture);
             }
         }
         

@@ -179,6 +179,7 @@ End Class
             Dim invariantStr = actual.ToString()
             invariantStr = invariantStr.Replace("-3,402823E+38", "-3.402823E+38")
             invariantStr = invariantStr.Replace("1,79769313486232E+308", "1.79769313486232E+308")
+            invariantStr = invariantStr.Replace("2,98187743664301E-266", "2.98187743664301E-266")
             invariantStr = invariantStr.Replace("value=""1,5""", "value=""1.5""")
             Dim expected = <symbols>
                                <methods>

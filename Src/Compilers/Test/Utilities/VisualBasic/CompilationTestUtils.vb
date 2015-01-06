@@ -878,7 +878,7 @@ Friend Module CompilationUtils
     ' Get the text of a diagnostic. For source error, includes the text of the line itself, with the 
     ' span underlined.
     Private Function ErrorText(e As Diagnostic) As String
-        Dim message = e.Id + ": " + e.GetMessage(CultureInfo.CurrentUICulture)
+        Dim message = e.Id + ": " + e.GetMessage(EnsureEnglishUICulture.PreferredOrNull)
         If e.Location.IsInSource Then
             Dim sourceLocation = e.Location
             Dim offsetInLine As Integer = 0
@@ -916,7 +916,7 @@ Friend Module CompilationUtils
                 ' Both have no location. Sort by code, then by message.
                 If diag1.Code < diag2.Code Then Return -1
                 If diag1.Code > diag2.Code Then Return 1
-                Return diag1.GetMessage(CultureInfo.GetCultureInfo("en")).CompareTo(diag2.GetMessage(CultureInfo.GetCultureInfo("en")))
+                Return diag1.GetMessage(EnsureEnglishUICulture.PreferredOrNull).CompareTo(diag2.GetMessage(EnsureEnglishUICulture.PreferredOrNull))
             Else
                 Return -1
             End If
@@ -935,7 +935,7 @@ Friend Module CompilationUtils
             If diag1.Code < diag2.Code Then Return -1
             If diag1.Code > diag2.Code Then Return 1
 
-            Return diag1.GetMessage(CultureInfo.GetCultureInfo("en")).CompareTo(diag2.GetMessage(CultureInfo.GetCultureInfo("en")))
+            Return diag1.GetMessage(EnsureEnglishUICulture.PreferredOrNull).CompareTo(diag2.GetMessage(EnsureEnglishUICulture.PreferredOrNull))
         ElseIf loc1.IsInMetadata AndAlso loc2.IsInMetadata Then
             ' sort by assembly name, then by error code
             Dim name1 = loc1.MetadataModule.ContainingAssembly.Name
@@ -944,7 +944,7 @@ Friend Module CompilationUtils
             If diag1.Code < diag2.Code Then Return -1
             If diag1.Code > diag2.Code Then Return 1
 
-            Return diag1.GetMessage(CultureInfo.GetCultureInfo("en")).CompareTo(diag2.GetMessage(CultureInfo.GetCultureInfo("en")))
+            Return diag1.GetMessage(EnsureEnglishUICulture.PreferredOrNull).CompareTo(diag2.GetMessage(EnsureEnglishUICulture.PreferredOrNull))
         ElseIf loc1.IsInSource Then
             Return -1
         ElseIf loc2.IsInSource Then

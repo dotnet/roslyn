@@ -138,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                                     Return newIdentifierName
                             End Select
 
-                            Return newIdentifierName.ReplaceToken(id, CreateIdentifierToken(id, String.Format(VBWorkspaceResources.NewValueText, newValueText)))
+                            Return newIdentifierName.ReplaceToken(id, CreateIdentifierToken(id, newValueText))
                         End If
                     End If
                 End If

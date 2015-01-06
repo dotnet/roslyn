@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 ".Trim();
 
             // Diagnostics are from types Diagnose and Partial.
-            TestIncluded(xml, xpath, expectedTextTemplate,
+            TestIncluded(xml, xpath, expectedTextTemplate, /*fallbackToErrorCodeOnlyForNonEnglish*/ true,
                 // ff1abe1df1d7.xml(1,11): warning CS1592: Badly formed XML in included comments file -- 'Unexpected end of file has occurred. The following elements are not closed: unclosed.'
                 Diagnostic(ErrorCode.WRN_XMLParseIncludeError).WithArguments("Unexpected end of file has occurred. The following elements are not closed: unclosed."),
                 // ff1abe1df1d7.xml(1,11): warning CS1592: Badly formed XML in included comments file -- 'Unexpected end of file has occurred. The following elements are not closed: unclosed.'
@@ -111,20 +111,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "#").WithArguments("#"),
                 // Diagnose.cs(3,12): warning CS1658: Identifier expected. See also error CS1001.
                 // <see cref='#' />
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "#").WithArguments("error CS1001: Identifier expected", "1001"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "#").WithArguments("Identifier expected", "1001"),
                 // Diagnose.cs(3,12): warning CS1658: Unexpected character '#'. See also error CS1056.
                 // <see cref='#' />
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("error CS1056: Unexpected character '#'", "1056"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("Unexpected character '#'", "1056"),
 
                 // Diagnose.cs(9,12): warning CS1584: XML comment has syntactically incorrect cref attribute '#'
                 // <see cref='#' />
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "#").WithArguments("#"),
                 // Diagnose.cs(9,12): warning CS1658: Identifier expected. See also error CS1001.
                 // <see cref='#' />
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "#").WithArguments("error CS1001: Identifier expected", "1001"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "#").WithArguments("Identifier expected", "1001"),
                 // Diagnose.cs(9,12): warning CS1658: Unexpected character '#'. See also error CS1056.
                 // <see cref='#' />
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("error CS1056: Unexpected character '#'", "1056"));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "").WithArguments("Unexpected character '#'", "1056"));
         }
 
         [Fact]
@@ -161,20 +161,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, includeElement).WithArguments("#"),
                 // ExpandIncludes.cs(2,5): warning CS1658: Identifier expected. See also error CS1001.
                 // /// <include file='d6f61c210f5e.xml' path='see' />
-                Diagnostic(ErrorCode.WRN_ErrorOverride, includeElement).WithArguments("error CS1001: Identifier expected", "1001"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, includeElement).WithArguments("Identifier expected", "1001"),
                 // ExpandIncludes.cs(2,5): warning CS1658: Unexpected character '#'. See also error CS1056.
                 // /// <include file='d6f61c210f5e.xml' path='see' />
-                Diagnostic(ErrorCode.WRN_ErrorOverride, includeElement).WithArguments("error CS1056: Unexpected character '#'", "1056"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, includeElement).WithArguments("Unexpected character '#'", "1056"),
 
                 // ExpandIncludes.cs(5,21): warning CS1584: XML comment has syntactically incorrect cref attribute '#'
                 // /// ExpandIncludes: <include file='d6f61c210f5e.xml' path='see' />
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, includeElement).WithArguments("#"),
                 // ExpandIncludes.cs(5,21): warning CS1658: Identifier expected. See also error CS1001.
                 // /// ExpandIncludes: <include file='d6f61c210f5e.xml' path='see' />
-                Diagnostic(ErrorCode.WRN_ErrorOverride, includeElement).WithArguments("error CS1001: Identifier expected", "1001"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, includeElement).WithArguments("Identifier expected", "1001"),
                 // ExpandIncludes.cs(5,21): warning CS1658: Unexpected character '#'. See also error CS1056.
                 // /// ExpandIncludes: <include file='d6f61c210f5e.xml' path='see' />
-                Diagnostic(ErrorCode.WRN_ErrorOverride, includeElement).WithArguments("error CS1056: Unexpected character '#'", "1056")
+                Diagnostic(ErrorCode.WRN_ErrorOverride, includeElement).WithArguments("Unexpected character '#'", "1056")
             });
         }
 
@@ -354,12 +354,12 @@ partial class Partial {{ }}
             Assert.Equal(expectedText, actualText);
         }
 
-        private void TestIncluded(string xml, string xpath, string expectedTextTemplate, params DiagnosticDescription[] expectedDiagnostics)
+        private void TestIncluded(string xml, string xpath, string expectedTextTemplate, bool fallbackToErrorCodeOnlyForNonEnglish, params DiagnosticDescription[] expectedDiagnostics)
         {
-            TestIncluded(xml, xpath, expectedTextTemplate, unused => expectedDiagnostics);
+            TestIncluded(xml, xpath, expectedTextTemplate, unused => expectedDiagnostics, fallbackToErrorCodeOnlyForNonEnglish);
         }
 
-        private void TestIncluded(string xml, string xpath, string expectedTextTemplate, Func<string, DiagnosticDescription[]> makeExpectedDiagnostics)
+        private void TestIncluded(string xml, string xpath, string expectedTextTemplate, Func<string, DiagnosticDescription[]> makeExpectedDiagnostics, bool fallbackToErrorCodeOnlyForNonEnglish = false)
         {
             var xmlFile = Temp.CreateFile(extension: ".xml").WriteAllText(xml);
             var xmlFilePath = xmlFile.Path;
@@ -381,7 +381,7 @@ partial class Partial {{ }}
                 options: TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default),
                 assemblyName: "Test");
 
-            comp.VerifyDiagnostics(makeExpectedDiagnostics(includeElement));
+            comp.GetDiagnostics().Verify(fallbackToErrorCodeOnlyForNonEnglish: fallbackToErrorCodeOnlyForNonEnglish, expected: makeExpectedDiagnostics(includeElement));
 
             var actualText = GetDocumentationCommentText(comp, expectedDiagnostics: null);
             var expectedText = string.Format(expectedTextTemplate, xmlFilePath);

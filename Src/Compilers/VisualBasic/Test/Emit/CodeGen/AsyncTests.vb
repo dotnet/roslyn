@@ -3096,6 +3096,8 @@ Imports System.Threading.Tasks
 
 Module Form1
     Sub Main()
+        Dim saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture
         Try
             Console.Write("0 ")
             Test(1).Wait(60000)
@@ -3104,6 +3106,8 @@ Module Form1
             Console.Write("2 ")
         Catch ex As AggregateException
             Console.Write("EXC(" + ex.InnerExceptions(0).Message + ")")
+        Finally
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
         End Try
     End Sub
 
@@ -3147,6 +3151,8 @@ Module Form1
 
     Async Function Test() As Task
         Dim b As Box(Of String) = Nothing
+        Dim saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture
         Try
             Console.Write("1 ")
             M(b.field, g(), Await t())
@@ -3154,6 +3160,8 @@ Module Form1
             Console.Write("EXC(")
             Console.Write(ex.Message)
             Console.Write(")")
+        Finally
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
         End Try
     End Function
 
@@ -3190,6 +3198,8 @@ Imports System.Threading.Tasks
 
 Module Form1
     Sub Main()
+        Dim saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture
         Try
             Console.Write("0 ")
             Test(1).Wait(60000)
@@ -3198,6 +3208,8 @@ Module Form1
             Console.Write("2 ")
         Catch ex As AggregateException
             Console.Write("EXC(" + ex.InnerExceptions(0).Message + ")")
+        Finally
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
         End Try
     End Sub
 
@@ -3244,6 +3256,8 @@ Module Form1
 
     Async Function Test() As Task
         Dim b As Box(Of String) = Nothing
+        Dim saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture
         Try
             Console.Write("1 ")
             M(b.field, g(), Await t())
@@ -3251,6 +3265,8 @@ Module Form1
             Console.Write("EXC(")
             Console.Write(ex.Message)
             Console.Write(")")
+        Finally
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
         End Try
     End Function
 
@@ -3288,6 +3304,8 @@ Imports System.Threading.Tasks
 
 Module Form1
     Sub Main()
+        Dim saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture
         Try
             Console.Write("0 ")
             Test({10, 20}, 1, 0).Wait(60000)
@@ -3296,6 +3314,8 @@ Module Form1
             Console.Write("2 ")
         Catch ex As AggregateException
             Console.Write("EXC(" + ex.InnerExceptions(0).Message + ")")
+        Finally
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
         End Try
     End Sub
 
@@ -3340,6 +3360,8 @@ Imports System.Threading.Tasks
 
 Module Form1
     Sub Main()
+        Dim saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture
         Try
             Console.Write("0 ")
             Test({10, 20}, 1, 0).Wait(60000)
@@ -3348,6 +3370,8 @@ Module Form1
             Console.Write("2 ")
         Catch ex As AggregateException
             Console.Write("EXC(" + ex.InnerExceptions(0).Message + ")")
+        Finally
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
         End Try
     End Sub
 

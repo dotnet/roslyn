@@ -143,6 +143,7 @@
     <Compile Include="EqualityUtil`1.cs" />
     <Compile Include="ErrorDiagnostics.cs" />
     <Compile Include="EventWaiter.cs" />
+    <Compile Include="EnsureEnglishUICulture.cs" />
     <Compile Include="HostedRuntimeEnvironment.cs" />
     <Compile Include="ILBuilderVisualizer.cs" />
     <Compile Include="ImmutableArrayInterop.cs" />

@@ -1042,6 +1042,21 @@ class Program
 {
     static void Main()
     {
+        System.Globalization.CultureInfo saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
+
+        try
+        {
+            Test();
+        }
+        finally
+        {
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture;
+        }
+    }
+
+    static void Test()
+    {
         S? s = null;
         int i = 0;
         foreach (object x in s)
@@ -1061,7 +1076,7 @@ struct S : IEnumerable
 }
 ";
             CompileAndVerifyException<InvalidOperationException>(source, expectedMessage: "Nullable object must have a value.").
-                VerifyIL("Program.Main", @"
+                VerifyIL("Program.Test", @"
 {
   // Code size       82 (0x52)
   .maxstack  2

@@ -1492,6 +1492,21 @@ class C
 {
     static void Main()
     {
+        System.Globalization.CultureInfo saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
+
+        try
+        {
+            Test();
+        }
+        finally
+        {
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture;
+        }
+    }
+
+    static void Test()
+    {
         int x = 0;
 
         try
@@ -1516,7 +1531,7 @@ class C
     }
 }";
         CompileAndVerify(src, expectedOutput: "TryCatch228Finally").
-            VerifyIL("C.Main", @"
+            VerifyIL("C.Test", @"
 {
   // Code size      129 (0x81)
   .maxstack  2

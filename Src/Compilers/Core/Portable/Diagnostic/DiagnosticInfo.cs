@@ -324,14 +324,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public virtual string GetMessage(IFormatProvider formatProvider = null)
         {
-            var culture = formatProvider as CultureInfo;
-            if (culture == null)
-            {
-                culture = CultureInfo.InvariantCulture;
-            }
-
             // Get the message and fill in arguments.
-            string message = messageProvider.LoadMessage(errorCode, culture);
+            string message = messageProvider.LoadMessage(errorCode, formatProvider as CultureInfo);
             if (string.IsNullOrEmpty(message))
             {
                 return string.Empty;
@@ -342,10 +336,10 @@ namespace Microsoft.CodeAnalysis
                 return message;
             }
 
-            return String.Format(formatProvider, message, GetArgumentsToUse(culture));
+            return String.Format(formatProvider, message, GetArgumentsToUse(formatProvider));
         }
 
-        private object[] GetArgumentsToUse(CultureInfo culture)
+        protected object[] GetArgumentsToUse(IFormatProvider formatProvider)
         {
             object[] argumentsToUse = null;
             for (int i = 0; i < arguments.Length; i++)
@@ -354,7 +348,7 @@ namespace Microsoft.CodeAnalysis
                 if (embedded != null)
                 {
                     argumentsToUse = InitializeArgumentListIfNeeded(argumentsToUse);
-                    argumentsToUse[i] = embedded.GetMessage(culture);
+                    argumentsToUse[i] = embedded.GetMessage(formatProvider);
                     continue;
                 }
 

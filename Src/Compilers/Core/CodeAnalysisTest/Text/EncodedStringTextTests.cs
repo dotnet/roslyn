@@ -100,13 +100,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Null(EncodedStringText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xef })));
             Assert.Null(EncodedStringText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xef, 0xbb })));
-            Assert.Equal("Unicode (UTF-8)", EncodedStringText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xef, 0xBB, 0xBF })).EncodingName);
+            Assert.Equal(Encoding.UTF8, EncodedStringText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xef, 0xBB, 0xBF })));
 
             Assert.Null(EncodedStringText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xff })));
-            Assert.Equal("Unicode", EncodedStringText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xff, 0xfe })).EncodingName);
+            Assert.Equal(Encoding.Unicode, EncodedStringText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xff, 0xfe })));
 
             Assert.Null(EncodedStringText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xfe })));
-            Assert.Equal("Unicode (Big-Endian)", EncodedStringText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xfe, 0xff })).EncodingName);
+            Assert.Equal(Encoding.BigEndianUnicode, EncodedStringText.TryReadByteOrderMark(new MemoryStream(new byte[] { 0xfe, 0xff })));
         }
 
         [Fact]

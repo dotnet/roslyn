@@ -53,7 +53,7 @@ DocumentationMode
 </members>
 </doc>
 ]]>
-</xml>)
+</xml>, ensureEnglishUICulture:=True)
 
         End Sub
 
@@ -1990,7 +1990,8 @@ AssemblyName
 </members>
 </doc>
 ]]>
-</xml>)
+</xml>,
+ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -4467,7 +4468,7 @@ AssemblyName
 </members>
 </doc>
 ]]>
-</xml>)
+</xml>, ensureEnglishUICulture:=True)
         End Sub
 
         <Fact()>
@@ -4610,7 +4611,7 @@ AssemblyName
 </members>
 </doc>
 ]]>
-</xml>, withDiagnostics:=False)
+</xml>, withDiagnostics:=False, ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -7366,7 +7367,7 @@ AssemblyName
 </doc>
 ]]>
 </xml>,
-            stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"))
+            stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
         <WorkItem(684184, "DevDiv")>
@@ -7412,7 +7413,7 @@ AssemblyName
 </doc>
 ]]>
 </xml>,
-            stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"))
+            stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -7457,7 +7458,7 @@ AssemblyName
 </doc>
 ]]>
 </xml>,
-            stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"))
+            stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -7506,7 +7507,8 @@ AssemblyName
 </doc>
 ]]>
     </xml>,
-                stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"))
+                stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"),
+                ensureEnglishUICulture:=True)
             End Using
         End Sub
 
@@ -7557,7 +7559,7 @@ AssemblyName
 </doc>
 ]]>
     </xml>,
-                stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"))
+                stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -7607,7 +7609,7 @@ AssemblyName
 </doc>
 ]]>
     </xml>,
-                stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"))
+                stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -7673,7 +7675,7 @@ AssemblyName
 </doc>
 ]]>
     </xml>,
-                stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"))
+                stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -7723,7 +7725,7 @@ AssemblyName
 </doc>
 ]]>
     </xml>,
-                stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"))
+                stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -7930,7 +7932,7 @@ AssemblyName
 </members>
 </doc>
 ]]>
-    </xml>)
+    </xml>, ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -8040,7 +8042,7 @@ AssemblyName
 </members>
 </doc>
 ]]>
-    </xml>)
+    </xml>, ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -8189,7 +8191,7 @@ AssemblyName
 </members>
 </doc>
 ]]>
-    </xml>, stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"))
+    </xml>, stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -8357,7 +8359,7 @@ AssemblyName
 </members>
 </doc>
 ]]>
-    </xml>, stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"))
+    </xml>, stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -8510,7 +8512,7 @@ AssemblyName
 </members>
 </doc>
 ]]>
-    </xml>, stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"))
+    </xml>, stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -8616,7 +8618,7 @@ AssemblyName
 </members>
 </doc>
 ]]>
-    </xml>, stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"))
+    </xml>, stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -8807,7 +8809,7 @@ AssemblyName
 </members>
 </doc>
 ]]>
-    </xml>, stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"))
+    </xml>, stringMapper:=Function(o) StringReplace(o, xmlFile.ToString(), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -10638,7 +10640,7 @@ AssemblyName
 </members>
 </doc>
 ]]>
-    </xml>)
+    </xml>, ensureEnglishUICulture:=True)
         End Sub
 
         <Fact>
@@ -12033,12 +12035,15 @@ xmlDoc)
             Return list.ToArray()
         End Function
 
-        Friend Shared Function CompileCheckDiagnosticsAndXmlDocument(sources As XElement,
-                                                                     errors As XElement,
-                                                                     Optional expectedDocXml As XElement = Nothing,
-                                                                     Optional withDiagnostics As Boolean = True,
-                                                                     Optional stringMapper As Func(Of Object, Object) = Nothing,
-                                                                     Optional additionalRefs As MetadataReference() = Nothing) As VisualBasicCompilation
+        Friend Shared Function CompileCheckDiagnosticsAndXmlDocument(
+            sources As XElement,
+            errors As XElement,
+            Optional expectedDocXml As XElement = Nothing,
+            Optional withDiagnostics As Boolean = True,
+            Optional stringMapper As Func(Of Object, Object) = Nothing,
+            Optional additionalRefs As MetadataReference() = Nothing,
+            Optional ensureEnglishUICulture As Boolean = False
+        ) As VisualBasicCompilation
 
             Dim parseOptions As VisualBasicParseOptions =
                 VisualBasicParseOptions.Default.WithDocumentationMode(
@@ -12051,7 +12056,27 @@ xmlDoc)
                                                                         TestOptions.ReleaseDll.WithXmlReferenceResolver(XmlFileResolver.Default),
                                                                         parseOptions)
             If errors IsNot Nothing Then
-                Dim diagnostics = compilation.GetDiagnostics(CompilationStage.Emit).ToArray()
+                Dim diagnostics As Diagnostic()
+                Dim saveUICulture As Globalization.CultureInfo = Nothing
+
+                If ensureEnglishUICulture Then
+                    Dim preferred = Roslyn.Test.Utilities.EnsureEnglishUICulture.PreferredOrNull
+
+                    If preferred Is Nothing Then
+                        ensureEnglishUICulture = False
+                    Else
+                        saveUICulture = Threading.Thread.CurrentThread.CurrentUICulture
+                        Threading.Thread.CurrentThread.CurrentUICulture = preferred
+                    End If
+                End If
+
+                Try
+                    diagnostics = compilation.GetDiagnostics(CompilationStage.Emit).ToArray()
+                Finally
+                    If ensureEnglishUICulture Then
+                        Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
+                    End If
+                End Try
 
                 If stringMapper IsNot Nothing Then
                     For i = 0 To diagnostics.Count - 1
@@ -12065,17 +12090,42 @@ xmlDoc)
             End If
 
             If expectedDocXml IsNot Nothing Then
-                CheckXmlDocument(compilation, expectedDocXml, stringMapper)
+                CheckXmlDocument(compilation, expectedDocXml, stringMapper, ensureEnglishUICulture)
             End If
             Return compilation
         End Function
 
-        Private Shared Sub CheckXmlDocument(compilation As VisualBasicCompilation, expectedDocXml As XElement, Optional stringMapper As Func(Of Object, Object) = Nothing)
+        Private Shared Sub CheckXmlDocument(
+            compilation As VisualBasicCompilation,
+            expectedDocXml As XElement,
+            Optional stringMapper As Func(Of Object, Object) = Nothing,
+            Optional ensureEnglishUICulture As Boolean = False
+        )
             Assert.NotNull(expectedDocXml)
 
             Using output = New MemoryStream()
                 Using xml = New MemoryStream()
-                    Dim emitResult = compilation.Emit(output, xmlDocumentationStream:=xml)
+                    Dim emitResult As CodeAnalysis.Emit.EmitResult
+                    Dim saveUICulture As Globalization.CultureInfo = Nothing
+
+                    If ensureEnglishUICulture Then
+                        Dim preferred = Roslyn.Test.Utilities.EnsureEnglishUICulture.PreferredOrNull
+
+                        If preferred Is Nothing Then
+                            ensureEnglishUICulture = False
+                        Else
+                            saveUICulture = Threading.Thread.CurrentThread.CurrentUICulture
+                            Threading.Thread.CurrentThread.CurrentUICulture = preferred
+                        End If
+                    End If
+
+                    Try
+                        emitResult = compilation.Emit(output, xmlDocumentationStream:=xml)
+                    Finally
+                        If ensureEnglishUICulture Then
+                            Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
+                        End If
+                    End Try
 
                     xml.Seek(0, SeekOrigin.Begin)
                     Dim xmlDoc = New StreamReader(xml).ReadToEnd().Trim()

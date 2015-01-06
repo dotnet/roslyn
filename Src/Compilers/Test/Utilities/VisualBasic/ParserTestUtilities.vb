@@ -528,7 +528,7 @@ Public Module VerificationHelpers
     Friend Sub AppendSyntaxErrors(errors As IEnumerable(Of Diagnostic), output As StringBuilder)
         For Each e In errors
             Dim span = e.Location.SourceSpan
-            output.AppendLine(GetErrorString(e.Code, e.GetMessage(CultureInfo.CurrentUICulture), span.Start.ToString(), span.End.ToString()))
+            output.AppendLine(GetErrorString(e.Code, e.GetMessage(EnsureEnglishUICulture.PreferredOrNull), span.Start.ToString(), span.End.ToString()))
         Next
     End Sub
 
@@ -571,7 +571,7 @@ Public Module VerificationHelpers
             Throw New ArgumentException("The 'id' attribute is required for all errors")
         End If
         Dim message = xmlError.@message
-        If message IsNot Nothing AndAlso message <> syntaxError.GetMessage(CultureInfo.GetCultureInfo("en")) Then
+        If message IsNot Nothing AndAlso message <> syntaxError.GetMessage(EnsureEnglishUICulture.PreferredOrNull) Then
             areEquivalent = False
         End If
 

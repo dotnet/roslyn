@@ -66,7 +66,7 @@ public class Test
             options: TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()));
 
         c.VerifyDiagnostics(
-            Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments("MyKey.snk", "File not found."));
+            Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments("MyKey.snk", CodeAnalysisResources.FileNotFound));
     }
 
     [Fact]
@@ -203,7 +203,7 @@ public class Test
 
         comp.VerifyDiagnostics(
             // error CS7027: Error extracting public key from file 'KeyPairFile.snk' -- File not found.
-            Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments(keyFileName, "File not found."));
+            Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments(keyFileName, CodeAnalysisResources.FileNotFound));
         
         Assert.True(comp.Assembly.Identity.PublicKey.IsEmpty);
 
@@ -243,7 +243,7 @@ public class Test
 
         comp.VerifyDiagnostics(
             // error CS7027: Error extracting public key from file 'PublicKeyFile.snk' -- File not found.
-            Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments(publicKeyFileName, "File not found."),
+            Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments(publicKeyFileName, CodeAnalysisResources.FileNotFound),
             // warning CS7033: Delay signing was specified and requires a public key, but no public key was specified
             Diagnostic(ErrorCode.WRN_DelaySignButNoKey)
         );
@@ -268,7 +268,7 @@ public class Test
             options: TestOptions.ReleaseDll.WithCryptoKeyFile("foo").WithStrongNameProvider(DefaultProvider));
 
         other.VerifyDiagnostics(
-            Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments("foo", "File not found."));
+            Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments("foo", CodeAnalysisResources.FileNotFound));
 
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty);
     }
@@ -293,7 +293,14 @@ public class Test
         var other = CreateCompilationWithMscorlib(s, 
             options: TestOptions.ReleaseDll.WithCryptoKeyContainer("foo").WithStrongNameProvider(DefaultProvider));
 
-        other.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_PublicKeyContainerFailure, arguments: new object[] { "foo", "Keyset does not exist (Exception from HRESULT: 0x80090016)" }));
+        // error CS7028: Error signing output with public key from container 'foo' -- Keyset does not exist (Exception from HRESULT: 0x80090016)
+        var err = other.GetDiagnostics().Single();
+
+        Assert.Equal((int)ErrorCode.ERR_PublicKeyContainerFailure, err.Code);
+        Assert.Equal(2, err.Arguments.Count);
+        Assert.Equal("foo", err.Arguments[0]);
+        Assert.True(((string)err.Arguments[1]).EndsWith(" HRESULT: 0x80090016)"));
+
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty);
     }
 
@@ -822,7 +829,14 @@ public class Z
         s = @"class D {}";
 
         other = CreateCompilationWithMscorlib(s, new[] { reference }, TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
-        other.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_PublicKeyContainerFailure).WithArguments("bogus", "Keyset does not exist (Exception from HRESULT: 0x80090016)"));
+
+        // error CS7028: Error signing output with public key from container 'bogus' -- Keyset does not exist (Exception from HRESULT: 0x80090016)
+        var err = other.GetDiagnostics().Single();
+
+        Assert.Equal((int)ErrorCode.ERR_PublicKeyContainerFailure, err.Code);
+        Assert.Equal(2, err.Arguments.Count);
+        Assert.Equal("bogus", err.Arguments[0]);
+        Assert.True(((string)err.Arguments[1]).EndsWith(" HRESULT: 0x80090016)"));
     }
 
     [Fact]
@@ -838,7 +852,7 @@ public class Z
         s = @"class D {}";
 
         other = CreateCompilationWithMscorlib(s, new[] { reference }, TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
-        other.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments("bogus", "File not found."));
+        other.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments("bogus", CodeAnalysisResources.FileNotFound));
     }
 
     [WorkItem(531195, "DevDiv")]

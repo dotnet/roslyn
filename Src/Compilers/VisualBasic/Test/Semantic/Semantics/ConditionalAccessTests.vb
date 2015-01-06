@@ -1621,10 +1621,17 @@ Module Module1
 
     Sub Test4(x As Object)
         System.Console.WriteLine("Test4")
+        Dim saveCulture = System.Threading.Thread.CurrentThread.CurrentCulture
+        Dim saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture
+        System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture
         Try
             x?.P2(0)
         Catch e As System.Exception
             System.Console.WriteLine(e.Message)
+        Finally
+            System.Threading.Thread.CurrentThread.CurrentCulture = saveCulture
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
         End Try
     End Sub
 

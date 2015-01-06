@@ -345,6 +345,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 End If
                             End If
                             Continue For
+
+                        Case "preferreduilang"
+                            If (String.IsNullOrEmpty(value)) Then
+                                AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<string>")
+                                Continue For
+                            End If
+
+                            Try
+                                preferredUILang = New CultureInfo(value)
+                            Catch ex As CultureNotFoundException
+                                AddDiagnostic(diagnostics, ERRID.WRN_BadUILang, value)
+                            End Try
+                            Continue For
 #If DEBUG Then
                         Case "attachdebugger"
                             Debugger.Launch()
@@ -936,19 +949,6 @@ lVbRuntimePlus:
 
                                 Continue For
 
-                            Case "preferreduilang"
-                                If (String.IsNullOrEmpty(value)) Then
-                                    AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<string>")
-                                    Continue For
-                                End If
-
-                                Try
-                                    preferredUILang = New CultureInfo(value)
-                                Catch ex As CultureNotFoundException
-                                    AddDiagnostic(diagnostics, ERRID.WRN_BadUILang, value)
-                                End Try
-                                Continue For
-
                             Case "filealign"
                                 fileAlignment = ParseFileAlignment(name, value, diagnostics)
                                 Continue For
@@ -1512,7 +1512,7 @@ lVbRuntimePlus:
                             diagnosticBuilder.Add(
                                 New DiagnosticWithInfo(
                                     ErrorFactory.ErrorInfo(ERRID.ERR_ProjectCCError1,
-                                        ErrorFactory.ErrorInfo(ERRID.ERR_ExpectedEOS).GetMessage,
+                                        ErrorFactory.ErrorInfo(ERRID.ERR_ExpectedEOS),
                                         parsedTokensAsString.ToString),
                                     Location.None))
 
@@ -1536,7 +1536,7 @@ lVbRuntimePlus:
                                 diagnosticBuilder.Add(
                                     New DiagnosticWithInfo(
                                         ErrorFactory.ErrorInfo(ERRID.ERR_ProjectCCError1,
-                                            ErrorFactory.ErrorInfo(ERRID.ERR_ExpectedIdentifier).GetMessage,
+                                            ErrorFactory.ErrorInfo(ERRID.ERR_ExpectedIdentifier),
                                             parsedTokensAsString.ToString),
                                         Location.None))
                             End If
@@ -1565,7 +1565,7 @@ lVbRuntimePlus:
                                     diagnosticBuilder.Add(
                                         New DiagnosticWithInfo(
                                             ErrorFactory.ErrorInfo(ERRID.ERR_ProjectCCError1,
-                                            ErrorFactory.ErrorInfo(ERRID.ERR_ExpectedIdentifier).GetMessage,
+                                            ErrorFactory.ErrorInfo(ERRID.ERR_ExpectedIdentifier),
                                             parsedTokensAsString.ToString),
                                         Location.None))
                                 End If
@@ -1582,7 +1582,7 @@ lVbRuntimePlus:
                             diagnosticBuilder.Add(
                                 New DiagnosticWithInfo(
                                     ErrorFactory.ErrorInfo(ERRID.ERR_ProjectCCError1,
-                                        ErrorFactory.ErrorInfo(ERRID.ERR_ExpectedIdentifier).GetMessage,
+                                        ErrorFactory.ErrorInfo(ERRID.ERR_ExpectedIdentifier),
                                         parsedTokensAsString.ToString),
                                     Location.None))
                             Exit Do
@@ -1636,7 +1636,7 @@ lVbRuntimePlus:
                                 Dim errorSkipped As Boolean = False
                                 For Each diag In expression.VbGreen.GetSyntaxErrors
                                     If diag.Code <> ERRID.ERR_ExpectedExpression AndAlso diag.Code <> ERRID.ERR_BadCCExpression Then
-                                        diagnosticBuilder.Add(New DiagnosticWithInfo(ErrorFactory.ErrorInfo(ERRID.ERR_ProjectCCError1, diag.GetMessage(), parsedTokensAsString.ToString), Location.None))
+                                        diagnosticBuilder.Add(New DiagnosticWithInfo(ErrorFactory.ErrorInfo(ERRID.ERR_ProjectCCError1, diag, parsedTokensAsString.ToString), Location.None))
                                     Else
                                         errorSkipped = True
                                     End If
@@ -1646,7 +1646,7 @@ lVbRuntimePlus:
                                     diagnosticBuilder.Add(
                                         New DiagnosticWithInfo(
                                             ErrorFactory.ErrorInfo(ERRID.ERR_ProjectCCError1,
-                                                ErrorFactory.ErrorInfo(If(atTheEndOrSeparator, ERRID.ERR_ExpectedExpression, ERRID.ERR_BadCCExpression)).GetMessage(),
+                                                ErrorFactory.ErrorInfo(If(atTheEndOrSeparator, ERRID.ERR_ExpectedExpression, ERRID.ERR_BadCCExpression)),
                                                 parsedTokensAsString.ToString),
                                             Location.None))
                                 End If
@@ -1667,7 +1667,7 @@ lVbRuntimePlus:
                                 diagnosticBuilder.Add(
                                     New DiagnosticWithInfo(
                                         ErrorFactory.ErrorInfo(ERRID.ERR_ProjectCCError1,
-                                            ErrorFactory.ErrorInfo(err, value.ErrorArgs).GetMessage(),
+                                            ErrorFactory.ErrorInfo(err, value.ErrorArgs),
                                             parsedTokensAsString.ToString),
                                         Location.None))
                                 Exit Do
@@ -1695,7 +1695,7 @@ lVbRuntimePlus:
                             diagnosticBuilder.Add(
                                 New DiagnosticWithInfo(
                                     ErrorFactory.ErrorInfo(ERRID.ERR_ProjectCCError1,
-                                        ErrorFactory.ErrorInfo(ERRID.ERR_IllegalChar).GetMessage,
+                                        ErrorFactory.ErrorInfo(ERRID.ERR_IllegalChar),
                                         parsedTokensAsString.ToString),
                                     Location.None))
                             Exit Do
@@ -1705,7 +1705,7 @@ lVbRuntimePlus:
                             diagnosticBuilder.Add(
                                 New DiagnosticWithInfo(
                                     ErrorFactory.ErrorInfo(ERRID.ERR_ProjectCCError1,
-                                        ErrorFactory.ErrorInfo(ERRID.ERR_ExpectedEOS).GetMessage,
+                                        ErrorFactory.ErrorInfo(ERRID.ERR_ExpectedEOS),
                                         parsedTokensAsString.ToString),
                                     Location.None))
                             Exit Do

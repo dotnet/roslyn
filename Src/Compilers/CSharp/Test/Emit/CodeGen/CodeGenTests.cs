@@ -1849,7 +1849,17 @@ public class D
 
     public static void Main()
     {
-        System.Console.Write(M());
+        System.Globalization.CultureInfo saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
+
+        try
+        {
+            System.Console.Write(M());
+        }
+        finally
+        {
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture;
+        }
     }
 }
 ";
@@ -1886,7 +1896,17 @@ public class D
 
     public static void Main()
     {
-        System.Console.Write(M());
+        System.Globalization.CultureInfo saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
+
+        try
+        {
+            System.Console.Write(M());
+        }
+        finally
+        {
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture;
+        }
     }
 }
 ";
@@ -10156,9 +10176,18 @@ using System.Threading;
 public class MyClass {
     public static void Main()
     {
-        Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
-        decimal d = 1.00m;
-        Console.WriteLine((d).ToString());
+        System.Globalization.CultureInfo saveCulture = System.Threading.Thread.CurrentThread.CurrentCulture;
+        System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
+
+        try
+        {
+            decimal d = 1.00m;
+            Console.WriteLine((d).ToString());
+        }
+        finally
+        {
+            System.Threading.Thread.CurrentThread.CurrentCulture = saveCulture;
+        }
     }
 }
 ";
@@ -12942,6 +12971,21 @@ class D : C, IFoo
     {
         static void Main()
         {
+            System.Globalization.CultureInfo saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+            System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
+
+            try
+            {
+                Run();
+            }
+            finally
+            {
+                System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture;
+            }
+        }
+
+        static void Run()
+        {
             // no element inits
             bool[] arrB1 = new bool[] {false, false, false};
             System.Console.WriteLine(arrB1[0]);
@@ -12970,7 +13014,7 @@ True
 System.Exception: Exception of type 'System.Exception' was thrown.
 True");
 
-            compilation.VerifyIL("Test.Main",
+            compilation.VerifyIL("Test.Run",
 @"{
   // Code size       89 (0x59)
   .maxstack  4

@@ -659,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((attributeTarget & attributeUsageInfo.ValidTargets) == 0)
             {
                 // generate error
-                diagnostics.Add(ErrorCode.ERR_AttributeOnBadSymbolType, node.Name.Location, node.Name, attributeUsageInfo.GetValidTargetsString());
+                diagnostics.Add(ErrorCode.ERR_AttributeOnBadSymbolType, node.Name.Location, node.Name, attributeUsageInfo.GetValidTargetsErrorArgument());
                 return false;
             }
 

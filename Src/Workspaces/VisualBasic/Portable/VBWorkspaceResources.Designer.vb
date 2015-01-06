@@ -305,15 +305,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to {0}.
-        '''</summary>
-        Friend ReadOnly Property NewValueText() As String
-            Get
-                Return ResourceManager.GetString("NewValueText", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Node does not descend from root..
         '''</summary>
         Friend ReadOnly Property NodeDoesNotDescendFromRoot() As String

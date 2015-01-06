@@ -4634,9 +4634,19 @@ unsafe class C
 {
     static void Main()
     {
-        int*[] api = new int*[1];
-        System.Array a = api;
-        a.GetValue(0);
+        System.Globalization.CultureInfo saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
+
+        try
+        {
+            int*[] api = new int*[1];
+            System.Array a = api;
+            a.GetValue(0);
+        }
+        finally
+        {
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture;
+        }
     }
 }
 ";
@@ -4693,11 +4703,21 @@ unsafe class C
 {
     static void Main()
     {
-        int*[] api = new int*[1];
-        System.Collections.IEnumerable e = api;
-        var enumerator = e.GetEnumerator();
-        enumerator.MoveNext();
-        var current = enumerator.Current;
+        System.Globalization.CultureInfo saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
+
+        try
+        {
+            int*[] api = new int*[1];
+            System.Collections.IEnumerable e = api;
+            var enumerator = e.GetEnumerator();
+            enumerator.MoveNext();
+            var current = enumerator.Current;
+        }
+        finally
+        {
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture;
+        }
     }
 }
 ";
@@ -4880,14 +4900,24 @@ unsafe class C
 {
     static void Main()
     {
-        int*[] array = new []
+        System.Globalization.CultureInfo saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
+
+        try
         {
-            (int*)1,
-            (int*)2,
-        };
-        foreach (var element in (IEnumerable)array)
+            int*[] array = new []
+            {
+                (int*)1,
+                (int*)2,
+            };
+            foreach (var element in (IEnumerable)array)
+            {
+                Console.Write((int)element);
+            }
+        }
+        finally
         {
-            Console.Write((int)element);
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture;
         }
     }
 }

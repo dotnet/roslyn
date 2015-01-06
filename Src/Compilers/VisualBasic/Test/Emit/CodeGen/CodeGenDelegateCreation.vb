@@ -2045,7 +2045,11 @@ Derived
     ]]>)
 
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe.WithOptionStrict(OptionStrict.Custom)).
-                VerifyDiagnostics(Diagnostic(ERRID.WRN_ImplicitConversionSubst1, "AddressOf foo").WithArguments("warning BC42350: Implicit conversion from 'Base' to 'Derived'."))
+                AssertTheseDiagnostics(<expected>
+BC42016: Implicit conversion from 'Base' to 'Derived'.
+        Dim x1 As new MyDelegate(AddressOf foo)
+                                 ~~~~~~~~~~~~~
+                                       </expected>)
         End Sub
 
         <Fact>

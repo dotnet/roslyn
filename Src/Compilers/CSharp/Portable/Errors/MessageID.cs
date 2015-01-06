@@ -109,6 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IDS_FeatureUsingStatic = MessageBase + 12701,
         IDS_FeatureInterpolatedStrings = MessageBase + 12702,
+        IDS_OperationCausedStackOverflow = MessageBase + 12703,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -120,6 +121,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal LocalizableErrorArgument(MessageID id)
         {
             this.id = id;
+        }
+
+        public override string ToString()
+        {
+            return ToString(null, null);
         }
 
         public string ToString(string format, IFormatProvider formatProvider)

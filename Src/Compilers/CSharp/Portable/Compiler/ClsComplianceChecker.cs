@@ -297,7 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (TryGetAttributeWarningLocation(attribute, out attributeLocation))
                     {
                         AttributeUsageInfo attributeUsage = attribute.AttributeClass.GetAttributeUsageInfo();
-                        this.AddDiagnostic(ErrorCode.ERR_AttributeNotOnAccessor, attributeLocation, attribute.AttributeClass.Name, attributeUsage.GetValidTargetsString());
+                        this.AddDiagnostic(ErrorCode.ERR_AttributeNotOnAccessor, attributeLocation, attribute.AttributeClass.Name, attributeUsage.GetValidTargetsErrorArgument());
                         break;
                     }
                 }

@@ -477,13 +477,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Dim resolver = _compilation.Options.XmlReferenceResolver
                         If resolver Is Nothing Then
-                            commentMessage = GenerateDiagnostic(True, location, ERRID.WRN_XMLDocBadFormedXML, filePathValue, xpathValue, CodeAnalysisResources.XmlReferencesNotSupported)
+                            commentMessage = GenerateDiagnostic(True, location, ERRID.WRN_XMLDocBadFormedXML, filePathValue, xpathValue, New CodeAnalysisResourcesLocalizableErrorArgument(NameOf(CodeAnalysisResources.XmlReferencesNotSupported)))
                             Return New XNode() {New XComment(commentMessage)}
                         End If
 
                         Dim resolvedFilePath As String = resolver.ResolveReference(filePathValue, currentXmlFilePath)
                         If resolvedFilePath Is Nothing Then
-                            commentMessage = GenerateDiagnostic(True, location, ERRID.WRN_XMLDocBadFormedXML, filePathValue, xpathValue, CodeAnalysisResources.FileNotFound)
+                            commentMessage = GenerateDiagnostic(True, location, ERRID.WRN_XMLDocBadFormedXML, filePathValue, xpathValue, New CodeAnalysisResourcesLocalizableErrorArgument(NameOf(CodeAnalysisResources.FileNotFound)))
                             Return New XNode() {New XComment(commentMessage)}
                         End If
 

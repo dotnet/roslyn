@@ -78,7 +78,7 @@ class C4 : C1 {}
             var er = x_base_base.ErrorInfo;
 
             Assert.Equal("error CS0268: Imported type 'C2' is invalid. It contains a circular base class dependency.", 
-                er.ToString());
+                er.ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
         [WorkItem(538506, "DevDiv")]
@@ -105,7 +105,7 @@ class A<T>
             var er = x_base.ErrorInfo;
 
             Assert.Equal("error CS0146: Circular base class dependency involving 'A<A<T>.E>.E' and 'A<T>.E'",
-                er.ToString());
+                er.ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
         [WorkItem(538526, "DevDiv")]
@@ -134,7 +134,7 @@ class B {
             var er = x_base.ErrorInfo;
 
             Assert.Equal("error CS0146: Circular base class dependency involving 'A<int>.C' and 'B.D'",
-                er.ToString());
+                er.ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
         [WorkItem(4169, "DevDiv_Projects/Roslyn")]
@@ -891,7 +891,7 @@ interface I4 : I1 {}
             var er = x_base_base.ErrorInfo;
 
             Assert.Equal("error CS0268: Imported type 'I2' is invalid. It contains a circular base class dependency.",
-                er.ToString());
+                er.ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
 
@@ -936,7 +936,7 @@ public class ClassC : ClassB {}
             var er = errorBase.ErrorInfo;
 
             Assert.Equal("error CS0268: Imported type 'ClassA' is invalid. It contains a circular base class dependency.",
-                er.ToString());
+                er.ToString(EnsureEnglishUICulture.PreferredOrNull));
 
             var A2 = global.GetTypeMembers("ClassA", 0).Single();
 
@@ -944,7 +944,7 @@ public class ClassC : ClassB {}
             er = errorBase1.ErrorInfo;
 
             Assert.Equal("error CS0268: Imported type 'ClassB' is invalid. It contains a circular base class dependency.",
-                er.ToString());
+                er.ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
 
@@ -998,7 +998,7 @@ public class ClassC : ClassB {}
             var er = errorBase.ErrorInfo;
 
             Assert.Equal("error CS0268: Imported type 'ClassA' is invalid. It contains a circular base class dependency.",
-                er.ToString());
+                er.ToString(EnsureEnglishUICulture.PreferredOrNull));
 
             var A2 = global.GetTypeMembers("ClassA", 0).Single();
 
@@ -1006,7 +1006,7 @@ public class ClassC : ClassB {}
             er = errorBase1.ErrorInfo;
 
             Assert.Equal("error CS0268: Imported type 'ClassB' is invalid. It contains a circular base class dependency.",
-                er.ToString());
+                er.ToString(EnsureEnglishUICulture.PreferredOrNull));
         }
 
 
@@ -1034,13 +1034,13 @@ public class ClassB : ClassA {}
             var er = errorBase.ErrorInfo;
 
             Assert.Equal("error CS0146: Circular base class dependency involving 'ClassA' and 'ClassB'",
-                er.ToString());
+                er.ToString(EnsureEnglishUICulture.PreferredOrNull));
 
             var errorBase1 = A_base as ErrorTypeSymbol;
             er = errorBase1.ErrorInfo;
 
             Assert.Equal("error CS0268: Imported type 'ClassB' is invalid. It contains a circular base class dependency.",
-                er.ToString());
+                er.ToString(EnsureEnglishUICulture.PreferredOrNull));
 
             var ClassAv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassA.dll;
             text =
@@ -1092,13 +1092,13 @@ public class ClassC : ClassB {}
             var er = errorBase.ErrorInfo;
 
             Assert.Equal("error CS0268: Imported type 'ClassA' is invalid. It contains a circular base class dependency.",
-                er.ToString());
+                er.ToString(EnsureEnglishUICulture.PreferredOrNull));
 
             var errorBase1 = A_base as ErrorTypeSymbol;
             er = errorBase1.ErrorInfo;
 
             Assert.Equal("error CS0268: Imported type 'ClassB' is invalid. It contains a circular base class dependency.",
-                er.ToString());
+                er.ToString(EnsureEnglishUICulture.PreferredOrNull));
 
             var ClassAv1 = TestReferences.SymbolsTests.RetargetingCycle.V1.ClassA.dll;
             text =

@@ -4001,7 +4001,7 @@ End Module
                             testData:=New CompilationTestData With {.SymWriterFactory = Function() New MockSymUnmanagedWriter()})
 
                 diff1.EmitResult.Diagnostics.Verify(
-                    Diagnostic(ERRID.ERR_PDBWritingFailed).WithArguments("The method or operation is not implemented."))
+                    Diagnostic(ERRID.ERR_PDBWritingFailed).WithArguments(New NotImplementedException().Message))
 
                 Assert.False(diff1.EmitResult.Success)
             End Using

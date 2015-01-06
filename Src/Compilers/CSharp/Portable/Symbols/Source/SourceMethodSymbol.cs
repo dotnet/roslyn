@@ -1135,7 +1135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // CS1667: Attribute '{0}' is not valid on property or event accessors. It is only valid on '{1}' declarations.
                     AttributeUsageInfo attributeUsage = arguments.Attribute.AttributeClass.GetAttributeUsageInfo();
-                    arguments.Diagnostics.Add(ErrorCode.ERR_AttributeNotOnAccessor, arguments.AttributeSyntaxOpt.Name.Location, description.FullName, attributeUsage.GetValidTargetsString());
+                    arguments.Diagnostics.Add(ErrorCode.ERR_AttributeNotOnAccessor, arguments.AttributeSyntaxOpt.Name.Location, description.FullName, attributeUsage.GetValidTargetsErrorArgument());
                 }
 
                 return true;
@@ -1152,7 +1152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // CS1667: Attribute '{0}' is not valid on property or event accessors. It is only valid on '{1}' declarations.
                 AttributeUsageInfo attributeUsage = attribute.AttributeClass.GetAttributeUsageInfo();
-                diagnostics.Add(ErrorCode.ERR_AttributeNotOnAccessor, node.Name.Location, node.GetErrorDisplayName(), attributeUsage.GetValidTargetsString());
+                diagnostics.Add(ErrorCode.ERR_AttributeNotOnAccessor, node.Name.Location, node.GetErrorDisplayName(), attributeUsage.GetValidTargetsErrorArgument());
             }
             else if (this.ContainingType.IsInterfaceType())
             {

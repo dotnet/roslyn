@@ -354,12 +354,19 @@ C2]]>)
     End Class]]>,
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
                 referencedCompilations:={vb1Compilation, cs1Compilation, vb2Compilation})
-            vb3Compilation.VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_BadOverrideAccess2, "foo").WithArguments("Public Overrides Sub foo()", "Friend Overridable Overloads Sub foo()"),
-                Diagnostic(ERRID.ERR_BaseOnlyClassesMustBeExplicit2, "C5").WithArguments("C5", <![CDATA[error BC0000: 
-    C1: Public MustOverride Sub foo()]]>.Value.Replace(vbLf, vbCrLf)),
-                Diagnostic(ERRID.ERR_BaseOnlyClassesMustBeExplicit2, "C6").WithArguments("C6", <![CDATA[error BC0000: 
-    C1: Public MustOverride Sub foo()]]>.Value.Replace(vbLf, vbCrLf)))
+            vb3Compilation.AssertTheseDiagnostics(<expected>
+BC30610: Class 'C5' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
+    C1: Public MustOverride Sub foo().
+    Public Class C5 : Inherits C2
+                 ~~
+BC30266: 'Public Overrides Sub foo()' cannot override 'Friend Overridable Overloads Sub foo()' because they have different access levels.
+        Public Overrides Sub foo()
+                             ~~~
+BC30610: Class 'C6' must either be declared 'MustInherit' or override the following inherited 'MustOverride' member(s): 
+    C1: Public MustOverride Sub foo().
+    Public Class C6 : Inherits C2
+                 ~~
+                                                  </expected>)
         End Sub
 
         <WorkItem(543794, "DevDiv")>

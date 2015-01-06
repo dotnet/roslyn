@@ -1996,7 +1996,7 @@ public class Test
             var parsedTree = ParseWithRoundTripCheck(test);
             var error = parsedTree.GetDiagnostics().Single();
             Assert.Equal((int)ErrorCode.ERR_ErrorDirective, error.Code);
-            Assert.Equal("error CS1029: #error: '\u0444\u0430\u0439\u043B'", CSharpDiagnosticFormatter.Instance.Format(error.WithLocation(Location.None)));
+            Assert.Equal("error CS1029: #error: '\u0444\u0430\u0439\u043B'", CSharpDiagnosticFormatter.Instance.Format(error.WithLocation(Location.None), EnsureEnglishUICulture.PreferredOrNull));
         }
 
         [Fact(), WorkItem(526991, "DevDiv")]
@@ -4577,7 +4577,7 @@ class C
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "C{T}").WithArguments("C{T}"),
                 // (2,17): warning CS1658: Feature 'generics' is not available in C# 1.  Please use language version 2 or greater.. See also error CS8022.
                 // /// <see cref='C{T}'/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "{").WithArguments("error CS8022: Feature 'generics' is not available in C# 1.  Please use language version 2 or greater.", "8022"));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "{").WithArguments("Feature 'generics' is not available in C# 1.  Please use language version 2 or greater.", "8022"));
         }
 
         [Fact]
@@ -4596,13 +4596,13 @@ class C { }
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "Alias::Foo").WithArguments("Alias::Foo"),
                 // (2,16): warning CS1658: Feature 'namespace alias qualifier' is not available in C# 1.  Please use language version 2 or greater.. See also error CS8022.
                 // /// <see cref='Alias::Foo'/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "Alias").WithArguments("error CS8022: Feature 'namespace alias qualifier' is not available in C# 1.  Please use language version 2 or greater.", "8022"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "Alias").WithArguments("Feature 'namespace alias qualifier' is not available in C# 1.  Please use language version 2 or greater.", "8022"),
                 // (3,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'global::Foo'
                 // /// <see cref='global::Foo'/>
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "global::Foo").WithArguments("global::Foo"),
                 // (3,16): warning CS1658: Feature 'namespace alias qualifier' is not available in C# 1.  Please use language version 2 or greater.. See also error CS8022.
                 // /// <see cref='global::Foo'/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "global").WithArguments("error CS8022: Feature 'namespace alias qualifier' is not available in C# 1.  Please use language version 2 or greater.", "8022"));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "global").WithArguments("Feature 'namespace alias qualifier' is not available in C# 1.  Please use language version 2 or greater.", "8022"));
         }
 
         [Fact]

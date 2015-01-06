@@ -60,12 +60,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (Arguments.CompilationOptions.ConcurrentBuild)
             {
+                int threadId = Thread.CurrentThread.ManagedThreadId;
+                System.Globalization.CultureInfo uiCulture = Thread.CurrentThread.CurrentUICulture;
+
                 Parallel.For(0, sourceFiles.Length, i =>
                 {
-                    var file = sourceFiles[i];
+                    var currentThread = Thread.CurrentThread;
+                    var currentThreadId = currentThread.ManagedThreadId;
+                    System.Globalization.CultureInfo saveUICulture = null;
+                    if (currentThreadId != threadId)
+                    {
+                        // New threads created by Parallel.For do not inherit CurrentUICulture by default.
+                        saveUICulture = currentThread.CurrentUICulture;
+                        currentThread.CurrentUICulture = uiCulture;
+                    }
 
-                    //NOTE: order of trees is important!!
-                    trees[i] = ParseFile(consoleOutput, parseOptions, scriptParseOptions, ref hadErrors, file, out normalizedFilePaths[i]);
+                    try
+                    {
+                        var file = sourceFiles[i];
+
+                        //NOTE: order of trees is important!!
+                        trees[i] = ParseFile(consoleOutput, parseOptions, scriptParseOptions, ref hadErrors, file, out normalizedFilePaths[i]);
+                    }
+                    finally
+                    {
+                        if (currentThreadId != threadId)
+                        {
+                            currentThread.CurrentUICulture = saveUICulture;
+                        }
+                    }
                 });
             }
             else

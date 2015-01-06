@@ -60,6 +60,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>CodeAnalysisResources.resx</DependentUpon>
     </Compile>
+    <Compile Include="CodeAnalysisResourcesLocalizableErrorArgument.cs" />
     <Compile Include="CodeGen\ArrayMembers.cs" />
     <Compile Include="CodeGen\BasicBlock.cs" />
     <Compile Include="CodeGen\CompilationTestData.cs" />

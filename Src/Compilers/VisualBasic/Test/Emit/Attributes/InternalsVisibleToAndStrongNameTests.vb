@@ -67,7 +67,7 @@ Public Class InternalsVisibleToAndStrongNameTests
         ' verify failure with default assembly key file resolver
         Dim comp = CreateCompilationWithMscorlib({syntaxTree}, compOptions:=TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
         comp.VerifyDiagnostics(
-            Diagnostic(ERRID.ERR_PublicKeyFileFailure).WithArguments(keyFileName, "File not found."))
+            Diagnostic(ERRID.ERR_PublicKeyFileFailure).WithArguments(keyFileName, CodeAnalysisResources.FileNotFound))
 
         Assert.True(comp.Assembly.Identity.PublicKey.IsEmpty)
 
@@ -96,7 +96,7 @@ Public Class InternalsVisibleToAndStrongNameTests
         ' verify failure with default assembly key file resolver
         Dim comp As Compilation = CreateCompilationWithMscorlib({syntaxTree}, compOptions:=TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
         comp.VerifyDiagnostics(
-            Diagnostic(ERRID.ERR_PublicKeyFileFailure).WithArguments("..\" & keyFileName, "File not found."))
+            Diagnostic(ERRID.ERR_PublicKeyFileFailure).WithArguments("..\" & keyFileName, CodeAnalysisResources.FileNotFound))
 
         Assert.True(comp.Assembly.Identity.PublicKey.IsEmpty)
 
@@ -169,7 +169,7 @@ End Class
             options:=TestOptions.ReleaseDll.WithCryptoKeyFile(keyFileName).WithStrongNameProvider(DefaultProvider))
 
         comp.VerifyDiagnostics(
-            Diagnostic(ERRID.ERR_PublicKeyFileFailure).WithArguments(keyFileName, "File not found."))
+            Diagnostic(ERRID.ERR_PublicKeyFileFailure).WithArguments(keyFileName, CodeAnalysisResources.FileNotFound))
 
         Assert.True(comp.Assembly.Identity.PublicKey.IsEmpty)
 
@@ -227,7 +227,7 @@ End Class
         ' error CS7027: Error extracting public key from file 'PublicKeyFile.snk' -- File not found.
         ' warning CS7033: Delay signing was specified and requires a public key, but no public key was specified
         comp.VerifyDiagnostics(
-            Diagnostic(ERRID.ERR_PublicKeyFileFailure).WithArguments(publicKeyFileName, "File not found."),
+            Diagnostic(ERRID.ERR_PublicKeyFileFailure).WithArguments(publicKeyFileName, CodeAnalysisResources.FileNotFound),
             Diagnostic(ERRID.WRN_DelaySignButNoKey))
         Assert.True(comp.Assembly.Identity.PublicKey.IsEmpty)
 
@@ -258,8 +258,8 @@ End Class
 
         CompilationUtils.AssertTheseDeclarationDiagnostics(other,
             <errors>
-BC36980: Error extracting public key from file 'foo': File not found.                    
-                </errors>)
+BC36980: Error extracting public key from file 'foo': <%= CodeAnalysisResources.FileNotFound %>
+            </errors>)
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty)
     End Sub
 
@@ -317,7 +317,7 @@ End Class
         options:=TestOptions.ReleaseDll.WithCryptoKeyFile(tmp.Path).WithStrongNameProvider(New DesktopStrongNameProvider()))
 
         other.VerifyDiagnostics(
-            Diagnostic(ERRID.ERR_PublicKeyFileFailure).WithArguments(tmp.Path, "Value does not fall within the expected range."))
+            Diagnostic(ERRID.ERR_PublicKeyFileFailure).WithArguments(tmp.Path, New ArgumentException().Message))
 
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty)
     End Sub
@@ -335,10 +335,17 @@ End Class
     </file>
 </compilation>, options:=TestOptions.ReleaseExe.WithCryptoKeyContainer("foo").WithStrongNameProvider(DefaultProvider))
 
-        CompilationUtils.AssertTheseDeclarationDiagnostics(other,
-            <errors>
-BC36981: Error extracting public key from container 'foo': Keyset does not exist (Exception from HRESULT: 0x80090016)                    
-                </errors>)
+        '        CompilationUtils.AssertTheseDeclarationDiagnostics(other,
+        '            <errors>
+        'BC36981: Error extracting public key from container 'foo': Keyset does not exist (Exception from HRESULT: 0x80090016)                    
+        '                </errors>)
+        Dim err = other.GetDeclarationDiagnostics().Single()
+
+        Assert.Equal(ERRID.ERR_PublicKeyContainerFailure, err.Code)
+        Assert.Equal(2, Err.Arguments.Count)
+        Assert.Equal("foo", DirectCast(err.Arguments(0), String))
+        Assert.True(DirectCast(err.Arguments(1), String).EndsWith(" HRESULT: 0x80090016)"))
+
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty)
     End Sub
 #End Region
@@ -482,7 +489,13 @@ End Class
      </file>
  </compilation>), {reference}, TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
-        c2.VerifyDiagnostics(Diagnostic(ERRID.ERR_PublicKeyContainerFailure).WithArguments("bogus", "Keyset does not exist (Exception from HRESULT: 0x80090016)"))
+        'c2.VerifyDiagnostics(Diagnostic(ERRID.ERR_PublicKeyContainerFailure).WithArguments("bogus", "Keyset does not exist (Exception from HRESULT: 0x80090016)"))
+        Dim err = c2.GetDiagnostics(CompilationStage.Emit).Single()
+
+        Assert.Equal(ERRID.ERR_PublicKeyContainerFailure, err.Code)
+        Assert.Equal(2, err.Arguments.Count)
+        Assert.Equal("bogus", DirectCast(err.Arguments(0), String))
+        Assert.True(DirectCast(err.Arguments(1), String).EndsWith(" HRESULT: 0x80090016)"))
     End Sub
 
     <Fact>
@@ -509,7 +522,7 @@ End Class
      </file>
  </compilation>), {reference}, TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
-        c2.VerifyDiagnostics(Diagnostic(ERRID.ERR_PublicKeyFileFailure).WithArguments("bogus", "File not found."))
+        c2.VerifyDiagnostics(Diagnostic(ERRID.ERR_PublicKeyFileFailure).WithArguments("bogus", CodeAnalysisResources.FileNotFound))
     End Sub
 
     <Fact>
@@ -1415,10 +1428,16 @@ End Class
 
         Assert.False(emitResult.Success)
 
-        AssertTheseDiagnostics(emitResult.Diagnostics,
-<expected>
-BC36980: Error extracting public key from file '<%= KeyPairFile %>': Invalid countersignature specified in AssemblySignatureKeyAttribute. (Exception from HRESULT: 0x80131423)
-</expected>)
+        '        AssertTheseDiagnostics(emitResult.Diagnostics,
+        '<expected>
+        'BC36980: Error extracting public key from file '<%= KeyPairFile %>': Invalid countersignature specified in AssemblySignatureKeyAttribute. (Exception from HRESULT: 0x80131423)
+        '</expected>)
+        Dim err = emitResult.Diagnostics.Single()
+
+        Assert.Equal(ERRID.ERR_PublicKeyFileFailure, err.Code)
+        Assert.Equal(2, err.Arguments.Count)
+        Assert.Equal(KeyPairFile, DirectCast(err.Arguments(0), String))
+        Assert.True(DirectCast(err.Arguments(1), String).EndsWith(" HRESULT: 0x80131423)"))
     End Sub
 
     <Fact>

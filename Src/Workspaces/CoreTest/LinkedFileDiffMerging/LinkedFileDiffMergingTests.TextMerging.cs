@@ -60,10 +60,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
                 "a b c d e",
                 new List<string> { "a b y d e", "a b z d e" },
                 @"
-/* Unmerged change from project 'ProjectName1'
-Before:
+/* " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName1") + @"
+" + WorkspacesResources.BeforeHeader + @"
 a b c d e
-After:
+" + WorkspacesResources.AfterHeader + @"
 a b z d e
 */
 a b y d e",
@@ -78,10 +78,10 @@ a b y d e",
                 "a b c d e",
                 new List<string> { "a q1 c z1 e", "a q2 c z2 e" },
                 @"
-/* Unmerged change from project 'ProjectName1'
-Before:
+/* " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName1") + @"
+" + WorkspacesResources.BeforeHeader + @"
 a b c d e
-After:
+" + WorkspacesResources.AfterHeader + @"
 a q2 c z2 e
 */
 a q1 c z1 e",
@@ -110,11 +110,11 @@ Four"
                 },
                 @"One
 
-/* Unmerged change from project 'ProjectName1'
-Before:
+/* " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName1") + @"
+" + WorkspacesResources.BeforeHeader + @"
 Two
 Three
-After:
+" + WorkspacesResources.AfterHeader + @"
 TwoZ
 ThreeZ
 */
@@ -149,19 +149,19 @@ Five"
                 },
                 @"One
 
-/* Unmerged change from project 'ProjectName1'
-Before:
+/* " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName1") + @"
+" + WorkspacesResources.BeforeHeader + @"
 Two
-After:
+" + WorkspacesResources.AfterHeader + @"
 TwoZ
 */
 TwoY
 Three
 
-/* Unmerged change from project 'ProjectName1'
-Before:
+/* " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName1") + @"
+" + WorkspacesResources.BeforeHeader + @"
 Four
-After:
+" + WorkspacesResources.AfterHeader + @"
 FourZ
 */
 FourY
@@ -183,15 +183,15 @@ Five",
                     @"",
                 },
                 @"
-/* Unmerged change from project 'ProjectName2'
-Before:
+/* " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName2") + @"
+" + WorkspacesResources.BeforeHeader + @"
 A
-After:
+" + WorkspacesResources.AfterHeader + @"
 C
 */
 
-/* Unmerged change from project 'ProjectName3'
-Removed:
+/* " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName3") + @"
+" + WorkspacesResources.RemovedHeader + @"
 A
 */
 B",
@@ -210,8 +210,8 @@ B",
                     @"B",
                 },
                 @"
-/* Unmerged change from project 'ProjectName1'
-Added:
+/* " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName1") + @"
+" + WorkspacesResources.AddedHeader + @"
 B
 */
 A",
@@ -230,8 +230,8 @@ A",
                     @"B",
                 },
                 @"
-' Unmerged change from project 'ProjectName1' 
-' Added:
+' " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName1") + @" 
+' " + WorkspacesResources.AddedHeader + @"
 ' B
 A",
                 LanguageNames.VisualBasic);
@@ -249,8 +249,8 @@ A",
                     @"",
                 },
                 @"
-/* Unmerged change from project 'ProjectName1'
-Removed:
+/* " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName1") + @"
+" + WorkspacesResources.RemovedHeader + @"
 A
 */
 B",
@@ -269,8 +269,8 @@ B",
                     @"",
                 },
                 @"
-' Unmerged change from project 'ProjectName1' 
-' Removed:
+' " + string.Format(WorkspacesResources.UnmergedChangeFromProject, "ProjectName1") + @" 
+' " + WorkspacesResources.RemovedHeader + @"
 ' A
 B",
                 LanguageNames.VisualBasic);

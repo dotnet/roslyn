@@ -8172,27 +8172,26 @@ BC42353: Function '&lt;anonymous method>' doesn't return a value on all code pat
     </file>
     </compilation>)
 
-            ' BC0000 - Test bug in DiagnosticDescription - need to call DiagnosticsInfo.GetMessage(...) to handle arguments for VB CompoundError
             compilation.VerifyDiagnostics(
-                    Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Foo").WithArguments("Foo", <![CDATA[error BC0000: 
+                    Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Foo").WithArguments("Foo", <![CDATA[
     'Public Overloads Sub Foo(y1 As Module1.C1(Of Integer, Integer))': Argument matching parameter 'y1' narrows from 'Module1.Scenario11' to 'Module1.C1(Of Integer, Integer)'.
     'Public Sub Foo(t1 As Module1.S1)': Argument matching parameter 't1' narrows from 'Module1.Scenario11' to 'Module1.S1'.]]>.Value.Replace(vbLf, vbCrLf)),
-                    Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Foo").WithArguments("Foo", <![CDATA[error BC0000: 
+                    Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Foo").WithArguments("Foo", <![CDATA[
     'Public Overloads Sub Foo(y1 As Module1.C1(Of Integer, Integer))': Argument matching parameter 'y1' narrows from 'Module1.Scenario11' to 'Module1.C1(Of Integer, Integer)'.
     'Public Sub Foo(t1 As Module1.S1)': Argument matching parameter 't1' narrows from 'Module1.Scenario11' to 'Module1.S1'.]]>.Value.Replace(vbLf, vbCrLf)),
-                    Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Foo").WithArguments("Foo", <![CDATA[error BC0000: 
+                    Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Foo").WithArguments("Foo", <![CDATA[
     'Public Overloads Sub Foo(y1 As Long)': Argument matching parameter 'y1' narrows from 'Decimal' to 'Long'.
     'Public Sub Foo(t1 As Short)': Argument matching parameter 't1' narrows from 'Decimal' to 'Short'.]]>.Value.Replace(vbLf, vbCrLf)),
-             Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "tc2").WithArguments("Prop1", <![CDATA[error BC0000: 
+             Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "tc2").WithArguments("Prop1", <![CDATA[
     'Public Overloads Default Property Prop1(y1 As Module1.C1(Of Integer, Integer)) As Integer': Argument matching parameter 'y1' narrows from 'Module1.Scenario11' to 'Module1.C1(Of Integer, Integer)'.
     'Public Default Property Prop1(t1 As Module1.S1) As Integer': Argument matching parameter 't1' narrows from 'Module1.Scenario11' to 'Module1.S1'.]]>.Value.Replace(vbLf, vbCrLf)),
-             Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "tc2").WithArguments("Prop1", <![CDATA[error BC0000: 
+             Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "tc2").WithArguments("Prop1", <![CDATA[
     'Public Overloads Default Property Prop1(y1 As Module1.C1(Of Integer, Integer)) As Integer': Argument matching parameter 'y1' narrows from 'Module1.Scenario11' to 'Module1.C1(Of Integer, Integer)'.
     'Public Default Property Prop1(t1 As Module1.S1) As Integer': Argument matching parameter 't1' narrows from 'Module1.Scenario11' to 'Module1.S1'.]]>.Value.Replace(vbLf, vbCrLf)),
-             Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "tc3").WithArguments("Prop1", <![CDATA[error BC0000: 
+             Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "tc3").WithArguments("Prop1", <![CDATA[
     'Public Overloads Default Property Prop1(y1 As Long) As Integer': Argument matching parameter 'y1' narrows from 'Decimal' to 'Long'.
     'Public Default Property Prop1(t1 As Short) As Integer': Argument matching parameter 't1' narrows from 'Decimal' to 'Short'.]]>.Value.Replace(vbLf, vbCrLf)),
-            Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "tc3").WithArguments("Prop1", <![CDATA[error BC0000: 
+            Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "tc3").WithArguments("Prop1", <![CDATA[
     'Public Overloads Default Property Prop1(y1 As Long) As Integer': Argument matching parameter 'y1' narrows from 'Decimal' to 'Long'.
     'Public Default Property Prop1(t1 As Short) As Integer': Argument matching parameter 't1' narrows from 'Decimal' to 'Short'.]]>.Value.Replace(vbLf, vbCrLf))
                 )
@@ -8241,14 +8240,14 @@ BC42353: Function '&lt;anonymous method>' doesn't return a value on all code pat
 
             ' Roslyn BC30519 - Dev11 BC30520
             compilation.VerifyDiagnostics(
-             Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Foo").WithArguments("Foo", <![CDATA[error BC0000: 
+             Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Foo").WithArguments("Foo", <![CDATA[
     'Public Sub Foo(p1 As Module1.sample7C1(Of Integer).E)': Argument matching parameter 'p1' narrows from 'Module1.sample7C1(Of Long).E' to 'Module1.sample7C1(Of Integer).E'.
     'Public Sub Foo(p1 As Module1.sample7C1(Of Integer).E)': Argument matching parameter 'p1' narrows from 'Module1.sample7C1(Of Long).E' to 'Module1.sample7C1(Of Integer).E'.]]>.Value.Replace(vbLf, vbCrLf)),
-             Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Foo").WithArguments("Foo", <![CDATA[error BC0000: 
+             Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Foo").WithArguments("Foo", <![CDATA[
     'Public Sub Foo(p1 As Module1.sample7C1(Of Integer).E)': Argument matching parameter 'p1' narrows from 'Module1.sample7C1(Of Short).E' to 'Module1.sample7C1(Of Integer).E'.
     'Public Sub Foo(p1 As Module1.sample7C1(Of Integer).E)': Argument matching parameter 'p1' narrows from 'Module1.sample7C1(Of Short).E' to 'Module1.sample7C1(Of Integer).E'.]]>.Value.Replace(vbLf, vbCrLf)),
              Diagnostic(ERRID.WRN_SharedMemberThroughInstance, "sc7.E"),
-             Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Foo").WithArguments("Foo", <![CDATA[error BC0000: 
+             Diagnostic(ERRID.ERR_NoNonNarrowingOverloadCandidates2, "Foo").WithArguments("Foo", <![CDATA[
     'Public Sub Foo(p1 As Module1.sample7C1(Of Integer).E)': Argument matching parameter 'p1' narrows from 'Module1.sample7C1(Of Byte).E' to 'Module1.sample7C1(Of Integer).E'.
     'Public Sub Foo(p1 As Module1.sample7C1(Of Integer).E)': Argument matching parameter 'p1' narrows from 'Module1.sample7C1(Of Byte).E' to 'Module1.sample7C1(Of Integer).E'.]]>.Value.Replace(vbLf, vbCrLf))
                     )
@@ -8301,7 +8300,7 @@ BC42353: Function '&lt;anonymous method>' doesn't return a value on all code pat
     </file>
     </compilation>)
 
-            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_NoMostSpecificOverload2, "Foo").WithArguments("Foo", <![CDATA[error BC0000: 
+            compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_NoMostSpecificOverload2, "Foo").WithArguments("Foo", <![CDATA[
     'Public Overloads Sub Module1.C1(Of Module1.S1, Module1.C1(Of Integer, Integer)).Foo(y1 As Module1.C1(Of Integer, Integer))': Not most specific.
     'Public Sub Module1.C0(Of Module1.S1).Foo(t1 As Module1.S1)': Not most specific.]]>.Value.Replace(vbLf, vbCrLf))
                     )

@@ -43,27 +43,38 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return RuleSetProcessor.LoadFromFile(file.Path);
         }
 
-        private void VerifyRuleSetError(string source, string message, bool locSpecific = true, string locMessage = "", params string[] otherSources)
+        private void VerifyRuleSetError(string source, Func<string> messageFormatter, bool locSpecific = true, params string[] otherSources)
         {
+            CultureInfo saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+
+            if (locSpecific)
+            {
+                var preferred = EnsureEnglishUICulture.PreferredOrNull;
+                if (preferred == null)
+                {
+                    locSpecific = false;
+                }
+                else
+                { 
+                    System.Threading.Thread.CurrentThread.CurrentUICulture = preferred;
+                }
+            }
+
             try
             {
                 ParseRuleSet(source, otherSources);
             }
             catch (Exception e)
             {
-                if (CultureInfo.CurrentCulture.LCID == EN_US || CultureInfo.CurrentUICulture.LCID == EN_US || CultureInfo.CurrentCulture == CultureInfo.InvariantCulture || CultureInfo.CurrentUICulture == CultureInfo.InvariantCulture)
-                {
-                    Assert.Equal(message, e.Message);
-                }
-                else if (locSpecific)
-                {
-                    if (locMessage != "")
-                        Assert.Contains(locMessage, e.Message);
-                    else
-                        Assert.Equal(message, e.Message);
-                }
-
+                Assert.Equal(messageFormatter(), e.Message);
                 return;
+            }
+            finally
+            {
+                if (locSpecific)
+                {
+                    System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture;
+                }
             }
 
             Assert.True(false, "Didn't return an error");
@@ -99,8 +110,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>";
 
-            string locMessage = string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "");
-            VerifyRuleSetError(source, string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "There is a duplicate key sequence 'CA1012' for the 'UniqueRuleName' key or unique identity constraint."), locMessage:  locMessage);
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "There is a duplicate key sequence 'CA1012' for the 'UniqueRuleName' key or unique identity constraint."));
         }
 
         [Fact]
@@ -119,7 +129,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>";
 
-            VerifyRuleSetError(source, string.Format(CodeAnalysisResources.RuleSetHasDuplicateRules, "CA1012", "Error", "Warn"), locSpecific: false);
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetHasDuplicateRules, "CA1012", "Error", "Warn"), locSpecific: false);
         }
 
         [Fact]
@@ -159,7 +169,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            VerifyRuleSetError(source, "There are multiple root elements. Line 8, position 2.", false);
+            VerifyRuleSetError(source, () => "There are multiple root elements. Line 8, position 2.");
         }
 
         [Fact]
@@ -278,8 +288,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            string locMessage = string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "");
-            VerifyRuleSetError(source, string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The 'Action' attribute is invalid - The value 'Default' is invalid according to its datatype 'TIncludeAllAction' - The Enumeration constraint failed."), locMessage: locMessage);
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The 'Action' attribute is invalid - The value 'Default' is invalid according to its datatype 'TIncludeAllAction' - The Enumeration constraint failed."));
         }
 
         [Fact]
@@ -294,7 +303,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 </RuleSet>
 ";
             string locMessage = string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "");
-            VerifyRuleSetError(source, string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The required attribute 'Id' is missing."), locMessage: locMessage);
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The required attribute 'Id' is missing."));
         }
 
         [Fact]
@@ -308,8 +317,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            string locMessage = string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "");
-            VerifyRuleSetError(source, string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The required attribute 'Action' is missing."), locMessage: locMessage);
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The required attribute 'Action' is missing."));
         }
 
         [Fact]
@@ -323,8 +331,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            string locMessage = string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "");
-            VerifyRuleSetError(source, string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The required attribute 'AnalyzerId' is missing."), locMessage: locMessage);
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The required attribute 'AnalyzerId' is missing."));
         }
 
         [Fact]
@@ -338,8 +345,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            string locMessage = string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "");
-            VerifyRuleSetError(source, string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The required attribute 'RuleNamespace' is missing."), locMessage: locMessage);
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The required attribute 'RuleNamespace' is missing."));
         }
 
         [Fact]
@@ -353,8 +359,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            string locMessage = string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "");
-            VerifyRuleSetError(source, string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The required attribute 'ToolsVersion' is missing."), locMessage: locMessage);
+
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The required attribute 'ToolsVersion' is missing."));
         }
 
         [Fact]
@@ -368,8 +374,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            string locMessage = string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "");
-            VerifyRuleSetError(source, string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The required attribute 'Name' is missing."), locMessage: locMessage);
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The required attribute 'Name' is missing."));
         }
 
         [Fact]
@@ -413,8 +418,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            string locMessage = string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "");
-            VerifyRuleSetError(source, string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The 'Action' attribute is invalid - The value 'Default' is invalid according to its datatype 'TRuleAction' - The Enumeration constraint failed."), locMessage: locMessage);
+
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "The 'Action' attribute is invalid - The value 'Default' is invalid according to its datatype 'TRuleAction' - The Enumeration constraint failed."));
         }
 
         [Fact]
@@ -446,7 +451,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            VerifyRuleSetError(source, string.Format(CodeAnalysisResources.InvalidRuleSetInclude, "foo.ruleset", string.Format(CodeAnalysisResources.FailedToResolveRuleSetName, "foo.ruleset")), otherSources: new string[] {""});
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.InvalidRuleSetInclude, "foo.ruleset", string.Format(CodeAnalysisResources.FailedToResolveRuleSetName, "foo.ruleset")), otherSources: new string[] {""});
         }
 
         [Fact]
@@ -953,14 +958,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var newFile = dir.CreateFile("file1.ruleset");
             newFile.WriteAllText(source1);
 
-            try
+            using (new EnsureEnglishUICulture())
             {
-                RuleSet.LoadEffectiveRuleSetFromFile(file.Path);
-                Assert.True(false, "Didn't throw an exception");
-            }
-            catch (InvalidRuleSetException e)
-            {
-                Assert.Contains(string.Format(CodeAnalysisResources.InvalidRuleSetInclude, newFile.Path, string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "")), e.Message);
+                try
+                {
+                    RuleSet.LoadEffectiveRuleSetFromFile(file.Path);
+                    Assert.True(false, "Didn't throw an exception");
+                }
+                catch (InvalidRuleSetException e)
+                {
+                    Assert.Contains(string.Format(CodeAnalysisResources.InvalidRuleSetInclude, newFile.Path, string.Format(CodeAnalysisResources.RuleSetSchemaViolation, "")), e.Message);
+                }
             }
         }
 

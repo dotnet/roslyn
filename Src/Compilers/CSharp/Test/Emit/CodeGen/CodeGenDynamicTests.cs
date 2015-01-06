@@ -6280,13 +6280,20 @@ public class A
     
     public static void Main() 
     {
+        System.Globalization.CultureInfo saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
+
         try 
         {
-		    new A.B().F();
+            new A.B().F();
         }
         catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException e)
         {
             System.Console.WriteLine(e.Message);
+        }
+        finally
+        {
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture;
         }
     }
 }";

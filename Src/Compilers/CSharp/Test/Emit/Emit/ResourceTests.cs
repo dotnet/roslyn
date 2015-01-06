@@ -221,7 +221,7 @@ class C
 
             result.Diagnostics.Verify(
                 // error CS1566: Error reading resource 'file' -- 'Resource data provider should return non-null stream'
-                Diagnostic(ErrorCode.ERR_CantReadResource).WithArguments("file", "Resource data provider should return non-null stream")
+                Diagnostic(ErrorCode.ERR_CantReadResource).WithArguments("file", CodeAnalysisResources.ResourceDataProviderShouldReturnNonNullStream)
             );
         }
 

@@ -245,6 +245,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                             }
                             continue;
+
+                        case "preferreduilang":
+                            if (string.IsNullOrEmpty(value))
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", arg);
+                                continue;
+                            }
+
+                            try
+                            {
+                                preferredUILang = new CultureInfo(value);
+                            }
+                            catch (CultureNotFoundException)
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.WRN_BadUILang, value);
+                            }
+                            continue;
+
 #if DEBUG
                         case "attachdebugger":
                             Debugger.Launch();
@@ -837,23 +855,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             case "errorendlocation":
                                 errorEndLocation = true;
-                                continue;
-
-                            case "preferreduilang":
-                                if (string.IsNullOrEmpty(value))
-                                {
-                                    AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", arg);
-                                    continue;
-                                }
-
-                                try
-                                {
-                                    preferredUILang = new CultureInfo(value);
-                                }
-                                catch (CultureNotFoundException)
-                                {
-                                    AddDiagnostic(diagnostics, ErrorCode.WRN_BadUILang, value);
-                                }
                                 continue;
 
                             case "nostdlib":

@@ -446,14 +446,24 @@ class Test
 
     public static void Main()
     {
-        Task t2 = G();
+        System.Globalization.CultureInfo saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
+
         try
         {
-            t2.Wait(1000 * 60);
+            Task t2 = G();
+            try
+            {
+                t2.Wait(1000 * 60);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
-        catch (Exception ex)
+        finally
         {
-            Console.WriteLine(ex.Message);
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture;
         }
     }
 }";
@@ -1198,9 +1208,19 @@ class Test
 
     public static void Main()
     {
-        Task<int> t2 = G();
-        t2.Wait(1000 * 60);
-        Console.WriteLine(t2.Result);
+        System.Globalization.CultureInfo saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
+
+        try
+        {
+            Task<int> t2 = G();
+            t2.Wait(1000 * 60);
+            Console.WriteLine(t2.Result);
+        }
+        finally
+        {
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture;
+        }
     }
 }";
             var expected = @"

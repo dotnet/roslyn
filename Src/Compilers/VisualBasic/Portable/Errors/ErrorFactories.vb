@@ -150,16 +150,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Public Overrides Function GetMessage(Optional formatProvider As IFormatProvider = Nothing) As String
-            Dim culture = TryCast(formatProvider, CultureInfo)
-            If culture Is Nothing Then
-                culture = CultureInfo.InvariantCulture
-            End If
-
             Dim builder = PooledStringBuilder.GetInstance()
 
             If Arguments IsNot Nothing Then
                 For Each info As DiagnosticInfo In Arguments
-                    builder.Builder.Append(info.GetMessage(culture))
+                    builder.Builder.Append(info.GetMessage(formatProvider))
                 Next
             End If
 

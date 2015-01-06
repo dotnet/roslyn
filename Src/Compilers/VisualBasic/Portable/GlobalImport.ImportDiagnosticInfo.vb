@@ -37,13 +37,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Sub
 
             Public Overrides Function GetMessage(Optional formatProvider As IFormatProvider = Nothing) As String
-                Dim culture = TryCast(formatProvider, CultureInfo)
-                If culture Is Nothing Then
-                    culture = CultureInfo.InvariantCulture
-                End If
-
-                Dim msg = ErrorFactory.IdToString(ERRID.ERR_GeneralProjectImportsError3, culture)
-                Return String.Format(msg, _importText, _importText.Substring(_startIndex, _length), _wrappedDiagnostic.GetMessage(culture))
+                Dim msg = ErrorFactory.IdToString(ERRID.ERR_GeneralProjectImportsError3, TryCast(formatProvider, CultureInfo))
+                Return String.Format(formatProvider, msg, _importText, _importText.Substring(_startIndex, _length), _wrappedDiagnostic.GetMessage(formatProvider))
             End Function
 
             Public Sub New(wrappedDiagnostic As DiagnosticInfo,

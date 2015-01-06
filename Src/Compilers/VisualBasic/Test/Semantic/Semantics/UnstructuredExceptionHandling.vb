@@ -14543,10 +14543,17 @@ Imports Microsoft.VisualBasic.Constants
 
 Module Program
     Sub Main()
+        Dim saveCulture = System.Threading.Thread.CurrentThread.CurrentCulture
+        Dim saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture
+        System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture
         Try
             Error 20
         Catch ex As Exception
             System.Console.WriteLine(ex.ToString().Split(vbCr & vbLf)(0))
+        Finally
+            System.Threading.Thread.CurrentThread.CurrentCulture = saveCulture
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
         End Try
     End Sub
 End Module
@@ -18358,9 +18365,18 @@ Imports Microsoft.VisualBasic
 
 Module Module1
     Sub Main()
-        ByException()
-        ByError()
-        ByErrorRaise()
+        Dim saveCulture = System.Threading.Thread.CurrentThread.CurrentCulture
+        Dim saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture
+        System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture
+        Try
+            ByException()
+            ByError()
+            ByErrorRaise()
+        Finally
+            System.Threading.Thread.CurrentThread.CurrentCulture = saveCulture
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
+        End Try
     End Sub
 
     Sub ByException()
@@ -18415,6 +18431,19 @@ Imports Microsoft.VisualBasic
 
 Module Module1
     Sub Main()
+        Dim saveCulture = System.Threading.Thread.CurrentThread.CurrentCulture
+        Dim saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture
+        System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture
+        Try
+            Test()
+        Finally
+            System.Threading.Thread.CurrentThread.CurrentCulture = saveCulture
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
+        End Try
+    End Sub
+
+    Sub Test()
         Dim Msg As String
         ' If an error occurs, construct an error message.
         On Error Resume Next   ' Defer error handling.
@@ -18708,6 +18737,19 @@ Imports  Microsoft.VisualBasic
 
 Module Module1
     Sub Main()
+        Dim saveCulture = System.Threading.Thread.CurrentThread.CurrentCulture
+        Dim saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture
+        System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture
+        Try
+            Test()
+        Finally
+            System.Threading.Thread.CurrentThread.CurrentCulture = saveCulture
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
+        End Try
+    End Sub
+
+    Sub Test()
         On Error GoTo handler
         Console.WriteLine("*****************************************")
         Console.WriteLine("Before Error")
@@ -18760,7 +18802,7 @@ Source:ErrorHandling
 Description:Procedure call or argument is not valid.
 Erl:0
 GetException:System.ArgumentException: Procedure call or argument is not valid.
-   at Module1.Main()
+   at Module1.Test()
 *****************************************
 After Clear
 In Handler
@@ -18782,6 +18824,19 @@ Imports  Microsoft.VisualBasic
 
 Module Module1
     Sub Main()
+        Dim saveCulture = System.Threading.Thread.CurrentThread.CurrentCulture
+        Dim saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture
+        System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture
+        Try
+            Test()
+        Finally
+            System.Threading.Thread.CurrentThread.CurrentCulture = saveCulture
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
+        End Try
+    End Sub
+
+    Sub Test()
         On Error GoTo handler
         Console.WriteLine("*****************************************")
         Console.WriteLine("Before Error")
@@ -18842,7 +18897,7 @@ Source:ErrorHandling
 Description:Unable to find the specified file.
 Erl:0
 GetException:System.IO.FileNotFoundException: Unable to find the specified file.
-   at Module1.Main()
+   at Module1.Test()
 *****************************************
 After Clear
 In Handler
@@ -18859,7 +18914,7 @@ Source:ErrorHandling
 Description:File not found.
 Erl:0
 GetException:System.IO.FileNotFoundException: File not found.
-   at Module1.Main()
+   at Module1.Test()
 *****************************************
 After Clear
 In Handler
@@ -18877,7 +18932,7 @@ Description:File not found.
 Erl:0
 GetException:System.IO.FileNotFoundException: File not found.
    at Microsoft.VisualBasic.ErrObject.Raise(Int32 Number, Object Source, Object Description, Object HelpFile, Object HelpContext)
-   at Module1.Main()
+   at Module1.Test()
 *****************************************
 After Clear
 In Handler

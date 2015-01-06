@@ -4912,9 +4912,19 @@ class Program
 {
     static void Main(string[] args)
     {
-        dynamic i1 = new InputParameter();
-        dynamic i2 = new InputParameter();
-        bool b = i1 | i2;
+        System.Globalization.CultureInfo saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
+
+        try
+        {
+            dynamic i1 = new InputParameter();
+            dynamic i2 = new InputParameter();
+            bool b = i1 | i2;
+        }
+        finally
+        {
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture;
+        }
     }
 }
 ";

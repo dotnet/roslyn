@@ -10540,6 +10540,16 @@ End Module
 Imports System
 Module Program
     Sub Main()
+        Dim saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture
+        Try
+            Test()
+        Finally
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
+        End Try
+    End Sub
+
+    Sub Test()
             ' no element inits
             Dim arrB1 = new boolean() {false, false, false}
             System.Console.WriteLine(arrB1(0))
@@ -10569,7 +10579,7 @@ True
 System.Exception: Exception of type 'System.Exception' was thrown.
 True
 ]]>).
-            VerifyIL("Program.Main",
+            VerifyIL("Program.Test",
             <![CDATA[
 {
   // Code size       89 (0x59)

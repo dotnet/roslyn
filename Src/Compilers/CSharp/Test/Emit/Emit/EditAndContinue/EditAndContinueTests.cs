@@ -5575,10 +5575,15 @@ class C
             var bytes0 = compilation0.EmitToArray();
             using (var md0 = ModuleMetadata.CreateFromImage(bytes0))
             {
-                var diff1 = compilation1.EmitDifference(
-                    EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider),
-                    ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Insert, null, compilation1.GetMember<MethodSymbol>("C.Main"))),
-                    testData: new CompilationTestData { SymWriterFactory = () => new MockSymUnmanagedWriter() });
+                CompilationDifference diff1;
+
+                using (new EnsureEnglishUICulture())
+                {
+                    diff1 = compilation1.EmitDifference(
+                        EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider),
+                        ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Insert, null, compilation1.GetMember<MethodSymbol>("C.Main"))),
+                        testData: new CompilationTestData { SymWriterFactory = () => new MockSymUnmanagedWriter() });
+                }
 
                 diff1.EmitResult.Diagnostics.Verify(
                     // error CS0041: Unexpected error writing debug information -- 'The method or operation is not implemented.'

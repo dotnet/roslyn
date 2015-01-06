@@ -45,10 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override string GetMessage(IFormatProvider formatProvider = null)
         {
             var culture = formatProvider as CultureInfo;
-            if (culture == null)
-            {
-                culture = CultureInfo.InvariantCulture;
-            }
 
             string messagePrefix = this.MessageProvider.LoadMessage(this.Code, culture);
             string message = ErrorFacts.GetMessage(xmlErrorCode, culture);
@@ -57,10 +53,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (this.Arguments == null || this.Arguments.Length == 0)
             {
-                return String.Format(culture, messagePrefix, message);
+                return String.Format(formatProvider, messagePrefix, message);
             }
 
-            return String.Format(culture, String.Format(culture, messagePrefix, message), this.Arguments);
+            return String.Format(formatProvider, String.Format(formatProvider, messagePrefix, message), GetArgumentsToUse(formatProvider));
         }
     }
 }

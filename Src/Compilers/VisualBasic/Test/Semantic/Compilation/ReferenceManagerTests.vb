@@ -1632,7 +1632,7 @@ End Class
         Public Sub ReferenceWithNoMetadataSection()
             Dim c = CreateCompilationWithMscorlib({}, {New TestImageReference(TestResources.MetadataTests.Basic.NativeApp, "NativeApp.exe")}, TestOptions.ReleaseDll)
             c.VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_BadMetaDataReference1).WithArguments("NativeApp.exe", "PE image doesn't contain managed metadata."))
+                Diagnostic(ERRID.ERR_BadMetaDataReference1).WithArguments("NativeApp.exe", CodeAnalysisResources.PEImageDoesntContainManagedMetadata))
         End Sub
 
         <Fact, WorkItem(43)>

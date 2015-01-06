@@ -181,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Dim attributeLocation As Location = Nothing
                                 If TryGetAttributeWarningLocation(attribute, attributeLocation) Then
                                     Dim attributeUsage As AttributeUsageInfo = attribute.AttributeClass.GetAttributeUsageInfo()
-                                    Me.AddDiagnostic(symbol, ERRID.WRN_CLSAttrInvalidOnGetSet, attributeLocation, attribute.AttributeClass.Name, attributeUsage.GetValidTargetsString())
+                                    Me.AddDiagnostic(symbol, ERRID.WRN_CLSAttrInvalidOnGetSet, attributeLocation, attribute.AttributeClass.Name, attributeUsage.GetValidTargetsErrorArgument())
                                     Exit For
                                 End If
                             End If

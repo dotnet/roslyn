@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -42,7 +43,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 // We'll use IFormattable here, because it is more explicit than just calling .ToString()
                 // (and is closer to what the compiler actually does when displaying error messages)
-                argumentsAsStrings = arguments.Select(o => String.Format("{0}", o));
+                argumentsAsStrings = arguments.Select(o =>
+                                                        {
+                                                            var embedded = o as DiagnosticInfo;
+                                                            if (embedded != null)
+                                                            {
+                                                                return embedded.GetMessage(EnsureEnglishUICulture.PreferredOrNull);
+                                                            }
+
+                                                            return String.Format(EnsureEnglishUICulture.PreferredOrNull, "{0}", o);
+                                                        });
             }
             return argumentsAsStrings;
         }
@@ -282,6 +292,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             int hashCode;
             hashCode = code.GetHashCode();
             hashCode = Hash.Combine(isWarningAsError.GetHashCode(), hashCode);
+
+            // TODO: !!! This implementation isn't consistent with Equals, which might ignore inequality of some members based on ignoreArgumentsWhenComparing flag, etc.
             hashCode = Hash.Combine(squiggledText, hashCode);
             hashCode = Hash.Combine(arguments, hashCode);
             if (startPosition != null)

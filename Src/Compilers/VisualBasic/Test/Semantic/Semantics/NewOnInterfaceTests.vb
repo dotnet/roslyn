@@ -1298,10 +1298,14 @@ Imports System.Runtime.InteropServices
 
 Module Module1
     Sub Main(args() As String)
+        Dim saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture
         Try
             Dim i As IComplicated = New IComplicated()
         Catch e As Exception
             Console.WriteLine(e.Message)
+        Finally
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture
         End Try
     End Sub
 End Module

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.Emit;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -46,16 +47,19 @@ namespace Microsoft.CodeAnalysis
             Verify(actual, expected, errorCodeOnly: false);
         }
 
+        public static void Verify(this IEnumerable<Diagnostic> actual, bool fallbackToErrorCodeOnlyForNonEnglish, params DiagnosticDescription[] expected)
+        {
+            Verify(actual, expected, errorCodeOnly: fallbackToErrorCodeOnlyForNonEnglish && EnsureEnglishUICulture.PreferredOrNull != null);
+        }
+
+        public static void VerifyWithFallbackToErrorCodeOnlyForNonEnglish(this IEnumerable<Diagnostic> actual, params DiagnosticDescription[] expected)
+        {
+            Verify(actual, true, expected);
+        }
+
         public static void Verify(this ImmutableArray<Diagnostic> actual, params DiagnosticDescription[] expected)
         {
-            if (CultureInfo.CurrentCulture.LCID == EN_US || CultureInfo.CurrentUICulture.LCID == EN_US || CultureInfo.CurrentCulture == CultureInfo.InvariantCulture || CultureInfo.CurrentUICulture == CultureInfo.InvariantCulture)
-            {
-                Verify((IEnumerable<Diagnostic>)actual, expected);
-            }
-            else
-            {
-                actual.VerifyErrorCodes(expected);
-            }
+            Verify((IEnumerable<Diagnostic>)actual, expected);
         }
 
         private static void Verify(IEnumerable<Diagnostic> actual, DiagnosticDescription[] expected, bool errorCodeOnly)

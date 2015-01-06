@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Xunit;
 using System.Resources;
 using System.Globalization;
+using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
@@ -61,9 +62,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 isEnabledByDefault: true,
                 description: localizableDescription);
 
-            Assert.Equal<string>(fixedTitle, descriptor.Title.ToString());
-            Assert.Equal<string>(fixedMessageFormat, descriptor.MessageFormat.ToString());
-            Assert.Equal<string>(fixedDescription, descriptor.Description.ToString());
+            if (EnsureEnglishUICulture.PreferredOrNull == null)
+            {
+                Assert.Equal<string>(fixedTitle, descriptor.Title.ToString());
+                Assert.Equal<string>(fixedMessageFormat, descriptor.MessageFormat.ToString());
+                Assert.Equal<string>(fixedDescription, descriptor.Description.ToString());
+            }
+
+            Assert.Equal<string>(fixedTitle, descriptor.Title.ToString(enCulture));
+            Assert.Equal<string>(fixedMessageFormat, descriptor.MessageFormat.ToString(enCulture));
+            Assert.Equal<string>(fixedDescription, descriptor.Description.ToString(enCulture));
 
             Assert.Equal(localizedTitle, descriptor.Title.ToString(arCulture));
             Assert.Equal(localizedMessageFormat, descriptor.MessageFormat.ToString(arCulture));
@@ -72,10 +80,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             // Test diagnostic localization.
             var localizableDiagnostic = Diagnostic.Create(descriptor, Location.None);
 
-            // Test non-localized title, description and message.
-            Assert.Equal(fixedTitle, localizableDiagnostic.Descriptor.Title.ToString());
-            Assert.Equal(fixedMessageFormat, localizableDiagnostic.GetMessage());
-            Assert.Equal(fixedDescription, localizableDiagnostic.Descriptor.Description.ToString());
+            if (EnsureEnglishUICulture.PreferredOrNull == null)
+            {
+                // Test non-localized title, description and message.
+                Assert.Equal(fixedTitle, localizableDiagnostic.Descriptor.Title.ToString());
+                Assert.Equal(fixedMessageFormat, localizableDiagnostic.GetMessage());
+                Assert.Equal(fixedDescription, localizableDiagnostic.Descriptor.Description.ToString());
+            }
+
+            Assert.Equal(fixedTitle, localizableDiagnostic.Descriptor.Title.ToString(enCulture));
+            Assert.Equal(fixedMessageFormat, localizableDiagnostic.GetMessage(enCulture));
+            Assert.Equal(fixedDescription, localizableDiagnostic.Descriptor.Description.ToString(enCulture));
 
             // Test localized title, description and message.
             Assert.Equal(localizedTitle, localizableDiagnostic.Descriptor.Title.ToString(arCulture));
@@ -90,7 +105,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             // Verify without culture
             var enuLocalizedStringWithArguments = enResourceSet.GetString(nameOfResourceWithArguments);
             var expected = string.Format(enuLocalizedStringWithArguments, argument);
-            Assert.Equal(expected, localizableResource.ToString());
+
+            if (EnsureEnglishUICulture.PreferredOrNull == null)
+            {
+                Assert.Equal(expected, localizableResource.ToString());
+            }
+
+            Assert.Equal(expected, localizableResource.ToString(enCulture));
 
             // Verify with loc culture
             var arLocalizedStringWithArguments = arResourceSet.GetString(nameOfResourceWithArguments);

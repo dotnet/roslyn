@@ -336,7 +336,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (diagnosticsOpt != null && messageProviderOpt != null)
                     {
-                        diagnosticsOpt.Add(Diagnostic.Create(messageProviderOpt, messageProviderOpt.ERR_CantReadRulesetFile, resolvedPath, CodeAnalysisResources.FileNotFound));
+                        diagnosticsOpt.Add(Diagnostic.Create(messageProviderOpt, messageProviderOpt.ERR_CantReadRulesetFile, resolvedPath, new CodeAnalysisResourcesLocalizableErrorArgument(nameof(CodeAnalysisResources.FileNotFound))));
                     }
                 }
                 else

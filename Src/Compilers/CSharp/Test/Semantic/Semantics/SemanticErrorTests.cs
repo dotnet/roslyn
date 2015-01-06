@@ -19973,7 +19973,7 @@ public class MyClass1
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "MyClass1.operator").WithArguments("MyClass1.operator@"),
                 // (10,41): warning CS1658: Overloadable operator expected. See also error CS1037.
                 //     /// <seealso cref="MyClass1.operator@"/>
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "@").WithArguments("error CS1037: Overloadable operator expected", "1037"),
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "@").WithArguments("Overloadable operator expected", "1037"),
                 // (10,41): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
                 //     /// <seealso cref="MyClass1.operator@"/>
                 Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, ""));
@@ -20085,9 +20085,14 @@ public class Test
 /// <include file='{0}' path='element'/>
 public class Test {{ }}
 ";
-            CreateCompilationWithMscorlibAndDocumentationComments(string.Format(sourceTemplate, xmlFile.Path)).VerifyDiagnostics(
-                // dcf98d2ac30a.xml(1,1): warning CS1592: Badly formed XML in included comments file -- 'Data at the root level is invalid.'
-                Diagnostic(ErrorCode.WRN_XMLParseIncludeError).WithArguments("Data at the root level is invalid."));
+            var comp = CreateCompilationWithMscorlibAndDocumentationComments(string.Format(sourceTemplate, xmlFile.Path));
+
+            using (new EnsureEnglishUICulture())
+            {
+                comp.VerifyDiagnostics(
+                    // dcf98d2ac30a.xml(1,1): warning CS1592: Badly formed XML in included comments file -- 'Data at the root level is invalid.'
+                    Diagnostic(ErrorCode.WRN_XMLParseIncludeError).WithArguments("Data at the root level is invalid."));
+            }
         }
 
         [Fact]
@@ -20110,7 +20115,7 @@ public class Test
                 Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, @"""").WithArguments(""),
                 // (2,20): warning CS1658: Identifier expected. See also error CS1001.
                 // /// <seealso cref=""/>    
-                Diagnostic(ErrorCode.WRN_ErrorOverride, @"""").WithArguments("error CS1001: Identifier expected", "1001"));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, @"""").WithArguments("Identifier expected", "1001"));
         }
 
         // TODO (tomat): Also fix AttributeTests.DllImport_AttributeRedefinition

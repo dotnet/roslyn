@@ -193,7 +193,7 @@ End Class
             result = c1.Emit(New MemoryStream(),
                              manifestResources:={New ResourceDescription("r2", "file", Function() Nothing, False)})
 
-            result.Diagnostics.Verify(Diagnostic(ERRID.ERR_UnableToOpenResourceFile1).WithArguments("file", "Resource data provider should return non-null stream"))
+            result.Diagnostics.Verify(Diagnostic(ERRID.ERR_UnableToOpenResourceFile1).WithArguments("file", CodeAnalysisResources.ResourceDataProviderShouldReturnNonNullStream))
         End Sub
 
         <Fact>
@@ -267,7 +267,7 @@ End Module
 
             Assert.False(result.Success)
             result.Diagnostics.Verify(
-                Diagnostic(ERRID.ERR_UnableToOpenResourceFile1).WithArguments("another.DoTtEd.NAME", "Specified method is not supported."))
+                Diagnostic(ERRID.ERR_UnableToOpenResourceFile1).WithArguments("another.DoTtEd.NAME", New NotSupportedException().Message))
         End Sub
 
         <Fact>
@@ -295,7 +295,7 @@ End Module
 
             Assert.False(result.Success)
             result.Diagnostics.Verify(
-                Diagnostic(ERRID.ERR_UnableToOpenResourceFile1).WithArguments("some.dotted.NAME", "Specified method is not supported."))
+                Diagnostic(ERRID.ERR_UnableToOpenResourceFile1).WithArguments("some.dotted.NAME", New NotSupportedException().Message))
         End Sub
 
         <Fact>

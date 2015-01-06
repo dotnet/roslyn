@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (diagnose)
                     {
-                        diagnostics.Add(ErrorCode.WRN_FailedInclude, location, filePathValue, xpathValue, CSharpResources.OperationCausedStackOverflow);
+                        diagnostics.Add(ErrorCode.WRN_FailedInclude, location, filePathValue, xpathValue, new LocalizableErrorArgument(MessageID.IDS_OperationCausedStackOverflow));
                     }
 
                     // TODO: use culture from compilation instead of invariant culture?
@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var resolver = compilation.Options.XmlReferenceResolver;
                     if (resolver == null)
                     {
-                        includeDiagnostics.Add(ErrorCode.WRN_FailedInclude, location, filePathValue, xpathValue, CodeAnalysisResources.XmlReferencesNotSupported);
+                        includeDiagnostics.Add(ErrorCode.WRN_FailedInclude, location, filePathValue, xpathValue, new CodeAnalysisResourcesLocalizableErrorArgument(nameof(CodeAnalysisResources.XmlReferencesNotSupported)));
                         commentMessage = MakeCommentMessage(location, MessageID.IDS_XMLFAILEDINCLUDE);
                         return null;
                     }
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (resolvedFilePath == null)
                     {
                         // NOTE: same behavior as IOException.
-                        includeDiagnostics.Add(ErrorCode.WRN_FailedInclude, location, filePathValue, xpathValue, CodeAnalysisResources.FileNotFound);
+                        includeDiagnostics.Add(ErrorCode.WRN_FailedInclude, location, filePathValue, xpathValue, new CodeAnalysisResourcesLocalizableErrorArgument(nameof(CodeAnalysisResources.FileNotFound)));
                         commentMessage = MakeCommentMessage(location, MessageID.IDS_XMLFAILEDINCLUDE);
                         return null;
                     }

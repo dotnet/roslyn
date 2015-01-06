@@ -1953,8 +1953,8 @@ End Module
 
 ]]>,
             VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
-            Diagnostic(ERRID.WRN_XMLDocParseError1, "</").WithArguments("error BC31207: XML end element must be preceded by a matching start element."),
-            Diagnostic(ERRID.WRN_XMLDocParseError1, "").WithArguments("error BC30636: '>' expected."))
+            Diagnostic(ERRID.WRN_XMLDocParseError1, "</").WithArguments("XML end element must be preceded by a matching start element."),
+            Diagnostic(ERRID.WRN_XMLDocParseError1, "").WithArguments("'>' expected."))
     End Sub
 
     <WorkItem(547320, "DevDiv")>

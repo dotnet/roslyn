@@ -6352,7 +6352,7 @@ public class Test
             Assert.Equal("{\r\n", syntaxTree.GetCompilationUnitRoot().GetLeadingTrivia().Node.ToFullString());
 
             // The issue (9391) was exhibited while enumerating the diagnostics
-            Assert.True(syntaxTree.GetDiagnostics().Select(d => d.ToString()).SequenceEqual(new[] 
+            Assert.True(syntaxTree.GetDiagnostics().Select(d => ((IFormattable)d).ToString(null, EnsureEnglishUICulture.PreferredOrNull)).SequenceEqual(new[] 
             {
                 "(1,2): error CS1031: Type expected",
                 "(1,1): error CS1022: Type or namespace definition, or end-of-file expected",
@@ -6380,7 +6380,7 @@ class C { }
             Assert.Equal(text, syntaxTree.GetCompilationUnitRoot().ToFullString());
 
             // 9553: Several of the locations were incorrect and one was negative
-            Assert.True(syntaxTree.GetDiagnostics().Select(d => d.ToString()).SequenceEqual(new[] 
+            Assert.True(syntaxTree.GetDiagnostics().Select(d => ((IFormattable)d).ToString(null, EnsureEnglishUICulture.PreferredOrNull)).SequenceEqual(new[] 
             {
                 // Error on the return type, because in C# syntax it goes after the operator and implicit/explicit keywords
                 "(2,1): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead",
@@ -6413,7 +6413,7 @@ class C
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text);
             Assert.Equal(text, syntaxTree.GetCompilationUnitRoot().ToFullString());
 
-            Assert.True(syntaxTree.GetDiagnostics().Select(d => d.ToString()).SequenceEqual(new[] 
+            Assert.True(syntaxTree.GetDiagnostics().Select(d => ((IFormattable)d).ToString(null, EnsureEnglishUICulture.PreferredOrNull)).SequenceEqual(new[] 
             {
                 "(6,10): error CS1001: Identifier expected",
                 "(6,10): error CS1002: ; expected",
@@ -6438,7 +6438,7 @@ class C
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text);
             Assert.Equal(text, syntaxTree.GetCompilationUnitRoot().ToFullString());
 
-            Assert.True(syntaxTree.GetDiagnostics().Select(d => d.ToString()).SequenceEqual(new[] 
+            Assert.True(syntaxTree.GetDiagnostics().Select(d => ((IFormattable)d).ToString(null, EnsureEnglishUICulture.PreferredOrNull)).SequenceEqual(new[] 
             {
                 "(6,10): error CS1001: Identifier expected",
                 "(6,10): error CS1002: ; expected",
@@ -6463,7 +6463,7 @@ class C
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text);
             Assert.Equal(text, syntaxTree.GetCompilationUnitRoot().ToFullString());
 
-            Assert.True(syntaxTree.GetDiagnostics().Select(d => d.ToString()).SequenceEqual(new[] 
+            Assert.True(syntaxTree.GetDiagnostics().Select(d => ((IFormattable)d).ToString(null, EnsureEnglishUICulture.PreferredOrNull)).SequenceEqual(new[] 
             {
                 "(6,10): error CS1001: Identifier expected",
                 "(6,10): error CS1002: ; expected",
@@ -6489,7 +6489,7 @@ class C
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text);
             Assert.Equal(text, syntaxTree.GetCompilationUnitRoot().ToFullString());
 
-            Assert.True(syntaxTree.GetDiagnostics().Select(d => d.ToString()).SequenceEqual(new[] 
+            Assert.True(syntaxTree.GetDiagnostics().Select(d => ((IFormattable)d).ToString(null, EnsureEnglishUICulture.PreferredOrNull)).SequenceEqual(new[] 
             {
                 "(6,10): error CS1001: Identifier expected",
                 "(6,10): error CS1002: ; expected",
@@ -6513,7 +6513,7 @@ class C
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text);
             Assert.Equal(text, syntaxTree.GetCompilationUnitRoot().ToFullString());
 
-            Assert.True(syntaxTree.GetDiagnostics().Select(d => d.ToString()).SequenceEqual(new[] 
+            Assert.True(syntaxTree.GetDiagnostics().Select(d => ((IFormattable)d).ToString(null, EnsureEnglishUICulture.PreferredOrNull)).SequenceEqual(new[] 
             {
                 "(6,18): error CS1003: Syntax error, ',' expected",
                 "(6,19): error CS1002: ; expected",
