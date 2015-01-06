@@ -11,9 +11,9 @@ namespace Microsoft.VisualStudio.SymReaderInterop
     [ComVisible(false)]
     internal interface ISymUnmanagedScope
     {
-        int __GetMethod([MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedMethod pRetVal);
+        int GetMethod([MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedMethod pRetVal);
 
-        int __GetParent([MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedScope pRetVal);
+        int GetParent([MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedScope pRetVal);
 
         [PreserveSig]
         int GetChildren(

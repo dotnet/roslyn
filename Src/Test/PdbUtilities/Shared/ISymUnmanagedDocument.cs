@@ -2,6 +2,7 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace Microsoft.VisualStudio.SymReaderInterop
 {
@@ -10,15 +11,25 @@ namespace Microsoft.VisualStudio.SymReaderInterop
     [InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     internal interface ISymUnmanagedDocument
     {
-        int __FindClosestLine(int line, out int pRetVal);
-        int __GetCheckSum(int cData, out int pcData, byte[] data);
-        int __GetCheckSumAlgorithmId(ref Guid pRetVal);
-        int __GetDocumentType(ref Guid pRetVal);
-        int __GetLanguage(ref Guid pRetVal);
-        int __GetLanguageVendor(ref Guid pRetVal);
-        int __GetSourceLength(out int pRetVal);
-        int __GetSourceRange(int startLine, int startColumn, int endLine, int endColumn, int cSourceBytes, out int pcSourceBytes, byte[] source);
-        int __GetURL(int cchUrl, out int pcchUrl, IntPtr szUrl);
-        int __HasEmbeddedSource(out bool pRetVal);
+        [PreserveSig]
+        int GetURL(int cchUrl, out int pcchUrl, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] [In] [Out] char[] szUrl);
+        [PreserveSig]
+        int GetDocumentType(ref Guid pRetVal);
+        [PreserveSig]
+        int GetLanguage(ref Guid pRetVal);
+        [PreserveSig]
+        int GetLanguageVendor(ref Guid pRetVal);
+        [PreserveSig]
+        int GetCheckSumAlgorithmId(ref Guid pRetVal);
+        [PreserveSig]
+        int GetCheckSum(int cData, out int pcData, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] [In] [Out] byte[] data);
+        [PreserveSig]
+        int FindClosestLine(int line, out int pRetVal);
+        [PreserveSig]
+        int HasEmbeddedSource(out bool pRetVal);
+        [PreserveSig]
+        int GetSourceLength(out int pRetVal);
+        [PreserveSig]
+        int GetSourceRange(int startLine, int startColumn, int endLine, int endColumn, int cSourceBytes, out int pcSourceBytes, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 4)] [In] [Out] byte[] source);
     }
 }

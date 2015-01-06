@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 extern alias PDB;
 
+using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
@@ -17,9 +18,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
         {
             byte[] cdi;
 
-            Assert.True(CustomDebugInfoReader.TryGetCustomDebugInfoRecord(new byte[0], CustomDebugInfoKind.EditAndContinueLocalSlotMap).IsDefault);
-            Assert.True(CustomDebugInfoReader.TryGetCustomDebugInfoRecord(new byte[] { 1 }, CustomDebugInfoKind.EditAndContinueLocalSlotMap).IsDefault);
-            Assert.True(CustomDebugInfoReader.TryGetCustomDebugInfoRecord(new byte[] { 1, 2 }, CustomDebugInfoKind.EditAndContinueLocalSlotMap).IsDefault);
+            Assert.Throws<InvalidOperationException>(() => CustomDebugInfoReader.TryGetCustomDebugInfoRecord(new byte[0], CustomDebugInfoKind.EditAndContinueLocalSlotMap));
+            Assert.Throws<InvalidOperationException>(() => CustomDebugInfoReader.TryGetCustomDebugInfoRecord(new byte[] { 1 }, CustomDebugInfoKind.EditAndContinueLocalSlotMap));
+            Assert.Throws<InvalidOperationException>(() => CustomDebugInfoReader.TryGetCustomDebugInfoRecord(new byte[] { 1, 2 }, CustomDebugInfoKind.EditAndContinueLocalSlotMap));
 
             // unknown version
             Assert.True(CustomDebugInfoReader.TryGetCustomDebugInfoRecord(new byte[] { 5, 1, 0, 0 }, CustomDebugInfoKind.EditAndContinueLocalSlotMap).IsDefault);
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
                 /*version*/4, /*kind*/(byte)CustomDebugInfoKind.EditAndContinueLocalSlotMap, /*padding*/0, 0, /*size:*/ 0, 0, 0, 0,
             };
 
-            Assert.True(CustomDebugInfoReader.TryGetCustomDebugInfoRecord(cdi, CustomDebugInfoKind.EditAndContinueLocalSlotMap).IsDefault);
+            Assert.Throws<InvalidOperationException>(() => CustomDebugInfoReader.TryGetCustomDebugInfoRecord(cdi, CustomDebugInfoKind.EditAndContinueLocalSlotMap));
 
             // invalid record size = Int32.MinValue
             cdi = new byte[]
@@ -50,7 +51,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
                 0, 0, 0, 0
             };
 
-            Assert.True(CustomDebugInfoReader.TryGetCustomDebugInfoRecord(cdi, CustomDebugInfoKind.EditAndContinueLocalSlotMap).IsDefault);
+            Assert.Throws<InvalidOperationException>(() => CustomDebugInfoReader.TryGetCustomDebugInfoRecord(cdi, CustomDebugInfoKind.EditAndContinueLocalSlotMap));
 
             // empty record
             cdi = new byte[]
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
                 0xab
             };
 
-            Assert.True(CustomDebugInfoReader.TryGetCustomDebugInfoRecord(cdi, CustomDebugInfoKind.EditAndContinueLocalSlotMap).IsDefault);
+            Assert.Throws<InvalidOperationException>(() => CustomDebugInfoReader.TryGetCustomDebugInfoRecord(cdi, CustomDebugInfoKind.EditAndContinueLocalSlotMap));
 
             // valid record
             cdi = new byte[]

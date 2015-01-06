@@ -1,9 +1,11 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.VisualStudio.SymReaderInterop;
@@ -22,7 +24,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
         /// <summary>
         /// This is the first header in the custom debug info blob.
         /// </summary>
-        public static void ReadGlobalHeader(byte[] bytes, ref int offset, out byte version, out byte count)
+        private static void ReadGlobalHeader(byte[] bytes, ref int offset, out byte version, out byte count)
         {
             version = bytes[offset + 0];
             count = bytes[offset + 1];
@@ -33,7 +35,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
         /// After the global header (see <see cref="ReadGlobalHeader"/> comes list of custom debug info record.
         /// Each record begins with a standard header.
         /// </summary>
-        public static void ReadRecordHeader(byte[] bytes, ref int offset, out byte version, out CustomDebugInfoKind kind, out int size)
+        private static void ReadRecordHeader(byte[] bytes, ref int offset, out byte version, out CustomDebugInfoKind kind, out int size)
         {
             version = bytes[offset + 0];
             kind = (CustomDebugInfoKind)bytes[offset + 1];
@@ -44,11 +46,26 @@ namespace Microsoft.VisualStudio.SymReaderInterop
             offset += CDI.CdiRecordHeaderSize;
         }
 
-        internal static ImmutableArray<byte> TryGetCustomDebugInfoRecord(byte[] customDebugInfo, CustomDebugInfoKind recordKind)
+        /// <exception cref="InvalidOperationException"></exception>
+        public static ImmutableArray<byte> TryGetCustomDebugInfoRecord(byte[] customDebugInfo, CustomDebugInfoKind recordKind)
+        {
+            foreach (var record in GetCustomDebugInfoRecords(customDebugInfo))
+            {
+                if (record.Kind == recordKind)
+                {
+                    return record.Data;
+                }
+            }
+
+            return default(ImmutableArray<byte>);
+        }
+
+        /// <exception cref="InvalidOperationException"></exception>
+        public static IEnumerable<CustomDebugInfoRecord> GetCustomDebugInfoRecords(byte[] customDebugInfo)
         {
             if (customDebugInfo.Length < CDI.CdiGlobalHeaderSize)
             {
-                return default(ImmutableArray<byte>);
+                throw new InvalidOperationException("Invalid header.");
             }
 
             int offset = 0;
@@ -59,7 +76,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
 
             if (globalVersion != CDI.CdiVersion)
             {
-                return default(ImmutableArray<byte>);
+                yield break;
             }
 
             while (offset <= customDebugInfo.Length - CDI.CdiRecordHeaderSize)
@@ -71,27 +88,18 @@ namespace Microsoft.VisualStudio.SymReaderInterop
                 ReadRecordHeader(customDebugInfo, ref offset, out version, out kind, out size);
                 if (size < CDI.CdiRecordHeaderSize)
                 {
-                    // invalid header
-                    break;
+                    throw new InvalidOperationException("Invalid header.");
                 }
 
                 int bodySize = size - CDI.CdiRecordHeaderSize;
                 if (offset > customDebugInfo.Length - bodySize)
                 {
-                    // invalid header
-                    break;
+                    throw new InvalidOperationException("Invalid header.");
                 }
 
-                if (version != CDI.CdiVersion || kind != recordKind)
-                {
-                    offset += bodySize;
-                    continue;
-                }
-
-                return ImmutableArray.Create(customDebugInfo, offset, bodySize);
+                yield return new CustomDebugInfoRecord(kind, version, ImmutableArray.Create(customDebugInfo, offset, bodySize));
+                offset += bodySize;
             }
-
-            return default(ImmutableArray<byte>);
         }
 
         /// <summary>
@@ -101,26 +109,18 @@ namespace Microsoft.VisualStudio.SymReaderInterop
         /// <remarks>
         /// There's always at least one entry (for the global namespace).
         /// </remarks>
-        public static void ReadUsingRecord(byte[] bytes, ref int offset, int size, out ImmutableArray<short> counts)
+        public static ImmutableArray<short> DecodeUsingRecord(ImmutableArray<byte> bytes)
         {
-            int tempOffset = offset;
-
-            var numCounts = BitConverter.ToInt16(bytes, tempOffset);
-            tempOffset += 2;
+            int offset = 0;
+            var numCounts = ReadInt16(bytes, ref offset);
 
             var builder = ArrayBuilder<short>.GetInstance(numCounts);
             for (int i = 0; i < numCounts; i++)
             {
-                short count = BitConverter.ToInt16(bytes, tempOffset);
-                tempOffset += 2;
-
-                builder.Add(count);
+                builder.Add(ReadInt16(bytes, ref offset));
             }
 
-            counts = builder.ToImmutableAndFree();
-
-            offset += size - CDI.CdiRecordHeaderSize;
-            Debug.Assert(offset >= tempOffset);
+            return builder.ToImmutableAndFree();
         }
 
         /// <summary>
@@ -128,16 +128,12 @@ namespace Microsoft.VisualStudio.SymReaderInterop
         /// info of another method (specified by token).
         /// </summary>
         /// <remarks>
-        /// Appears when multiple method would otherwise have identical using records (see <see cref="ReadUsingRecord"/>).
+        /// Appears when multiple method would otherwise have identical using records (see <see cref="DecodeUsingRecord"/>).
         /// </remarks>
-        public static void ReadForwardRecord(byte[] bytes, ref int offset, int size, out int token)
+        public static int DecodeForwardRecord(ImmutableArray<byte> bytes)
         {
-            int tempOffset = offset;
-
-            token = BitConverter.ToInt32(bytes, tempOffset);
-
-            offset += size - CDI.CdiRecordHeaderSize;
-            Debug.Assert(offset >= tempOffset);
+            int offset = 0;
+            return ReadInt32(bytes, ref offset);
         }
 
         /// <summary>
@@ -147,41 +143,31 @@ namespace Microsoft.VisualStudio.SymReaderInterop
         /// <remarks>
         /// Appears when there are extern aliases and edit-and-continue is disabled.
         /// </remarks>
-        public static void ReadForwardToModuleRecord(byte[] bytes, ref int offset, int size, out int token)
+        public static int DecodeForwardToModuleRecord(ImmutableArray<byte> bytes)
         {
-            int tempOffset = offset;
-
-            token = BitConverter.ToInt32(bytes, tempOffset);
-
-            offset += size - CDI.CdiRecordHeaderSize;
-            Debug.Assert(offset >= tempOffset);
+            int offset = 0;
+            return ReadInt32(bytes, ref offset);
         }
 
         /// <summary>
         /// Scopes of state machine hoisted local variables.
         /// </summary>
-        public static void ReadStateMachineHoistedLocalScopesRecord(byte[] bytes, ref int offset, int size, out ImmutableArray<StateMachineHoistedLocalScope> scopes)
+        public static ImmutableArray<StateMachineHoistedLocalScope> DecodeStateMachineHoistedLocalScopesRecord(ImmutableArray<byte> bytes)
         {
-            int tempOffset = offset;
+            int offset = 0;
 
-            var bucketCount = BitConverter.ToInt32(bytes, tempOffset);
-            tempOffset += 4;
+            var bucketCount = ReadInt32(bytes, ref offset);
 
             var builder = ArrayBuilder<StateMachineHoistedLocalScope>.GetInstance(bucketCount);
             for (int i = 0; i < bucketCount; i++)
             {
-                int startOffset = BitConverter.ToInt32(bytes, tempOffset);
-                tempOffset += 4;
-                int endOffset = BitConverter.ToInt32(bytes, tempOffset);
-                tempOffset += 4;
+                int startOffset = ReadInt32(bytes, ref offset);
+                int endOffset = ReadInt32(bytes, ref offset);
 
                 builder.Add(new StateMachineHoistedLocalScope(startOffset, endOffset));
             }
 
-            scopes = builder.ToImmutableAndFree();
-
-            offset += size - CDI.CdiRecordHeaderSize;
-            Debug.Assert(offset >= tempOffset);
+            return builder.ToImmutableAndFree();
         }
 
         /// <summary>
@@ -190,17 +176,15 @@ namespace Microsoft.VisualStudio.SymReaderInterop
         /// <remarks>
         /// Appears when are iterator methods.
         /// </remarks>
-        public static void ReadForwardIteratorRecord(byte[] bytes, ref int offset, int size, out string name)
+        public static string DecodeForwardIteratorRecord(ImmutableArray<byte> bytes)
         {
-            int tempOffset = offset;
+            int offset = 0;
 
             var pooled = PooledStringBuilder.GetInstance();
             var builder = pooled.Builder;
             while (true)
             {
-                char ch = BitConverter.ToChar(bytes, tempOffset);
-                tempOffset += 2;
-
+                char ch = (char)ReadInt16(bytes, ref offset);
                 if (ch == 0)
                 {
                     break;
@@ -209,10 +193,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
                 builder.Append(ch);
             }
 
-            name = pooled.ToStringAndFree();
-
-            offset += size - CDI.CdiRecordHeaderSize;
-            Debug.Assert(offset >= tempOffset);
+            return pooled.ToStringAndFree();
         }
 
         /// <summary>
@@ -222,12 +203,11 @@ namespace Microsoft.VisualStudio.SymReaderInterop
         /// <remarks>
         /// Appears when there are dynamic locals.
         /// </remarks>
-        public static void ReadDynamicLocalsRecord(byte[] bytes, ref int offset, int size, out ImmutableArray<DynamicLocalBucket> buckets)
+        /// <exception cref="InvalidOperationException">Bad data.</exception>
+        public static ImmutableArray<DynamicLocalBucket> DecodeDynamicLocalsRecord(ImmutableArray<byte> bytes)
         {
-            int tempOffset = offset;
-
-            int bucketCount = BitConverter.ToInt32(bytes, tempOffset);
-            tempOffset += 4;
+            int offset = 0;
+            int bucketCount = ReadInt32(bytes, ref offset);
 
             var builder = ArrayBuilder<DynamicLocalBucket>.GetInstance(bucketCount);
             for (int i = 0; i < bucketCount; i++)
@@ -237,53 +217,47 @@ namespace Microsoft.VisualStudio.SymReaderInterop
                 ulong flags = 0UL;
                 for (int j = 0; j < FlagBytesCount; j++)
                 {
-                    var flag = bytes[tempOffset + j] != 0;
+                    var flag = ReadByte(bytes, ref offset) != 0;
                     if (flag)
                     {
                         flags |= 1UL << j;
                     }
                 }
 
-                tempOffset += FlagBytesCount;
-
-                int flagCount = BitConverter.ToInt32(bytes, tempOffset);
-                tempOffset += 4;
-
-                int slotId = BitConverter.ToInt32(bytes, tempOffset);
-                tempOffset += 4;
+                int flagCount = ReadInt32(bytes, ref offset);
+                int slotId = ReadInt32(bytes, ref offset);
 
                 const int NameBytesCount = 128;
                 var pooled = PooledStringBuilder.GetInstance();
                 var nameBuilder = pooled.Builder;
-                for (int j = 0; j < NameBytesCount; j += 2)
+
+                int nameEnd = offset + NameBytesCount;
+                while (offset < nameEnd)
                 {
-                    char ch = BitConverter.ToChar(bytes, tempOffset + j);
+                    char ch = (char)ReadInt16(bytes, ref offset);
                     if (ch == 0)
                     {
+                        // The Identifier name takes 64 WCHAR no matter how big its actual length is.
+                        offset = nameEnd;
                         break;
                     }
 
                     nameBuilder.Append(ch);
                 }
 
-                // The Identifier name takes 64 WCHAR no matter how big its actual length is.
-                tempOffset += NameBytesCount; 
                 var name = pooled.ToStringAndFree();
 
                 var bucket = new DynamicLocalBucket(flagCount, flags, slotId, name);
                 builder.Add(bucket);
             }
 
-            buckets = builder.ToImmutableAndFree();
-
-            offset += size - CDI.CdiRecordHeaderSize;
-            Debug.Assert(offset >= tempOffset);
+            return builder.ToImmutableAndFree();
         }
 
         /// <summary>
         /// Returns the raw bytes of a record.
         /// </summary>
-        public static void ReadRawRecordBody(byte[] bytes, ref int offset, int size, out ImmutableArray<byte> body)
+        private static void ReadRawRecordBody(byte[] bytes, ref int offset, int size, out ImmutableArray<byte> body)
         {
             int bodySize = size - CDI.CdiRecordHeaderSize;
             body = ImmutableArray.Create(bytes, offset, bodySize);
@@ -293,7 +267,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
         /// <summary>
         /// Skips past a record.
         /// </summary>
-        public static void SkipRecord(byte[] bytes, ref int offset, int size)
+        private static void SkipRecord(byte[] bytes, ref int offset, int size)
         {
             offset += size - CDI.CdiRecordHeaderSize;
         }
@@ -313,78 +287,63 @@ namespace Microsoft.VisualStudio.SymReaderInterop
             bool seenForward = false;
 
             RETRY:
-            var bytes = reader.GetCustomDebugInfo(methodToken, methodVersion);
+            byte[] bytes = reader.GetCustomDebugInfo(methodToken, methodVersion);
             if (bytes == null)
             {
                 return default(ImmutableArray<ImmutableArray<string>>);
             }
 
-            int offset = 0;
-
-            byte globalVersion;
-            byte unusedGlobalCount;
-            ReadGlobalHeader(bytes, ref offset, out globalVersion, out unusedGlobalCount);
-            CheckVersion(globalVersion, methodToken);
-
-            while (offset < bytes.Length)
+            foreach (var record in GetCustomDebugInfoRecords(bytes))
             {
-                byte version;
-                CustomDebugInfoKind kind;
-                int size;
-                ReadRecordHeader(bytes, ref offset, out version, out kind, out size);
-                CheckVersion(version, methodToken);
-
-                if (kind == CustomDebugInfoKind.UsingInfo)
+                switch (record.Kind)
                 {
-                    if (!groupSizes.IsDefault)
-                    {
-                        throw new InvalidOperationException(string.Format("Expected at most one Using record for method {0}", FormatMethodToken(methodToken)));
-                    }
-
-                    ReadUsingRecord(bytes, ref offset, size, out groupSizes);
-                }
-                else if (kind == CustomDebugInfoKind.ForwardInfo)
-                {
-                    if (!externAliasStrings.IsDefault)
-                    {
-                        throw new InvalidOperationException(string.Format("Did not expect both Forward and ForwardToModule records for method {0}", FormatMethodToken(methodToken)));
-                    }
-
-                    ReadForwardRecord(bytes, ref offset, size, out methodToken);
-
-                    // Follow at most one forward link (as in FUNCBRECEE::ensureNamespaces).
-                    // NOTE: Dev11 may produce chains of forward links (e.g. for System.Collections.Immutable).
-                    if (!seenForward) 
-                    {
-                        seenForward = true;
-                        goto RETRY;
-                    }
-                }
-                else if (kind == CustomDebugInfoKind.ForwardToModuleInfo)
-                {
-                    if (!externAliasStrings.IsDefault)
-                    {
-                        throw new InvalidOperationException(string.Format("Expected at most one ForwardToModule record for method {0}", FormatMethodToken(methodToken)));
-                    }
-
-                    int moduleInfoMethodToken;
-                    ReadForwardToModuleRecord(bytes, ref offset, size, out moduleInfoMethodToken);
-                    ImmutableArray<string> allModuleInfoImportStrings = reader.GetMethodByVersion(moduleInfoMethodToken, methodVersion).GetImportStrings();
-                    ArrayBuilder<string> externAliasBuilder = ArrayBuilder<string>.GetInstance();
-
-                    foreach (string importString in allModuleInfoImportStrings)
-                    {
-                        if (IsCSharpExternAliasInfo(importString))
+                    case CustomDebugInfoKind.UsingInfo:
+                        if (!groupSizes.IsDefault)
                         {
-                            externAliasBuilder.Add(importString);
+                            throw new InvalidOperationException(string.Format("Expected at most one Using record for method {0}", FormatMethodToken(methodToken)));
                         }
-                    }
 
-                    externAliasStrings = externAliasBuilder.ToImmutableAndFree();
-                }
-                else
-                {
-                    SkipRecord(bytes, ref offset, size);
+                        groupSizes = DecodeUsingRecord(record.Data);
+                        break;
+
+                    case CustomDebugInfoKind.ForwardInfo:
+                        if (!externAliasStrings.IsDefault)
+                        {
+                            throw new InvalidOperationException(string.Format("Did not expect both Forward and ForwardToModule records for method {0}", FormatMethodToken(methodToken)));
+                        }
+
+                        methodToken = DecodeForwardRecord(record.Data);
+                        
+                        // Follow at most one forward link (as in FUNCBRECEE::ensureNamespaces).
+                        // NOTE: Dev11 may produce chains of forward links (e.g. for System.Collections.Immutable).
+                        if (!seenForward)
+                        {
+                            seenForward = true;
+                            goto RETRY;
+                        }
+
+                        break;
+
+                    case CustomDebugInfoKind.ForwardToModuleInfo:
+                        if (!externAliasStrings.IsDefault)
+                        {
+                            throw new InvalidOperationException(string.Format("Expected at most one ForwardToModule record for method {0}", FormatMethodToken(methodToken)));
+                        }
+
+                        int moduleInfoMethodToken = DecodeForwardToModuleRecord(record.Data);
+                        ImmutableArray<string> allModuleInfoImportStrings = reader.GetMethodByVersion(moduleInfoMethodToken, methodVersion).GetImportStrings();
+                        ArrayBuilder<string> externAliasBuilder = ArrayBuilder<string>.GetInstance();
+
+                        foreach (string importString in allModuleInfoImportStrings)
+                        {
+                            if (IsCSharpExternAliasInfo(importString))
+                            {
+                                externAliasBuilder.Add(importString);
+                            }
+                        }
+
+                        externAliasStrings = externAliasBuilder.ToImmutableAndFree();
+                        break;
                 }
             }
 
@@ -494,46 +453,15 @@ namespace Microsoft.VisualStudio.SymReaderInterop
             return importStrings;
         }
 
-        public static ImmutableSortedSet<int> GetCSharpInScopeHoistedLocalIndices(this ISymUnmanagedReader reader, int methodToken, int methodVersion, int ilOffset)
+        public static ImmutableSortedSet<int> GetCSharpInScopeHoistedLocalIndices(byte[] customDebugInfo, int methodToken, int methodVersion, int ilOffset)
         {
-            byte[] bytes = reader.GetCustomDebugInfo(methodToken, methodVersion);
-            if (bytes == null)
+            var record = TryGetCustomDebugInfoRecord(customDebugInfo, CustomDebugInfoKind.StateMachineHoistedLocalScopes);
+            if (record.IsDefault)
             {
                 return ImmutableSortedSet<int>.Empty;
             }
 
-            int offset = 0;
-
-            byte globalVersion;
-            byte unusedGlobalCount;
-            ReadGlobalHeader(bytes, ref offset, out globalVersion, out unusedGlobalCount);
-            CheckVersion(globalVersion, methodToken);
-
-            ImmutableArray<StateMachineHoistedLocalScope> scopes = default(ImmutableArray<StateMachineHoistedLocalScope>);
-
-            while (offset < bytes.Length)
-            {
-                byte version;
-                CustomDebugInfoKind kind;
-                int size;
-                ReadRecordHeader(bytes, ref offset, out version, out kind, out size);
-                CheckVersion(version, methodToken);
-
-                if (kind == CustomDebugInfoKind.StateMachineHoistedLocalScopes)
-                {
-                    ReadStateMachineHoistedLocalScopesRecord(bytes, ref offset, size, out scopes);
-                    break;
-                }
-                else
-                {
-                    SkipRecord(bytes, ref offset, size);
-                }
-            }
-
-            if (scopes.IsDefault)
-            {
-                return ImmutableSortedSet<int>.Empty;
-            }
+            var scopes = DecodeStateMachineHoistedLocalScopesRecord(record);
 
             ArrayBuilder<int> builder = ArrayBuilder<int>.GetInstance();
             for (int i = 0; i < scopes.Length; i++)
@@ -552,8 +480,9 @@ namespace Microsoft.VisualStudio.SymReaderInterop
             return result;
         }
 
+        /// <exception cref="InvalidOperationException">Bad data.</exception>
         public static void GetCSharpDynamicLocalInfo(
-            this ISymUnmanagedReader reader,
+            byte[] customDebugInfo,
             int methodToken,
             int methodVersion,
             string firstLocalName,
@@ -563,41 +492,8 @@ namespace Microsoft.VisualStudio.SymReaderInterop
             dynamicLocalMap = ImmutableDictionary<int, ImmutableArray<bool>>.Empty;
             dynamicLocalConstantMap = ImmutableDictionary<string, ImmutableArray<bool>>.Empty;
 
-            byte[] bytes = reader.GetCustomDebugInfo(methodToken, methodVersion);
-            if (bytes == null)
-            {
-                return;
-            }
-
-            int offset = 0;
-
-            byte globalVersion;
-            byte unusedGlobalCount;
-            ReadGlobalHeader(bytes, ref offset, out globalVersion, out unusedGlobalCount);
-            CheckVersion(globalVersion, methodToken);
-
-            ImmutableArray<DynamicLocalBucket> buckets = default(ImmutableArray<DynamicLocalBucket>);
-
-            while (offset < bytes.Length)
-            {
-                byte version;
-                CustomDebugInfoKind kind;
-                int size;
-                ReadRecordHeader(bytes, ref offset, out version, out kind, out size);
-                CheckVersion(version, methodToken);
-
-                if (kind == CustomDebugInfoKind.DynamicLocals)
-                {
-                    ReadDynamicLocalsRecord(bytes, ref offset, size, out buckets);
-                    break;
-                }
-                else
-                {
-                    SkipRecord(bytes, ref offset, size);
-                }
-            }
-
-            if (buckets.IsDefault)
+            var record = TryGetCustomDebugInfoRecord(customDebugInfo, CustomDebugInfoKind.DynamicLocals);
+            if (record.IsDefault)
             {
                 return;
             }
@@ -605,7 +501,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
             ImmutableDictionary<int, ImmutableArray<bool>>.Builder localBuilder = null;
             ImmutableDictionary<string, ImmutableArray<bool>>.Builder constantBuilder = null;
 
-            foreach (DynamicLocalBucket bucket in buckets)
+            foreach (DynamicLocalBucket bucket in DecodeDynamicLocalsRecord(record))
             {
                 int flagCount = bucket.FlagCount;
                 ulong flags = bucket.Flags;
@@ -651,60 +547,40 @@ namespace Microsoft.VisualStudio.SymReaderInterop
             }
         }
 
-        /// <summary>
-        /// Get the (unprocessed) import strings for a given method.
-        /// </summary>
-        /// <remarks>
-        /// Doesn't consider forwarding.
-        /// 
-        /// CONSIDER: Dev12 doesn't just check the root scope - it digs around to find the best
-        /// match based on the IL offset and then walks up to the root scope (see PdbUtil::GetScopeFromOffset).
-        /// However, it's not clear that this matters, since imports can't be scoped in VB.  This is probably
-        /// just based on the way they were extracting locals and constants based on a specific scope.
-        /// </remarks>
-        private static ImmutableArray<string> GetImportStrings(this ISymUnmanagedMethod method)
+        private static int ReadInt32(ImmutableArray<byte> bytes, ref int offset)
         {
-            if (method == null)
+            int i = offset;
+            if (i + sizeof(int) > bytes.Length)
             {
-                // In rare circumstances (only bad PDBs?) GetMethodByVersion can return null.
-                // If there's no debug info for the method, then no import strings are available.
-                return ImmutableArray<string>.Empty;
+                throw new InvalidOperationException("Read out of buffer.");
             }
 
-            ISymUnmanagedScope rootScope = method.GetRootScope();
-            if (rootScope == null)
+            offset += sizeof(int);
+            return bytes[i] | (bytes[i + 1] << 8) | (bytes[i + 2] << 16) | (bytes[i + 3] << 24);
+        }
+
+        private static short ReadInt16(ImmutableArray<byte> bytes, ref int offset)
+        {
+            int i = offset;
+            if (i + sizeof(short) > bytes.Length)
             {
-                Debug.Assert(false, "Expected a root scope.");
-                return ImmutableArray<string>.Empty;
+                throw new InvalidOperationException("Read out of buffer.");
             }
 
-            ImmutableArray<ISymUnmanagedScope> childScopes = rootScope.GetScopes();
-            if (childScopes.Length == 0)
+            offset += sizeof(short);
+            return (short)(bytes[i] | (bytes[i + 1] << 8));
+        }
+
+        private static byte ReadByte(ImmutableArray<byte> bytes, ref int offset)
+        {
+            int i = offset;
+            if (i + sizeof(byte) > bytes.Length)
             {
-                // It seems like there should always be at least one child scope, but we've
-                // seen PDBs where that is not the case.
-                return ImmutableArray<string>.Empty;
+                throw new InvalidOperationException("Read out of buffer.");
             }
 
-            // As in NamespaceListWrapper::Init, we only consider namespaces in the first
-            // child of the root scope.
-            ISymUnmanagedScope firstChildScope = childScopes[0];
-
-            ImmutableArray<ISymUnmanagedNamespace> namespaces = firstChildScope.GetNamespaces();
-            if (namespaces.Length == 0)
-            {
-                // It seems like there should always be at least one namespace (i.e. the global
-                // namespace), but we've seen PDBs where that is not the case.
-                return ImmutableArray<string>.Empty;
-            }
-
-            ArrayBuilder<string> importsBuilder = ArrayBuilder<string>.GetInstance(namespaces.Length);
-            foreach (ISymUnmanagedNamespace @namespace in namespaces)
-            {
-                importsBuilder.Add(@namespace.GetName());
-            }
-
-            return importsBuilder.ToImmutableAndFree();
+            offset += sizeof(byte);
+            return bytes[i];
         }
 
         public static bool IsCSharpExternAliasInfo(string import)
@@ -998,6 +874,20 @@ namespace Microsoft.VisualStudio.SymReaderInterop
         private static string FormatMethodToken(int methodToken)
         {
             return string.Format("0x{0:x8}", methodToken);
+        }
+    }
+
+    internal struct CustomDebugInfoRecord
+    {
+        public readonly CustomDebugInfoKind Kind;
+        public readonly byte Version;
+        public readonly ImmutableArray<byte> Data;
+
+        public CustomDebugInfoRecord(CustomDebugInfoKind kind, byte version, ImmutableArray<byte> data)
+        {
+            this.Kind = kind;
+            this.Version = version;
+            this.Data = data;
         }
     }
 

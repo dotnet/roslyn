@@ -12,18 +12,22 @@ namespace Microsoft.VisualStudio.SymReaderInterop
     internal interface ISymUnmanagedVariable
     {
         [PreserveSig]
-        int GetName(int cchName, out int pcchName, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] char[] name);
-        int __GetAttributes(out uint pRetVal);
+        int GetName(int cchName, out int pcchName, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] [In] [Out] char[] szName);
         [PreserveSig]
-        int GetSignature(int cSig, out int pcSig, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] byte[] sig);
-
-        // the following methods are useless (not implemented, or returning a constant):
-        int __GetAddressKind(out int pRetVal);
+        int GetAttributes(out int pRetVal);
+        [PreserveSig]
+        int GetSignature(int cSig, out int pcSig, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] [In] [Out] byte[] sig);
+        [PreserveSig]
+        int GetAddressKind(out int pRetVal);
         [PreserveSig]
         int GetAddressField1(out int pRetVal);
-        int __GetAddressField2(out int pRetVal);
-        int __GetAddressField3(out int pRetVal);
-        int __GetStartOffset(out int pRetVal);
-        int __GetEndOffset(out int pRetVal);
+        [PreserveSig]
+        int GetAddressField2(out int pRetVal);
+        [PreserveSig]
+        int GetAddressField3(out int pRetVal);
+        [PreserveSig]
+        int GetStartOffset(out int pRetVal);
+        [PreserveSig]
+        int GetEndOffset(out int pRetVal);
     } 
 }

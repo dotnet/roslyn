@@ -12,15 +12,11 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Text;
-using System.Threading;
 using System.Xml;
-using Microsoft.Samples.Debugging.CorSymbolStore;
-using Microsoft.Samples.Debugging.SymbolStore;
 using Microsoft.VisualStudio.SymReaderInterop;
 using CDI = Microsoft.VisualStudio.SymReaderInterop.CustomDebugInfoReader;
 using CDIC = Microsoft.Cci.CustomDebugInfoConstants;
 using PooledStringBuilder = Microsoft.CodeAnalysis.Collections.PooledStringBuilder;
-using System.Runtime.InteropServices;
 
 namespace Roslyn.Test.PdbUtilities
 {
@@ -140,6 +136,7 @@ namespace Roslyn.Test.PdbUtilities
                 if (pdbReader == null)
                 {
                     Console.WriteLine("Error: No Symbol Reader could be initialized.");
+                    return;
                 }
 
                 var converter = new PdbToXmlConverter(writer, pdbReader, metadataReaderOpt, options);
@@ -200,11 +197,10 @@ namespace Roslyn.Test.PdbUtilities
         private void WriteMethod(MethodDefinitionHandle methodHandle)
         {
             int token = metadataReader.GetToken(methodHandle);
-            var symbolToken = new SymbolToken(token);
 
-            byte[] bytes = pdbReader.RawSymbolReader.GetCustomDebugInfo(token, methodVersion: 0);
-            ISymbolMethod methodSymbol = pdbReader.SymbolReader.GetMethod(symbolToken);
-            if (bytes == null && methodSymbol == null)
+            byte[] cdi = pdbReader.SymbolReader.GetCustomDebugInfo(token, methodVersion: 0);
+            ISymUnmanagedMethod method = pdbReader.SymbolReader.GetMethod(token);
+            if (cdi == null && method == null)
             {
                 // no debug info for the method
                 return;
@@ -213,24 +209,21 @@ namespace Roslyn.Test.PdbUtilities
             writer.WriteStartElement("method");
             WriteMethodAttributes(token, isReference: false);
 
-            if (bytes != null)
+            if (cdi != null)
             {
-                WriteCustomDebugInfo(bytes);
+                WriteCustomDebugInfo(cdi);
             }
 
-            if (methodSymbol != null)
+            if (method != null)
             {
-                WriteSequencePoints(methodSymbol);
+                WriteSequencePoints(method);
 
                 // TODO (tomat): Ideally this would be done in a separate test helper, not in PdbToXml.
                 // verify ISymUnmanagedMethod APIs:
-                ISymUnmanagedMethod rawMethod = pdbReader.RawSymbolReader.GetBaselineMethod(token);
-                Debug.Assert(rawMethod != null, "How did we get an ISymbolMethod without a backing ISymUnmanagedMethod?");
-
                 var expectedSlotNames = new Dictionary<int, ImmutableArray<string>>();
-                WriteLocals(rawMethod, expectedSlotNames);
+                WriteLocals(method, expectedSlotNames);
 
-                var actualSlotNames = rawMethod.GetLocalVariableSlots();
+                var actualSlotNames = method.GetLocalVariableSlots();
 
                 Debug.Assert(actualSlotNames.Length == (expectedSlotNames.Count == 0 ? 0 : expectedSlotNames.Keys.Max() + 1));
 
@@ -249,13 +242,13 @@ namespace Roslyn.Test.PdbUtilities
                     i++;
                 }
 
-                ImmutableArray<ISymUnmanagedScope> children = rawMethod.GetRootScope().GetScopes();
+                ImmutableArray<ISymUnmanagedScope> children = method.GetRootScope().GetScopes();
                 if (children.Length != 0)
                 {
                     WriteScopes(children[0]);
                 }
 
-                WriteAsyncInfo(methodSymbol as ISymbolAsyncMethod);
+                WriteAsyncInfo(method);
             }
 
             writer.WriteEndElement(); // method
@@ -267,55 +260,45 @@ namespace Roslyn.Test.PdbUtilities
         /// </summary>
         private void WriteCustomDebugInfo(byte[] bytes)
         {
-            int offset = 0;
-
+            var records = CustomDebugInfoReader.GetCustomDebugInfoRecords(bytes).ToArray();
+            
             writer.WriteStartElement("customDebugInfo");
+            writer.WriteAttributeString("version", CDIC.CdiVersion.ToString());
+            writer.WriteAttributeString("count", records.Length.ToString());
 
-            byte globalVersion;
-            byte globalCount;
-            CDI.ReadGlobalHeader(bytes, ref offset, out globalVersion, out globalCount);
-
-            writer.WriteAttributeString("version", globalVersion.ToString());
-            writer.WriteAttributeString("count", globalCount.ToString());
-
-            while (offset < bytes.Length)
+            foreach (var record in records)
             {
-                byte version;
-                CustomDebugInfoKind kind;
-                int size;
-                CDI.ReadRecordHeader(bytes, ref offset, out version, out kind, out size);
-
-                if (version != CDIC.CdiVersion)
+                if (record.Version != CDIC.CdiVersion)
                 {
-                    WriteUnknownCustomDebugInfo(version, kind, size, bytes, ref offset);
+                    WriteUnknownCustomDebugInfo(record);
                 }
                 else
                 {
-                    switch (kind)
+                    switch (record.Kind)
                     {
                         case CustomDebugInfoKind.UsingInfo:
-                            WriteUsingCustomDebugInfo(version, kind, size, bytes, ref offset);
+                            WriteUsingCustomDebugInfo(record);
                             break;
                         case CustomDebugInfoKind.ForwardInfo:
-                            WriteForwardCustomDebugInfo(version, kind, size, bytes, ref offset);
+                            WriteForwardCustomDebugInfo(record);
                             break;
                         case CustomDebugInfoKind.ForwardToModuleInfo:
-                            WriteForwardToModuleCustomDebugInfo(version, kind, size, bytes, ref offset);
+                            WriteForwardToModuleCustomDebugInfo(record);
                             break;
                         case CustomDebugInfoKind.StateMachineHoistedLocalScopes:
-                            WriteStatemachineHoistedLocalScopesCustomDebugInfo(version, kind, size, bytes, ref offset);
+                            WriteStatemachineHoistedLocalScopesCustomDebugInfo(record);
                             break;
                         case CustomDebugInfoKind.ForwardIterator:
-                            WriteForwardIteratorCustomDebugInfo(version, kind, size, bytes, ref offset);
+                            WriteForwardIteratorCustomDebugInfo(record);
                             break;
                         case CustomDebugInfoKind.DynamicLocals:
-                            WriteDynamicLocalsCustomDebugInfo(version, kind, size, bytes, ref offset);
+                            WriteDynamicLocalsCustomDebugInfo(record);
                             break;
                         case CustomDebugInfoKind.EditAndContinueLocalSlotMap:
-                            WriteEditAndContinueLocalSlotMap(version, kind, size, bytes, ref offset);
+                            WriteEditAndContinueLocalSlotMap(record);
                             break;
                         default:
-                            WriteUnknownCustomDebugInfo(version, kind, size, bytes, ref offset);
+                            WriteUnknownCustomDebugInfo(record);
                             break;
                     }
                 }
@@ -327,11 +310,11 @@ namespace Roslyn.Test.PdbUtilities
         /// <summary>
         /// Write version, kind, and size attributes.
         /// </summary>
-        private void WriteCustomDebugInfoRecordHeaderAttributes(byte version, CustomDebugInfoKind kind, int size)
+        private void WriteCustomDebugInfoRecordHeaderAttributes(CustomDebugInfoRecord record)
         {
-            writer.WriteAttributeString("version", version.ToString());
-            writer.WriteAttributeString("kind", kind.ToString());
-            writer.WriteAttributeString("size", size.ToString());
+            writer.WriteAttributeString("version", record.Version.ToString());
+            writer.WriteAttributeString("kind", record.Kind.ToString());
+            writer.WriteAttributeString("size", (record.Data.Length + CDIC.CdiRecordHeaderSize).ToString());
         }
 
         /// <summary>
@@ -339,21 +322,19 @@ namespace Roslyn.Test.PdbUtilities
         /// just print a standard record header followed by the rest of the record as a
         /// single hex string.
         /// </summary>
-        private void WriteUnknownCustomDebugInfo(byte version, CustomDebugInfoKind kind, int size, byte[] bytes, ref int offset)
+        private void WriteUnknownCustomDebugInfo(CustomDebugInfoRecord record)
         {
             writer.WriteStartElement("unknown");
 
-            WriteCustomDebugInfoRecordHeaderAttributes(version, kind, size);
-
-            ImmutableArray<byte> body;
-            CDI.ReadRawRecordBody(bytes, ref offset, size, out body);
+            WriteCustomDebugInfoRecordHeaderAttributes(record);
 
             PooledStringBuilder pooled = PooledStringBuilder.GetInstance();
             StringBuilder builder = pooled.Builder;
-            foreach (byte b in body)
+            foreach (byte b in record.Data)
             {
                 builder.AppendFormat("{0:X2}", b);
             }
+
             writer.WriteAttributeString("payload", pooled.ToStringAndFree());
 
             writer.WriteEndElement(); //unknown
@@ -366,16 +347,15 @@ namespace Roslyn.Test.PdbUtilities
         /// <remarks>
         /// There's always at least one entry (for the global namespace).
         /// </remarks>
-        private void WriteUsingCustomDebugInfo(byte version, CustomDebugInfoKind kind, int size, byte[] bytes, ref int offset)
+        private void WriteUsingCustomDebugInfo(CustomDebugInfoRecord record)
         {
-            Debug.Assert(kind == CustomDebugInfoKind.UsingInfo);
+            Debug.Assert(record.Kind == CustomDebugInfoKind.UsingInfo);
 
             writer.WriteStartElement("using");
 
-            WriteCustomDebugInfoRecordHeaderAttributes(version, kind, size);
+            WriteCustomDebugInfoRecordHeaderAttributes(record);
 
-            ImmutableArray<short> counts;
-            CDI.ReadUsingRecord(bytes, ref offset, size, out counts);
+            ImmutableArray<short> counts = CDI.DecodeUsingRecord(record.Data);
 
             writer.WriteAttributeString("namespaceCount", counts.Length.ToString());
 
@@ -396,16 +376,15 @@ namespace Roslyn.Test.PdbUtilities
         /// <remarks>
         /// Emitting tokens makes tests more fragile.
         /// </remarks>
-        private void WriteForwardCustomDebugInfo(byte version, CustomDebugInfoKind kind, int size, byte[] bytes, ref int offset)
+        private void WriteForwardCustomDebugInfo(CustomDebugInfoRecord record)
         {
-            Debug.Assert(kind == CustomDebugInfoKind.ForwardInfo);
+            Debug.Assert(record.Kind == CustomDebugInfoKind.ForwardInfo);
 
             writer.WriteStartElement("forward");
 
-            WriteCustomDebugInfoRecordHeaderAttributes(version, kind, size);
+            WriteCustomDebugInfoRecordHeaderAttributes(record);
 
-            int token;
-            CDI.ReadForwardRecord(bytes, ref offset, size, out token);
+            int token = CDI.DecodeForwardRecord(record.Data);
             WriteMethodAttributes(token, isReference: true);
 
             writer.WriteEndElement(); //forward
@@ -419,16 +398,15 @@ namespace Roslyn.Test.PdbUtilities
         /// Appears when there are extern aliases and edit-and-continue is disabled.
         /// Emitting tokens makes tests more fragile.
         /// </remarks>
-        private void WriteForwardToModuleCustomDebugInfo(byte version, CustomDebugInfoKind kind, int size, byte[] bytes, ref int offset)
+        private void WriteForwardToModuleCustomDebugInfo(CustomDebugInfoRecord record)
         {
-            Debug.Assert(kind == CustomDebugInfoKind.ForwardToModuleInfo);
+            Debug.Assert(record.Kind == CustomDebugInfoKind.ForwardToModuleInfo);
 
             writer.WriteStartElement("forwardToModule");
 
-            WriteCustomDebugInfoRecordHeaderAttributes(version, kind, size);
+            WriteCustomDebugInfoRecordHeaderAttributes(record);
 
-            int token;
-            CDI.ReadForwardRecord(bytes, ref offset, size, out token);
+            int token = CDI.DecodeForwardRecord(record.Data);
             WriteMethodAttributes(token, isReference: true);
 
             writer.WriteEndElement(); //forwardToModule
@@ -442,16 +420,15 @@ namespace Roslyn.Test.PdbUtilities
         /// <remarks>
         /// Appears when there are locals in iterator methods.
         /// </remarks>
-        private void WriteStatemachineHoistedLocalScopesCustomDebugInfo(byte version, CustomDebugInfoKind kind, int size, byte[] bytes, ref int offset)
+        private void WriteStatemachineHoistedLocalScopesCustomDebugInfo(CustomDebugInfoRecord record)
         {
-            Debug.Assert(kind == CustomDebugInfoKind.StateMachineHoistedLocalScopes);
+            Debug.Assert(record.Kind == CustomDebugInfoKind.StateMachineHoistedLocalScopes);
 
             writer.WriteStartElement("hoistedLocalScopes");
 
-            WriteCustomDebugInfoRecordHeaderAttributes(version, kind, size);
+            WriteCustomDebugInfoRecordHeaderAttributes(record);
 
-            ImmutableArray<StateMachineHoistedLocalScope> scopes;
-            CDI.ReadStateMachineHoistedLocalScopesRecord(bytes, ref offset, size, out scopes);
+            var scopes = CDI.DecodeStateMachineHoistedLocalScopesRecord(record.Data);
 
             writer.WriteAttributeString("count", scopes.Length.ToString());
 
@@ -473,16 +450,15 @@ namespace Roslyn.Test.PdbUtilities
         /// <remarks>
         /// Appears when are iterator methods.
         /// </remarks>
-        private void WriteForwardIteratorCustomDebugInfo(byte version, CustomDebugInfoKind kind, int size, byte[] bytes, ref int offset)
+        private void WriteForwardIteratorCustomDebugInfo(CustomDebugInfoRecord record)
         {
-            Debug.Assert(kind == CustomDebugInfoKind.ForwardIterator);
+            Debug.Assert(record.Kind == CustomDebugInfoKind.ForwardIterator);
 
             writer.WriteStartElement("forwardIterator");
 
-            WriteCustomDebugInfoRecordHeaderAttributes(version, kind, size);
+            WriteCustomDebugInfoRecordHeaderAttributes(record);
 
-            string name;
-            CDI.ReadForwardIteratorRecord(bytes, ref offset, size, out name);
+            string name = CDI.DecodeForwardIteratorRecord(record.Data);
 
             writer.WriteAttributeString("name", name);
 
@@ -496,16 +472,15 @@ namespace Roslyn.Test.PdbUtilities
         /// <remarks>
         /// Appears when there are dynamic locals.
         /// </remarks>
-        private void WriteDynamicLocalsCustomDebugInfo(byte version, CustomDebugInfoKind kind, int size, byte[] bytes, ref int offset)
+        private void WriteDynamicLocalsCustomDebugInfo(CustomDebugInfoRecord record)
         {
-            Debug.Assert(kind == CustomDebugInfoKind.DynamicLocals);
+            Debug.Assert(record.Kind == CustomDebugInfoKind.DynamicLocals);
 
             writer.WriteStartElement("dynamicLocals");
 
-            WriteCustomDebugInfoRecordHeaderAttributes(version, kind, size);
+            WriteCustomDebugInfoRecordHeaderAttributes(record);
 
-            ImmutableArray<DynamicLocalBucket> buckets;
-            CDI.ReadDynamicLocalsRecord(bytes, ref offset, size, out buckets);
+            var buckets = CDI.DecodeDynamicLocalsRecord(record.Data);
 
             writer.WriteAttributeString("bucketCount", buckets.Length.ToString());
 
@@ -532,20 +507,19 @@ namespace Roslyn.Test.PdbUtilities
             writer.WriteEndElement(); //dynamicLocals
         }
 
-        private unsafe void WriteEditAndContinueLocalSlotMap(byte version, CustomDebugInfoKind kind, int size, byte[] bytes, ref int offset)
+        private unsafe void WriteEditAndContinueLocalSlotMap(CustomDebugInfoRecord record)
         {
-            Debug.Assert(kind == CustomDebugInfoKind.EditAndContinueLocalSlotMap);
+            Debug.Assert(record.Kind == CustomDebugInfoKind.EditAndContinueLocalSlotMap);
 
             writer.WriteStartElement("encLocalSlotMap");
 
-            WriteCustomDebugInfoRecordHeaderAttributes(version, kind, size);
+            WriteCustomDebugInfoRecordHeaderAttributes(record);
 
-            int bodySize = size - CDIC.CdiRecordHeaderSize;
             int syntaxOffsetBaseline = -1;
 
-            fixed (byte* compressedSlotMapPtr = &bytes[offset])
+            fixed (byte* compressedSlotMapPtr = &record.Data.ToArray()[0])
             {
-                var blobReader = new BlobReader(compressedSlotMapPtr, bodySize);
+                var blobReader = new BlobReader(compressedSlotMapPtr, record.Data.Length);
 
                 while (blobReader.RemainingBytes > 0)
                 {
@@ -595,7 +569,6 @@ namespace Roslyn.Test.PdbUtilities
                 }
             }
 
-            offset += bodySize;
             writer.WriteEndElement(); //encLocalSlotMap
         }
 
@@ -811,52 +784,36 @@ namespace Roslyn.Test.PdbUtilities
             }
         }
 
-        private void WriteAsyncInfo(ISymbolAsyncMethod method)
+        private void WriteAsyncInfo(ISymUnmanagedMethod method)
         {
-            if (method != null)
+            var asyncMethod = method.AsAsync();
+            if (asyncMethod == null)
             {
-                if (method.IsAsyncMethod)
-                {
-                    writer.WriteStartElement("async-info");
-
-                    var catchOffset = method.CatchHandlerOffset;
-                    if (catchOffset >= 0)
-                    {
-                        writer.WriteAttributeString("catch-IL-offset", AsILOffset(catchOffset));
-                    }
-
-                    writer.WriteStartElement("kickoff-method");
-                    WriteMethodAttributes((int)method.KickoffMethod, isReference: true);
-                    writer.WriteEndElement();
-
-                    foreach (var info in method.GetAsyncStepInfos())
-                    {
-                        writer.WriteStartElement("await");
-                        writer.WriteAttributeString("yield", AsILOffset(info.YieldOffset));
-                        writer.WriteAttributeString("resume", AsILOffset(info.BreakpointOffset));
-                        WriteMethodAttributes((int)info.BreakpointMethod, isReference: true);
-                        writer.WriteEndElement();
-                    }
-
-                    writer.WriteEndElement();
-                }
-            }
-        }
-
-        private static ConstructorInfo ConstructorOfISymbolScope = null;
-        private static ISymbolScope WrapRawScope(ISymUnmanagedScope rawScope)
-        {
-            if (ConstructorOfISymbolScope == null)
-            {
-                // NOTE: We have the sources for this type, so we can just make the constructor
-                // public if reflection proves to be too expensive.
-                var assembly = typeof(SymbolBinder).Assembly;
-                var type = assembly.GetType("Microsoft.Samples.Debugging.CorSymbolStore.SymScope", throwOnError: true);
-                var ctor = type.GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).Single();
-                Interlocked.CompareExchange(ref ConstructorOfISymbolScope, ctor, null);
+                return;
             }
 
-            return (ISymbolScope)ConstructorOfISymbolScope.Invoke(new object[] { rawScope });
+            writer.WriteStartElement("async-info");
+
+            var catchOffset = asyncMethod.GetCatchHandlerILOffset();
+            if (catchOffset >= 0)
+            {
+                writer.WriteAttributeString("catch-IL-offset", AsILOffset(catchOffset));
+            }
+
+            writer.WriteStartElement("kickoff-method");
+            WriteMethodAttributes(asyncMethod.GetKickoffMethod(), isReference: true);
+            writer.WriteEndElement();
+
+            foreach (var info in asyncMethod.GetAsyncStepInfos())
+            {
+                writer.WriteStartElement("await");
+                writer.WriteAttributeString("yield", AsILOffset(info.YieldOffset));
+                writer.WriteAttributeString("resume", AsILOffset(info.ResumeOffset));
+                WriteMethodAttributes(info.ResumeMethod, isReference: true);
+                writer.WriteEndElement();
+            }
+
+            writer.WriteEndElement();
         }
 
         // Write all the locals in the given method out to an XML file.
@@ -868,27 +825,18 @@ namespace Roslyn.Test.PdbUtilities
         private void WriteLocals(ISymUnmanagedMethod method, Dictionary<int, ImmutableArray<string>> slotNames)
         {
             writer.WriteStartElement("locals");
-            {
-                // If there are no locals, then this element will just be empty.
-                WriteLocalsHelper(method.GetRootScope(), slotNames, includeChildScopes: true);
-            }
+            // If there are no locals, then this element will just be empty.
+            WriteLocalsHelper(method.GetRootScope(), slotNames, includeChildScopes: true);
             writer.WriteEndElement();
         }
 
-        // Helper method to write the local variables in the given scope.
-        // Scopes match an IL range, and also have child scopes.
-        private void WriteLocalsHelper(ISymUnmanagedScope rawScope, Dictionary<int, ImmutableArray<string>> slotNames, bool includeChildScopes)
+        private void WriteLocalsHelper(ISymUnmanagedScope scope, Dictionary<int, ImmutableArray<string>> slotNames, bool includeChildScopes)
         {
-            WriteLocalsHelper(WrapRawScope(rawScope), slotNames, includeChildScopes);
-        }
-
-        private void WriteLocalsHelper(ISymbolScope scope, Dictionary<int, ImmutableArray<string>> slotNames, bool includeChildScopes)
-        {
-            foreach (ISymbolVariable l in scope.GetLocals())
+            foreach (ISymUnmanagedVariable l in scope.GetLocals())
             {
                 writer.WriteStartElement("local");
                 {
-                    writer.WriteAttributeString("name", l.Name);
+                    writer.WriteAttributeString("name", l.GetName());
 
                     // Each local maps to a "IL Index" or "slot" number. 
                     // The index is not necessarily unique. Several locals may refer to the same slot. 
@@ -898,8 +846,7 @@ namespace Roslyn.Test.PdbUtilities
                     // NOTE: VB emits "fake" locals for resumable locals which are actually backed by fields.
                     //       These locals always map to the slot #0 which is just a valid number that is 
                     //       not used. Only scoping information is used by EE in this case.
-                    Debug.Assert(l.AddressKind == SymAddressKind.ILOffset);
-                    int slot = l.AddressField1;
+                    int slot = l.GetSlot();
                     writer.WriteAttributeString("il_index", CultureInvariantToString(slot));
 
                     bool reusingSlot = false;
@@ -910,19 +857,19 @@ namespace Roslyn.Test.PdbUtilities
                         ImmutableArray<string> existingNames;
                         if (slotNames.TryGetValue(slot, out existingNames))
                         {
-                            slotNames[slot] = existingNames.Add(l.Name);
+                            slotNames[slot] = existingNames.Add(l.GetName());
                             reusingSlot = true;
                         }
                         else
                         {
-                            slotNames.Add(slot, ImmutableArray.Create(l.Name));
+                            slotNames.Add(slot, ImmutableArray.Create(l.GetName()));
                         }
                     }
 
                     // Provide scope range
-                    writer.WriteAttributeString("il_start", AsILOffset(scope.StartOffset));
-                    writer.WriteAttributeString("il_end", AsILOffset(scope.EndOffset));
-                    writer.WriteAttributeString("attributes", l.Attributes.ToString());
+                    writer.WriteAttributeString("il_start", AsILOffset(scope.GetStartOffset()));
+                    writer.WriteAttributeString("il_end", AsILOffset(scope.GetEndOffset()));
+                    writer.WriteAttributeString("attributes", l.GetAttributes().ToString());
 
                     if (reusingSlot)
                     {
@@ -932,7 +879,7 @@ namespace Roslyn.Test.PdbUtilities
                 writer.WriteEndElement(); // </local>
             }
 
-            foreach (ISymbolConstant c in ((ISymbolScope2)scope).GetConstants())
+            foreach (ISymUnmanagedConstant c in scope.GetConstants())
             {
                 // Note: We can retrieve constant tokens by saving it into signature blob
                 // in our implementation of IMetadataImport.GetSigFromToken.
@@ -974,9 +921,10 @@ namespace Roslyn.Test.PdbUtilities
                 }
                 writer.WriteEndElement(); // </constant>
             }
+
             if (includeChildScopes)
             {
-                foreach (ISymbolScope childScope in scope.GetChildren())
+                foreach (ISymUnmanagedScope childScope in scope.GetScopes())
                 {
                     WriteLocalsHelper(childScope, slotNames, includeChildScopes);
                 }
@@ -986,44 +934,34 @@ namespace Roslyn.Test.PdbUtilities
         // Write the sequence points for the given method
         // Sequence points are the map between IL offsets and source lines.
         // A single method could span multiple files (use C#'s #line directive to see for yourself).        
-        private void WriteSequencePoints(ISymbolMethod method)
+        private void WriteSequencePoints(ISymUnmanagedMethod method)
         {
             writer.WriteStartElement("sequencepoints");
 
-            int count = method.SequencePointCount;
-            writer.WriteAttributeString("total", CultureInvariantToString(count));
-
-            // Get the sequence points from the symbol store. 
-            // We could cache these arrays and reuse them.
-            int[] offsets = new int[count];
-            ISymbolDocument[] docs = new ISymbolDocument[count];
-            int[] startColumn = new int[count];
-            int[] endColumn = new int[count];
-            int[] startRow = new int[count];
-            int[] endRow = new int[count];
-            method.GetSequencePoints(offsets, docs, startRow, startColumn, endRow, endColumn);
-
+            var sequencePoints = method.GetSequencePoints();
+            writer.WriteAttributeString("total", CultureInvariantToString(sequencePoints.Length));
+            
             // Write out sequence points
-            for (int i = 0; i < count; i++)
+            foreach (var sequencePoint in sequencePoints)
             {
                 writer.WriteStartElement("entry");
-                writer.WriteAttributeString("il_offset", AsILOffset(offsets[i]));
+                writer.WriteAttributeString("il_offset", AsILOffset(sequencePoint.Offset));
 
                 // If it's a special 0xFeeFee sequence point (eg, "hidden"), 
                 // place an attribute on it to make it very easy for tools to recognize.
                 // See http://blogs.msdn.com/jmstall/archive/2005/06/19/FeeFee_SequencePoints.aspx
-                if (startRow[i] == 0xFeeFee)
+                if (sequencePoint.IsHidden)
                 {
                     writer.WriteAttributeString("hidden", XmlConvert.ToString(true));
                 }
 
-                writer.WriteAttributeString("start_row", CultureInvariantToString(startRow[i]));
-                writer.WriteAttributeString("start_column", CultureInvariantToString(startColumn[i]));
-                writer.WriteAttributeString("end_row", CultureInvariantToString(endRow[i]));
-                writer.WriteAttributeString("end_column", CultureInvariantToString(endColumn[i]));
+                writer.WriteAttributeString("start_row", CultureInvariantToString(sequencePoint.StartLine));
+                writer.WriteAttributeString("start_column", CultureInvariantToString(sequencePoint.StartColumn));
+                writer.WriteAttributeString("end_row", CultureInvariantToString(sequencePoint.EndLine));
+                writer.WriteAttributeString("end_column", CultureInvariantToString(sequencePoint.EndColumn));
                 //EDMAURER allow there to be PDBs generated for sources that don't have a name (document).
                 int fileRefVal = -1;
-                this.m_fileMapping.TryGetValue(docs[i].URL, out fileRefVal);
+                this.m_fileMapping.TryGetValue(sequencePoint.Document.GetName(), out fileRefVal);
                 writer.WriteAttributeString("file_ref", CultureInvariantToString(fileRefVal));
 
                 writer.WriteEndElement();
@@ -1036,43 +974,42 @@ namespace Roslyn.Test.PdbUtilities
         // Other references to docs will then just refer to this list.
         private void WriteDocList()
         {
-            ISymbolDocument[] docs = pdbReader.SymbolReader.GetDocuments();
-            if (docs.Length == 0)
+            var documents = pdbReader.SymbolReader.GetDocuments();
+            if (documents.Length == 0)
             {
                 return;
             }
 
             int id = 0;
             writer.WriteStartElement("files");
-            foreach (ISymbolDocument doc in docs)
+            foreach (ISymUnmanagedDocument doc in documents)
             {
-                string url = doc.URL;
+                string name = doc.GetName();
 
                 // Symbol store may give out duplicate documents. We'll fold them here
-                if (m_fileMapping.ContainsKey(url))
+                if (m_fileMapping.ContainsKey(name))
                 {
-                    writer.WriteComment("There is a duplicate entry for: " + url);
+                    writer.WriteComment("There is a duplicate entry for: " + name);
                     continue;
                 }
 
                 id++;
-                m_fileMapping.Add(doc.URL, id);
+                m_fileMapping.Add(name, id);
 
                 writer.WriteStartElement("file");
+
+                writer.WriteAttributeString("id", CultureInvariantToString(id));
+                writer.WriteAttributeString("name", name);
+                writer.WriteAttributeString("language", doc.GetLanguage().ToString());
+                writer.WriteAttributeString("languageVendor", doc.GetLanguageVendor().ToString());
+                writer.WriteAttributeString("documentType", doc.GetDocumentType().ToString());
+
+                var checkSum = string.Concat(doc.GetCheckSum().Select(b => string.Format("{0,2:X}", b) + ", ")) ;
+
+                if (!string.IsNullOrEmpty(checkSum))
                 {
-                    writer.WriteAttributeString("id", CultureInvariantToString(id));
-                    writer.WriteAttributeString("name", doc.URL);
-                    writer.WriteAttributeString("language", doc.Language.ToString());
-                    writer.WriteAttributeString("languageVendor", doc.LanguageVendor.ToString());
-                    writer.WriteAttributeString("documentType", doc.DocumentType.ToString());
-
-                    var checkSum = string.Concat(doc.GetCheckSum().Select(b => string.Format("{0,2:X}", b) + ", ")) ;
-
-                    if (!string.IsNullOrEmpty(checkSum))
-                    {
-                        writer.WriteAttributeString("checkSumAlgorithmId", doc.CheckSumAlgorithmId.ToString());
-                        writer.WriteAttributeString("checkSum", checkSum);
-                    }
+                    writer.WriteAttributeString("checkSumAlgorithmId", doc.GetHashAlgorithm().ToString());
+                    writer.WriteAttributeString("checkSum", checkSum);
                 }
 
                 writer.WriteEndElement(); // file
@@ -1084,25 +1021,20 @@ namespace Roslyn.Test.PdbUtilities
         {
             writer.WriteStartElement("method-spans");
 
-            var symReader2 = (ISymUnmanagedReader2)pdbReader.RawSymbolReader;
-            foreach (ISymUnmanagedDocument doc in GetDocuments(pdbReader.RawSymbolReader))
+            foreach (ISymUnmanagedDocument doc in pdbReader.SymbolReader.GetDocuments())
             {
-                foreach (ISymUnmanagedMethod m in GetMethodsInDocument(symReader2, doc))
+                foreach (ISymUnmanagedMethod method in pdbReader.SymbolReader.GetMethodsInDocument(doc))
                 {
-                    var menc = (ISymENCUnmanagedMethod)m;
                     writer.WriteStartElement("method");
 
-                    int token;
-                    int hr = m.GetToken(out token);
-                    SymUnmanagedReaderExtensions.ThrowExceptionForHR(hr);
-                    WriteMethodAttributes(token, isReference: true);
+                    WriteMethodAttributes(method.GetToken(), isReference: true);
 
-                    foreach (var mdoc in GetDocumentsForMethod(menc))
+                    foreach (var methodDocument in method.GetDocumentsForMethod())
                     {
                         writer.WriteStartElement("document");
                         
                         int startLine, endLine;
-                        menc.GetSourceExtentInDocument(mdoc, out startLine, out endLine);
+                        method.GetSourceExtentInDocument(methodDocument, out startLine, out endLine);
 
                         writer.WriteAttributeString("startLine", startLine.ToString());
                         writer.WriteAttributeString("endLine", endLine.ToString());
@@ -1117,65 +1049,16 @@ namespace Roslyn.Test.PdbUtilities
             writer.WriteEndElement();
         }
 
-        private static ISymUnmanagedDocument[] GetDocumentsForMethod(ISymENCUnmanagedMethod symMethod)
-        {
-            int count = symMethod.GetDocumentsForMethodCount();
-
-            var result = new ISymUnmanagedDocument[count];
-            symMethod.GetDocumentsForMethod(count, out count, result);
-
-            return result;
-        }
-
-        private static ISymUnmanagedDocument[] GetDocuments(ISymUnmanagedReader symReader)
-        {
-            int count;
-            int hr = symReader.GetDocuments(0, out count, null);
-            SymUnmanagedReaderExtensions.ThrowExceptionForHR(hr);
-
-            var result = new ISymUnmanagedDocument[count];
-            hr = symReader.GetDocuments(count, out count, result);
-            SymUnmanagedReaderExtensions.ThrowExceptionForHR(hr);
-
-            return result;
-        }
-
-        private static ISymUnmanagedMethod[] GetMethodsInDocument(ISymUnmanagedReader2 symReader, ISymUnmanagedDocument symDocument)
-        {
-            int count;
-            int hr = symReader.GetMethodsInDocument(symDocument, 0, out count, null);
-            SymUnmanagedReaderExtensions.ThrowExceptionForHR(hr);
-
-            var result = new ISymUnmanagedMethod[count];
-            hr = symReader.GetMethodsInDocument(symDocument, count, out count, result);
-            SymUnmanagedReaderExtensions.ThrowExceptionForHR(hr);
-
-            return result;
-        }
-
         // Write out a reference to the entry point method (if one exists)
         private void WriteEntryPoint()
         {
-            // If there is no entry point token (such as in a dll), this will throw.
-            SymbolToken token = pdbReader.SymbolReader.UserEntryPoint;
-            int rawToken = token.GetToken();
-            if (rawToken == 0)
+            int token = pdbReader.SymbolReader.GetUserEntryPoint();
+            if (token != 0)
             {
-                // If the Symbol APIs fail when looking for an entry point token, there is no entry point.
-                // m_writer.WriteComment(
-                //     "There is no entry point token such as a 'Main' method. This module is probably a '.dll'");
-                return;
+                writer.WriteStartElement("entryPoint");
+                WriteMethodAttributes(token, isReference: true);
+                writer.WriteEndElement();
             }
-
-            // Should not throw past this point
-            //m_writer.WriteComment(
-            //    "This is the token for the 'entry point' method, which is the method that will be called when the assembly is loaded." +
-            //    " This usually corresponds to 'Main'");
-
-            writer.WriteStartElement("entryPoint");
-            WriteMethodAttributes(rawToken, isReference: true);
-            writer.WriteEndElement();
-
         }
 
         // Write out XML snippet to refer to the given method.
@@ -1333,11 +1216,6 @@ namespace Roslyn.Test.PdbUtilities
         internal static string AsILOffset(int i)
         {
             return string.Format(CultureInfo.InvariantCulture, "0x{0:x}", i);
-        }
-
-        internal static SymbolToken AsSymToken(string token)
-        {
-            return new SymbolToken(ToInt32(token, 16));
         }
 
         internal static int ToInt32(string input)

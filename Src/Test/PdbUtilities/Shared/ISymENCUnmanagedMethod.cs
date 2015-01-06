@@ -18,7 +18,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
 
         /// <summary>
         /// Get the Line information associated with dwOffset.
-	    /// If dwOffset is not a sequence point it is associated with the previous one.
+        /// If dwOffset is not a sequence point it is associated with the previous one.
         /// pdwStartOffset provides the associated sequence point.
         /// </summary>
         void __GetLineFromOffset(int dwOffset, out int pline, out int pcolumn, out int pendLine, out int pendColumn, out int pdwStartOffset);
@@ -26,12 +26,14 @@ namespace Microsoft.VisualStudio.SymReaderInterop
         /// <summary>
         /// Get the number of Documents that this method has lines in.
         /// </summary>
-        int GetDocumentsForMethodCount();
+        [PreserveSig]
+        int GetDocumentsForMethodCount(out int count);
 
         /// <summary>
         /// Get the documents this method has lines in.
         /// </summary>
-        void GetDocumentsForMethod(
+        [PreserveSig]
+        int GetDocumentsForMethod(
             int cDocs,
             out int pcDocs,
             [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)]ISymUnmanagedDocument[] documents);
@@ -39,6 +41,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
         /// <summary>
         /// Get the smallest start line and largest end line, for the method, in a specific document.
         /// </summary>
-        void GetSourceExtentInDocument(ISymUnmanagedDocument document, out int pstartLine, out int pendLine);
+        [PreserveSig]
+        int GetSourceExtentInDocument(ISymUnmanagedDocument document, out int pstartLine, out int pendLine);
     }
 }

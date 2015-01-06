@@ -27,14 +27,6 @@
       <Link>InternalUtilities\ComStreamWrapper.cs</Link>
     </Compile>
   </ItemGroup>
-  <ItemGroup Label="File References">
-    <Reference Include="..\..\..\packages\MDbg.0.1.0\lib\net40\CorApi.dll" />
-    <Reference Include="..\..\..\packages\MDbg.0.1.0\lib\net40\CorApiRaw.dll" />
-    <Reference Include="..\..\..\packages\MDbg.0.1.0\lib\net40\MDbgEng.dll" />
-    <Reference Include="..\..\..\packages\MDbg.0.1.0\lib\net40\MDbgExt.dll" />
-    <Reference Include="..\..\..\packages\MDbg.0.1.0\lib\net40\MDbgUtility.dll" />
-    <Reference Include="..\..\..\packages\MDbg.0.1.0\lib\net40\NativeDebugWrappers.dll" />
-  </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
@@ -86,6 +78,9 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs">
+      <Link>InternalUtilities\Hash.cs</Link>
+    </Compile>
     <Compile Include="Metadata\ILVisualizer.cs" />
     <Compile Include="Metadata\ILVisualizerAsTokens.cs" />
     <Compile Include="Metadata\MetadataVisualizer.cs" />
@@ -101,13 +96,18 @@
     <Compile Include="Shared\DummyMetadataImport.cs" />
     <Compile Include="Shared\IMetadataImport.cs" />
     <Compile Include="Shared\ISymENCUnmanagedMethod.cs" />
+    <Compile Include="Shared\ISymUnmanagedAsyncMethod.cs" />
+    <Compile Include="Shared\ISymUnmanagedConstant.cs" />
+    <Compile Include="Shared\ISymUnmanagedDispose.cs" />
     <Compile Include="Shared\ISymUnmanagedDocument.cs" />
     <Compile Include="Shared\ISymUnmanagedMethod.cs" />
     <Compile Include="Shared\ISymUnmanagedNamespace.cs" />
     <Compile Include="Shared\ISymUnmanagedReader.cs" />
     <Compile Include="Shared\ISymUnmanagedReader2.cs" />
     <Compile Include="Shared\ISymUnmanagedScope.cs" />
+    <Compile Include="Shared\ISymUnmanagedScope2.cs" />
     <Compile Include="Shared\ISymUnmanagedVariable.cs" />
+    <Compile Include="Shared\SymUnmanagedSequencePoint.cs" />
     <Compile Include="Shared\SymUnmanagedReaderExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -116,6 +116,7 @@
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.ExpressionCompiler.Test.Utilities" />
   </ItemGroup>
   <Import Project="..\..\Compilers\Core\SharedCollections\SharedCollections.projitems" Label="Shared" />
   <ImportGroup Label="Targets">

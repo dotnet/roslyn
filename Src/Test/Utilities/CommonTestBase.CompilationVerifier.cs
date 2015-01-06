@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 public EditAndContinueMethodDebugInformation GetEncMethodDebugInfo(MethodDefinitionHandle handle)
                 {
-                    return PdbReader.RawSymbolReader.GetEncMethodDebugInfo(handle);
+                    return PdbReader.SymbolReader.GetEncMethodDebugInfo(handle);
                 }
             }
 

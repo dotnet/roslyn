@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics.SymbolStore;
 using System.Runtime.InteropServices;
 
 namespace Microsoft.VisualStudio.SymReaderInterop
@@ -12,27 +13,24 @@ namespace Microsoft.VisualStudio.SymReaderInterop
     internal interface ISymUnmanagedMethod
     {
         [PreserveSig]
-        int GetToken(out int retVal);
-        int __GetSequencePointCount(out int retVal);
-
+        int GetToken(out SymbolToken pToken);
+        [PreserveSig]
+        int GetSequencePointCount(out int retVal);
         [PreserveSig]
         int GetRootScope([MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedScope retVal);
-        int __GetScopeFromOffset(int offset, [MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedScope retVal);
-
-        int __GetOffset(/*ISymUnmanagedDocument document, int line, int column, out int retVal*/);
-        int __GetRanges(/*ISymUnmanagedDocument document, int line, int column, int cRanges, out int pcRanges, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] int[] ranges*/);
-        int __GetParameters(/*int cParams, out int pcParams, [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] ISymUnmanagedVariable[] parms*/);
-        int __GetNamespace(/*[MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedNamespace retVal*/);
-        int __GetSourceStartEnd(/*ISymUnmanagedDocument[] docs, [In, Out, MarshalAs(UnmanagedType.LPArray)] int[] lines, [In, Out, MarshalAs(UnmanagedType.LPArray)] int[] columns, out Boolean retVal*/);
-
-        int __GetSequencePoints(
-            int cPoints,
-            out int pcPoints,
-            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[] offsets,
-            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] ISymUnmanagedDocument[] documents,
-            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[] lines,
-            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[] columns,
-            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[] endLines,
-            [In, Out, MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] int[] endColumns);
+        [PreserveSig]
+        int GetScopeFromOffset(int offset, [MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedScope retVal);
+        [PreserveSig]
+        int GetOffset(ISymUnmanagedDocument document, int line, int column, out int retVal);
+        [PreserveSig]
+        int GetRanges(ISymUnmanagedDocument document, int line, int column, int cRanges, out int pcRanges, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 3)] [In] [Out] int[] ranges);
+        [PreserveSig]
+        int GetParameters(int cParams, out int pcParams, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] [In] [Out] ISymUnmanagedVariable[] parms);
+        [PreserveSig]
+        int GetNamespace([MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedNamespace retVal);
+        [PreserveSig]
+        int GetSourceStartEnd(ISymUnmanagedDocument[] docs, [MarshalAs(UnmanagedType.LPArray)] [In] [Out] int[] lines, [MarshalAs(UnmanagedType.LPArray)] [In] [Out] int[] columns, out bool retVal);
+        [PreserveSig]
+        int GetSequencePoints(int cPoints, out int pcPoints, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] [In] [Out] int[] offsets, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] [In] [Out] ISymUnmanagedDocument[] documents, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] [In] [Out] int[] lines, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] [In] [Out] int[] columns, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] [In] [Out] int[] endLines, [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] [In] [Out] int[] endColumns);
     }
 }

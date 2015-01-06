@@ -25,11 +25,11 @@ namespace Microsoft.VisualStudio.SymReaderInterop
         // Using PreserveSig and manually handling error cases provides a big performance win.
         // Far fewer exceptions will be thrown and caught.
         // Exceptions should be reserved for truely "exceptional" cases.
-        int __GetUserEntryPoint(/*...*/);
+        [PreserveSig]
+        int GetUserEntryPoint(out SymbolToken entryPoint);
 
-        int __GetMethod(
-            SymbolToken methodToken,
-            [MarshalAs(UnmanagedType.Interface)] out ISymUnmanagedMethod retVal);
+        [PreserveSig]
+        int GetMethod(SymbolToken methodToken, out ISymUnmanagedMethod retVal);
 
         [PreserveSig]
         int GetMethodByVersion(
