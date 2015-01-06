@@ -350,7 +350,7 @@ delegate int D(int x, ref int y, out int z);
             Assert.Equal(3, endInvokeParameters.Length);
             Assert.Equal("y", endInvokeParameters[0].Name);
             Assert.Equal("z", endInvokeParameters[1].Name);
-            Assert.Equal("__result", endInvokeParameters[2].Name);
+            Assert.Equal("result", endInvokeParameters[2].Name);
         }
 
         [WorkItem(541179, "DevDiv")]
@@ -369,6 +369,134 @@ class Foo
 }
 ";
             CreateCompilationWithMscorlib(text).VerifyDiagnostics();
+        }
+
+        [WorkItem(612002, "DevDiv")]
+        [Fact]
+        public void DelegateWithOutParameterNamedResult()
+        {
+            var text = @"
+delegate void D(out int result);
+";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics();
+
+            NamedTypeSymbol d = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("D").Single();
+
+            MethodSymbol invoke = d.DelegateInvokeMethod;
+            ImmutableArray<ParameterSymbol> invokeParameters = invoke.Parameters;
+            Assert.Equal(1, invokeParameters.Length);
+            Assert.Equal("result", invokeParameters[0].Name);
+
+            MethodSymbol beginInvoke = (MethodSymbol)d.GetMembers("BeginInvoke").Single();
+            ImmutableArray<ParameterSymbol> beginInvokeParameters = beginInvoke.Parameters;
+            Assert.Equal(3, beginInvokeParameters.Length);
+            Assert.Equal("result", beginInvokeParameters[0].Name);
+            Assert.Equal("callback", beginInvokeParameters[1].Name);
+            Assert.Equal("object", beginInvokeParameters[2].Name);
+
+            MethodSymbol endInvoke = (MethodSymbol)d.GetMembers("EndInvoke").Single();
+            ImmutableArray<ParameterSymbol> endInvokeParameters = endInvoke.Parameters;
+            Assert.Equal(2, endInvokeParameters.Length);
+            Assert.Equal("result", endInvokeParameters[0].Name);
+            Assert.Equal("__result", endInvokeParameters[1].Name);
+        }
+
+        [WorkItem(612002, "DevDiv")]
+        [Fact]
+        public void DelegateWithOutParameterNamedResult2()
+        {
+            var text = @"
+delegate void D(out int @__result);
+";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics();
+
+            NamedTypeSymbol d = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("D").Single();
+
+            MethodSymbol invoke = d.DelegateInvokeMethod;
+            ImmutableArray<ParameterSymbol> invokeParameters = invoke.Parameters;
+            Assert.Equal(1, invokeParameters.Length);
+            Assert.Equal("__result", invokeParameters[0].Name);
+
+            MethodSymbol beginInvoke = (MethodSymbol)d.GetMembers("BeginInvoke").Single();
+            ImmutableArray<ParameterSymbol> beginInvokeParameters = beginInvoke.Parameters;
+            Assert.Equal(3, beginInvokeParameters.Length);
+            Assert.Equal("__result", beginInvokeParameters[0].Name);
+            Assert.Equal("callback", beginInvokeParameters[1].Name);
+            Assert.Equal("object", beginInvokeParameters[2].Name);
+
+            MethodSymbol endInvoke = (MethodSymbol)d.GetMembers("EndInvoke").Single();
+            ImmutableArray<ParameterSymbol> endInvokeParameters = endInvoke.Parameters;
+            Assert.Equal(2, endInvokeParameters.Length);
+            Assert.Equal("__result", endInvokeParameters[0].Name);
+            Assert.Equal("result", endInvokeParameters[1].Name);
+        }
+
+        [WorkItem(612002, "DevDiv")]
+        [Fact]
+        public void DelegateWithOutParameterNamedResult3()
+        {
+            var text = @"
+delegate void D(out int result, out int @__result);
+";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics();
+
+            NamedTypeSymbol d = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("D").Single();
+
+            MethodSymbol invoke = d.DelegateInvokeMethod;
+            ImmutableArray<ParameterSymbol> invokeParameters = invoke.Parameters;
+            Assert.Equal(2, invokeParameters.Length);
+            Assert.Equal("result", invokeParameters[0].Name);
+            Assert.Equal("__result", invokeParameters[1].Name);
+
+            MethodSymbol beginInvoke = (MethodSymbol)d.GetMembers("BeginInvoke").Single();
+            ImmutableArray<ParameterSymbol> beginInvokeParameters = beginInvoke.Parameters;
+            Assert.Equal(4, beginInvokeParameters.Length);
+            Assert.Equal("result", invokeParameters[0].Name);
+            Assert.Equal("__result", invokeParameters[1].Name);
+            Assert.Equal("callback", beginInvokeParameters[2].Name);
+            Assert.Equal("object", beginInvokeParameters[3].Name);
+
+            MethodSymbol endInvoke = (MethodSymbol)d.GetMembers("EndInvoke").Single();
+            ImmutableArray<ParameterSymbol> endInvokeParameters = endInvoke.Parameters;
+            Assert.Equal(3, endInvokeParameters.Length);
+            Assert.Equal("result", endInvokeParameters[0].Name);
+            Assert.Equal("__result", endInvokeParameters[1].Name);
+            Assert.Equal("____result", endInvokeParameters[2].Name);
+        }
+
+        [WorkItem(612002, "DevDiv")]
+        [Fact]
+        public void DelegateWithParametersNamedCallbackAndObject()
+        {
+            var text = @"
+delegate void D(int callback, int @object);
+";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics();
+
+            NamedTypeSymbol d = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("D").Single();
+
+            MethodSymbol invoke = d.DelegateInvokeMethod;
+            ImmutableArray<ParameterSymbol> invokeParameters = invoke.Parameters;
+            Assert.Equal(2, invokeParameters.Length);
+            Assert.Equal("callback", invokeParameters[0].Name);
+            Assert.Equal("object", invokeParameters[1].Name);
+
+            MethodSymbol beginInvoke = (MethodSymbol)d.GetMembers("BeginInvoke").Single();
+            ImmutableArray<ParameterSymbol> beginInvokeParameters = beginInvoke.Parameters;
+            Assert.Equal(4, beginInvokeParameters.Length);
+            Assert.Equal("callback", beginInvokeParameters[0].Name);
+            Assert.Equal("object", beginInvokeParameters[1].Name);
+            Assert.Equal("__callback", beginInvokeParameters[2].Name);
+            Assert.Equal("__object", beginInvokeParameters[3].Name);
+
+            MethodSymbol endInvoke = (MethodSymbol)d.GetMembers("EndInvoke").Single();
+            ImmutableArray<ParameterSymbol> endInvokeParameters = endInvoke.Parameters;
+            Assert.Equal(1, endInvokeParameters.Length);
+            Assert.Equal("result", endInvokeParameters[0].Name);
         }
 
         [Fact]

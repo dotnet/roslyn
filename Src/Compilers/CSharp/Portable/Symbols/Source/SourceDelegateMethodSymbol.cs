@@ -281,8 +281,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 int paramCount = invoke.ParameterCount;
-                parameters.Add(new SynthesizedParameterSymbol(this, asyncCallbackType, paramCount, RefKind.None, "callback"));
-                parameters.Add(new SynthesizedParameterSymbol(this, objectType, paramCount + 1, RefKind.None, "object"));
+                parameters.Add(new SynthesizedParameterSymbol(this, asyncCallbackType, paramCount, RefKind.None, GetUniqueParameterName(parameters, "callback")));
+                parameters.Add(new SynthesizedParameterSymbol(this, objectType, paramCount + 1, RefKind.None, GetUniqueParameterName(parameters, "object")));
 
                 InitializeParameters(parameters.ToImmutableAndFree());
             }
@@ -311,6 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var parameters = ArrayBuilder<ParameterSymbol>.GetInstance();
                 int ordinal = 0;
+
                 foreach (SourceParameterSymbol p in invoke.Parameters)
                 {
                     if (p.RefKind != RefKind.None)
@@ -320,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                parameters.Add(new SynthesizedParameterSymbol(this, iAsyncResultType, ordinal++, RefKind.None, "__result"));
+                parameters.Add(new SynthesizedParameterSymbol(this, iAsyncResultType, ordinal++, RefKind.None, GetUniqueParameterName(parameters, "result")));
                 InitializeParameters(parameters.ToImmutableAndFree());
             }
 
@@ -339,5 +340,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        private static string GetUniqueParameterName(ArrayBuilder<ParameterSymbol> currentParameters, string name)
+        {
+            while (!IsUnique(currentParameters, name))
+            {
+                name = "__" + name;
+            }
+
+            return name;
+        }
+
+        private static bool IsUnique(ArrayBuilder<ParameterSymbol> currentParameters, string name)
+        {
+            foreach (var p in currentParameters)
+            {
+                if (string.CompareOrdinal(p.Name, name) == 0)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }
