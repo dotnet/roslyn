@@ -326,8 +326,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
                 Dim convKind = Conversions.ClassifyConversion(operand.Type, unwrappedResultType, useSiteDiagnostics).Key
                 Debug.Assert(Conversions.ConversionExists(convKind))
-                diagnostics.Add(node, useSiteDiagnostics)
-                operand = TransformRewrittenConversion(
+
+                ' Check for potential constant folding
+                Dim integerOverflow As Boolean = False
+                Dim constantResult = Conversions.TryFoldConstantConversion(operand, unwrappedResultType, integerOverflow)
+
+                Debug.Assert(constantResult Is Nothing OrElse Not constantResult.IsBad)
+
+                If constantResult IsNot Nothing AndAlso Not constantResult.IsBad Then
+                    ' Overflow should have been detected at classification time during binding.
+                    Debug.Assert(Not integerOverflow OrElse Not node.Checked)
+                    operand = RewriteConstant(New BoundLiteral(node.Syntax, constantResult, unwrappedResultType), constantResult)
+
+                Else
+                    diagnostics.Add(node, useSiteDiagnostics)
+                    operand = TransformRewrittenConversion(
                                 New BoundConversion(node.Syntax,
                                                     operand,
                                                     convKind,
@@ -338,6 +351,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                     node.RelaxationLambdaOpt,
                                                     node.RelaxationReceiverPlaceholderOpt,
                                                     unwrappedResultType))
+                End If
             End If
 
             ' wrap if needed

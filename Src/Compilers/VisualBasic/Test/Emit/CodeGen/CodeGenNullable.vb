@@ -1623,34 +1623,33 @@ End Module
                             VerifyIL("MyClass1.Main",
             <![CDATA[
 {
-  // Code size       57 (0x39)
+  // Code size       56 (0x38)
   .maxstack  2
   .locals init (System.ValueType V_0, //z
-  System.InvalidCastException V_1) //ex
+                System.InvalidCastException V_1) //ex
   IL_0000:  ldc.i4.s   42
-  IL_0002:  conv.ovf.i2
-  IL_0003:  newobj     "Sub Short?..ctor(Short)"
-  IL_0008:  box        "Short?"
-  IL_000d:  stloc.0
+  IL_0002:  newobj     "Sub Short?..ctor(Short)"
+  IL_0007:  box        "Short?"
+  IL_000c:  stloc.0
   .try
-{
-  IL_000e:  ldloc.0
-  IL_000f:  unbox.any  "UInteger?"
-  IL_0014:  box        "UInteger?"
-  IL_0019:  call       "Sub System.Console.WriteLine(Object)"
-  IL_001e:  leave.s    IL_0038
-}
+  {
+    IL_000d:  ldloc.0
+    IL_000e:  unbox.any  "UInteger?"
+    IL_0013:  box        "UInteger?"
+    IL_0018:  call       "Sub System.Console.WriteLine(Object)"
+    IL_001d:  leave.s    IL_0037
+  }
   catch System.InvalidCastException
-{
-  IL_0020:  dup
-  IL_0021:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_0026:  stloc.1
-  IL_0027:  ldstr      "pass"
-  IL_002c:  call       "Sub System.Console.WriteLine(String)"
-  IL_0031:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0036:  leave.s    IL_0038
-}
-  IL_0038:  ret
+  {
+    IL_001f:  dup
+    IL_0020:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_0025:  stloc.1
+    IL_0026:  ldstr      "pass"
+    IL_002b:  call       "Sub System.Console.WriteLine(String)"
+    IL_0030:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0035:  leave.s    IL_0037
+  }
+  IL_0037:  ret
 }
                 ]]>)
         End Sub
@@ -2002,28 +2001,27 @@ End Module
                             VerifyIL("MyClass1.Main",
             <![CDATA[
 {
-  // Code size       58 (0x3a)
+  // Code size       57 (0x39)
   .maxstack  2
   .locals init (Short? V_0, //x
-  UShort? V_1) //y
+                UShort? V_1) //y
   IL_0000:  ldloca.s   V_0
   IL_0002:  initobj    "Short?"
   IL_0008:  ldloca.s   V_1
   IL_000a:  ldc.i4.s   42
-  IL_000c:  conv.ovf.u2
-  IL_000d:  call       "Sub UShort?..ctor(UShort)"
-  IL_0012:  ldloca.s   V_1
-  IL_0014:  call       "Function UShort?.get_HasValue() As Boolean"
-  IL_0019:  brtrue.s   IL_0023
-  IL_001b:  ldloc.0
-  IL_001c:  box        "Short?"
-  IL_0021:  br.s       IL_002f
-  IL_0023:  ldloca.s   V_1
-  IL_0025:  call       "Function UShort?.GetValueOrDefault() As UShort"
-  IL_002a:  box        "UShort"
-  IL_002f:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
-  IL_0034:  call       "Sub System.Console.WriteLine(Object)"
-  IL_0039:  ret
+  IL_000c:  call       "Sub UShort?..ctor(UShort)"
+  IL_0011:  ldloca.s   V_1
+  IL_0013:  call       "Function UShort?.get_HasValue() As Boolean"
+  IL_0018:  brtrue.s   IL_0022
+  IL_001a:  ldloc.0
+  IL_001b:  box        "Short?"
+  IL_0020:  br.s       IL_002e
+  IL_0022:  ldloca.s   V_1
+  IL_0024:  call       "Function UShort?.GetValueOrDefault() As UShort"
+  IL_0029:  box        "UShort"
+  IL_002e:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
+  IL_0033:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0038:  ret
 }
                 ]]>)
         End Sub
@@ -3015,19 +3013,17 @@ End Module
             VerifyIL("M1.Main",
             <![CDATA[
 {
-  // Code size       29 (0x1d)
+  // Code size       27 (0x1b)
   .maxstack  2
   .locals init (M1.S1? V_0) //y
   IL_0000:  ldloca.s   V_0
   IL_0002:  ldc.i4.s   42
-  IL_0004:  conv.i8
-  IL_0005:  conv.ovf.u1
-  IL_0006:  call       "Function M1.S1.op_Implicit(Byte) As M1.S1"
-  IL_000b:  call       "Sub M1.S1?..ctor(M1.S1)"
-  IL_0010:  ldloca.s   V_0
-  IL_0012:  call       "Function M1.S1?.get_HasValue() As Boolean"
-  IL_0017:  call       "Sub System.Console.WriteLine(Boolean)"
-  IL_001c:  ret
+  IL_0004:  call       "Function M1.S1.op_Implicit(Byte) As M1.S1"
+  IL_0009:  call       "Sub M1.S1?..ctor(M1.S1)"
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  call       "Function M1.S1?.get_HasValue() As Boolean"
+  IL_0015:  call       "Sub System.Console.WriteLine(Boolean)"
+  IL_001a:  ret
 }
                 ]]>)
         End Sub
@@ -3942,125 +3938,119 @@ End Class
                             VerifyIL("MyClass1.Main",
             <![CDATA[
 {
-  // Code size      289 (0x121)
+  // Code size      282 (0x11a)
   .maxstack  3
   .locals init (UInteger? V_0, //l
-  UInteger? V_1,
-  UInteger? V_2,
-  Boolean V_3,
-  UInteger? V_4, //x
-  Long? V_5,
-  Long V_6,
-  Long? V_7,
-  Boolean? V_8,
-  UInteger? V_9)
+                UInteger? V_1,
+                UInteger? V_2,
+                Boolean V_3,
+                UInteger? V_4, //x
+                Long? V_5,
+                Long? V_6,
+                Boolean? V_7,
+                UInteger? V_8)
   IL_0000:  ldloca.s   V_0
   IL_0002:  ldc.i4.1
-  IL_0003:  conv.ovf.u4
-  IL_0004:  call       "Sub UInteger?..ctor(UInteger)"
-  IL_0009:  ldc.i4.1
-  IL_000a:  conv.ovf.u4
-  IL_000b:  newobj     "Sub UInteger?..ctor(UInteger)"
-  IL_0010:  ldloca.s   V_1
-  IL_0012:  ldc.i4.s   10
-  IL_0014:  conv.ovf.u4
-  IL_0015:  call       "Sub UInteger?..ctor(UInteger)"
-  IL_001a:  ldloc.0
-  IL_001b:  stloc.2
-  IL_001c:  ldloca.s   V_2
-  IL_001e:  call       "Function UInteger?.get_HasValue() As Boolean"
-  IL_0023:  brfalse.s  IL_0034
-  IL_0025:  ldloca.s   V_2
-  IL_0027:  call       "Function UInteger?.GetValueOrDefault() As UInteger"
+  IL_0003:  call       "Sub UInteger?..ctor(UInteger)"
+  IL_0008:  ldc.i4.1
+  IL_0009:  newobj     "Sub UInteger?..ctor(UInteger)"
+  IL_000e:  ldloca.s   V_1
+  IL_0010:  ldc.i4.s   10
+  IL_0012:  call       "Sub UInteger?..ctor(UInteger)"
+  IL_0017:  ldloc.0
+  IL_0018:  stloc.2
+  IL_0019:  ldloca.s   V_2
+  IL_001b:  call       "Function UInteger?.get_HasValue() As Boolean"
+  IL_0020:  brfalse.s  IL_0031
+  IL_0022:  ldloca.s   V_2
+  IL_0024:  call       "Function UInteger?.GetValueOrDefault() As UInteger"
+  IL_0029:  ldc.i4.0
+  IL_002a:  clt.un
   IL_002c:  ldc.i4.0
-  IL_002d:  clt.un
-  IL_002f:  ldc.i4.0
-  IL_0030:  ceq
-  IL_0032:  br.s       IL_0035
-  IL_0034:  ldc.i4.0
-  IL_0035:  stloc.3
-  IL_0036:  stloc.s    V_4
-  IL_0038:  br         IL_00df
-  IL_003d:  ldloc.s    V_4
-  IL_003f:  box        "UInteger?"
-  IL_0044:  call       "Sub System.Console.Write(Object)"
-  IL_0049:  ldloca.s   V_4
-  IL_004b:  call       "Function UInteger?.get_HasValue() As Boolean"
-  IL_0050:  brtrue.s   IL_005e
-  IL_0052:  ldloca.s   V_7
-  IL_0054:  initobj    "Long?"
-  IL_005a:  ldloc.s    V_7
-  IL_005c:  br.s       IL_006b
-  IL_005e:  ldloca.s   V_4
-  IL_0060:  call       "Function UInteger?.GetValueOrDefault() As UInteger"
-  IL_0065:  conv.u8
-  IL_0066:  newobj     "Sub Long?..ctor(Long)"
-  IL_006b:  stloc.s    V_5
-  IL_006d:  ldc.i4.5
-  IL_006e:  conv.i8
-  IL_006f:  stloc.s    V_6
-  IL_0071:  ldloca.s   V_5
-  IL_0073:  call       "Function Long?.get_HasValue() As Boolean"
-  IL_0078:  brtrue.s   IL_0086
-  IL_007a:  ldloca.s   V_8
-  IL_007c:  initobj    "Boolean?"
-  IL_0082:  ldloc.s    V_8
-  IL_0084:  br.s       IL_0099
-  IL_0086:  ldloca.s   V_5
-  IL_0088:  call       "Function Long?.GetValueOrDefault() As Long"
-  IL_008d:  ldloc.s    V_6
-  IL_008f:  clt
-  IL_0091:  ldc.i4.0
-  IL_0092:  ceq
-  IL_0094:  newobj     "Sub Boolean?..ctor(Boolean)"
-  IL_0099:  stloc.s    V_8
-  IL_009b:  ldloca.s   V_8
-  IL_009d:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
-  IL_00a2:  brfalse.s  IL_00ac
-  IL_00a4:  ldloca.s   V_4
-  IL_00a6:  initobj    "UInteger?"
-  IL_00ac:  ldloca.s   V_2
+  IL_002d:  ceq
+  IL_002f:  br.s       IL_0032
+  IL_0031:  ldc.i4.0
+  IL_0032:  stloc.3
+  IL_0033:  stloc.s    V_4
+  IL_0035:  br         IL_00d8
+  IL_003a:  ldloc.s    V_4
+  IL_003c:  box        "UInteger?"
+  IL_0041:  call       "Sub System.Console.Write(Object)"
+  IL_0046:  ldloca.s   V_4
+  IL_0048:  call       "Function UInteger?.get_HasValue() As Boolean"
+  IL_004d:  brtrue.s   IL_005b
+  IL_004f:  ldloca.s   V_6
+  IL_0051:  initobj    "Long?"
+  IL_0057:  ldloc.s    V_6
+  IL_0059:  br.s       IL_0068
+  IL_005b:  ldloca.s   V_4
+  IL_005d:  call       "Function UInteger?.GetValueOrDefault() As UInteger"
+  IL_0062:  conv.u8
+  IL_0063:  newobj     "Sub Long?..ctor(Long)"
+  IL_0068:  stloc.s    V_5
+  IL_006a:  ldloca.s   V_5
+  IL_006c:  call       "Function Long?.get_HasValue() As Boolean"
+  IL_0071:  brtrue.s   IL_007f
+  IL_0073:  ldloca.s   V_7
+  IL_0075:  initobj    "Boolean?"
+  IL_007b:  ldloc.s    V_7
+  IL_007d:  br.s       IL_0092
+  IL_007f:  ldloca.s   V_5
+  IL_0081:  call       "Function Long?.GetValueOrDefault() As Long"
+  IL_0086:  ldc.i4.5
+  IL_0087:  conv.i8
+  IL_0088:  clt
+  IL_008a:  ldc.i4.0
+  IL_008b:  ceq
+  IL_008d:  newobj     "Sub Boolean?..ctor(Boolean)"
+  IL_0092:  stloc.s    V_7
+  IL_0094:  ldloca.s   V_7
+  IL_0096:  call       "Function Boolean?.GetValueOrDefault() As Boolean"
+  IL_009b:  brfalse.s  IL_00a5
+  IL_009d:  ldloca.s   V_4
+  IL_009f:  initobj    "UInteger?"
+  IL_00a5:  ldloca.s   V_2
+  IL_00a7:  call       "Function UInteger?.get_HasValue() As Boolean"
+  IL_00ac:  ldloca.s   V_4
   IL_00ae:  call       "Function UInteger?.get_HasValue() As Boolean"
-  IL_00b3:  ldloca.s   V_4
-  IL_00b5:  call       "Function UInteger?.get_HasValue() As Boolean"
-  IL_00ba:  and
-  IL_00bb:  brtrue.s   IL_00c9
-  IL_00bd:  ldloca.s   V_9
-  IL_00bf:  initobj    "UInteger?"
-  IL_00c5:  ldloc.s    V_9
-  IL_00c7:  br.s       IL_00dd
-  IL_00c9:  ldloca.s   V_4
+  IL_00b3:  and
+  IL_00b4:  brtrue.s   IL_00c2
+  IL_00b6:  ldloca.s   V_8
+  IL_00b8:  initobj    "UInteger?"
+  IL_00be:  ldloc.s    V_8
+  IL_00c0:  br.s       IL_00d6
+  IL_00c2:  ldloca.s   V_4
+  IL_00c4:  call       "Function UInteger?.GetValueOrDefault() As UInteger"
+  IL_00c9:  ldloca.s   V_2
   IL_00cb:  call       "Function UInteger?.GetValueOrDefault() As UInteger"
-  IL_00d0:  ldloca.s   V_2
-  IL_00d2:  call       "Function UInteger?.GetValueOrDefault() As UInteger"
-  IL_00d7:  add.ovf.un
-  IL_00d8:  newobj     "Sub UInteger?..ctor(UInteger)"
-  IL_00dd:  stloc.s    V_4
-  IL_00df:  ldloca.s   V_1
+  IL_00d0:  add.ovf.un
+  IL_00d1:  newobj     "Sub UInteger?..ctor(UInteger)"
+  IL_00d6:  stloc.s    V_4
+  IL_00d8:  ldloca.s   V_1
+  IL_00da:  call       "Function UInteger?.get_HasValue() As Boolean"
+  IL_00df:  ldloca.s   V_4
   IL_00e1:  call       "Function UInteger?.get_HasValue() As Boolean"
-  IL_00e6:  ldloca.s   V_4
-  IL_00e8:  call       "Function UInteger?.get_HasValue() As Boolean"
-  IL_00ed:  and
-  IL_00ee:  brfalse.s  IL_0120
-  IL_00f0:  ldloc.3
-  IL_00f1:  brtrue.s   IL_0108
-  IL_00f3:  ldloca.s   V_4
+  IL_00e6:  and
+  IL_00e7:  brfalse.s  IL_0119
+  IL_00e9:  ldloc.3
+  IL_00ea:  brtrue.s   IL_0101
+  IL_00ec:  ldloca.s   V_4
+  IL_00ee:  call       "Function UInteger?.GetValueOrDefault() As UInteger"
+  IL_00f3:  ldloca.s   V_1
   IL_00f5:  call       "Function UInteger?.GetValueOrDefault() As UInteger"
-  IL_00fa:  ldloca.s   V_1
-  IL_00fc:  call       "Function UInteger?.GetValueOrDefault() As UInteger"
-  IL_0101:  clt.un
-  IL_0103:  ldc.i4.0
-  IL_0104:  ceq
-  IL_0106:  br.s       IL_011b
-  IL_0108:  ldloca.s   V_4
+  IL_00fa:  clt.un
+  IL_00fc:  ldc.i4.0
+  IL_00fd:  ceq
+  IL_00ff:  br.s       IL_0114
+  IL_0101:  ldloca.s   V_4
+  IL_0103:  call       "Function UInteger?.GetValueOrDefault() As UInteger"
+  IL_0108:  ldloca.s   V_1
   IL_010a:  call       "Function UInteger?.GetValueOrDefault() As UInteger"
-  IL_010f:  ldloca.s   V_1
-  IL_0111:  call       "Function UInteger?.GetValueOrDefault() As UInteger"
-  IL_0116:  cgt.un
-  IL_0118:  ldc.i4.0
-  IL_0119:  ceq
-  IL_011b:  brtrue     IL_003d
-  IL_0120:  ret
+  IL_010f:  cgt.un
+  IL_0111:  ldc.i4.0
+  IL_0112:  ceq
+  IL_0114:  brtrue     IL_003a
+  IL_0119:  ret
 }
                 ]]>)
         End Sub
@@ -4541,26 +4531,25 @@ End Class
                             VerifyIL("MyClass1.Main",
             <![CDATA[
 {
-  // Code size       48 (0x30)
+  // Code size       47 (0x2f)
   .maxstack  2
   .locals init (SByte? V_0, //x
-  String V_1) //y
+                String V_1) //y
   IL_0000:  ldloca.s   V_0
   IL_0002:  ldc.i4.s   42
-  IL_0004:  conv.ovf.i1
-  IL_0005:  call       "Sub SByte?..ctor(SByte)"
-  IL_000a:  ldloca.s   V_0
-  IL_000c:  call       "Function SByte?.get_Value() As SByte"
-  IL_0011:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToString(Integer) As String"
-  IL_0016:  stloc.1
-  IL_0017:  ldloca.s   V_0
-  IL_0019:  ldloc.1
-  IL_001a:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToSByte(String) As SByte"
-  IL_001f:  call       "Sub SByte?..ctor(SByte)"
-  IL_0024:  ldloc.0
-  IL_0025:  box        "SByte?"
-  IL_002a:  call       "Sub System.Console.Write(Object)"
-  IL_002f:  ret
+  IL_0004:  call       "Sub SByte?..ctor(SByte)"
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  call       "Function SByte?.get_Value() As SByte"
+  IL_0010:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToString(Integer) As String"
+  IL_0015:  stloc.1
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  ldloc.1
+  IL_0019:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToSByte(String) As SByte"
+  IL_001e:  call       "Sub SByte?..ctor(SByte)"
+  IL_0023:  ldloc.0
+  IL_0024:  box        "SByte?"
+  IL_0029:  call       "Sub System.Console.Write(Object)"
+  IL_002e:  ret
 }
                 ]]>)
         End Sub
@@ -4676,11 +4665,10 @@ End Class
 VerifyIL("NullableTest.EqualEqual",
             <![CDATA[
 {
-  // Code size      156 (0x9c)
+  // Code size      152 (0x98)
   .maxstack  2
   .locals init (Decimal? V_0,
-  Boolean? V_1,
-  Decimal V_2)
+                Boolean? V_1)
   IL_0000:  ldc.i4.0
   IL_0001:  box        "Boolean"
   IL_0006:  ldc.i4.0
@@ -4706,30 +4694,27 @@ VerifyIL("NullableTest.EqualEqual",
   IL_0049:  ldc.i4.0
   IL_004a:  box        "Boolean"
   IL_004f:  call       "Sub Test.Eval(Object, Object)"
-  IL_0054:  ldloca.s   V_2
-  IL_0056:  ldc.i4.0
-  IL_0057:  call       "Sub Decimal..ctor(Integer)"
-  IL_005c:  ldsfld     "NullableTest.NULL As Decimal?"
-  IL_0061:  stloc.0
-  IL_0062:  ldloca.s   V_0
-  IL_0064:  call       "Function Decimal?.get_HasValue() As Boolean"
-  IL_0069:  brtrue.s   IL_0076
-  IL_006b:  ldloca.s   V_1
-  IL_006d:  initobj    "Boolean?"
-  IL_0073:  ldloc.1
-  IL_0074:  br.s       IL_008b
-  IL_0076:  ldloc.2
-  IL_0077:  ldloca.s   V_0
-  IL_0079:  call       "Function Decimal?.GetValueOrDefault() As Decimal"
-  IL_007e:  call       "Function Decimal.Compare(Decimal, Decimal) As Integer"
-  IL_0083:  ldc.i4.0
-  IL_0084:  ceq
-  IL_0086:  newobj     "Sub Boolean?..ctor(Boolean)"
-  IL_008b:  box        "Boolean?"
-  IL_0090:  ldc.i4.0
-  IL_0091:  box        "Boolean"
-  IL_0096:  call       "Sub Test.Eval(Object, Object)"
-  IL_009b:  ret
+  IL_0054:  ldsfld     "NullableTest.NULL As Decimal?"
+  IL_0059:  stloc.0
+  IL_005a:  ldloca.s   V_0
+  IL_005c:  call       "Function Decimal?.get_HasValue() As Boolean"
+  IL_0061:  brtrue.s   IL_006e
+  IL_0063:  ldloca.s   V_1
+  IL_0065:  initobj    "Boolean?"
+  IL_006b:  ldloc.1
+  IL_006c:  br.s       IL_0087
+  IL_006e:  ldsfld     "Decimal.Zero As Decimal"
+  IL_0073:  ldloca.s   V_0
+  IL_0075:  call       "Function Decimal?.GetValueOrDefault() As Decimal"
+  IL_007a:  call       "Function Decimal.Compare(Decimal, Decimal) As Integer"
+  IL_007f:  ldc.i4.0
+  IL_0080:  ceq
+  IL_0082:  newobj     "Sub Boolean?..ctor(Boolean)"
+  IL_0087:  box        "Boolean?"
+  IL_008c:  ldc.i4.0
+  IL_008d:  box        "Boolean"
+  IL_0092:  call       "Sub Test.Eval(Object, Object)"
+  IL_0097:  ret
 }
                 ]]>)
 

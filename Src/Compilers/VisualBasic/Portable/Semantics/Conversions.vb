@@ -1508,24 +1508,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         conv = conv Or ConversionKind.InvolvesNarrowingFromNumericConstant
 
-                        If targetDestinationType Is destination Then ' Not converting to Nullable type
-
-                            ' check if the value is within the target range
-                            result = TryFoldConstantNumericOrBooleanConversion(constantExpression.ConstantValueOpt, sourceType, destination,
+                        ' check if the value is within the target range
+                        result = TryFoldConstantNumericOrBooleanConversion(constantExpression.ConstantValueOpt, sourceType, targetDestinationType,
                                                                                integerOverflow)
 
-                            Debug.Assert(Not result.IsBad)
+                        Debug.Assert(Not result.IsBad)
 
-                            If Not integerOverflow Then
-                                ' Reclassify as widening
+                        If Not integerOverflow Then
+                            ' Reclassify as widening, but not for a Nullable target type
+                            If targetDestinationType Is destination Then
                                 conv = (conv And (Not ConversionKind.Narrowing)) Or ConversionKind.Widening
-
-                            ElseIf binder.CheckOverflow Then
-                                '      Compiler generated code (for example, implementation of GetHashCode for Anonymous Types)
-                                '      not always uses project level setting for the option.
-                                Debug.Assert(sourceType.AllowsCompileTimeConversions() AndAlso destination.AllowsCompileTimeConversions())
-                                Return ConversionKind.FailedDueToIntegerOverflow
                             End If
+                        ElseIf binder.CheckOverflow Then
+                            '      Compiler generated code (for example, implementation of GetHashCode for Anonymous Types)
+                            '      not always uses project level setting for the option.
+                            Debug.Assert(sourceType.AllowsCompileTimeConversions() AndAlso targetDestinationType.AllowsCompileTimeConversions())
+                            Return ConversionKind.FailedDueToIntegerOverflow
                         End If
                     Else
                         Debug.Assert(IsWideningConversion(conv))
@@ -1551,10 +1549,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' takes the overflow errors into consideration.
             If Not IsWideningConversion(conv) Then
                 Dim underlyingSourceType = sourceType.GetEnumUnderlyingTypeOrSelf()
-                Dim underlyingDestination = destination.GetEnumUnderlyingTypeOrSelf()
+                Dim underlyingDestination = destination.GetNullableUnderlyingTypeOrSelf().GetEnumUnderlyingTypeOrSelf()
 
                 If underlyingSourceType.IsNumericType() AndAlso underlyingDestination.IsNumericType() Then
-                    Debug.Assert(sourceType.AllowsCompileTimeConversions() AndAlso destination.AllowsCompileTimeConversions())
+                    Debug.Assert(sourceType.AllowsCompileTimeConversions() AndAlso destination.GetNullableUnderlyingTypeOrSelf().AllowsCompileTimeConversions())
 
                     result = TryFoldConstantNumericOrBooleanConversion(constantExpression.ConstantValueOpt, underlyingSourceType, underlyingDestination,
                                                                        integerOverflow)

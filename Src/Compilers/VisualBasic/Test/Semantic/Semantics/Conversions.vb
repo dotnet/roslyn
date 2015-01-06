@@ -751,8 +751,12 @@ End Class
                     Dim nullableType2 = nullableType.Construct(numericType)
                     Dim zero = New BoundConversion(dummyTree.GetVisualBasicRoot(Nothing), New BoundLiteral(DirectCast(dummyTree.GetRoot(Nothing), VisualBasicSyntaxNode), ConstantValue.Null, Nothing), ConversionKind.Widening, True, True, ConstantValue.Default(mv.Type.GetConstantValueTypeDiscriminator()), mv.Type, Nothing)
 
-                    conv = ClassifyConversion(mv.Type, nullableType2) Or
-                        (ClassifyConversion(zero, nullableType2, methodBodyBinder) And ConversionKind.InvolvesNarrowingFromNumericConstant)
+                    conv = ClassifyConversion(literal, numericType, methodBodyBinder)
+
+                    If (conv And ConversionKind.FailedDueToNumericOverflowMask) = 0 Then
+                        conv = ClassifyConversion(mv.Type, nullableType2) Or
+                            (ClassifyConversion(zero, nullableType2, methodBodyBinder) And ConversionKind.InvolvesNarrowingFromNumericConstant)
+                    End If
 
                     Assert.Equal(conv, ClassifyConversion(literal, nullableType2, methodBodyBinder))
                     Assert.Equal(conv, ClassifyConversion(constant, nullableType2, methodBodyBinder))
@@ -1322,8 +1326,12 @@ End Class
                                                    New BoundLiteral(dummyTree.GetVisualBasicRoot(Nothing), ConstantValue.Default(ConstantValueTypeDiscriminator.Int32), int32Type),
                                                    ConversionKind.Widening, True, True, ConstantValue.Default(mv.Type.GetConstantValueTypeDiscriminator()), mv.Type, Nothing)
 
-                    conv = ClassifyConversion(mv.Type, nullableType2) Or
-                        (ClassifyConversion(zero, nullableType2, methodBodyBinder) And ConversionKind.InvolvesNarrowingFromNumericConstant)
+                    conv = ClassifyConversion(literal, numericType, methodBodyBinder)
+
+                    If (conv And ConversionKind.FailedDueToNumericOverflowMask) = 0 Then
+                        conv = ClassifyConversion(mv.Type, nullableType2) Or
+                            (ClassifyConversion(zero, nullableType2, methodBodyBinder) And ConversionKind.InvolvesNarrowingFromNumericConstant)
+                    End If
 
                     Assert.Equal(conv, ClassifyConversion(literal, nullableType2, methodBodyBinder))
                     Assert.Equal(conv, ClassifyConversion(constant, nullableType2, methodBodyBinder))
@@ -4401,6 +4409,279 @@ CType(value As Boolean) As BooleanEx
 CType(value As BooleanEx) As Boolean
 ---
 CType(value As BooleanEx) As Boolean")
+        End Sub
+
+        <WorkItem(1099862, "DevDiv")>
+        <Fact()>
+        Public Sub Bug1099862_01()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim x As Integer = Double.MaxValue
+    End Sub
+End Module
+    ]]></file>
+    </compilation>)
+
+            Dim expectedErr = <expected>
+BC30439: Constant expression not representable in type 'Integer'.
+        Dim x As Integer = Double.MaxValue
+                           ~~~~~~~~~~~~~~~
+                              </expected>
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.Off).WithOverflowChecks(False))
+            AssertTheseDiagnostics(compilation, expectedErr)
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.Custom).WithOverflowChecks(False))
+            AssertTheseDiagnostics(compilation, expectedErr)
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.On).WithOverflowChecks(False))
+            AssertTheseDiagnostics(compilation, expectedErr)
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.Off).WithOverflowChecks(True))
+            AssertTheseDiagnostics(compilation, expectedErr)
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.Custom).WithOverflowChecks(True))
+            AssertTheseDiagnostics(compilation, expectedErr)
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.On).WithOverflowChecks(True))
+            AssertTheseDiagnostics(compilation, expectedErr)
+        End Sub
+
+        <WorkItem(1099862, "DevDiv")>
+        <Fact()>
+        Public Sub Bug1099862_02()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim x As Integer? = Double.MaxValue
+    End Sub
+End Module
+    ]]></file>
+    </compilation>)
+
+            Dim expectedError = <expected>
+BC30439: Constant expression not representable in type 'Integer?'.
+        Dim x As Integer? = Double.MaxValue
+                            ~~~~~~~~~~~~~~~
+                                </expected>
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.Off).WithOverflowChecks(False))
+            AssertTheseDiagnostics(compilation, expectedError)
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.Custom).WithOverflowChecks(False))
+            AssertTheseDiagnostics(compilation, expectedError)
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.On).WithOverflowChecks(False))
+            AssertTheseDiagnostics(compilation, expectedError)
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.Off).WithOverflowChecks(True))
+            AssertTheseDiagnostics(compilation, expectedError)
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.Custom).WithOverflowChecks(True))
+            AssertTheseDiagnostics(compilation, expectedError)
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.On).WithOverflowChecks(True))
+            AssertTheseDiagnostics(compilation, expectedError)
+        End Sub
+
+        <WorkItem(1099862, "DevDiv")>
+        <Fact()>
+        Public Sub Bug1099862_03()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim x As Short = Integer.MaxValue
+        System.Console.WriteLine(x)
+    End Sub
+End Module
+    ]]></file>
+    </compilation>)
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.Off).WithOverflowChecks(False))
+            CompileAndVerify(compilation, expectedOutput:="-1").VerifyDiagnostics()
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.Custom).WithOverflowChecks(False))
+            CompileAndVerify(compilation, expectedOutput:="-1").VerifyDiagnostics()
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.On).WithOverflowChecks(False))
+            CompileAndVerify(compilation, expectedOutput:="-1").VerifyDiagnostics()
+
+
+            Dim expectedError = <expected>
+BC30439: Constant expression not representable in type 'Short'.
+        Dim x As Short = Integer.MaxValue
+                         ~~~~~~~~~~~~~~~~
+                                </expected>
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.Off).WithOverflowChecks(True))
+            AssertTheseDiagnostics(compilation, expectedError)
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.Custom).WithOverflowChecks(True))
+            AssertTheseDiagnostics(compilation, expectedError)
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.On).WithOverflowChecks(True))
+            AssertTheseDiagnostics(compilation, expectedError)
+        End Sub
+
+        <WorkItem(1099862, "DevDiv")>
+        <Fact()>
+        Public Sub Bug1099862_04()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim x As Short? = Integer.MaxValue
+        System.Console.WriteLine(x)
+    End Sub
+End Module
+    ]]></file>
+    </compilation>)
+
+            Dim expectedIL = <![CDATA[
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (Short? V_0) //x
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  ldc.i4.m1
+  IL_0004:  call       "Sub Short?..ctor(Short)"
+  IL_0009:  ldloc.0
+  IL_000a:  box        "Short?"
+  IL_000f:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0014:  nop
+  IL_0015:  ret
+}
+]]>
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.Off).WithOverflowChecks(False))
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:="-1").VerifyDiagnostics()
+            verifier.VerifyIL("Program.Main", expectedIL)
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.Custom).WithOverflowChecks(False))
+
+            verifier = CompileAndVerify(compilation, expectedOutput:="-1").VerifyDiagnostics()
+            verifier.VerifyIL("Program.Main", expectedIL)
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.On).WithOverflowChecks(False))
+
+            verifier = CompileAndVerify(compilation, expectedOutput:="-1").VerifyDiagnostics()
+            verifier.VerifyIL("Program.Main", expectedIL)
+
+            Dim expectedError = <expected>
+BC30439: Constant expression not representable in type 'Short?'.
+        Dim x As Short? = Integer.MaxValue
+                          ~~~~~~~~~~~~~~~~
+                                </expected>
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.Off).WithOverflowChecks(True))
+            AssertTheseDiagnostics(compilation, expectedError)
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.Custom).WithOverflowChecks(True))
+            AssertTheseDiagnostics(compilation, expectedError)
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.On).WithOverflowChecks(True))
+            AssertTheseDiagnostics(compilation, expectedError)
+        End Sub
+
+        <WorkItem(1099862, "DevDiv")>
+        <Fact()>
+        Public Sub Bug1099862_05()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim x As Short = CInt(Short.MaxValue)
+        System.Console.WriteLine(x)
+    End Sub
+End Module
+    ]]></file>
+    </compilation>)
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.Off).WithOverflowChecks(False))
+            CompileAndVerify(compilation, expectedOutput:="32767").VerifyDiagnostics()
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.Custom).WithOverflowChecks(False))
+            CompileAndVerify(compilation, expectedOutput:="32767").VerifyDiagnostics()
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.On).WithOverflowChecks(False))
+            CompileAndVerify(compilation, expectedOutput:="32767").VerifyDiagnostics()
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.Off).WithOverflowChecks(True))
+            CompileAndVerify(compilation, expectedOutput:="32767").VerifyDiagnostics()
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.Custom).WithOverflowChecks(True))
+            CompileAndVerify(compilation, expectedOutput:="32767").VerifyDiagnostics()
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.On).WithOverflowChecks(True))
+            CompileAndVerify(compilation, expectedOutput:="32767").VerifyDiagnostics()
+        End Sub
+
+        <WorkItem(1099862, "DevDiv")>
+        <Fact()>
+        Public Sub Bug1099862_06()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim x As Short? = CInt(Short.MaxValue)
+        System.Console.WriteLine(x)
+    End Sub
+End Module
+    ]]></file>
+    </compilation>)
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.Off).WithOverflowChecks(False))
+            CompileAndVerify(compilation, expectedOutput:="32767").VerifyDiagnostics()
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.Custom).WithOverflowChecks(False))
+            CompileAndVerify(compilation, expectedOutput:="32767").VerifyDiagnostics()
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.On).WithOverflowChecks(False))
+            CompileAndVerify(compilation, expectedOutput:="32767").VerifyDiagnostics()
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.Off).WithOverflowChecks(True))
+            CompileAndVerify(compilation, expectedOutput:="32767").VerifyDiagnostics()
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.Custom).WithOverflowChecks(True))
+            CompileAndVerify(compilation, expectedOutput:="32767").VerifyDiagnostics()
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.On).WithOverflowChecks(True))
+            CompileAndVerify(compilation, expectedOutput:="32767").VerifyDiagnostics()
+        End Sub
+
+        <WorkItem(1099862, "DevDiv")>
+        <Fact()>
+        Public Sub Bug1099862_07()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim x = CType(Double.MaxValue, System.Nullable(Of Integer))
+    End Sub
+End Module
+    ]]></file>
+    </compilation>)
+
+            Dim expectedError = <expected>
+BC30439: Constant expression not representable in type 'Integer?'.
+        Dim x = CType(Double.MaxValue, System.Nullable(Of Integer))
+                      ~~~~~~~~~~~~~~~
+                                </expected>
+
+            compilation = compilation.WithOptions(TestOptions.DebugExe.WithOptionStrict(OptionStrict.Off).WithOverflowChecks(False))
+            AssertTheseDiagnostics(compilation, expectedError)
         End Sub
 
     End Class
