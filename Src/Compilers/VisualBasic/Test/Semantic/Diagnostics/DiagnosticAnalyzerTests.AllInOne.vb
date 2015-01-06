@@ -42,7 +42,7 @@ End Enum
         Public Sub AnalyzerDriverIsSafeAgainstAnalyzerExceptions()
             Dim compilation = CreateCompilationWithMscorlib({TestResource.AllInOneVisualBasicCode})
             ThrowingDiagnosticAnalyzer(Of SyntaxKind).VerifyAnalyzerEngineIsSafeAgainstExceptions(
-                Function(analyzer) compilation.GetVisualBasicAnalyzerDiagnostics({analyzer}, Nothing, DiagnosticExtensions.AlwaysCatchAnalyzerExceptions), AnalyzerDriverHelper.DiagnosticId)
+                Function(analyzer) compilation.GetAnalyzerDiagnostics({analyzer}, Nothing, DiagnosticExtensions.AlwaysCatchAnalyzerExceptions), AnalyzerDriverHelper.DiagnosticId)
         End Sub
 
         <Fact>
@@ -52,7 +52,7 @@ End Enum
 
             Dim compilation = CreateCompilationWithMscorlib({TestResource.AllInOneVisualBasicCode})
             Dim analyzer = New OptionsDiagnosticAnalyzer(Of SyntaxKind)(options)
-            compilation.GetVisualBasicAnalyzerDiagnostics({analyzer}, options)
+            compilation.GetAnalyzerDiagnostics({analyzer}, options)
             analyzer.VerifyAnalyzerOptions()
         End Sub
     End Class

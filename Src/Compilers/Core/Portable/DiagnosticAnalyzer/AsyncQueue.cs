@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// This Task will not complete until it has completed all existing values returned
         /// from <see cref="DequeueAsync"/>.
         /// </summary>
-        public Task WhenCompletedAsync
+        public Task WhenCompletedTask
         {
             get
             {

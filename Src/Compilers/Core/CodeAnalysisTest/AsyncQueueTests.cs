@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var queue = new AsyncQueue<int>();
             queue.Enqueue(42);
             queue.Complete();
-            await queue.WhenCompletedAsync.ConfigureAwait(false);
+            await queue.WhenCompletedTask.ConfigureAwait(false);
             Assert.Equal(42, await queue.DequeueAsync().ConfigureAwait(false));
 
             var threw = false;
@@ -183,9 +183,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 TaskScheduler.Default);
 
             queue.Complete();
-            Assert.False(queue.WhenCompletedAsync.IsCompleted);
+            Assert.False(queue.WhenCompletedTask.IsCompleted);
             tcs.SetResult(true);
-            await queue.WhenCompletedAsync.ConfigureAwait(false);
+            await queue.WhenCompletedTask.ConfigureAwait(false);
 
             // The AsyncQueue<T>.Task property won't complete until all of the 
             // exitsing DequeueAsync values have also completed.
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var queue = new AsyncQueue<int> ();
             queue.Enqueue(13);
             queue.Complete();
-            await queue.WhenCompletedAsync.ConfigureAwait(false);
+            await queue.WhenCompletedTask.ConfigureAwait(false);
 
             int value;
             Assert.True(queue.TryDequeue(out value));
