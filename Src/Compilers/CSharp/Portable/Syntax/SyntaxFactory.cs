@@ -946,12 +946,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!HasSeparatedNodeTokenPattern(nodesAndTokens))
             {
-                throw new ArgumentException("A node or token is out of sequence.".NeedsLocalization());
+                throw new ArgumentException(CodeAnalysisResources.NodeOrTokenOutOfSequence);
             }
 
             if (!NodesAreCorrectType<TNode>(nodesAndTokens))
             {
-                throw new ArgumentException("A node in the list is not of the expected type.".NeedsLocalization());
+                throw new ArgumentException(CodeAnalysisResources.UnexpectedTypeOfNodeInList);
             }
 
             return new SeparatedSyntaxList<TNode>(nodesAndTokens);

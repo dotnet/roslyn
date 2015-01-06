@@ -954,11 +954,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="nodesAndTokens">An alternating list of nodes and tokens.</param>
         Public Shared Function SeparatedList(Of TNode As SyntaxNode)(nodesAndTokens As SyntaxNodeOrTokenList) As SeparatedSyntaxList(Of TNode)
             If Not HasSeparatedNodeTokenPattern(nodesAndTokens) Then
-                Throw New ArgumentException("A node or token is out of sequence.".NeedsLocalization())
+                Throw New ArgumentException(CodeAnalysisResources.NodeOrTokenOutOfSequence)
             End If
 
             If Not NodesAreCorrectType(Of TNode)(nodesAndTokens) Then
-                Throw New ArgumentException("A node in the list is not of the expected type.".NeedsLocalization())
+                Throw New ArgumentException(CodeAnalysisResources.UnexpectedTypeOfNodeInList)
             End If
 
             Return New SeparatedSyntaxList(Of TNode)(nodesAndTokens)

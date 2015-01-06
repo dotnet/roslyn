@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static InvalidOperationException GetItemNotListElementException()
         {
-            return new InvalidOperationException("The item specified is not the element of a list.".NeedsLocalization());
+            return new InvalidOperationException(CodeAnalysisResources.MissingListItem);
         }
 
         private abstract class BaseListEditor : CSharpSyntaxRewriter

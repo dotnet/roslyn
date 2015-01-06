@@ -582,7 +582,11 @@ namespace Roslyn.Utilities
 
         private Exception NotWritableException(string typeName)
         {
-            throw new InvalidOperationException(string.Format("The type '{0}' cannot be written, it does not implement IObjectWritable".NeedsLocalization(), typeName));
+#if COMPILERCORE
+            throw new InvalidOperationException(string.Format(CodeAnalysisResources.NotWritableException, typeName));
+#else
+            throw new InvalidOperationException(string.Format(WorkspacesResources.NotWritableException, typeName));
+#endif
         }
     }
 }

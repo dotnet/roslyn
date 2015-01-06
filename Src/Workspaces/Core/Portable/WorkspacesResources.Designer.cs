@@ -674,11 +674,38 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot deserialize type &apos;{0}&apos;, no binder supplied..
+        /// </summary>
+        internal static string NoBinderException {
+            get {
+                return ResourceManager.GetString("NoBinderException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Node is of the wrong type..
         /// </summary>
         internal static string NodeIsOfTheWrongType {
             get {
                 return ResourceManager.GetString("NodeIsOfTheWrongType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot deserialize type &apos;{0}&apos;, it has no deserialization reader..
+        /// </summary>
+        internal static string NoReaderException {
+            get {
+                return ResourceManager.GetString("NoReaderException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type &apos;{0}&apos; cannot be written, it does not implement IObjectWritable.
+        /// </summary>
+        internal static string NotWritableException {
+            get {
+                return ResourceManager.GetString("NotWritableException", resourceCulture);
             }
         }
         

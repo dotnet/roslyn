@@ -495,12 +495,20 @@ namespace Roslyn.Utilities
 
         private Exception NoBinderException(string typeName)
         {
-            throw new InvalidOperationException(string.Format("Cannot deserialize type '{0}', no binder supplied.".NeedsLocalization(), typeName));
+#if COMPILERCORE
+            throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.CodeAnalysisResources.NoBinderException, typeName));
+#else
+            throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.WorkspacesResources.NoBinderException, typeName));
+#endif
         }
 
         private Exception NoReaderException(string typeName)
         {
-            throw new InvalidOperationException(string.Format("Cannot deserialize type '{0}', it has no deserialization reader.".NeedsLocalization(), typeName));
+#if COMPILERCORE
+            throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.CodeAnalysisResources.NoReaderException, typeName));
+#else
+            throw new InvalidOperationException(string.Format(Microsoft.CodeAnalysis.WorkspacesResources.NoReaderException, typeName));
+#endif
         }
     }
 }

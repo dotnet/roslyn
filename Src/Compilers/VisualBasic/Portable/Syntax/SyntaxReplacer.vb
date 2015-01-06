@@ -223,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Enum
 
         Private Shared Function GetItemNotListElementException() As InvalidOperationException
-            Return New InvalidOperationException("The item specified is not the element of a list.".NeedsLocalization())
+            Return New InvalidOperationException(CodeAnalysisResources.MissingListItem)
         End Function
 
         Private Class BaseListEditor

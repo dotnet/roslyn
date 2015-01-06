@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!IsDescendant(root, node))
                 {
-                    throw new ArgumentException("Node to track is not a descendant of the root.".NeedsLocalization());
+                    throw new ArgumentException(CodeAnalysisResources.InvalidNodeToTrack);
                 }
 
                 nodeToIdMap.GetValue(node, n => new SyntaxAnnotation(IdAnnotationKind));

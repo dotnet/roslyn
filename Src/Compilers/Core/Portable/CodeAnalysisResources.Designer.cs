@@ -512,6 +512,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Node to track is not a descendant of the root..
+        /// </summary>
+        internal static string InvalidNodeToTrack {
+            get {
+                return ResourceManager.GetString("InvalidNodeToTrack", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Invalid output kind for submission. DynamicallyLinkedLibrary expected..
         /// </summary>
         internal static string InvalidOutputKindForSubmission {
@@ -544,6 +553,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Method {
             get {
                 return ResourceManager.GetString("Method", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The item specified is not the element of a list..
+        /// </summary>
+        internal static string MissingListItem {
+            get {
+                return ResourceManager.GetString("MissingListItem", resourceCulture);
             }
         }
         
@@ -589,6 +607,42 @@ namespace Microsoft.CodeAnalysis {
         internal static string NameContainsInvalidCharacter {
             get {
                 return ResourceManager.GetString("NameContainsInvalidCharacter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot deserialize type &apos;{0}&apos;, no binder supplied..
+        /// </summary>
+        internal static string NoBinderException {
+            get {
+                return ResourceManager.GetString("NoBinderException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A node or token is out of sequence..
+        /// </summary>
+        internal static string NodeOrTokenOutOfSequence {
+            get {
+                return ResourceManager.GetString("NodeOrTokenOutOfSequence", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot deserialize type &apos;{0}&apos;, it has no deserialization reader..
+        /// </summary>
+        internal static string NoReaderException {
+            get {
+                return ResourceManager.GetString("NoReaderException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The type &apos;{0}&apos; cannot be written, it does not implement IObjectWritable.
+        /// </summary>
+        internal static string NotWritableException {
+            get {
+                return ResourceManager.GetString("NotWritableException", resourceCulture);
             }
         }
         
@@ -859,6 +913,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string TypeParameter {
             get {
                 return ResourceManager.GetString("TypeParameter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A node in the list is not of the expected type..
+        /// </summary>
+        internal static string UnexpectedTypeOfNodeInList {
+            get {
+                return ResourceManager.GetString("UnexpectedTypeOfNodeInList", resourceCulture);
             }
         }
         

@@ -399,4 +399,25 @@
   <data name="ArgumentElementCannotBeNull" xml:space="preserve">
     <value>Argument cannot have a null element.</value>
   </data>
+  <data name="NoBinderException" xml:space="preserve">
+    <value>Cannot deserialize type '{0}', no binder supplied.</value>
+  </data>
+  <data name="NoReaderException" xml:space="preserve">
+    <value>Cannot deserialize type '{0}', it has no deserialization reader.</value>
+  </data>
+  <data name="NotWritableException" xml:space="preserve">
+    <value>The type '{0}' cannot be written, it does not implement IObjectWritable</value>
+  </data>
+  <data name="InvalidNodeToTrack" xml:space="preserve">
+    <value>Node to track is not a descendant of the root.</value>
+  </data>
+  <data name="NodeOrTokenOutOfSequence" xml:space="preserve">
+    <value>A node or token is out of sequence.</value>
+  </data>
+  <data name="UnexpectedTypeOfNodeInList" xml:space="preserve">
+    <value>A node in the list is not of the expected type.</value>
+  </data>
+  <data name="MissingListItem" xml:space="preserve">
+    <value>The item specified is not the element of a list.</value>
+  </data>
 </root>
