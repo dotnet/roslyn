@@ -2907,5 +2907,65 @@ class Program
 
             return boundNode;
         }
+
+        [WorkItem(1100741, "DevDiv")]
+        [Fact]
+        public void Bug1100741()
+        {
+            var source = @"
+namespace ImmutableObjectGraph
+{
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Text;
+    using System.Threading.Tasks;
+    using IdentityFieldType = System.UInt32;
+
+    public static class RecursiveTypeExtensions
+    {
+/// <summary>Gets the recursive parent of the specified value, or <c>null</c> if none could be found.</summary>
+internal ParentedRecursiveType<<#= templateType.RecursiveParent.TypeName #>, <#= templateType.RecursiveTypeFromFamily.TypeName #>> GetParentedNode(<#= templateType.RequiredIdentityField.TypeName #> identity) {
+    if (this.Identity == identity) {
+        return new ParentedRecursiveType<<#= templateType.RecursiveParent.TypeName #>, <#= templateType.RecursiveTypeFromFamily.TypeName #>>(this, null);
+    }
+
+    if (this.LookupTable != null) {
+        System.Collections.Generic.KeyValuePair<<#= templateType.RecursiveType.TypeName #>, <#= templateType.RequiredIdentityField.TypeName #>> lookupValue;
+        if (this.LookupTable.TryGetValue(identity, out lookupValue)) {
+            var parentIdentity = lookupValue.Value;
+            return new ParentedRecursiveType<<#= templateType.RecursiveParent.TypeName #>, <#= templateType.RecursiveTypeFromFamily.TypeName #>>(this.LookupTable[identity].Key, (<#= templateType.RecursiveParent.TypeName #>)this.Find(parentIdentity));
+        }
+    } else {
+        // No lookup table means we have to aggressively search each child.
+        foreach (var child in this.Children) {
+            if (child.Identity.Equals(identity)) {
+                return new ParentedRecursiveType<<#= templateType.RecursiveParent.TypeName #>, <#= templateType.RecursiveTypeFromFamily.TypeName #>>(child, this);
+            }
+
+            var recursiveChild = child as <#= templateType.RecursiveParent.TypeName #>;
+            if (recursiveChild != null) {
+                var childResult = recursiveChild.GetParentedNode(identity);
+                if (childResult.Value != null) {
+                    return childResult;
+                }
+            } 
+        }
+    }
+
+    return default(ParentedRecursiveType<<#= templateType.RecursiveParent.TypeName #>, <#= templateType.RecursiveTypeFromFamily.TypeName #>>);
+}
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source);
+
+            var tree = compilation.SyntaxTrees.Single();
+            var node = tree.GetRoot().DescendantNodes().Where(n => n.Kind() == SyntaxKind.ForEachStatement).OfType<ForEachStatementSyntax>().Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            Assert.Null(model.GetDeclaredSymbol(node));
+        }
     }
 }

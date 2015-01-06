@@ -2757,7 +2757,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             using (Logger.LogBlock(FunctionId.CSharp_SemanticModel_GetDeclaredSymbol, message: this.SyntaxTree.FilePath, cancellationToken: cancellationToken))
             {
                 Binder enclosingBinder = this.GetEnclosingBinder(GetAdjustedNodePosition(forEachStatement));
-                Binder foreachBinder = enclosingBinder.GetBinder(forEachStatement).WithAdditionalFlags(BinderFlags.SemanticModel);
+
+                if (enclosingBinder == null)
+                {
+                    return null;
+                }
+
+                Binder foreachBinder = enclosingBinder.GetBinder(forEachStatement);
+
+                // Binder.GetBinder can fail in presence of syntax errors. 
+                if (foreachBinder == null)
+                {
+                    return null;
+                }
+
+                foreachBinder = foreachBinder.WithAdditionalFlags(BinderFlags.SemanticModel);
                 LocalSymbol local = foreachBinder.Locals.FirstOrDefault();
                 return ((object)local != null && local.DeclarationKind == LocalDeclarationKind.ForEachIterationVariable)
                     ? local
@@ -2777,7 +2791,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CSharpSyntaxNode catchClause = catchDeclaration.Parent; //Syntax->Binder map is keyed on clause, not decl
                 Debug.Assert(catchClause.Kind() == SyntaxKind.CatchClause);
                 Binder enclosingBinder = this.GetEnclosingBinder(GetAdjustedNodePosition(catchClause));
-                Binder catchBinder = enclosingBinder.GetBinder(catchClause).WithAdditionalFlags(BinderFlags.SemanticModel);
+
+                if (enclosingBinder == null)
+                {
+                    return null;
+                }
+
+                Binder catchBinder = enclosingBinder.GetBinder(catchClause);
+
+                // Binder.GetBinder can fail in presence of syntax errors. 
+                if (catchBinder == null)
+                {
+                    return null;
+                }
+
+                catchBinder = catchBinder.WithAdditionalFlags(BinderFlags.SemanticModel);
                 LocalSymbol local = catchBinder.Locals.FirstOrDefault();
                 return ((object)local != null && local.DeclarationKind == LocalDeclarationKind.CatchVariable)
                     ? local
