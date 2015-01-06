@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             });
         }
 
-        [Fact(Skip = "1094411")]
+        [Fact, WorkItem(1094411, "DevDiv")]
         public static void FindDeclarationsAsync_Metadata()
         {
             var solution = CreateSolution();
@@ -144,8 +144,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var csharpResult = SymbolFinder.FindDeclarationsAsync(solution.GetProject(csharpId), "BackgroundColor", ignoreCase: false).Result;
             Assert.True(csharpResult.Count() > 0);
-
-            // var rest = solution.GetProject(vbId).GetCompilationAsync().Result.GlobalNamespace.GetMembers("System").SelectMany(g => g.GetMembers("Console")).OfType<ITypeSymbol>().SelectMany(t => t.GetMembers("BackgroundColor")).ToList();
 
             var vbResult = SymbolFinder.FindDeclarationsAsync(solution.GetProject(vbId), "BackgroundColor", ignoreCase: true).Result;
             Assert.True(vbResult.Count() > 0);

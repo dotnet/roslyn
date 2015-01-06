@@ -642,6 +642,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 try
                 {
+                    foreach (var eventDef in module.GetEventsOfTypeOrThrow(this.handle))
+                    {
+                        try
+                        {
+                            names.Add(module.GetEventDefNameOrThrow(eventDef));
+                        }
+                        catch (BadImageFormatException)
+                        { }
+                    }
+                }
+                catch (BadImageFormatException)
+                { }
+
+                try
+                {
                     foreach (var fieldDef in module.GetFieldsOfTypeOrThrow(this.handle))
                     {
                         try
@@ -662,8 +677,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     names.Add(WellKnownMemberNames.InstanceConstructorName);
                 }
-
-                // TODO(cyrusn): Handle Events
 
                 Interlocked.CompareExchange(ref lazyMemberNames, CreateReadOnlyMemberNames(names), null);
             }

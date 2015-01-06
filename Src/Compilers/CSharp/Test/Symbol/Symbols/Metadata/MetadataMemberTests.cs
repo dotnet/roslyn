@@ -1,11 +1,12 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using System.Collections.Generic;
+using System.Linq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -586,5 +587,88 @@ class Explicit : Interface
                 //     void Interface._VtblGap1_1() { }
                 Diagnostic(ErrorCode.ERR_InterfaceMemberNotFound, "_VtblGap1_1").WithArguments("Explicit._VtblGap1_1()"));
         }
+
+        [Fact, WorkItem(1094411, "DevDiv")]
+        public void Bug1094411_01()
+        {
+            var source1 =
+@"
+class Test
+{
+    public int F;
+    public int P {get; set;}
+    public event System.Action E
+    {
+        add { }
+        remove { }
+    }
+    public void M() {}
+}
+";
+            var members = new[] { "F", "P", "E", "M" };
+
+            var comp1 = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseDll);
+
+            var test1 = comp1.GetTypeByMetadataName("Test");
+            var memberNames1 = new HashSet<string>(test1.MemberNames);
+
+            foreach (var m in members)
+            {
+                Assert.True(memberNames1.Contains(m), m);
+            }
+
+            var comp2 = CreateCompilationWithMscorlib("", new[] { comp1.EmitToImageReference() });
+
+            var test2 = comp2.GetTypeByMetadataName("Test");
+            var memberNames2 = new HashSet<string>(test2.MemberNames);
+
+            foreach (var m in members)
+            {
+                Assert.True(memberNames2.Contains(m), m);
+            }
+        }
+
+        [Fact, WorkItem(1094411, "DevDiv")]
+        public void Bug1094411_02()
+        {
+            var source1 =
+@"
+class Test
+{
+    public int F;
+    public int P {get; set;}
+    public event System.Action E
+    {
+        add { }
+        remove { }
+    }
+    public void M() {}
+}
+";
+            var members = new[] { "F", "P", "E", "M" };
+
+            var comp1 = CreateCompilationWithMscorlib(source1, options: TestOptions.ReleaseDll);
+
+            var test1 = comp1.GetTypeByMetadataName("Test");
+            test1.GetMembers();
+            var memberNames1 = new HashSet<string>(test1.MemberNames);
+
+            foreach (var m in members)
+            {
+                Assert.True(memberNames1.Contains(m), m);
+            }
+
+            var comp2 = CreateCompilationWithMscorlib("", new[] { comp1.EmitToImageReference() });
+
+            var test2 = comp2.GetTypeByMetadataName("Test");
+            test2.GetMembers();
+            var memberNames2 = new HashSet<string>(test2.MemberNames);
+
+            foreach (var m in members)
+            {
+                Assert.True(memberNames2.Contains(m), m);
+            }
+        }
+
     }
 }

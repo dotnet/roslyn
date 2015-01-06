@@ -449,6 +449,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 End Try
 
                 Try
+                    For Each propertyDef In peModule.GetPropertiesOfTypeOrThrow(m_Handle)
+                        Try
+                            names.Add(peModule.GetPropertyDefNameOrThrow(propertyDef))
+                        Catch mrEx As BadImageFormatException
+                        End Try
+                    Next
+                Catch mrEx As BadImageFormatException
+                End Try
+
+                Try
+                    For Each eventDef In peModule.GetEventsOfTypeOrThrow(m_Handle)
+                        Try
+                            names.Add(peModule.GetEventDefNameOrThrow(eventDef))
+                        Catch mrEx As BadImageFormatException
+                        End Try
+                    Next
+                Catch mrEx As BadImageFormatException
+                End Try
+
+                Try
                     For Each fieldDef In peModule.GetFieldsOfTypeOrThrow(m_Handle)
                         Try
                             names.Add(peModule.GetFieldDefNameOrThrow(fieldDef))

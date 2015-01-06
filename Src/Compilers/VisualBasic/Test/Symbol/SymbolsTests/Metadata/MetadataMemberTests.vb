@@ -853,6 +853,81 @@ End Class
                 Diagnostic(ERRID.ERR_IdentNotMemberOfInterface4, "[Interface]._VtblGap1_1").WithArguments("_VtblGap1_1", "_VtblGap1_1", "sub", "[Interface]"),
                 Diagnostic(ERRID.ERR_IdentNotMemberOfInterface4, "[Interface].BothAccessorsAreGaps").WithArguments("BothAccessorsAreGaps", "BothAccessorsAreGaps", "property", "[Interface]"))
         End Sub
+
+        <Fact, WorkItem(1094411, "DevDiv")>
+        Public Sub Bug1094411_01()
+            Dim source1 =
+<compilation>
+    <file name="a.vb">
+Class Test
+    Public F As Integer
+    Property P As Integer
+    Event E As System.Action
+    Sub M()
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim members = {"F", "P", "E", "M"}
+
+            Dim comp1 = CreateCompilationWithMscorlib(source1, options:=TestOptions.ReleaseDll)
+
+            Dim test1 = comp1.GetTypeByMetadataName("Test")
+            Dim memberNames1 = New HashSet(Of String)(test1.MemberNames)
+
+            For Each m In members
+                Assert.True(memberNames1.Contains(m), m)
+            Next
+
+            Dim comp2 = CreateCompilationWithMscorlibAndReferences(<compilation><file name="a.vb"/></compilation>, {comp1.EmitToImageReference()})
+
+            Dim test2 = comp2.GetTypeByMetadataName("Test")
+            Dim memberNames2 = New HashSet(Of String)(test2.MemberNames)
+
+            For Each m In members
+                Assert.True(memberNames2.Contains(m), m)
+            Next
+        End Sub
+
+        <Fact, WorkItem(1094411, "DevDiv")>
+        Public Sub Bug1094411_02()
+            Dim source1 =
+<compilation>
+    <file name="a.vb">
+Class Test
+    Public F As Integer
+    Property P As Integer
+    Event E As System.Action
+    Sub M()
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            Dim members = {"F", "P", "E", "M"}
+
+            Dim comp1 = CreateCompilationWithMscorlib(source1, options:=TestOptions.ReleaseDll)
+
+            Dim test1 = comp1.GetTypeByMetadataName("Test")
+            test1.GetMembers()
+            Dim memberNames1 = New HashSet(Of String)(test1.MemberNames)
+
+            For Each m In members
+                Assert.True(memberNames1.Contains(m), m)
+            Next
+
+            Dim comp2 = CreateCompilationWithMscorlibAndReferences(<compilation><file name="a.vb"/></compilation>, {comp1.EmitToImageReference()})
+
+            Dim test2 = comp2.GetTypeByMetadataName("Test")
+            test2.GetMembers()
+            Dim memberNames2 = New HashSet(Of String)(test2.MemberNames)
+
+            For Each m In members
+                Assert.True(memberNames2.Contains(m), m)
+            Next
+        End Sub
+
     End Class
 
 End Namespace
