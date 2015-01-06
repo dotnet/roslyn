@@ -64,16 +64,14 @@
     </Reference>
     <Reference Include="System.Core" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ApiDesign\CancellationTokenMustBeLastCodeFixProvider.cs" />
     <Compile Include="Documentation\CSharpDoNotUseVerbatimCrefsAnalyzer.cs" />
-    <Compile Include="MetaAnalyzers\CSharpReportDiagnosticAnalyzer.cs" />
-    <Compile Include="MetaAnalyzers\CSharpRegisterActionAnalyzer.cs" />
-    <Compile Include="MetaAnalyzers\Fixers\CSharpApplyDiagnosticAnalyzerAttributeFix.cs" />
     <Compile Include="Reliability\CSharpConsumePreserveSigAnalyzer.cs" />
     <Compile Include="Performance\CSharpDiagnosticDescriptorAccessAnalyzer.cs" />
     <Compile Include="Performance\CSharpCodeActionCreateAnalyzer.cs" />

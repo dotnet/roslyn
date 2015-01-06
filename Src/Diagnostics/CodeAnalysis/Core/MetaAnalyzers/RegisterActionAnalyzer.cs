@@ -2,39 +2,38 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Roslyn.Diagnostics.Analyzers.MetaAnalyzers
+namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
     public abstract class RegisterActionAnalyzer<TClassDeclarationSyntax, TInvocationExpressionSyntax, TLanguageKindEnum> : DiagnosticAnalyzerCorrectnessAnalyzer
         where TClassDeclarationSyntax : SyntaxNode
         where TInvocationExpressionSyntax : SyntaxNode
         where TLanguageKindEnum : struct
     {
-        private static LocalizableString localizableTitleMissingKindArgument = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.MissingKindArgumentToRegisterActionTitle), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString localizableMessageMissingKindArgument = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.MissingKindArgumentToRegisterActionMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString localizableDescriptionMissingKindArgument = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.MissingKindArgumentToRegisterActionDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString localizableTitleMissingKindArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.MissingKindArgumentToRegisterActionTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static LocalizableString localizableMessageMissingKindArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.MissingKindArgumentToRegisterActionMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static LocalizableString localizableDescriptionMissingKindArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.MissingKindArgumentToRegisterActionDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
         public static DiagnosticDescriptor MissingKindArgumentRule = new DiagnosticDescriptor(
-            RoslynDiagnosticIds.MissingKindArgumentToRegisterActionRuleId,
+            DiagnosticIds.MissingKindArgumentToRegisterActionRuleId,
             localizableTitleMissingKindArgument,
             localizableMessageMissingKindArgument,
-            "AnalyzerCorrectness",
+            DiagnosticCategory.AnalyzerCorrectness,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: localizableDescriptionMissingKindArgument,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        private static LocalizableString localizableTitleUnsupportedSymbolKindArgument = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UnsupportedSymbolKindArgumentToRegisterActionTitle), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString localizableMessageUnsupportedSymbolKindArgument = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UnsupportedSymbolKindArgumentToRegisterActionMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString localizableTitleUnsupportedSymbolKindArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UnsupportedSymbolKindArgumentToRegisterActionTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static LocalizableString localizableMessageUnsupportedSymbolKindArgument = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.UnsupportedSymbolKindArgumentToRegisterActionMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
         public static DiagnosticDescriptor UnsupportedSymbolKindArgumentRule = new DiagnosticDescriptor(
-            RoslynDiagnosticIds.UnsupportedSymbolKindArgumentRuleId,
+            DiagnosticIds.UnsupportedSymbolKindArgumentRuleId,
             localizableTitleUnsupportedSymbolKindArgument,
             localizableMessageUnsupportedSymbolKindArgument,
-            "AnalyzerCorrectness",
+            DiagnosticCategory.AnalyzerCorrectness,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);

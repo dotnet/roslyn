@@ -94,9 +94,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Documentation\BasicDoNotUseVerbatimCrefsAnalyzer.vb" />
-    <Compile Include="MetaAnalyzers\BasicReportDiagnosticAnalyzer.vb" />
-    <Compile Include="MetaAnalyzers\BasicRegisterActionAnalyzer.vb" />
-    <Compile Include="MetaAnalyzers\Fixers\BasicApplyDiagnosticAnalyzerAttributeFix.vb" />
     <Compile Include="Performance\BasicDiagnosticDescriptorAccessAnalyzer.vb" />
     <Compile Include="Performance\BasicCodeActionCreateAnalyzer.vb" />
     <Compile Include="Performance\BasicEmptyArrayCodeFixProvider.vb" />

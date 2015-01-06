@@ -3,34 +3,34 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Roslyn.Diagnostics.Analyzers.MetaAnalyzers
+namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
     [DiagnosticAnalyzer]
     public sealed class DiagnosticAnalyzerAttributeAnalyzer : DiagnosticAnalyzerCorrectnessAnalyzer
     {
-        private static LocalizableString localizableTitleMissingAttribute = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.MissingDiagnosticAnalyzerAttributeTitle), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString localizableMessageMissingAttribute = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.MissingAttributeMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources), DiagnosticAnalyzerTypeFullName);
-        private static LocalizableString localizableDescriptionMissingAttribute = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.MissingDiagnosticAnalyzerAttributeDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources), DiagnosticAnalyzerTypeFullName);
+        private static LocalizableString localizableTitleMissingAttribute = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.MissingDiagnosticAnalyzerAttributeTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static LocalizableString localizableMessageMissingAttribute = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.MissingAttributeMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources), DiagnosticAnalyzerTypeFullName);
+        private static LocalizableString localizableDescriptionMissingAttribute = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.MissingDiagnosticAnalyzerAttributeDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources), DiagnosticAnalyzerTypeFullName);
 
         public static DiagnosticDescriptor MissingDiagnosticAnalyzerAttributeRule = new DiagnosticDescriptor(
-            RoslynDiagnosticIds.MissingDiagnosticAnalyzerAttributeRuleId,
+            DiagnosticIds.MissingDiagnosticAnalyzerAttributeRuleId,
             localizableTitleMissingAttribute,
             localizableMessageMissingAttribute,
-            "AnalyzerCorrectness",
+            DiagnosticCategory.AnalyzerCorrectness,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: localizableDescriptionMissingAttribute,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        private static LocalizableString localizableTitleAddLanguageSupportToAnalyzer = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.AddLanguageSupportToAnalyzerTitle), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString localizableMessageAddLanguageSupportToAnalyzer = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.AddLanguageSupportToAnalyzerMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
-        private static LocalizableString localizableDescriptionAddLanguageSupportToAnalyzer = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.AddLanguageSupportToAnalyzerDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString localizableTitleAddLanguageSupportToAnalyzer = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.AddLanguageSupportToAnalyzerTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static LocalizableString localizableMessageAddLanguageSupportToAnalyzer = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.AddLanguageSupportToAnalyzerMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
+        private static LocalizableString localizableDescriptionAddLanguageSupportToAnalyzer = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.AddLanguageSupportToAnalyzerDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
         public static DiagnosticDescriptor AddLanguageSupportToAnalyzerRule = new DiagnosticDescriptor(
-            RoslynDiagnosticIds.AddLanguageSupportToAnalyzerRuleId,
+            DiagnosticIds.AddLanguageSupportToAnalyzerRuleId,
             localizableTitleAddLanguageSupportToAnalyzer,
             localizableMessageAddLanguageSupportToAnalyzer,
-            "AnalyzerCorrectness",
+            DiagnosticCategory.AnalyzerCorrectness,
             DiagnosticSeverity.Warning,
             isEnabledByDefault: true,
             description: localizableDescriptionAddLanguageSupportToAnalyzer,

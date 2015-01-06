@@ -4,20 +4,17 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Roslyn.Diagnostics.Analyzers;
-using Roslyn.Diagnostics.Analyzers.MetaAnalyzers;
 
-namespace Roslyn.Diagnostics.CodeFixes
+namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.CodeFixes
 {
     public abstract class ApplyDiagnosticAnalyzerAttributeFix : CodeFixProvider
     {
         public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
         {
-            return ImmutableArray.Create(RoslynDiagnosticIds.MissingDiagnosticAnalyzerAttributeRuleId);
+            return ImmutableArray.Create(DiagnosticIds.MissingDiagnosticAnalyzerAttributeRuleId);
         }
 
         public sealed override async Task ComputeFixesAsync(CodeFixContext context)
@@ -39,18 +36,18 @@ namespace Roslyn.Diagnostics.CodeFixes
             // Register fixes.
 
             // 1) Apply language-agnostic DiagnosticAnalyzerAttribute.
-            AddFix(RoslynDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, context, root, classDecl, generator);
+            AddFix(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_1, context, root, classDecl, generator);
 
             // 2) Apply C# DiagnosticAnalyzerAttribute.
-            var title = string.Format(RoslynDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_2, LanguageNames.CSharp);
+            var title = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_2, LanguageNames.CSharp);
             AddFix(title, context, root, classDecl, generator, LanguageNames.CSharp);
 
             // 3) Apply VB DiagnosticAnalyzerAttribute.
-            title = string.Format(RoslynDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_2, LanguageNames.VisualBasic);
+            title = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_2, LanguageNames.VisualBasic);
             AddFix(title, context, root, classDecl, generator, LanguageNames.VisualBasic);
 
             // 4) Apply both C# and VB DiagnosticAnalyzerAttributes.
-            title = string.Format(RoslynDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_3, LanguageNames.CSharp, LanguageNames.VisualBasic);
+            title = string.Format(CodeAnalysisDiagnosticsResources.ApplyDiagnosticAnalyzerAttribute_3, LanguageNames.CSharp, LanguageNames.VisualBasic);
             AddFix(title, context, root, classDecl, generator, LanguageNames.CSharp, LanguageNames.VisualBasic);
         }
 
@@ -113,7 +110,7 @@ namespace Roslyn.Diagnostics.CodeFixes
             public override string Title
             {
                 get
-                {
+        {
                     return this.title;
                 }
             }

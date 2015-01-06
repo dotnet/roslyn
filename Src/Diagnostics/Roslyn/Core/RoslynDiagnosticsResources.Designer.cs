@@ -61,60 +61,6 @@ namespace Roslyn.Diagnostics.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Given diagnostic analyzer seems to be marked with a DiagnosticAnalyzerAttribute with a specific supported language. However, the analyzer assembly doesn&apos;t seem to reference any language specific CodeAnalysis assemblies. Hence, it is likely a language-agnostic diagnostic analyzer. Consider either removing the argument to DiagnosticAnalyzerAttribute or adding a new DiagnosticAnalyzerAttribute for missing language..
-        /// </summary>
-        internal static string AddLanguageSupportToAnalyzerDescription {
-            get {
-                return ResourceManager.GetString("AddLanguageSupportToAnalyzerDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to &apos;{0}&apos; seems to be a language-agnostic diagnostic analyzer. Consider either removing the argument to DiagnosticAnalyzerAttribute or adding a new DiagnosticAnalyzerAttribute for &apos;{1}&apos; language support..
-        /// </summary>
-        internal static string AddLanguageSupportToAnalyzerMessage {
-            get {
-                return ResourceManager.GetString("AddLanguageSupportToAnalyzerMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Recommend adding language support to diagnostic analyzer..
-        /// </summary>
-        internal static string AddLanguageSupportToAnalyzerTitle {
-            get {
-                return ResourceManager.GetString("AddLanguageSupportToAnalyzerTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Apply language-agnostic DiagnosticAnalyzer attribute..
-        /// </summary>
-        internal static string ApplyDiagnosticAnalyzerAttribute_1 {
-            get {
-                return ResourceManager.GetString("ApplyDiagnosticAnalyzerAttribute_1", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Apply &apos;{0}&apos; DiagnosticAnalyzer attribute..
-        /// </summary>
-        internal static string ApplyDiagnosticAnalyzerAttribute_2 {
-            get {
-                return ResourceManager.GetString("ApplyDiagnosticAnalyzerAttribute_2", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Apply DiagnosticAnalyzer attributes for both: &apos;{0}&apos; and &apos;{1}&apos;..
-        /// </summary>
-        internal static string ApplyDiagnosticAnalyzerAttribute_3 {
-            get {
-                return ResourceManager.GetString("ApplyDiagnosticAnalyzerAttribute_3", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to CancellationToken parameters must come last.
         /// </summary>
         internal static string CancellationTokenMustBeLastDescription {
@@ -268,87 +214,6 @@ namespace Roslyn.Diagnostics.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ReportDiagnostic should only be invoked with supported DiagnosticDescriptors that are returned from DiagnosticAnalyzer.SupportedDiagnostics property. Otherwise, the reported diagnostic will be filtered out by the analysis engine..
-        /// </summary>
-        internal static string InvalidReportDiagnosticDescription {
-            get {
-                return ResourceManager.GetString("InvalidReportDiagnosticDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to ReportDiagnostic invoked with an unsupported DiagnosticDescriptor &apos;{0}&apos;..
-        /// </summary>
-        internal static string InvalidReportDiagnosticMessage {
-            get {
-                return ResourceManager.GetString("InvalidReportDiagnosticMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to ReportDiagnostic invoked with an unsupported DiagnosticDescriptor..
-        /// </summary>
-        internal static string InvalidReportDiagnosticTitle {
-            get {
-                return ResourceManager.GetString("InvalidReportDiagnosticTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Missing &apos;{0}&apos; attribute..
-        /// </summary>
-        internal static string MissingAttributeMessage {
-            get {
-                return ResourceManager.GetString("MissingAttributeMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Non-abstract sub-types of DiagnosticAnalyzer should be marked with DiagnosticAnalyzerAttribute(s). The argument to this attribute(s), if any, determine the supported languages for the analyzer. Analyzer types without this attribute will be ignored by the analysis engine..
-        /// </summary>
-        internal static string MissingDiagnosticAnalyzerAttributeDescription {
-            get {
-                return ResourceManager.GetString("MissingDiagnosticAnalyzerAttributeDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Missing diagnostic analyzer attribute..
-        /// </summary>
-        internal static string MissingDiagnosticAnalyzerAttributeTitle {
-            get {
-                return ResourceManager.GetString("MissingDiagnosticAnalyzerAttributeTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to You must specify at least one syntax/symbol kinds of interest while registering a syntax/symbol analyzer action. Otherwise, the registered action will be dead code and will never be invoked during analysis..
-        /// </summary>
-        internal static string MissingKindArgumentToRegisterActionDescription {
-            get {
-                return ResourceManager.GetString("MissingKindArgumentToRegisterActionDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Specify at least one &apos;{0}&apos; of interest while registering a {1} analyzer action..
-        /// </summary>
-        internal static string MissingKindArgumentToRegisterActionMessage {
-            get {
-                return ResourceManager.GetString("MissingKindArgumentToRegisterActionMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Missing kind argument while registering an analyzer action..
-        /// </summary>
-        internal static string MissingKindArgumentToRegisterActionTitle {
-            get {
-                return ResourceManager.GetString("MissingKindArgumentToRegisterActionTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Parts exported with MEFv2 must be marked as Shared..
         /// </summary>
         internal static string MissingSharedAttributeDescription {
@@ -399,24 +264,6 @@ namespace Roslyn.Diagnostics.Analyzers {
         internal static string OverrideObjectEqualsMessage {
             get {
                 return ResourceManager.GetString("OverrideObjectEqualsMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to SymbolKind &apos;{0}&apos; is not supported for symbol analyzer actions..
-        /// </summary>
-        internal static string UnsupportedSymbolKindArgumentToRegisterActionMessage {
-            get {
-                return ResourceManager.GetString("UnsupportedSymbolKindArgumentToRegisterActionMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Unsupported SymbolKind argument while registering a symbol analyzer action..
-        /// </summary>
-        internal static string UnsupportedSymbolKindArgumentToRegisterActionTitle {
-            get {
-                return ResourceManager.GetString("UnsupportedSymbolKindArgumentToRegisterActionTitle", resourceCulture);
             }
         }
         

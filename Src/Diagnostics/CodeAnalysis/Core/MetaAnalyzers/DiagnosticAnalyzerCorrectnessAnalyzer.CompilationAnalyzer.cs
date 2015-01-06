@@ -1,10 +1,10 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 
-namespace Roslyn.Diagnostics.Analyzers.MetaAnalyzers
+namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
     public abstract partial class DiagnosticAnalyzerCorrectnessAnalyzer : DiagnosticAnalyzer
     {
@@ -24,7 +24,7 @@ namespace Roslyn.Diagnostics.Analyzers.MetaAnalyzers
 
             protected bool IsDiagnosticAnalyzer(INamedTypeSymbol type)
             {
-                return SymbolEquivalenceComparer.Instance.Equals(type, this.diagnosticAnalyzer);
+                return type.Equals(this.diagnosticAnalyzer);
             }
 
             internal void AnalyzeSymbol(SymbolAnalysisContext symbolContext)

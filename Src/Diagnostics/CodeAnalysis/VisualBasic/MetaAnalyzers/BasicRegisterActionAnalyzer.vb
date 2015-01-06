@@ -1,13 +1,10 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Immutable
-Imports System.Threading
-Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Roslyn.Diagnostics.Analyzers.MetaAnalyzers.VisualBasic
+Namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.VisualBasic
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicRegisterActionAnalyzer
         Inherits RegisterActionAnalyzer(Of ClassBlockSyntax, InvocationExpressionSyntax, SyntaxKind)

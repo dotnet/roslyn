@@ -2,12 +2,11 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Roslyn.Diagnostics.Analyzers.MetaAnalyzers.CSharp
+namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.CSharp
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpRegisterActionAnalyzer : RegisterActionAnalyzer<ClassDeclarationSyntax, InvocationExpressionSyntax, SyntaxKind>

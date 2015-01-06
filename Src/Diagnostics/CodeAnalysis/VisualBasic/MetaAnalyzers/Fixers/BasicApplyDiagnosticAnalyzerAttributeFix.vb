@@ -4,11 +4,10 @@ Imports System.Composition
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Simplification
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Roslyn.Diagnostics.Analyzers
+Imports Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.CodeFixes
 
-Namespace Roslyn.Diagnostics.CodeFixes.VisualBasic
-    <ExportCodeFixProvider(RoslynDiagnosticIds.MissingDiagnosticAnalyzerAttributeRuleId, LanguageNames.VisualBasic), [Shared]>
+Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.CodeFixes
+    <ExportCodeFixProviderAttribute(NameOf(BasicApplyDiagnosticAnalyzerAttributeFix), LanguageNames.VisualBasic), [Shared]>
     Public Class BasicApplyDiagnosticAnalyzerAttributeFix
         Inherits ApplyDiagnosticAnalyzerAttributeFix
 
