@@ -54,9 +54,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                     if (disposableType != null)
                     {
                         AbstractAnalyzer analyzer = GetAnalyzer(context, disposableType);
-#pragma warning disable RS1004
                         context.RegisterCompilationEndAction(analyzer.AnalyzeCompilation);
-#pragma warning restore RS1004
                         context.RegisterSymbolAction(analyzer.AnalyzeSymbol, SymbolKind.Field);
                     }
                 });

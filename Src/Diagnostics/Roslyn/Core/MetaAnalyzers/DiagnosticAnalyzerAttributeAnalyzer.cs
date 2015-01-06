@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -12,6 +10,7 @@ namespace Roslyn.Diagnostics.Analyzers.MetaAnalyzers
     {
         private static LocalizableString localizableTitleMissingAttribute = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.MissingDiagnosticAnalyzerAttributeTitle), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
         private static LocalizableString localizableMessageMissingAttribute = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.MissingAttributeMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources), DiagnosticAnalyzerTypeFullName);
+        private static LocalizableString localizableDescriptionMissingAttribute = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.MissingDiagnosticAnalyzerAttributeDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources), DiagnosticAnalyzerTypeFullName);
 
         public static DiagnosticDescriptor MissingDiagnosticAnalyzerAttributeRule = new DiagnosticDescriptor(
             RoslynDiagnosticIds.MissingDiagnosticAnalyzerAttributeRuleId,
@@ -19,11 +18,13 @@ namespace Roslyn.Diagnostics.Analyzers.MetaAnalyzers
             localizableMessageMissingAttribute,
             "AnalyzerCorrectness",
             DiagnosticSeverity.Warning,
-            isEnabledByDefault: false,
+            isEnabledByDefault: true,
+            description: localizableDescriptionMissingAttribute,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         private static LocalizableString localizableTitleAddLanguageSupportToAnalyzer = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.AddLanguageSupportToAnalyzerTitle), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
         private static LocalizableString localizableMessageAddLanguageSupportToAnalyzer = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.AddLanguageSupportToAnalyzerMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString localizableDescriptionAddLanguageSupportToAnalyzer = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.AddLanguageSupportToAnalyzerDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
 
         public static DiagnosticDescriptor AddLanguageSupportToAnalyzerRule = new DiagnosticDescriptor(
             RoslynDiagnosticIds.AddLanguageSupportToAnalyzerRuleId,
@@ -31,7 +32,8 @@ namespace Roslyn.Diagnostics.Analyzers.MetaAnalyzers
             localizableMessageAddLanguageSupportToAnalyzer,
             "AnalyzerCorrectness",
             DiagnosticSeverity.Warning,
-            isEnabledByDefault: false,
+            isEnabledByDefault: true,
+            description: localizableDescriptionAddLanguageSupportToAnalyzer,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -49,8 +51,8 @@ namespace Roslyn.Diagnostics.Analyzers.MetaAnalyzers
 
         private sealed class AttributeAnalyzer : CompilationAnalyzer
         {
-            private static readonly string csharpCodeAnalysisAssembly = @"Microsoft.CodeAnalysis.CSharp.dll";
-            private static readonly string basicCodeAnalysisAssembly = @"Microsoft.CodeAnalysis.VisualBasic.dll";
+            private static readonly string csharpCompilationFullName = @"Microsoft.CodeAnalysis.CSharp.CSharpCompilation";
+            private static readonly string basicCompilationFullName = @"Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation";
 
             public AttributeAnalyzer(INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
                 : base(diagnosticAnalyzer, diagnosticAnalyzerAttribute)
@@ -112,22 +114,10 @@ namespace Roslyn.Diagnostics.Analyzers.MetaAnalyzers
                     {
                         // If the analyzer assembly doesn't reference either C# or VB CodeAnalysis assemblies, 
                         // then the analyzer is pretty likely a language-agnostic analyzer.
-                        var assemblyReferenceToCheck = supportsCSharp ? csharpCodeAnalysisAssembly : basicCodeAnalysisAssembly;
-                        var referenceFound = false;
-                        foreach (var reference in symbolContext.Compilation.References)
-                        {
-                            if (reference.Display != null)
-                            {
-                                var fileName = Path.GetFileName(reference.Display);
-                                if (fileName.Equals(assemblyReferenceToCheck, StringComparison.OrdinalIgnoreCase))
-                                {
-                                    referenceFound = true;
-                                    break;
-                                }
-                            }
-                        }
-
-                        if (!referenceFound)
+                        var compilation = symbolContext.Compilation;
+                        var compilationTypeNameToCheck = supportsCSharp ? csharpCompilationFullName : basicCompilationFullName;
+                        var compilationType = compilation.GetTypeByMetadataName(compilationTypeNameToCheck);
+                        if (compilationType == null)
                         {
                             var missingLanguage = supportsCSharp ? LanguageNames.VisualBasic : LanguageNames.CSharp;
                             var diagnostic = Diagnostic.Create(AddLanguageSupportToAnalyzerRule, attributeSyntax.GetLocation(), namedType.Name, missingLanguage);

@@ -73,7 +73,6 @@
     <Compile Include="MetaAnalyzers\ReportDiagnosticAnalyzer.cs" />
     <Compile Include="MetaAnalyzers\DiagnosticAnalyzerCorrectnessAnalyzer.CompilationAnalyzer.cs" />
     <Compile Include="MetaAnalyzers\DiagnosticAnalyzerCorrectnessAnalyzer.InvocationCompilationAnalyzer.cs" />
-    <Compile Include="MetaAnalyzers\CompilationEndActionAnalyzer.cs" />
     <Compile Include="MetaAnalyzers\RegisterActionAnalyzer.cs" />
     <Compile Include="MetaAnalyzers\DiagnosticAnalyzerAttributeAnalyzer.cs" />
     <Compile Include="MetaAnalyzers\DiagnosticAnalyzerCorrectnessAnalyzer.cs" />

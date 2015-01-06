@@ -61,6 +61,15 @@ namespace Roslyn.Diagnostics.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Given diagnostic analyzer seems to be marked with a DiagnosticAnalyzerAttribute with a specific supported language. However, the analyzer assembly doesn&apos;t seem to reference any language specific CodeAnalysis assemblies. Hence, it is likely a language-agnostic diagnostic analyzer. Consider either removing the argument to DiagnosticAnalyzerAttribute or adding a new DiagnosticAnalyzerAttribute for missing language..
+        /// </summary>
+        internal static string AddLanguageSupportToAnalyzerDescription {
+            get {
+                return ResourceManager.GetString("AddLanguageSupportToAnalyzerDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; seems to be a language-agnostic diagnostic analyzer. Consider either removing the argument to DiagnosticAnalyzerAttribute or adding a new DiagnosticAnalyzerAttribute for &apos;{1}&apos; language support..
         /// </summary>
         internal static string AddLanguageSupportToAnalyzerMessage {
@@ -241,35 +250,6 @@ namespace Roslyn.Diagnostics.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The compilation end actions registered on &apos;{0}&apos; can be executed only after all other actions registered on it have been executed on the entire compilation. This can hurt the typing performance when the analyzer is executed in the Visual Studio IDE.
-        ///If the analysis done within your compilation end action is independent of analyses done in other actions registered on &apos;{0}&apos;, then consider registering this end action on &apos;{1}&apos; in &apos;{2}&apos; method instead of registering it here.
-        ///This should improve the IDE performa [rest of string was truncated]&quot;;.
-        /// </summary>
-        internal static string ExpensiveEndActionDescription {
-            get {
-                return ResourceManager.GetString("ExpensiveEndActionDescription", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Consider registering the compilation end action on &apos;{0}&apos; instead of &apos;{1}&apos; if the end action is independent of other actions registered on &apos;{1}&apos;..
-        /// </summary>
-        internal static string ExpensiveEndActionMessage {
-            get {
-                return ResourceManager.GetString("ExpensiveEndActionMessage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Analyzer has an expensive compilation end action..
-        /// </summary>
-        internal static string ExpensiveEndActionTitle {
-            get {
-                return ResourceManager.GetString("ExpensiveEndActionTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Implement IEquatable&lt;T&gt; when overriding Object.Equals.
         /// </summary>
         internal static string ImplementIEquatableDescription {
@@ -284,6 +264,15 @@ namespace Roslyn.Diagnostics.Analyzers {
         internal static string ImplementIEquatableMessage {
             get {
                 return ResourceManager.GetString("ImplementIEquatableMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ReportDiagnostic should only be invoked with supported DiagnosticDescriptors that are returned from DiagnosticAnalyzer.SupportedDiagnostics property. Otherwise, the reported diagnostic will be filtered out by the analysis engine..
+        /// </summary>
+        internal static string InvalidReportDiagnosticDescription {
+            get {
+                return ResourceManager.GetString("InvalidReportDiagnosticDescription", resourceCulture);
             }
         }
         
@@ -315,11 +304,29 @@ namespace Roslyn.Diagnostics.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Non-abstract sub-types of DiagnosticAnalyzer should be marked with DiagnosticAnalyzerAttribute(s). The argument to this attribute(s), if any, determine the supported languages for the analyzer. Analyzer types without this attribute will be ignored by the analysis engine..
+        /// </summary>
+        internal static string MissingDiagnosticAnalyzerAttributeDescription {
+            get {
+                return ResourceManager.GetString("MissingDiagnosticAnalyzerAttributeDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Missing diagnostic analyzer attribute..
         /// </summary>
         internal static string MissingDiagnosticAnalyzerAttributeTitle {
             get {
                 return ResourceManager.GetString("MissingDiagnosticAnalyzerAttributeTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to You must specify at least one syntax/symbol kinds of interest while registering a syntax/symbol analyzer action. Otherwise, the registered action will be dead code and will never be invoked during analysis..
+        /// </summary>
+        internal static string MissingKindArgumentToRegisterActionDescription {
+            get {
+                return ResourceManager.GetString("MissingKindArgumentToRegisterActionDescription", resourceCulture);
             }
         }
         

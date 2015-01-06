@@ -15,6 +15,7 @@ namespace Roslyn.Diagnostics.Analyzers.MetaAnalyzers
     {
         private static LocalizableString localizableTitleMissingKindArgument = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.MissingKindArgumentToRegisterActionTitle), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
         private static LocalizableString localizableMessageMissingKindArgument = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.MissingKindArgumentToRegisterActionMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString localizableDescriptionMissingKindArgument = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.MissingKindArgumentToRegisterActionDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
 
         public static DiagnosticDescriptor MissingKindArgumentRule = new DiagnosticDescriptor(
             RoslynDiagnosticIds.MissingKindArgumentToRegisterActionRuleId,
@@ -22,7 +23,8 @@ namespace Roslyn.Diagnostics.Analyzers.MetaAnalyzers
             localizableMessageMissingKindArgument,
             "AnalyzerCorrectness",
             DiagnosticSeverity.Warning,
-            isEnabledByDefault: false,
+            isEnabledByDefault: true,
+            description: localizableDescriptionMissingKindArgument,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         private static LocalizableString localizableTitleUnsupportedSymbolKindArgument = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.UnsupportedSymbolKindArgumentToRegisterActionTitle), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
@@ -34,7 +36,7 @@ namespace Roslyn.Diagnostics.Analyzers.MetaAnalyzers
             localizableMessageUnsupportedSymbolKindArgument,
             "AnalyzerCorrectness",
             DiagnosticSeverity.Warning,
-            isEnabledByDefault: false,
+            isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics

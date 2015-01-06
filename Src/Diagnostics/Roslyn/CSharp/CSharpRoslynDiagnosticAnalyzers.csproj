@@ -72,7 +72,6 @@
     <Compile Include="ApiDesign\CancellationTokenMustBeLastCodeFixProvider.cs" />
     <Compile Include="Documentation\CSharpDoNotUseVerbatimCrefsAnalyzer.cs" />
     <Compile Include="MetaAnalyzers\CSharpReportDiagnosticAnalyzer.cs" />
-    <Compile Include="MetaAnalyzers\CSharpCompilationEndActionAnalyzer.cs" />
     <Compile Include="MetaAnalyzers\CSharpRegisterActionAnalyzer.cs" />
     <Compile Include="MetaAnalyzers\Fixers\CSharpApplyDiagnosticAnalyzerAttributeFix.cs" />
     <Compile Include="Reliability\CSharpConsumePreserveSigAnalyzer.cs" />

@@ -77,34 +77,34 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                 (context) =>
                 {
                     var iserializableTypeSymbol = context.Compilation.GetTypeByMetadataName("System.Runtime.Serialization.ISerializable");
-            if (iserializableTypeSymbol == null)
-            {
+                    if (iserializableTypeSymbol == null)
+                    {
                         return;
-            }
+                    }
 
                     var serializationInfoTypeSymbol = context.Compilation.GetTypeByMetadataName("System.Runtime.Serialization.SerializationInfo");
-            if (serializationInfoTypeSymbol == null)
-            {
+                    if (serializationInfoTypeSymbol == null)
+                    {
                         return;
-            }
+                    }
 
                     var streamingContextTypeSymbol = context.Compilation.GetTypeByMetadataName("System.Runtime.Serialization.StreamingContext");
-            if (streamingContextTypeSymbol == null)
-            {
+                    if (streamingContextTypeSymbol == null)
+                    {
                         return;
-            }
+                    }
 
                     var serializableAttributeTypeSymbol = context.Compilation.GetTypeByMetadataName("System.SerializableAttribute");
-            if (serializableAttributeTypeSymbol == null)
-            {
+                    if (serializableAttributeTypeSymbol == null)
+                    {
                         return;
-            }
+                    }
 
                     context.RegisterSymbolAction(new Analyzer(iserializableTypeSymbol, serializationInfoTypeSymbol, streamingContextTypeSymbol, serializableAttributeTypeSymbol).AnalyzeSymbol, SymbolKind.NamedType);
                 });
         }
 
-        private sealed class Analyzer : AbstractNamedTypeAnalyzer
+        private sealed class Analyzer
         {
             private INamedTypeSymbol iserializableTypeSymbol;
             private INamedTypeSymbol serializationInfoTypeSymbol;
@@ -123,21 +123,10 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                 this.serializableAttributeTypeSymbol = serializableAttributeTypeSymbol;
             }
 
-            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            {
-                get
-                {
-                    return supportedDiagnostics;
-                }
-            }
-
             public void AnalyzeSymbol(SymbolAnalysisContext context)
             {
-                AnalyzeSymbol((INamedTypeSymbol)context.Symbol, context.Compilation, context.ReportDiagnostic, context.Options, context.CancellationToken);
-            }
+                var namedTypeSymbol = (INamedTypeSymbol)context.Symbol;
 
-            protected override void AnalyzeSymbol(INamedTypeSymbol namedTypeSymbol, Compilation compilation, Action<Diagnostic> addDiagnostic, AnalyzerOptions options, CancellationToken cancellationToken)
-            {
                 // If the type is public and implements ISerializable
                 if (namedTypeSymbol.DeclaredAccessibility == Accessibility.Public && namedTypeSymbol.AllInterfaces.Contains(this.iserializableTypeSymbol))
                 {
@@ -147,7 +136,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                         if (namedTypeSymbol.BaseType.SpecialType == SpecialType.System_Object ||
                             IsSerializable(namedTypeSymbol.BaseType))
                         {
-                            addDiagnostic(namedTypeSymbol.CreateDiagnostic(RuleCA2237, namedTypeSymbol.Name));
+                            context.ReportDiagnostic(namedTypeSymbol.CreateDiagnostic(RuleCA2237, namedTypeSymbol.Name));
                         }
                     }
                     else
@@ -161,7 +150,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                         // There is no serialization ctor - issue a diagnostic.
                         if (serializationCtor == null)
                         {
-                            addDiagnostic(namedTypeSymbol.CreateDiagnostic(RuleCA2229, string.Format(FxCopRulesResources.SerializableTypeDoesntHaveCtor, namedTypeSymbol.Name)));
+                            context.ReportDiagnostic(namedTypeSymbol.CreateDiagnostic(RuleCA2229, string.Format(FxCopRulesResources.SerializableTypeDoesntHaveCtor, namedTypeSymbol.Name)));
                         }
                         else
                         {
@@ -169,12 +158,12 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                             // The serializationctor should be protected if the class is unsealed and private if the class is sealed.
                             if (namedTypeSymbol.IsSealed && serializationCtor.DeclaredAccessibility != Accessibility.Private)
                             {
-                                addDiagnostic(serializationCtor.CreateDiagnostic(RuleCA2229, string.Format(FxCopRulesResources.SerializationCtorAccessibilityForSealedType, namedTypeSymbol.Name)));
+                                context.ReportDiagnostic(serializationCtor.CreateDiagnostic(RuleCA2229, string.Format(FxCopRulesResources.SerializationCtorAccessibilityForSealedType, namedTypeSymbol.Name)));
                             }
 
                             if (!namedTypeSymbol.IsSealed && serializationCtor.DeclaredAccessibility != Accessibility.Protected)
                             {
-                                addDiagnostic(serializationCtor.CreateDiagnostic(RuleCA2229, string.Format(FxCopRulesResources.SerializationCtorAccessibilityForUnSealedType, namedTypeSymbol.Name)));
+                                context.ReportDiagnostic(serializationCtor.CreateDiagnostic(RuleCA2229, string.Format(FxCopRulesResources.SerializationCtorAccessibilityForUnSealedType, namedTypeSymbol.Name)));
                             }
                         }
                     }
@@ -186,7 +175,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                     var nonSerialableFields = namedTypeSymbol.GetMembers().OfType<IFieldSymbol>().Where(m => !IsSerializable(m.Type));
                     foreach (var field in nonSerialableFields)
                     {
-                        addDiagnostic(field.CreateDiagnostic(RuleCA2235, field.Name, namedTypeSymbol.Name, field.Type));
+                        context.ReportDiagnostic(field.CreateDiagnostic(RuleCA2235, field.Name, namedTypeSymbol.Name, field.Type));
                     }
                 }
             }

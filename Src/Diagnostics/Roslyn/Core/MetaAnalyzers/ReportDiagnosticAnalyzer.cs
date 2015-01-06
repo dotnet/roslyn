@@ -16,6 +16,7 @@ namespace Roslyn.Diagnostics.Analyzers.MetaAnalyzers
     {
         private static LocalizableString localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.InvalidReportDiagnosticTitle), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
         private static LocalizableString localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.InvalidReportDiagnosticMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
+        private static LocalizableString localizableDescription = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.InvalidReportDiagnosticDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));
 
         public static DiagnosticDescriptor InvalidReportDiagnosticRule = new DiagnosticDescriptor(
             RoslynDiagnosticIds.InvalidReportDiagnosticRuleId,
@@ -23,7 +24,8 @@ namespace Roslyn.Diagnostics.Analyzers.MetaAnalyzers
             localizableMessage,
             "AnalyzerCorrectness",
             DiagnosticSeverity.Warning,
-            isEnabledByDefault: false,
+            isEnabledByDefault: true,
+            description: localizableDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -114,7 +116,7 @@ namespace Roslyn.Diagnostics.Analyzers.MetaAnalyzers
             protected override void AnalyzeDiagnosticAnalyzer(SymbolAnalysisContext symbolContext)
             {
                 var descriptorFields = GetSupportedDescriptors(symbolContext.Compilation, (INamedTypeSymbol)symbolContext.Symbol, symbolContext.CancellationToken);
-                if (!descriptorFields.IsDefault)
+                if (!descriptorFields.IsDefaultOrEmpty)
                 {
                     base.AnalyzeDiagnosticAnalyzer(symbolContext);
                 }
