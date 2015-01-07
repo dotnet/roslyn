@@ -423,4 +423,25 @@
   <data name="NotWritableException" xml:space="preserve">
     <value>The type '{0}' cannot be written, it does not implement IObjectWritable</value>
   </data>
+  <data name="LabelForNodeIsInvalid" xml:space="preserve">
+    <value>Label for node '{0}' is invalid, it must be within [0, {1}).</value>
+  </data>
+  <data name="MatchingNodesMustHaveTheSameLabel" xml:space="preserve">
+    <value>Matching nodes '{0}' and '{1}' must have the same label.</value>
+  </data>
+  <data name="NodeMustBeContainedInTheNewTree" xml:space="preserve">
+    <value>Node '{0}' must be contained in the new tree.</value>
+  </data>
+  <data name="NodeMustBeContainedInTheOldTree" xml:space="preserve">
+    <value>Node '{0}' must be contained in the old tree.</value>
+  </data>
+  <data name="TheMemberIsNotDeclaredWithinTheDeclarationOfTheSymbol" xml:space="preserve">
+    <value>The member '{0}' is not declared within the declaration of the symbol.</value>
+  </data>
+  <data name="ThePositionIsNotWithinTheSymbolsDeclaration" xml:space="preserve">
+    <value>The position is not within the symbol's declaration</value>
+  </data>
+  <data name="TheSymbolCannotBeLocatedWithinTheCurrentSolution" xml:space="preserve">
+    <value>The symbol '{0}' cannot be located within the current solution.</value>
+  </data>
 </root>

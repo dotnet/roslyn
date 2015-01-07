@@ -50,17 +50,17 @@ namespace Microsoft.CodeAnalysis.Differencing
                 {
                     if (comparer.GetLabel(knownMatch.Key) != comparer.GetLabel(knownMatch.Value))
                     {
-                        throw new ArgumentException(string.Format("Matching nodes '{0}' and '{1}' must have the same label.".NeedsLocalization(), knownMatch.Key, knownMatch.Value), "knownMatches");
+                        throw new ArgumentException(string.Format(WorkspacesResources.MatchingNodesMustHaveTheSameLabel, knownMatch.Key, knownMatch.Value), "knownMatches");
                     }
 
                     if (!comparer.TreesEqual(knownMatch.Key, root1))
                     {
-                        throw new ArgumentException(string.Format("Node '{0}' must be contained in the old tree.".NeedsLocalization(), knownMatch.Key), "knownMatches");
+                        throw new ArgumentException(string.Format(WorkspacesResources.NodeMustBeContainedInTheOldTree, knownMatch.Key), "knownMatches");
                     }
 
                     if (!comparer.TreesEqual(knownMatch.Value, root2))
                     {
-                        throw new ArgumentException(string.Format("Node '{0}' must be contained in the new tree.".NeedsLocalization(), knownMatch.Value), "knownMatches");
+                        throw new ArgumentException(string.Format(WorkspacesResources.NodeMustBeContainedInTheNewTree, knownMatch.Value), "knownMatches");
                     }
 
                     if (!oneToTwo.ContainsKey(knownMatch.Key))
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Differencing
                 int label = comparer.GetLabel(node);
                 if (label < 0 || label >= labelCount)
                 {
-                    throw new InvalidOperationException(string.Format("Label for node '{0}' is invalid, it must be within [0, {1}).".NeedsLocalization(), node, labelCount));
+                    throw new InvalidOperationException(string.Format(WorkspacesResources.LabelForNodeIsInvalid, node, labelCount));
                 }
 
                 var list = nodes[label];

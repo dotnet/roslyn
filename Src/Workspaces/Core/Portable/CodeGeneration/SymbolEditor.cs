@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             if (currentSymbol == null)
             {
-                throw new ArgumentException(string.Format("The symbol '{0}' cannot be located within the current solution.".NeedsLocalization(), argSymbol.Name));
+                throw new ArgumentException(string.Format(WorkspacesResources.TheSymbolCannotBeLocatedWithinTheCurrentSolution, argSymbol.Name));
             }
         }
 
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             if (decl == null)
             {
-                throw new ArgumentNullException("The position is not within the symbol's declaration".NeedsLocalization(), nameof(position));
+                throw new ArgumentNullException(WorkspacesResources.ThePositionIsNotWithinTheSymbolsDeclaration, nameof(position));
             }
 
             return await this.EditDeclarationAsync(currentSymbol, decl, editAction, cancellationToken).ConfigureAwait(false);
@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             if (declaration == null)
             {
-                throw new ArgumentException(string.Format("The member '{0}' is not declared within the declaration of the symbol.".NeedsLocalization(), member.Name));
+                throw new ArgumentException(string.Format(WorkspacesResources.TheMemberIsNotDeclaredWithinTheDeclarationOfTheSymbol, member.Name));
             }
 
             return await this.EditDeclarationAsync(currentSymbol, declaration, editAction, cancellationToken).ConfigureAwait(false);

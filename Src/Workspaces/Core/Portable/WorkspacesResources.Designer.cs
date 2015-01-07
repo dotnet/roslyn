@@ -611,11 +611,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Label for node &apos;{0}&apos; is invalid, it must be within [0, {1})..
+        /// </summary>
+        internal static string LabelForNodeIsInvalid {
+            get {
+                return ResourceManager.GetString("LabelForNodeIsInvalid", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Location must be null or from source..
         /// </summary>
         internal static string LocationMustBeNullOrFromSource {
             get {
                 return ResourceManager.GetString("LocationMustBeNullOrFromSource", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Matching nodes &apos;{0}&apos; and &apos;{1}&apos; must have the same label..
+        /// </summary>
+        internal static string MatchingNodesMustHaveTheSameLabel {
+            get {
+                return ResourceManager.GetString("MatchingNodesMustHaveTheSameLabel", resourceCulture);
             }
         }
         
@@ -688,6 +706,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string NodeIsOfTheWrongType {
             get {
                 return ResourceManager.GetString("NodeIsOfTheWrongType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Node &apos;{0}&apos; must be contained in the new tree..
+        /// </summary>
+        internal static string NodeMustBeContainedInTheNewTree {
+            get {
+                return ResourceManager.GetString("NodeMustBeContainedInTheNewTree", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Node &apos;{0}&apos; must be contained in the old tree..
+        /// </summary>
+        internal static string NodeMustBeContainedInTheOldTree {
+            get {
+                return ResourceManager.GetString("NodeMustBeContainedInTheOldTree", resourceCulture);
             }
         }
         
@@ -913,6 +949,33 @@ namespace Microsoft.CodeAnalysis {
         internal static string TemporaryStorageCannotBeWrittenMultipleTimes {
             get {
                 return ResourceManager.GetString("TemporaryStorageCannotBeWrittenMultipleTimes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The member &apos;{0}&apos; is not declared within the declaration of the symbol..
+        /// </summary>
+        internal static string TheMemberIsNotDeclaredWithinTheDeclarationOfTheSymbol {
+            get {
+                return ResourceManager.GetString("TheMemberIsNotDeclaredWithinTheDeclarationOfTheSymbol", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The position is not within the symbol&apos;s declaration.
+        /// </summary>
+        internal static string ThePositionIsNotWithinTheSymbolsDeclaration {
+            get {
+                return ResourceManager.GetString("ThePositionIsNotWithinTheSymbolsDeclaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The symbol &apos;{0}&apos; cannot be located within the current solution..
+        /// </summary>
+        internal static string TheSymbolCannotBeLocatedWithinTheCurrentSolution {
+            get {
+                return ResourceManager.GetString("TheSymbolCannotBeLocatedWithinTheCurrentSolution", resourceCulture);
             }
         }
         
