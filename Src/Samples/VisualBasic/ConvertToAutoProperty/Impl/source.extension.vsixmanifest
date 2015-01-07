@@ -32,7 +32,7 @@ governing permissions and limitations under the License.
     <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="14.0" />
   </Installation>
   <Dependencies>
-    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="4.5" />
+    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
   </Dependencies>
   <Assets>
     <Asset Type="Microsoft.VisualStudio.MefComponent" Path="ConvertToAutoPropertyVB.dll" />
