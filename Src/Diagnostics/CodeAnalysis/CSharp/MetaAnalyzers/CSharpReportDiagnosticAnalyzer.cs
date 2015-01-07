@@ -3,13 +3,14 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.CSharp
+namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class CSharpReportDiagnosticAnalyzer : ReportDiagnosticAnalyzer<ClassDeclarationSyntax, InvocationExpressionSyntax, IdentifierNameSyntax>
+    public class CSharpReportDiagnosticAnalyzer : ReportDiagnosticAnalyzer<ClassDeclarationSyntax, InvocationExpressionSyntax, IdentifierNameSyntax, VariableDeclaratorSyntax>
     {
         protected override ReportDiagnosticCompilationAnalyzer GetAnalyzer(ImmutableHashSet<INamedTypeSymbol> contextTypes, INamedTypeSymbol diagnosticType, INamedTypeSymbol diagnosticDescriptorType, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
         {

@@ -4,7 +4,7 @@ Imports Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.VisualBasic
+Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicRegisterActionAnalyzer
         Inherits RegisterActionAnalyzer(Of ClassBlockSyntax, InvocationExpressionSyntax, SyntaxKind)
@@ -57,7 +57,8 @@ Namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.VisualBasic
             End Function
 
             Protected Overrides Function IsSyntaxKind(type As ITypeSymbol) As Boolean
-                Throw New NotImplementedException()
+                Return (Me.basicSyntaxKind IsNot Nothing AndAlso type.Equals(Me.basicSyntaxKind)) OrElse
+                    (Me.csharpSyntaxKind IsNot Nothing AndAlso type.Equals(Me.csharpSyntaxKind))
             End Function
         End Class
     End Class

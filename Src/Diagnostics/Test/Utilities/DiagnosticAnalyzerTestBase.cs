@@ -8,6 +8,7 @@ using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.VisualBasic;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -19,8 +20,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private static readonly MetadataReference CorlibReference = MetadataReference.CreateFromAssembly(typeof(object).Assembly);
         private static readonly MetadataReference SystemCoreReference = MetadataReference.CreateFromAssembly(typeof(Enumerable).Assembly);
         private static readonly MetadataReference CSharpSymbolsReference = MetadataReference.CreateFromAssembly(typeof(CSharpCompilation).Assembly);
+        private static readonly MetadataReference VisualBasicSymbolsReference = MetadataReference.CreateFromAssembly(typeof(VisualBasicCompilation).Assembly);
         private static readonly MetadataReference CodeAnalysisReference = MetadataReference.CreateFromAssembly(typeof(Compilation).Assembly);
         private static readonly MetadataReference ImmutableCollectionsReference = MetadataReference.CreateFromAssembly(typeof(ImmutableArray<int>).Assembly);
+        private static readonly CompilationOptions CSharpDefaultOptions = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
+        private static readonly CompilationOptions VisualBasicDefaultOptions = new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary);
 
         internal static string DefaultFilePathPrefix = "Test";
         internal static string CSharpDefaultFileExt = "cs";
@@ -147,9 +151,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Verify(source, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), expected);
         }
 
+        protected void VerifyCSharp(string source, bool addLanguageSpecificCodeAnalysisReference, params DiagnosticResult[] expected)
+        {
+            Verify(source, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), addLanguageSpecificCodeAnalysisReference, expected);
+        }
+
         protected void VerifyBasic(string source, params DiagnosticResult[] expected)
         {
             Verify(source, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), expected);
+        }
+
+        protected void VerifyBasic(string source, bool addLanguageSpecificCodeAnalysisReference, params DiagnosticResult[] expected)
+        {
+            Verify(source, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), addLanguageSpecificCodeAnalysisReference, expected);
         }
 
         protected void Verify(string source, string language, DiagnosticAnalyzer analyzer, params DiagnosticResult[] expected)
@@ -157,9 +171,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Verify(new[] { source }, language, analyzer, expected);
         }
 
+        protected void Verify(string source, string language, DiagnosticAnalyzer analyzer, bool addLanguageSpecificCodeAnalysisReference, params DiagnosticResult[] expected)
+        {
+            Verify(new[] { source }, language, analyzer, addLanguageSpecificCodeAnalysisReference, expected);
+        }
+
         protected void VerifyBasic(string[] sources, params DiagnosticResult[] expected)
         {
             Verify(sources, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), expected);
+        }
+
+        protected void VerifyBasic(string[] sources, bool addLanguageSpecificCodeAnalysisReference, params DiagnosticResult[] expected)
+        {
+            Verify(sources, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), addLanguageSpecificCodeAnalysisReference, expected);
         }
 
         protected void VerifyCSharp(string[] sources, params DiagnosticResult[] expected)
@@ -167,21 +191,31 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Verify(sources, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), expected);
         }
 
+        protected void VerifyCSharp(string[] sources, bool addLanguageSpecificCodeAnalysisReference, params DiagnosticResult[] expected)
+        {
+            Verify(sources, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), addLanguageSpecificCodeAnalysisReference, expected);
+        }
+
         protected void Verify(string[] sources, string language, DiagnosticAnalyzer analyzer, params DiagnosticResult[] expected)
         {
             GetSortedDiagnostics(sources, language, analyzer).Verify(analyzer, expected);
         }
 
-        protected static Diagnostic[] GetSortedDiagnostics(string[] sources, string language, DiagnosticAnalyzer analyzer)
+        protected void Verify(string[] sources, string language, DiagnosticAnalyzer analyzer, bool addLanguageSpecificCodeAnalysisReference, params DiagnosticResult[] expected)
         {
-            var documentsAndUseSpan = GetDocumentsAndSpans(sources, language);
+            GetSortedDiagnostics(sources, language, analyzer, addLanguageSpecificCodeAnalysisReference).Verify(analyzer, expected);
+        }
+
+        protected static Diagnostic[] GetSortedDiagnostics(string[] sources, string language, DiagnosticAnalyzer analyzer, bool addLanguageSpecificCodeAnalysisReference = true)
+        {
+            var documentsAndUseSpan = GetDocumentsAndSpans(sources, language, addLanguageSpecificCodeAnalysisReference);
             var documents = documentsAndUseSpan.Item1;
             var useSpans = documentsAndUseSpan.Item2;
             var spans = documentsAndUseSpan.Item3;
             return GetSortedDiagnostics(analyzer, documents, useSpans ? spans : null);
         }
 
-        protected static Tuple<Document[], bool, TextSpan?[]> GetDocumentsAndSpans(string[] sources, string language)
+        protected static Tuple<Document[], bool, TextSpan?[]> GetDocumentsAndSpans(string[] sources, string language, bool addLanguageSpecificCodeAnalysisReference = true)
         {
             Assert.True(language == LanguageNames.CSharp || language == LanguageNames.VisualBasic, "Unsupported language");
 
@@ -206,23 +240,24 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 }
             }
 
-            var project = CreateProject(sources, language);
+            var project = CreateProject(sources, language, addLanguageSpecificCodeAnalysisReference);
             var documents = project.Documents.ToArray();
             Assert.Equal(sources.Length, documents.Length);
 
             return Tuple.Create(documents, useSpans, spans);
         }
 
-        protected static Document CreateDocument(string source, string language = LanguageNames.CSharp)
+        protected static Document CreateDocument(string source, string language = LanguageNames.CSharp, bool addLanguageSpecificCodeAnalysisReference = true)
         {
-            return CreateProject(new[] { source }, language).Documents.First();
+            return CreateProject(new[] { source }, language, addLanguageSpecificCodeAnalysisReference).Documents.First();
         }
 
-        protected static Project CreateProject(string[] sources, string language = LanguageNames.CSharp)
+        protected static Project CreateProject(string[] sources, string language = LanguageNames.CSharp, bool addLanguageSpecificCodeAnalysisReference = true)
         {
             string fileNamePrefix = DefaultFilePathPrefix;
             string fileExt = language == LanguageNames.CSharp ? CSharpDefaultFileExt : VisualBasicDefaultExt;
-
+            var options = language == LanguageNames.CSharp ? CSharpDefaultOptions : VisualBasicDefaultOptions;
+            
             var projectId = ProjectId.CreateNewId(debugName: TestProjectName);
 
             var solution = new CustomWorkspace()
@@ -230,10 +265,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddProject(projectId, TestProjectName, TestProjectName, language)
                 .AddMetadataReference(projectId, CorlibReference)
                 .AddMetadataReference(projectId, SystemCoreReference)
-                .AddMetadataReference(projectId, CSharpSymbolsReference)
                 .AddMetadataReference(projectId, CodeAnalysisReference)
                 .AddMetadataReference(projectId, TestBase.SystemRef)
-                .AddMetadataReference(projectId, ImmutableCollectionsReference);
+                .AddMetadataReference(projectId, TestBase.FacadeSystemRuntimeRef)
+                .AddMetadataReference(projectId, ImmutableCollectionsReference)
+                .WithProjectCompilationOptions(projectId, options);
+
+            if (addLanguageSpecificCodeAnalysisReference)
+            {
+                var symbolsReference = language == LanguageNames.CSharp ? CSharpSymbolsReference : VisualBasicSymbolsReference;
+                var project = solution.GetProject(projectId);
+                project = project.AddMetadataReference(symbolsReference);
+                solution = project.Solution;
+            }
 
             int count = 0;
             foreach (var source in sources)

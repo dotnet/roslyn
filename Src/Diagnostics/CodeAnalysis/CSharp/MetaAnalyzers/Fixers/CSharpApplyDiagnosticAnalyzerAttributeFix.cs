@@ -3,10 +3,9 @@
 using System.Composition;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Simplification;
 
-namespace Microsoft.CodeAnalysis.Analyzers.CSharp
+namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CodeFixes
 {
     [ExportCodeFixProvider(nameof(CSharpApplyDiagnosticAnalyzerAttributeFix), LanguageNames.CSharp), Shared]
     public sealed class CSharpApplyDiagnosticAnalyzerAttributeFix : ApplyDiagnosticAnalyzerAttributeFix

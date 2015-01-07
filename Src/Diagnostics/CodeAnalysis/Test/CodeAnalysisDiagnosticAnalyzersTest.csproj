@@ -100,8 +100,15 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
-    <Folder Include="MetaAnalyzers\" />
+    <Compile Include="MetaAnalyzers\InvalidReportDiagnosticRuleTests.cs" />
+    <Compile Include="MetaAnalyzers\InvalidSyntaxKindTypeArgumentRuleTests.cs" />
+    <Compile Include="MetaAnalyzers\UnsupportedSymbolKindArgumentRuleTests.cs" />
+    <Compile Include="MetaAnalyzers\MissingKindArgumentToRegisterActionRuleTests.cs" />
+    <Compile Include="MetaAnalyzers\UseLocalizableStringsInDescriptorTests.cs" />
+    <Compile Include="MetaAnalyzers\AddLanguageSupportToAnalyzerRuleTests.cs" />
+    <Compile Include="MetaAnalyzers\MissingDiagnosticAnalyzerAttributeRuleTests.cs" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />

@@ -2,7 +2,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
@@ -11,8 +10,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
     public sealed class DiagnosticAnalyzerAttributeAnalyzer : DiagnosticAnalyzerCorrectnessAnalyzer
     {
         private static LocalizableString localizableTitleMissingAttribute = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.MissingDiagnosticAnalyzerAttributeTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
-        private static LocalizableString localizableMessageMissingAttribute = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.MissingAttributeMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources), DiagnosticAnalyzerTypeFullName);
-        private static LocalizableString localizableDescriptionMissingAttribute = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.MissingDiagnosticAnalyzerAttributeDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources), DiagnosticAnalyzerTypeFullName);
+        private static LocalizableString localizableMessageMissingAttribute = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.MissingAttributeMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources), DiagnosticAnalyzerAttributeFullName);
+        private static LocalizableString localizableDescriptionMissingAttribute = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.MissingDiagnosticAnalyzerAttributeDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
         public static DiagnosticDescriptor MissingDiagnosticAnalyzerAttributeRule = new DiagnosticDescriptor(
             DiagnosticIds.MissingDiagnosticAnalyzerAttributeRuleId,

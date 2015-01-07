@@ -5,10 +5,10 @@ Imports Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.VisualBasic
+Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicReportDiagnosticAnalyzer
-        Inherits ReportDiagnosticAnalyzer(Of ClassBlockSyntax, InvocationExpressionSyntax, IdentifierNameSyntax)
+        Inherits ReportDiagnosticAnalyzer(Of ClassBlockSyntax, InvocationExpressionSyntax, IdentifierNameSyntax, VariableDeclaratorSyntax)
 
         Protected Overrides Function GetAnalyzer(contextTypes As ImmutableHashSet(Of INamedTypeSymbol),
                                                  diagnosticType As INamedTypeSymbol,
@@ -35,6 +35,19 @@ Namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.VisualBasic
                 End If
 
                 Return Nothing
+            End Function
+
+            Protected Overrides Function GetPropertyGetterBlockSyntax(declaringSyntaxRefNode As SyntaxNode) As SyntaxNode
+                Select Case declaringSyntaxRefNode.Kind
+                    Case SyntaxKind.GetAccessorBlock
+                        Return declaringSyntaxRefNode
+
+                    Case SyntaxKind.GetAccessorStatement
+                        Return declaringSyntaxRefNode.Parent
+
+                    Case Else
+                        Return Nothing
+                End Select
             End Function
         End Class
     End Class

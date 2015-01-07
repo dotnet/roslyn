@@ -11,10 +11,11 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
-    public abstract class ReportDiagnosticAnalyzer<TClassDeclarationSyntax, TInvocationExpressionSyntax, TIdentifierNameSyntax> : DiagnosticAnalyzerCorrectnessAnalyzer
+    public abstract class ReportDiagnosticAnalyzer<TClassDeclarationSyntax, TInvocationExpressionSyntax, TIdentifierNameSyntax, TVariableDeclaratorSyntax> : DiagnosticAnalyzerCorrectnessAnalyzer
         where TClassDeclarationSyntax : SyntaxNode
         where TInvocationExpressionSyntax : SyntaxNode
         where TIdentifierNameSyntax : SyntaxNode
+        where TVariableDeclaratorSyntax : SyntaxNode
     {
         private static LocalizableString localizableTitle = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidReportDiagnosticTitle), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static LocalizableString localizableMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.InvalidReportDiagnosticMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
@@ -114,6 +115,10 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             }
 
             protected abstract IEnumerable<SyntaxNode> GetArgumentExpressions(TInvocationExpressionSyntax invocation);
+            protected virtual SyntaxNode GetPropertyGetterBlockSyntax(SyntaxNode declaringSyntaxRefNode)
+            {
+                return declaringSyntaxRefNode;
+            }
 
             protected override void AnalyzeDiagnosticAnalyzer(SymbolAnalysisContext symbolContext)
             {
@@ -144,8 +149,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     if (syntaxRef != null)
                     {
                         var syntax = syntaxRef.GetSyntax(cancellationToken);
-                        var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
-                        descriptorFields = GetReferencedDescriptorFields(syntax, semanticModel);
+                        syntax = GetPropertyGetterBlockSyntax(syntax);
+                        if (syntax != null)
+                        {
+                            var semanticModel = compilation.GetSemanticModel(syntax.SyntaxTree);
+                            descriptorFields = GetReferencedDescriptorFields(syntax, semanticModel);
+                        }
                     }
                 }
 
@@ -199,7 +208,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                                 var syntaxRef = local.DeclaringSyntaxReferences.FirstOrDefault();
                                 if (syntaxRef != null)
                                 {
-                                    diagnosticInitializerOpt = syntaxRef.GetSyntax(symbolContext.CancellationToken);
+                                    diagnosticInitializerOpt = syntaxRef.GetSyntax(symbolContext.CancellationToken).FirstAncestorOrSelf<TVariableDeclaratorSyntax>();
                                 }
                             }
                             else

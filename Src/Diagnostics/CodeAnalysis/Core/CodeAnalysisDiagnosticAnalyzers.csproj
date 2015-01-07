@@ -39,6 +39,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.Analyzers" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Analyzers" />
+    <InternalsVisibleToTest Include="Roslyn.CodeAnalysis.Analyzers.UnitTests" />
+  </ItemGroup>
+  <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

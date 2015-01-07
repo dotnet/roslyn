@@ -2,9 +2,9 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.CodeFixes
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Simplification
-Imports Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.CodeFixes
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.CodeFixes
     <ExportCodeFixProviderAttribute(NameOf(BasicApplyDiagnosticAnalyzerAttributeFix), LanguageNames.VisualBasic), [Shared]>

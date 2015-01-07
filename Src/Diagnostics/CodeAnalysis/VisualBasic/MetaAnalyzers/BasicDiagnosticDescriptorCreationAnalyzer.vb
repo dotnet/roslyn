@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.VisualBasic
+Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicDiagnosticDescriptorCreationAnalyzer
         Inherits DiagnosticDescriptorCreationAnalyzer(Of ClassBlockSyntax, ObjectCreationExpressionSyntax, SyntaxKind)
