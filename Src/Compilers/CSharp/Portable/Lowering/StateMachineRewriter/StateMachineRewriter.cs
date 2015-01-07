@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (parameter.IsThis)
                     {
                         var containingType = method.ContainingType;
-                        var proxyField = F.StateMachineField(containingType, GeneratedNames.ThisProxyName(), isPublic: true);
+                        var proxyField = F.StateMachineField(containingType, GeneratedNames.ThisProxyFieldName(), isPublic: true);
                         proxiesBuilder.Add(parameter, new CapturedToStateMachineFieldReplacement(proxyField, isReusable: false));
 
                         if (PreserveInitialParameterValues)
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (PreserveInitialParameterValues)
                         {
-                            var field = F.StateMachineField(typeMap.SubstituteType(parameter.Type), GeneratedNames.StateMachineParameterProxyName(parameter.Name), isPublic: true);
+                            var field = F.StateMachineField(typeMap.SubstituteType(parameter.Type), GeneratedNames.StateMachineParameterProxyFieldName(parameter.Name), isPublic: true);
                             initialParameters.Add(parameter, new CapturedToStateMachineFieldReplacement(field, isReusable: false));
                         }
                     }

@@ -1055,7 +1055,7 @@ namespace Roslyn.Test.MetadataUtilities
             }
 
             // TODO: the heap is aligned, don't display the trailing empty strings
-            writer.WriteLine(string.Format("#US (size = {0}):", size));
+            writer.WriteLine($"#US (size = {size}):");
             var handle = MetadataTokens.UserStringHandle(0);
             do
             {
@@ -1076,7 +1076,7 @@ namespace Roslyn.Test.MetadataUtilities
                 return;
             }
 
-            writer.WriteLine(string.Format("#String (size = {0}):", size));
+            writer.WriteLine($"#String (size = {size}):");
             var handle = MetadataTokens.StringHandle(0);
             do
             {
@@ -1099,7 +1099,7 @@ namespace Roslyn.Test.MetadataUtilities
 
             int[] sizePerKind = new int[(int)BlobKind.Count];
 
-            writer.WriteLine(string.Format("#Blob (size = {0}):", size));
+            writer.WriteLine($"#Blob (size = {size}):");
             var handle = MetadataTokens.BlobHandle(0);
             do
             {

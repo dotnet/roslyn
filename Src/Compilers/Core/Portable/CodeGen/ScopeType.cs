@@ -11,6 +11,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
         Filter,
         Finally,
         Fault,
-        IteratorVariable,
+
+        /// <summary>
+        /// Scope of user-defined variable hoisted to state machine.
+        /// </summary>
+        StateMachineVariable,
     }
 }

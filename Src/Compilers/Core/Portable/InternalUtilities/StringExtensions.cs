@@ -2,13 +2,28 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 
 namespace Roslyn.Utilities
 {
     internal static class StringExtensions
     {
+        private static ImmutableArray<string> lazyNumerals;
+
+        internal static string GetNumeral(int number)
+        {
+            var numerals = lazyNumerals;
+            if (numerals.IsDefault)
+            {
+                numerals = ImmutableArray.Create("0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
+                ImmutableInterlocked.InterlockedInitialize(ref lazyNumerals, numerals);
+            }
+
+            Debug.Assert(number >= 0);
+            return (number < numerals.Length) ? numerals[number] : number.ToString();
+        }
+
         public static string Join(this IEnumerable<string> source, string separator)
         {
             if (source == null)

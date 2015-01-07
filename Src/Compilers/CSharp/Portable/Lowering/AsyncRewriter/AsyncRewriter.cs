@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // the fields are initialized from async method, so they need to be public:
 
-            this.stateField = F.StateMachineField(F.SpecialType(SpecialType.System_Int32), GeneratedNames.MakeStateMachineStateName(), isPublic: true);
+            this.stateField = F.StateMachineField(F.SpecialType(SpecialType.System_Int32), GeneratedNames.MakeStateMachineStateFieldName(), isPublic: true);
             this.builderField = F.StateMachineField(asyncMethodBuilderMemberCollection.BuilderType, GeneratedNames.AsyncBuilderFieldName(), isPublic: true);
         }
 

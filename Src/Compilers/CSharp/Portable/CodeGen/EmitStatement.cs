@@ -69,8 +69,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitSwitchStatement((BoundSwitchStatement)statement);
                     break;
 
-                case BoundKind.IteratorScope:
-                    EmitIteratorScope((BoundIteratorScope)statement);
+                case BoundKind.StateMachineScope:
+                    EmitStateMachineScope((BoundStateMachineScope)statement);
                     break;
 
                 case BoundKind.NoOpStatement:
@@ -598,16 +598,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
-        private void EmitIteratorScope(BoundIteratorScope scope)
+        private void EmitStateMachineScope(BoundStateMachineScope scope)
         {
-            builder.OpenIteratorScope();
+            builder.OpenStateMachineScope();
             foreach (var field in scope.Fields)
             {
                 builder.DefineUserDefinedStateMachineHoistedLocal(field.SlotIndex);
             }
 
             EmitStatement(scope.Statement);
-            builder.CloseIteratorScope();
+            builder.CloseStateMachineScope();
         }
 
         // There are two ways a value can be returned from a function:

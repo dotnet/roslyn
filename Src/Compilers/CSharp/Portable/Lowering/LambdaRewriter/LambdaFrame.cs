@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isStatic)
             {
                 this.staticConstructor = new SynthesizedStaticConstructor(this);
-                var cacheVariableName = GeneratedNames.MakeCachedFrameInstanceName();
+                var cacheVariableName = GeneratedNames.MakeCachedFrameInstanceFieldName();
                 singletonCache = new SynthesizedLambdaCacheFieldSymbol(this, this, cacheVariableName, topLevelMethod, isReadOnly: true, isStatic: true);
                 this.ScopeSyntaxOpt = null;
             }

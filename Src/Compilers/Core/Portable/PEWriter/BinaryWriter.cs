@@ -252,7 +252,13 @@ namespace Microsoft.Cci
             }
         }
 
-        public void WriteReference(uint reference, int size)
+        /// <summary>
+        /// Writes a reference to a heap (heap index) or a table (row id).
+        /// </summary>
+        /// <remarks>
+        /// References may be small (2B) or large (4B).
+        /// </remarks>
+        internal void WriteReference(uint reference, int size)
         {
             Debug.Assert(size == 2 || size == 4);
 

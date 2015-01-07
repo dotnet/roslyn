@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void GenerateControlFields()
         {
-            this.stateField = F.StateMachineField(F.SpecialType(SpecialType.System_Int32), GeneratedNames.MakeStateMachineStateName());
+            this.stateField = F.StateMachineField(F.SpecialType(SpecialType.System_Int32), GeneratedNames.MakeStateMachineStateFieldName());
 
             // Add a field: T current
             currentField = F.StateMachineField(elementType, GeneratedNames.MakeIteratorCurrentBackingFieldName());
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (object)F.WellKnownMember(WellKnownMember.System_Environment__CurrentManagedThreadId, isOptional: true) != null);
 
             initialThreadIdField = addInitialThreadId
-                ? F.StateMachineField(F.SpecialType(SpecialType.System_Int32), GeneratedNames.MakeIteratorCurrentThreadIdName())
+                ? F.StateMachineField(F.SpecialType(SpecialType.System_Int32), GeneratedNames.MakeIteratorCurrentThreadIdFieldName())
                 : null;
         }
 

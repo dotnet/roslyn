@@ -556,11 +556,11 @@
   </Node>
 
   <!--
-  BoundIteratorScope represents a scope within a translated iterator method.
+  BoundStateMachineScope represents a scope within a translated iterator/async method.
   It is used to emit debugging information that allows the EE to map 
   fields to locals.
   -->
-  <Node Name="BoundIteratorScope" Base="BoundStatement">
+  <Node Name="BoundStateMachineScope" Base="BoundStatement">
     <Field Name="Fields" Type="ImmutableArray&lt;StateMachineFieldSymbol&gt;"/>
     <Field Name="Statement" Type="BoundStatement" Null="disallow"/>
   </Node>

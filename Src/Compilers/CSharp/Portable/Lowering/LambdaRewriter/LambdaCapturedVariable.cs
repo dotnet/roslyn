@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (IsThis(variable))
             {
-                return GeneratedNames.ThisProxyName();
+                return GeneratedNames.ThisProxyFieldName();
             }
 
             var local = variable as LocalSymbol;

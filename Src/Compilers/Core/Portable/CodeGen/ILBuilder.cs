@@ -1133,7 +1133,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     break;
                 case ScopeType.Variable:
                 case ScopeType.TryCatchFinally:
-                case ScopeType.IteratorVariable:
+                case ScopeType.StateMachineVariable:
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(scopeType);
@@ -1166,9 +1166,9 @@ namespace Microsoft.CodeAnalysis.CodeGen
             scopeManager.CloseScope(this);
         }
 
-        internal void OpenIteratorScope()
+        internal void OpenStateMachineScope()
         {
-            OpenLocalScope(ScopeType.IteratorVariable);
+            OpenLocalScope(ScopeType.StateMachineVariable);
         }
 
         internal void DefineUserDefinedStateMachineHoistedLocal(int slotIndex)
@@ -1178,7 +1178,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             scopeManager.AddUserHoistedLocal(slotIndex);
         }
 
-        internal void CloseIteratorScope()
+        internal void CloseStateMachineScope()
         {
             scopeManager.ClosingScope(this);
             EndBlock(); // blocks should not cross scope boundaries.

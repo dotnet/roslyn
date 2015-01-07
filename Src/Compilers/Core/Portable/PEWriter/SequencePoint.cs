@@ -35,13 +35,7 @@ namespace Microsoft.Cci
             Document = document;
         }
 
-        public bool IsHidden
-        {
-            get
-            {
-                return StartLine == 0xfeefee;
-            }
-        }
+        public bool IsHidden => StartLine == 0xfeefee;
 
         public override int GetHashCode()
         {

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var intType = container.DeclaringCompilation.GetSpecialType(SpecialType.System_Int32);
             parameters = ImmutableArray.Create<ParameterSymbol>(
-                new SynthesizedParameterSymbol(this, intType, 0, RefKind.None, GeneratedNames.MakeStateMachineStateName()));
+                new SynthesizedParameterSymbol(this, intType, 0, RefKind.None, GeneratedNames.MakeStateMachineStateFieldName()));
         }
 
         internal override void AddSynthesizedAttributes(ModuleCompilationState compilationState, ref ArrayBuilder<SynthesizedAttributeData> attributes)

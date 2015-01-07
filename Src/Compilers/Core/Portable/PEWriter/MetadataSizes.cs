@@ -81,6 +81,9 @@ namespace Microsoft.Cci
             int resourceDataSize, 
             bool isMinimalDelta)
         {
+            Debug.Assert(rowCounts.Length == MetadataTokens.TableCount);
+            Debug.Assert(heapSizes.Length == MetadataTokens.HeapCount);
+
             const byte large = 4;
             const byte small = 2;
 

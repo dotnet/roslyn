@@ -94,20 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return variablesToHoist;
         }
 
-        private static int GetVariableSourcePosition(Symbol symbol)
-        {
-            if (symbol.Locations.IsEmpty)
-            {
-                // All user-defined locals and long-lived synthesized variables have to have a position.
-                Debug.Assert(symbol is SynthesizedParameterSymbol || !((LocalSymbol)symbol).SynthesizedKind.IsLongLived());
-
-                // Short-lived locals don't get hoisted to fields, so their order doesn't matter.
-                return -1;
-            }
-
-            return symbol.Locations[0].SourceSpan.Start;
-        }
-
         private static bool HoistInDebugBuild(Symbol symbol)
         {
             // in Debug build hoist all parameters that can be hoisted:
@@ -177,11 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<PendingBranch> Scan(ref bool badRegion)
         {
             variablesToHoist.Clear();
-
-            if (lazyDisallowedCaptures != null)
-            {
-                lazyDisallowedCaptures.Clear();
-            }
+            lazyDisallowedCaptures?.Clear();
 
             return base.Scan(ref badRegion);
         }

@@ -11,10 +11,6 @@ namespace Microsoft.CodeAnalysis.Differencing
     /// </summary>
     internal abstract class LongestCommonImmutableArraySubsequence<TElement> : LongestCommonSubsequence<ImmutableArray<TElement>>
     {
-        protected LongestCommonImmutableArraySubsequence()
-        {
-        }
-
         protected abstract bool Equals(TElement oldElement, TElement newElement);
 
         protected sealed override bool ItemsEqual(ImmutableArray<TElement> oldSequence, int oldIndex, ImmutableArray<TElement> newSequence, int newIndex)

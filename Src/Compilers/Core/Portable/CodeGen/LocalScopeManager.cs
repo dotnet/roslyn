@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 }
                 else
                 {
-                    Debug.Assert(scopeType == ScopeType.Variable || scopeType == ScopeType.IteratorVariable);
+                    Debug.Assert(scopeType == ScopeType.Variable || scopeType == ScopeType.StateMachineVariable);
                     return new LocalScopeInfo();
                 }
             }
