@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             PEModuleSymbol moduleSymbol,
             PEMethodSymbol containingSymbol,
             int ordinal,
-            MetadataDecoder.ParamInfo parameter,
+            ParamInfo<TypeSymbol> parameter,
             out bool isBad)
             : this(moduleSymbol, containingSymbol, ordinal, parameter.IsByRef, parameter.HasByRefBeforeCustomModifiers, parameter.Type, parameter.Handle, parameter.CustomModifiers, out isBad)
         {
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             PEPropertySymbol containingSymbol,
             int ordinal,
             ParameterHandle handle,
-            MetadataDecoder.ParamInfo parameter,
+            ParamInfo<TypeSymbol> parameter,
             out bool isBad)
             : this(moduleSymbol, containingSymbol, ordinal, parameter.IsByRef, parameter.HasByRefBeforeCustomModifiers, parameter.Type, handle, parameter.CustomModifiers, out isBad)
         {
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             bool hasByRefBeforeCustomModifiers,
             TypeSymbol type,
             ParameterHandle handle,
-            ImmutableArray<MetadataDecoder.ModifierInfo> customModifiers,
+            ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers,
             out bool isBad)
         {
             Debug.Assert((object)moduleSymbol != null);

@@ -1,13 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Collections.ObjectModel
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -45,14 +39,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return New RequiredCustomModifier(modifier)
         End Function
 
-        Friend Shared Function Convert(customModifiers As ImmutableArray(Of Metadata.PE.MetadataDecoder.ModifierInfo)) As ImmutableArray(Of CustomModifier)
+        Friend Shared Function Convert(customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol))) As ImmutableArray(Of CustomModifier)
             If customModifiers.IsDefault Then
                 Return ImmutableArray(Of CustomModifier).Empty
             End If
             Return customModifiers.SelectAsArray(AddressOf Convert)
         End Function
 
-        Private Shared Function Convert(customModifier As Metadata.PE.MetadataDecoder.ModifierInfo) As CustomModifier
+        Private Shared Function Convert(customModifier As ModifierInfo(Of TypeSymbol)) As CustomModifier
             Dim modifier = DirectCast(customModifier.Modifier, NamedTypeSymbol)
             Return If(customModifier.IsOptional, CreateOptional(modifier), CreateRequired(modifier))
         End Function

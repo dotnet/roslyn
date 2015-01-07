@@ -709,7 +709,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             SignatureHeader signatureHeader;
             BadImageFormatException mrEx;
-            MetadataDecoder.ParamInfo[] paramInfo = new MetadataDecoder(moduleSymbol, this).GetSignatureForMethod(this.handle, out signatureHeader, out mrEx);
+            ParamInfo<TypeSymbol>[] paramInfo = new MetadataDecoder(moduleSymbol, this).GetSignatureForMethod(this.handle, out signatureHeader, out mrEx);
             bool makeBad = (mrEx != null);
 
             // If method is not generic, let's assign empty list for type parameters
@@ -717,7 +717,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 lazyTypeParameters.IsDefault)
             {
                 ImmutableInterlocked.InterlockedCompareExchange(ref lazyTypeParameters,
-                                        ImmutableArray<TypeParameterSymbol>.Empty, default(ImmutableArray<TypeParameterSymbol>));
+                    ImmutableArray<TypeParameterSymbol>.Empty, default(ImmutableArray<TypeParameterSymbol>));
             }
 
             int count = paramInfo.Length - 1;

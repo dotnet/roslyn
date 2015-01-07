@@ -338,7 +338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private Sub EnsureSignatureIsLoaded()
             If m_LazyType Is Nothing Then
                 Dim moduleSymbol = m_ContainingType.ContainingPEModule
-                Dim customModifiers As ImmutableArray(Of MetadataDecoder.ModifierInfo) = Nothing
+                Dim customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol)) = Nothing
                 Dim type As TypeSymbol = New MetadataDecoder(moduleSymbol, m_ContainingType).DecodeFieldSignature(m_Handle, Nothing, customModifiers)
 
                 ImmutableInterlocked.InterlockedCompareExchange(m_LazyCustomModifiers, VisualBasicCustomModifier.Convert(customModifiers), Nothing)

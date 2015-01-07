@@ -754,7 +754,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                 Dim signatureHeader As SignatureHeader
                 Dim mrEx As BadImageFormatException = Nothing
-                Dim paramInfo() As MetadataDecoder.ParamInfo =
+                Dim paramInfo() As ParamInfo(Of TypeSymbol) =
                     (New MetadataDecoder(moduleSymbol, Me)).GetSignatureForMethod(m_Handle, signatureHeader, mrEx)
 
                 ' If method is not generic, let's assign empty list for type parameters

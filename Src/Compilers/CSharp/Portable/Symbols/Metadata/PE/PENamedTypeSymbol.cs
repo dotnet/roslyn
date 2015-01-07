@@ -985,7 +985,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         {
                             // Instance field used to determine underlying type.
                             bool isVolatile;
-                            ImmutableArray<MetadataDecoder.ModifierInfo> customModifiers;
+                            ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers;
                             TypeSymbol type = decoder.DecodeFieldSignature(fieldDef, out isVolatile, out customModifiers);
 
                             if (type.SpecialType.IsValidEnumUnderlyingType())

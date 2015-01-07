@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     case (byte)SignatureCallingConvention.Default:
                     case (byte)SignatureCallingConvention.VarArgs:
                         int typeParamCount;
-                        ParamInfo[] targetParamInfo = this.DecodeSignatureParametersOrThrow(ref signaturePointer, signatureHeader, out typeParamCount);
+                        ParamInfo<TypeSymbol>[] targetParamInfo = this.DecodeSignatureParametersOrThrow(ref signaturePointer, signatureHeader, out typeParamCount);
                         return FindMethodBySignature(targetTypeSymbol, memberName, signatureHeader, typeParamCount, targetParamInfo);
 
                     case (byte)SignatureKind.Field:
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             return null;
                         }
 
-                        ImmutableArray<ModifierInfo> customModifiers;
+                        ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers;
                         bool isVolatile;
                         TypeSymbol type = this.DecodeFieldSignature(ref signaturePointer, out isVolatile, out customModifiers);
                         return FindFieldBySignature(targetTypeSymbol, memberName, customModifiers, type);
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        private static FieldSymbol FindFieldBySignature(TypeSymbol targetTypeSymbol, string targetMemberName, ImmutableArray<ModifierInfo> customModifiers, TypeSymbol type)
+        private static FieldSymbol FindFieldBySignature(TypeSymbol targetTypeSymbol, string targetMemberName, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers, TypeSymbol type)
         {
             foreach (Symbol member in targetTypeSymbol.GetMembers(targetMemberName))
             {
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return null;
         }
 
-        private static MethodSymbol FindMethodBySignature(TypeSymbol targetTypeSymbol, string targetMemberName, SignatureHeader targetMemberSignatureHeader, int targetMemberTypeParamCount, ParamInfo[] targetParamInfo)
+        private static MethodSymbol FindMethodBySignature(TypeSymbol targetTypeSymbol, string targetMemberName, SignatureHeader targetMemberSignatureHeader, int targetMemberTypeParamCount, ParamInfo<TypeSymbol>[] targetParamInfo)
         {
             foreach (Symbol member in targetTypeSymbol.GetMembers(targetMemberName))
             {
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return null;
         }
 
-        private static bool MethodSymbolMatchesParamInfo(MethodSymbol candidateMethod, ParamInfo[] targetParamInfo)
+        private static bool MethodSymbolMatchesParamInfo(MethodSymbol candidateMethod, ParamInfo<TypeSymbol>[] targetParamInfo)
         {
             int numParams = targetParamInfo.Length - 1; //don't count return type
 
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return true;
         }
 
-        private static bool ParametersMatch(ParameterSymbol candidateParam, TypeMap candidateMethodTypeMap, ref ParamInfo targetParam)
+        private static bool ParametersMatch(ParameterSymbol candidateParam, TypeMap candidateMethodTypeMap, ref ParamInfo<TypeSymbol> targetParam)
         {
             // This could be combined into a single return statement with a more complicated expression, but that would
             // be harder to debug.
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return true;
         }
 
-        private static bool ReturnTypesMatch(MethodSymbol candidateMethod, TypeMap candidateMethodTypeMap, ref ParamInfo targetReturnParam)
+        private static bool ReturnTypesMatch(MethodSymbol candidateMethod, TypeMap candidateMethodTypeMap, ref ParamInfo<TypeSymbol> targetReturnParam)
         {
             TypeSymbol candidateReturnType = candidateMethod.ReturnType;
             TypeSymbol targetReturnType = targetReturnParam.Type;
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return true;
         }
 
-        private static bool CustomModifiersMatch(ImmutableArray<CustomModifier> candidateCustomModifiers, ImmutableArray<ModifierInfo> targetCustomModifiers)
+        private static bool CustomModifiersMatch(ImmutableArray<CustomModifier> candidateCustomModifiers, ImmutableArray<ModifierInfo<TypeSymbol>> targetCustomModifiers)
         {
             if (targetCustomModifiers.IsDefault || targetCustomModifiers.IsEmpty)
             {
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             for (int i = 0; i < n; i++)
             {
-                ModifierInfo targetCustomModifier = targetCustomModifiers[i];
+                var targetCustomModifier = targetCustomModifiers[i];
                 CustomModifier candidateCustomModifier = candidateCustomModifiers[i];
 
                 if (targetCustomModifier.IsOptional != candidateCustomModifier.IsOptional ||

@@ -158,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Sub
 
         Protected Overrides Function TryGetLocalSlotMapFromMetadata(handle As MethodDefinitionHandle, debugInfo As EditAndContinueMethodDebugInformation) As ImmutableArray(Of EncLocalInfo)
-            Dim slotMetadata As ImmutableArray(Of MetadataDecoder.LocalInfo) = Nothing
+            Dim slotMetadata As ImmutableArray(Of LocalInfo(Of TypeSymbol)) = Nothing
             If Not metadataDecoder.TryGetLocals(handle, slotMetadata) Then
                 Return Nothing
             End If
@@ -175,7 +175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         ''' </summary>
         Private Shared Function CreateLocalSlotMap(
             methodEncInfo As EditAndContinueMethodDebugInformation,
-            slotMetadata As ImmutableArray(Of MetadataDecoder.LocalInfo)) As ImmutableArray(Of EncLocalInfo)
+            slotMetadata As ImmutableArray(Of LocalInfo(Of TypeSymbol))) As ImmutableArray(Of EncLocalInfo)
 
             Dim result(slotMetadata.Length - 1) As EncLocalInfo
 

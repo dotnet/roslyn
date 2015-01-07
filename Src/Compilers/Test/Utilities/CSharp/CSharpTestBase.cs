@@ -928,7 +928,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return (ns.Length > 0) ? ns + "." + result : result;
         }
 
-        private static ImmutableArray<ILVisualizer.LocalInfo> ToLocalDefinitions(ImmutableArray<MetadataDecoder.LocalInfo> localInfos, ILBuilder builder)
+        private static ImmutableArray<ILVisualizer.LocalInfo> ToLocalDefinitions(ImmutableArray<LocalInfo<TypeSymbol>> localInfos, ILBuilder builder)
         {
             if (localInfos.IsEmpty)
             {
@@ -957,7 +957,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
             public override string VisualizeUserString(uint token)
             {
-                var reader = decoder.ModuleSymbol.Module.GetMetadataReader();
+                var reader = decoder.Module.GetMetadataReader();
                 return "\"" + reader.GetUserString((UserStringHandle)MetadataTokens.Handle((int)token)) + "\"";
             }
 

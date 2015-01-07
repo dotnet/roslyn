@@ -313,7 +313,9 @@
     <Compile Include="MetadataReader\ModuleExtensions.cs" />
     <Compile Include="MetadataReader\PEAssembly.cs" />
     <Compile Include="MetadataReader\PEModule.cs" />
+    <Compile Include="MetadataReader\SymbolFactory.cs" />
     <Compile Include="MetadataReader\TypeAttributesExtensions.cs" />
+    <Compile Include="MetadataReader\TypeNameDecoder.cs" />
     <Compile Include="MetadataReader\UnsupportedSignatureContent.cs" />
     <Compile Include="MetadataReference\AssemblyIdentity.cs" />
     <Compile Include="MetadataReference\AssemblyIdentity.DisplayName.cs" />

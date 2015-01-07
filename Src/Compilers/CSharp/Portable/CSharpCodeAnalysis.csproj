@@ -565,6 +565,7 @@
     <Compile Include="Symbols\Metadata\PE\PEPropertySymbol.cs" />
     <Compile Include="Symbols\Metadata\PE\PETypeParameterSymbol.cs" />
     <Compile Include="Symbols\MetadataOrSourceAssemblySymbol.cs" />
+    <Compile Include="Symbols\Metadata\PE\SymbolFactory.cs" />
     <Compile Include="Symbols\MethodSymbol.cs" />
     <Compile Include="Symbols\MethodSymbolExtensions.cs" />
     <Compile Include="Symbols\MissingAssemblySymbol.cs" />

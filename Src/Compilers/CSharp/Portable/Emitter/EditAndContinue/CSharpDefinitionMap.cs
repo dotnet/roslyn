@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         protected override ImmutableArray<EncLocalInfo> TryGetLocalSlotMapFromMetadata(MethodDefinitionHandle handle, EditAndContinueMethodDebugInformation debugInfo)
         {
-            ImmutableArray<MetadataDecoder.LocalInfo> slotMetadata;
+            ImmutableArray<LocalInfo<TypeSymbol>> slotMetadata;
             if (!metadataDecoder.TryGetLocals(handle, out slotMetadata))
             {
                 return default(ImmutableArray<EncLocalInfo>);
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// </summary>
         private static ImmutableArray<EncLocalInfo> CreateLocalSlotMap(
             EditAndContinueMethodDebugInformation methodEncInfo,
-            ImmutableArray<MetadataDecoder.LocalInfo> slotMetadata)
+            ImmutableArray<LocalInfo<TypeSymbol>> slotMetadata)
         {
             var result = new EncLocalInfo[slotMetadata.Length];
 

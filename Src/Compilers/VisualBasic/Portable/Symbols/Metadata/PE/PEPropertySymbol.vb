@@ -324,11 +324,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' </summary>
         Private Shared Function DoSignaturesMatch(
                                                  metadataDecoder As MetadataDecoder,
-                                                 propertyParams As MetadataDecoder.ParamInfo(),
+                                                 propertyParams As ParamInfo(Of TypeSymbol)(),
                                                  getMethodOpt As PEMethodSymbol,
-                                                 getMethodParamsOpt As MetadataDecoder.ParamInfo(),
+                                                 getMethodParamsOpt As ParamInfo(Of TypeSymbol)(),
                                                  setMethodOpt As PEMethodSymbol,
-                                                 setMethodParamsOpt As MetadataDecoder.ParamInfo()) As Boolean
+                                                 setMethodParamsOpt As ParamInfo(Of TypeSymbol)()) As Boolean
             ' Compare getter or setter with property.
             If getMethodOpt IsNot Nothing Then
                 If Not metadataDecoder.DoPropertySignaturesMatch(propertyParams, getMethodParamsOpt, comparingToSetter:=False, compareParamByRef:=False, compareReturnType:=False) Then
@@ -382,7 +382,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                                              [property] As PEPropertySymbol,
                                              getMethod As PEMethodSymbol,
                                              setMethod As PEMethodSymbol,
-                                             propertyParams As MetadataDecoder.ParamInfo(),
+                                             propertyParams As ParamInfo(Of TypeSymbol)(),
                                              ByRef parametersMatch As Boolean) As ImmutableArray(Of ParameterSymbol)
             parametersMatch = True
 

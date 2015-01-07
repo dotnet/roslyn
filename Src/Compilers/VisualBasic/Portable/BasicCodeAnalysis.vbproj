@@ -692,6 +692,7 @@
     <Compile Include="Symbols\Metadata\PE\PEPropertySymbol.vb" />
     <Compile Include="Symbols\Metadata\PE\PETypeParameterSymbol.vb" />
     <Compile Include="Symbols\MetadataOrSourceAssemblySymbol.vb" />
+    <Compile Include="Symbols\Metadata\PE\SymbolFactory.vb" />
     <Compile Include="Symbols\MethodKindExtensions.vb" />
     <Compile Include="Symbols\MethodSignatureComparer.vb" />
     <Compile Include="Symbols\MethodSymbol.vb" />

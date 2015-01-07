@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             moduleSymbol As PEModuleSymbol,
             containingSymbol As PEMethodSymbol,
             ordinal As Integer,
-            ByRef parameter As MetadataDecoder.ParamInfo,
+            ByRef parameter As ParamInfo(Of TypeSymbol),
             <Out> ByRef isBad As Boolean
         )
             Me.New(moduleSymbol, containingSymbol, ordinal, parameter.IsByRef, parameter.HasByRefBeforeCustomModifiers, parameter.Type, parameter.Handle, parameter.CustomModifiers, isBad)
@@ -109,7 +109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             hasByRefBeforeCustomModifiers As Boolean,
             type As TypeSymbol,
             handle As ParameterHandle,
-            customModifiers As ImmutableArray(Of MetadataDecoder.ModifierInfo),
+            customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol)),
             <Out> ByRef isBad As Boolean
         )
             Debug.Assert(moduleSymbol IsNot Nothing)

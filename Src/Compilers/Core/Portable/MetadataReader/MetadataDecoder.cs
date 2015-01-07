@@ -6,29 +6,86 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
-using System.Reflection.Metadata.Ecma335;
-using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal abstract class MetadataDecoder<TypeSymbol, MethodSymbol, FieldSymbol, AssemblySymbol, Symbol>
+    internal struct ModifierInfo<TypeSymbol>
+        where TypeSymbol : class
+    {
+        internal readonly bool IsOptional;
+        internal readonly TypeSymbol Modifier;
+
+        public ModifierInfo(bool isOptional, TypeSymbol modifier)
+        {
+            IsOptional = isOptional;
+            Modifier = modifier;
+        }
+    }
+
+    internal struct ParamInfo<TypeSymbol>
+        where TypeSymbol : class
+    {
+        internal bool IsByRef;
+        internal bool HasByRefBeforeCustomModifiers;
+        internal TypeSymbol Type;
+        internal ParameterHandle Handle; // may be nil
+        internal ImmutableArray<ModifierInfo<TypeSymbol>> CustomModifiers;
+    }
+
+    internal struct LocalInfo<TypeSymbol>
+        where TypeSymbol : class
+    {
+        internal readonly byte[] SignatureOpt;
+        internal readonly TypeSymbol Type;
+        internal readonly ImmutableArray<ModifierInfo<TypeSymbol>> CustomModifiers;
+        internal readonly LocalSlotConstraints Constraints;
+
+        internal LocalInfo(TypeSymbol type, ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers, LocalSlotConstraints constraints, byte[] signatureOpt)
+        {
+            Debug.Assert(type != null);
+
+            this.Type = type;
+            this.CustomModifiers = customModifiers;
+            this.Constraints = constraints;
+            this.SignatureOpt = signatureOpt;
+        }
+
+        internal LocalInfo<TypeSymbol> WithSignature(byte[] signature)
+        {
+            return new LocalInfo<TypeSymbol>(this.Type, this.CustomModifiers, this.Constraints, signature);
+        }
+
+        public bool IsByRef
+        {
+            get { return (Constraints & LocalSlotConstraints.ByRef) != 0; }
+        }
+
+        public bool IsPinned
+        {
+            get { return (Constraints & LocalSlotConstraints.Pinned) != 0; }
+        }
+    }
+
+    internal abstract class MetadataDecoder<ModuleSymbol, TypeSymbol, MethodSymbol, FieldSymbol, Symbol> :
+        TypeNameDecoder<ModuleSymbol, TypeSymbol>
+        where ModuleSymbol : class
         where TypeSymbol : class, Symbol, ITypeSymbol
         where MethodSymbol : class, Symbol, IMethodSymbol
         where FieldSymbol : class, Symbol, IFieldSymbol
-        where AssemblySymbol : class, Symbol, IAssemblySymbol
         where Symbol : class, ISymbol
     {
         public readonly PEModule Module;
 
         // Identity of an assembly containing the module, or null if the module is a standalone module
-        protected readonly AssemblyIdentity ContainingAssemblyIdentity;
+        private readonly AssemblyIdentity containingAssemblyIdentity;
 
-        internal MetadataDecoder(PEModule module, AssemblyIdentity containingAssemblyIdentity)
+        internal MetadataDecoder(PEModule module, AssemblyIdentity containingAssemblyIdentity, SymbolFactory<ModuleSymbol, TypeSymbol> factory, ModuleSymbol moduleSymbol) :
+            base(factory, moduleSymbol)
         {
             Debug.Assert(module != null);
             this.Module = module;
-            this.ContainingAssemblyIdentity = containingAssemblyIdentity;
+            this.containingAssemblyIdentity = containingAssemblyIdentity;
         }
 
         internal TypeSymbol GetTypeOfToken(Handle token)
@@ -104,7 +161,7 @@ namespace Microsoft.CodeAnalysis
         {
             TypeSymbol typeSymbol;
             int paramPosition;
-            ImmutableArray<ModifierInfo> modifiers;
+            ImmutableArray<ModifierInfo<TypeSymbol>> modifiers;
 
             refersToNoPiaLocalType = false;
 
@@ -217,17 +274,21 @@ namespace Microsoft.CodeAnalysis
                     TypeSymbol generic = GetTypeOfToken(tokenGeneric, out refersToNoPiaLocalType);
                     Debug.Assert(!refersToNoPiaLocalType || generic.TypeKind == TypeKind.Error);
 
-                    var arguments = new TypeSymbol[argumentCount];
-                    var argumentRefersToNoPiaLocalType = new bool[argumentCount];
+                    var argumentsBuilder = ArrayBuilder<TypeSymbol>.GetInstance(argumentCount);
+                    var argumentRefersToNoPiaLocalTypeBuilder = ArrayBuilder<bool>.GetInstance(argumentCount);
 
                     for (int argumentIndex = 0; argumentIndex < argumentCount; argumentIndex++)
                     {
-                        arguments[argumentIndex] = DecodeTypeOrThrow(ref ppSig, out argumentRefersToNoPiaLocalType[argumentIndex]);
+                        bool argumentRefersToNoPia;
+                        argumentsBuilder.Add(DecodeTypeOrThrow(ref ppSig, out argumentRefersToNoPia));
+                        argumentRefersToNoPiaLocalTypeBuilder.Add(argumentRefersToNoPia);
                     }
 
                     // The instantiated type might have a generic parent, in which case some or all of the type
                     // arguments might actually be for the parent.
 
+                    var arguments = argumentsBuilder.ToImmutableAndFree();
+                    var argumentRefersToNoPiaLocalType = argumentRefersToNoPiaLocalTypeBuilder.ToImmutableAndFree();
                     typeSymbol = SubstituteTypeParameters(generic, arguments, argumentRefersToNoPiaLocalType);
 
                     foreach (bool flag in argumentRefersToNoPiaLocalType)
@@ -544,65 +605,11 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal struct ModifierInfo
-        {
-            internal readonly bool IsOptional;
-            internal readonly TypeSymbol Modifier;
-
-            public ModifierInfo(bool isOptional, TypeSymbol modifier)
-            {
-                IsOptional = isOptional;
-                Modifier = modifier;
-            }
-        }
-
-        internal struct ParamInfo
-        {
-            internal bool IsByRef;
-            internal bool HasByRefBeforeCustomModifiers;
-            internal TypeSymbol Type;
-            internal ParameterHandle Handle; // may be nil
-            internal ImmutableArray<ModifierInfo> CustomModifiers;
-        }
-
-        internal struct LocalInfo
-        {
-            internal readonly byte[] SignatureOpt;
-            internal readonly TypeSymbol Type;
-            internal readonly ImmutableArray<ModifierInfo> CustomModifiers;
-            internal readonly LocalSlotConstraints Constraints;
-
-            internal LocalInfo(TypeSymbol type, ImmutableArray<ModifierInfo> customModifiers, LocalSlotConstraints constraints, byte[] signatureOpt)
-            {
-                Debug.Assert(type != null);
-
-                this.Type = type;
-                this.CustomModifiers = customModifiers;
-                this.Constraints = constraints;
-                this.SignatureOpt = signatureOpt;
-            }
-
-            internal LocalInfo WithSignature(byte[] signature)
-            {
-                return new LocalInfo(this.Type, this.CustomModifiers, this.Constraints, signature);
-            }
-
-            public bool IsByRef
-            {
-                get { return (Constraints & LocalSlotConstraints.ByRef) != 0; }
-            }
-
-            public bool IsPinned
-            {
-                get { return (Constraints & LocalSlotConstraints.Pinned) != 0; }
-            }
-        }
-
         /// <exception cref="UnsupportedSignatureContent">If the encoded type is invalid.</exception>
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        private ImmutableArray<ModifierInfo> DecodeModifiersOrThrow(ref BlobReader signatureReader, out SignatureTypeCode typeCode)
+        private ImmutableArray<ModifierInfo<TypeSymbol>> DecodeModifiersOrThrow(ref BlobReader signatureReader, out SignatureTypeCode typeCode)
         {
-            ArrayBuilder<ModifierInfo> modifiers = null;
+            ArrayBuilder<ModifierInfo<TypeSymbol>> modifiers = null;
 
             for (; ;)
             {
@@ -616,7 +623,7 @@ namespace Microsoft.CodeAnalysis
                 if (typeCode == SignatureTypeCode.OptionalModifier)
                 {
                     Handle token = signatureReader.ReadTypeHandle();
-                    ModifierInfo modifier = new ModifierInfo(true, GetTypeOfToken(token));
+                    ModifierInfo<TypeSymbol> modifier = new ModifierInfo<TypeSymbol>(true, GetTypeOfToken(token));
 
                     if (!IsAcceptableModOptModifier(token, modifier.Modifier))
                     {
@@ -625,7 +632,7 @@ namespace Microsoft.CodeAnalysis
 
                     if (modifiers == null)
                     {
-                        modifiers = ArrayBuilder<ModifierInfo>.GetInstance();
+                        modifiers = ArrayBuilder<ModifierInfo<TypeSymbol>>.GetInstance();
                     }
 
                     modifiers.Add(modifier);
@@ -635,7 +642,7 @@ namespace Microsoft.CodeAnalysis
                 break;
             }
 
-            return (modifiers == null) ? default(ImmutableArray<ModifierInfo>) : modifiers.ToImmutableAndFree();
+            return (modifiers == null) ? default(ImmutableArray<ModifierInfo<TypeSymbol>>) : modifiers.ToImmutableAndFree();
         }
 
         /// <summary>
@@ -684,7 +691,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <exception cref="UnsupportedSignatureContent">If the encoded local variable type is invalid.</exception>
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        internal ImmutableArray<LocalInfo> DecodeLocalSignatureOrThrow(ref BlobReader signatureReader)
+        internal ImmutableArray<LocalInfo<TypeSymbol>> DecodeLocalSignatureOrThrow(ref BlobReader signatureReader)
         {
             SignatureHeader signatureHeader = signatureReader.ReadSignatureHeader();
 
@@ -698,7 +705,7 @@ namespace Microsoft.CodeAnalysis
             GetSignatureCountsOrThrow(ref signatureReader, signatureHeader, out localCount, out typeParameterCount);
             Debug.Assert(typeParameterCount == 0);
 
-            var locals = ArrayBuilder<LocalInfo>.GetInstance(localCount);
+            var locals = ArrayBuilder<LocalInfo<TypeSymbol>>.GetInstance(localCount);
             var offsets = ArrayBuilder<int>.GetInstance(localCount);
             for (int i = 0; i < localCount; i++)
             {
@@ -734,7 +741,7 @@ namespace Microsoft.CodeAnalysis
 
         /// <exception cref="UnsupportedSignatureContent">If the encoded local variable type is invalid.</exception>
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        internal LocalInfo DecodeLocalVariableOrThrow(ref BlobReader signatureReader)
+        internal LocalInfo<TypeSymbol> DecodeLocalVariableOrThrow(ref BlobReader signatureReader)
         {
             SignatureTypeCode typeCode;
 
@@ -772,10 +779,10 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return new LocalInfo(typeSymbol, customModifiers, constraints, signatureOpt: null);
+            return new LocalInfo<TypeSymbol>(typeSymbol, customModifiers, constraints, signatureOpt: null);
         }
 
-        internal bool TryGetLocals(MethodDefinitionHandle handle, out ImmutableArray<LocalInfo> localInfo)
+        internal bool TryGetLocals(MethodDefinitionHandle handle, out ImmutableArray<LocalInfo<TypeSymbol>> localInfo)
         {
             try
             {
@@ -790,17 +797,17 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    localInfo = ImmutableArray<LocalInfo>.Empty;
+                    localInfo = ImmutableArray<LocalInfo<TypeSymbol>>.Empty;
                 }
             }
             catch (UnsupportedSignatureContent)
             {
-                localInfo = ImmutableArray<LocalInfo>.Empty;
+                localInfo = ImmutableArray<LocalInfo<TypeSymbol>>.Empty;
                 return false;
             }
             catch (BadImageFormatException)
             {
-                localInfo = ImmutableArray<LocalInfo>.Empty;
+                localInfo = ImmutableArray<LocalInfo<TypeSymbol>>.Empty;
                 return false;
             }
 
@@ -808,7 +815,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <exception cref="UnsupportedSignatureContent">If the encoded parameter type is invalid.</exception>
-        private void DecodeParameterOrThrow(ref BlobReader signatureReader, /*out*/ ref ParamInfo info)
+        private void DecodeParameterOrThrow(ref BlobReader signatureReader, /*out*/ ref ParamInfo<TypeSymbol> info)
         {
             bool refersToNoPiaLocalType;
 
@@ -842,9 +849,9 @@ namespace Microsoft.CodeAnalysis
         }
 
         // MetaImport::DecodeMethodSignature
-        internal ParamInfo[] GetSignatureForMethod(MethodDefinitionHandle methodDef, out SignatureHeader signatureHeader, out BadImageFormatException metadataException, bool setParamHandles = true)
+        internal ParamInfo<TypeSymbol>[] GetSignatureForMethod(MethodDefinitionHandle methodDef, out SignatureHeader signatureHeader, out BadImageFormatException metadataException, bool setParamHandles = true)
         {
-            ParamInfo[] paramInfo = null;
+            ParamInfo<TypeSymbol>[] paramInfo = null;
             signatureHeader = default(SignatureHeader);
 
             try
@@ -882,7 +889,7 @@ namespace Microsoft.CodeAnalysis
                 if (paramInfo == null)
                 {
                     // Pretend there are no parameters and capture error information in the return type.
-                    paramInfo = new ParamInfo[1];
+                    paramInfo = new ParamInfo<TypeSymbol>[1];
                     paramInfo[0].Type = GetUnsupportedMetadataTypeSymbol(mrEx);
                 }
             }
@@ -900,9 +907,9 @@ namespace Microsoft.CodeAnalysis
             GetSignatureCountsOrThrow(ref signatureReader, signatureHeader, out parameterCount, out typeParameterCount);
         }
 
-        internal ParamInfo[] GetSignatureForProperty(PropertyDefinitionHandle handle, out SignatureHeader signatureHeader, out BadImageFormatException BadImageFormatException)
+        internal ParamInfo<TypeSymbol>[] GetSignatureForProperty(PropertyDefinitionHandle handle, out SignatureHeader signatureHeader, out BadImageFormatException BadImageFormatException)
         {
-            ParamInfo[] paramInfo = null;
+            ParamInfo<TypeSymbol>[] paramInfo = null;
             signatureHeader = default(SignatureHeader);
 
             try
@@ -922,7 +929,7 @@ namespace Microsoft.CodeAnalysis
                 if (paramInfo == null)
                 {
                     // Pretend there are no parameters and capture error information in the return type as well.
-                    paramInfo = new ParamInfo[1];
+                    paramInfo = new ParamInfo<TypeSymbol>[1];
                     paramInfo[0].Type = GetUnsupportedMetadataTypeSymbol(mrEx);
                 }
             }
@@ -967,7 +974,7 @@ namespace Microsoft.CodeAnalysis
                 SerializationTypeCode unusedElementTypeCode;
                 TypeSymbol unusedElementType;
                 DecodeCustomAttributeParameterTypeOrThrow(ref sigReader, out elementTypeCode, out elementType, out unusedElementTypeCode, out unusedElementType, isElementType: true);
-                type = GetSZArrayTypeSymbol(elementType, customModifiers: default(ImmutableArray<ModifierInfo>));
+                type = GetSZArrayTypeSymbol(elementType, customModifiers: default(ImmutableArray<ModifierInfo<TypeSymbol>>));
                 typeCode = SerializationTypeCode.SZArray;
                 return;
             }
@@ -1061,7 +1068,7 @@ namespace Microsoft.CodeAnalysis
                 SerializationTypeCode unusedElementTypeCode;
                 TypeSymbol unusedElementType;
                 DecodeCustomAttributeFieldOrPropTypeOrThrow(ref argReader, out elementTypeCode, out elementType, out unusedElementTypeCode, out unusedElementType, isElementType: true);
-                type = GetSZArrayTypeSymbol(elementType, customModifiers: default(ImmutableArray<ModifierInfo>));
+                type = GetSZArrayTypeSymbol(elementType, customModifiers: default(ImmutableArray<ModifierInfo<TypeSymbol>>));
                 return;
             }
 
@@ -1496,12 +1503,12 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        protected ParamInfo[] DecodeSignatureParametersOrThrow(ref BlobReader signatureReader, SignatureHeader signatureHeader, out int typeParameterCount)
+        protected ParamInfo<TypeSymbol>[] DecodeSignatureParametersOrThrow(ref BlobReader signatureReader, SignatureHeader signatureHeader, out int typeParameterCount)
         {
             int paramCount;
             GetSignatureCountsOrThrow(ref signatureReader, signatureHeader, out paramCount, out typeParameterCount);
 
-            ParamInfo[] paramInfo = new ParamInfo[paramCount + 1];
+            ParamInfo<TypeSymbol>[] paramInfo = new ParamInfo<TypeSymbol>[paramCount + 1];
 
             uint paramIndex = 0;
 
@@ -1555,7 +1562,7 @@ namespace Microsoft.CodeAnalysis
             parameterCount = signatureReader.ReadCompressedInteger();
         }
 
-        internal TypeSymbol DecodeFieldSignature(FieldDefinitionHandle fieldHandle, out bool isVolatile, out ImmutableArray<ModifierInfo> customModifiers)
+        internal TypeSymbol DecodeFieldSignature(FieldDefinitionHandle fieldHandle, out bool isVolatile, out ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
         {
             try
             {
@@ -1567,7 +1574,7 @@ namespace Microsoft.CodeAnalysis
                 if (signatureHeader.Kind != SignatureKind.Field)
                 {
                     isVolatile = false;
-                    customModifiers = default(ImmutableArray<ModifierInfo>);
+                    customModifiers = default(ImmutableArray<ModifierInfo<TypeSymbol>>);
                     return GetUnsupportedMetadataTypeSymbol(); // unsupported signature content
                 }
 
@@ -1576,22 +1583,22 @@ namespace Microsoft.CodeAnalysis
             catch (BadImageFormatException mrEx)
             {
                 isVolatile = false;
-                customModifiers = default(ImmutableArray<ModifierInfo>);
+                customModifiers = default(ImmutableArray<ModifierInfo<TypeSymbol>>);
                 return GetUnsupportedMetadataTypeSymbol(mrEx);
             }
         }
 
         // MetaImport::DecodeFieldSignature
-        protected TypeSymbol DecodeFieldSignature(ref BlobReader signatureReader, out bool isVolatile, out ImmutableArray<ModifierInfo> customModifiers)
+        protected TypeSymbol DecodeFieldSignature(ref BlobReader signatureReader, out bool isVolatile, out ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
         {
             isVolatile = false;
-            customModifiers = default(ImmutableArray<ModifierInfo>);
+            customModifiers = default(ImmutableArray<ModifierInfo<TypeSymbol>>);
 
             try
             {
                 // See if there is a Volatile modifier.
                 SignatureTypeCode typeCode;
-                ArrayBuilder<ModifierInfo> customModifierBuilder = null;
+                ArrayBuilder<ModifierInfo<TypeSymbol>> customModifierBuilder = null;
 
                 for (; ;)
                 {
@@ -1601,7 +1608,7 @@ namespace Microsoft.CodeAnalysis
                         typeCode == SignatureTypeCode.RequiredModifier)
                     {
                         Handle token = signatureReader.ReadTypeHandle();
-                        ModifierInfo modifier = new ModifierInfo((typeCode == SignatureTypeCode.OptionalModifier), GetTypeOfToken(token));
+                        ModifierInfo<TypeSymbol> modifier = new ModifierInfo<TypeSymbol>((typeCode == SignatureTypeCode.OptionalModifier), GetTypeOfToken(token));
 
                         if (!IsAcceptableModOptModifier(token, modifier.Modifier))
                         {
@@ -1619,7 +1626,7 @@ namespace Microsoft.CodeAnalysis
 
                         if (customModifierBuilder == null)
                         {
-                            customModifierBuilder = ArrayBuilder<ModifierInfo>.GetInstance();
+                            customModifierBuilder = ArrayBuilder<ModifierInfo<TypeSymbol>>.GetInstance();
                         }
 
                         customModifierBuilder.Add(modifier);
@@ -1886,6 +1893,11 @@ namespace Microsoft.CodeAnalysis
             return (FieldSymbol)GetSymbolForMemberRef(methodRef, implementingTypeSymbol, methodsOnly: true);
         }
 
+        protected override bool IsContainingAssembly(AssemblyIdentity identity)
+        {
+            return this.containingAssemblyIdentity != null && this.containingAssemblyIdentity.Equals(identity);
+        }
+
         /// <summary>
         /// Given a method symbol, return the MethodDef token, if it is defined in
         /// this module, or a nil token, otherwise.
@@ -1897,58 +1909,12 @@ namespace Microsoft.CodeAnalysis
         protected abstract ConcurrentDictionary<TypeDefinitionHandle, TypeSymbol> GetTypeHandleToTypeMap();
         protected abstract ConcurrentDictionary<TypeReferenceHandle, TypeSymbol> GetTypeRefHandleToTypeMap();
 
-        /// <summary>
-        /// Lookup a type defined in this module.
-        /// </summary>
-        protected abstract TypeSymbol LookupTopLevelTypeDefSymbol(ref MetadataTypeName emittedName, out bool isNoPiaLocalType);
-
         protected abstract TypeSymbol SubstituteNoPiaLocalType(TypeDefinitionHandle typeDef, ref MetadataTypeName name, string interfaceGuid, string scope, string identifier);
 
-        /// <summary>
-        /// Lookup a type defined in referenced assembly.
-        /// </summary>
-        protected abstract TypeSymbol LookupTopLevelTypeDefSymbol(int referencedAssemblyIndex, ref MetadataTypeName emittedName);
         protected abstract TypeSymbol LookupTopLevelTypeDefSymbol(string moduleName, ref MetadataTypeName emittedName, out bool isNoPiaLocalType);
-        protected abstract TypeSymbol LookupNestedTypeDefSymbol(TypeSymbol container, ref MetadataTypeName emittedName);
-        protected abstract int GetIndexOfReferencedAssembly(AssemblyIdentity identity);
-        protected abstract TypeSymbol GetUnsupportedMetadataTypeSymbol(BadImageFormatException mrEx = null);
-        protected abstract TypeSymbol GetByRefReturnTypeSymbol(TypeSymbol referencedType);
-
-        /// <summary>
-        /// Produce constructed type symbol.
-        /// </summary>
-        /// <param name="generic">
-        /// Symbol for generic type.
-        /// </param>
-        /// <param name="arguments">
-        /// Generic type arguments, including those for containing types.
-        /// </param>
-        /// <param name="refersToNoPiaLocalType">
-        /// Flags for arguments. Each item indicates whether corresponding argument refers to NoPia local types.
-        /// </param>
-        /// <returns></returns>
-        /// <remarks></remarks>
-        protected abstract TypeSymbol SubstituteTypeParameters(TypeSymbol generic, TypeSymbol[] arguments, bool[] refersToNoPiaLocalType);
-
-        /// <summary>
-        /// Produce unbound generic type symbol if the type is a generic type.
-        /// </summary>
-        /// <param name="type">
-        /// Symbol for type.
-        /// </param>
-        protected abstract TypeSymbol SubstituteWithUnboundIfGeneric(TypeSymbol type);
 
         protected abstract TypeSymbol GetGenericTypeParamSymbol(int position);
         protected abstract TypeSymbol GetGenericMethodTypeParamSymbol(int position);
-        protected abstract TypeSymbol GetSZArrayTypeSymbol(TypeSymbol elementType, ImmutableArray<ModifierInfo> customModifiers);
-        protected abstract TypeSymbol GetArrayTypeSymbol(int dims, TypeSymbol elementType);
-        protected abstract TypeSymbol MakePointerTypeSymbol(TypeSymbol type, ImmutableArray<ModifierInfo> customModifiers);
-        protected abstract TypeSymbol GetSpecialType(SpecialType specialType);
-        protected abstract TypeSymbol SystemTypeSymbol { get; }
-        protected abstract TypeSymbol GetEnumUnderlyingType(TypeSymbol type);
-
-        protected abstract bool IsVolatileModifierType(TypeSymbol type);
-        protected abstract Microsoft.Cci.PrimitiveTypeCode GetPrimitiveTypeCode(TypeSymbol type);
 
         private TypedConstant CreateArrayTypedConstant(TypeSymbol type, ImmutableArray<TypedConstant> array)
         {
@@ -2124,151 +2090,6 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal TypeSymbol GetTypeSymbolForSerializedType(string s)
-        {
-            if (string.IsNullOrEmpty(s))
-            {
-                return GetUnsupportedMetadataTypeSymbol();
-            }
-
-            MetadataHelpers.AssemblyQualifiedTypeName fullName = MetadataHelpers.DecodeTypeName(s);
-            bool refersToNoPiaLocalType;
-            return GetTypeSymbol(fullName, out refersToNoPiaLocalType);
-        }
-
-        private TypeSymbol GetTypeSymbol(MetadataHelpers.AssemblyQualifiedTypeName fullName, out bool refersToNoPiaLocalType)
-        {
-            //
-            // Section 23.3 (Custom Attributes) of CLI Spec Partition II:
-            //
-            // If the parameter kind is System.Type, (also, the middle line in above diagram) its value is 
-            // stored as a SerString (as defined in the previous paragraph), representing its canonical name. 
-            // The canonical name is its full type name, followed optionally by the assembly where it is defined, 
-            // its version, culture and public-key-token. If the assembly name is omitted, the CLI looks first 
-            // in the current assembly, and then in the system library (mscorlib); in these two special cases, 
-            // it is permitted to omit the assembly-name, version, culture and public-key-token.
-
-            int referencedAssemblyIndex;
-            if (fullName.AssemblyName != null)
-            {
-                AssemblyIdentity identity;
-                if (!AssemblyIdentity.TryParseDisplayName(fullName.AssemblyName, out identity))
-                {
-                    refersToNoPiaLocalType = false;
-                    return GetUnsupportedMetadataTypeSymbol();
-                }
-
-                // the assembly name has to be a full name:
-                referencedAssemblyIndex = GetIndexOfReferencedAssembly(identity);
-                if (referencedAssemblyIndex == -1)
-                {
-                    // In rare cases (e.g. assemblies emitted by Reflection.Emit) the identity 
-                    // might be the identity of the containing assembly. The metadata spec doesn't disallow this.
-                    if (ContainingAssemblyIdentity == null || !ContainingAssemblyIdentity.Equals(identity))
-                    {
-                        refersToNoPiaLocalType = false;
-                        return GetUnsupportedMetadataTypeSymbol();
-                    }
-                }
-            }
-            else
-            {
-                // Use this assembly
-                referencedAssemblyIndex = -1;
-            }
-
-            // Find the top level type
-            Debug.Assert(MetadataHelpers.IsValidMetadataIdentifier(fullName.TopLevelType));
-            var mdName = MetadataTypeName.FromFullName(fullName.TopLevelType);
-            TypeSymbol container = LookupTopLevelTypeDefSymbol(ref mdName, referencedAssemblyIndex, out refersToNoPiaLocalType);
-
-            // Process any nested types
-            if (fullName.NestedTypes != null)
-            {
-                if (refersToNoPiaLocalType)
-                {
-                    // Types nested into local types are not supported.
-                    refersToNoPiaLocalType = false;
-                    return GetUnsupportedMetadataTypeSymbol();
-                }
-
-                for (int i = 0; i < fullName.NestedTypes.Length; i++)
-                {
-                    Debug.Assert(MetadataHelpers.IsValidMetadataIdentifier(fullName.NestedTypes[i]));
-                    mdName = MetadataTypeName.FromTypeName(fullName.NestedTypes[i]);
-                    // Find nested type in the container
-                    container = LookupNestedTypeDefSymbol(container, ref mdName);
-                }
-            }
-
-            //  Substitute type arguments if any
-            if (fullName.TypeArguments != null)
-            {
-                bool[] argumentRefersToNoPiaLocalType;
-                var typeArguments = ResolveTypeArguments(fullName.TypeArguments, out argumentRefersToNoPiaLocalType);
-                container = SubstituteTypeParameters(container, typeArguments, argumentRefersToNoPiaLocalType);
-
-                foreach (bool flag in argumentRefersToNoPiaLocalType)
-                {
-                    if (flag)
-                    {
-                        refersToNoPiaLocalType = true;
-                        break;
-                    }
-                }
-            }
-            else
-            {
-                container = SubstituteWithUnboundIfGeneric(container);
-            }
-
-            // Process any array type ranks
-            if (fullName.ArrayRanks != null)
-            {
-                foreach (int rank in fullName.ArrayRanks)
-                {
-                    Debug.Assert(rank > 0);
-                    container = rank == 1 ? GetSZArrayTypeSymbol(container, default(ImmutableArray<ModifierInfo>)) : GetArrayTypeSymbol(rank, container);
-                }
-            }
-
-            return container;
-        }
-
-        private TypeSymbol[] ResolveTypeArguments(MetadataHelpers.AssemblyQualifiedTypeName[] arguments, out bool[] refersToNoPiaLocalType)
-        {
-            int count = arguments.Length;
-            TypeSymbol[] typeArguments = new TypeSymbol[count];
-            refersToNoPiaLocalType = new bool[count];
-
-            for (int i = 0; i < count; i++)
-            {
-                typeArguments[i] = GetTypeSymbol(arguments[i], out refersToNoPiaLocalType[i]);
-            }
-
-            return typeArguments;
-        }
-
-        private TypeSymbol LookupTopLevelTypeDefSymbol(ref MetadataTypeName emittedName, int referencedAssemblyIndex, out bool isNoPiaLocalType)
-        {
-            TypeSymbol container;
-
-            if (referencedAssemblyIndex >= 0)
-            {
-                // Find  top level type in referenced assembly
-                isNoPiaLocalType = false;
-                container = LookupTopLevelTypeDefSymbol(referencedAssemblyIndex, ref emittedName);
-            }
-            else
-            {
-                // TODO : lookup in mscorlib
-                // Find top level type in this assembly or mscorlib:
-                container = LookupTopLevelTypeDefSymbol(ref emittedName, out isNoPiaLocalType);
-            }
-
-            return container;
-        }
-
         /// <summary>
         /// Checks whether signatures match where the signatures are either from a property
         /// and an accessor or two accessors. When comparing a property or getter to setter, the
@@ -2291,7 +2112,7 @@ namespace Microsoft.CodeAnalysis
         /// True if differences in return type (or value parameter for setter) should be treated as significant.
         /// </param>
         /// <returns>True if the accessor signature is appropriate for the containing property.</returns>
-        internal bool DoPropertySignaturesMatch(ParamInfo[] signature1, ParamInfo[] signature2, bool comparingToSetter, bool compareParamByRef, bool compareReturnType)
+        internal bool DoPropertySignaturesMatch(ParamInfo<TypeSymbol>[] signature1, ParamInfo<TypeSymbol>[] signature2, bool comparingToSetter, bool compareParamByRef, bool compareReturnType)
         {
             int additionalParamCount = (comparingToSetter ? 1 : 0);
 
@@ -2336,7 +2157,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="eventType">Type of the event containing the accessor.</param>
         /// <param name="methodParams">Signature of the accessor (return type and then parameters).</param>
         /// <returns>True if the accessor signature is appropriate for the containing event.</returns>
-        internal bool DoesSignatureMatchEvent(TypeSymbol eventType, ParamInfo[] methodParams)
+        internal bool DoesSignatureMatchEvent(TypeSymbol eventType, ParamInfo<TypeSymbol>[] methodParams)
         {
             // Check the number of parameters.
             if (methodParams.Length != 2)

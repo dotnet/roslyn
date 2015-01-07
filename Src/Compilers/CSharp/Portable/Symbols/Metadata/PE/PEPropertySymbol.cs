@@ -534,11 +534,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private static bool DoSignaturesMatch(
             PEModule module,
             MetadataDecoder metadataDecoder,
-            MetadataDecoder.ParamInfo[] propertyParams,
+            ParamInfo<TypeSymbol>[] propertyParams,
             PEMethodSymbol getMethod,
-            MetadataDecoder.ParamInfo[] getMethodParams,
+            ParamInfo<TypeSymbol>[] getMethodParams,
             PEMethodSymbol setMethod,
-            MetadataDecoder.ParamInfo[] setMethodParams)
+            ParamInfo<TypeSymbol>[] setMethodParams)
         {
             Debug.Assert((getMethodParams == null) == ((object)getMethod == null));
             Debug.Assert((setMethodParams == null) == ((object)setMethod == null));
@@ -584,8 +584,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private static ImmutableArray<ParameterSymbol> GetParameters(
             PEModuleSymbol moduleSymbol,
             PEPropertySymbol property,
-            MetadataDecoder.ParamInfo[] propertyParams,
-            MetadataDecoder.ParamInfo[] accessorParams,
+            ParamInfo<TypeSymbol>[] propertyParams,
+            ParamInfo<TypeSymbol>[] accessorParams,
             out bool anyParameterIsBad)
         {
             anyParameterIsBad = false;

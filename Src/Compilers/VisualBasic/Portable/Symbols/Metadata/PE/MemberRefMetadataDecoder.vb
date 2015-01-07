@@ -2,13 +2,8 @@
 
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Reflection.Metadata
 Imports System.Diagnostics
-Imports Microsoft.Cci
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports System.Reflection.Metadata
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -126,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Select Case signatureHeader.RawValue And SignatureHeader.CallingConventionOrKindMask
                     Case SignatureCallingConvention.Default, SignatureCallingConvention.VarArgs
                         Dim typeParamCount As Integer
-                        Dim targetParamInfo As ParamInfo() = Me.DecodeSignatureParametersOrThrow(signaturePointer, signatureHeader, typeParamCount)
+                        Dim targetParamInfo As ParamInfo(Of TypeSymbol)() = Me.DecodeSignatureParametersOrThrow(signaturePointer, signatureHeader, typeParamCount)
                         Return FindMethodBySignature(targetTypeSymbol, memberName, signatureHeader, typeParamCount, targetParamInfo)
 
                     Case SignatureKind.Field
@@ -135,7 +130,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                             Return Nothing
                         End If
 
-                        Dim customModifiers As ImmutableArray(Of ModifierInfo) = Nothing
+                        Dim customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol)) = Nothing
                         Dim isVolatile As Boolean
                         Dim type As TypeSymbol = Me.DecodeFieldSignature(signaturePointer, isVolatile, customModifiers)
                         Return FindFieldBySignature(targetTypeSymbol, memberName, customModifiers, type)
@@ -149,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End Try
         End Function
 
-        Private Shared Function FindFieldBySignature(targetTypeSymbol As TypeSymbol, targetMemberName As String, customModifiers As ImmutableArray(Of ModifierInfo), type As TypeSymbol) As FieldSymbol
+        Private Shared Function FindFieldBySignature(targetTypeSymbol As TypeSymbol, targetMemberName As String, customModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol)), type As TypeSymbol) As FieldSymbol
             For Each member In targetTypeSymbol.GetMembers(targetMemberName)
                 Dim field = TryCast(member, FieldSymbol)
                 If field IsNot Nothing AndAlso
@@ -165,7 +160,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return Nothing
         End Function
 
-        Private Shared Function FindMethodBySignature(targetTypeSymbol As TypeSymbol, targetMemberName As String, targetMemberSignatureHeader As SignatureHeader, targetMemberTypeParamCount As Integer, targetParamInfo As ParamInfo()) As MethodSymbol
+        Private Shared Function FindMethodBySignature(targetTypeSymbol As TypeSymbol, targetMemberName As String, targetMemberSignatureHeader As SignatureHeader, targetMemberTypeParamCount As Integer, targetParamInfo As ParamInfo(Of TypeSymbol)()) As MethodSymbol
             For Each member In targetTypeSymbol.GetMembers(targetMemberName)
                 Dim method = TryCast(member, MethodSymbol)
 
@@ -184,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         End Function
 
 
-        Private Shared Function MethodSymbolMatchesParamInfo(candidateMethod As MethodSymbol, targetParamInfo As ParamInfo()) As Boolean
+        Private Shared Function MethodSymbolMatchesParamInfo(candidateMethod As MethodSymbol, targetParamInfo As ParamInfo(Of TypeSymbol)()) As Boolean
             Dim numParams As Integer = targetParamInfo.Length - 1
             If candidateMethod.ParameterCount <> numParams Then
                 Return False
@@ -210,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return True
         End Function
 
-        Private Shared Function ParametersMatch(candidateParam As ParameterSymbol, ByRef targetParam As ParamInfo) As Boolean
+        Private Shared Function ParametersMatch(candidateParam As ParameterSymbol, ByRef targetParam As ParamInfo(Of TypeSymbol)) As Boolean
             ' This could be combined into a single return statement with a more complicated expression, but that would
             ' be harder to debug.
 
@@ -230,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return True
         End Function
 
-        Private Shared Function ReturnTypesMatch(candidateMethod As MethodSymbol, ByRef targetReturnParam As ParamInfo) As Boolean
+        Private Shared Function ReturnTypesMatch(candidateMethod As MethodSymbol, ByRef targetReturnParam As ParamInfo(Of TypeSymbol)) As Boolean
             Dim candidateReturnType As TypeSymbol = candidateMethod.ReturnType
             Dim targetReturnType As TypeSymbol = targetReturnParam.Type
 
@@ -246,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return True
         End Function
 
-        Private Shared Function CustomModifiersMatch(candidateReturnTypeCustomModifiers As ImmutableArray(Of CustomModifier), targetReturnTypeCustomModifiers As ImmutableArray(Of ModifierInfo)) As Boolean
+        Private Shared Function CustomModifiersMatch(candidateReturnTypeCustomModifiers As ImmutableArray(Of CustomModifier), targetReturnTypeCustomModifiers As ImmutableArray(Of ModifierInfo(Of TypeSymbol))) As Boolean
             If targetReturnTypeCustomModifiers.IsDefault OrElse targetReturnTypeCustomModifiers.IsEmpty Then
                 Return candidateReturnTypeCustomModifiers.IsDefault OrElse candidateReturnTypeCustomModifiers.IsEmpty
             ElseIf candidateReturnTypeCustomModifiers.IsDefault Then
@@ -259,7 +254,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             End If
 
             For i As Integer = 0 To n - 1
-                Dim targetCustomModifier As ModifierInfo = targetReturnTypeCustomModifiers(i)
+                Dim targetCustomModifier = targetReturnTypeCustomModifiers(i)
                 Dim candidateCustomModifier As CustomModifier = candidateReturnTypeCustomModifiers(i)
 
                 If targetCustomModifier.IsOptional <> candidateCustomModifier.IsOptional OrElse

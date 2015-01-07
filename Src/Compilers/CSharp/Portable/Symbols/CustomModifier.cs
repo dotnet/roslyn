@@ -1,11 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -48,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new RequiredCustomModifier(modifier);
         }
 
-        internal static ImmutableArray<CustomModifier> Convert(ImmutableArray<Metadata.PE.MetadataDecoder.ModifierInfo> customModifiers)
+        internal static ImmutableArray<CustomModifier> Convert(ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers)
         {
             if (customModifiers.IsDefault)
             {
@@ -57,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return customModifiers.SelectAsArray(Convert);
         }
 
-        private static CustomModifier Convert(Metadata.PE.MetadataDecoder.ModifierInfo customModifier)
+        private static CustomModifier Convert(ModifierInfo<TypeSymbol> customModifier)
         {
             var modifier = (NamedTypeSymbol)customModifier.Modifier;
             return customModifier.IsOptional ? CreateOptional(modifier) : CreateRequired(modifier);

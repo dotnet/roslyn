@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 var moduleSymbol = this.containingType.ContainingPEModule;
                 bool isVolatile;
-                ImmutableArray<MetadataDecoder.ModifierInfo> customModifiers;
+                ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers;
                 TypeSymbol type = (new MetadataDecoder(moduleSymbol, this.containingType)).DecodeFieldSignature(this.handle, out isVolatile, out customModifiers);
                 ImmutableArray<CustomModifier> customModifiersArray = CSharpCustomModifier.Convert(customModifiers);
                 type = DynamicTypeDecoder.TransformType(type, customModifiersArray.Length, this.handle, moduleSymbol);

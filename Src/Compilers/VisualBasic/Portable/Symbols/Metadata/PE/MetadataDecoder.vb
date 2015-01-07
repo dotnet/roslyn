@@ -4,8 +4,8 @@ Imports System.Collections.Concurrent
 Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Reflection.Metadata
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
@@ -13,12 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
     ''' Helper class to resolve metadata tokens and signatures.
     ''' </summary>
     Friend Class MetadataDecoder
-        Inherits MetadataDecoder(Of TypeSymbol, MethodSymbol, FieldSymbol, AssemblySymbol, Symbol)
-
-        ''' <summary>
-        ''' ModuleSymbol for the module - source of metadata.
-        ''' </summary>
-        Private m_ModuleSymbol As PEModuleSymbol
+        Inherits MetadataDecoder(Of PEModuleSymbol, TypeSymbol, MethodSymbol, FieldSymbol, Symbol)
 
         ''' <summary>
         ''' Type context for resolving generic type arguments.
@@ -57,54 +52,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         )
             ' TODO (tomat): if the containing assembly is a source assembly and we are about to decode assembly level attributes, we run into a cycle,
             ' so for now ignore the assembly identity.
-            MyBase.New(moduleSymbol.Module, If(TypeOf moduleSymbol.ContainingAssembly Is PEAssemblySymbol, moduleSymbol.ContainingAssembly.Identity, Nothing))
+            MyBase.New(moduleSymbol.Module, If(TypeOf moduleSymbol.ContainingAssembly Is PEAssemblySymbol, moduleSymbol.ContainingAssembly.Identity, Nothing), SymbolFactory.Instance, moduleSymbol)
 
             Debug.Assert(moduleSymbol IsNot Nothing)
 
-            m_ModuleSymbol = moduleSymbol
             m_typeContextOpt = typeContextOpt
             m_methodContextOpt = methodContextOpt
         End Sub
 
-        Protected Overrides Function GetArrayTypeSymbol(dims As Integer, elementType As TypeSymbol) As TypeSymbol
-            If TypeOf elementType Is UnsupportedMetadataTypeSymbol Then
-                Return elementType
-            End If
-
-            If dims = 1 Then
-                ' We do not support multi-dimensional arrays of rank 1, cannot distinguish
-                ' them from SZARRAY.
-                Return New UnsupportedMetadataTypeSymbol()
-            End If
-
-            Return New ArrayTypeSymbol(
-                            elementType,
-                            Nothing,
-                            dims, m_ModuleSymbol.ContainingAssembly)
-        End Function
-
-        Protected Overrides Function GetSpecialType(specialType As SpecialType) As TypeSymbol
-            Return m_ModuleSymbol.ContainingAssembly.GetSpecialType(specialType)
-        End Function
-
-        Protected Overrides ReadOnly Property SystemTypeSymbol As TypeSymbol
+        Friend Shadows ReadOnly Property ModuleSymbol As PEModuleSymbol
             Get
-                Return Me.m_ModuleSymbol.SystemTypeSymbol
+                Return MyBase.moduleSymbol
             End Get
         End Property
-
-        Protected Overrides Function GetEnumUnderlyingType(type As TypeSymbol) As TypeSymbol
-            Return type.GetEnumUnderlyingType()
-        End Function
-
-        Protected Overrides Function GetPrimitiveTypeCode(type As TypeSymbol) As Microsoft.Cci.PrimitiveTypeCode
-            Return type.PrimitiveTypeCode
-        End Function
-
-        Protected Overrides Function IsVolatileModifierType(type As TypeSymbol) As Boolean
-            ' VB doesn't deal with Volatile fields.
-            Return False
-        End Function
 
         Protected Overrides Function GetGenericMethodTypeParamSymbol(position As Integer) As TypeSymbol
 
@@ -139,32 +99,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Return type.TypeParameters(position)
         End Function
 
-        Protected Overrides Function GetSZArrayTypeSymbol(elementType As TypeSymbol, customModifiers As ImmutableArray(Of ModifierInfo)) As TypeSymbol
-            If TypeOf elementType Is UnsupportedMetadataTypeSymbol Then
-                Return elementType
-            End If
-
-            Return New ArrayTypeSymbol(
-                            elementType,
-                            VisualBasicCustomModifier.Convert(customModifiers),
-                            1,
-                            m_ModuleSymbol.ContainingAssembly)
-        End Function
-
         Protected Overrides Function GetTypeHandleToTypeMap() As ConcurrentDictionary(Of TypeDefinitionHandle, TypeSymbol)
-            Return m_ModuleSymbol.TypeHandleToTypeMap
+            Return moduleSymbol.TypeHandleToTypeMap
         End Function
 
         Protected Overrides Function GetTypeRefHandleToTypeMap() As ConcurrentDictionary(Of TypeReferenceHandle, TypeSymbol)
-            Return m_ModuleSymbol.TypeRefHandleToTypeMap
-        End Function
-
-        Protected Overrides Function GetUnsupportedMetadataTypeSymbol(Optional mrEx As BadImageFormatException = Nothing) As TypeSymbol
-            Return New UnsupportedMetadataTypeSymbol(mrEx)
-        End Function
-
-        Protected Overrides Function GetByRefReturnTypeSymbol(referencedType As TypeSymbol) As TypeSymbol
-            Return GetUnsupportedMetadataTypeSymbol() ' No special support for this scenario in VB.
+            Return moduleSymbol.TypeRefHandleToTypeMap
         End Function
 
         Protected Overrides Function LookupNestedTypeDefSymbol(
@@ -184,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             referencedAssemblyIndex As Integer,
             ByRef emittedName As MetadataTypeName
         ) As TypeSymbol
-            Dim assembly As AssemblySymbol = m_ModuleSymbol.GetReferencedAssemblySymbols()(referencedAssemblyIndex)
+            Dim assembly As AssemblySymbol = moduleSymbol.GetReferencedAssemblySymbols()(referencedAssemblyIndex)
 
             Return assembly.LookupTopLevelMetadataType(emittedName, digThroughForwardedTypes:=True)
         End Function
@@ -193,10 +133,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' Lookup a type defined in a module of a multi-module assembly.
         ''' </summary>
         Protected Overrides Function LookupTopLevelTypeDefSymbol(moduleName As String, ByRef emittedName As MetadataTypeName, <Out> ByRef isNoPiaLocalType As Boolean) As TypeSymbol
-            For Each m As ModuleSymbol In m_ModuleSymbol.ContainingAssembly.Modules
+            For Each m As ModuleSymbol In moduleSymbol.ContainingAssembly.Modules
                 If String.Equals(m.Name, moduleName, StringComparison.OrdinalIgnoreCase) Then
-                    If m Is m_ModuleSymbol Then
-                        Return m_ModuleSymbol.LookupTopLevelMetadataType(emittedName, isNoPiaLocalType)
+                    If m Is moduleSymbol Then
+                        Return moduleSymbol.LookupTopLevelMetadataType(emittedName, isNoPiaLocalType)
                     Else
                         isNoPiaLocalType = False
                         Return m.LookupTopLevelMetadataType(emittedName)
@@ -205,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Next
 
             isNoPiaLocalType = False
-            Return New MissingMetadataTypeSymbol.TopLevel(New MissingModuleSymbolWithName(m_ModuleSymbol.ContainingAssembly, moduleName), emittedName, SpecialType.None)
+            Return New MissingMetadataTypeSymbol.TopLevel(New MissingModuleSymbolWithName(moduleSymbol.ContainingAssembly, moduleName), emittedName, SpecialType.None)
         End Function
 
         ''' <summary>
@@ -216,11 +156,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         ''' TypeDef row id. 
         ''' </summary>
         Protected Overloads Overrides Function LookupTopLevelTypeDefSymbol(ByRef emittedName As MetadataTypeName, <Out> ByRef isNoPiaLocalType As Boolean) As TypeSymbol
-            Return m_ModuleSymbol.LookupTopLevelMetadataType(emittedName, isNoPiaLocalType)
+            Return moduleSymbol.LookupTopLevelMetadataType(emittedName, isNoPiaLocalType)
         End Function
 
         Protected Overrides Function GetIndexOfReferencedAssembly(identity As AssemblyIdentity) As Integer
-            Dim assemblies = m_ModuleSymbol.GetReferencedAssemblySymbols()
+            Dim assemblies = moduleSymbol.GetReferencedAssemblySymbols()
             For i = 0 To assemblies.Length - 1
                 If identity.Equals(assemblies(i).Identity) Then
                     Return i
@@ -228,103 +168,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Next
             Return -1
         End Function
-
-        Protected Overrides Function MakePointerTypeSymbol(type As TypeSymbol, customModifiers As ImmutableArray(Of ModifierInfo)) As TypeSymbol
-            Return New PointerTypeSymbol(type, VisualBasicCustomModifier.Convert(customModifiers))
-        End Function
-
-        Protected Overrides Function SubstituteWithUnboundIfGeneric(type As TypeSymbol) As TypeSymbol
-            Dim namedType = TryCast(type, NamedTypeSymbol)
-            Return If(namedType IsNot Nothing AndAlso namedType.IsGenericType, UnboundGenericType.Create(namedType), type)
-        End Function
-
-        ''' <summary>
-        ''' Produce constructed type symbol.
-        ''' </summary>
-        ''' <param name="genericTypeDef">
-        ''' Symbol for generic type.
-        ''' </param>
-        ''' <param name="arguments">
-        ''' Generic type arguments, including those for nesting types.
-        ''' </param>
-        ''' <param name="refersToNoPiaLocalType">
-        ''' Flags for arguments. Each item indicates whether corresponding argument refers to NoPia local types.
-        ''' </param>
-        ''' <returns></returns>
-        ''' <remarks></remarks>
-        Protected Overrides Function SubstituteTypeParameters(
-            genericTypeDef As TypeSymbol,
-            arguments() As TypeSymbol,
-            refersToNoPiaLocalType() As Boolean
-        ) As TypeSymbol
-
-            If TypeOf genericTypeDef Is UnsupportedMetadataTypeSymbol Then
-                Return genericTypeDef
-            Else
-                ' Let's return unsupported metadata type if any argument is unsupported metadata type 
-                For Each arg In arguments
-                    If arg.Kind = SymbolKind.ErrorType AndAlso
-                        TypeOf arg Is UnsupportedMetadataTypeSymbol Then
-                        Return New UnsupportedMetadataTypeSymbol()
-                    End If
-                Next
-
-                Dim genericType As NamedTypeSymbol = DirectCast(genericTypeDef, NamedTypeSymbol)
-
-                ' See if it is or its enclosing type is a non-interface closed over NoPia local types. 
-                Dim linkedAssemblies As ImmutableArray(Of AssemblySymbol) = m_ModuleSymbol.ContainingAssembly.GetLinkedReferencedAssemblies()
-
-                Dim noPiaIllegalGenericInstantiation As Boolean = False
-
-                If Not linkedAssemblies.IsDefaultOrEmpty OrElse Me.Module.ContainsNoPiaLocalTypes() Then
-                    Dim typeToCheck As NamedTypeSymbol = genericType
-                    Dim argumentIndex As Integer = refersToNoPiaLocalType.Length - 1
-
-                    Do
-                        If Not typeToCheck.IsInterface Then
-                            Exit Do
-                        Else
-                            argumentIndex -= typeToCheck.Arity
-                        End If
-
-                        typeToCheck = typeToCheck.ContainingType
-                    Loop While typeToCheck IsNot Nothing
-
-                    For i As Integer = argumentIndex To 0 Step -1
-                        If refersToNoPiaLocalType(i) OrElse
-                           (Not linkedAssemblies.IsDefaultOrEmpty AndAlso
-                           IsOrClosedOverATypeFromAssemblies(arguments(i), linkedAssemblies)) Then
-                            noPiaIllegalGenericInstantiation = True
-                            Exit For
-                        End If
-                    Next
-                End If
-
-                ' Collect generic parameters for the type and its containers in the order
-                ' that matches passed in arguments, i.e. sorted by the nesting.
-                Dim genericParameters = genericType.GetAllTypeParameters()
-                Debug.Assert(genericParameters.Length > 0)
-
-                If genericParameters.Length <> arguments.Length Then
-                    Return New UnsupportedMetadataTypeSymbol()
-                End If
-
-                Dim substitution As TypeSubstitution = TypeSubstitution.Create(genericTypeDef, genericParameters, ImmutableArray.Create(arguments))
-
-                If substitution Is Nothing Then
-                    Return genericTypeDef
-                End If
-
-                Dim constructedType = genericType.Construct(substitution)
-
-                If noPiaIllegalGenericInstantiation Then
-                    constructedType = New NoPiaIllegalGenericInstantiationSymbol(constructedType)
-                End If
-
-                Return DirectCast(constructedType, TypeSymbol)
-            End If
-        End Function
-
 
         ''' <summary>
         ''' Perform a check whether the type or at least one of its generic arguments 
@@ -399,7 +242,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         interfaceGuid,
                         scope,
                         identifier,
-                        m_ModuleSymbol.ContainingAssembly)
+                        moduleSymbol.ContainingAssembly)
 
             Catch mrEx As BadImageFormatException
                 result = GetUnsupportedMetadataTypeSymbol(mrEx)
@@ -588,7 +431,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             ' We're going to use a special decoder that can generate useable symbols for type parameters without full context.
             ' (We're not just using a different type - we're also changing the type context.)
-            Dim memberRefDecoder = New MemberRefMetadataDecoder(m_ModuleSymbol, targetTypeSymbol)
+            Dim memberRefDecoder = New MemberRefMetadataDecoder(moduleSymbol, targetTypeSymbol)
             Return memberRefDecoder.FindMember(targetTypeSymbol, memberRef, methodsOnly)
         End Function
 
@@ -603,7 +446,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Protected Overrides Sub EnqueueTypeSymbol(typeDefsToSearch As Queue(Of TypeDefinitionHandle), typeSymbolsToSearch As Queue(Of TypeSymbol), typeSymbol As TypeSymbol)
             If typeSymbol IsNot Nothing Then
                 Dim peTypeSymbol As PENamedTypeSymbol = TryCast(typeSymbol, PENamedTypeSymbol)
-                If peTypeSymbol IsNot Nothing AndAlso peTypeSymbol.ContainingPEModule Is m_ModuleSymbol Then
+                If peTypeSymbol IsNot Nothing AndAlso peTypeSymbol.ContainingPEModule Is moduleSymbol Then
                     typeDefsToSearch.Enqueue(peTypeSymbol.Handle)
                 Else
                     typeSymbolsToSearch.Enqueue(typeSymbol)
@@ -614,7 +457,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Protected Overrides Function GetMethodHandle(method As MethodSymbol) As MethodDefinitionHandle
             Dim peMethod As PEMethodSymbol = TryCast(method, PEMethodSymbol)
-            If peMethod IsNot Nothing AndAlso peMethod.ContainingModule Is m_ModuleSymbol Then
+            If peMethod IsNot Nothing AndAlso peMethod.ContainingModule Is moduleSymbol Then
                 Return peMethod.Handle
             End If
 

@@ -13,13 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
     /// <summary>
     /// Helper class to resolve metadata tokens and signatures.
     /// </summary>
-    internal class MetadataDecoder : MetadataDecoder<TypeSymbol, MethodSymbol, FieldSymbol, AssemblySymbol, Symbol>
+    internal class MetadataDecoder : MetadataDecoder<PEModuleSymbol, TypeSymbol, MethodSymbol, FieldSymbol, Symbol>
     {
-        /// <summary>
-        /// ModuleSymbol for the module - source of metadata.
-        /// </summary>
-        private readonly PEModuleSymbol moduleSymbol;
-
         /// <summary>
         /// Type context for resolving generic type arguments.
         /// </summary>
@@ -53,69 +48,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private MetadataDecoder(PEModuleSymbol moduleSymbol, PENamedTypeSymbol typeContextOpt, PEMethodSymbol methodContextOpt)
             // TODO (tomat): if the containing assembly is a source assembly and we are about to decode assembly level attributes, we run into a cycle,
             // so for now ignore the assembly identity.
-            : base(moduleSymbol.Module, (moduleSymbol.ContainingAssembly is PEAssemblySymbol) ? moduleSymbol.ContainingAssembly.Identity : null)
+            : base(moduleSymbol.Module, (moduleSymbol.ContainingAssembly is PEAssemblySymbol) ? moduleSymbol.ContainingAssembly.Identity : null, SymbolFactory.Instance, moduleSymbol)
         {
             Debug.Assert((object)moduleSymbol != null);
 
-            this.moduleSymbol = moduleSymbol;
             this.typeContextOpt = typeContextOpt;
             this.methodContextOpt = methodContextOpt;
-        }
-
-        internal PENamedTypeSymbol TypeContext
-        {
-            get { return typeContextOpt; }
         }
 
         internal PEModuleSymbol ModuleSymbol
         {
             get { return moduleSymbol; }
-        }
-
-        protected override TypeSymbol GetArrayTypeSymbol(int dims, TypeSymbol elementType)
-        {
-            if (elementType is UnsupportedMetadataTypeSymbol)
-            {
-                return elementType;
-            }
-
-            if (dims == 1)
-            {
-                // We do not support multi-dimensional arrays of rank 1, cannot distinguish
-                // them from SZARRAY.
-                // TODO(ngafter): what is the correct diagnostic for this situation?
-                return new UnsupportedMetadataTypeSymbol(); // Found a multi-dimensional array of rank 1 in metadata
-            }
-
-            return new ArrayTypeSymbol(moduleSymbol.ContainingAssembly, elementType, ImmutableArray<CustomModifier>.Empty, dims);
-        }
-
-        protected override TypeSymbol GetSpecialType(SpecialType specialType)
-        {
-            return moduleSymbol.ContainingAssembly.GetSpecialType(specialType);
-        }
-
-        protected override TypeSymbol SystemTypeSymbol
-        {
-            get
-            {
-                return moduleSymbol.SystemTypeSymbol;
-            }
-        }
-
-        protected override TypeSymbol GetEnumUnderlyingType(TypeSymbol type)
-        {
-            return type.GetEnumUnderlyingType();
-        }
-
-        protected override Cci.PrimitiveTypeCode GetPrimitiveTypeCode(TypeSymbol type)
-        {
-            return type.PrimitiveTypeCode;
-        }
-
-        protected override bool IsVolatileModifierType(TypeSymbol type)
-        {
-            return type.SpecialType == SpecialType.System_Runtime_CompilerServices_IsVolatile;
         }
 
         protected override TypeSymbol GetGenericMethodTypeParamSymbol(int position)
@@ -155,16 +98,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return type.TypeParameters[position];
         }
 
-        protected override TypeSymbol GetSZArrayTypeSymbol(TypeSymbol elementType, ImmutableArray<ModifierInfo> customModifiers)
-        {
-            if (elementType is UnsupportedMetadataTypeSymbol)
-            {
-                return elementType;
-            }
-
-            return new ArrayTypeSymbol(moduleSymbol.ContainingAssembly, elementType, CSharpCustomModifier.Convert(customModifiers));
-        }
-
         protected override ConcurrentDictionary<TypeDefinitionHandle, TypeSymbol> GetTypeHandleToTypeMap()
         {
             return moduleSymbol.TypeHandleToTypeMap;
@@ -173,16 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         protected override ConcurrentDictionary<TypeReferenceHandle, TypeSymbol> GetTypeRefHandleToTypeMap()
         {
             return moduleSymbol.TypeRefHandleToTypeMap;
-        }
-
-        protected override TypeSymbol GetUnsupportedMetadataTypeSymbol(BadImageFormatException mrEx = null)
-        {
-            return new UnsupportedMetadataTypeSymbol(mrEx);
-        }
-
-        protected override TypeSymbol GetByRefReturnTypeSymbol(TypeSymbol referencedType)
-        {
-            return new ByRefReturnErrorTypeSymbol(referencedType);
         }
 
         protected override TypeSymbol LookupNestedTypeDefSymbol(TypeSymbol container, ref MetadataTypeName emittedName)
@@ -254,125 +177,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
             return -1;
-        }
-
-        protected override TypeSymbol MakePointerTypeSymbol(TypeSymbol type, ImmutableArray<ModifierInfo> customModifiers)
-        {
-            if (type is UnsupportedMetadataTypeSymbol)
-            {
-                return type;
-            }
-
-            return new PointerTypeSymbol(type, CSharpCustomModifier.Convert(customModifiers));
-        }
-
-        /// <summary>
-        /// Produce unbound generic type symbol if the type is a generic type.
-        /// </summary>
-        /// <param name="type">
-        /// Symbol for type.
-        /// </param>
-        protected override TypeSymbol SubstituteWithUnboundIfGeneric(TypeSymbol type)
-        {
-            var namedType = type as NamedTypeSymbol;
-            return ((object)namedType != null && namedType.IsGenericType) ? namedType.AsUnboundGenericType() : type;
-        }
-
-        /// <summary>
-        /// Produce constructed type symbol.
-        /// </summary>
-        /// <param name="genericTypeDef">
-        /// Symbol for generic type.
-        /// </param>
-        /// <param name="arguments">
-        /// Generic type arguments, including those for nesting types.
-        /// </param>
-        /// <param name="refersToNoPiaLocalType">
-        /// Flags for arguments. Each item indicates whether corresponding argument refers to NoPia local types.
-        /// </param>
-        /// <returns></returns>
-        /// <remarks></remarks>
-        protected override TypeSymbol SubstituteTypeParameters(
-            TypeSymbol genericTypeDef,
-            TypeSymbol[] arguments,
-            bool[] refersToNoPiaLocalType)
-        {
-            if (genericTypeDef is UnsupportedMetadataTypeSymbol)
-            {
-                return genericTypeDef;
-            }
-            else
-            {
-                // Let's return unsupported metadata type if any argument is unsupported metadata type 
-                foreach (var arg in arguments)
-                {
-                    if (arg.Kind == SymbolKind.ErrorType &&
-                        arg is UnsupportedMetadataTypeSymbol)
-                    {
-                        return new UnsupportedMetadataTypeSymbol();
-                    }
-                }
-
-                NamedTypeSymbol genericType = (NamedTypeSymbol)genericTypeDef;
-
-                // See if it is or its enclosing type is a non-interface closed over NoPia local types. 
-                ImmutableArray<AssemblySymbol> linkedAssemblies = moduleSymbol.ContainingAssembly.GetLinkedReferencedAssemblies();
-
-                bool noPiaIllegalGenericInstantiation = false;
-
-                if (!linkedAssemblies.IsDefaultOrEmpty || Module.ContainsNoPiaLocalTypes())
-                {
-                    NamedTypeSymbol typeToCheck = genericType;
-                    int argumentIndex = refersToNoPiaLocalType.Length - 1;
-
-                    do
-                    {
-                        if (!typeToCheck.IsInterface)
-                        {
-                            break;
-                        }
-                        else
-                        {
-                            argumentIndex -= typeToCheck.Arity;
-                        }
-
-                        typeToCheck = typeToCheck.ContainingType;
-                    }
-                    while ((object)typeToCheck != null);
-
-                    for (int i = argumentIndex; i >= 0; i--)
-                    {
-                        if (refersToNoPiaLocalType[i] ||
-                            (!linkedAssemblies.IsDefaultOrEmpty &&
-                            IsOrClosedOverATypeFromAssemblies(arguments[i], linkedAssemblies)))
-                        {
-                            noPiaIllegalGenericInstantiation = true;
-                            break;
-                        }
-                    }
-                }
-
-                // Collect generic parameters for the type and its containers in the order
-                // that matches passed in arguments, i.e. sorted by the nesting.
-                ImmutableArray<TypeParameterSymbol> typeParameters = genericType.GetAllTypeParameters();
-                Debug.Assert(typeParameters.Length > 0);
-
-                if (typeParameters.Length != arguments.Length)
-                {
-                    return new UnsupportedMetadataTypeSymbol();
-                }
-
-                TypeMap substitution = new TypeMap(typeParameters, ImmutableArray.Create(arguments));
-
-                NamedTypeSymbol constructedType = substitution.SubstituteNamedType(genericType);
-
-                if (noPiaIllegalGenericInstantiation)
-                {
-                    constructedType = new NoPiaIllegalGenericInstantiationSymbol(moduleSymbol, constructedType);
-                }
-
-                return constructedType;
-            }
         }
 
         /// <summary>
