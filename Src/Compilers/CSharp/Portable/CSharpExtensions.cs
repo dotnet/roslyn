@@ -19,12 +19,6 @@ namespace Microsoft.CodeAnalysis
             return token.RawKind == (int)kind;
         }
 
-        [Obsolete("To be removed, use Kind() or IsKind() instead.", true), EditorBrowsable(EditorBrowsableState.Never)]
-        public static bool IsContextualKind(this SyntaxToken token, SyntaxKind kind)
-        {
-            return token.CSharpContextualKind() == kind;
-        }
-
         public static bool IsKind(this SyntaxTrivia trivia, SyntaxKind kind)
         {
             return trivia.RawKind == (int)kind;
@@ -40,39 +34,9 @@ namespace Microsoft.CodeAnalysis
             return nodeOrToken.RawKind == (int)kind;
         }
 
-        [Obsolete("To be removed, use Kind() or IsKind() instead.", true), EditorBrowsable(EditorBrowsableState.Never)]
-        public static SyntaxKind CSharpKind(this SyntaxToken token)
-        {
-            return token.Kind();
-        }
-
-        [Obsolete("To be removed, use Kind() or IsKind() instead.", true), EditorBrowsable(EditorBrowsableState.Never)]
-        public static SyntaxKind CSharpContextualKind(this SyntaxToken token)
-        {
-            return (object)token.Language == (object)LanguageNames.CSharp ? (SyntaxKind)token.RawContextualKind : SyntaxKind.None;
-        }
-
         internal static SyntaxKind ContextualKind(this SyntaxToken token)
         {
             return (object)token.Language == (object)LanguageNames.CSharp ? (SyntaxKind)token.RawContextualKind : SyntaxKind.None;
-        }
-
-        [Obsolete("To be removed, use Kind() or IsKind() instead.", true), EditorBrowsable(EditorBrowsableState.Never)]
-        public static SyntaxKind CSharpKind(this SyntaxTrivia trivia)
-        {
-            return trivia.Kind();
-        }
-
-        [Obsolete("To be removed, use Kind() or IsKind() instead.", true), EditorBrowsable(EditorBrowsableState.Never)]
-        public static SyntaxKind CSharpKind(this SyntaxNode node)
-        {
-            return node.Kind();
-        }
-
-        [Obsolete("To be removed, use Kind() or IsKind() instead.", true), EditorBrowsable(EditorBrowsableState.Never)]
-        public static SyntaxKind CSharpKind(this SyntaxNodeOrToken nodeOrToken)
-        {
-            return nodeOrToken.Kind();
         }
 
         /// <summary>

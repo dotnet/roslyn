@@ -114,11 +114,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return CType(Me.Green.RawKind, SyntaxKind)
         End Function
 
-        <Obsolete("To be removed, use Kind() instead.", True), EditorBrowsable(EditorBrowsableState.Never)>
-        Public Function VBKind() As SyntaxKind
-            Return CType(Me.Green.RawKind, SyntaxKind)
-        End Function
-
         Protected Overrides ReadOnly Property KindText As String
             Get
                 Return Me.Kind.ToString()

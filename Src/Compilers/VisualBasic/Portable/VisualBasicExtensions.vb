@@ -18,44 +18,6 @@ Namespace Microsoft.CodeAnalysis
     Public Module VisualBasicExtensions
 
         ''' <summary>
-        ''' Returns SyntaxKind for SyntaxTrivia nodes.
-        ''' </summary> 
-        <Extension, Obsolete("To be removed, use Kind() or IsKind() instead.", True), EditorBrowsable(EditorBrowsableState.Never)>
-        Public Function VBKind(trivia As SyntaxTrivia) As SyntaxKind
-            Return Kind(trivia)
-        End Function
-
-        ''' <summary>
-        ''' Returns SyntaxKind for SyntaxToken from RawKind property.
-        ''' </summary>       
-        <Extension, Obsolete("To be removed, use Kind() or IsKind() instead.", True), EditorBrowsable(EditorBrowsableState.Never)>
-        Public Function VBKind(token As SyntaxToken) As SyntaxKind
-            Return Kind(token)
-        End Function
-
-        ''' <summary>
-        ''' Returns SyntaxKind for SyntaxToken from RawContextualKind.
-        ''' </summary>
-        <Extension, Obsolete("To be removed, use Kind() or IsKind() instead.", True), EditorBrowsable(EditorBrowsableState.Never)>
-        Public Function VisualBasicContextualKind(token As SyntaxToken) As SyntaxKind
-            Return If(token.Language Is LanguageNames.VisualBasic, CType(token.RawContextualKind, SyntaxKind), SyntaxKind.None)
-        End Function
-
-        ''' <summary>
-        ''' Returns SyntaxKind for SyntaxNode from RawKind property.
-        ''' </summary>
-        <Extension, Obsolete("To be removed, use Kind() or IsKind() instead.", True), EditorBrowsable(EditorBrowsableState.Never)>
-        Public Function VBKind(node As SyntaxNode) As SyntaxKind
-            Return Kind(node)
-        End Function
-
-
-        <Extension, Obsolete("To be removed, use Kind() or IsKind() instead.", True), EditorBrowsable(EditorBrowsableState.Never)>
-        Public Function VBKind(nodeOrToken As SyntaxNodeOrToken) As SyntaxKind
-            Return Kind(nodeOrToken)
-        End Function
-
-        ''' <summary>
         ''' Determines if SyntaxTrivia is a specified kind.
         ''' </summary>        
         '''<param name="trivia">The Source SyntaxTrivia.</param>
@@ -73,17 +35,6 @@ Namespace Microsoft.CodeAnalysis
         <Extension>
         Public Function IsKind(token As SyntaxToken, kind As SyntaxKind) As Boolean
             Return token.RawKind = kind
-        End Function
-
-        ''' <summary>
-        ''' Determines if SyntaxToken is a specified kind.
-        ''' </summary>
-        '''<param name="token">The Source SyntaxToken.</param>
-        ''' <param name="kind">The SyntaxKind to test for.</param>
-        ''' <returns>A boolean value if token is of specified kind; otherwise false.</returns>
-        <Extension, Obsolete("To be removed, use Kind() or IsKind() instead.", True), EditorBrowsable(EditorBrowsableState.Never)>
-        Public Function IsContextualKind(token As SyntaxToken, kind As SyntaxKind) As Boolean
-            Return token.VisualBasicContextualKind = kind
         End Function
 
         ''' <summary>

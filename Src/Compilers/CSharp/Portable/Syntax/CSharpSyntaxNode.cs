@@ -121,12 +121,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (SyntaxKind)this.Green.RawKind;
         }
 
-        [Obsolete("To be removed, use Kind() instead."), EditorBrowsable(EditorBrowsableState.Never)]
-        public SyntaxKind CSharpKind()
-        {
-            return (SyntaxKind)this.Green.RawKind;
-        }
-
         protected override string KindText
         {
             get
