@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -26,7 +27,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
                     name: "code" + i, 
                     loader: TextLoader.From(TextAndVersion.Create(SourceText.From(s), VersionStamp.Default)))).ToList();
 
-            var proj = ProjectInfo.Create(pid, VersionStamp.Default, "test", "test.dll", LanguageNames.CSharp, documents: docs);
+            var proj = ProjectInfo.Create(pid, VersionStamp.Default, "test", "test.dll", LanguageNames.CSharp, documents: docs,
+                metadataReferences: new[] { TestReferences.NetFx.v4_0_30319.mscorlib });
 
             return ws.AddProject(proj).Solution;
         }
@@ -713,6 +715,287 @@ partial class C
 
             actual = GetActual(editor.GetChangedDocuments().First());
             Assert.Equal(expected2, actual);
+        }
+
+        [Fact]
+        public void TestSetBaseType_ExistingBase()
+        {
+            var code =
+@"class C : B
+{
+}
+
+class A
+{
+}
+
+class B
+{
+}";
+
+            var expected =
+@"class C : A
+{
+}
+
+class A
+{
+}
+
+class B
+{
+}";
+
+            var solution = GetSolution(code);
+            var symbol = (INamedTypeSymbol)GetSymbols(solution, "C").First();
+
+            var editor = SymbolEditor.Create(solution);
+
+            // set base to A
+            var newSymbolC = editor.SetBaseTypeAsync(symbol, g => g.IdentifierName("A")).Result;
+
+            var actual = GetActual(editor.GetChangedDocuments().First());
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void TestSetBaseType_ExistingInterface()
+        {
+            var code =
+@"class C : I
+{
+}
+
+class A
+{
+}
+
+interface I
+{
+}";
+
+            var expected =
+@"class C : A, I
+{
+}
+
+class A
+{
+}
+
+interface I
+{
+}";
+
+            var solution = GetSolution(code);
+            var symbol = (INamedTypeSymbol)GetSymbols(solution, "C").First();
+
+            var editor = SymbolEditor.Create(solution);
+
+            // set base to A
+            var newSymbolC = editor.SetBaseTypeAsync(symbol, g => g.IdentifierName("A")).Result;
+
+            var actual = GetActual(editor.GetChangedDocuments().First());
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void TestSetBaseType_NoBaseOrInterface()
+        {
+            var code =
+@"class C
+{
+}
+
+class A
+{
+}";
+
+            var expected =
+@"class C
+: A
+{
+}
+
+class A
+{
+}";
+
+            var solution = GetSolution(code);
+            var symbol = (INamedTypeSymbol)GetSymbols(solution, "C").First();
+
+            var editor = SymbolEditor.Create(solution);
+
+            // set base to A
+            var newSymbolC = editor.SetBaseTypeAsync(symbol, g => g.IdentifierName("A")).Result;
+
+            var actual = GetActual(editor.GetChangedDocuments().First());
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void TestSetBaseType_UnknownBase()
+        {
+            var code =
+@"class C : X
+{
+}
+
+class A
+{
+}";
+
+            var expected =
+@"class C : A
+{
+}
+
+class A
+{
+}";
+
+            var solution = GetSolution(code);
+            var symbol = (INamedTypeSymbol)GetSymbols(solution, "C").First();
+
+            var editor = SymbolEditor.Create(solution);
+
+            // set base to A
+            var newSymbolC = editor.SetBaseTypeAsync(symbol, g => g.IdentifierName("A"));
+
+            var actual = GetActual(editor.GetChangedDocuments().First());
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void TestSetBaseType_Null_ExistingBase()
+        {
+            var code =
+@"class C : A
+{
+}
+
+class A
+{
+}";
+
+            var expected =
+@"class C
+{
+}
+
+class A
+{
+}";
+
+            var solution = GetSolution(code);
+            var symbol = (INamedTypeSymbol)GetSymbols(solution, "C").First();
+
+            var editor = SymbolEditor.Create(solution);
+
+            // set base to null
+            var newSymbolC = editor.SetBaseTypeAsync(symbol, g => null).Result;
+
+            var actual = GetActual(editor.GetChangedDocuments().First());
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void TestSetBaseType_Null_ExistingBaseAndInterface()
+        {
+            var code =
+@"class C : A, I
+{
+}
+
+class A
+{
+}
+
+interface I
+{
+}";
+
+            var expected =
+@"class C : I
+{
+}
+
+class A
+{
+}
+
+interface I
+{
+}";
+
+            var solution = GetSolution(code);
+            var symbol = (INamedTypeSymbol)GetSymbols(solution, "C").First();
+
+            var editor = SymbolEditor.Create(solution);
+
+            // set base to null
+            var newSymbolC = editor.SetBaseTypeAsync(symbol, g => null).Result;
+
+            var actual = GetActual(editor.GetChangedDocuments().First());
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void TestSetBaseType_Null_ExistingInterface()
+        {
+            var code =
+@"class C : I
+{
+}
+
+interface I
+{
+}";
+
+            var expected =
+@"class C : I
+{
+}
+
+interface I
+{
+}";
+
+            var solution = GetSolution(code);
+            var symbol = (INamedTypeSymbol)GetSymbols(solution, "C").First();
+
+            var editor = SymbolEditor.Create(solution);
+
+            // set base to null
+            var newSymbolC = editor.SetBaseTypeAsync(symbol, g => null).Result;
+
+            var actual = GetActual(editor.GetChangedDocuments().First());
+            Assert.Equal(expected, actual);
+        }
+
+        [Fact]
+        public void TestSetBaseType_Null_UnknownBase()
+        {
+            var code =
+@"class C : X
+{
+}";
+
+            var expected =
+@"class C
+{
+}";
+
+            var solution = GetSolution(code);
+            var symbol = (INamedTypeSymbol)GetSymbols(solution, "C").First();
+
+            var editor = SymbolEditor.Create(solution);
+
+            // set base to null
+            var newSymbolC = editor.SetBaseTypeAsync(symbol, g => null).Result;
+
+            var actual = GetActual(editor.GetChangedDocuments().First());
+            Assert.Equal(expected, actual);
         }
     }
 }

@@ -326,11 +326,13 @@
     <Compile Include="CodeGeneration\CodeGenerationSymbolFactory.cs" />
     <Compile Include="CodeGeneration\CodeGenerator.cs" />
     <Compile Include="CodeGeneration\DeclarationKind.cs" />
+    <Compile Include="CodeGeneration\DocumentEditor.cs" />
     <Compile Include="CodeGeneration\ICodeGenerationService.cs" />
     <Compile Include="CodeGeneration\INamedTypeSymbolExtensions.cs" />
     <Compile Include="CodeGeneration\LiteralSpecialValues.cs" />
-    <Compile Include="CodeGeneration\SymbolDeclarationEditor.cs" />
+    <Compile Include="CodeGeneration\SolutionEditor.cs" />
     <Compile Include="CodeGeneration\SymbolEditor.cs" />
+    <Compile Include="CodeGeneration\SymbolEditorExtensions.cs" />
     <Compile Include="CodeGeneration\SyntaxEditor.cs" />
     <Compile Include="CodeGeneration\SyntaxEditorExtensions.cs" />
     <Compile Include="CodeGeneration\SyntaxGenerator.cs" />

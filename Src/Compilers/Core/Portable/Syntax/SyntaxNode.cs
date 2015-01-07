@@ -473,6 +473,40 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Determines if the specified node is a descendant of this node.
+        /// </summary>
+        public bool Contains(SyntaxNode node)
+        {
+            if (node == null || !node.FullSpan.IntersectsWith(node.FullSpan))
+            {
+                return false;
+            }
+
+            while (node != null)
+            {
+                if (node == this)
+                {
+                    return true;
+                }
+
+                if (node.Parent != null)
+                {
+                    node = node.Parent;
+                }
+                else if (node.IsStructuredTrivia)
+                {
+                    node = ((IStructuredTriviaSyntax)node).ParentTrivia.Token.Parent;
+                }
+                else
+                {
+                    node = null;
+                }
+            }
+
+            return false;
+        }
+
+        /// <summary>
         /// Determines whether this node has any leading trivia.
         /// </summary>
         public bool HasLeadingTrivia
@@ -580,7 +614,7 @@ namespace Microsoft.CodeAnalysis
         #region Node Lookup
 
         /// <summary>
-        /// The node that contains this node in its Children collection.
+        /// The node that contains this node in its <see cref="ChildNodes"/> collection.
         /// </summary>
         public SyntaxNode Parent
         {

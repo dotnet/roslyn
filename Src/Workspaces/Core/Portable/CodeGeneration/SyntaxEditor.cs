@@ -5,45 +5,41 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
     /// <summary>
-    /// An editor for making multiple edits to a syntax tree. 
+    /// An editor for making changes to a syntax tree. 
     /// </summary>
-    public sealed class SyntaxEditor
+    public class SyntaxEditor
     {
         private readonly SyntaxGenerator generator;
         private readonly SyntaxNode root;
         private readonly List<Change> changes;
 
-        private SyntaxEditor(SyntaxNode root, SyntaxGenerator generator)
-        {
-            this.root = root;
-            this.generator = generator;
-            this.changes = new List<Change>();
-        }
-
         /// <summary>
         /// Creates a new <see cref="SyntaxEditor"/> instance.
         /// </summary>
-        public static SyntaxEditor Create(Workspace workspace, SyntaxNode root)
+        public SyntaxEditor(SyntaxNode root, Workspace workspace)
         {
-            if (workspace == null)
-            {
-                throw new ArgumentNullException(nameof(workspace));
-            }
-
             if (root == null)
             {
                 throw new ArgumentNullException(nameof(root));
             }
 
-            return new SyntaxEditor(root, SyntaxGenerator.GetGenerator(workspace, root.Language));
+            if (workspace == null)
+            {
+                throw new ArgumentNullException(nameof(workspace));
+            }
+
+            this.root = root;
+            this.generator = SyntaxGenerator.GetGenerator(workspace, root.Language);
+            this.changes = new List<Change>();
         }
 
         /// <summary>
-        /// The original root node.
+        /// The <see cref="SyntaxNode"/> that was specified when the <see cref="SyntaxEditor"/> was constructed.
         /// </summary>
         public SyntaxNode OriginalRoot
         {
@@ -51,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         /// <summary>
-        /// A syntax generator to use to create new node instances.
+        /// A <see cref="SyntaxGenerator"/> to use to create and change <see cref="SyntaxNode"/>'s.
         /// </summary>
         public SyntaxGenerator Generator
         {
@@ -59,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         /// <summary>
-        /// Returns the changed root node including all the applied edits.
+        /// Returns the changed root node.
         /// </summary>
         public SyntaxNode GetChangedRoot()
         {
@@ -76,10 +72,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         /// <summary>
         /// Makes sure the node is tracked, even if it is not changed.
-        /// You do not need to call this method if the node is changed via a Remove, Replace or Insert.
         /// </summary>
-        internal void TrackNode(SyntaxNode node)
+        public void TrackNode(SyntaxNode node)
         {
+            CheckNodeInTree(node);
             this.changes.Add(new NoChange(node));
         }
 
@@ -89,6 +85,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <param name="node">The node to remove that currently exists as part of the tree.</param>
         public void RemoveNode(SyntaxNode node)
         {
+            CheckNodeInTree(node);
             this.changes.Add(new RemoveChange(node));
         }
 
@@ -100,6 +97,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// The node passed into the compute function includes changes from prior edits. It will not appear as a descendant of the original root.</param>
         public void ReplaceNode(SyntaxNode node, Func<SyntaxNode, SyntaxGenerator, SyntaxNode> computeReplacement)
         {
+            CheckNodeInTree(node);
             this.changes.Add(new ReplaceChange(node, computeReplacement));
         }
 
@@ -110,6 +108,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <param name="newNode">The new node that will be placed into the tree in the existing node's location.</param>
         public void ReplaceNode(SyntaxNode node, SyntaxNode newNode)
         {
+            CheckNodeInTree(node);
             this.ReplaceNode(node, (n, g) => newNode);
         }
 
@@ -120,6 +119,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <param name="newNodes">The nodes to place before the existing node. These nodes must be of a compatible type to be placed in the same list containing the existing node.</param>
         public void InsertBefore(SyntaxNode node, IEnumerable<SyntaxNode> newNodes)
         {
+            CheckNodeInTree(node);
             this.changes.Add(new InsertChange(node, newNodes, isBefore: true));
         }
 
@@ -130,6 +130,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <param name="newNode">The node to place before the existing node. This node must be of a compatible type to be placed in the same list containing the existing node.</param>
         public void InsertBefore(SyntaxNode node, SyntaxNode newNode)
         {
+            CheckNodeInTree(node);
             this.InsertBefore(node, new[] { newNode });
         }
 
@@ -140,6 +141,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <param name="newNodes">The nodes to place after the existing node. These nodes must be of a compatible type to be placed in the same list containing the existing node.</param>
         public void InsertAfter(SyntaxNode node, IEnumerable<SyntaxNode> newNodes)
         {
+            CheckNodeInTree(node);
             this.changes.Add(new InsertChange(node, newNodes, isBefore: false));
         }
 
@@ -150,7 +152,16 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         /// <param name="newNode">The node to place after the existing node. This node must be of a compatible type to be placed in the same list containing the existing node.</param>
         public void InsertAfter(SyntaxNode node, SyntaxNode newNode)
         {
+            CheckNodeInTree(node);
             this.InsertBefore(node, new[] { newNode });
+        }
+
+        private void CheckNodeInTree(SyntaxNode node)
+        {
+            if (!this.root.Contains(node))
+            {
+                throw new ArgumentException("The node is not part of the tree.".NeedsLocalization(), nameof(node));
+            }
         }
 
         private abstract class Change

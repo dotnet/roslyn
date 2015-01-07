@@ -4,7 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
 {
@@ -90,14 +92,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             editor.ReplaceNode(declaration, (d, g) => g.InsertMembers(d, index, members));
         }
 
-        public static void AddBaseType(this SyntaxEditor editor, SyntaxNode declaration, SyntaxNode baseType)
-        {
-            editor.ReplaceNode(declaration, (d, g) => g.AddBaseType(d, baseType));
-        }
-
         public static void AddInterfaceType(this SyntaxEditor editor, SyntaxNode declaration, SyntaxNode interfaceType)
         {
-            editor.ReplaceNode(declaration, (d, g) => g.AddInterfaceType(d, interfaceType));
+            editor.ReplaceNode(declaration, (d, g) => g.AddInterfaceType(declaration, interfaceType));
+        }
+
+        public static void AddBaseType(this SyntaxEditor editor, SyntaxNode declaration, SyntaxNode baseType)
+        {
+            editor.ReplaceNode(declaration, (d, g) => g.AddBaseType(declaration, baseType));
         }
     }
 }
