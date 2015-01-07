@@ -855,10 +855,22 @@ namespace Microsoft.CodeAnalysis
                 var solutionWithLinkedFileChangesMerged = newSolution.WithMergedLinkedFileChangesAsync(oldSolution, solutionChanges, cancellationToken: CancellationToken.None).Result;
                 solutionChanges = solutionWithLinkedFileChangesMerged.GetChanges(oldSolution);
 
-                // process all project changes
+                // added projects
+                foreach (var proj in solutionChanges.GetAddedProjects())
+                {
+                    this.AddProject(this.CreateProjectInfo(proj));
+                }
+
+                // changed projects
                 foreach (var projectChanges in solutionChanges.GetProjectChanges())
                 {
                     this.ApplyProjectChanges(projectChanges);
+                }
+
+                // removed projects
+                foreach (var proj in solutionChanges.GetRemovedProjects())
+                {
+                    this.RemoveProject(proj.Id);
                 }
 
                 return true;
@@ -885,6 +897,18 @@ namespace Microsoft.CodeAnalysis
 
         private void CheckAllowedProjectChanges(ProjectChanges projectChanges)
         {
+            if (projectChanges.OldProject.CompilationOptions != projectChanges.NewProject.CompilationOptions 
+                && !this.CanApplyChange(ApplyChangesKind.ChangeCompilationOptions))
+            {
+                throw new NotSupportedException(WorkspacesResources.ChangingCompilationOptionsNotSupported);
+            }
+
+            if (projectChanges.OldProject.ParseOptions != projectChanges.NewProject.ParseOptions
+                && !this.CanApplyChange(ApplyChangesKind.ChangeParseOptions))
+            {
+                throw new NotSupportedException(WorkspacesResources.ChangingParseOptionsNotSupported);
+            }
+
             if (projectChanges.GetAddedDocuments().Any() && !this.CanApplyChange(ApplyChangesKind.AddDocument))
             {
                 throw new NotSupportedException(WorkspacesResources.AddingDocumentsNotSupported);
@@ -953,6 +977,18 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         protected virtual void ApplyProjectChanges(ProjectChanges projectChanges)
         {
+            // changed compilation options
+            if (projectChanges.OldProject.CompilationOptions != projectChanges.NewProject.CompilationOptions)
+            {
+                this.ChangeCompilationOptions(projectChanges.ProjectId, projectChanges.NewProject.CompilationOptions);
+            }
+
+            // changed parse options
+            if (projectChanges.OldProject.ParseOptions != projectChanges.NewProject.ParseOptions)
+            {
+                this.ChangeParseOptions(projectChanges.ProjectId, projectChanges.NewProject.ParseOptions);
+            }
+
             // removed project references
             foreach (var removedProjectReference in projectChanges.GetRemovedProjectReferences())
             {
@@ -1005,24 +1041,17 @@ namespace Microsoft.CodeAnalysis
             foreach (var documentId in projectChanges.GetAddedDocuments())
             {
                 var doc = projectChanges.NewProject.GetDocument(documentId);
-                var text = doc.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None); // needs wait
-                var info = DocumentInfo.Create(
-                    documentId, 
-                    doc.Name, 
-                    doc.Folders, 
-                    doc.SourceCodeKind);
+                var text = this.GetTextForced(doc);
+                var info = this.CreateDocumentInfoWithoutText(doc);
                 this.AddDocument(info, text);
             }
 
-            // added documents
+            // added additional documents
             foreach (var documentId in projectChanges.GetAddedAdditionalDocuments())
             {
                 var doc = projectChanges.NewProject.GetAdditionalDocument(documentId);
-                var text = doc.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None); // needs wait
-                var info = DocumentInfo.Create(
-                    documentId, 
-                    doc.Name, 
-                    doc.Folders);
+                var text = this.GetTextForced(doc);
+                var info = this.CreateDocumentInfoWithoutText(doc);
                 this.AddAdditionalDocument(info, text);
             }
 
@@ -1075,6 +1104,90 @@ namespace Microsoft.CodeAnalysis
             Contract.ThrowIfTrue(changes.GetAddedProjects().Any());
             Contract.ThrowIfTrue(changes.GetRemovedProjects().Any());
             Contract.ThrowIfTrue(changes.GetProjectChanges().Any());
+        }
+
+        private ProjectInfo CreateProjectInfo(Project project)
+        {
+            return ProjectInfo.Create(
+                project.Id,
+                VersionStamp.Create(),
+                project.Name,
+                project.AssemblyName,
+                project.Language,
+                project.FilePath,
+                project.OutputFilePath,
+                project.CompilationOptions,
+                project.ParseOptions,
+                project.Documents.Select(d => CreateDocumentInfoWithText(d)),
+                project.ProjectReferences,
+                project.MetadataReferences,
+                project.AnalyzerReferences,
+                project.AdditionalDocuments.Select(d => CreateDocumentInfoWithText(d)));
+        }
+
+        private SourceText GetTextForced(TextDocument doc)
+        {
+            return doc.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None); // needs wait (called during TryApplyChanges)
+        }
+
+        private DocumentInfo CreateDocumentInfoWithText(TextDocument doc)
+        {
+            return CreateDocumentInfoWithoutText(doc).WithTextLoader(TextLoader.From(TextAndVersion.Create(GetTextForced(doc), VersionStamp.Create(), doc.FilePath)));
+        }
+
+        private DocumentInfo CreateDocumentInfoWithoutText(TextDocument doc)
+        {
+            var sourceDoc = doc as Document;
+            return DocumentInfo.Create(
+                doc.Id,
+                doc.Name,
+                doc.Folders,
+                sourceDoc != null ? sourceDoc.SourceCodeKind : SourceCodeKind.Regular,
+                filePath: doc.FilePath);
+        }
+
+        /// <summary>
+        /// This method is called during <see cref="TryApplyChanges"/> to add a project to the current solution.
+        /// 
+        /// Override this method to implement the capability of adding projects.
+        /// </summary>
+        protected virtual void AddProject(ProjectInfo project)
+        {
+            Debug.Assert(CanApplyChange(ApplyChangesKind.AddProject));
+            this.OnProjectAdded(project);
+        }
+
+        /// <summary>
+        /// This method is called during <see cref="TryApplyChanges"/> to remove a project from the current solution.
+        /// 
+        /// Override this method to implement the capability of removing projects.
+        /// </summary>
+        protected virtual void RemoveProject(ProjectId projectId)
+        {
+            Debug.Assert(CanApplyChange(ApplyChangesKind.RemoveProject));
+            this.OnProjectRemoved(projectId);
+        }
+
+        /// <summary>
+        /// This method is called during <see cref="TryApplyChanges"/> to change the compilation options.
+        /// 
+        /// Override this method to implement the capability of changing compilation options.
+        /// </summary>
+        protected virtual void ChangeCompilationOptions(ProjectId projectId, CompilationOptions options)
+        {
+            Debug.Assert(CanApplyChange(ApplyChangesKind.ChangeCompilationOptions));
+            this.OnCompilationOptionsChanged(projectId, options);
+        }
+
+        /// <summary>
+        /// This method is called during <see cref="TryApplyChanges"/> to change the parse options.
+        /// 
+        /// Override this method to implement the capability of changing parse options.
+        /// </summary>
+        protected virtual void ChangeParseOptions(ProjectId projectId, ParseOptions options)
+        {
+            Debug.Assert(CanApplyChange(ApplyChangesKind.ChangeParseOptions));
+            this.OnParseOptionsChanged(projectId, options);
         }
 
         /// <summary>

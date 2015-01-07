@@ -18,6 +18,8 @@ namespace Microsoft.CodeAnalysis
         RemoveAnalyzerReference = 10,
         AddAdditionalDocument = 11,
         RemoveAdditionalDocument = 12,
-        ChangeAdditionalDocument = 13
+        ChangeAdditionalDocument = 13,
+        ChangeCompilationOptions = 14,
+        ChangeParseOptions = 15
     }
 }

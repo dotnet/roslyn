@@ -178,5 +178,72 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var compilation = project.GetCompilationAsync().Result;
             }
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestAddProject_TryApplyChanges()
+        {
+            using (var ws = new CustomWorkspace())
+            {
+                ProjectId pid = ProjectId.CreateNewId();
+
+                var docInfo = DocumentInfo.Create(
+                                DocumentId.CreateNewId(pid),
+                                "MyDoc.cs",
+                                loader: TextLoader.From(TextAndVersion.Create(SourceText.From(""), VersionStamp.Create())));
+
+                var projInfo = ProjectInfo.Create(
+                        pid,
+                        VersionStamp.Create(),
+                        "NewProject",
+                        "NewProject.dll",
+                        LanguageNames.CSharp,
+                        documents: new[] { docInfo });
+
+                var newSolution = ws.CurrentSolution.AddProject(projInfo);
+
+                Assert.Equal(0, ws.CurrentSolution.Projects.Count());
+
+                var result = ws.TryApplyChanges(newSolution);
+                Assert.Equal(result, true);
+
+                Assert.Equal(1, ws.CurrentSolution.Projects.Count());
+                var proj = ws.CurrentSolution.Projects.First();
+
+                Assert.Equal("NewProject", proj.Name);
+                Assert.Equal("NewProject.dll", proj.AssemblyName);
+                Assert.Equal(LanguageNames.CSharp, proj.Language);
+                Assert.Equal(1, proj.Documents.Count());
+
+                var doc = proj.Documents.First();
+                Assert.Equal("MyDoc.cs", doc.Name);
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
+        public void TestRemoveProject_TryApplyChanges()
+        {
+            var pid = ProjectId.CreateNewId();
+            var info = ProjectInfo.Create(
+                pid,
+                version: VersionStamp.Default,
+                name: "TestProject",
+                assemblyName: "TestProject.dll",
+                language: LanguageNames.CSharp);
+
+            using (var ws = new CustomWorkspace())
+            {
+                ws.AddProject(info);
+
+                Assert.Equal(1, ws.CurrentSolution.Projects.Count());
+
+                var newSolution = ws.CurrentSolution.RemoveProject(pid);
+                Assert.Equal(0, newSolution.Projects.Count());
+
+                var result = ws.TryApplyChanges(newSolution);
+                Assert.Equal(true, result);
+
+                Assert.Equal(0, ws.CurrentSolution.Projects.Count());
+            }
+        }
     }
 }

@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Adds a project to the workspace. All previous projects remain intact.
         /// </summary>
-        public Project AddProject(ProjectInfo projectInfo)
+        public new Project AddProject(ProjectInfo projectInfo)
         {
             if (projectInfo == null)
             {

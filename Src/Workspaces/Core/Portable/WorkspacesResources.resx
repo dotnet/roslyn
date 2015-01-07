@@ -441,4 +441,10 @@
   <data name="TheSymbolCannotBeLocatedWithinTheCurrentSolution" xml:space="preserve">
     <value>The symbol '{0}' cannot be located within the current solution.</value>
   </data>
+  <data name="ChangingCompilationOptionsNotSupported" xml:space="preserve">
+    <value>Changing compilation options is not supported.</value>
+  </data>
+  <data name="ChangingParseOptionsNotSupported" xml:space="preserve">
+    <value>Changing parse options is not supported.</value>
+  </data>
 </root>

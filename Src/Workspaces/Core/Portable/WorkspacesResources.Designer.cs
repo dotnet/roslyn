@@ -251,11 +251,29 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Changing compilation options is not supported..
+        /// </summary>
+        internal static string ChangingCompilationOptionsNotSupported {
+            get {
+                return ResourceManager.GetString("ChangingCompilationOptionsNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Changing documents is not supported..
         /// </summary>
         internal static string ChangingDocumentsNotSupported {
             get {
                 return ResourceManager.GetString("ChangingDocumentsNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Changing parse options is not supported..
+        /// </summary>
+        internal static string ChangingParseOptionsNotSupported {
+            get {
+                return ResourceManager.GetString("ChangingParseOptionsNotSupported", resourceCulture);
             }
         }
         
