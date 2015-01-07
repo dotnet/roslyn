@@ -23,7 +23,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // the arguments first in this situation because we do not know what conversions will be
             // produced for the arguments until after we've done overload resolution. So we produce the invocation
             // and then lower it along with its arguments.
-            var result = factory.StaticCall(stringFactory, "Create", expressions.ToImmutableAndFree());
+            var result = factory.StaticCall(stringFactory, "Create", expressions.ToImmutableAndFree(),
+                allowUnexpandedForm: false // if an interpolation expression is the null literal, it should not match a params parameter.
+                );
             if (!result.HasAnyErrors)
             {
                 result = VisitExpression(result); // lower the arguments AND handle expanded form, argument conversions, etc.
@@ -110,7 +112,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // and then lower it along with its arguments.
             expressions.Insert(0, format);
             var stringType = node.Type;
-            var result = factory.StaticCall(stringType, "Format", expressions.ToImmutableAndFree());
+            var result = factory.StaticCall(stringType, "Format", expressions.ToImmutableAndFree(),
+                allowUnexpandedForm: false // if an interpolation expression is the null literal, it should not match a params parameter.
+                );
             if (!result.HasAnyErrors)
             {
                 result = VisitExpression(result); // lower the arguments AND handle expanded form, argument conversions, etc.

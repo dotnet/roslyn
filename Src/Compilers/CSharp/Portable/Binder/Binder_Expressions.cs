@@ -6097,10 +6097,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments analyzedArguments,
             bool isMethodGroupConversion,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            bool inferWithDynamic = false)
+            bool inferWithDynamic = false,
+            bool allowUnexpandedForm = true)
         {
             var methodResolution = ResolveMethodGroupInternal(
-                node, expression, methodName, analyzedArguments, isMethodGroupConversion, ref useSiteDiagnostics, inferWithDynamic: inferWithDynamic);
+                node, expression, methodName, analyzedArguments, isMethodGroupConversion, ref useSiteDiagnostics,
+                inferWithDynamic: inferWithDynamic, allowUnexpandedForm: allowUnexpandedForm);
             if (methodResolution.IsEmpty && !methodResolution.HasAnyErrors)
             {
                 Debug.Assert(node.LookupError == null);
@@ -6120,9 +6122,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments analyzedArguments,
             bool isMethodGroupConversion,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            bool inferWithDynamic = false)
+            bool inferWithDynamic = false,
+            bool allowUnexpandedForm = true)
         {
-            var methodResolution = ResolveDefaultMethodGroup(methodGroup, analyzedArguments, isMethodGroupConversion, ref useSiteDiagnostics, inferWithDynamic: inferWithDynamic);
+            var methodResolution = ResolveDefaultMethodGroup(
+                methodGroup, analyzedArguments, isMethodGroupConversion, ref useSiteDiagnostics,
+                inferWithDynamic: inferWithDynamic, allowUnexpandedForm: allowUnexpandedForm);
 
             // If the method group's receiver is dynamic then there is no point in looking for extension methods; 
             // it's going to be a dynamic invocation.
@@ -6181,7 +6186,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             AnalyzedArguments analyzedArguments,
             bool isMethodGroupConversion,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            bool inferWithDynamic = false)
+            bool inferWithDynamic = false,
+            bool allowUnexpandedForm = true)
         {
             var methods = node.Methods;
             if (methods.Length == 0)
@@ -6228,7 +6234,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool allowRefOmittedArguments = methodGroup.Receiver.IsExpressionOfComImportType();
                 OverloadResolution.MethodInvocationOverloadResolution(
                     methodGroup.Methods, methodGroup.TypeArguments, analyzedArguments,
-                    result, ref useSiteDiagnostics, isMethodGroupConversion, allowRefOmittedArguments, inferWithDynamic: inferWithDynamic);
+                    result, ref useSiteDiagnostics, isMethodGroupConversion, allowRefOmittedArguments,
+                    inferWithDynamic: inferWithDynamic, allowUnexpandedForm: allowUnexpandedForm);
                 return new MethodGroupResolution(methodGroup, null, result, analyzedArguments, methodGroup.ResultKind, sealedDiagnostics);
             }
         }

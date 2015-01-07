@@ -69,6 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="typeArgs">Optional type arguments.</param>
         /// <param name="queryClause">The syntax for the query clause generating this invocation expression, if any.</param>
         /// <param name="allowFieldsAndProperties">True to allow invocation of fields and properties of delegate type. Only methods are allowed otherwise.</param>
+        /// <param name="allowUnexpandedForm">False to prevent selecting a params method in unexpanded form.</param>
         /// <returns>Synthesized method invocation expression.</returns>
         protected BoundExpression MakeInvocationExpression(
             CSharpSyntaxNode node,
@@ -79,7 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             SeparatedSyntaxList<TypeSyntax> typeArgsSyntax = default(SeparatedSyntaxList<TypeSyntax>),
             ImmutableArray<TypeSymbol> typeArgs = default(ImmutableArray<TypeSymbol>),
             CSharpSyntaxNode queryClause = null,
-            bool allowFieldsAndProperties = false)
+            bool allowFieldsAndProperties = false,
+            bool allowUnexpandedForm = true)
         {
             Debug.Assert(receiver != null);
 
@@ -116,7 +118,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var analyzedArguments = AnalyzedArguments.GetInstance();
             analyzedArguments.Arguments.AddRange(args);
-            BoundExpression result = BindInvocationExpression(node, node, methodName, boundExpression, analyzedArguments, diagnostics, queryClause);
+            BoundExpression result = BindInvocationExpression(
+                node, node, methodName, boundExpression, analyzedArguments, diagnostics, queryClause,
+                allowUnexpandedForm: allowUnexpandedForm);
 
             // Query operator can't be called dynamically. 
             if (queryClause != null && result.Kind == BoundKind.DynamicInvocation)
@@ -201,7 +205,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression boundExpression,
             AnalyzedArguments analyzedArguments,
             DiagnosticBag diagnostics,
-            CSharpSyntaxNode queryClause = null)
+            CSharpSyntaxNode queryClause = null,
+            bool allowUnexpandedForm = true)
         {
             BoundExpression result;
             NamedTypeSymbol delegateType;
@@ -215,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (boundExpression.Kind == BoundKind.MethodGroup)
             {
-                result = BindMethodGroupInvocation(node, expression, methodName, (BoundMethodGroup)boundExpression, analyzedArguments, diagnostics, queryClause);
+                result = BindMethodGroupInvocation(node, expression, methodName, (BoundMethodGroup)boundExpression, analyzedArguments, diagnostics, queryClause, allowUnexpandedForm: allowUnexpandedForm);
             }
             else if ((object)(delegateType = GetDelegateType(boundExpression)) != null)
             {
@@ -232,6 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_MethodNameExpected), expression.Location);
                 }
+
                 result = CreateBadCall(node, boundExpression, LookupResultKind.NotInvocable, analyzedArguments);
             }
 
@@ -439,11 +445,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundMethodGroup methodGroup,
             AnalyzedArguments analyzedArguments,
             DiagnosticBag diagnostics,
-            CSharpSyntaxNode queryClause)
+            CSharpSyntaxNode queryClause,
+            bool allowUnexpandedForm = true)
         {
             BoundExpression result;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var resolution = this.ResolveMethodGroup(methodGroup, expression, methodName, analyzedArguments, isMethodGroupConversion: false, useSiteDiagnostics: ref useSiteDiagnostics);
+            var resolution = this.ResolveMethodGroup(
+                methodGroup, expression, methodName, analyzedArguments, isMethodGroupConversion: false,
+                useSiteDiagnostics: ref useSiteDiagnostics, allowUnexpandedForm: allowUnexpandedForm);
             diagnostics.Add(expression, useSiteDiagnostics);
 
             if (!methodGroup.HasAnyErrors) diagnostics.AddRange(resolution.Diagnostics); // Suppress cascading.
@@ -493,6 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         result = BindInvocationExpressionContinued(syntax, expression, methodName, resolution.OverloadResolutionResult, resolution.AnalyzedArguments, resolution.MethodGroup, null, discarded, queryClause);
                         discarded.Free();
                     }
+
                     // Since the resolution is non-empty and has no diagnostics, the LookupResultKind in its MethodGroup is uninteresting.
                     result = CreateBadCall(syntax, methodGroup, methodGroup.ResultKind, analyzedArguments);
                 }
@@ -542,7 +552,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        result = BindInvocationExpressionContinued(syntax, expression, methodName, resolution.OverloadResolutionResult, resolution.AnalyzedArguments, resolution.MethodGroup, null, diagnostics, queryClause);
+                        result = BindInvocationExpressionContinued(
+                            syntax, expression, methodName, resolution.OverloadResolutionResult, resolution.AnalyzedArguments,
+                            resolution.MethodGroup, null, diagnostics, queryClause);
                     }
                 }
             }

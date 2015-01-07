@@ -95,11 +95,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             bool isMethodGroupConversion = false,
             bool allowRefOmittedArguments = false,
-            bool inferWithDynamic = false)
+            bool inferWithDynamic = false,
+            bool allowUnexpandedForm = true)
         {
             MethodOrPropertyOverloadResolution(
                 methods, typeArguments, arguments, result, isMethodGroupConversion,
-                allowRefOmittedArguments, ref useSiteDiagnostics, inferWithDynamic: inferWithDynamic);
+                allowRefOmittedArguments, ref useSiteDiagnostics, inferWithDynamic: inferWithDynamic,
+                allowUnexpandedForm: allowUnexpandedForm);
         }
 
         // Perform overload resolution on the given property group, with the given arguments and
@@ -124,7 +126,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isMethodGroupConversion,
             bool allowRefOmittedArguments,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            bool inferWithDynamic = false)
+            bool inferWithDynamic = false,
+            bool allowUnexpandedForm = true)
             where TMember : Symbol
         {
             var results = result.ResultsBuilder;
@@ -132,13 +135,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // First, attempt overload resolution not getting complete results.
             PerformMemberOverloadResolution(
                 results, members, typeArguments, arguments, false, isMethodGroupConversion,
-                allowRefOmittedArguments, ref useSiteDiagnostics, inferWithDynamic: inferWithDynamic);
+                allowRefOmittedArguments, ref useSiteDiagnostics, inferWithDynamic: inferWithDynamic,
+                allowUnexpandedForm: allowUnexpandedForm);
 
             if (!OverloadResolutionResultIsValid(results, arguments.HasDynamicArgument))
             {
                 // We didn't get a single good result. Get full results of overload resolution and return those.
                 result.Clear();
-                PerformMemberOverloadResolution(results, members, typeArguments, arguments, true, isMethodGroupConversion, allowRefOmittedArguments, ref useSiteDiagnostics);
+                PerformMemberOverloadResolution(results, members, typeArguments, arguments, true, isMethodGroupConversion,
+                    allowRefOmittedArguments, ref useSiteDiagnostics, allowUnexpandedForm: allowUnexpandedForm);
             }
         }
 
@@ -200,7 +205,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isMethodGroupConversion,
             bool allowRefOmittedArguments,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
-            bool inferWithDynamic = false)
+            bool inferWithDynamic = false,
+            bool allowUnexpandedForm = true)
             where TMember : Symbol
         {
             // SPEC: The binding-time processing of a method invocation of the form M(A), where M is a 
@@ -226,7 +232,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 AddMemberToCandidateSet(
                     members[i], results, members, typeArguments, arguments, completeResults,
-                    isMethodGroupConversion, allowRefOmittedArguments, containingTypeMapOpt, inferWithDynamic: inferWithDynamic, useSiteDiagnostics: ref useSiteDiagnostics);
+                    isMethodGroupConversion, allowRefOmittedArguments, containingTypeMapOpt, inferWithDynamic: inferWithDynamic,
+                    useSiteDiagnostics: ref useSiteDiagnostics, allowUnexpandedForm: allowUnexpandedForm);
             }
 
             // CONSIDER: use containingTypeMapOpt for RemoveLessDerivedMembers?
@@ -381,7 +388,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowRefOmittedArguments,
             Dictionary<NamedTypeSymbol, ArrayBuilder<TMember>> containingTypeMapOpt,
             bool inferWithDynamic,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            bool allowUnexpandedForm)
             where TMember : Symbol
         {
             // SPEC VIOLATION:
@@ -484,8 +492,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Second, we need to determine if the method is applicable in its normal form or its expanded form.
 
-            var normalResult = IsMemberApplicableInNormalForm(
-                member, leastOverriddenMember, typeArguments, arguments, isMethodGroupConversion, allowRefOmittedArguments, inferWithDynamic, ref useSiteDiagnostics);
+            var normalResult = (allowUnexpandedForm || !IsValidParams(leastOverriddenMember))
+                ? IsMemberApplicableInNormalForm(member, leastOverriddenMember, typeArguments, arguments, isMethodGroupConversion, allowRefOmittedArguments, inferWithDynamic, ref useSiteDiagnostics)
+                : default(MemberResolutionResult<TMember>);
 
             var result = normalResult;
             if (!normalResult.Result.IsValid)

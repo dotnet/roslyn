@@ -120,9 +120,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 string methodName,
                 ImmutableArray<BoundExpression> args,
                 DiagnosticBag diagnostics,
-                ImmutableArray<TypeSymbol> typeArgs = default(ImmutableArray<TypeSymbol>))
+                ImmutableArray<TypeSymbol> typeArgs = default(ImmutableArray<TypeSymbol>),
+                bool allowUnexpandedForm = true)
             {
-                return MakeInvocationExpression(node, receiver, methodName, args, diagnostics, typeArgs: typeArgs, allowFieldsAndProperties: false);
+                return MakeInvocationExpression(node, receiver, methodName, args, diagnostics, typeArgs: typeArgs, allowFieldsAndProperties: false, allowUnexpandedForm: allowUnexpandedForm);
             }
         }
 
@@ -531,9 +532,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntheticBinder.MakeInvocationExpression(this.Syntax, this.Type(receiver), name, args.ToImmutableArray(), this.Diagnostics);
         }
 
-        public BoundExpression StaticCall(TypeSymbol receiver, string name, ImmutableArray<BoundExpression> args)
+        public BoundExpression StaticCall(TypeSymbol receiver, string name, ImmutableArray<BoundExpression> args, bool allowUnexpandedForm = true)
         {
-            return SyntheticBinder.MakeInvocationExpression(this.Syntax, this.Type(receiver), name, args, this.Diagnostics);
+            return SyntheticBinder.MakeInvocationExpression(this.Syntax, this.Type(receiver), name, args, this.Diagnostics, allowUnexpandedForm: allowUnexpandedForm);
         }
 
         public BoundExpression StaticCall(TypeSymbol receiver, string name, ImmutableArray<TypeSymbol> typeArgs, params BoundExpression[] args)

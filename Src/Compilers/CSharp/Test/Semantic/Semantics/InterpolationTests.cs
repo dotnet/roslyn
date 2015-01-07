@@ -1060,6 +1060,28 @@ class Program
                 Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, @"""{").WithLocation(6, 18)
                 );
         }
+        
+        [WorkItem(1099105, "DevDiv")]
+        [Fact]
+        public void NoUnexpandedForm()
+        {
+            string source =
+@"using System;
+class Program {
+    public static void Main(string[] args)
+    {
+        string[] arr1 = new string[] { ""xyzzy"" };
+        object[] arr2 = arr1;
+        Console.WriteLine($""-{null}-"");
+        Console.WriteLine($""-{arr1}-"");
+        Console.WriteLine($""-{arr2}-"");
+    }
+}";
+            CompileAndVerify(source + formattableString, expectedOutput:
+@"--
+-System.String[]-
+-System.String[]-");
+        }
 
     }
 }
