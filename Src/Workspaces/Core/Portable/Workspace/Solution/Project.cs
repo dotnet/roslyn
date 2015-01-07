@@ -592,49 +592,49 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Creates a new document in a new instance of this project.
         /// </summary>
-        public Document AddDocument(string name, SyntaxNode syntaxRoot, IEnumerable<string> folders = null)
+        public Document AddDocument(string name, SyntaxNode syntaxRoot, IEnumerable<string> folders = null, string filePath = null)
         {
             var id = DocumentId.CreateNewId(this.Id);
 
             // use preserve identity for forked solution directly from syntax node.
             // this lets us not serialize temporary tree unnecessarily
-            return this.Solution.AddDocument(id, name, syntaxRoot, folders, preservationMode: PreservationMode.PreserveIdentity).GetDocument(id);
+            return this.Solution.AddDocument(id, name, syntaxRoot, folders, filePath, preservationMode: PreservationMode.PreserveIdentity).GetDocument(id);
         }
 
         /// <summary>
         /// Creates a new document in a new instance of this project.
         /// </summary>
-        public Document AddDocument(string name, SourceText text, IEnumerable<string> folders = null)
+        public Document AddDocument(string name, SourceText text, IEnumerable<string> folders = null, string filePath = null)
         {
             var id = DocumentId.CreateNewId(this.Id);
-            return this.Solution.AddDocument(id, name, text, folders).GetDocument(id);
+            return this.Solution.AddDocument(id, name, text, folders, filePath).GetDocument(id);
         }
 
         /// <summary>
         /// Creates a new document in a new instance of this project.
         /// </summary>
-        public Document AddDocument(string name, string text, IEnumerable<string> folders = null)
+        public Document AddDocument(string name, string text, IEnumerable<string> folders = null, string filePath = null)
         {
             var id = DocumentId.CreateNewId(this.Id, debugName: name);
-            return this.Solution.AddDocument(id, name, text, folders).GetDocument(id);
+            return this.Solution.AddDocument(id, name, text, folders, filePath).GetDocument(id);
         }
 
         /// <summary>
         /// Creates a new additional document in a new instance of this project.
         /// </summary>
-        public TextDocument AddAdditionalDocument(string name, SourceText text, IEnumerable<string> folders = null)
+        public TextDocument AddAdditionalDocument(string name, SourceText text, IEnumerable<string> folders = null, string filePath = null)
         {
             var id = DocumentId.CreateNewId(this.Id);
-            return this.Solution.AddAdditionalDocument(id, name, text, folders).GetAdditionalDocument(id);
+            return this.Solution.AddAdditionalDocument(id, name, text, folders, filePath).GetAdditionalDocument(id);
         }
 
         /// <summary>
         /// Creates a new additional document in a new instance of this project.
         /// </summary>
-        public TextDocument AddAdditionalDocument(string name, string text, IEnumerable<string> folders = null)
+        public TextDocument AddAdditionalDocument(string name, string text, IEnumerable<string> folders = null, string filePath = null)
         {
             var id = DocumentId.CreateNewId(this.Id);
-            return this.Solution.AddAdditionalDocument(id, name, text, folders).GetAdditionalDocument(id);
+            return this.Solution.AddAdditionalDocument(id, name, text, folders, filePath).GetAdditionalDocument(id);
         }
 
         /// <summary>
