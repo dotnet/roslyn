@@ -28,10 +28,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         internal static readonly Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> EmptyLocalsProvider = handle => default(EditAndContinueMethodDebugInformation);
 
-        internal static string Visualize(ModuleMetadata baseline, PinnedMetadata delta)
+        internal static string Visualize(ModuleMetadata baseline, params PinnedMetadata[] deltas)
         {
             var result = new StringWriter();
-            new MetadataVisualizer(new[] { baseline.MetadataReader, delta.Reader }, result).VisualizeAllGenerations();
+            new MetadataVisualizer(new[] { baseline.MetadataReader }.Concat(deltas.Select(d => d.Reader)).ToArray(), result).VisualizeAllGenerations();
             return result.ToString();
         }
 
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         internal static void CheckNames(MetadataReader[] readers, StringHandle[] handles, params string[] expectedNames)
         {
             var actualNames = readers.GetStrings(handles);
-            AssertEx.Equal(actualNames, expectedNames);
+            AssertEx.Equal(expectedNames, actualNames);
         }
 
         internal static string EncLogRowToString(EditAndContinueLogEntry row)

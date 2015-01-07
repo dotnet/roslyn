@@ -60,6 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             this.changes = new SymbolChanges(this.previousDefinitions, edits, isAddedSymbol);
         }
 
+        public override int CurrentGenerationOrdinal => this.previousGeneration.Ordinal + 1;
+
         private static IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> GetAnonymousTypeMapFromMetadata(
             MetadataReader reader,
             Symbols.Metadata.PE.MetadataDecoder metadataDecoder)

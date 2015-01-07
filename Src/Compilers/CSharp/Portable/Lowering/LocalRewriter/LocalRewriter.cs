@@ -58,7 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowOmissionOfConditionalCalls,
             DiagnosticBag diagnostics,
             out bool sawLambdas,
-            out bool sawDynamicOperations,
             out bool sawAwaitInExceptionHandler)
         {
             Debug.Assert(statement != null);
@@ -71,7 +70,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var loweredStatement = (BoundStatement)localRewriter.Visit(statement);
                 sawLambdas = localRewriter.sawLambdas;
                 sawAwaitInExceptionHandler = localRewriter.sawAwaitInExceptionHandler;
-                sawDynamicOperations = localRewriter.dynamicFactory.GeneratedDynamicOperations;
                 var block = loweredStatement as BoundBlock;
                 var result = (block == null) ? loweredStatement : InsertPrologueSequencePoint(block, method);
                 return result;
@@ -79,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
             {
                 diagnostics.Add(ex.Diagnostic);
-                sawLambdas = sawDynamicOperations = sawAwaitInExceptionHandler = false;
+                sawLambdas = sawAwaitInExceptionHandler = false;
                 return new BoundBadStatement(statement.Syntax, ImmutableArray.Create<BoundNode>(statement), hasErrors: true);
             }
         }

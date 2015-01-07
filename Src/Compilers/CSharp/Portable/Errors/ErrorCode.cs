@@ -1222,7 +1222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadAwaitInCatchFilter = 7094,
         WRN_FilterIsConstant = 7095,
         ERR_EncNoPIAReference = 7096,
-        ERR_EncNoDynamicOperation = 7097,
+        //ERR_EncNoDynamicOperation = 7097,   // dynamic operations are now allowed
         ERR_LinkedNetmoduleMetadataMustProvideFullPEImage = 7098,
         ERR_MetadataReferencesNotSupported = 7099,
         ERR_InvalidAssemblyCulture = 7100,

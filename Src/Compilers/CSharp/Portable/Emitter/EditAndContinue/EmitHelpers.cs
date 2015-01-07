@@ -149,19 +149,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var currentSynthesizedMembers = moduleBeingBuilt.GetSynthesizedMembers();
 
             // Mapping from previous compilation to the current.
-            var matcher = new CSharpSymbolMatcher(
-                anonymousTypeMap: moduleBeingBuilt.GetAnonymousTypeMap(),
-                sourceAssembly: ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly,
-                sourceContext: new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag()),
-                otherAssembly: compilation.SourceAssembly,
-                otherContext: new EmitContext(moduleBeingBuilt, null, new DiagnosticBag()),
-                otherSynthesizedMembersOpt: currentSynthesizedMembers);
+            var anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap();
+            var sourceAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
+            var sourceContext = new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag());
+            var otherContext = new EmitContext(moduleBeingBuilt, null, new DiagnosticBag());
 
-            return matcher.MapBaselineToCompilation(
+            var matcher = new CSharpSymbolMatcher(
+                anonymousTypeMap,
+                sourceAssembly,
+                sourceContext,
+                compilation.SourceAssembly,
+                otherContext,
+                currentSynthesizedMembers);
+
+            var mappedSynthesizedMembers = matcher.MapSynthesizedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers);
+
+            // TODO: can we reuse some data from the previos matcher?
+            var matcherWithAllSynthesizedMembers = new CSharpSymbolMatcher(
+                anonymousTypeMap,
+                sourceAssembly,
+                sourceContext,
+                compilation.SourceAssembly,
+                otherContext,
+                mappedSynthesizedMembers);
+
+            return matcherWithAllSynthesizedMembers.MapBaselineToCompilation(
                 previousGeneration,
                 compilation,
                 moduleBeingBuilt,
-                currentSynthesizedMembers);
+                mappedSynthesizedMembers);
         }
     }
 }

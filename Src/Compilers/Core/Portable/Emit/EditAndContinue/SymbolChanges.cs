@@ -92,8 +92,31 @@ namespace Microsoft.CodeAnalysis.Emit
                         return SymbolChange.None;
 
                     case SymbolChange.Added:
-                        // The method has been added - add the synthesized member as well.
-                        return SymbolChange.Added;
+                        // The method has been added - add the synthesized member as well, unless they already exist.
+                        if (!this.definitionMap.DefinitionExists(def))
+                        {
+                            return SymbolChange.Added;
+                        }
+
+                        // If the existing member is a type we need to add new members into it.
+                        // An example is a shared static display class - an added method with static lambda will contribute
+                        // the lambda and cache fields into the shared display class.
+                        if (synthesizedSymbol.Kind == SymbolKind.NamedType)
+                        {
+                            return SymbolChange.ContainsChanges;
+                        }
+
+                        // Update method.
+                        // An example is a constructor a shared display class - an added method with lambda will contribute
+                        // cache field initialization code into the constructor.
+                        if (synthesizedSymbol.Kind == SymbolKind.Method)
+                        {
+                            return SymbolChange.Updated;
+                        }
+
+                        // Otherwise, there is nothing to do.
+                        // For example, a static lambda display class cache field.
+                        return SymbolChange.None;
 
                     default:
                         // The method had to change, otherwise the synthesized symbol wouldn't be generated

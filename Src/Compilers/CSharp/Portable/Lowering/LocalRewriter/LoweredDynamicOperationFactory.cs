@@ -598,11 +598,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return factory.Array(argumentInfoFactory.ContainingType, infos);
         }
 
-        internal bool GeneratedDynamicOperations
-        {
-            get { return (object)this.currentDynamicCallSiteContainer != null; }
-        }
-
         internal LoweredDynamicOperation MakeDynamicOperation(
             BoundExpression binderConstruction,
             BoundExpression loweredReceiver,
@@ -670,7 +665,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static NamedTypeSymbol CreateCallSiteContainer(SyntheticBoundNodeFactory factory, int methodOrdinal)
         {
-            var containerName = GeneratedNames.MakeDynamicCallSiteContainerName(methodOrdinal);
+            // We don't reuse call-sites during EnC. Each edit creates a new container and sites.
+            int generation = factory.CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal;
+            var containerName = GeneratedNames.MakeDynamicCallSiteContainerName(methodOrdinal, generation);
 
             var synthesizedContainer = new DynamicSiteContainer(containerName, factory.TopLevelMethod);
             factory.AddNestedType(synthesizedContainer);

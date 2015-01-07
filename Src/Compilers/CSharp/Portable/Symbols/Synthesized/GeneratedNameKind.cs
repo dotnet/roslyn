@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -59,27 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (openBracketOffset >= 0)
             {
-                closeBracketOffset = -1;
-                int depth = 1;
-                for (int i = openBracketOffset + 1; i < name.Length; i++)
-                {
-                    switch (name[i])
-                    {
-                        case '<':
-                            depth++;
-                            break;
-                        case '>':
-                            depth--;
-                            if (depth == 0)
-                            {
-                                closeBracketOffset = i;
-                                goto found;
-                            }
-                            break;
-                    }
-                }
-
-                found:
+                closeBracketOffset = name.IndexOfBalancedParenthesis(openBracketOffset, '>');
                 if (closeBracketOffset >= 0 && closeBracketOffset + 1 < name.Length)
                 {
                     int c = name[closeBracketOffset + 1];

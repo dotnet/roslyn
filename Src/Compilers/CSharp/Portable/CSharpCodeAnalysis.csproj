@@ -697,6 +697,7 @@
     <Compile Include="Symbols\Synthesized\SynthesizedInstanceConstructor.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedInstanceMethodSymbol.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedIntrinsicOperatorSymbol.cs" />
+    <Compile Include="Symbols\Synthesized\SynthesizedLambdaCacheFieldSymbol.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedLocal.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedImplementationMethod.cs" />
     <Compile Include="Symbols\Synthesized\SynthesizedParameterSymbol.cs" />

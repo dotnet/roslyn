@@ -1,10 +1,14 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -12,6 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         internal const string SynthesizedLocalNamePrefix = "CS$";
         internal const char DotReplacementInTypeNames = '-';
+        private const string SuffixSeparator = "__";
+        private const char IdSeparator = '_';
+        private const char GenerationSeparator = '#';
 
         private static readonly ImmutableArray<string> numericStrings = ImmutableArray.Create("0", "1", "2", "3", "4", "5", "6", "7", "8", "9");
 
@@ -42,19 +49,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>m__Finally" + GetString(Math.Abs(iteratorState + 2));
         }
 
-        internal static string MakeStaticLambdaDisplayClassName(int methodOrdinal)
+        internal static string MakeStaticLambdaDisplayClassName(int methodOrdinal, int generation)
         {
-            const string prefix = "<>c";
-            return (methodOrdinal >= 0) ? prefix + GetString(methodOrdinal) : prefix;
+            return MakeMethodScopedSynthesizedName(GeneratedNameKind.LambdaDisplayClassType, methodOrdinal, generation);
         }
 
-        internal static string MakeLambdaDisplayClassName(int methodOrdinal, int scopeOrdinal)
+        internal static string MakeLambdaDisplayClassName(int methodOrdinal, int generation, int scopeOrdinal)
         {
             // -1 for singleton static lambdas
             Debug.Assert(scopeOrdinal >= -1);
             Debug.Assert(methodOrdinal >= 0);
 
-            return MakeMethodScopedSynthesizedName(GeneratedNameKind.LambdaDisplayClassType, methodOrdinal, suffix: "DisplayClass", uniqueId: scopeOrdinal, isTypeName: true);
+            return MakeMethodScopedSynthesizedName(GeneratedNameKind.LambdaDisplayClassType, methodOrdinal, generation, suffix: "DisplayClass", uniqueId: scopeOrdinal, isTypeName: true);
         }
 
         internal static string MakeAnonymousTypeTemplateName(int index, int submissionSlotIndex, string moduleId)
@@ -109,10 +115,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal static string MakeStateMachineTypeName(string methodName, int methodOrdinal)
+        internal static string MakeStateMachineTypeName(string methodName, int methodOrdinal, int generation)
         {
+            Debug.Assert(generation >= 0);
             Debug.Assert(methodOrdinal >= -1);
-            return MakeMethodScopedSynthesizedName(GeneratedNameKind.StateMachineType, methodOrdinal, methodName, isTypeName: true);
+
+            return MakeMethodScopedSynthesizedName(GeneratedNameKind.StateMachineType, methodOrdinal, generation, methodName, isTypeName: true);
         }
 
         internal static string MakeBaseMethodWrapperName(int uniqueId)
@@ -120,27 +128,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>n__" + GetString(uniqueId);
         }
 
-        internal static string MakeLambdaMethodName(string methodName, int methodOrdinal, int lambdaOrdinal)
+        internal static string MakeLambdaMethodName(string methodName, int methodOrdinal, int generation, int lambdaOrdinal)
         {
+            Debug.Assert(generation >= 0);
             Debug.Assert(methodOrdinal >= -1);
             Debug.Assert(lambdaOrdinal >= 0);
 
             // The EE displays the containing method name and unique id in the stack trace,
             // and uses it to find the original binding context.
-            return MakeMethodScopedSynthesizedName(GeneratedNameKind.LambdaMethod, methodOrdinal, methodName, uniqueId: lambdaOrdinal);
+            return MakeMethodScopedSynthesizedName(GeneratedNameKind.LambdaMethod, methodOrdinal, generation, methodName, uniqueId: lambdaOrdinal);
         }
 
-        internal static string MakeLambdaCacheFieldName(int methodOrdinal, int lambdaOrdinal)
+        internal static string MakeLambdaCacheFieldName(int methodOrdinal, int generation, int lambdaOrdinal)
         {
             Debug.Assert(methodOrdinal >= -1);
             Debug.Assert(lambdaOrdinal >= 0);
 
-            return MakeMethodScopedSynthesizedName(GeneratedNameKind.LambdaCacheField, methodOrdinal, uniqueId: lambdaOrdinal);
+            return MakeMethodScopedSynthesizedName(GeneratedNameKind.LambdaCacheField, methodOrdinal, generation, uniqueId: lambdaOrdinal);
         }
 
-        private static string MakeMethodScopedSynthesizedName(GeneratedNameKind kind, int methodOrdinal, string methodNameOpt = null, string suffix = null, int uniqueId = -1, bool isTypeName = false)
+        private static string MakeMethodScopedSynthesizedName(GeneratedNameKind kind, int methodOrdinal, int generation, string methodNameOpt = null, string suffix = null, int uniqueId = -1, bool isTypeName = false)
         {
             Debug.Assert(methodOrdinal >= -1);
+            Debug.Assert(generation >= 0);
             Debug.Assert(uniqueId >= -1);
 
             var result = PooledStringBuilder.GetInstance();
@@ -169,19 +179,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (suffix != null || methodOrdinal >= 0 || uniqueId >= 0)
             {
-                builder.Append("__");
+                builder.Append(SuffixSeparator);
                 builder.Append(suffix);
 
                 if (methodOrdinal >= 0)
                 {
                     builder.Append(methodOrdinal);
+
+                    if (generation > 0)
+                    {
+                        builder.Append(GenerationSeparator);
+                        builder.Append(generation);
+                    }
                 }
 
                 if (uniqueId >= 0)
                 {
                     if (methodOrdinal >= 0)
                     {
-                        builder.Append('_');
+                        builder.Append(IdSeparator);
                     }
 
                     builder.Append(uniqueId);
@@ -362,9 +378,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>3__" + parameterName;
         }
 
-        internal static string MakeDynamicCallSiteContainerName(int methodOrdinal)
+        internal static string MakeDynamicCallSiteContainerName(int methodOrdinal, int generation)
         {
-            return MakeMethodScopedSynthesizedName(GeneratedNameKind.DynamicCallSiteContainer, methodOrdinal, isTypeName: true);
+            return MakeMethodScopedSynthesizedName(GeneratedNameKind.DynamicCallSiteContainer, methodOrdinal, generation, isTypeName: true);
         }
 
         internal static string MakeDynamicCallSiteFieldName(int uniqueId)

@@ -1122,7 +1122,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             bool sawLambdas;
-            bool sawDynamicOperations;
             bool sawAwaitInExceptionHandler;
             var loweredBody = LocalRewriter.Rewrite(
                 method.DeclaringCompilation,
@@ -1135,16 +1134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 allowOmissionOfConditionalCalls: true,
                 diagnostics: diagnostics,
                 sawLambdas: out sawLambdas,
-                sawDynamicOperations: out sawDynamicOperations,
                 sawAwaitInExceptionHandler: out sawAwaitInExceptionHandler);
-
-            if (sawDynamicOperations && compilationState.ModuleBuilderOpt.IsEncDelta)
-            {
-                // Dynamic operations are not supported in ENC.
-                var location = method.Locations[0];
-                diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_EncNoDynamicOperation), location);
-                return loweredBody;
-            }
 
             if (loweredBody.HasErrors)
             {

@@ -126,19 +126,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim currentSynthesizedMembers = moduleBeingBuilt.GetSynthesizedMembers()
 
             ' Mapping from previous compilation to the current.
-            Dim matcher = New VisualBasicSymbolMatcher(
-                moduleBeingBuilt.GetAnonymousTypeMap(),
-                sourceAssembly:=DirectCast(previousGeneration.Compilation, VisualBasicCompilation).SourceAssembly,
-                sourceContext:=New EmitContext(DirectCast(previousGeneration.PEModuleBuilder, PEModuleBuilder), Nothing, New DiagnosticBag()),
-                otherAssembly:=compilation.SourceAssembly,
-                otherContext:=New EmitContext(moduleBeingBuilt, Nothing, New DiagnosticBag()),
-                otherSynthesizedMembersOpt:=currentSynthesizedMembers)
+            Dim anonymousTypeMap = moduleBeingBuilt.GetAnonymousTypeMap()
+            Dim sourceAssembly = DirectCast(previousGeneration.Compilation, VisualBasicCompilation).SourceAssembly
+            Dim sourceContext = New EmitContext(DirectCast(previousGeneration.PEModuleBuilder, PEModuleBuilder), Nothing, New DiagnosticBag())
+            Dim otherContext = New EmitContext(moduleBeingBuilt, Nothing, New DiagnosticBag())
 
-            Return matcher.MapBaselineToCompilation(
+            Dim matcher = New VisualBasicSymbolMatcher(
+                anonymousTypeMap,
+                sourceAssembly,
+                sourceContext,
+                compilation.SourceAssembly,
+                otherContext,
+                currentSynthesizedMembers)
+
+            Dim mappedSynthesizedMembers = matcher.MapSynthesizedMembers(previousGeneration.SynthesizedMembers, currentSynthesizedMembers)
+
+            ' TODO can we reuse some data from the previos matcher?
+            Dim matcherWithAllSynthesizedMembers = New VisualBasicSymbolMatcher(
+                anonymousTypeMap,
+                sourceAssembly,
+                sourceContext,
+                compilation.SourceAssembly,
+                otherContext,
+                mappedSynthesizedMembers)
+
+            Return matcherWithAllSynthesizedMembers.MapBaselineToCompilation(
                 previousGeneration,
                 compilation,
                 moduleBeingBuilt,
-                currentSynthesizedMembers)
+                mappedSynthesizedMembers)
         End Function
     End Module
 End Namespace

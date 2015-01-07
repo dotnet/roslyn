@@ -4999,9 +4999,7 @@ class B
 }
 ");
         }
-        /// <summary>
-        /// Disallow edits that include "dynamic" operations.
-        /// </summary>
+
         [WorkItem(770502, "DevDiv")]
         [WorkItem(839565, "DevDiv")]
         [Fact]
@@ -5047,10 +5045,7 @@ class B
                 var diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
-                diff1.EmitResult.Diagnostics.Verify(
-                    // (10,17): error CS7097: Cannot continue since the edit includes an operation on a 'dynamic' type.
-                    //     static void M(object o)
-                    Diagnostic(ErrorCode.ERR_EncNoDynamicOperation, "M").WithLocation(10, 17));
+                diff1.EmitResult.Diagnostics.Verify();
 
                 // Source method with no dynamic operations.
                 methodData0 = testData0.GetMethodData("A.N");
@@ -5070,10 +5065,7 @@ class B
                 diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
-                diff1.EmitResult.Diagnostics.Verify(
-                    // (9,5): error CS7097: Cannot continue since the edit includes an operation on a 'dynamic' type.
-                    //     A() { }
-                    Diagnostic(ErrorCode.ERR_EncNoDynamicOperation, "A").WithLocation(9, 5));
+                diff1.EmitResult.Diagnostics.Verify();
 
                 // Explicit .cctor with dynamic operations.
                 methodData0 = testData0.GetMethodData("A..cctor");
@@ -5083,10 +5075,7 @@ class B
                 diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
-                diff1.EmitResult.Diagnostics.Verify(
-                    // (5,12): error CS7097: Cannot continue since the edit includes an operation on a 'dynamic' type.
-                    //     static A()
-                    Diagnostic(ErrorCode.ERR_EncNoDynamicOperation, "A").WithLocation(5, 12));
+                diff1.EmitResult.Diagnostics.Verify();
 
                 // Implicit .ctor with dynamic operations.
                 methodData0 = testData0.GetMethodData("B..ctor");
@@ -5096,10 +5085,7 @@ class B
                 diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
-                diff1.EmitResult.Diagnostics.Verify(
-                    // (19,7): error CS7097: Cannot continue since the edit includes an operation on a 'dynamic' type.
-                    // class B
-                    Diagnostic(ErrorCode.ERR_EncNoDynamicOperation, "B").WithLocation(19, 7));
+                diff1.EmitResult.Diagnostics.Verify();
 
                 // Implicit .cctor with dynamic operations.
                 methodData0 = testData0.GetMethodData("B..cctor");
@@ -5109,10 +5095,7 @@ class B
                 diff1 = compilation1.EmitDifference(
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0), preserveLocalVariables: true)));
-                diff1.EmitResult.Diagnostics.Verify(
-                    // (19,7): error CS7097: Cannot continue since the edit includes an operation on a 'dynamic' type.
-                    // class B
-                    Diagnostic(ErrorCode.ERR_EncNoDynamicOperation, "B").WithLocation(19, 7));
+                diff1.EmitResult.Diagnostics.Verify();
             }
         }
 
@@ -5806,6 +5789,61 @@ public class B
   IL_0007:  ret
 }
 ");
+        }
+
+        [Fact]
+        public void UniqueSynthesizedNames_DynamicSiteContainer()
+        {
+            var source0 = @"
+public class C
+{    
+    public static void F(dynamic d) { d.Foo(); }
+}";
+            var source1 = @"
+public class C
+{
+    public static void F(dynamic d) { d.Bar(); }
+}";
+            var source2 = @"
+public class C
+{
+    public static void F(dynamic d, byte b) { d.Bar(); }
+    public static void F(dynamic d) { d.Bar(); }
+}";
+
+            var compilation0 = CreateCompilationWithMscorlib45(source0, new[] { SystemCoreRef, CSharpRef }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "A");
+            var compilation1 = compilation0.WithSource(source1);
+            var compilation2 = compilation1.WithSource(source2);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            var f_byte2 = compilation2.GetMembers("C.F").Single(m => m.ToString() == "C.F(dynamic, byte)");
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, f0, f1, preserveLocalVariables: true)));
+
+            diff1.EmitResult.Diagnostics.Verify();
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Insert, null, f_byte2)));
+
+            diff2.EmitResult.Diagnostics.Verify();
+
+            var reader0 = md0.MetadataReader;
+            var reader1 = diff1.GetMetadata().Reader;
+            var reader2 = diff2.GetMetadata().Reader;
+
+            CheckNames(reader0, reader0.GetTypeDefNames(), "<Module>", "C", "<>o__0");
+            CheckNames(new[] { reader0, reader1 }, reader1.GetTypeDefNames(), "<>o__0#1");
+            CheckNames(new[] { reader0, reader1, reader2 }, reader2.GetTypeDefNames(), "<>o__0#2");
         }
     }
 }

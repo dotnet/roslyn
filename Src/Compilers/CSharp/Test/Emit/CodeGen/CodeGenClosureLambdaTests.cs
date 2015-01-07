@@ -939,7 +939,7 @@ class Program
     }
 }";
             var verifier = CompileAndVerify(source, expectedOutput: "pass");
-            verifier.VerifyIL("Program.<>c1<T>.<F>b__1_0", @"
+            verifier.VerifyIL("Program.<>c__1<T>.<F>b__1_0", @"
 {
   // Code size       67 (0x43)
   .maxstack  2
@@ -3866,50 +3866,50 @@ public class C
                 var c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 AssertEx.Equal(new[]
                 {
-                    "C.<>c0<TF>",
-                    "C.<>c1<TG>",
-                    "C.<>c2<TF1, TF2>",
-                    "C.<>c3<TG1, TG2>"
+                    "C.<>c__0<TF>",
+                    "C.<>c__1<TG>",
+                    "C.<>c__2<TF1, TF2>",
+                    "C.<>c__3<TG1, TG2>"
                 }, c.GetMembers().Where(member => member.Kind == SymbolKind.NamedType).Select(member => member.ToString()));
 
-                var c0 = c.GetMember<NamedTypeSymbol>("<>c0"); 
+                var c0 = c.GetMember<NamedTypeSymbol>("<>c__0"); 
                 AssertEx.SetEqual(new[]
                 {
-                    "C.<>c0<TF>.<>9",
-                    "C.<>c0<TF>.<>9__0_0",
-                    "C.<>c0<TF>.<>c0()",
-                    "C.<>c0<TF>.<>c0()",
-                    "C.<>c0<TF>.<F>b__0_0()",
+                    "C.<>c__0<TF>.<>9",
+                    "C.<>c__0<TF>.<>9__0_0",
+                    "C.<>c__0<TF>.<>c__0()",
+                    "C.<>c__0<TF>.<>c__0()",
+                    "C.<>c__0<TF>.<F>b__0_0()",
                 }, c0.GetMembers().Select(member => member.ToString()));
 
-                var c1 = c.GetMember<NamedTypeSymbol>("<>c1");
+                var c1 = c.GetMember<NamedTypeSymbol>("<>c__1");
                 AssertEx.SetEqual(new[]
                 {
-                    "C.<>c1<TG>.<>9",
-                    "C.<>c1<TG>.<>9__1_0",
-                    "C.<>c1<TG>.<>c1()",
-                    "C.<>c1<TG>.<>c1()",
-                    "C.<>c1<TG>.<G>b__1_0()",
+                    "C.<>c__1<TG>.<>9",
+                    "C.<>c__1<TG>.<>9__1_0",
+                    "C.<>c__1<TG>.<>c__1()",
+                    "C.<>c__1<TG>.<>c__1()",
+                    "C.<>c__1<TG>.<G>b__1_0()",
                 }, c1.GetMembers().Select(member => member.ToString()));
 
-                var c2 = c.GetMember<NamedTypeSymbol>("<>c2");
+                var c2 = c.GetMember<NamedTypeSymbol>("<>c__2");
                 AssertEx.SetEqual(new[]
                 {
-                    "C.<>c2<TF1, TF2>.<>9",
-                    "C.<>c2<TF1, TF2>.<>9__2_0",
-                    "C.<>c2<TF1, TF2>.<>c2()",
-                    "C.<>c2<TF1, TF2>.<>c2()",
-                    "C.<>c2<TF1, TF2>.<F>b__2_0(TF1)",
+                    "C.<>c__2<TF1, TF2>.<>9",
+                    "C.<>c__2<TF1, TF2>.<>9__2_0",
+                    "C.<>c__2<TF1, TF2>.<>c__2()",
+                    "C.<>c__2<TF1, TF2>.<>c__2()",
+                    "C.<>c__2<TF1, TF2>.<F>b__2_0(TF1)",
                 }, c2.GetMembers().Select(member => member.ToString()));
 
-                var c3 = c.GetMember<NamedTypeSymbol>("<>c3");
+                var c3 = c.GetMember<NamedTypeSymbol>("<>c__3");
                 AssertEx.SetEqual(new[]
                 {
-                    "C.<>c3<TG1, TG2>.<>9",
-                    "C.<>c3<TG1, TG2>.<>9__3_0",
-                    "C.<>c3<TG1, TG2>.<>c3()",
-                    "C.<>c3<TG1, TG2>.<>c3()",
-                    "C.<>c3<TG1, TG2>.<G>b__3_0(TG1)",
+                    "C.<>c__3<TG1, TG2>.<>9",
+                    "C.<>c__3<TG1, TG2>.<>9__3_0",
+                    "C.<>c__3<TG1, TG2>.<>c__3()",
+                    "C.<>c__3<TG1, TG2>.<>c__3()",
+                    "C.<>c__3<TG1, TG2>.<G>b__3_0(TG1)",
                 }, c3.GetMembers().Select(member => member.ToString()));
             });
         }
@@ -3937,8 +3937,8 @@ public class C
                 var c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 AssertEx.Equal(new[]
                 {
-                    "C.<>c0<TF>",
-                    "C.<>c1<TG>",
+                    "C.<>c__0<TF>",
+                    "C.<>c__1<TG>",
                 }, c.GetMembers().Where(member => member.Kind == SymbolKind.NamedType).Select(member => member.ToString()));
             });
         }

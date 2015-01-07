@@ -3446,15 +3446,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot continue since the edit includes an operation on a &apos;dynamic&apos; type..
-        /// </summary>
-        internal static string ERR_EncNoDynamicOperation {
-            get {
-                return ResourceManager.GetString("ERR_EncNoDynamicOperation", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot continue since the edit includes a reference to an embedded type: &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_EncNoPIAReference {

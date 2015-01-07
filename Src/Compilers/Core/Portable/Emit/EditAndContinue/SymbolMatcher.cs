@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Emit
             EmitBaseline baseline,
             Compilation targetCompilation,
             CommonPEModuleBuilder targetModuleBuilder,
-            ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> targetCompilationSynthesizedMembers)
+            ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> mappedSynthesizedMembers)
         {
             // Map all definitions to this compilation.
             var typesAdded = MapDefinitions(baseline.TypesAdded);
@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis.Emit
                 stringStreamLengthAdded: baseline.StringStreamLengthAdded,
                 userStringStreamLengthAdded: baseline.UserStringStreamLengthAdded,
                 guidStreamLengthAdded: baseline.GuidStreamLengthAdded,
-                anonymousTypeMap: MapAnonymousTypes(baseline.AnonymousTypeMap),
-                synthesizedMembers: MapSynthesizedMembers(baseline.SynthesizedMembers, targetCompilationSynthesizedMembers),
-                addedOrChangedMethods: MapAddedOrChangedMethods(baseline.AddedOrChangedMethods),
+                anonymousTypeMap: this.MapAnonymousTypes(baseline.AnonymousTypeMap),
+                synthesizedMembers: mappedSynthesizedMembers,
+                addedOrChangedMethods: this.MapAddedOrChangedMethods(baseline.AddedOrChangedMethods),
                 debugInformationProvider: baseline.DebugInformationProvider);
         }
 
@@ -110,14 +110,11 @@ namespace Microsoft.CodeAnalysis.Emit
         /// Then the resulting collection shall have the following entries:
         /// {S' -> {A', B', C, D}, U -> {G, H}, T -> {E, F}}
         /// </remarks>
-        private ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> MapSynthesizedMembers(
+        internal ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> MapSynthesizedMembers(
             ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> previousMembers,
             ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> newMembers)
         {
-            if (newMembers.Count == 0)
-            {
-                return previousMembers;
-            }
+            // Note: we can't just return previous members if there are no new members, since we still need to map the symbols to the new compilation.
 
             if (previousMembers.Count == 0)
             {

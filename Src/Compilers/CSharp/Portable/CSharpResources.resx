@@ -4104,9 +4104,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_EncNoPIAReference" xml:space="preserve">
     <value>Cannot continue since the edit includes a reference to an embedded type: '{0}'.</value>
   </data>
-  <data name="ERR_EncNoDynamicOperation" xml:space="preserve">
-    <value>Cannot continue since the edit includes an operation on a 'dynamic' type.</value>
-  </data>
   <data name="ERR_EncReferenceToAddedMember" xml:space="preserve">
     <value>Member '{0}' added during the current debug session can only be accessed from within its declaring assembly '{1}'.</value>
   </data>

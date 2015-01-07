@@ -448,7 +448,7 @@ class C
     }}
 }}
 ";
-            int padding = GeneratedNames.MakeLambdaMethodName("A", -1, 1).Length - 1;
+            int padding = GeneratedNames.MakeLambdaMethodName("A", -1, 0, 0).Length - 1;
             string longName = LongSymbolName.Substring(padding);
             var source = string.Format(sourceTemplate, longName);
             var comp = CreateCompilationWithMscorlib(source);
@@ -519,7 +519,7 @@ class Async
     }}
 }}
 ";
-            int padding = GeneratedNames.MakeStateMachineTypeName("A", 1).Length - 1;
+            int padding = GeneratedNames.MakeStateMachineTypeName("A", 0, 0).Length - 1;
             string longName = LongSymbolName.Substring(padding);
             var source = string.Format(sourceTemplate, longName);
             var comp = CreateCompilationWithMscorlib45(source);

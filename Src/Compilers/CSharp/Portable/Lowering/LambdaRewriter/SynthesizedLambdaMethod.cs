@@ -10,26 +10,30 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// A method that results from the translation of a single lambda expression.
     /// </summary>
-    internal sealed class SynthesizedLambdaMethod : SynthesizedMethodBaseSymbol
+    internal sealed class SynthesizedLambdaMethod : SynthesizedMethodBaseSymbol, ISynthesizedMethodBodyImplementationSymbol
     {
+        private readonly MethodSymbol topLevelMethod;
+
         internal SynthesizedLambdaMethod(
-            VariableSlotAllocator slotAllocatorOpt, 
-            NamedTypeSymbol containingType,
-            ClosureKind closureKind, 
-            MethodSymbol topLevelMethod, 
-            int topLevelMethodOrdinal, 
-            BoundLambda node,
+            VariableSlotAllocator slotAllocatorOpt,
             TypeCompilationState compilationState,
+            NamedTypeSymbol containingType,
+            ClosureKind closureKind,
+            MethodSymbol topLevelMethod,
+            int topLevelMethodOrdinal,
+            BoundLambda node,
             int lambdaOrdinal)
             : base(containingType,
                    node.Symbol,
                    null,
                    node.SyntaxTree.GetReference(node.Body.Syntax),
                    node.Syntax.GetLocation(),
-                   MakeName(slotAllocatorOpt, closureKind, topLevelMethod, topLevelMethodOrdinal, lambdaOrdinal),
+                   MakeName(slotAllocatorOpt, compilationState, closureKind, topLevelMethod, topLevelMethodOrdinal, lambdaOrdinal),
                    (closureKind == ClosureKind.ThisOnly ? DeclarationModifiers.Private : DeclarationModifiers.Internal)
                        | (node.Symbol.IsAsync ? DeclarationModifiers.Async : 0))
         {
+            this.topLevelMethod = topLevelMethod;
+
             TypeMap typeMap;
             ImmutableArray<TypeParameterSymbol> typeParameters;
             LambdaFrame lambdaFrame;
@@ -52,51 +56,41 @@ namespace Microsoft.CodeAnalysis.CSharp
             AssignTypeMapAndTypeParameters(typeMap, typeParameters);
         }
 
-        private static string MakeName(VariableSlotAllocator slotAllocatorOpt, ClosureKind closureKind, MethodSymbol topLevelMethod, int topLevelMethodOrdinal, int lambdaOrdinal)
+        private static string MakeName(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, ClosureKind closureKind, MethodSymbol topLevelMethod, int topLevelMethodOrdinal, int lambdaOrdinal)
         {
             // TODO: slotAllocatorOpt?.GetPrevious()
 
             // Lambda method name must contain the declaring method ordinal to be unique unless the method is emitted into a closure class exclusive to the declaring method.
             // Lambdas that only close over "this" are emitted directly into the top-level method containing type.
             // Lambdas that don't close over anything (static) are emitted into a shared closure singleton.
-            return GeneratedNames.MakeLambdaMethodName(topLevelMethod.Name, (closureKind == ClosureKind.General) ? -1 : topLevelMethodOrdinal, lambdaOrdinal);
+            return GeneratedNames.MakeLambdaMethodName(
+                topLevelMethod.Name,
+                (closureKind == ClosureKind.General) ? -1 : topLevelMethodOrdinal,
+                compilationState.ModuleBuilderOpt.CurrentGenerationOrdinal,
+                lambdaOrdinal);
         }
 
-        internal override int ParameterCount
-        {
-            get
-            {
-                return this.BaseMethod.ParameterCount;
-            }
-        }
+        internal override int ParameterCount => this.BaseMethod.ParameterCount;
 
-        protected override ImmutableArray<ParameterSymbol> BaseMethodParameters
-        {
-            get
-            {
-                // The lambda symbol might have declared no parameters in the case
-                //
-                // D d = delegate {};
-                //
-                // but there still might be parameters that need to be generated for the
-                // synthetic method. If there are no lambda parameters, try the delegate 
-                // parameters instead. 
-                // 
-                // UNDONE: In the native compiler in this scenario we make up new names for
-                // UNDONE: synthetic parameters; in this implementation we use the parameter
-                // UNDONE: names from the delegate. Does it really matter?
-                return this.BaseMethod.Parameters;
-            }
-        }
+        // The lambda symbol might have declared no parameters in the case
+        //
+        // D d = delegate {};
+        //
+        // but there still might be parameters that need to be generated for the
+        // synthetic method. If there are no lambda parameters, try the delegate 
+        // parameters instead. 
+        // 
+        // UNDONE: In the native compiler in this scenario we make up new names for
+        // UNDONE: synthetic parameters; in this implementation we use the parameter
+        // UNDONE: names from the delegate. Does it really matter?
+        protected override ImmutableArray<ParameterSymbol> BaseMethodParameters => this.BaseMethod.Parameters;
 
-        internal override bool GenerateDebugInfo
-        {
-            get { return !this.IsAsync; }
-        }
+        internal override bool GenerateDebugInfo => !this.IsAsync;
+        internal override bool IsExpressionBodied => false;
 
-        internal override bool IsExpressionBodied
-        {
-            get { return false; }
-        }
+        IMethodSymbol ISynthesizedMethodBodyImplementationSymbol.Method => topLevelMethod;
+
+        // The lambda method body needs to be updated when the containing top-level method body is updated.
+        bool ISynthesizedMethodBodyImplementationSymbol.HasMethodBodyDependency => true;
     }
 }

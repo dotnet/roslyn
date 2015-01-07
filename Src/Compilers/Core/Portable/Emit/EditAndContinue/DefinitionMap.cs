@@ -8,14 +8,15 @@ using System.Diagnostics;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Symbols;
 using System.Reflection.Metadata.Ecma335;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
     internal abstract class DefinitionMap
     {
-        protected struct MethodDefinitionEntry
+        protected struct MethodUpdate
         {
-            public MethodDefinitionEntry(IMethodSymbolInternal previousMethod, bool preserveLocalVariables, Func<SyntaxNode, SyntaxNode> syntaxMap)
+            public MethodUpdate(IMethodSymbolInternal previousMethod, bool preserveLocalVariables, Func<SyntaxNode, SyntaxNode> syntaxMap)
             {
                 this.PreviousMethod = previousMethod;
                 this.PreserveLocalVariables = preserveLocalVariables;
@@ -28,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         protected readonly PEModule module;
-        protected readonly IReadOnlyDictionary<IMethodSymbol, MethodDefinitionEntry> methodMap;
+        protected readonly IReadOnlyDictionary<IMethodSymbol, MethodUpdate> methodUpdates;
 
         protected DefinitionMap(PEModule module, IEnumerable<SemanticEdit> edits)
         {
@@ -36,12 +37,12 @@ namespace Microsoft.CodeAnalysis.Emit
             Debug.Assert(edits != null);
 
             this.module = module;
-            this.methodMap = GenerateMethodMap(edits);
+            this.methodUpdates = GetMethodUpdates(edits);
         }
 
-        private static IReadOnlyDictionary<IMethodSymbol, MethodDefinitionEntry> GenerateMethodMap(IEnumerable<SemanticEdit> edits)
+        private static IReadOnlyDictionary<IMethodSymbol, MethodUpdate> GetMethodUpdates(IEnumerable<SemanticEdit> edits)
         {
-            var methodMap = new Dictionary<IMethodSymbol, MethodDefinitionEntry>();
+            var methodUpdates = new Dictionary<IMethodSymbol, MethodUpdate>();
             foreach (var edit in edits)
             {
                 if (edit.Kind == SemanticEditKind.Update)
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     var method = edit.NewSymbol as IMethodSymbol;
                     if (method != null)
                     {
-                        methodMap.Add(method, new MethodDefinitionEntry(
+                        methodUpdates.Add(method, new MethodUpdate(
                             (IMethodSymbolInternal)edit.OldSymbol,
                             edit.PreserveLocalVariables,
                             edit.SyntaxMap));
@@ -57,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 }
             }
 
-            return methodMap;
+            return methodUpdates;
         }
 
         internal abstract Cci.IDefinition MapDefinition(Cci.IDefinition definition);
@@ -145,14 +146,14 @@ namespace Microsoft.CodeAnalysis.Emit
                 return null;
             }
 
-            MethodDefinitionEntry methodEntry;
-            if (!this.methodMap.TryGetValue(method, out methodEntry))
+            MethodUpdate methodUpdate;
+            if (!this.methodUpdates.TryGetValue(method, out methodUpdate))
             {
                 // Not part of changeset. No need to preserve locals.
                 return null;
             }
 
-            if (!methodEntry.PreserveLocalVariables)
+            if (!methodUpdate.PreserveLocalVariables)
             {
                 // We should always "preserve locals" of iterator and async methods since the state machine 
                 // might be active without MoveNext method being on stack. We don't enforce this requirement here,
@@ -237,8 +238,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
             return new EncVariableSlotAllocator(
                 symbolMap,
-                methodEntry.SyntaxMap,
-                methodEntry.PreviousMethod,
+                methodUpdate.SyntaxMap,
+                methodUpdate.PreviousMethod,
                 previousLocals,
                 stateMachineTypeNameOpt,
                 hoistedLocalSlotCount,

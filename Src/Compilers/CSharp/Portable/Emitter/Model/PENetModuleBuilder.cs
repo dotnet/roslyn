@@ -23,5 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             throw ExceptionUtilities.Unreachable;
         }
+
+        public override int CurrentGenerationOrdinal => 0;
     }
 }

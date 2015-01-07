@@ -929,7 +929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Move the body of the lambda to a freshly generated synthetic method on its frame.
             int lambdaOrdinal = lambdaOrdinalDispenser++;
-            var synthesizedMethod = new SynthesizedLambdaMethod(slotAllocatorOpt, translatedLambdaContainer, closureKind, topLevelMethod, topLevelMethodOrdinal, node, CompilationState, lambdaOrdinal);
+            var synthesizedMethod = new SynthesizedLambdaMethod(slotAllocatorOpt, CompilationState, translatedLambdaContainer, closureKind, topLevelMethod, topLevelMethodOrdinal, node, lambdaOrdinal);
             if (CompilationState.Emitting)
             {
                 CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, synthesizedMethod);
@@ -1056,9 +1056,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // If we are generating the field into a display class created exclusively for the lambda the lambdaOrdinal itself is unique already, 
                         // no need to include the top-level method ordinal in the field name.
-                        var cacheVariableName = GeneratedNames.MakeLambdaCacheFieldName((closureKind == ClosureKind.General) ? -1 : topLevelMethodOrdinal, lambdaOrdinal);
+                        
+                        // TODO: slot allocator
+                        var cacheVariableName = GeneratedNames.MakeLambdaCacheFieldName(
+                            (closureKind == ClosureKind.General) ? -1 : topLevelMethodOrdinal,
+                            CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal,
+                            lambdaOrdinal);
 
-                        var cacheField = new SynthesizedFieldSymbol(translatedLambdaContainer, cacheVariableType, cacheVariableName, isPublic: true, isStatic: closureKind == ClosureKind.Static);
+                        var cacheField = new SynthesizedLambdaCacheFieldSymbol(translatedLambdaContainer, cacheVariableType, cacheVariableName, topLevelMethod, isReadOnly: false, isStatic: closureKind == ClosureKind.Static);
                         CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, cacheField);
                         cacheVariable = F.Field(receiver, cacheField.AsMember(constructedFrame)); //NOTE: the field was added to the unconstructed frame type.
                     }

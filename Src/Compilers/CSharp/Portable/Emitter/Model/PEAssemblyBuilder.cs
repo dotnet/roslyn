@@ -223,5 +223,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             : base(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, assemblySymbolMapper, additionalTypes)
         {
         }
+
+        public override int CurrentGenerationOrdinal => 0;
     }
 }

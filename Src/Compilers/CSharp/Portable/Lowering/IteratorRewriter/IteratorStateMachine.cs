@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal readonly TypeSymbol ElementType;
 
-        public IteratorStateMachine(VariableSlotAllocator slotAllocatorOpt, MethodSymbol iteratorMethod, int iteratorMethodOrdinal, bool isEnumerable, TypeSymbol elementType, TypeCompilationState compilationState)
-            : base(slotAllocatorOpt, iteratorMethod, iteratorMethodOrdinal)
+        public IteratorStateMachine(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, MethodSymbol iteratorMethod, int iteratorMethodOrdinal, bool isEnumerable, TypeSymbol elementType)
+            : base(slotAllocatorOpt, compilationState, iteratorMethod, iteratorMethodOrdinal)
         {
             this.ElementType = TypeMap.SubstituteType(elementType);
 

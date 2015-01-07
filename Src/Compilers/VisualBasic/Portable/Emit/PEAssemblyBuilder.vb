@@ -199,6 +199,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Return True
             End Get
         End Property
+
+        Public Overrides ReadOnly Property CurrentGenerationOrdinal As Integer
+            Get
+                Return 0
+            End Get
+        End Property
     End Class
 
 End Namespace

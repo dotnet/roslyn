@@ -57,6 +57,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Me.m_Changes = New SymbolChanges(m_PreviousDefinitions, edits, isAddedSymbol)
         End Sub
 
+        Public Overrides ReadOnly Property CurrentGenerationOrdinal As Integer
+            Get
+                Return m_PreviousGeneration.Ordinal + 1
+            End Get
+        End Property
+
         Private Overloads Shared Function GetAnonymousTypeMapFromMetadata(
                                                    reader As MetadataReader,
                                                    metadataDecoder As Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE.MetadataDecoder) As IReadOnlyDictionary(Of AnonymousTypeKey, AnonymousTypeValue)

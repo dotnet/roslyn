@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal readonly CSharpSyntaxNode ScopeSyntaxOpt;
 
         internal LambdaFrame(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, MethodSymbol topLevelMethod, int methodOrdinal, CSharpSyntaxNode scopeSyntax, int scopeOrdinal, bool isStatic)
-            : base(MakeName(slotAllocatorOpt, methodOrdinal, scopeOrdinal, isStatic), topLevelMethod)
+            : base(MakeName(slotAllocatorOpt, compilationState, methodOrdinal, scopeOrdinal, isStatic), topLevelMethod)
         {
             this.topLevelMethod = topLevelMethod;
             this.constructor = new LambdaFrameConstructor(this);
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 this.staticConstructor = new SynthesizedStaticConstructor(this);
                 var cacheVariableName = GeneratedNames.MakeCachedFrameInstanceName();
-                singletonCache = new SynthesizedFieldSymbol(this, this, cacheVariableName, isPublic: true, isStatic: true, isReadOnly: true);
+                singletonCache = new SynthesizedLambdaCacheFieldSymbol(this, this, cacheVariableName, topLevelMethod, isReadOnly: true, isStatic: true);
                 this.ScopeSyntaxOpt = null;
             }
             else
@@ -43,20 +43,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             AssertIsLambdaScopeSyntax(this.ScopeSyntaxOpt);
         }
 
-        private static string MakeName(VariableSlotAllocator slotAllocatorOpt, int methodOrdinal, int scopeOrdinal, bool isStatic)
+        private static string MakeName(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, int methodOrdinal, int scopeOrdinal, bool isStatic)
         {
             // TODO: slotAllocatorOpt?.GetPrevious()
 
+            int generation = compilationState.ModuleBuilderOpt.CurrentGenerationOrdinal;
+
             if (isStatic)
             {
-                // Display class is shared among static non-generic lambdas, method ordinal is -1.
-                // Generic display classes don't share lambdas and need to include the ordinal to avoid duplicate names.
+                // Display class is shared among static non-generic lambdas and also accross generations, method ordinal is -1.
                 Debug.Assert(methodOrdinal >= -1);
-                return GeneratedNames.MakeStaticLambdaDisplayClassName(methodOrdinal);
+                return GeneratedNames.MakeStaticLambdaDisplayClassName(methodOrdinal, generation);
             }
 
             Debug.Assert(methodOrdinal >= 0);
-            return GeneratedNames.MakeLambdaDisplayClassName(methodOrdinal, scopeOrdinal);
+            return GeneratedNames.MakeLambdaDisplayClassName(methodOrdinal, generation, scopeOrdinal);
         }
 
         [Conditional("DEBUG")]

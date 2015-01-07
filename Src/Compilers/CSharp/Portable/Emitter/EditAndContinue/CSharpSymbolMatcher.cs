@@ -423,7 +423,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     var otherTypeArguments = typeArguments.SelectAsArray((t, v) => (TypeSymbol)v.Visit(t), this);
                     Debug.Assert(otherTypeArguments.All(t => (object)t != null));
 
-                    var typeMap = new TypeMap(otherTypeParameters, otherTypeArguments);
+                    // TODO: LambdaFrame has alpha renamed type parameters, should we rather fix that?
+                    var typeMap = new TypeMap(otherTypeParameters, otherTypeArguments, allowAlpha: true);
                     return typeMap.SubstituteNamedType(otherDef);
                 }
 
@@ -721,7 +722,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 ImmutableArray<Cci.ITypeDefinitionMember> synthesizedMembers;
                 if (otherSynthesizedMembersOpt != null && otherSynthesizedMembersOpt.TryGetValue(otherType, out synthesizedMembers))
-            {
+                {
                     members.AddRange(synthesizedMembers);
                 }
 

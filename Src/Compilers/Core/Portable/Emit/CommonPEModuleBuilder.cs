@@ -84,6 +84,11 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public abstract TEmbeddedTypesManager EmbeddedTypesManagerOpt { get; }
 
+        /// <summary>
+        /// EnC generation.
+        /// </summary>
+        public abstract int CurrentGenerationOrdinal { get; }
+
         private ImmutableArray<Cci.ExternNamespace> lazyExternNamespaces;
 
         protected PEModuleBuilder(
