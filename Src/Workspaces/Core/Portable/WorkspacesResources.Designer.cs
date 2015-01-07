@@ -413,15 +413,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Fix all occurrences.
-        /// </summary>
-        internal static string FixAllOccurrences {
-            get {
-                return ResourceManager.GetString("FixAllOccurrences", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Fix all &apos;{0}&apos;.
         /// </summary>
         internal static string FixAllOccurrencesOfDiagnostic {
