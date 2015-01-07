@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// A workspace that allows manual addition of projects and documents.
     /// </summary>
-    public class CustomWorkspace : Workspace
+    public sealed class CustomWorkspace : Workspace
     {
         public CustomWorkspace(HostServices host, string workspaceKind = "Custom")
             : base(host, workspaceKind)
