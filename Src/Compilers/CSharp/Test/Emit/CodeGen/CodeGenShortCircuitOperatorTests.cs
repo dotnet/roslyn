@@ -4710,5 +4710,188 @@ class C1
 ");
         }
 
+        [WorkItem(470, "CodPlex")]
+        [Fact]
+        public void CodPlexBug470_01()
+        {
+            var source = @"
+class C 
+{ 
+    public static void Main() 
+    { 
+        System.Console.WriteLine(MyMethod(null));
+        System.Console.WriteLine(MyMethod(new MyType()));
+    }
+
+    public static decimal MyMethod(MyType myObject)
+    {
+        return myObject?.MyField ?? 0m;
+    }
+}
+
+public class MyType
+{
+    public decimal MyField = 123;
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"0
+123");
+
+            verifier.VerifyIL("C.MyMethod", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  .locals init (MyType V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  brtrue.s   IL_000b
+  IL_0005:  ldsfld     ""decimal decimal.Zero""
+  IL_000a:  ret
+  IL_000b:  ldloc.0
+  IL_000c:  ldfld      ""decimal MyType.MyField""
+  IL_0011:  ret
+}");
+        }
+
+        [WorkItem(470, "CodPlex")]
+        [Fact]
+        public void CodPlexBug470_02()
+        {
+            var source = @"
+class C 
+{ 
+    public static void Main() 
+    { 
+        System.Console.WriteLine(MyMethod(null));
+        System.Console.WriteLine(MyMethod(new MyType()));
+    }
+
+    public static decimal MyMethod(MyType myObject)
+    {
+        return myObject?.MyField ?? default(decimal);
+    }
+}
+
+public class MyType
+{
+    public decimal MyField = 123;
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"0
+123");
+
+            verifier.VerifyIL("C.MyMethod", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  .locals init (MyType V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  brtrue.s   IL_000b
+  IL_0005:  ldsfld     ""decimal decimal.Zero""
+  IL_000a:  ret
+  IL_000b:  ldloc.0
+  IL_000c:  ldfld      ""decimal MyType.MyField""
+  IL_0011:  ret
+}");
+        }
+
+        [WorkItem(470, "CodPlex")]
+        [Fact]
+        public void CodPlexBug470_03()
+        {
+            var source = @"
+using System;
+
+class C 
+{ 
+    public static void Main() 
+    { 
+        System.Console.WriteLine(String.Format(System.Globalization.CultureInfo.InvariantCulture, ""{0}"", MyMethod(null)));
+        System.Console.WriteLine(String.Format(System.Globalization.CultureInfo.InvariantCulture, ""{0}"", MyMethod(new MyType())));
+    }
+
+    public static DateTime MyMethod(MyType myObject)
+    {
+        return myObject?.MyField ?? default(DateTime);
+    }
+}
+
+public class MyType
+{
+    public DateTime MyField = new DateTime(100000000);
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"01/01/0001 00:00:00
+01/01/0001 00:00:10");
+
+            verifier.VerifyIL("C.MyMethod", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (System.DateTime V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000d
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  initobj    ""System.DateTime""
+  IL_000b:  ldloc.0
+  IL_000c:  ret
+  IL_000d:  ldarg.0
+  IL_000e:  ldfld      ""System.DateTime MyType.MyField""
+  IL_0013:  ret
+}");
+        }
+
+        [WorkItem(470, "CodPlex")]
+        [Fact]
+        public void CodPlexBug470_04()
+        {
+            var source = @"
+class C 
+{ 
+    public static void Main() 
+    { 
+        System.Console.WriteLine(MyMethod(null).F);
+        System.Console.WriteLine(MyMethod(new MyType()).F);
+    }
+
+    public static MyStruct MyMethod(MyType myObject)
+    {
+        return myObject?.MyField ?? default(MyStruct);
+    }
+}
+
+public class MyType
+{
+    public MyStruct MyField = new MyStruct() {F = 123};
+}
+
+public struct MyStruct
+{
+    public int F;
+}
+";
+            var verifier = CompileAndVerify(source, expectedOutput: @"0
+123");
+
+            verifier.VerifyIL("C.MyMethod", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (MyStruct V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_000d
+  IL_0003:  ldloca.s   V_0
+  IL_0005:  initobj    ""MyStruct""
+  IL_000b:  ldloc.0
+  IL_000c:  ret
+  IL_000d:  ldarg.0
+  IL_000e:  ldfld      ""MyStruct MyType.MyField""
+  IL_0013:  ret
+}");
+        }
+
     }
 }

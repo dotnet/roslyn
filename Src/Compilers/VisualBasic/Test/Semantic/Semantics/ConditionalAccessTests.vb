@@ -7004,5 +7004,52 @@ Test
 ]]>)
         End Sub
 
+        <WorkItem(470, "CodPlex")>
+        <Fact>
+        Public Sub CodPlexBug470()
+
+            Dim compilationDef =
+<compilation>
+    <file name="a.vb">
+Module Program
+    Sub Main()
+        System.Console.WriteLine(MyMethod(Nothing))
+        System.Console.WriteLine(MyMethod(new MyType()))
+    End Sub
+
+    Function MyMethod(myObject As MyType) As Decimal
+        return If(myObject?.MyField, 0D)
+    End Function
+End Module
+
+Public Class MyType
+    Public MyField As Decimal = 123
+End Class
+    </file>
+</compilation>
+
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+            <![CDATA[
+0
+123
+]]>)
+
+            verifier.VerifyIL("Program.MyMethod", <![CDATA[
+{
+  // Code size       16 (0x10)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brtrue.s   IL_0009
+  IL_0003:  ldsfld     "Decimal.Zero As Decimal"
+  IL_0008:  ret
+  IL_0009:  ldarg.0
+  IL_000a:  ldfld      "MyType.MyField As Decimal"
+  IL_000f:  ret
+}
+]]>)
+        End Sub
+
     End Class
 End Namespace

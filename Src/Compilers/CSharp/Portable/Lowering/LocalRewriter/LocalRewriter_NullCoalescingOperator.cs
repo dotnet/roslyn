@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             conditionalAccess = conditionalAccess.Update(conditionalAccess.Receiver, conditionalAccess.AccessExpression, type);
 
             var whenNull = (BoundExpression)Visit(node.RightOperand);
-            if (whenNull.IsDefaultValue())
+            if (whenNull.IsDefaultValue() && whenNull.Type.SpecialType != SpecialType.System_Decimal)
             {
                 whenNull = null;
             }
