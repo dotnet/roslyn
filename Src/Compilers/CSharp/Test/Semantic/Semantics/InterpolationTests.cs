@@ -1083,5 +1083,28 @@ class Program {
 -System.String[]-");
         }
 
+        [WorkItem(1097386, "DevDiv")]
+        [Fact]
+        public void Dynamic01()
+        {
+            var text =
+@"class C
+{
+    const dynamic a = a;
+    string s = $""{0,a}"";
+}";
+            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+                // (3,19): error CS0110: The evaluation of the constant value for 'C.a' involves a circular definition
+                //     const dynamic a = a;
+                Diagnostic(ErrorCode.ERR_CircConstValue, "a").WithArguments("C.a").WithLocation(3, 19),
+                // (3,23): error CS0134: 'C.a' is of type 'dynamic'. A const field of a reference type other than string can only be initialized with null.
+                //     const dynamic a = a;
+                Diagnostic(ErrorCode.ERR_NotNullConstRefField, "a").WithArguments("C.a", "dynamic").WithLocation(3, 23),
+                // (4,21): error CS0150: A constant value is expected
+                //     string s = $"{0,a}";
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "a").WithLocation(4, 21)
+                );
+        }
+
     }
 }

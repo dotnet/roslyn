@@ -39,16 +39,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (interpolation.AlignmentClause != null)
                             {
                                 alignment = GenerateConversionForAssignment(intType, BindValue(interpolation.AlignmentClause.Value, diagnostics, Binder.BindValueKind.RValue), diagnostics);
-                                if (alignment.ConstantValue != null)
+                                var alignmentConstant = alignment.ConstantValue;
+                                if (alignmentConstant != null && !alignmentConstant.IsBad)
                                 {
                                     const int magnitudeLimit = 32767;
                                     // check that the magnitude of the alignment is "in range".
-                                    int alignmentValue = alignment.ConstantValue.Int32Value;
+                                    int alignmentValue = alignmentConstant.Int32Value;
                                     //  We do the arithmetic using negative numbers because the largest negative int has no corresponding positive (absolute) value.
                                     alignmentValue = (alignmentValue > 0) ? -alignmentValue : alignmentValue;
                                     if (alignmentValue < -magnitudeLimit)
                                     {
-                                        diagnostics.Add(ErrorCode.WRN_AlignmentMagnitude, alignment.Syntax.Location, alignment.ConstantValue.Int32Value, magnitudeLimit);
+                                        diagnostics.Add(ErrorCode.WRN_AlignmentMagnitude, alignment.Syntax.Location, alignmentConstant.Int32Value, magnitudeLimit);
                                     }
                                 }
                                 else if (!alignment.HasErrors)
