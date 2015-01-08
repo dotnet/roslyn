@@ -1037,27 +1037,27 @@ EndProject
 Project(""{F184B08F-C81C-45F6-A57F-5ABD9991F28F}"") = ""ConsoleApplication1"", ""ConsoleApplication1.vbproj"", ""{52F3466B-DD3F-435C-ADA6-CD023CC82E91}""
 EndProject
 Global
-    GlobalSection(SolutionConfigurationPlatforms) = preSolution
-        Debug|Any CPU = Debug|Any CPU
-        Release|Any CPU = Release|Any CPU
-    EndGlobalSection
-    GlobalSection(ProjectConfigurationPlatforms) = postSolution
-        {1245560C-55E4-49D7-904C-18281B369763}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-        {1245560C-55E4-49D7-904C-18281B369763}.Debug|Any CPU.Build.0 = Debug|Any CPU
-        {1245560C-55E4-49D7-904C-18281B369763}.Release|Any CPU.ActiveCfg = Release|Any CPU
-        {1245560C-55E4-49D7-904C-18281B369763}.Release|Any CPU.Build.0 = Release|Any CPU
-        {52F3466B-DD3F-435C-ADA6-CD023CC82E91}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-        {52F3466B-DD3F-435C-ADA6-CD023CC82E91}.Debug|Any CPU.Build.0 = Debug|Any CPU
-        {52F3466B-DD3F-435C-ADA6-CD023CC82E91}.Release|Any CPU.ActiveCfg = Release|Any CPU
-        {52F3466B-DD3F-435C-ADA6-CD023CC82E91}.Release|Any CPU.Build.0 = Release|Any CPU
-        {DEF6D929-FA03-4076-8A05-7BFA33DCC829}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-        {DEF6D929-FA03-4076-8A05-7BFA33DCC829}.Debug|Any CPU.Build.0 = Debug|Any CPU
-        {DEF6D929-FA03-4076-8A05-7BFA33DCC829}.Release|Any CPU.ActiveCfg = Release|Any CPU
-        {DEF6D929-FA03-4076-8A05-7BFA33DCC829}.Release|Any CPU.Build.0 = Release|Any CPU
-    EndGlobalSection
-    GlobalSection(SolutionProperties) = preSolution
-        HideSolutionNode = FALSE
-    EndGlobalSection
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1245560C-55E4-49D7-904C-18281B369763}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1245560C-55E4-49D7-904C-18281B369763}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1245560C-55E4-49D7-904C-18281B369763}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1245560C-55E4-49D7-904C-18281B369763}.Release|Any CPU.Build.0 = Release|Any CPU
+		{52F3466B-DD3F-435C-ADA6-CD023CC82E91}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{52F3466B-DD3F-435C-ADA6-CD023CC82E91}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{52F3466B-DD3F-435C-ADA6-CD023CC82E91}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{52F3466B-DD3F-435C-ADA6-CD023CC82E91}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DEF6D929-FA03-4076-8A05-7BFA33DCC829}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DEF6D929-FA03-4076-8A05-7BFA33DCC829}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DEF6D929-FA03-4076-8A05-7BFA33DCC829}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DEF6D929-FA03-4076-8A05-7BFA33DCC829}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
 EndGlobal
 "},
 {"ConsoleApplication1.vbproj",
@@ -1756,50 +1756,6 @@ class Hello
                 proc.Kill();
                 Assert.True(false, "Compiler server did not exit in time");
             }
-        }
-
-        [Fact]
-        public void BadKeepAlive1()
-        {
-            var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/keepalive", tempDirectory.Path);
-
-            Assert.True(result.ContainsErrors);
-            Assert.Equal(1, result.ExitCode);
-            Assert.Equal("Missing argument for '/keepalive' option", result.Output.Trim());
-            Assert.Equal("", result.Errors);
-        }
-
-        [Fact]
-        public void BadKeepAlive2()
-        {
-            var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/keepalive:foo", tempDirectory.Path);
-
-            Assert.True(result.ContainsErrors);
-            Assert.Equal(1, result.ExitCode);
-            Assert.Equal("Argument to '/keepalive' option is not an integer", result.Output.Trim());
-            Assert.Equal("", result.Errors);
-        }
-
-        [Fact]
-        public void BadKeepAlive3()
-        {
-            var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/keepalive:-100", tempDirectory.Path);
-
-            Assert.True(result.ContainsErrors);
-            Assert.Equal(1, result.ExitCode);
-            Assert.Equal("Arguments to '/keepalive' option below -1 are invalid", result.Output.Trim());
-            Assert.Equal("", result.Errors);
-        }
-
-        [Fact]
-        public void BadKeepAlive4()
-        {
-            var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/keepalive:9999999999", tempDirectory.Path);
-
-            Assert.True(result.ContainsErrors);
-            Assert.Equal(1, result.ExitCode);
-            Assert.Equal("Argument to '/keepalive' is out of 32-bit integer range", result.Output.Trim());
-            Assert.Equal("", result.Errors);
         }
     }
 }

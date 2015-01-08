@@ -481,13 +481,11 @@ HANDLE TryExistingProcesses(_In_z_ LPCWSTR expectedProcessName)
 // any native client-specific arguments. If we were to accept native client
 // arguments in the response file, we would have to edit the response file to
 // remove the argument or mangle the command line given to the server.
-bool ParseAndValidateClientArguments(
+void ParseAndValidateClientArguments(
     _Inout_ list<wstring>& arguments,
-    _Out_ wstring& keepAliveValue,
-    _Out_ int& errorId)
+    _Out_ wstring& keepAliveValue)
 {
     keepAliveValue.clear();
-    errorId = 0;
     auto iter = arguments.cbegin();
     while (iter != arguments.cend())
     {
@@ -499,8 +497,7 @@ bool ParseAndValidateClientArguments(
             if (arg.length() < prefixLen + 2 ||
                 (arg.at(prefixLen) != L':' && arg.at(prefixLen) != L'='))
             {
-                errorId = IDS_MissingKeepAlive;
-                return false;
+                throw FatalError(GetResourceString(IDS_MissingKeepAlive));
             }
 
             auto value = arg.substr(prefixLen + 1);
@@ -509,8 +506,7 @@ bool ParseAndValidateClientArguments(
 
                 if (intValue < -1) 
                 {
-                    errorId = IDS_KeepAliveIsTooSmall;
-                    return false;
+                    throw FatalError(GetResourceString(IDS_KeepAliveIsTooSmall));
                 }
 
                 keepAliveValue = value;
@@ -519,19 +515,17 @@ bool ParseAndValidateClientArguments(
             }
             catch (invalid_argument) 
             {
-                errorId = IDS_KeepAliveIsNotAnInteger;
-                return false;
+                throw FatalError(GetResourceString(IDS_KeepAliveIsNotAnInteger));
             }
             catch (out_of_range) 
             {
-                errorId = IDS_KeepAliveIsOutOfRange;
-                return false;
+                throw FatalError(GetResourceString(IDS_KeepAliveIsOutOfRange));
             }
         }
 
         ++iter;
     }
-    return true;
+
 }
 
 bool TryRunServerCompilation(
@@ -811,12 +805,8 @@ int Run(_In_ RequestLanguage language,
     // Get the args without the native client-specific arguments
     list<wstring> argsList(args, args + argsCount);
     wstring keepAlive;
-    int errorId;
-    if (!ParseAndValidateClientArguments(argsList, keepAlive, errorId))
-    {
-        OutputWideString(stdout, GetResourceString(errorId), /*utf8output*/true);
-        return 1;
-    }
+    // Throws FatalError if parsing fails
+    ParseAndValidateClientArguments(argsList, keepAlive);
 
     // Try to use the compiler server
     CompletedResponse response;

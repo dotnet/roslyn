@@ -1,9 +1,7 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 #include "CppUnitTest.h"
 #include "pipe_extensions.h"
 #include <memory>
 #include <sstream>
-#include "UIStrings.h"
 
 namespace Microsoft 
 {
@@ -47,10 +45,8 @@ namespace NativeClientTests
                 L"test.cs"
             };
             wstring keepAlive;
-            int errorId;
-            auto success = ParseAndValidateClientArguments(args, keepAlive, errorId);
+            ParseAndValidateClientArguments(args, keepAlive);
 
-            Assert::IsTrue(success);
             Assert::IsTrue(keepAlive.empty());
 
             auto request = Request(language, L"");
@@ -97,10 +93,8 @@ namespace NativeClientTests
                 L"test.cs"
             };
             wstring keepAlive;
-            int errorId;
-            auto success = ParseAndValidateClientArguments(args, keepAlive, errorId);
+            ParseAndValidateClientArguments(args, keepAlive);
 
-            Assert::IsTrue(success);
             Assert::IsTrue(keepAlive.empty());
 
             auto request = Request(language, L"");
@@ -152,10 +146,8 @@ namespace NativeClientTests
         {
             list<wstring> args = { L"/keepalive:10" };
             wstring keepAlive;
-            int errorId;
-            auto success = ParseAndValidateClientArguments(args, keepAlive, errorId);
+            ParseAndValidateClientArguments(args, keepAlive);
 
-            Assert::IsTrue(success);
             Assert::IsTrue(args.empty());
             Assert::AreEqual(L"10", keepAlive.c_str());
 
@@ -171,9 +163,8 @@ namespace NativeClientTests
             Assert::AreEqual(expected, request.Arguments());
 
             args = { L"/keepalive=10" };
-            success = ParseAndValidateClientArguments(args, keepAlive, errorId);
+            ParseAndValidateClientArguments(args, keepAlive);
 
-            Assert::IsTrue(success);
             Assert::IsTrue(args.empty());
             Assert::AreEqual(L"10", keepAlive.c_str());
 
@@ -187,10 +178,8 @@ namespace NativeClientTests
         {
             list<wstring> args = { L"/keepalive:-1" };
             wstring keepAlive;
-            int errorId;
-            auto success = ParseAndValidateClientArguments(args, keepAlive, errorId);
+            ParseAndValidateClientArguments(args, keepAlive);
 
-            Assert::IsTrue(success);
             Assert::IsTrue(args.empty());
             Assert::AreEqual(L"-1", keepAlive.c_str());
         }
@@ -201,13 +190,18 @@ namespace NativeClientTests
                 L"/keepalive",
             };
             wstring keepAlive;
-            int errorId;
 
-            auto success = ParseAndValidateClientArguments(args, keepAlive, errorId);
-            Assert::IsFalse(success);
-            Assert::AreEqual(
-                IDS_MissingKeepAlive,
-                errorId);
+            try
+            {
+                ParseAndValidateClientArguments(args, keepAlive);
+                Assert::Fail(L"Expected exception");
+            }
+            catch (FatalError& e)
+            {
+                Assert::AreEqual(
+                    L"Missing argument for '/keepalive' option",
+                    e.message.c_str());
+            }
         }
 
         TEST_METHOD(ParseKeepAliveNoValue2)
@@ -216,13 +210,18 @@ namespace NativeClientTests
                 L"/keepalive:",
             };
             wstring keepAlive;
-            int errorId;
 
-            auto success = ParseAndValidateClientArguments(args, keepAlive, errorId);
-            Assert::IsFalse(success);
-            Assert::AreEqual(
-                IDS_MissingKeepAlive,
-                errorId);
+            try
+            {
+                ParseAndValidateClientArguments(args, keepAlive);
+                Assert::Fail(L"Expected exception");
+            }
+            catch (FatalError& e)
+            {
+                Assert::AreEqual(
+                    L"Missing argument for '/keepalive' option",
+                    e.message.c_str());
+            }
         }
         
         TEST_METHOD(ParseKeepAliveBadInteger)
@@ -231,58 +230,38 @@ namespace NativeClientTests
                 L"/keepalive",
             };
             wstring keepAlive;
-            int errorId;
 
-            auto success = ParseAndValidateClientArguments(args, keepAlive, errorId);
-            Assert::IsFalse(success);
-            Assert::AreEqual(
-                IDS_MissingKeepAlive,
-                errorId);
+            try
+            {
+                ParseAndValidateClientArguments(args, keepAlive);
+                Assert::Fail(L"Expected exception");
+            }
+            catch (FatalError& e)
+            {
+                Assert::AreEqual(
+                    L"Missing argument for '/keepalive' option",
+                    e.message.c_str());
+            }
         }
 
-        TEST_METHOD(ParseKeepAliveIntegerTooSmall)
+        TEST_METHOD(ParseKeepAliveIntegerOutOfRange)
         {
             list<wstring> args = {
                 L"/keepalive:-2",
             };
             wstring keepAlive;
-            int errorId;
 
-            auto success = ParseAndValidateClientArguments(args, keepAlive, errorId);
-            Assert::IsFalse(success);
-            Assert::AreEqual(
-                IDS_KeepAliveIsTooSmall,
-                errorId);
-        }
-
-        TEST_METHOD(ParseKeepAliveOutOfRange)
-        {
-            list<wstring> args = {
-                L"/keepalive:9999999999",
-            };
-            wstring keepAlive;
-            int errorId;
-
-            auto success = ParseAndValidateClientArguments(args, keepAlive, errorId);
-            Assert::IsFalse(success);
-            Assert::AreEqual(
-                IDS_KeepAliveIsOutOfRange,
-                errorId);
-        }
-
-        TEST_METHOD(ParseKeepAliveNotAnInt)
-        {
-            list<wstring> args = {
-                L"/keepalive:string",
-            };
-            wstring keepAlive;
-            int errorId;
-
-            auto success = ParseAndValidateClientArguments(args, keepAlive, errorId);
-            Assert::IsFalse(success);
-            Assert::AreEqual(
-                IDS_KeepAliveIsNotAnInteger,
-                errorId);
+            try
+            {
+                ParseAndValidateClientArguments(args, keepAlive);
+                Assert::Fail(L"Expected exception");
+            }
+            catch (FatalError& e)
+            {
+                Assert::AreEqual(
+                    L"Arguments to '/keepalive' option below -1 are invalid",
+                    e.message.c_str());
+            }
         }
     };
 }
