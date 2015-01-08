@@ -595,7 +595,8 @@ End Class
                 Diagnostic("Token", "RaiseEvent"));
         }
 
-        [Fact]
+        [WorkItem(1103442)]
+        [Fact(Skip = "1103442")]
         public void SuppressSyntaxDiagnosticsOnRaiseEventAccessorBasic()
         {
             VerifyTokenDiagnosticsBasic(@"
