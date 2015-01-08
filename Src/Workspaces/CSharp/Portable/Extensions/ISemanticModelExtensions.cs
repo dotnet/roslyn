@@ -222,6 +222,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 {
                     return ((MemberAccessExpressionSyntax)current).Name.Identifier.ValueText.ToCamelCase();
                 }
+                else if (current is MemberBindingExpressionSyntax)
+                {
+                    return ((MemberBindingExpressionSyntax)current).Name.Identifier.ValueText.ToCamelCase();
+                }
+                else if (current is ConditionalAccessExpressionSyntax)
+                {
+                    current = ((ConditionalAccessExpressionSyntax)current).WhenNotNull;
+                }
                 else if (current is CastExpressionSyntax)
                 {
                     current = ((CastExpressionSyntax)current).Expression;

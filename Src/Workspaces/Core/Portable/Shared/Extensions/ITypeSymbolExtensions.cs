@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return DefaultParameterName;
             }
 
-            if (type.IsSpecialType())
+            if (type.IsSpecialType() || type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
             {
                 return DefaultBuiltInParameterName;
             }
