@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var localsMayBeAssignedOrCaptured = !receiverType.IsNullableType();
             var needTemp = IntroducingReadCanBeObservable(loweredReceiver, localsMayBeAssignedOrCaptured);
 
-            if (!isAsync && !node.Type.IsDynamic() && rewrittenWhenNull == null &&
+            if (!isAsync && !node.AccessExpression.Type.IsDynamic() && rewrittenWhenNull == null &&
                 (receiverType.IsReferenceType || receiverType.IsTypeParameter() && needTemp))
             {
                 // trivial cases can be handled more efficiently in IL gen
@@ -120,6 +120,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     temp = factory.SynthesizedLocal(receiverType, refKind: RefKind.Ref);
                     currentConditionalAccessTarget = factory.Local(temp);
                     break;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(loweringKind);
             }
 
             BoundExpression loweredAccessExpression = used ?
@@ -133,6 +136,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol nodeType = node.Type;
             TypeSymbol accessExpressionType = loweredAccessExpression.Type;
 
+            if (accessExpressionType.SpecialType == SpecialType.System_Void)
+            {
+                type = nodeType = accessExpressionType;
+            }
 
             if (accessExpressionType != nodeType && nodeType.IsNullableType())
             {
@@ -147,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Debug.Assert(accessExpressionType == nodeType ||
-                    (accessExpressionType.SpecialType == SpecialType.System_Void && !used));
+                    (nodeType.SpecialType == SpecialType.System_Void && !used));
             }
 
             BoundExpression result;

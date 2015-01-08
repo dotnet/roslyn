@@ -4893,5 +4893,101 @@ public struct MyStruct
 }");
         }
 
+        [WorkItem(1103294, "DevDiv")]
+        [Fact]
+        public void Bug1103294_01()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        System.Console.WriteLine(""---"");
+        Foo<int>(new C<int>());
+        System.Console.WriteLine(""---"");
+        Foo<int>(null);
+        System.Console.WriteLine(""---"");
+    }
+
+    static void Foo<T>(C<T> x)
+    {
+        x?.M();
+    }
+}
+ 
+class C<T>
+{
+    public T M()
+    {
+        System.Console.WriteLine(""M"");
+        return default(T);
+    }
+}";
+            var verifier = CompileAndVerify(source, expectedOutput: @"---
+M
+---
+---");
+
+            verifier.VerifyIL("C.Foo<T>", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  brfalse.s  IL_000a
+  IL_0003:  ldarg.0
+  IL_0004:  call       ""T C<T>.M()""
+  IL_0009:  pop
+  IL_000a:  ret
+}");
+        }
+
+        [WorkItem(1103294, "DevDiv")]
+        [Fact]
+        public void Bug1103294_02()
+        {
+            var source = @"
+unsafe class C
+{
+    static void Main()
+    {
+        System.Console.WriteLine(""---"");
+        Foo(new C());
+        System.Console.WriteLine(""---"");
+        Foo(null);
+        System.Console.WriteLine(""---"");
+    }
+
+    static void Foo(C x)
+    {
+        x?.M();
+    }
+
+    public int* M()
+    {
+        System.Console.WriteLine(""M"");
+        return null;
+    }
+}
+";
+            var verifier = CompileAndVerify(source, options: TestOptions.DebugExe.WithAllowUnsafe(true), expectedOutput: @"---
+M
+---
+---");
+
+            verifier.VerifyIL("C.Foo", @"
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  brtrue.s   IL_0006
+  IL_0004:  br.s       IL_000d
+  IL_0006:  ldarg.0
+  IL_0007:  call       ""int* C.M()""
+  IL_000c:  pop
+  IL_000d:  ret
+}");
+        }
+
     }
 }

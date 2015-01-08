@@ -6307,15 +6307,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // access cannot have unconstrained generic type
-            if (!accessType.IsReferenceType && !accessType.IsValueType)
-            {
-                return GenerateBadConditionalAccessNodeError(node, receiver, access, diagnostics);
-            }
-
             // access cannot be a pointer
-            if (accessType.IsPointerType())
+            if ((!accessType.IsReferenceType && !accessType.IsValueType) || accessType.IsPointerType())
             {
-                return GenerateBadConditionalAccessNodeError(node, receiver, access, diagnostics);
+                // Assume result type of the access is void when result value isn't used and cannot be made nullable.
+                // We are not doing this for types that can be made nullable to still allow expression evalualuator to 
+                // to get the value.
+                if (node.Parent?.Kind() == SyntaxKind.ExpressionStatement)
+                {
+                    accessType = GetSpecialType(SpecialType.System_Void, diagnostics, node);
+                }
+                else
+                {
+                    return GenerateBadConditionalAccessNodeError(node, receiver, access, diagnostics);
+                }
             }
 
             // if access has value type, the type of the conditional access is nullable of that
