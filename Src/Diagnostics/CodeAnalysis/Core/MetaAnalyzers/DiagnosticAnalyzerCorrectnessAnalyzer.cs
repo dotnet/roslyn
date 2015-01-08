@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         internal static readonly string RegisterSymbolActionName = nameof(AnalysisContext.RegisterSymbolAction);
         internal static readonly string RegisterCodeBlockStartActionName = nameof(AnalysisContext.RegisterCodeBlockStartAction);
         internal static readonly string RegisterCodeBlockEndActionName = nameof(AnalysisContext.RegisterCodeBlockEndAction);
+        internal static readonly string RegisterCompilationStartActionName = nameof(AnalysisContext.RegisterCompilationStartAction);
         internal static readonly string RegisterCompilationEndActionName = nameof(CompilationStartAnalysisContext.RegisterCompilationEndAction);
         internal static readonly string ReportDiagnosticName = nameof(CompilationEndAnalysisContext.ReportDiagnostic);
         internal static readonly string SupportedDiagnosticsName = nameof(DiagnosticAnalyzer.SupportedDiagnostics);

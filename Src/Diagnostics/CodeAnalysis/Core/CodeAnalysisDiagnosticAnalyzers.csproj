@@ -64,10 +64,11 @@
     <Compile Include="Helpers\AttributeHelpers.cs" />
     <Compile Include="Helpers\DocumentChangedAction.cs" />
     <Compile Include="Helpers\ITypeSymbolExtensions.cs" />
+    <Compile Include="MetaAnalyzers\DiagnosticAnalyzerFieldsAnalyzer.cs" />
     <Compile Include="MetaAnalyzers\DiagnosticAnalyzerAttributeAnalyzer.cs" />
     <Compile Include="MetaAnalyzers\DiagnosticAnalyzerCorrectnessAnalyzer.CompilationAnalyzer.cs" />
     <Compile Include="MetaAnalyzers\DiagnosticAnalyzerCorrectnessAnalyzer.cs" />
-    <Compile Include="MetaAnalyzers\DiagnosticAnalyzerCorrectnessAnalyzer.InvocationCompilationAnalyzer.cs" />
+    <Compile Include="MetaAnalyzers\DiagnosticAnalyzerCorrectnessAnalyzer.SyntaxNodeWithinAnalyzerTypeCompilationAnalyzer.cs" />
     <Compile Include="MetaAnalyzers\DiagnosticDescriptorCreationAnalyzer.cs" />
     <Compile Include="MetaAnalyzers\Fixers\ApplyDiagnosticAnalyzerAttributeFix.cs" />
     <Compile Include="MetaAnalyzers\RegisterActionAnalyzer.cs" />

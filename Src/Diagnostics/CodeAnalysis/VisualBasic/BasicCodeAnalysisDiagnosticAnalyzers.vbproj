@@ -72,6 +72,7 @@
   <ItemGroup>
     <Compile Include="MetaAnalyzers\BasicDiagnosticDescriptorCreationAnalyzer.vb" />
     <Compile Include="MetaAnalyzers\BasicRegisterActionAnalyzer.vb" />
+    <Compile Include="MetaAnalyzers\BasicDiagnosticAnalyzerFieldsAnalyzer.vb" />
     <Compile Include="MetaAnalyzers\BasicReportDiagnosticAnalyzer.vb" />
     <Compile Include="MetaAnalyzers\Fixers\BasicApplyDiagnosticAnalyzerAttributeFix.vb" />
   </ItemGroup>

@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         protected abstract ReportDiagnosticCompilationAnalyzer GetAnalyzer(ImmutableHashSet<INamedTypeSymbol> contextTypes, INamedTypeSymbol diagnosticType, INamedTypeSymbol diagnosticDescriptorType, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute);
 
-        protected abstract class ReportDiagnosticCompilationAnalyzer : InvocationCompilationAnalyzer<TClassDeclarationSyntax, TInvocationExpressionSyntax>
+        protected abstract class ReportDiagnosticCompilationAnalyzer : SyntaxNodeWithinAnalyzerTypeCompilationAnalyzer<TClassDeclarationSyntax, TInvocationExpressionSyntax>
         {
             private readonly ImmutableHashSet<INamedTypeSymbol> contextTypes;
             private readonly INamedTypeSymbol diagnosticType;
@@ -181,9 +181,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return builder.ToImmutable();
             }
 
-            protected override void AnalyzeInvocation(SymbolAnalysisContext symbolContext, TInvocationExpressionSyntax invocation, ISymbol symbol, SemanticModel semanticModel)
+            protected override void AnalyzeNode(SymbolAnalysisContext symbolContext, TInvocationExpressionSyntax invocation, SemanticModel semanticModel)
             {
-                if (symbol.Kind != SymbolKind.Method ||
+                var symbol = semanticModel.GetSymbolInfo(invocation, symbolContext.CancellationToken).Symbol;
+                if (symbol == null ||
+                    symbol.Kind != SymbolKind.Method ||
                     !symbol.Name.Equals(ReportDiagnosticName, StringComparison.OrdinalIgnoreCase) ||
                     !contextTypes.Contains(symbol.ContainingType))
                 {

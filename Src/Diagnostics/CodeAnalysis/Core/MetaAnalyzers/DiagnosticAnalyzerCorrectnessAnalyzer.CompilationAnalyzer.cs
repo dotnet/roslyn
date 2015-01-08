@@ -37,6 +37,19 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             }
 
             protected abstract void AnalyzeDiagnosticAnalyzer(SymbolAnalysisContext symbolContext);
+
+            protected bool HasDiagnosticAnalyzerAttribute(INamedTypeSymbol namedType)
+            {
+                foreach (var attribute in AttributeHelpers.GetApplicableAttributes(namedType))
+                {
+                    if (AttributeHelpers.DerivesFrom(attribute.AttributeClass, DiagnosticAnalyzerAttribute))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
+            }
         }
     }
 }

@@ -116,6 +116,33 @@ namespace Microsoft.CodeAnalysis.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Instance of a diagnostic analyzer might outlive the lifetime of compilation. Hence, storing per-compilation data, such as symbols, into the fields of a diagnostic analyzer might cause stale compilations to stay alive and cause memory leaks.  Instead, you should store this data on a separate type instantiatied in a compilation start action, registered using &apos;{0}.{1}&apos; API. An instance of this type will be created per-compilation and it won&apos;t outlive compilation&apos;s lifetime, hence avoiding memory leaks..
+        /// </summary>
+        internal static string DoNotStorePerCompilationDataOntoFieldsDescription {
+            get {
+                return ResourceManager.GetString("DoNotStorePerCompilationDataOntoFieldsDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Avoid storing per-compilation data of type &apos;{0}&apos; into the fields of a diagnostic analyzer..
+        /// </summary>
+        internal static string DoNotStorePerCompilationDataOntoFieldsMessage {
+            get {
+                return ResourceManager.GetString("DoNotStorePerCompilationDataOntoFieldsMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Avoid storing per-compilation data into the fields of a diagnostic analyzer..
+        /// </summary>
+        internal static string DoNotStorePerCompilationDataOntoFieldsTitle {
+            get {
+                return ResourceManager.GetString("DoNotStorePerCompilationDataOntoFieldsTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ReportDiagnostic should only be invoked with supported DiagnosticDescriptors that are returned from DiagnosticAnalyzer.SupportedDiagnostics property. Otherwise, the reported diagnostic will be filtered out by the analysis engine..
         /// </summary>
         internal static string InvalidReportDiagnosticDescription {

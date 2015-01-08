@@ -10,11 +10,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 {
     public abstract partial class DiagnosticAnalyzerCorrectnessAnalyzer : DiagnosticAnalyzer
     {
-        protected abstract class InvocationCompilationAnalyzer<TClassDeclarationSyntax, TInvocationExpressionSyntax> : CompilationAnalyzer
+        protected abstract class SyntaxNodeWithinAnalyzerTypeCompilationAnalyzer<TClassDeclarationSyntax, TSyntaxNodeOfInterest> : CompilationAnalyzer
             where TClassDeclarationSyntax : SyntaxNode
-            where TInvocationExpressionSyntax : SyntaxNode
+            where TSyntaxNodeOfInterest : SyntaxNode
         {
-            protected InvocationCompilationAnalyzer(INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
+            protected SyntaxNodeWithinAnalyzerTypeCompilationAnalyzer(INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
                 : base(diagnosticAnalyzer, diagnosticAnalyzerAttribute)
             {
             }
@@ -40,23 +40,19 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 var classDecls = GetClassDeclarationNodes(namedType, symbolContext.CancellationToken);
                 foreach (var classDecl in classDecls)
                 {
-                    var invocations = classDecl.DescendantNodes().OfType<TInvocationExpressionSyntax>();
-                    if (invocations.Any())
+                    var syntaxNodes = classDecl.DescendantNodes(n => !(n is TClassDeclarationSyntax) || ReferenceEquals(n, classDecl)).OfType<TSyntaxNodeOfInterest>();
+                    if (syntaxNodes.Any())
                     {
                         var semanticModel = symbolContext.Compilation.GetSemanticModel(classDecl.SyntaxTree);
-                        foreach (var invocation in invocations)
+                        foreach (var syntaxNode in syntaxNodes)
                         {
-                            var symbol = semanticModel.GetSymbolInfo(invocation, symbolContext.CancellationToken).Symbol;
-                            if (symbol != null)
-                            {
-                                AnalyzeInvocation(symbolContext, invocation, symbol, semanticModel);
-                            }
+                            AnalyzeNode(symbolContext, syntaxNode, semanticModel);
                         }
                     }
                 }
             }
 
-            protected abstract void AnalyzeInvocation(SymbolAnalysisContext symbolContext, TInvocationExpressionSyntax invocation, ISymbol invocationSymbol, SemanticModel semanticModel);
+            protected abstract void AnalyzeNode(SymbolAnalysisContext symbolContext, TSyntaxNodeOfInterest syntaxNode, SemanticModel semanticModel);
         }
     }
 }

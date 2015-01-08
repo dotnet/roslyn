@@ -9,5 +9,6 @@
         public const string InvalidReportDiagnosticRuleId = "RS1005";
         public const string InvalidSyntaxKindTypeArgumentRuleId = "RS1006";
         public const string UseLocalizableStringsInDescriptorRuleId = "RS1007";
+        public const string DoNotStorePerCompilationDataOntoFieldsRuleId = "RS1008";
     }
 }

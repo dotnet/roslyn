@@ -186,4 +186,13 @@
   <data name="UseLocalizableStringsInDescriptorDescription" xml:space="preserve">
     <value>If your diagnostic analyzer and it's reported diagnostics need to be localizable, then the supported DiagnosticDescriptors used for constructing the diagnostics must also be localizable. If so, then localizable argument(s) must be provided for parameter 'title' (and optionally 'description') to the diagnostic descriptor constructor to ensure that the descriptor is localizable.</value>
   </data>
+  <data name="DoNotStorePerCompilationDataOntoFieldsMessage" xml:space="preserve">
+    <value>Avoid storing per-compilation data of type '{0}' into the fields of a diagnostic analyzer.</value>
+  </data>
+  <data name="DoNotStorePerCompilationDataOntoFieldsTitle" xml:space="preserve">
+    <value>Avoid storing per-compilation data into the fields of a diagnostic analyzer.</value>
+  </data>
+  <data name="DoNotStorePerCompilationDataOntoFieldsDescription" xml:space="preserve">
+    <value>Instance of a diagnostic analyzer might outlive the lifetime of compilation. Hence, storing per-compilation data, such as symbols, into the fields of a diagnostic analyzer might cause stale compilations to stay alive and cause memory leaks.  Instead, you should store this data on a separate type instantiatied in a compilation start action, registered using '{0}.{1}' API. An instance of this type will be created per-compilation and it won't outlive compilation's lifetime, hence avoiding memory leaks.</value>
+  </data>
 </root>
