@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool HasLeadingTrivia
         {
-            get { return token != null && token.GetLeadingTriviaCore() != null; }
+            get { return this.LeadingTrivia.Count > 0; }
         }
 
         /// <summary>
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool HasTrailingTrivia
         {
-            get { return token != null && token.GetTrailingTriviaCore() != null; }
+            get { return this.TrailingTrivia.Count > 0; }
         }
 
         /// <summary>

@@ -402,17 +402,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (this.token != null)
-                {
-                    return this.token.HasLeadingTrivia;
-                }
-
-                if (this.nodeOrParent != null)
-                {
-                    return this.nodeOrParent.HasLeadingTrivia;
-                }
-
-                return false;
+                return this.GetLeadingTrivia().Count > 0;
             }
         }
 
@@ -442,17 +432,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                if (this.token != null)
-                {
-                    return this.token.HasTrailingTrivia;
-                }
-
-                if (this.nodeOrParent != null)
-                {
-                    return this.nodeOrParent.HasTrailingTrivia;
-                }
-
-                return false;
+                return this.GetTrailingTrivia().Count > 0;
             }
         }
 

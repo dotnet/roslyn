@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.Green.HasLeadingTrivia;
+                return this.GetLeadingTrivia().Count > 0;
             }
         }
 
@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.Green.HasTrailingTrivia;
+                return this.GetTrailingTrivia().Count > 0;
             }
         }
 

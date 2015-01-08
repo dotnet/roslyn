@@ -2775,5 +2775,109 @@ namespace HelloWorld
             SyntaxTree BlankTree = null;
             Assert.Throws<ArgumentNullException>(() => FirstUsingClause.SyntaxTree.GetChangedSpans(BlankTree));
         }
+
+        [Fact]
+        public void TestTriviaExists()
+        {
+            // token constructed using factory w/o specifying trivia (should have zero-width elastic trivia)
+            var idToken = SyntaxFactory.Identifier("foo");
+            Assert.Equal(true, idToken.HasLeadingTrivia);
+            Assert.Equal(1, idToken.LeadingTrivia.Count);
+            Assert.Equal(0, idToken.LeadingTrivia.Span.Length); // zero-width elastic trivia
+            Assert.Equal(true, idToken.HasTrailingTrivia);
+            Assert.Equal(1, idToken.TrailingTrivia.Count);
+            Assert.Equal(0, idToken.TrailingTrivia.Span.Length); // zero-width elastic trivia
+
+            // token constructed by parser w/o trivia
+            idToken = SyntaxFactory.ParseToken("x");
+            Assert.Equal(false, idToken.HasLeadingTrivia);
+            Assert.Equal(0, idToken.LeadingTrivia.Count);
+            Assert.Equal(false, idToken.HasTrailingTrivia);
+            Assert.Equal(0, idToken.TrailingTrivia.Count);
+
+            // token constructed by parser with trivia
+            idToken = SyntaxFactory.ParseToken(" x  ");
+            Assert.Equal(true, idToken.HasLeadingTrivia);
+            Assert.Equal(1, idToken.LeadingTrivia.Count);
+            Assert.Equal(1, idToken.LeadingTrivia.Span.Length);
+            Assert.Equal(true, idToken.HasTrailingTrivia);
+            Assert.Equal(1, idToken.TrailingTrivia.Count);
+            Assert.Equal(2, idToken.TrailingTrivia.Span.Length);
+
+            // node constructed using factory w/o specifying trivia
+            SyntaxNode namedNode = SyntaxFactory.IdentifierName("foo");
+            Assert.Equal(true, namedNode.HasLeadingTrivia);
+            Assert.Equal(1, namedNode.GetLeadingTrivia().Count);
+            Assert.Equal(0, namedNode.GetLeadingTrivia().Span.Length);  // zero-width elastic trivia
+            Assert.Equal(true, namedNode.HasTrailingTrivia);
+            Assert.Equal(1, namedNode.GetTrailingTrivia().Count);
+            Assert.Equal(0, namedNode.GetTrailingTrivia().Span.Length);  // zero-width elastic trivia
+
+            // node constructed by parse w/o trivia
+            namedNode = SyntaxFactory.ParseExpression("foo");
+            Assert.Equal(false, namedNode.HasLeadingTrivia);
+            Assert.Equal(0, namedNode.GetLeadingTrivia().Count);
+            Assert.Equal(false, namedNode.HasTrailingTrivia);
+            Assert.Equal(0, namedNode.GetTrailingTrivia().Count);
+
+            // node constructed by parse with trivia
+            namedNode = SyntaxFactory.ParseExpression(" foo  ");
+            Assert.Equal(true, namedNode.HasLeadingTrivia);
+            Assert.Equal(1, namedNode.GetLeadingTrivia().Count);
+            Assert.Equal(1, namedNode.GetLeadingTrivia().Span.Length);
+            Assert.Equal(true, namedNode.HasTrailingTrivia);
+            Assert.Equal(1, namedNode.GetTrailingTrivia().Count);
+            Assert.Equal(2, namedNode.GetTrailingTrivia().Span.Length);
+
+            // nodeOrToken with token constructed from factory w/o specifying trivia
+            SyntaxNodeOrToken nodeOrToken = SyntaxFactory.Identifier("foo");
+            Assert.Equal(true, nodeOrToken.HasLeadingTrivia);
+            Assert.Equal(1, nodeOrToken.GetLeadingTrivia().Count);
+            Assert.Equal(0, nodeOrToken.GetLeadingTrivia().Span.Length); // zero-width elastic trivia
+            Assert.Equal(true, nodeOrToken.HasTrailingTrivia);
+            Assert.Equal(1, nodeOrToken.GetTrailingTrivia().Count);
+            Assert.Equal(0, nodeOrToken.GetTrailingTrivia().Span.Length); // zero-width elastic trivia
+
+            // nodeOrToken with node constructed from factory w/o specifying trivia
+            nodeOrToken = SyntaxFactory.IdentifierName("foo");
+            Assert.Equal(true, nodeOrToken.HasLeadingTrivia);
+            Assert.Equal(1, nodeOrToken.GetLeadingTrivia().Count);
+            Assert.Equal(0, nodeOrToken.GetLeadingTrivia().Span.Length); // zero-width elastic trivia
+            Assert.Equal(true, nodeOrToken.HasTrailingTrivia);
+            Assert.Equal(1, nodeOrToken.GetTrailingTrivia().Count);
+            Assert.Equal(0, nodeOrToken.GetTrailingTrivia().Span.Length); // zero-width elastic trivia
+
+            // nodeOrToken with token parsed from factory w/o trivia
+            nodeOrToken = SyntaxFactory.ParseToken("foo");
+            Assert.Equal(false, nodeOrToken.HasLeadingTrivia);
+            Assert.Equal(0, nodeOrToken.GetLeadingTrivia().Count);
+            Assert.Equal(false, nodeOrToken.HasTrailingTrivia);
+            Assert.Equal(0, nodeOrToken.GetTrailingTrivia().Count);
+
+            // nodeOrToken with node parsed from factory w/o trivia
+            nodeOrToken = SyntaxFactory.ParseExpression("foo");
+            Assert.Equal(false, nodeOrToken.HasLeadingTrivia);
+            Assert.Equal(0, nodeOrToken.GetLeadingTrivia().Count);
+            Assert.Equal(false, nodeOrToken.HasTrailingTrivia);
+            Assert.Equal(0, nodeOrToken.GetTrailingTrivia().Count);
+
+            // nodeOrToken with token parsed from factory with trivia
+            nodeOrToken = SyntaxFactory.ParseToken(" foo  ");
+            Assert.Equal(true, nodeOrToken.HasLeadingTrivia);
+            Assert.Equal(1, nodeOrToken.GetLeadingTrivia().Count);
+            Assert.Equal(1, nodeOrToken.GetLeadingTrivia().Span.Length); // zero-width elastic trivia
+            Assert.Equal(true, nodeOrToken.HasTrailingTrivia);
+            Assert.Equal(1, nodeOrToken.GetTrailingTrivia().Count);
+            Assert.Equal(2, nodeOrToken.GetTrailingTrivia().Span.Length); // zero-width elastic trivia
+
+            // nodeOrToken with node parsed from factory with trivia
+            nodeOrToken = SyntaxFactory.ParseExpression(" foo  ");
+            Assert.Equal(true, nodeOrToken.HasLeadingTrivia);
+            Assert.Equal(1, nodeOrToken.GetLeadingTrivia().Count);
+            Assert.Equal(1, nodeOrToken.GetLeadingTrivia().Span.Length); // zero-width elastic trivia
+            Assert.Equal(true, nodeOrToken.HasTrailingTrivia);
+            Assert.Equal(1, nodeOrToken.GetTrailingTrivia().Count);
+            Assert.Equal(2, nodeOrToken.GetTrailingTrivia().Span.Length); // zero-width elastic trivia
+        }
     }
 }
