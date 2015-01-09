@@ -2675,7 +2675,7 @@ End Class
             Dim libRef = CreateCompilationWithMscorlib(libSource).EmitToImageReference()
             Dim comp = CreateCompilationWithMscorlibAndReferences(source, {libRef})
             Dim tree = comp.SyntaxTrees.Single()
-            Assert.DoesNotThrow(Sub() comp.GetDiagnosticsForTree(CompilationStage.Declare, tree, filterSpanWithinTree:=Nothing, includeEarlierStages:=True))
+            comp.GetDiagnosticsForTree(CompilationStage.Declare, tree, filterSpanWithinTree:=Nothing, includeEarlierStages:=True)
         End Sub
 
         <WorkItem(709317, "DevDiv")>

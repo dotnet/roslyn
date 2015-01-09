@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var attributes = new AttributeListSyntax[0];
             var newMethodDeclaration = SyntaxFactory.MethodDeclaration(SyntaxFactory.ParseTypeName("void"), "M");
-            Assert.DoesNotThrow(() => newMethodDeclaration.AddAttributeLists(attributes));
+            newMethodDeclaration.AddAttributeLists(attributes);
         }
 
         [Fact]

@@ -78,14 +78,14 @@ End Namespace
                 Sub(comp)
                     Assert.NotNull(comp.GetSpecialTypeMember(SpecialMember.System_Object__ToString))
                     Assert.NotNull(comp.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringString))
-                    Assert.DoesNotThrow(Function() comp.GetDiagnostics())
+                    comp.GetDiagnostics()
                 End Sub
 
             Dim validateMissing As Action(Of VisualBasicCompilation) =
                 Sub(comp)
                     Assert.Null(comp.GetSpecialTypeMember(SpecialMember.System_Object__ToString))
                     Assert.Null(comp.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringString))
-                    Assert.DoesNotThrow(Function() comp.GetDiagnostics())
+                    comp.GetDiagnostics()
                 End Sub
 
             ValidateSourceAndMetadata(String.Format(sourceTemplate, "Public"), validatePresent)
@@ -249,7 +249,7 @@ End Namespace
                 Sub(comp)
                     Assert.NotNull(comp.GetWellKnownTypeMember(WellKnownMember.System_Type__Missing))
                     Assert.NotNull(comp.GetWellKnownTypeMember(WellKnownMember.System_FlagsAttribute__ctor))
-                    Assert.DoesNotThrow(Function() comp.GetDiagnostics())
+                    comp.GetDiagnostics()
                 End Sub
 
             Dim validateMissing As Action(Of VisualBasicCompilation) =
@@ -261,7 +261,7 @@ End Namespace
                         Assert.Null(comp.GetWellKnownTypeMember(WellKnownMember.System_Type__Missing))
                         Assert.Null(comp.GetWellKnownTypeMember(WellKnownMember.System_FlagsAttribute__ctor))
                     End If
-                    Assert.DoesNotThrow(Function() comp.GetDiagnostics())
+                    comp.GetDiagnostics()
                 End Sub
 
             ValidateSourceAndMetadata(String.Format(sourceTemplate, "Public"), validatePresent)
@@ -337,7 +337,7 @@ End Namespace
             Dim validate As Action(Of VisualBasicCompilation) =
                 Sub(comp)
                     Assert.NotNull(comp.GetWellKnownTypeMember(WellKnownMember.System_Activator__CreateInstance_T))
-                    Assert.DoesNotThrow(Function() comp.GetDiagnostics())
+                    comp.GetDiagnostics()
                 End Sub
 
             ValidateSourceAndMetadata(String.Format(sourceTemplate, ""), validate)

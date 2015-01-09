@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentException>(() => new ResourceDescription("xxx", "xxx\uD800asdas", data, isPublic: true));
 
             // Now checked during emit.
-            Assert.DoesNotThrow(() => new ResourceDescription(new string('e', 1024), data, true));
-            Assert.DoesNotThrow(() => new ResourceDescription("x", new string('e', 260), data, true));
+            new ResourceDescription(new string('e', 1024), data, true);
+            new ResourceDescription("x", new string('e', 260), data, true);
         }
     }
 }

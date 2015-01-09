@@ -14109,7 +14109,7 @@ namespace NS
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var type1 = ns.GetMembers("C").Single() as NamedTypeSymbol;
-            Assert.DoesNotThrow(() => { var b = type1.BaseType; });
+            var b = type1.BaseType;
         }
 
         [Fact]

@@ -4053,7 +4053,7 @@ static class S
 
             var call = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
             SymbolInfo info = new SymbolInfo();
-            Assert.DoesNotThrow(() => info = model.GetSymbolInfo(call));
+            info = model.GetSymbolInfo(call);
 
             Assert.IsType<SourceMemberMethodSymbol>(info.Symbol);
 
@@ -4070,7 +4070,7 @@ static class S
             model = comp.GetSemanticModel(tree);
 
             call = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
-            Assert.DoesNotThrow(() => info = model.GetSymbolInfo(call));
+            info = model.GetSymbolInfo(call);
 
             Assert.IsType<ReducedExtensionMethodSymbol>(info.Symbol);
         }

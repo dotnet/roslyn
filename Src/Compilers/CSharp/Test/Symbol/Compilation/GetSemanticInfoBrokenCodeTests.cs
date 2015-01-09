@@ -194,10 +194,10 @@ abstract void M();";
             var model = comp.GetSemanticModel(tree);
 
             var usingSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Single();
-            Assert.DoesNotThrow(() => model.GetSymbolInfo(usingSyntax));
+            model.GetSymbolInfo(usingSyntax);
 
             var identifierSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Single();
-            Assert.DoesNotThrow(() => model.GetSymbolInfo(identifierSyntax));
+            model.GetSymbolInfo(identifierSyntax);
         }
 
         [WorkItem(611177, "DevDiv")]
@@ -218,7 +218,7 @@ class C
 
             var usingSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingStatementSyntax>().Single();
 
-            Assert.DoesNotThrow(() => model.GetSymbolInfo(usingSyntax.Expression));
+            model.GetSymbolInfo(usingSyntax.Expression);
         }
 
         [WorkItem(611177, "DevDiv")]

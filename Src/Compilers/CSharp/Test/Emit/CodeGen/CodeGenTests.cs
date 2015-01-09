@@ -13862,7 +13862,7 @@ public static class AExtensions
 ";
 
             var comp = CreateCompilationWithMscorlibAndSystemCore(source);
-            Assert.DoesNotThrow(() => comp.VerifyEmitDiagnostics());
+            comp.VerifyEmitDiagnostics();
         }
 
         [WorkItem(877317, "DevDiv")]
@@ -13888,7 +13888,7 @@ static class CExtensions
 ";
 
             var comp = CreateCompilationWithMscorlibAndSystemCore(source);
-            Assert.DoesNotThrow(() => comp.VerifyEmitDiagnostics());
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]

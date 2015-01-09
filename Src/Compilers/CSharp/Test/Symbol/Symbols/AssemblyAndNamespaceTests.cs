@@ -331,7 +331,7 @@ namespace NS
             var globalNS = compilation.SourceModule.GlobalNamespace;
             var ns1 = globalNS.GetMembers("NS").Single() as NamespaceSymbol;
             var type1 = ns1.GetTypeMembers("C").First() as NamedTypeSymbol;
-            Assert.DoesNotThrow(() => { var b = type1.BaseType; });
+            var b = type1.BaseType;
         }
 
         [WorkItem(540785, "DevDiv")]

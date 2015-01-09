@@ -1560,7 +1560,7 @@ class Foo
  //note that the reference to the 'cCS' compilation is missing.
  new MetadataReference[] { new CSharpCompilationReference(cCommon) });
 
-            Assert.DoesNotThrow(() => cFinal.GetDiagnostics());
+            cFinal.GetDiagnostics();
         }
 
         [Fact]

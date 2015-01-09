@@ -4510,7 +4510,7 @@ class C<T, op_Explicit, op_Division>
             var crefSyntax = (NameMemberCrefSyntax)GetCrefSyntaxes(compilation).Single();
 
             Assert.Equal(SyntaxKind.EndOfFileToken, crefSyntax.Ancestors().First(n => n.IsStructuredTrivia).ParentTrivia.Token.Kind());
-            Assert.DoesNotThrow(() => model.GetSymbolInfo(crefSyntax));
+            model.GetSymbolInfo(crefSyntax);
         }
 
         [WorkItem(530969, "DevDiv")]
@@ -4527,8 +4527,8 @@ class C<T> { }
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var crefSyntax = (NameMemberCrefSyntax)GetCrefSyntaxes(compilation).Single();
 
-            Assert.DoesNotThrow(() => model.GetSymbolInfo(crefSyntax));
-            Assert.DoesNotThrow(() => model.GetSymbolInfo(((GenericNameSyntax)crefSyntax.Name).TypeArgumentList.Arguments.Single()));
+            model.GetSymbolInfo(crefSyntax);
+            model.GetSymbolInfo(((GenericNameSyntax)crefSyntax.Name).TypeArgumentList.Arguments.Single());
         }
 
         [WorkItem(530969, "DevDiv")]
@@ -4545,8 +4545,8 @@ class C<T> { }
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var crefSyntax = (NameMemberCrefSyntax)GetCrefSyntaxes(compilation).Single();
 
-            Assert.DoesNotThrow(() => model.GetSymbolInfo(crefSyntax));
-            Assert.DoesNotThrow(() => model.GetSymbolInfo(((GenericNameSyntax)crefSyntax.Name).TypeArgumentList.Arguments.Single()));
+            model.GetSymbolInfo(crefSyntax);
+            model.GetSymbolInfo(((GenericNameSyntax)crefSyntax.Name).TypeArgumentList.Arguments.Single());
         }
 
         [Fact]
@@ -4562,8 +4562,8 @@ class C<T> { }
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var crefSyntax = (NameMemberCrefSyntax)GetCrefSyntaxes(compilation).Single();
 
-            Assert.DoesNotThrow(() => model.GetSymbolInfo(crefSyntax));
-            Assert.DoesNotThrow(() => model.GetSymbolInfo(((GenericNameSyntax)crefSyntax.Name).TypeArgumentList.Arguments.Single()));
+            model.GetSymbolInfo(crefSyntax);
+            model.GetSymbolInfo(((GenericNameSyntax)crefSyntax.Name).TypeArgumentList.Arguments.Single());
         }
 
         [Fact]
@@ -4600,8 +4600,8 @@ class C<T> { }
 
             // Make sure we're not reusing the binder from the first cref (no type parameters)
             // for the second cref (has type parameters).
-            Assert.DoesNotThrow(() => model.GetSymbolInfo(crefSyntaxes.ElementAt(0)));
-            Assert.DoesNotThrow(() => model.GetSymbolInfo(crefSyntaxes.ElementAt(1)));
+            model.GetSymbolInfo(crefSyntaxes.ElementAt(0));
+            model.GetSymbolInfo(crefSyntaxes.ElementAt(1));
         }
 
         [WorkItem(546992, "DevDiv")]

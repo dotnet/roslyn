@@ -116,10 +116,10 @@ class Test
 ";
 
             // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-            Assert.DoesNotThrow(() => GetLookupNames(testSrc));
+            GetLookupNames(testSrc);
 
             // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-            Assert.DoesNotThrow(() => GetLookupSymbols(testSrc));
+            GetLookupSymbols(testSrc);
         }
 
         [WorkItem(527476, "DevDiv")]
@@ -243,7 +243,7 @@ class Test
 ";
 
             // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-            Assert.DoesNotThrow(() => GetLookupSymbols(testSrc, name: "i", arity: 1));
+            GetLookupSymbols(testSrc, name: "i", arity: 1);
 
             var actual_lookupSymbols = GetLookupSymbols(testSrc, name: "i", arity: 1);
 
@@ -261,10 +261,10 @@ protected class MyClass {
 ";
 
             // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-            Assert.DoesNotThrow(() => GetLookupNames(testSrc));
+            GetLookupNames(testSrc);
 
             // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-            Assert.DoesNotThrow(() => GetLookupSymbols(testSrc));
+            GetLookupSymbols(testSrc);
         }
 
         [WorkItem(538311, "DevDiv")]
@@ -282,10 +282,10 @@ class Test {
 ";
 
             // Get the list of LookupNames at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-            Assert.DoesNotThrow(() => GetLookupNames(testSrc));
+            GetLookupNames(testSrc);
 
             // Get the list of LookupSymbols at the location of the CSharpSyntaxNode enclosed within the <bind> </bind> tags
-            Assert.DoesNotThrow(() => GetLookupSymbols(testSrc));
+            GetLookupSymbols(testSrc);
         }
 
         [WorkItem(538312, "DevDiv")]

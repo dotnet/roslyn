@@ -6124,7 +6124,7 @@ public class Derived : Base<Derived>
 
             var comp = CreateCompilationWithMscorlib(text);
             var derivedType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-            Assert.DoesNotThrow(() => derivedType.GetMembers());
+            derivedType.GetMembers();
         }
 
         [WorkItem(531227, "DevDiv")]
@@ -6145,7 +6145,7 @@ public class Implementation : Interface<Implementation>
 
             var comp = CreateCompilationWithMscorlib(text);
             var implementingType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Implementation");
-            Assert.DoesNotThrow(() => implementingType.GetMembers());
+            implementingType.GetMembers();
         }
 
         [WorkItem(546973, "DevDiv")]

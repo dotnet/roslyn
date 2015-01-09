@@ -7152,7 +7152,7 @@ public class C : B
 
             // Used to assert because it depended on some lazy state being evaluated but didn't
             // actually trigger evaluation.
-            Assert.DoesNotThrow(() => model.GetSymbolInfo(syntax));
+            model.GetSymbolInfo(syntax);
 
             comp.VerifyDiagnostics();
         }
@@ -7201,7 +7201,7 @@ public class NumAttribute : Attribute
 
             // Used to assert because it depended on some lazy state being evaluated but didn't
             // actually trigger evaluation.
-            Assert.DoesNotThrow(() => model.GetSymbolInfo(syntax));
+            model.GetSymbolInfo(syntax);
 
             comp.VerifyDiagnostics(
                 // (22,10): error CS1512: Keyword 'base' is not available in the current context
@@ -7257,7 +7257,7 @@ class C : ReadWriteControlDesigner
 
             // Used to assert because it depended on some lazy state being evaluated but didn't
             // actually trigger evaluation.
-            Assert.DoesNotThrow(() => model.GetSymbolInfo(syntax));
+            model.GetSymbolInfo(syntax);
 
             comp2.VerifyDiagnostics(
                 // (6,29): warning CS0672: Member 'C.OnBehaviorAttached()' overrides obsolete member 'System.Web.UI.Design.ReadWriteControlDesignerBase.OnBehaviorAttached()'. Add the Obsolete attribute to 'C.OnBehaviorAttached()'.

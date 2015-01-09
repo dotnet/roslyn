@@ -1078,7 +1078,7 @@ class C
         return MI.MyMeth(new MyInner2());
     }
 }";
-            Assert.DoesNotThrow(() => CreateCompilationWithMscorlib(source).GetDiagnostics());
+            CreateCompilationWithMscorlib(source).GetDiagnostics();
         }
 
         [WorkItem(563563, "DevDiv"), WorkItem(563573, "DevDiv")]
@@ -1105,7 +1105,7 @@ class C
         return MI.MyMeth(new MyInner2());
     }
 }";
-            Assert.DoesNotThrow(() => CreateCompilationWithMscorlib(source).GetDiagnostics());
+            CreateCompilationWithMscorlib(source).GetDiagnostics();
         }
 
         [Fact]

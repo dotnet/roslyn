@@ -383,7 +383,7 @@ class Program
             // Get the diagnostics from the ExpressionStatement Syntax node which is the current token's Parent's Parent
             var expressionDiags = syntaxTree.GetDiagnostics(token.Parent.Parent);
 
-            Assert.DoesNotThrow(() => expressionDiags.First().Location.GetLineSpan());
+            expressionDiags.First().Location.GetLineSpan();
 
             foreach (var diag in expressionDiags)
             {

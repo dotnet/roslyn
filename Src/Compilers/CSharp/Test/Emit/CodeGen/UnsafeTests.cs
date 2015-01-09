@@ -8751,7 +8751,7 @@ unsafe class A
 ";
             
             var comp = CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll);
-            Assert.DoesNotThrow(() => comp.VerifyDiagnostics());
+            comp.VerifyDiagnostics();
         }
 
         [WorkItem(682584, "DevDiv")]

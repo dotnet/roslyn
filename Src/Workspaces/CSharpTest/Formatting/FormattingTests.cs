@@ -4498,7 +4498,7 @@ using (null)
         {
             var code = "\u001A";
 
-            Assert.DoesNotThrow(() => AssertFormat("", code));
+            AssertFormat("", code);
         }
 
         [Fact]

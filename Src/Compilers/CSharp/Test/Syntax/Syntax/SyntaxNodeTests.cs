@@ -2541,10 +2541,10 @@ class Program
             var intType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.IntKeyword));
             var commaToken = SyntaxFactory.Token(SyntaxKind.CommaToken);
 
-            Assert.DoesNotThrow(() => SyntaxFactory.SingletonSeparatedList<TypeSyntax>(intType));
-            Assert.DoesNotThrow(() => SyntaxFactory.SeparatedList<TypeSyntax>(new SyntaxNodeOrToken[] { intType, commaToken }));
-            Assert.DoesNotThrow(() => SyntaxFactory.SeparatedList<TypeSyntax>(new SyntaxNodeOrToken[] { intType, commaToken, intType }));
-            Assert.DoesNotThrow(() => SyntaxFactory.SeparatedList<TypeSyntax>(new SyntaxNodeOrToken[] { intType, commaToken, intType, commaToken }));
+            SyntaxFactory.SingletonSeparatedList<TypeSyntax>(intType);
+            SyntaxFactory.SeparatedList<TypeSyntax>(new SyntaxNodeOrToken[] { intType, commaToken });
+            SyntaxFactory.SeparatedList<TypeSyntax>(new SyntaxNodeOrToken[] { intType, commaToken, intType });
+            SyntaxFactory.SeparatedList<TypeSyntax>(new SyntaxNodeOrToken[] { intType, commaToken, intType, commaToken });
 
             Assert.Throws<ArgumentException>(() => SyntaxFactory.SeparatedList<TypeSyntax>(new SyntaxNodeOrToken[] { commaToken }));
             Assert.Throws<ArgumentException>(() => SyntaxFactory.SeparatedList<TypeSyntax>(new SyntaxNodeOrToken[] { intType, commaToken, commaToken }));

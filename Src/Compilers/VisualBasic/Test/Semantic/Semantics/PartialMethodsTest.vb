@@ -278,7 +278,7 @@ End Module
                                                        Where(Function(node) node.Identifier.ValueText = "foo").First()
 
             Dim method = model.GetDeclaredSymbol(id)
-            Assert.DoesNotThrow(Function() method.MetadataName)
+            Dim unused = method.MetadataName
         End Sub
 
         <Fact()>

@@ -156,17 +156,14 @@ class A { }";
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void EmptySpan()
         {
-            Assert.DoesNotThrow(() =>
+            using (var workspace = new CustomWorkspace())
             {
-                using (var workspace = new CustomWorkspace())
-                {
-                    var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
-                    var document = project.AddDocument("Document", SourceText.From(""));
+                var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
+                var document = project.AddDocument("Document", SourceText.From(""));
 
-                    var syntaxTree = document.GetSyntaxTreeAsync().Result;
-                    var result = Formatter.Format(syntaxTree.GetRoot(CancellationToken.None), TextSpan.FromBounds(0, 0), workspace, cancellationToken: CancellationToken.None);
-                }
-            });
+                var syntaxTree = document.GetSyntaxTreeAsync().Result;
+                var result = Formatter.Format(syntaxTree.GetRoot(CancellationToken.None), TextSpan.FromBounds(0, 0), workspace, cancellationToken: CancellationToken.None);
+            }
         }
 
         private void AssertFormat(string content, string expected, Dictionary<OptionKey, object> changedOptionSet = null)

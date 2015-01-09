@@ -6580,7 +6580,7 @@ _ _::this
             var source = "a b:: /**/\r\n";
             var tree = SyntaxFactory.ParseSyntaxTree(source);
             var diags = tree.GetDiagnostics();
-            Assert.DoesNotThrow(() => diags.ToArray());
+            diags.ToArray();
             Assert.Equal(1, diags.Count(d => d.Code == (int)ErrorCode.ERR_AliasQualAsExpression));
         }
 
@@ -6595,7 +6595,7 @@ class C
 }";
             var tree = SyntaxFactory.ParseSyntaxTree(source);
             var diags = tree.GetDiagnostics();
-            Assert.DoesNotThrow(() => diags.ToArray());
+            diags.ToArray();
             diags.Verify(
                 // We see this diagnostic because the accessor has no open brace.
 
@@ -6813,7 +6813,7 @@ enum
             var tree = SyntaxFactory.ParseSyntaxTree(source);
             var toString = tree.GetRoot().ToFullString();
             Assert.Equal(source, toString);
-            Assert.DoesNotThrow(() => tree.GetDiagnostics().ToArray());
+            tree.GetDiagnostics().ToArray();
         }
 
         [WorkItem(703809, "DevDiv")]
@@ -6827,7 +6827,7 @@ static
             var tree = SyntaxFactory.ParseSyntaxTree(source);
             var toString = tree.GetRoot().ToFullString();
             Assert.Equal(source, toString);
-            Assert.DoesNotThrow(() => tree.GetDiagnostics().ToArray());
+            tree.GetDiagnostics().ToArray();
         }
 
         [WorkItem(716245, "DevDiv")]

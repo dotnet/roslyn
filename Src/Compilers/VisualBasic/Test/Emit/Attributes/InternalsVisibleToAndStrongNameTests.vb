@@ -554,7 +554,7 @@ End Class
 </compilation>,
 {New VisualBasicCompilationReference(other)}, TestOptions.ReleaseDll.WithCryptoKeyContainer("roslynTestContainer").WithStrongNameProvider(DefaultProvider))
 
-        Assert.DoesNotThrow(Function() requestor.Assembly.Identity)
+        Dim unused = requestor.Assembly.Identity
         requestor.VerifyDiagnostics()
     End Sub
 
@@ -586,7 +586,7 @@ End Class
     </file>
 </compilation>, {New VisualBasicCompilationReference(other)}, TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithDelaySign(True).WithStrongNameProvider(DefaultProvider))
 
-        Assert.DoesNotThrow(Function() requestor.Assembly.Identity)
+        Dim unused = requestor.Assembly.Identity
         'gives "is not accessible" error because internals were imported because IVT was found
         CompilationUtils.AssertTheseDiagnostics(requestor, <error>BC30389: 'C' is not accessible in this context because it is 'Friend'.
     Private Sub New(o As C)
@@ -621,7 +621,7 @@ End Class
     </file>
 </compilation>, {New VisualBasicCompilationReference(other)}, options:=TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
-        Assert.DoesNotThrow(Function() requestor.Assembly.Identity)
+        Dim unused = requestor.Assembly.Identity
         Assert.True(DirectCast(other.Assembly, IAssemblySymbol).GivesAccessTo(requestor.Assembly))
         requestor.AssertNoDiagnostics()
     End Sub
@@ -653,7 +653,7 @@ End Class
     </file>
 </compilation>, {New VisualBasicCompilationReference(other)}, options:=TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
-        Assert.DoesNotThrow(Function() requestor.Assembly.Identity)
+        Dim unused = requestor.Assembly.Identity
         CompilationUtils.AssertTheseDiagnostics(requestor,
             <error>BC36958: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null', but the strong name signing state of the output assembly does not match that of the granting assembly.</error>)
     End Sub
@@ -686,7 +686,7 @@ End Class
     </file>
 </compilation>, {New VisualBasicCompilationReference(other)}, options:=TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
-        Assert.DoesNotThrow(Function() requestor.Assembly.Identity)
+        Dim unused = requestor.Assembly.Identity
         CompilationUtils.AssertTheseDiagnostics(requestor, <errors>BC36957: Friend access was granted by 'Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2', but the public key of the output assembly does not match that specified by the attribute in the granting assembly.</errors>)
 
     End Sub

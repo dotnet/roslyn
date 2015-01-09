@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // It's not particularly important that this not throw. The parsing of the metadata is now lazy, and the result is that an exception
             // will be thrown when something tugs on the metadata later.
-            Assert.DoesNotThrow(() => ModuleMetadata.CreateFromImage(TestResources.MetadataTests.Invalid.EmptyModuleTable));
+            ModuleMetadata.CreateFromImage(TestResources.MetadataTests.Invalid.EmptyModuleTable);
         }
 
         [Fact]

@@ -1036,7 +1036,7 @@ class Test
 
             var exprSyntaxToBind = exprSyntaxList[exprSyntaxList.Count - 2];
 
-            Assert.DoesNotThrow(() => model.GetSemanticInfoSummary(exprSyntaxToBind));
+            model.GetSemanticInfoSummary(exprSyntaxToBind);
         }
 
         [Fact]
@@ -4732,12 +4732,12 @@ class A
             var trueLiteral = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
             Assert.Equal(SyntaxKind.TrueLiteralExpression, trueLiteral.Kind());
 
-            Assert.DoesNotThrow(() => model.GetSymbolInfo(trueLiteral));
+            model.GetSymbolInfo(trueLiteral);
 
             var parameterSyntax = trueLiteral.FirstAncestorOrSelf<ParameterSyntax>();
             Assert.Equal(SyntaxKind.Parameter, parameterSyntax.Kind());
 
-            Assert.DoesNotThrow(() => model.GetDeclaredSymbol(parameterSyntax));
+            model.GetDeclaredSymbol(parameterSyntax);
         }
 
         [Fact]
@@ -4863,7 +4863,7 @@ public class D : C
 
             var newSyntaxMemberAccess = newSyntax.DescendantNodesAndSelf().OfType<MemberAccessExpressionSyntax>().
                 Single(e => e.ToString() == "Instance.GetList().OfType<D>");
-            Assert.DoesNotThrow(() => speculativeModel.GetTypeInfo(newSyntaxMemberAccess));
+            speculativeModel.GetTypeInfo(newSyntaxMemberAccess);
         }
 
         [Fact]

@@ -3962,7 +3962,7 @@ End Class
 
             Dim newSyntaxMemberAccess = newSyntax.DescendantNodesAndSelf().OfType(Of MemberAccessExpressionSyntax)().
                 Single(Function(e) e.ToString() = "Instance.GetList().OfType(Of D)")
-            Assert.DoesNotThrow(Function() speculativeModel.GetTypeInfo(newSyntaxMemberAccess))
+            speculativeModel.GetTypeInfo(newSyntaxMemberAccess)
         End Sub
 
         <Fact>

@@ -5154,7 +5154,7 @@ End Class
    ]]></file>
                 </compilation>)
             Dim derivedType = compilation.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Derived")
-            Assert.DoesNotThrow(Function() derivedType.GetMembers())
+            derivedType.GetMembers()
         End Sub
 
         <WorkItem(531227, "DevDiv")>
@@ -5175,7 +5175,7 @@ End Class
    ]]></file>
                 </compilation>)
             Dim derivedType = compilation.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Implementation")
-            Assert.DoesNotThrow(Function() derivedType.GetMembers())
+            derivedType.GetMembers()
         End Sub
 
         <Fact()>

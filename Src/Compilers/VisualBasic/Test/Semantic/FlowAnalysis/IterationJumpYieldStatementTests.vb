@@ -942,23 +942,20 @@ End Module
 
         <Fact()>
         Public Sub CanAnalyzeAnonymousTypeFieldInitializer()
-            Assert.DoesNotThrow(
-                   Sub()
-                       Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
-                         <compilation>
-                             <file name="a.vb">
-                                Option Infer On
-                                Module M
-                                    Public Sub Main()
-                                        Dim y As Integer = 1
-                                        Dim o = New With { .x = [|y|] }
-                                    End Sub
-                                End Module
-                            </file>
-                         </compilation>)
+           Dim dataFlowAnalysisResults = CompileAndAnalyzeDataFlow(
+             <compilation>
+                 <file name="a.vb">
+                    Option Infer On
+                    Module M
+                        Public Sub Main()
+                            Dim y As Integer = 1
+                            Dim o = New With { .x = [|y|] }
+                        End Sub
+                    End Module
+                </file>
+             </compilation>)
 
-                       Assert.False(dataFlowAnalysisResults.AlwaysAssigned.Any)
-                   End Sub)
+           Assert.False(dataFlowAnalysisResults.AlwaysAssigned.Any)
         End Sub
 
         <Fact()>
@@ -1030,9 +1027,7 @@ End Module
 
         <Fact()>
         Public Sub ForEachLiftedLocal2()
-            Assert.DoesNotThrow(
-                   Sub()
-                       Dim analysisResults = CompileAndAnalyzeControlAndDataFlow(
+           Dim analysisResults = CompileAndAnalyzeControlAndDataFlow(
               <compilation>
                   <file name="a.vb">
 Option Infer On
@@ -1055,9 +1050,8 @@ Module M
 End Module
     </file>
               </compilation>)
-                       Dim controlFlowAnalysisResults = analysisResults.Item1
-                       Assert.False(controlFlowAnalysisResults.EntryPoints.Any)
-                   End Sub)
+           Dim controlFlowAnalysisResults = analysisResults.Item1
+           Assert.False(controlFlowAnalysisResults.EntryPoints.Any)
         End Sub
 
         <Fact()>
@@ -1120,9 +1114,7 @@ End Module
 
         <Fact()>
         Public Sub ForEachLiftedLocal5()
-            Assert.DoesNotThrow(
-                   Sub()
-                       Dim analysisResults = CompileAndAnalyzeControlAndDataFlow(
+           Dim analysisResults = CompileAndAnalyzeControlAndDataFlow(
               <compilation>
                   <file name="a.vb">
 Option Infer On
@@ -1146,16 +1138,13 @@ Module M
 End Module
     </file>
               </compilation>)
-                       Dim controlFlowAnalysisResults = analysisResults.Item1
-                       Assert.False(controlFlowAnalysisResults.EntryPoints.Any)
-                   End Sub)
+           Dim controlFlowAnalysisResults = analysisResults.Item1
+           Assert.False(controlFlowAnalysisResults.EntryPoints.Any)
         End Sub
 
         <Fact()>
         Public Sub ForEachLiftedLocal6()
-            Assert.DoesNotThrow(
-                   Sub()
-                       Dim analysisResults = CompileAndAnalyzeControlAndDataFlow(
+           Dim analysisResults = CompileAndAnalyzeControlAndDataFlow(
               <compilation>
                   <file name="a.vb">
 Option Infer On
@@ -1177,9 +1166,8 @@ Module M
 End Module
     </file>
               </compilation>)
-                       Dim controlFlowAnalysisResults = analysisResults.Item1
-                       Assert.False(controlFlowAnalysisResults.EntryPoints.Any)
-                   End Sub)
+           Dim controlFlowAnalysisResults = analysisResults.Item1
+           Assert.False(controlFlowAnalysisResults.EntryPoints.Any)
         End Sub
 
         <Fact()>

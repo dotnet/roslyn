@@ -5421,7 +5421,7 @@ using EnterpriseLibraryExtensions;
 [assembly: ConfigurationDesignManager(typeof(ExtensionDesignManager))]
 ";
             var compilation = CreateCompilationWithMscorlib(new string[] { source, source2 });
-            Assert.DoesNotThrow(() => compilation.GetDiagnostics());
+            compilation.GetDiagnostics();
         }
 
         [WorkItem(543785, "DevDiv")]

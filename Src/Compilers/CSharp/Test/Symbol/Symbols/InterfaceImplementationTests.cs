@@ -1861,7 +1861,7 @@ class Base
             Assert.Equal(SpecialType.System_Void, returnType.SpecialType);
 
             // Force completion of entire symbol.  Calls EnsureMetadataVirtual on Base.Finalize.
-            Assert.DoesNotThrow(() => derived.ForceComplete(locationOpt: null, cancellationToken: CancellationToken.None));
+            derived.ForceComplete(locationOpt: null, cancellationToken: CancellationToken.None);
         }
 
         [Fact]

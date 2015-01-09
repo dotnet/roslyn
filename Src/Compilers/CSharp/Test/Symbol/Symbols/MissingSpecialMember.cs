@@ -190,14 +190,14 @@ namespace System
             {
                 Assert.NotNull(comp.GetSpecialTypeMember(SpecialMember.System_Object__ToString));
                 Assert.NotNull(comp.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringString));
-                Assert.DoesNotThrow(() => comp.GetDiagnostics());
+                comp.GetDiagnostics();
             };
 
             Action<CSharpCompilation> validateMissing = comp =>
             {
                 Assert.Null(comp.GetSpecialTypeMember(SpecialMember.System_Object__ToString));
                 Assert.Null(comp.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringString));
-                Assert.DoesNotThrow(() => comp.GetDiagnostics());
+                comp.GetDiagnostics();
             };
 
             ValidateSourceAndMetadata(string.Format(sourceTemplate, "public"), validatePresent);
@@ -340,7 +340,7 @@ namespace System
             {
                 Assert.NotNull(comp.GetWellKnownTypeMember(WellKnownMember.System_Type__Missing));
                 Assert.NotNull(comp.GetWellKnownTypeMember(WellKnownMember.System_Math__RoundDouble));
-                Assert.DoesNotThrow(() => comp.GetDiagnostics());
+                comp.GetDiagnostics();
             };
 
             validatePresent(CreateCompilation(string.Format(sourceTemplate, "public")));
@@ -414,7 +414,7 @@ namespace System
             Action<CSharpCompilation> validate = comp =>
             {
                 Assert.NotNull(comp.GetWellKnownTypeMember(WellKnownMember.System_Threading_Interlocked__CompareExchange_T));
-                Assert.DoesNotThrow(() => comp.GetDiagnostics());
+                comp.GetDiagnostics();
             };
 
             ValidateSourceAndMetadata(string.Format(sourceTemplate, ""), validate);

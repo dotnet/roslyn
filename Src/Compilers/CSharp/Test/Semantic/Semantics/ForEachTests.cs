@@ -2183,7 +2183,7 @@ class Element
 }
 ";
             var comp = CreateCompilation(text);
-            Assert.DoesNotThrow(() => comp.GetDiagnostics());
+            comp.GetDiagnostics();
         }
 
         [WorkItem(798000, "DevDiv")]

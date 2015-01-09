@@ -751,12 +751,7 @@ End Select
         ' This is doing the same thing as ParseFile, but using a MemoryStream
         ' instead of FileStream (because I don't want to write a file to disk).
         Using data As New MemoryStream(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib)
-            Dim tree As SyntaxTree = Nothing
-
-            Assert.DoesNotThrow(Sub()
-                                    tree = VisualBasicSyntaxTree.ParseText(EncodedStringText.Create(data))
-                                End Sub)
-
+            Dim tree As SyntaxTree = VisualBasicSyntaxTree.ParseText(EncodedStringText.Create(data))
             tree.GetDiagnostics().VerifyErrorCodes(Diagnostic(ERRID.ERR_BinaryFile))
         End Using
     End Sub

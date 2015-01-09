@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             var x = c.GetMembers("x").Single() as FieldSymbol;
             var arr = x.Type;
 
-            Assert.DoesNotThrow(() => { arr.GetHashCode(); });
+            arr.GetHashCode();
         }
 
         [Fact]
@@ -1005,7 +1005,7 @@ namespace Convert
             var global = comp.GlobalNamespace;
             var ns = global.GetMembers("Convert").Single() as NamespaceSymbol;
             var type1 = ns.GetTypeMembers("Test").Single() as NamedTypeSymbol;
-            Assert.DoesNotThrow(() => { var mems = type1.GetMembers(); });
+            var mems = type1.GetMembers();
         }
 
         [WorkItem(537685, "DevDiv")]
@@ -1024,7 +1024,7 @@ namespace NS1.NS2
             var ns1 = global.GetMembers("NS1").Single() as NamespaceSymbol;
             var ns2 = ns1.GetMembers("NS2").Single() as NamespaceSymbol;
             var mems = ns2.GetMembers();
-            Assert.DoesNotThrow(() => { var x = mems.Length; });
+            var x = mems.Length;
         }
 
         [WorkItem(3178, "DevDiv_Projects/Roslyn")]
@@ -1045,7 +1045,7 @@ namespace Collections {
             var global = comp.GlobalNamespace;
             var ns = global.GetMembers("Collections").Single() as NamespaceSymbol;
             var type1 = ns.GetTypeMembers("Test", 1).Single() as NamedTypeSymbol;
-            Assert.DoesNotThrow(() => { var mems = type1.GetMembers(); });
+            var mems = type1.GetMembers();
         }
 
         [WorkItem(537957, "DevDiv")]

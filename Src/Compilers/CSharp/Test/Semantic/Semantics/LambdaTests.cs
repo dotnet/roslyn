@@ -798,10 +798,10 @@ class Program
             var invocation = tree.GetCompilationUnitRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
 
             // Used to throw a NRE because of the ExpressionSyntax's null SyntaxTree.
-            Assert.DoesNotThrow(() => model.GetSpeculativeSymbolInfo(
+            model.GetSpeculativeSymbolInfo(
                 invocation.SpanStart,
                 SyntaxFactory.ParseExpression("Foo(() => () => { var x = null; return x; })"), // cast removed
-                SpeculativeBindingOption.BindAsExpression));
+                SpeculativeBindingOption.BindAsExpression);
         }
 
         [WorkItem(545343, "DevDiv")]

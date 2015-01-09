@@ -2965,10 +2965,10 @@ public class Test { }
 ";
 
             var comp = CreateCompilationWithMscorlib(source);
-            Assert.DoesNotThrow(() => comp.VerifyDiagnostics(
+            comp.VerifyDiagnostics(
                 // (6,2): error CS0246: The type or namespace name 'Missing' could not be found (are you missing a using directive or an assembly reference?)
                 // [Missing]
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing")));
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Missing").WithArguments("Missing"));
         }
 
         [Fact]
@@ -3135,7 +3135,7 @@ public class D
             var libRef = CreateCompilationWithMscorlib(libSource).EmitToImageReference();
             var comp = CreateCompilationWithMscorlib(source, new[] { libRef });
             var tree = comp.SyntaxTrees.Single();
-            Assert.DoesNotThrow(() => comp.GetDiagnosticsForSyntaxTree(CompilationStage.Declare, tree, null, includeEarlierStages: false));
+            comp.GetDiagnosticsForSyntaxTree(CompilationStage.Declare, tree, null, includeEarlierStages: false);
         }
 
         [WorkItem(709317, "DevDiv")]
@@ -3431,7 +3431,7 @@ namespace A
 ";
             var libRef = CreateCompilationWithMscorlib(libSource, assemblyName: "lib").EmitToImageReference();
 
-            Assert.DoesNotThrow(() => CreateCompilationWithMscorlibAndSystemCore(source, new[] { libRef }).GetDiagnostics());
+            CreateCompilationWithMscorlibAndSystemCore(source, new[] { libRef }).GetDiagnostics();
         }
 
         [Fact]

@@ -2561,7 +2561,7 @@ namespace ConsoleApplication1
     struct Program { }
 }
 ";
-            Assert.DoesNotThrow(() => CreateCompilationWithMscorlib(text).GetDiagnostics());
+            CreateCompilationWithMscorlib(text).GetDiagnostics();
         }
 
         /// <summary>

@@ -3136,7 +3136,7 @@ class C
 ";
 
             var comp = CreateCompilationWithMscorlib(source);
-            Assert.DoesNotThrow(() => comp.VerifyDiagnostics());
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
