@@ -8002,20 +8002,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public ExpressionSyntax ParseExpression()
         {
-            try
-            {
-                this.recursionDepth++;
-                if (this.recursionDepth > MaxUncheckedRecursionDepth)
-                {
-                    LanguageParser.ensureSufficientExecutionStack();
-                }
-
-                return this.ParseSubExpression(0);
-            }
-            finally
-            {
-                this.recursionDepth--;
-            }
+            return this.ParseSubExpression(0);
         }
 
         private bool IsPossibleExpression()
@@ -8249,6 +8236,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
         private ExpressionSyntax ParseSubExpression(uint precedence)
+        {
+            this.recursionDepth++;
+
+            if (this.recursionDepth > MaxUncheckedRecursionDepth)
+            {
+                LanguageParser.ensureSufficientExecutionStack();
+            }
+
+            var result = ParseSubExpressionCore(precedence);
+
+            this.recursionDepth--;
+            return result;
+        }
+
+
+        private ExpressionSyntax ParseSubExpressionCore(uint precedence)
         {
             ExpressionSyntax leftOperand = null;
             uint newPrecedence = 0;
