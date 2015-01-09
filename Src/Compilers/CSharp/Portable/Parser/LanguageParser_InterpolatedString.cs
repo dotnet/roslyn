@@ -189,22 +189,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         /// <param name="kind">The token kind to be assigned to the resulting token</param>
         SyntaxToken MakeStringToken(string text, string bodyText, bool isVerbatim, SyntaxKind kind)
         {
-            var fakeString = (isVerbatim ? "@\"" : "\"") + bodyText + "\"";
+            var prefix = isVerbatim ? "@\"" : "\"";
+            var fakeString = prefix + bodyText + "\"";
             using (var tempLexer = new Lexer(Text.SourceText.From(fakeString), this.Options, allowPreprocessorDirectives: false))
             {
-                var info = default(Lexer.TokenInfo);
-                if (isVerbatim)
+                LexerMode mode = LexerMode.Syntax;
+                SyntaxToken token = tempLexer.Lex(ref mode);
+                Debug.Assert(token.Kind == SyntaxKind.StringLiteralToken);
+                var result = SyntaxFactory.Literal(null, text, kind, token.ValueText, null);
+                if (token.ContainsDiagnostics)
                 {
-                    tempLexer.ScanVerbatimStringLiteral(ref info);
-                }
-                else
-                {
-                    tempLexer.ScanStringLiteral(ref info);
+                    result = result.WithDiagnosticsGreen(MoveDiagnostics(token.GetDiagnostics(), -prefix.Length));
                 }
 
-                Debug.Assert(info.Kind == SyntaxKind.StringLiteralToken);
-                return SyntaxFactory.Literal(null, text, kind, info.StringValue, null);
+                return result;
             }
+        }
+
+        DiagnosticInfo[] MoveDiagnostics(DiagnosticInfo[] infos, int offset)
+        {
+            var builder = ArrayBuilder<DiagnosticInfo>.GetInstance();
+            foreach (var info in infos)
+            {
+                var sd = info as SyntaxDiagnosticInfo;
+                builder.Add(sd?.WithOffset(sd.Offset + offset) ?? info);
+            }
+
+            return builder.ToArrayAndFree();
         }
 
         private void ParseInterpolationStart(out SyntaxToken openBraceToken, out ExpressionSyntax expr, out SyntaxToken commaToken, out ExpressionSyntax alignmentExpression)

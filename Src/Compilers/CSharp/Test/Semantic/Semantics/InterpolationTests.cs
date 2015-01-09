@@ -1018,7 +1018,10 @@ class Program
             CreateCompilationWithMscorlib(text).VerifyDiagnostics(
                 // (6,40): error CS8087: A '}' character may only be escaped by doubling '}}' in an interpolated string.
                 //         var x = $"{ Math.Abs(value: 1):\}";
-                Diagnostic(ErrorCode.ERR_EscapedCurly, @"\").WithArguments("}").WithLocation(6, 40)
+                Diagnostic(ErrorCode.ERR_EscapedCurly, @"\").WithArguments("}").WithLocation(6, 40),
+                // (6,40): error CS1009: Unrecognized escape sequence
+                //         var x = $"{ Math.Abs(value: 1):\}";
+                Diagnostic(ErrorCode.ERR_IllegalEscape, @"\}").WithLocation(6, 40)
                 );
         }
 
@@ -1103,6 +1106,32 @@ class Program {
                 // (4,21): error CS0150: A constant value is expected
                 //     string s = $"{0,a}";
                 Diagnostic(ErrorCode.ERR_ConstantExpected, "a").WithLocation(4, 21)
+                );
+        }
+
+        [WorkItem(1099238, "DevDiv")]
+        [Fact]
+        public void Syntax04()
+        {
+            var text =
+@"using System;
+using System.Linq.Expressions;
+ 
+class Program
+{
+    static void Main()
+    {
+        Expression<Func<string>> e = () => $""\u1{0:\u2}"";
+        Console.WriteLine(e);
+    }
+}";
+            CreateCompilationWithMscorlibAndSystemCore(text).VerifyDiagnostics(
+                // (8,46): error CS1009: Unrecognized escape sequence
+                //         Expression<Func<string>> e = () => $"\u1{0:\u2}";
+                Diagnostic(ErrorCode.ERR_IllegalEscape, @"\u1").WithLocation(8, 46),
+                // (8,52): error CS1009: Unrecognized escape sequence
+                //         Expression<Func<string>> e = () => $"\u1{0:\u2}";
+                Diagnostic(ErrorCode.ERR_IllegalEscape, @"\u2").WithLocation(8, 52)
                 );
         }
 

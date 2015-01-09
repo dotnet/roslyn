@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
     internal partial class Lexer
     {
-        internal void ScanStringLiteral(ref TokenInfo info, bool allowEscapes = true)
+        private void ScanStringLiteral(ref TokenInfo info, bool allowEscapes = true)
         {
             var quoteCharacter = TextWindow.PeekChar();
             if (quoteCharacter == '\'' || quoteCharacter == '"')
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return ch;
         }
 
-        internal void ScanVerbatimStringLiteral(ref TokenInfo info, bool allowNewlines = true)
+        private void ScanVerbatimStringLiteral(ref TokenInfo info, bool allowNewlines = true)
         {
             this.builder.Length = 0;
 
