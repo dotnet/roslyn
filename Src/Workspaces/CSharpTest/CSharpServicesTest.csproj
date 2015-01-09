@@ -76,10 +76,10 @@
     </Reference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <CodeAnalysisRuleSet>..\..\..\Closed\Tools\Source\Microsoft.CodeAnalysis.Toolset\Targets\TestProjectRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>..\..\..\..\Closed\Tools\Source\Microsoft.CodeAnalysis.Toolset\Targets\TestProjectRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <CodeAnalysisRuleSet>..\..\..\Closed\Tools\Source\Microsoft.CodeAnalysis.Toolset\Targets\TestProjectRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>..\..\..\..\Closed\Tools\Source\Microsoft.CodeAnalysis.Toolset\Targets\TestProjectRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
