@@ -24,7 +24,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if ((object)_ExpressionType == null) _ExpressionType = Bound.WellKnownType(WellKnownType.System_Linq_Expressions_Expression);
+                if ((object)_ExpressionType == null)
+                {
+                    _ExpressionType = Bound.WellKnownType(WellKnownType.System_Linq_Expressions_Expression);
+                }
                 return _ExpressionType;
             }
         }
@@ -34,7 +37,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if ((object)_ParameterExpressionType == null) _ParameterExpressionType = Bound.WellKnownType(WellKnownType.System_Linq_Expressions_ParameterExpression);
+                if ((object)_ParameterExpressionType == null)
+                {
+                    _ParameterExpressionType = Bound.WellKnownType(WellKnownType.System_Linq_Expressions_ParameterExpression);
+                }
                 return _ParameterExpressionType;
             }
         }
@@ -44,7 +50,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if ((object)_ElementInitType == null) _ElementInitType = Bound.WellKnownType(WellKnownType.System_Linq_Expressions_ElementInit);
+                if ((object)_ElementInitType == null)
+                {
+                    _ElementInitType = Bound.WellKnownType(WellKnownType.System_Linq_Expressions_ElementInit);
+                }
                 return _ElementInitType;
             }
         }
@@ -55,7 +64,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if ((object)_MemberBindingType == null) _MemberBindingType = Bound.WellKnownType(WellKnownType.System_Linq_Expressions_MemberBinding);
+                if ((object)_MemberBindingType == null)
+                {
+                    _MemberBindingType = Bound.WellKnownType(WellKnownType.System_Linq_Expressions_MemberBinding);
+                }
                 return _MemberBindingType;
             }
         }
@@ -71,7 +83,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if ((object)_MemberInfoType == null) _MemberInfoType = Bound.WellKnownType(WellKnownType.System_Reflection_MemberInfo);
+                if ((object)_MemberInfoType == null)
+                {
+                    _MemberInfoType = Bound.WellKnownType(WellKnownType.System_Reflection_MemberInfo);
+                }
                 return _MemberInfoType;
             }
         }
@@ -121,7 +136,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BoundKind.ReturnStatement:
                             var result = Visit(((BoundReturnStatement)stmt).ExpressionOpt);
-                            if (result != null) return result;
+                            if (result != null)
+                            {
+                                return result;
+                            }
                             stmt = null;
                             break;
                         case BoundKind.ExpressionStatement:
@@ -143,7 +161,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression Visit(BoundExpression node)
         {
-            if (node == null) return null;
+            if (node == null)
+            {
+                return null;
+            }
+
             CSharpSyntaxNode old = Bound.Syntax;
             Bound.Syntax = node.Syntax;
             var result = VisitInternal(node);
@@ -225,7 +247,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var arg = node.Indices[0];
                 var index = Visit(arg);
-                if (node.Type != Int32Type) index = ConvertIndex(index, arg.Type, Int32Type);
+                if (node.Type != Int32Type)
+                {
+                    index = ConvertIndex(index, arg.Type, Int32Type);
+                }
                 return ExprFactory("ArrayIndex", array, index);
             }
             else
@@ -240,7 +265,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             foreach (var arg in expressions)
             {
                 var index = Visit(arg);
-                if (arg.Type != Int32Type) index = ConvertIndex(index, arg.Type, Int32Type);
+                if (arg.Type != Int32Type)
+                {
+                    index = ConvertIndex(index, arg.Type, Int32Type);
+                }
                 builder.Add(index);
             }
 
@@ -380,8 +408,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return
                 ((object)methodOpt == null) ? ExprFactory(opName, loweredLeft, loweredRight) :
-                requiresLifted ? ExprFactory(opName, loweredLeft, loweredRight, Bound.Literal(isLifted && methodOpt.ReturnType != type), Bound.MethodInfo(methodOpt)) :
-                ExprFactory(opName, loweredLeft, loweredRight, Bound.MethodInfo(methodOpt));
+                    requiresLifted ? ExprFactory(opName, loweredLeft, loweredRight, Bound.Literal(isLifted && methodOpt.ReturnType != type), Bound.MethodInfo(methodOpt)) :
+                        ExprFactory(opName, loweredLeft, loweredRight, Bound.MethodInfo(methodOpt));
         }
 
         private TypeSymbol PromotedType(TypeSymbol underlying)
@@ -906,11 +934,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (op)
             {
                 case UnaryOperatorKind.UnaryPlus:
-                    if ((object)node.MethodOpt == null) return loweredArg;
-                    opname = "UnaryPlus"; break;
-                case UnaryOperatorKind.UnaryMinus: opname = isChecked ? "NegateChecked" : "Negate"; break;
-                case UnaryOperatorKind.BitwiseComplement: opname = "Not"; break;
-                case UnaryOperatorKind.LogicalNegation: opname = "Not"; break;
+                    if ((object)node.MethodOpt == null)
+                    {
+                        return loweredArg;
+                    }
+                    opname = "UnaryPlus";
+                    break;
+                case UnaryOperatorKind.UnaryMinus:
+                    opname = isChecked ? "NegateChecked" : "Negate";
+                    break;
+                case UnaryOperatorKind.BitwiseComplement:
+                case UnaryOperatorKind.LogicalNegation:
+                    opname = "Not";
+                    break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(op);
             }
@@ -941,11 +977,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return Bound.StaticCall(ExpressionType, name, typeArgs, arguments);
         }
-
-        ////private BoundExpression ExprFactory(WellKnownMember method, params BoundExpression[] arguments)
-        ////{
-        ////    return Bound.Call(null, method, arguments);
-        ////}
 
         private BoundExpression ExprFactory(WellKnownMember method, ImmutableArray<TypeSymbol> typeArgs, params BoundExpression[] arguments)
         {

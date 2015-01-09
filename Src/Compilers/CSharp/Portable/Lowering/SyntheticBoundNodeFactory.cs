@@ -879,11 +879,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return typeArguments.SelectAsArray(Typeof);
         }
 
-        public BoundExpression MethodInfo(WellKnownMember method)
-        {
-            return MethodInfo(WellKnownMethod(method));
-        }
-
         public BoundExpression Sizeof(TypeSymbol type)
         {
             return new BoundSizeOfOperator(Syntax, Type(type), Binder.GetConstantSizeOf(type), SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32)) { WasCompilerGenerated = true };
@@ -900,11 +895,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression MethodInfo(MethodSymbol method)
         {
-            var originalMethod = method.GetConstructedLeastOverriddenMethod(this.CompilationState.Type);
+            // The least overridden virtual method is only called for value type receivers
+            // in special circumstances. These circumstances are exactly the checks performed by
+            // MayUseCallForStructMethod (which is also used by the emitter when determining
+            // whether or not to call a method with a value type receiver directly).
+            if (!method.ContainingType.IsValueType || !Microsoft.CodeAnalysis.CSharp.CodeGen.CodeGenerator.MayUseCallForStructMethod(method))
+            {
+                method = method.GetConstructedLeastOverriddenMethod(this.CompilationState.Type);
+            }
+
             return new BoundMethodInfo(
                 Syntax,
-                originalMethod,
-                GetMethodFromHandleMethod(originalMethod.ContainingType),
+                method,
+                GetMethodFromHandleMethod(method.ContainingType),
                 WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Reflection_MethodInfo)) { WasCompilerGenerated = true };
         }
 

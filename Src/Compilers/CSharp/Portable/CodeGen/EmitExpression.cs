@@ -1466,7 +1466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         /// It basically checks if the method overrides any other and method's defining type
         /// is not a 'special' or 'special-by-ref' type. 
         /// </summary>
-        private static bool MayUseCallForStructMethod(MethodSymbol method)
+        internal static bool MayUseCallForStructMethod(MethodSymbol method)
         {
             Debug.Assert(method.ContainingType.IsVerifierValue(), "this is not a value type");
 

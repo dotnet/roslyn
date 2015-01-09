@@ -4600,6 +4600,273 @@ class A
                 expectedOutput: expectedOutput);
         }
 
+        [WorkItem(1009636, "DevDiv")]
+        [Fact]
+        public void Bug1009636()
+        {
+            const string source = @"
+using System;
+using System.Linq.Expressions;
+
+namespace VS2013Compatibility
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Expression<Func<string>> f1 = () => 0.ToString();
+            Expression<Func<string>> f2 = () => 0l.ToString();
+
+            var mi1 = ((MethodCallExpression)f1.Body).Method;
+            var mi2 = ((MethodCallExpression)f2.Body).Method;
+            var mi3 = typeof(int).GetMethod(""ToString"", new Type[0]);
+
+            Console.Write(mi1 == mi2);
+            Console.Write(mi1.DeclaringType);
+            Console.Write(mi2.DeclaringType);
+            Console.Write(mi3.DeclaringType);
+        }
+    }
+}";
+
+            const string expectedOutput = @"FalseSystem.Int32System.Int64System.Int32";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(1009636, "DevDiv")]
+        [Fact]
+        public void Bug1009636_2()
+        {
+            const string source = @"
+using System;
+using System.Linq.Expressions;
+
+struct S
+{
+    public override string ToString()
+    {
+        return ""42"";
+    }
+}
+
+class C : TestBase
+{
+    static void Main()
+    {
+        Expression<Func<string>> f = () => default(S).ToString();
+
+        Check<string>(f, ""Call(Constant(42 Type:S).[System.String ToString()]() Type:System.String)"");
+
+        Console.Write(f.Compile()() + default(S).ToString());
+    }
+}";
+
+            const string expectedOutput = @"4242";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(1009636, "DevDiv")]
+        [Fact]
+        public void Bug1009636_3()
+        {
+            const string source = @"
+using System;
+using System.Linq.Expressions;
+
+struct S { }
+
+class C : TestBase
+{
+    static void Main()
+    {
+        Expression<Func<string>> f = () => default(S).ToString();
+
+        Check<string>(f, ""Call(Constant(S Type:S).[System.String ToString()]() Type:System.String)"");
+
+        Console.Write(f.Compile()() + default(S).ToString());
+    }
+}";
+
+            const string expectedOutput = @"SS";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(1009636, "DevDiv")]
+        [Fact]
+        public void Bug1009636_4()
+        {
+            const string source = @"
+using System;
+using System.Linq.Expressions;
+
+class C : TestBase
+{
+    enum E
+    {
+        FortyTwo = 0
+    }
+
+    static void Main()
+    {
+        Expression<Func<bool>> f = () => default(E).HasFlag(E.FortyTwo);
+
+        Check<bool>(f, ""Call(Constant(FortyTwo Type:C+E).[Boolean HasFlag(System.Enum)](Convert(Constant(FortyTwo Type:C+E) Type:System.Enum)) Type:System.Boolean)"");
+
+        Console.Write(f.Compile()().ToString() + default(E).HasFlag(E.FortyTwo).ToString());
+    }
+}";
+
+            const string expectedOutput = @"TrueTrue";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(1009636, "DevDiv")]
+        [Fact]
+        public void Bug1009636_5()
+        {
+            const string source = @"
+using System;
+using System.Linq.Expressions;
+
+class C : TestBase
+{
+    enum E
+    {
+        FortyTwo = 0
+    }
+
+    static void Main()
+    {
+        Expression<Func<string>> f = () => default(E).ToString();
+
+        Check<string>(f, ""Call(Constant(FortyTwo Type:C+E).[System.String ToString()]() Type:System.String)"");
+
+        Console.Write(f.Compile()() + default(E).ToString());
+    }
+}";
+
+            const string expectedOutput = @"FortyTwoFortyTwo";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(1009636, "DevDiv")]
+        [Fact]
+        public void Bug1009636_6()
+        {
+            const string source = @"
+using System;
+using System.Linq.Expressions;
+
+class C : TestBase
+{
+    static void Main()
+    {
+        Expression<Func<string>> f = () => default(int).ToString();
+
+        Check<string>(f, ""Call(Constant(0 Type:System.Int32).[System.String ToString()]() Type:System.String)"");
+
+        Console.Write(f.Compile()() + default(int).ToString());
+    }
+}";
+
+            const string expectedOutput = @"00";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(1009636, "DevDiv")]
+        [Fact]
+        public void Bug1009636_7()
+        {
+            const string source = @"
+using System;
+using System.Linq.Expressions;
+
+struct S
+{
+    public override string ToString()
+    {
+        return ""42"";
+    }
+}
+
+class C : TestBase
+{
+    static void M<T>()
+        where T : struct
+    {
+        Expression<Func<string>> f = () => default(T).ToString();
+
+        Check<string>(f, ""Call(Constant(42 Type:S).[System.String ToString()]() Type:System.String)"");
+
+        Console.Write(f.Compile()() + default(T).ToString());
+    }
+
+    static void Main()
+    {
+        M<S>();
+    }
+}";
+
+            const string expectedOutput = @"4242";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+
+        [WorkItem(1009636, "DevDiv")]
+        [Fact]
+        public void Bug1009636_8()
+        {
+            const string source = @"
+using System;
+using System.Linq.Expressions;
+
+struct S { }
+
+class C : TestBase
+{
+    static void M<T>()
+        where T : struct
+    {
+        Expression<Func<string>> f = () => default(T).ToString();
+
+        Check<string>(f, ""Call(Constant(S Type:S).[System.String ToString()]() Type:System.String)"");
+
+        Console.Write(f.Compile()() + default(T).ToString());
+    }
+
+    static void Main()
+    {
+        M<S>();
+    }
+}";
+
+            const string expectedOutput = @"SS";
+            CompileAndVerify(
+                new[] { source, ExpressionTestLibrary },
+                new[] { ExpressionAssemblyRef },
+                expectedOutput: expectedOutput);
+        }
+           
         #endregion Regression Tests
 
         #region helpers
