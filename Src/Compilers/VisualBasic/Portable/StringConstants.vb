@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Const DelegateMethodCallbackParameterName As String = "DelegateCallback"
         Friend Const DelegateMethodInstanceParameterName As String = "DelegateAsyncState"
         Friend Const DelegateMethodResultParameterName As String = "DelegateAsyncResult"
-        Friend Const DelegateStubParameterName As String = "a{0}"
+        Friend Const DelegateStubParameterPrefix As String = "a"
         Friend Const ElementAtMethod As String = "ElementAtOrDefault"
         Friend Const Group As String = "$VB$Group"
         Friend Const GroupByMethod As String = "GroupBy"
@@ -34,7 +34,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Const JoinMethod As String = "Join"
         Friend Const Lambda As String = "Lambda"
         Friend Const NamedSymbolErrorName As String = "?"
-        Friend Const OperatorLocalName As String = "VB${0}"
         Friend Const OrderByDescendingMethod As String = "OrderByDescending"
         Friend Const OrderByMethod As String = "OrderBy"
         Friend Const SelectManyMethod As String = "SelectMany"
@@ -55,19 +54,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Const HoistedWithLocalPrefix As String = "$W"
         Friend Const StateMachineHoistedUserVariablePrefix As String = "$VB$ResumableLocal_"
         Friend Const ClosureVariablePrefix As String = "$VB$Closure_"
-
         Friend Const DisplayClassPrefix As String = "_Closure$__"
         Friend Const StateMachineTypeNamePrefix As String = "VB$StateMachine_"
-        Friend Const StateMachineTypeNameMask As String = StateMachineTypeNamePrefix & "{0}_{1}"
+
+        ' Do not change the following strings. Other teams (FxCop) use this string to identify lambda functions in its analysis
+        ' If you have to change this string, please contact the VB language PM and consider the impact of that break.
+        Friend Const LambdaMethodNamePrefix As String = "_Lambda$__"
+        Friend Const DisplayClassGenericParameterNamePrefix As String = "$CLS"
+        Friend Const BaseMethodWrapperNamePrefix As String = "$VB$ClosureStub_"
 
         ' Microsoft.VisualStudio.VIL.VisualStudioHost.AsyncReturnStackFrame depends on these names.
         Friend Const StateMachineBuilderFieldName As String = "$Builder"
         Friend Const StateMachineStateFieldName As String = "$State"
 
+        Friend Const DelegateRelaxationDisplayClassPrefix As String = DisplayClassPrefix & "R"
+        Friend Const DelegateRelaxationMethodNamePrefix As String = LambdaMethodNamePrefix & "R"
         Friend Const HoistedSynthesizedLocalPrefix As String = "$S"
-        Friend Const CachedFrameInstanceName As String = "$I"
+        Friend Const LambdaCacheFieldPrefix As String = "$I"
+        Friend Const DelegateRelaxationCacheFieldPrefix As String = "$IR"
         Friend Const StateMachineAwaiterFieldPrefix As String = "$A"
-        Friend Const StateMachineStackSpillPrefix As String = "$W"
+        Friend Const ReusableHoistedLocalFieldName As String = "$U"
         Friend Const StateMachineExpressionCapturePrefix As String = "$V"
 
         Friend Const StateMachineTypeParameterPrefix As String = "SM$"
@@ -77,7 +83,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Const IteratorParameterProxyPrefix As String = "$P_"
 
         Friend Const StaticLocalFieldNamePrefix = "$STATIC$"
-        Friend Const StaticLocalFieldNameMask = StaticLocalFieldNamePrefix & "{0}${1}${2}"
 
         Friend Const PropertyGetPrefix As String = "get_"
         Friend Const PropertySetPrefix As String = "set_"
@@ -104,12 +109,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Const XmlRemoveNamespaceAttributesMethodName As String = "RemoveNamespaceAttributes"
 
         Friend Const ValueProperty As String = "Value"
-
-        '// !! Do not change the following strings. Other teams (FxCop) use this string to identify lambda functions in its analysis
-        '// If you have to change this string, please contact the VB language PM and consider the impact of that break.
-        Friend Const LAMBDA_PREFIX As String = "_Lambda$__"
-        Friend Const CLOSURE_GENERICPARAM_PREFIX As String = "$CLS"
-        Friend Const CLOSURE_MYSTUB_PREFIX As String = "$VB$ClosureStub_"
 
     End Class
 

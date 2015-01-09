@@ -1,12 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Diagnostics
-Imports System.Runtime.InteropServices
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
     Partial Friend NotInheritable Class LocalRewriter
@@ -30,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If Me.inExpressionLambda Then
                         Me.AddPlaceholderReplacement(placeholderOpt, VisitExpression(node.ReceiverOpt))
                     Else
-                        captureTemp = New SynthesizedLocal(Me.currentMethodOrLambda, placeholderOpt.Type, SynthesizedLocalKind.LoweringTemp)
+                        captureTemp = New SynthesizedLocal(Me.currentMethodOrLambda, placeholderOpt.Type, SynthesizedLocalKind.DelegateRelaxationReceiver, syntaxOpt:=placeholderOpt.Syntax)
                         Dim actualReceiver = New BoundLocal(placeholderOpt.Syntax, captureTemp, captureTemp.Type).MakeRValue
                         Me.AddPlaceholderReplacement(placeholderOpt, actualReceiver)
                     End If

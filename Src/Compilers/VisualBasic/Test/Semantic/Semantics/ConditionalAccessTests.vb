@@ -1,15 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.IO
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.SpecialType
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.OverloadResolution
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -4927,14 +4919,14 @@ End Module
 {
   // Code size       35 (0x23)
   .maxstack  2
-  .locals init (Module1._Closure$__1 V_0) //$VB$Closure_0
-  IL_0000:  newobj     "Sub Module1._Closure$__1..ctor()"
+  .locals init (Module1._Closure$__1-0 V_0) //$VB$Closure_0
+  IL_0000:  newobj     "Sub Module1._Closure$__1-0..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldstr      "abc"
-  IL_000c:  stfld      "Module1._Closure$__1.$VB$Local_x As String"
+  IL_000c:  stfld      "Module1._Closure$__1-0.$VB$Local_x As String"
   IL_0011:  ldloc.0
-  IL_0012:  ldfld      "Module1._Closure$__1.$VB$Local_x As String"
+  IL_0012:  ldfld      "Module1._Closure$__1-0.$VB$Local_x As String"
   IL_0017:  dup
   IL_0018:  brtrue.s   IL_001c
   IL_001a:  pop
@@ -4983,12 +4975,12 @@ End Module
   // Code size       34 (0x22)
   .maxstack  3
   .locals init (String V_0) //x
-  IL_0000:  newobj     "Sub Module1._Closure$__1..ctor()"
+  IL_0000:  newobj     "Sub Module1._Closure$__1-0..ctor()"
   IL_0005:  ldstr      "abc"
   IL_000a:  stloc.0
   IL_000b:  dup
   IL_000c:  ldstr      "abc"
-  IL_0011:  stfld      "Module1._Closure$__1.$VB$Local_z As String"
+  IL_0011:  stfld      "Module1._Closure$__1-0.$VB$Local_z As String"
   IL_0016:  pop
   IL_0017:  ldloc.0
   IL_0018:  brfalse.s  IL_0021
@@ -7004,7 +6996,7 @@ Test
 ]]>)
         End Sub
 
-        <WorkItem(470, "CodPlex")>
+        <WorkItem(470, "CodePlex")>
         <Fact>
         Public Sub CodPlexBug470()
 

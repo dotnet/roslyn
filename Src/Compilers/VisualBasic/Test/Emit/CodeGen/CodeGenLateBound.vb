@@ -1,9 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -2357,9 +2354,61 @@ expectedOutput:=<![CDATA[3
 ]]>)
         End Sub
 
+        <Fact>
+        Public Sub LateAddressOfTrueClosure()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Option Strict Off
+Imports System
+    
+Class C
+    Dim _id As Integer
+
+    Sub New(id As Integer)
+        _id = id
+    End Sub
+
+    Function G(x As C) As C
+        Console.WriteLine(x._id)
+        Return x
+    End Function
+
+    Sub foo(x As Integer, y As Integer)
+    End Sub
+End Class
+
+Module Program
+    Sub Main()
+        Dim obj0 As Object = New C(1)
+        Dim obj1 As Object = New C(2)
+
+        Dim o As Action(Of Byte, Integer) = AddressOf obj0.G(obj1).foo
+
+        obj1 = New C(5)
+        o(1, 2)
+    End Sub
+End Module
+    </file>
+</compilation>
+
+            Dim c = CompileAndVerify(source, expectedOutput:="5", options:=TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator:=
+                Sub(m)
+                    Dim closure = m.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Program._Closure$__0-0")
+
+                    AssertEx.Equal(
+                    {
+                        "Public $VB$Local_obj0 As Object",
+                        "Public $VB$Local_obj1 As Object",
+                        "Public Sub New()",
+                        "Friend Sub _Lambda$__1(a0 As Byte, a1 As Integer)"
+                    }, closure.GetMembers().Select(Function(x) x.ToString()))
+                End Sub)
+        End Sub
+
         <Fact()>
         Public Sub LateAddressOf()
-            CompileAndVerify(
+            Dim c = CompileAndVerify(
 <compilation>
     <file name="a.vb">
 Option Strict Off
@@ -2383,8 +2432,9 @@ End Module
 
     </file>
 </compilation>,
-expectedOutput:=<![CDATA[3]]>).
-            VerifyIL("Program._Closure$__1._Lambda$__2",
+expectedOutput:="3")
+
+            c.VerifyIL("Program._Closure$__0-0._Lambda$__1",
             <![CDATA[
 {
   // Code size      134 (0x86)
@@ -2392,7 +2442,7 @@ expectedOutput:=<![CDATA[3]]>).
   .locals init (Object() V_0,
   Boolean() V_1)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "Program._Closure$__1.$VB$Local_obj As Object"
+  IL_0001:  ldfld      "Program._Closure$__0-0.$VB$Local_obj As Object"
   IL_0006:  ldnull
   IL_0007:  ldstr      "foo"
   IL_000c:  ldc.i4.2

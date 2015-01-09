@@ -13,16 +13,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _iteratorMethod As MethodSymbol
 
         Protected Friend Sub New(slotAllocatorOpt As VariableSlotAllocator,
-                                 kickoffMethod As MethodSymbol,
+                                 compilationState As TypeCompilationState,
+                                 iteratorMethod As MethodSymbol,
+                                 iteratorMethodOrdinal As Integer,
                                  valueTypeSymbol As TypeSymbol,
                                  isEnumerable As Boolean)
 
             MyBase.New(slotAllocatorOpt,
-                       kickoffMethod,
-                       kickoffMethod.ContainingAssembly.GetSpecialType(SpecialType.System_Object),
+                       compilationState,
+                       iteratorMethod,
+                       iteratorMethodOrdinal,
+                       iteratorMethod.ContainingAssembly.GetSpecialType(SpecialType.System_Object),
                        GetIteratorInterfaces(valueTypeSymbol,
                                              isEnumerable,
-                                             kickoffMethod.ContainingAssembly))
+                                             iteratorMethod.ContainingAssembly))
 
             Dim intType = DeclaringCompilation.GetSpecialType(SpecialType.System_Int32)
 
@@ -31,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 New SynthesizedParameterSymbol(Me._constructor, intType, 0, False, GeneratedNames.MakeStateMachineStateFieldName()))
 
             Me._constructor.SetParameters(parameters)
-            Me._iteratorMethod = kickoffMethod
+            Me._iteratorMethod = iteratorMethod
         End Sub
 
         Private Shared Function GetIteratorInterfaces(elementType As TypeSymbol,

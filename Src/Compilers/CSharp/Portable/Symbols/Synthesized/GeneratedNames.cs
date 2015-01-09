@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>1__state";
         }
 
-        internal static string MakeIteratorCurrentBackingFieldName()
+        internal static string MakeIteratorCurrentFieldName()
         {
             Debug.Assert((char)GeneratedNameKind.IteratorCurrentBackingField == '2');
             return "<>2__current";

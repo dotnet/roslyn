@@ -215,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Create parameters
             Dim parameters As ImmutableArray(Of BoundLambdaParameterSymbol) = BuildBoundLambdaParameters(source, target, diagnostics)
-            Dim lambdaSymbol As New LambdaSymbol(source.Syntax, source, parameters, targetReturnType, Me)
+            Dim lambdaSymbol As New SourceLambdaSymbol(source.Syntax, source, parameters, targetReturnType, Me)
 
             Dim delegateRelaxation As ConversionKind = Nothing
             Dim lambdaBinder As LambdaBodyBinder = Nothing
@@ -900,7 +900,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' If both Async and Iterator are specified, we cannot really infer return type.
             If source.Flags = (SourceMemberFlags.Async Or SourceMemberFlags.Iterator) Then
                 ' No need to report any error because we complained about conflicting modifiers.
-                Return New KeyValuePair(Of TypeSymbol, ImmutableArray(Of Diagnostic))(VisualBasic.Symbols.LambdaSymbol.ReturnTypeIsUnknown, ImmutableArray(Of Diagnostic).Empty)
+                Return New KeyValuePair(Of TypeSymbol, ImmutableArray(Of Diagnostic))(LambdaSymbol.ReturnTypeIsUnknown, ImmutableArray(Of Diagnostic).Empty)
             End If
 
             Dim diagnostics = DiagnosticBag.GetInstance()
@@ -908,9 +908,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Clone parameters. 
             Dim parameters As ImmutableArray(Of BoundLambdaParameterSymbol) = BuildBoundLambdaParameters(source, targetParameters, diagnostics)
 
-            Dim lambdaSymbol As New LambdaSymbol(source.Syntax, source, parameters, LambdaSymbol.ReturnTypeIsBeingInferred, Me)
-
-            Dim block As BoundBlock = BindLambdaBody(lambdaSymbol, diagnostics, lambdaBinder:=Nothing)
+            Dim symbol = New SourceLambdaSymbol(source.Syntax, source, parameters, LambdaSymbol.ReturnTypeIsBeingInferred, Me)
+            Dim block As BoundBlock = BindLambdaBody(symbol, diagnostics, lambdaBinder:=Nothing)
 
             ' Diagnostic about parameters and body binding is just a side-effect of code reuse, 
             ' clearing it to avoid the same errors reported multiple times.  

@@ -1,20 +1,11 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.IO
 Imports System.Reflection
 Imports System.Runtime.CompilerServices
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.SpecialType
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
-Imports Microsoft.CodeAnalysis.VisualBasic.OverloadResolution
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
-
-Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -889,7 +880,7 @@ Module M1
 End Module
     </file>
 </compilation>
-            CompileAndVerify(source,
+            Dim c = CompileAndVerify(source,
                              expectedOutput:=<![CDATA[
 B.PROP.Get
 DD.PROP.Set
@@ -897,7 +888,8 @@ B.PROP.Get
 B.PROP.Set
 DD.PROP.Get
 B.PROP.Set	
-]]>).VerifyIL("M1.D._Lambda$__1",
+]]>)
+            c.VerifyIL("M1.D._Lambda$__1-1",
             <![CDATA[
 {
   // Code size       37 (0x25)
@@ -985,44 +977,44 @@ Module M1
 End Module
     </file>
 </compilation>
-            CompileAndVerify(source,
-                             expectedOutput:=<![CDATA[
+            Dim c = CompileAndVerify(source, expectedOutput:=<![CDATA[
 B.PROP.Get
 DD.PROP.Set
 D.PROP.Get
 B.PROP.Set
 DD.PROP.Get
 D.PROP.Set	
-]]>).VerifyIL("M1.D._Closure$__1._Lambda$__2",
+]]>)
+            c.VerifyIL("M1.D._Closure$__4-0._Lambda$__1",
             <![CDATA[
 {
   // Code size      100 (0x64)
   .maxstack  3
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.D._Closure$__1.$VB$Me As M1.D"
+  IL_0001:  ldfld      "M1.D._Closure$__4-0.$VB$Me As M1.D"
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "M1.D._Closure$__1.$VB$Me As M1.D"
+  IL_0007:  ldfld      "M1.D._Closure$__4-0.$VB$Me As M1.D"
   IL_000c:  call       "Function M1.D.$VB$ClosureStub_get_PROP_MyBase() As String"
   IL_0011:  ldarg.0
-  IL_0012:  ldfld      "M1.D._Closure$__1.$VB$Local_x As String"
+  IL_0012:  ldfld      "M1.D._Closure$__4-0.$VB$Local_x As String"
   IL_0017:  call       "Function String.Concat(String, String) As String"
   IL_001c:  callvirt   "Sub M1.D.set_PROP(String)"
   IL_0021:  ldarg.0
-  IL_0022:  ldfld      "M1.D._Closure$__1.$VB$Me As M1.D"
+  IL_0022:  ldfld      "M1.D._Closure$__4-0.$VB$Me As M1.D"
   IL_0027:  ldarg.0
-  IL_0028:  ldfld      "M1.D._Closure$__1.$VB$Me As M1.D"
+  IL_0028:  ldfld      "M1.D._Closure$__4-0.$VB$Me As M1.D"
   IL_002d:  call       "Function M1.D.$VB$ClosureStub_get_PROP_MyClass() As String"
   IL_0032:  ldarg.0
-  IL_0033:  ldfld      "M1.D._Closure$__1.$VB$Local_x As String"
+  IL_0033:  ldfld      "M1.D._Closure$__4-0.$VB$Local_x As String"
   IL_0038:  call       "Function String.Concat(String, String) As String"
   IL_003d:  call       "Sub M1.D.$VB$ClosureStub_set_PROP_MyBase(String)"
   IL_0042:  ldarg.0
-  IL_0043:  ldfld      "M1.D._Closure$__1.$VB$Me As M1.D"
+  IL_0043:  ldfld      "M1.D._Closure$__4-0.$VB$Me As M1.D"
   IL_0048:  ldarg.0
-  IL_0049:  ldfld      "M1.D._Closure$__1.$VB$Me As M1.D"
+  IL_0049:  ldfld      "M1.D._Closure$__4-0.$VB$Me As M1.D"
   IL_004e:  callvirt   "Function M1.D.get_PROP() As String"
   IL_0053:  ldarg.0
-  IL_0054:  ldfld      "M1.D._Closure$__1.$VB$Local_x As String"
+  IL_0054:  ldfld      "M1.D._Closure$__4-0.$VB$Local_x As String"
   IL_0059:  call       "Function String.Concat(String, String) As String"
   IL_005e:  call       "Sub M1.D.$VB$ClosureStub_set_PROP_MyClass(String)"
   IL_0063:  ret
@@ -1124,27 +1116,30 @@ Module M1
 End Module
     </file>
 </compilation>
-            CompileAndVerify(source,
-                             expectedOutput:=<![CDATA[123-321]]>).VerifyIL("M1.D.Test",
+
+            Dim c = CompileAndVerify(source, expectedOutput:=<![CDATA[123-321]]>)
+
+            c.VerifyIL("M1.D.Test",
             <![CDATA[
 {
   // Code size       55 (0x37)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldftn      "Function M1.D._Lambda$__1() As Integer"
+  IL_0001:  ldftn      "Function M1.D._Lambda$__2-1() As Integer"
   IL_0007:  newobj     "Sub System.Func(Of Integer)..ctor(Object, System.IntPtr)"
   IL_000c:  callvirt   "Function System.Func(Of Integer).Invoke() As Integer"
   IL_0011:  call       "Sub System.Console.Write(Integer)"
   IL_0016:  ldstr      "-"
   IL_001b:  call       "Sub System.Console.Write(String)"
   IL_0020:  ldarg.0
-  IL_0021:  ldftn      "Function M1.D._Lambda$__2() As Integer"
+  IL_0021:  ldftn      "Function M1.D._Lambda$__2-2() As Integer"
   IL_0027:  newobj     "Sub System.Func(Of Integer)..ctor(Object, System.IntPtr)"
   IL_002c:  callvirt   "Function System.Func(Of Integer).Invoke() As Integer"
   IL_0031:  call       "Sub System.Console.Write(Integer)"
   IL_0036:  ret
 }
-]]>).VerifyIL("M1.D._Lambda$__1",
+]]>)
+            c.VerifyIL("M1.D._Lambda$__2-1",
             <![CDATA[
 {
   // Code size        7 (0x7)
@@ -1153,7 +1148,8 @@ End Module
   IL_0001:  ldfld      "M1.B1.FLD As Integer"
   IL_0006:  ret
 }
-]]>).VerifyIL("M1.D._Lambda$__2",
+]]>)
+            c.VerifyIL("M1.D._Lambda$__2-2",
             <![CDATA[
 {
   // Code size        7 (0x7)
@@ -1202,55 +1198,57 @@ Module M1
 End Module
     </file>
 </compilation>
-            CompileAndVerify(source,
-                             expectedOutput:=<![CDATA[124-322]]>).VerifyIL("M1.D.Test",
+            Dim c = CompileAndVerify(source, expectedOutput:=<![CDATA[124-322]]>)
+            c.VerifyIL("M1.D.Test",
             <![CDATA[
 {
   // Code size       73 (0x49)
   .maxstack  3
-  IL_0000:  newobj     "Sub M1.D._Closure$__1..ctor()"
+  IL_0000:  newobj     "Sub M1.D._Closure$__2-0..ctor()"
   IL_0005:  dup
   IL_0006:  ldarg.0
-  IL_0007:  stfld      "M1.D._Closure$__1.$VB$Me As M1.D"
+  IL_0007:  stfld      "M1.D._Closure$__2-0.$VB$Me As M1.D"
   IL_000c:  dup
   IL_000d:  ldc.i4.1
-  IL_000e:  stfld      "M1.D._Closure$__1.$VB$Local__add As Integer"
+  IL_000e:  stfld      "M1.D._Closure$__2-0.$VB$Local__add As Integer"
   IL_0013:  dup
-  IL_0014:  ldftn      "Function M1.D._Closure$__1._Lambda$__2() As Integer"
+  IL_0014:  ldftn      "Function M1.D._Closure$__2-0._Lambda$__1() As Integer"
   IL_001a:  newobj     "Sub System.Func(Of Integer)..ctor(Object, System.IntPtr)"
   IL_001f:  callvirt   "Function System.Func(Of Integer).Invoke() As Integer"
   IL_0024:  call       "Sub System.Console.Write(Integer)"
   IL_0029:  ldstr      "-"
   IL_002e:  call       "Sub System.Console.Write(String)"
-  IL_0033:  ldftn      "Function M1.D._Closure$__1._Lambda$__3() As Integer"
+  IL_0033:  ldftn      "Function M1.D._Closure$__2-0._Lambda$__2() As Integer"
   IL_0039:  newobj     "Sub System.Func(Of Integer)..ctor(Object, System.IntPtr)"
   IL_003e:  callvirt   "Function System.Func(Of Integer).Invoke() As Integer"
   IL_0043:  call       "Sub System.Console.Write(Integer)"
   IL_0048:  ret
 }
-]]>).VerifyIL("M1.D._Closure$__1._Lambda$__2",
+]]>)
+            c.VerifyIL("M1.D._Closure$__2-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       19 (0x13)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.D._Closure$__1.$VB$Me As M1.D"
+  IL_0001:  ldfld      "M1.D._Closure$__2-0.$VB$Me As M1.D"
   IL_0006:  ldfld      "M1.B1.FLD As Integer"
   IL_000b:  ldarg.0
-  IL_000c:  ldfld      "M1.D._Closure$__1.$VB$Local__add As Integer"
+  IL_000c:  ldfld      "M1.D._Closure$__2-0.$VB$Local__add As Integer"
   IL_0011:  add.ovf
   IL_0012:  ret
 }
-]]>).VerifyIL("M1.D._Closure$__1._Lambda$__3",
+]]>)
+            c.VerifyIL("M1.D._Closure$__2-0._Lambda$__2",
             <![CDATA[
 {
   // Code size       19 (0x13)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.D._Closure$__1.$VB$Me As M1.D"
+  IL_0001:  ldfld      "M1.D._Closure$__2-0.$VB$Me As M1.D"
   IL_0006:  ldfld      "M1.D.FLD As Integer"
   IL_000b:  ldarg.0
-  IL_000c:  ldfld      "M1.D._Closure$__1.$VB$Local__add As Integer"
+  IL_000c:  ldfld      "M1.D._Closure$__2-0.$VB$Local__add As Integer"
   IL_0011:  add.ovf
   IL_0012:  ret
 }
@@ -1319,74 +1317,79 @@ Module M1
 End Module
     </file>
 </compilation>
-            CompileAndVerify(source,
+            Dim c = CompileAndVerify(source,
                              expectedOutput:=<![CDATA[
      Me: D::F
 MyClass: B2::F
  MyBase: B1::F
-]]>).VerifyIL("M1.B2.TestMe",
+]]>)
+            c.VerifyIL("M1.B2.TestMe",
             <![CDATA[
 {
   // Code size       45 (0x2d)
   .maxstack  3
-  IL_0000:  newobj     "Sub M1.B2._Closure$__1..ctor()"
+  IL_0000:  newobj     "Sub M1.B2._Closure$__2-0..ctor()"
   IL_0005:  dup
   IL_0006:  ldarg.0
-  IL_0007:  stfld      "M1.B2._Closure$__1.$VB$Me As M1.B2"
+  IL_0007:  stfld      "M1.B2._Closure$__2-0.$VB$Me As M1.B2"
   IL_000c:  dup
   IL_000d:  ldstr      "     Me: "
-  IL_0012:  stfld      "M1.B2._Closure$__1.$VB$Local_s As String"
-  IL_0017:  ldftn      "Function M1.B2._Closure$__1._Lambda$__2() As String"
+  IL_0012:  stfld      "M1.B2._Closure$__2-0.$VB$Local_s As String"
+  IL_0017:  ldftn      "Function M1.B2._Closure$__2-0._Lambda$__1() As String"
   IL_001d:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
   IL_0022:  callvirt   "Function System.Func(Of String).Invoke() As String"
   IL_0027:  call       "Sub System.Console.WriteLine(String)"
   IL_002c:  ret
 }
-]]>).VerifyIL("M1.B2._Closure$__1._Lambda$__2",
+]]>)
+            c.VerifyIL("M1.B2._Closure$__2-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       23 (0x17)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.B2._Closure$__1.$VB$Local_s As String"
+  IL_0001:  ldfld      "M1.B2._Closure$__2-0.$VB$Local_s As String"
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "M1.B2._Closure$__1.$VB$Me As M1.B2"
+  IL_0007:  ldfld      "M1.B2._Closure$__2-0.$VB$Me As M1.B2"
   IL_000c:  callvirt   "Function M1.B2.F() As String"
   IL_0011:  call       "Function String.Concat(String, String) As String"
   IL_0016:  ret
 }
-]]>).VerifyIL("M1.B2.TestMyClass",
+]]>)
+            c.VerifyIL("M1.B2.TestMyClass",
             <![CDATA[
 {
   // Code size       45 (0x2d)
   .maxstack  3
-  IL_0000:  newobj     "Sub M1.B2._Closure$__3..ctor()"
+  IL_0000:  newobj     "Sub M1.B2._Closure$__3-0..ctor()"
   IL_0005:  dup
   IL_0006:  ldarg.0
-  IL_0007:  stfld      "M1.B2._Closure$__3.$VB$Me As M1.B2"
+  IL_0007:  stfld      "M1.B2._Closure$__3-0.$VB$Me As M1.B2"
   IL_000c:  dup
   IL_000d:  ldstr      "MyClass: "
-  IL_0012:  stfld      "M1.B2._Closure$__3.$VB$Local_s As String"
-  IL_0017:  ldftn      "Function M1.B2._Closure$__3._Lambda$__4() As String"
+  IL_0012:  stfld      "M1.B2._Closure$__3-0.$VB$Local_s As String"
+  IL_0017:  ldftn      "Function M1.B2._Closure$__3-0._Lambda$__1() As String"
   IL_001d:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
   IL_0022:  callvirt   "Function System.Func(Of String).Invoke() As String"
   IL_0027:  call       "Sub System.Console.WriteLine(String)"
   IL_002c:  ret
 }
-]]>).VerifyIL("M1.B2._Closure$__3._Lambda$__4",
+]]>)
+            c.VerifyIL("M1.B2._Closure$__3-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       23 (0x17)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.B2._Closure$__3.$VB$Local_s As String"
+  IL_0001:  ldfld      "M1.B2._Closure$__3-0.$VB$Local_s As String"
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "M1.B2._Closure$__3.$VB$Me As M1.B2"
+  IL_0007:  ldfld      "M1.B2._Closure$__3-0.$VB$Me As M1.B2"
   IL_000c:  call       "Function M1.B2.$VB$ClosureStub_F_MyClass() As String"
   IL_0011:  call       "Function String.Concat(String, String) As String"
   IL_0016:  ret
 }
-]]>).VerifyIL("M1.B2.$VB$ClosureStub_F_MyClass",
+]]>)
+            c.VerifyIL("M1.B2.$VB$ClosureStub_F_MyClass",
             <![CDATA[
 {
   // Code size        7 (0x7)
@@ -1395,38 +1398,41 @@ MyClass: B2::F
   IL_0001:  call       "Function M1.B2.F() As String"
   IL_0006:  ret
 }
-]]>).VerifyIL("M1.B2.TestMyBase",
+]]>)
+            c.VerifyIL("M1.B2.TestMyBase",
             <![CDATA[
 {
   // Code size       45 (0x2d)
   .maxstack  3
-  IL_0000:  newobj     "Sub M1.B2._Closure$__5..ctor()"
+  IL_0000:  newobj     "Sub M1.B2._Closure$__4-0..ctor()"
   IL_0005:  dup
   IL_0006:  ldarg.0
-  IL_0007:  stfld      "M1.B2._Closure$__5.$VB$Me As M1.B2"
+  IL_0007:  stfld      "M1.B2._Closure$__4-0.$VB$Me As M1.B2"
   IL_000c:  dup
   IL_000d:  ldstr      " MyBase: "
-  IL_0012:  stfld      "M1.B2._Closure$__5.$VB$Local_s As String"
-  IL_0017:  ldftn      "Function M1.B2._Closure$__5._Lambda$__6() As String"
+  IL_0012:  stfld      "M1.B2._Closure$__4-0.$VB$Local_s As String"
+  IL_0017:  ldftn      "Function M1.B2._Closure$__4-0._Lambda$__1() As String"
   IL_001d:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
   IL_0022:  callvirt   "Function System.Func(Of String).Invoke() As String"
   IL_0027:  call       "Sub System.Console.WriteLine(String)"
   IL_002c:  ret
 }
-]]>).VerifyIL("M1.B2._Closure$__5._Lambda$__6",
+]]>)
+            c.VerifyIL("M1.B2._Closure$__4-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       23 (0x17)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.B2._Closure$__5.$VB$Local_s As String"
+  IL_0001:  ldfld      "M1.B2._Closure$__4-0.$VB$Local_s As String"
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "M1.B2._Closure$__5.$VB$Me As M1.B2"
+  IL_0007:  ldfld      "M1.B2._Closure$__4-0.$VB$Me As M1.B2"
   IL_000c:  call       "Function M1.B2.$VB$ClosureStub_F_MyBase() As String"
   IL_0011:  call       "Function String.Concat(String, String) As String"
   IL_0016:  ret
 }
-]]>).VerifyIL("M1.B2.$VB$ClosureStub_F_MyBase",
+]]>)
+            c.VerifyIL("M1.B2.$VB$ClosureStub_F_MyBase",
             <![CDATA[
 {
   // Code size        7 (0x7)
@@ -1492,105 +1498,111 @@ Module M1
 End Module
     </file>
 </compilation>
-            CompileAndVerify(source,
-                             expectedOutput:=<![CDATA[
+            Dim c = CompileAndVerify(source, expectedOutput:=<![CDATA[
      Me: D::F
 MyClass: B1::F
  MyBase: B1::F  
-]]>).VerifyIL("M1.B2.TestMe",
+]]>)
+            c.VerifyIL("M1.B2.TestMe",
             <![CDATA[
 {
   // Code size       45 (0x2d)
   .maxstack  3
-  IL_0000:  newobj     "Sub M1.B2._Closure$__1..ctor()"
+  IL_0000:  newobj     "Sub M1.B2._Closure$__1-0..ctor()"
   IL_0005:  dup
   IL_0006:  ldarg.0
-  IL_0007:  stfld      "M1.B2._Closure$__1.$VB$Me As M1.B2"
+  IL_0007:  stfld      "M1.B2._Closure$__1-0.$VB$Me As M1.B2"
   IL_000c:  dup
   IL_000d:  ldstr      "     Me: "
-  IL_0012:  stfld      "M1.B2._Closure$__1.$VB$Local_s As String"
-  IL_0017:  ldftn      "Function M1.B2._Closure$__1._Lambda$__2() As String"
+  IL_0012:  stfld      "M1.B2._Closure$__1-0.$VB$Local_s As String"
+  IL_0017:  ldftn      "Function M1.B2._Closure$__1-0._Lambda$__1() As String"
   IL_001d:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
   IL_0022:  callvirt   "Function System.Func(Of String).Invoke() As String"
   IL_0027:  call       "Sub System.Console.WriteLine(String)"
   IL_002c:  ret
 }
-]]>).VerifyIL("M1.B2._Closure$__1._Lambda$__2",
+]]>)
+            c.VerifyIL("M1.B2._Closure$__1-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       23 (0x17)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.B2._Closure$__1.$VB$Local_s As String"
+  IL_0001:  ldfld      "M1.B2._Closure$__1-0.$VB$Local_s As String"
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "M1.B2._Closure$__1.$VB$Me As M1.B2"
+  IL_0007:  ldfld      "M1.B2._Closure$__1-0.$VB$Me As M1.B2"
   IL_000c:  callvirt   "Function M1.B1.F() As String"
   IL_0011:  call       "Function String.Concat(String, String) As String"
   IL_0016:  ret
 }
-]]>).VerifyIL("M1.B2.TestMyClass",
+]]>)
+            c.VerifyIL("M1.B2.TestMyClass",
             <![CDATA[
 {
   // Code size       45 (0x2d)
   .maxstack  3
-  IL_0000:  newobj     "Sub M1.B2._Closure$__3..ctor()"
+  IL_0000:  newobj     "Sub M1.B2._Closure$__2-0..ctor()"
   IL_0005:  dup
   IL_0006:  ldarg.0
-  IL_0007:  stfld      "M1.B2._Closure$__3.$VB$Me As M1.B2"
+  IL_0007:  stfld      "M1.B2._Closure$__2-0.$VB$Me As M1.B2"
   IL_000c:  dup
   IL_000d:  ldstr      "MyClass: "
-  IL_0012:  stfld      "M1.B2._Closure$__3.$VB$Local_s As String"
-  IL_0017:  ldftn      "Function M1.B2._Closure$__3._Lambda$__4() As String"
+  IL_0012:  stfld      "M1.B2._Closure$__2-0.$VB$Local_s As String"
+  IL_0017:  ldftn      "Function M1.B2._Closure$__2-0._Lambda$__1() As String"
   IL_001d:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
   IL_0022:  callvirt   "Function System.Func(Of String).Invoke() As String"
   IL_0027:  call       "Sub System.Console.WriteLine(String)"
   IL_002c:  ret
 }
-]]>).VerifyIL("M1.B2._Closure$__3._Lambda$__4",
+]]>)
+            c.VerifyIL("M1.B2._Closure$__2-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       23 (0x17)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.B2._Closure$__3.$VB$Local_s As String"
+  IL_0001:  ldfld      "M1.B2._Closure$__2-0.$VB$Local_s As String"
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "M1.B2._Closure$__3.$VB$Me As M1.B2"
+  IL_0007:  ldfld      "M1.B2._Closure$__2-0.$VB$Me As M1.B2"
   IL_000c:  call       "Function M1.B2.$VB$ClosureStub_F_MyBase() As String"
   IL_0011:  call       "Function String.Concat(String, String) As String"
   IL_0016:  ret
 }
-]]>).VerifyIL("M1.B2.TestMyBase",
+]]>)
+            c.VerifyIL("M1.B2.TestMyBase",
             <![CDATA[
 {
   // Code size       45 (0x2d)
   .maxstack  3
-  IL_0000:  newobj     "Sub M1.B2._Closure$__5..ctor()"
+  IL_0000:  newobj     "Sub M1.B2._Closure$__3-0..ctor()"
   IL_0005:  dup
   IL_0006:  ldarg.0
-  IL_0007:  stfld      "M1.B2._Closure$__5.$VB$Me As M1.B2"
+  IL_0007:  stfld      "M1.B2._Closure$__3-0.$VB$Me As M1.B2"
   IL_000c:  dup
   IL_000d:  ldstr      " MyBase: "
-  IL_0012:  stfld      "M1.B2._Closure$__5.$VB$Local_s As String"
-  IL_0017:  ldftn      "Function M1.B2._Closure$__5._Lambda$__6() As String"
+  IL_0012:  stfld      "M1.B2._Closure$__3-0.$VB$Local_s As String"
+  IL_0017:  ldftn      "Function M1.B2._Closure$__3-0._Lambda$__1() As String"
   IL_001d:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
   IL_0022:  callvirt   "Function System.Func(Of String).Invoke() As String"
   IL_0027:  call       "Sub System.Console.WriteLine(String)"
   IL_002c:  ret
 }
-]]>).VerifyIL("M1.B2._Closure$__5._Lambda$__6",
+]]>)
+            c.VerifyIL("M1.B2._Closure$__3-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       23 (0x17)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.B2._Closure$__5.$VB$Local_s As String"
+  IL_0001:  ldfld      "M1.B2._Closure$__3-0.$VB$Local_s As String"
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "M1.B2._Closure$__5.$VB$Me As M1.B2"
+  IL_0007:  ldfld      "M1.B2._Closure$__3-0.$VB$Me As M1.B2"
   IL_000c:  call       "Function M1.B2.$VB$ClosureStub_F_MyBase() As String"
   IL_0011:  call       "Function String.Concat(String, String) As String"
   IL_0016:  ret
 }
-]]>).VerifyIL("M1.B2.$VB$ClosureStub_F_MyBase",
+]]>)
+            c.VerifyIL("M1.B2.$VB$ClosureStub_F_MyBase",
             <![CDATA[
 {
   // Code size        7 (0x7)
@@ -1660,100 +1672,106 @@ Module M1
 End Module
     </file>
 </compilation>
-            CompileAndVerify(source,
+            Dim c = CompileAndVerify(source,
                              expectedOutput:=<![CDATA[
      Me: B2::F
 MyClass: B2::F
  MyBase: B1::F
-]]>).VerifyIL("M1.B2.TestMe",
+]]>)
+            c.VerifyIL("M1.B2.TestMe",
             <![CDATA[
 {
   // Code size       45 (0x2d)
   .maxstack  3
-  IL_0000:  newobj     "Sub M1.B2._Closure$__1..ctor()"
+  IL_0000:  newobj     "Sub M1.B2._Closure$__2-0..ctor()"
   IL_0005:  dup
   IL_0006:  ldarg.0
-  IL_0007:  stfld      "M1.B2._Closure$__1.$VB$Me As M1.B2"
+  IL_0007:  stfld      "M1.B2._Closure$__2-0.$VB$Me As M1.B2"
   IL_000c:  dup
   IL_000d:  ldstr      "     Me: "
-  IL_0012:  stfld      "M1.B2._Closure$__1.$VB$Local_s As String"
-  IL_0017:  ldftn      "Function M1.B2._Closure$__1._Lambda$__2() As String"
+  IL_0012:  stfld      "M1.B2._Closure$__2-0.$VB$Local_s As String"
+  IL_0017:  ldftn      "Function M1.B2._Closure$__2-0._Lambda$__1() As String"
   IL_001d:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
   IL_0022:  callvirt   "Function System.Func(Of String).Invoke() As String"
   IL_0027:  call       "Sub System.Console.WriteLine(String)"
   IL_002c:  ret
 }
-]]>).VerifyIL("M1.B2._Closure$__1._Lambda$__2",
+]]>)
+            c.VerifyIL("M1.B2._Closure$__2-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       23 (0x17)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.B2._Closure$__1.$VB$Local_s As String"
+  IL_0001:  ldfld      "M1.B2._Closure$__2-0.$VB$Local_s As String"
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "M1.B2._Closure$__1.$VB$Me As M1.B2"
+  IL_0007:  ldfld      "M1.B2._Closure$__2-0.$VB$Me As M1.B2"
   IL_000c:  call       "Function M1.B2.F() As String"
   IL_0011:  call       "Function String.Concat(String, String) As String"
   IL_0016:  ret
 }
-]]>).VerifyIL("M1.B2.TestMyClass",
+]]>)
+            c.VerifyIL("M1.B2.TestMyClass",
             <![CDATA[
 {
   // Code size       45 (0x2d)
   .maxstack  3
-  IL_0000:  newobj     "Sub M1.B2._Closure$__3..ctor()"
+  IL_0000:  newobj     "Sub M1.B2._Closure$__3-0..ctor()"
   IL_0005:  dup
   IL_0006:  ldarg.0
-  IL_0007:  stfld      "M1.B2._Closure$__3.$VB$Me As M1.B2"
+  IL_0007:  stfld      "M1.B2._Closure$__3-0.$VB$Me As M1.B2"
   IL_000c:  dup
   IL_000d:  ldstr      "MyClass: "
-  IL_0012:  stfld      "M1.B2._Closure$__3.$VB$Local_s As String"
-  IL_0017:  ldftn      "Function M1.B2._Closure$__3._Lambda$__4() As String"
+  IL_0012:  stfld      "M1.B2._Closure$__3-0.$VB$Local_s As String"
+  IL_0017:  ldftn      "Function M1.B2._Closure$__3-0._Lambda$__1() As String"
   IL_001d:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
   IL_0022:  callvirt   "Function System.Func(Of String).Invoke() As String"
   IL_0027:  call       "Sub System.Console.WriteLine(String)"
   IL_002c:  ret
 }
-]]>).VerifyIL("M1.B2._Closure$__3._Lambda$__4",
+]]>)
+            c.VerifyIL("M1.B2._Closure$__3-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       23 (0x17)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.B2._Closure$__3.$VB$Local_s As String"
+  IL_0001:  ldfld      "M1.B2._Closure$__3-0.$VB$Local_s As String"
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "M1.B2._Closure$__3.$VB$Me As M1.B2"
+  IL_0007:  ldfld      "M1.B2._Closure$__3-0.$VB$Me As M1.B2"
   IL_000c:  call       "Function M1.B2.F() As String"
   IL_0011:  call       "Function String.Concat(String, String) As String"
   IL_0016:  ret
 }
-]]>).VerifyIL("M1.B2.TestMyBase",
+]]>)
+            c.VerifyIL("M1.B2.TestMyBase",
             <![CDATA[
 {
   // Code size       45 (0x2d)
   .maxstack  3
-  IL_0000:  newobj     "Sub M1.B2._Closure$__5..ctor()"
+  IL_0000:  newobj     "Sub M1.B2._Closure$__4-0..ctor()"
   IL_0005:  dup
   IL_0006:  ldarg.0
-  IL_0007:  stfld      "M1.B2._Closure$__5.$VB$Me As M1.B2"
+  IL_0007:  stfld      "M1.B2._Closure$__4-0.$VB$Me As M1.B2"
   IL_000c:  dup
   IL_000d:  ldstr      " MyBase: "
-  IL_0012:  stfld      "M1.B2._Closure$__5.$VB$Local_s As String"
-  IL_0017:  ldftn      "Function M1.B2._Closure$__5._Lambda$__6() As String"
+  IL_0012:  stfld      "M1.B2._Closure$__4-0.$VB$Local_s As String"
+  IL_0017:  ldftn      "Function M1.B2._Closure$__4-0._Lambda$__1() As String"
   IL_001d:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
   IL_0022:  callvirt   "Function System.Func(Of String).Invoke() As String"
   IL_0027:  call       "Sub System.Console.WriteLine(String)"
   IL_002c:  ret
 }
-]]>).VerifyIL("M1.B2._Closure$__5._Lambda$__6",
+]]>)
+            c.VerifyIL("M1.B2._Closure$__4-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       23 (0x17)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.B2._Closure$__5.$VB$Local_s As String"
+  IL_0001:  ldfld      "M1.B2._Closure$__4-0.$VB$Local_s As String"
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "M1.B2._Closure$__5.$VB$Me As M1.B2"
+  IL_0007:  ldfld      "M1.B2._Closure$__4-0.$VB$Me As M1.B2"
   IL_000c:  call       "Function M1.B1.F() As String"
   IL_0011:  call       "Function String.Concat(String, String) As String"
   IL_0016:  ret
@@ -1820,24 +1838,26 @@ Module M1
 End Module
     </file>
 </compilation>
-            CompileAndVerify(source,
+            Dim c = CompileAndVerify(source,
                              expectedOutput:=<![CDATA[
 D::F
 B2::F
 B1::F
-]]>).VerifyIL("M1.B2.TestMe",
+]]>)
+            c.VerifyIL("M1.B2.TestMe",
             <![CDATA[
 {
   // Code size       23 (0x17)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldftn      "Function M1.B2._Lambda$__1() As String"
+  IL_0001:  ldftn      "Function M1.B2._Lambda$__2-1() As String"
   IL_0007:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
   IL_000c:  callvirt   "Function System.Func(Of String).Invoke() As String"
   IL_0011:  call       "Sub System.Console.WriteLine(String)"
   IL_0016:  ret
 }
-]]>).VerifyIL("M1.B2._Lambda$__1",
+]]>)
+            c.VerifyIL("M1.B2._Lambda$__2-1",
             <![CDATA[
 {
   // Code size        7 (0x7)
@@ -1846,19 +1866,21 @@ B1::F
   IL_0001:  callvirt   "Function M1.B2.F() As String"
   IL_0006:  ret
 }
-]]>).VerifyIL("M1.B2.TestMyClass",
+]]>)
+            c.VerifyIL("M1.B2.TestMyClass",
             <![CDATA[
 {
   // Code size       23 (0x17)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldftn      "Function M1.B2._Lambda$__2() As String"
+  IL_0001:  ldftn      "Function M1.B2._Lambda$__3-1() As String"
   IL_0007:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
   IL_000c:  callvirt   "Function System.Func(Of String).Invoke() As String"
   IL_0011:  call       "Sub System.Console.WriteLine(String)"
   IL_0016:  ret
 }
-]]>).VerifyIL("M1.B2._Lambda$__2",
+]]>)
+            c.VerifyIL("M1.B2._Lambda$__3-1",
             <![CDATA[
 {
   // Code size        7 (0x7)
@@ -1867,19 +1889,21 @@ B1::F
   IL_0001:  call       "Function M1.B2.F() As String"
   IL_0006:  ret
 }
-]]>).VerifyIL("M1.B2.TestMyBase",
+]]>)
+            c.VerifyIL("M1.B2.TestMyBase",
             <![CDATA[
 {
   // Code size       23 (0x17)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldftn      "Function M1.B2._Lambda$__3() As String"
+  IL_0001:  ldftn      "Function M1.B2._Lambda$__4-1() As String"
   IL_0007:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
   IL_000c:  callvirt   "Function System.Func(Of String).Invoke() As String"
   IL_0011:  call       "Sub System.Console.WriteLine(String)"
   IL_0016:  ret
 }
-]]>).VerifyIL("M1.B2._Lambda$__3",
+]]>)
+            c.VerifyIL("M1.B2._Lambda$__4-1",
             <![CDATA[
 {
   // Code size        7 (0x7)
@@ -1942,12 +1966,13 @@ Module M1
 End Module
     </file>
 </compilation>
-            CompileAndVerify(source,
+            Dim c = CompileAndVerify(source,
                              expectedOutput:=<![CDATA[
 D::F
 B1::F
 B1::F
-]]>).VerifyIL("M1.B2._Lambda$__1",
+]]>)
+            c.VerifyIL("M1.B2._Lambda$__1-1",
             <![CDATA[
 {
   // Code size        7 (0x7)
@@ -1956,7 +1981,8 @@ B1::F
   IL_0001:  callvirt   "Function M1.B1.F() As String"
   IL_0006:  ret
 }
-]]>).VerifyIL("M1.B2._Lambda$__2",
+]]>)
+            c.VerifyIL("M1.B2._Lambda$__2-1",
             <![CDATA[
 {
   // Code size        7 (0x7)
@@ -1965,7 +1991,8 @@ B1::F
   IL_0001:  call       "Function M1.B1.F() As String"
   IL_0006:  ret
 }
-]]>).VerifyIL("M1.B2._Lambda$__3",
+]]>)
+            c.VerifyIL("M1.B2._Lambda$__3-1",
             <![CDATA[
 {
   // Code size        7 (0x7)
@@ -2236,25 +2263,26 @@ Module M1
 End Module
     </file>
 </compilation>
-            CompileAndVerify(source,
-                             expectedOutput:=<![CDATA[
+            Dim c = CompileAndVerify(source, expectedOutput:=<![CDATA[
 D::F
 B2::F
 B1::F
-]]>).VerifyIL("M1.B2.TestMe",
+]]>)
+            c.VerifyIL("M1.B2.TestMe",
             <![CDATA[
 {
   // Code size       28 (0x1c)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldftn      "Function M1.B2._Lambda$__1() As System.Func(Of String)"
+  IL_0001:  ldftn      "Function M1.B2._Lambda$__2-1() As System.Func(Of String)"
   IL_0007:  newobj     "Sub System.Func(Of System.Func(Of String))..ctor(Object, System.IntPtr)"
   IL_000c:  callvirt   "Function System.Func(Of System.Func(Of String)).Invoke() As System.Func(Of String)"
   IL_0011:  callvirt   "Function System.Func(Of String).Invoke() As String"
   IL_0016:  call       "Sub System.Console.WriteLine(String)"
   IL_001b:  ret
 }
-]]>).VerifyIL("M1.B2._Lambda$__1",
+]]>)
+            c.VerifyIL("M1.B2._Lambda$__2-1",
             <![CDATA[
 {
   // Code size       14 (0xe)
@@ -2265,20 +2293,22 @@ B1::F
   IL_0008:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
   IL_000d:  ret
 }
-]]>).VerifyIL("M1.B2.TestMyClass",
+]]>)
+            c.VerifyIL("M1.B2.TestMyClass",
             <![CDATA[
 {
   // Code size       28 (0x1c)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldftn      "Function M1.B2._Lambda$__2() As System.Func(Of String)"
+  IL_0001:  ldftn      "Function M1.B2._Lambda$__3-1() As System.Func(Of String)"
   IL_0007:  newobj     "Sub System.Func(Of System.Func(Of String))..ctor(Object, System.IntPtr)"
   IL_000c:  callvirt   "Function System.Func(Of System.Func(Of String)).Invoke() As System.Func(Of String)"
   IL_0011:  callvirt   "Function System.Func(Of String).Invoke() As String"
   IL_0016:  call       "Sub System.Console.WriteLine(String)"
   IL_001b:  ret
 }
-]]>).VerifyIL("M1.B2._Lambda$__2",
+]]>)
+            c.VerifyIL("M1.B2._Lambda$__3-1",
             <![CDATA[
 {
   // Code size       13 (0xd)
@@ -2288,20 +2318,22 @@ B1::F
   IL_0007:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
   IL_000c:  ret
 }
-]]>).VerifyIL("M1.B2.TestMyBase",
+]]>)
+            c.VerifyIL("M1.B2.TestMyBase",
             <![CDATA[
 {
   // Code size       28 (0x1c)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldftn      "Function M1.B2._Lambda$__3() As System.Func(Of String)"
+  IL_0001:  ldftn      "Function M1.B2._Lambda$__4-1() As System.Func(Of String)"
   IL_0007:  newobj     "Sub System.Func(Of System.Func(Of String))..ctor(Object, System.IntPtr)"
   IL_000c:  callvirt   "Function System.Func(Of System.Func(Of String)).Invoke() As System.Func(Of String)"
   IL_0011:  callvirt   "Function System.Func(Of String).Invoke() As String"
   IL_0016:  call       "Sub System.Console.WriteLine(String)"
   IL_001b:  ret
 }
-]]>).VerifyIL("M1.B2._Lambda$__3",
+]]>)
+            c.VerifyIL("M1.B2._Lambda$__4-1",
             <![CDATA[
 {
   // Code size       13 (0xd)
@@ -2365,12 +2397,13 @@ Module M1
 End Module
     </file>
 </compilation>
-            CompileAndVerify(source,
-                             expectedOutput:=<![CDATA[
+
+            Dim c = CompileAndVerify(source, expectedOutput:=<![CDATA[
 D::F
 B1::F
 B1::F
-]]>).VerifyIL("M1.B2._Lambda$__1",
+]]>)
+            c.VerifyIL("M1.B2._Lambda$__1-1",
             <![CDATA[
 {
   // Code size       14 (0xe)
@@ -2381,7 +2414,8 @@ B1::F
   IL_0008:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
   IL_000d:  ret
 }
-]]>).VerifyIL("M1.B2._Lambda$__2",
+]]>)
+            c.VerifyIL("M1.B2._Lambda$__2-1",
             <![CDATA[
 {
   // Code size       13 (0xd)
@@ -2391,7 +2425,8 @@ B1::F
   IL_0007:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
   IL_000c:  ret
 }
-]]>).VerifyIL("M1.B2._Lambda$__3",
+]]>)
+            c.VerifyIL("M1.B2._Lambda$__3-1",
             <![CDATA[
 {
   // Code size       13 (0xd)
@@ -2466,20 +2501,21 @@ Module M1
 End Module
     </file>
 </compilation>
-            CompileAndVerify(source,
-                             expectedOutput:=<![CDATA[
+
+            Dim c = CompileAndVerify(source, expectedOutput:=<![CDATA[
 ->D::F
 ->B2::F
 ->B1::F
-]]>).VerifyIL("M1.B2._Closure$__1._Lambda$__2",
+]]>)
+            c.VerifyIL("M1.B2._Closure$__2-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       35 (0x23)
   .maxstack  3
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.B2._Closure$__1.$VB$Local_prefix As String"
+  IL_0001:  ldfld      "M1.B2._Closure$__2-0.$VB$Local_prefix As String"
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "M1.B2._Closure$__1.$VB$Me As M1.B2"
+  IL_0007:  ldfld      "M1.B2._Closure$__2-0.$VB$Me As M1.B2"
   IL_000c:  dup
   IL_000d:  ldvirtftn  "Function M1.B2.F() As String"
   IL_0013:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
@@ -2487,30 +2523,32 @@ End Module
   IL_001d:  call       "Function String.Concat(String, String) As String"
   IL_0022:  ret
 }
-]]>).VerifyIL("M1.B2._Closure$__3._Lambda$__4",
+]]>)
+            c.VerifyIL("M1.B2._Closure$__3-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       34 (0x22)
   .maxstack  3
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.B2._Closure$__3.$VB$Local_prefix As String"
+  IL_0001:  ldfld      "M1.B2._Closure$__3-0.$VB$Local_prefix As String"
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "M1.B2._Closure$__3.$VB$Me As M1.B2"
+  IL_0007:  ldfld      "M1.B2._Closure$__3-0.$VB$Me As M1.B2"
   IL_000c:  ldftn      "Function M1.B2.$VB$ClosureStub_F_MyClass() As String"
   IL_0012:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
   IL_0017:  callvirt   "Function System.Func(Of String).Invoke() As String"
   IL_001c:  call       "Function String.Concat(String, String) As String"
   IL_0021:  ret
 }
-]]>).VerifyIL("M1.B2._Closure$__5._Lambda$__6",
+]]>)
+            c.VerifyIL("M1.B2._Closure$__4-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       34 (0x22)
   .maxstack  3
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.B2._Closure$__5.$VB$Local_prefix As String"
+  IL_0001:  ldfld      "M1.B2._Closure$__4-0.$VB$Local_prefix As String"
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "M1.B2._Closure$__5.$VB$Me As M1.B2"
+  IL_0007:  ldfld      "M1.B2._Closure$__4-0.$VB$Me As M1.B2"
   IL_000c:  ldftn      "Function M1.B2.$VB$ClosureStub_F_MyBase() As String"
   IL_0012:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
   IL_0017:  callvirt   "Function System.Func(Of String).Invoke() As String"
@@ -2574,20 +2612,21 @@ Module M1
 End Module
     </file>
 </compilation>
-            CompileAndVerify(source,
+            Dim c = CompileAndVerify(source,
                              expectedOutput:=<![CDATA[
 ->D::F
 ->B1::F
 ->B1::F
-]]>).VerifyIL("M1.B2._Closure$__1._Lambda$__2",
+]]>)
+            c.VerifyIL("M1.B2._Closure$__1-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       35 (0x23)
   .maxstack  3
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.B2._Closure$__1.$VB$Local_prefix As String"
+  IL_0001:  ldfld      "M1.B2._Closure$__1-0.$VB$Local_prefix As String"
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "M1.B2._Closure$__1.$VB$Me As M1.B2"
+  IL_0007:  ldfld      "M1.B2._Closure$__1-0.$VB$Me As M1.B2"
   IL_000c:  dup
   IL_000d:  ldvirtftn  "Function M1.B1.F() As String"
   IL_0013:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
@@ -2595,30 +2634,32 @@ End Module
   IL_001d:  call       "Function String.Concat(String, String) As String"
   IL_0022:  ret
 }
-]]>).VerifyIL("M1.B2._Closure$__3._Lambda$__4",
+]]>)
+            c.VerifyIL("M1.B2._Closure$__2-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       34 (0x22)
   .maxstack  3
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.B2._Closure$__3.$VB$Local_prefix As String"
+  IL_0001:  ldfld      "M1.B2._Closure$__2-0.$VB$Local_prefix As String"
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "M1.B2._Closure$__3.$VB$Me As M1.B2"
+  IL_0007:  ldfld      "M1.B2._Closure$__2-0.$VB$Me As M1.B2"
   IL_000c:  ldftn      "Function M1.B2.$VB$ClosureStub_F_MyBase() As String"
   IL_0012:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
   IL_0017:  callvirt   "Function System.Func(Of String).Invoke() As String"
   IL_001c:  call       "Function String.Concat(String, String) As String"
   IL_0021:  ret
 }
-]]>).VerifyIL("M1.B2._Closure$__5._Lambda$__6",
+]]>)
+            c.VerifyIL("M1.B2._Closure$__3-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       34 (0x22)
   .maxstack  3
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.B2._Closure$__5.$VB$Local_prefix As String"
+  IL_0001:  ldfld      "M1.B2._Closure$__3-0.$VB$Local_prefix As String"
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "M1.B2._Closure$__5.$VB$Me As M1.B2"
+  IL_0007:  ldfld      "M1.B2._Closure$__3-0.$VB$Me As M1.B2"
   IL_000c:  ldftn      "Function M1.B2.$VB$ClosureStub_F_MyBase() As String"
   IL_0012:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
   IL_0017:  callvirt   "Function System.Func(Of String).Invoke() As String"
@@ -2686,50 +2727,53 @@ Module M1
 End Module
     </file>
 </compilation>
-            CompileAndVerify(source,
+            Dim c = CompileAndVerify(source,
                              expectedOutput:=<![CDATA[
 ->B2::F
 ->B2::F
 ->B1::F
-]]>).VerifyIL("M1.B2._Closure$__1._Lambda$__2",
+]]>)
+            c.VerifyIL("M1.B2._Closure$__2-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       34 (0x22)
   .maxstack  3
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.B2._Closure$__1.$VB$Local_prefix As String"
+  IL_0001:  ldfld      "M1.B2._Closure$__2-0.$VB$Local_prefix As String"
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "M1.B2._Closure$__1.$VB$Me As M1.B2"
+  IL_0007:  ldfld      "M1.B2._Closure$__2-0.$VB$Me As M1.B2"
   IL_000c:  ldftn      "Function M1.B2.F() As String"
   IL_0012:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
   IL_0017:  callvirt   "Function System.Func(Of String).Invoke() As String"
   IL_001c:  call       "Function String.Concat(String, String) As String"
   IL_0021:  ret
 }
-]]>).VerifyIL("M1.B2._Closure$__3._Lambda$__4",
+]]>)
+            c.VerifyIL("M1.B2._Closure$__3-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       34 (0x22)
   .maxstack  3
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.B2._Closure$__3.$VB$Local_prefix As String"
+  IL_0001:  ldfld      "M1.B2._Closure$__3-0.$VB$Local_prefix As String"
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "M1.B2._Closure$__3.$VB$Me As M1.B2"
+  IL_0007:  ldfld      "M1.B2._Closure$__3-0.$VB$Me As M1.B2"
   IL_000c:  ldftn      "Function M1.B2.F() As String"
   IL_0012:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
   IL_0017:  callvirt   "Function System.Func(Of String).Invoke() As String"
   IL_001c:  call       "Function String.Concat(String, String) As String"
   IL_0021:  ret
 }
-]]>).VerifyIL("M1.B2._Closure$__5._Lambda$__6",
+]]>)
+            c.VerifyIL("M1.B2._Closure$__4-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       34 (0x22)
   .maxstack  3
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.B2._Closure$__5.$VB$Local_prefix As String"
+  IL_0001:  ldfld      "M1.B2._Closure$__4-0.$VB$Local_prefix As String"
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "M1.B2._Closure$__5.$VB$Me As M1.B2"
+  IL_0007:  ldfld      "M1.B2._Closure$__4-0.$VB$Me As M1.B2"
   IL_000c:  ldftn      "Function M1.B1.F() As String"
   IL_0012:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
   IL_0017:  callvirt   "Function System.Func(Of String).Invoke() As String"
@@ -2901,12 +2945,13 @@ Module M1
 End Module
     </file>
 </compilation>
-            CompileAndVerify(source,
+            Dim c = CompileAndVerify(source,
                              expectedOutput:=<![CDATA[
 D::F
 B2::F
 B1::F
-]]>).VerifyIL("M1.B2._Lambda$__1",
+]]>)
+            c.VerifyIL("M1.B2._Lambda$__2-1",
             <![CDATA[
 {
   // Code size        8 (0x8)
@@ -2916,7 +2961,8 @@ B1::F
   IL_0002:  callvirt   "Function M1.B2.F(Of Integer)(Integer) As String"
   IL_0007:  ret
 }
-]]>).VerifyIL("M1.B2._Lambda$__2",
+]]>)
+            c.VerifyIL("M1.B2._Lambda$__3-1",
             <![CDATA[
 {
   // Code size        8 (0x8)
@@ -2926,7 +2972,8 @@ B1::F
   IL_0002:  call       "Function M1.B2.F(Of Integer)(Integer) As String"
   IL_0007:  ret
 }
-]]>).VerifyIL("M1.B2._Lambda$__3",
+]]>)
+            c.VerifyIL("M1.B2._Lambda$__4-1",
             <![CDATA[
 {
   // Code size        8 (0x8)
@@ -2997,72 +3044,77 @@ Module M1
 End Module
     </file>
 </compilation>
-            CompileAndVerify(source,
+            Dim c = CompileAndVerify(source,
                              expectedOutput:=<![CDATA[
 D::F
 B2::F
 B1::F
-]]>).VerifyIL("M1.B2.TestMe",
+]]>)
+            c.VerifyIL("M1.B2.TestMe",
             <![CDATA[
 {
   // Code size       41 (0x29)
   .maxstack  3
-  IL_0000:  newobj     "Sub M1.B2._Closure$__1..ctor()"
+  IL_0000:  newobj     "Sub M1.B2._Closure$__2-0..ctor()"
   IL_0005:  dup
   IL_0006:  ldarg.0
-  IL_0007:  stfld      "M1.B2._Closure$__1.$VB$Me As M1.B2"
+  IL_0007:  stfld      "M1.B2._Closure$__2-0.$VB$Me As M1.B2"
   IL_000c:  dup
   IL_000d:  ldc.i4.1
-  IL_000e:  stfld      "M1.B2._Closure$__1.$VB$Local_p As Integer"
-  IL_0013:  ldftn      "Function M1.B2._Closure$__1._Lambda$__2() As String"
+  IL_000e:  stfld      "M1.B2._Closure$__2-0.$VB$Local_p As Integer"
+  IL_0013:  ldftn      "Function M1.B2._Closure$__2-0._Lambda$__1() As String"
   IL_0019:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
   IL_001e:  callvirt   "Function System.Func(Of String).Invoke() As String"
   IL_0023:  call       "Sub System.Console.WriteLine(String)"
   IL_0028:  ret
 }
-]]>).VerifyIL("M1.B2._Closure$__1._Lambda$__2",
+]]>)
+            c.VerifyIL("M1.B2._Closure$__2-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       18 (0x12)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.B2._Closure$__1.$VB$Me As M1.B2"
+  IL_0001:  ldfld      "M1.B2._Closure$__2-0.$VB$Me As M1.B2"
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "M1.B2._Closure$__1.$VB$Local_p As Integer"
+  IL_0007:  ldfld      "M1.B2._Closure$__2-0.$VB$Local_p As Integer"
   IL_000c:  callvirt   "Function M1.B2.F(Of Integer)(Integer) As String"
   IL_0011:  ret
 }
-]]>).VerifyIL("M1.B2.TestMyClass",
+]]>)
+            c.VerifyIL("M1.B2.TestMyClass",
             <![CDATA[
 {
   // Code size       41 (0x29)
   .maxstack  3
-  IL_0000:  newobj     "Sub M1.B2._Closure$__3..ctor()"
+  IL_0000:  newobj     "Sub M1.B2._Closure$__3-0..ctor()"
   IL_0005:  dup
   IL_0006:  ldarg.0
-  IL_0007:  stfld      "M1.B2._Closure$__3.$VB$Me As M1.B2"
+  IL_0007:  stfld      "M1.B2._Closure$__3-0.$VB$Me As M1.B2"
   IL_000c:  dup
   IL_000d:  ldc.i4.1
-  IL_000e:  stfld      "M1.B2._Closure$__3.$VB$Local_p As Integer"
-  IL_0013:  ldftn      "Function M1.B2._Closure$__3._Lambda$__4() As String"
+  IL_000e:  stfld      "M1.B2._Closure$__3-0.$VB$Local_p As Integer"
+  IL_0013:  ldftn      "Function M1.B2._Closure$__3-0._Lambda$__1() As String"
   IL_0019:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
   IL_001e:  callvirt   "Function System.Func(Of String).Invoke() As String"
   IL_0023:  call       "Sub System.Console.WriteLine(String)"
   IL_0028:  ret
 }
-]]>).VerifyIL("M1.B2._Closure$__3._Lambda$__4",
+]]>)
+            c.VerifyIL("M1.B2._Closure$__3-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       18 (0x12)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.B2._Closure$__3.$VB$Me As M1.B2"
+  IL_0001:  ldfld      "M1.B2._Closure$__3-0.$VB$Me As M1.B2"
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "M1.B2._Closure$__3.$VB$Local_p As Integer"
+  IL_0007:  ldfld      "M1.B2._Closure$__3-0.$VB$Local_p As Integer"
   IL_000c:  call       "Function M1.B2.$VB$ClosureStub_F_MyClass(Of Integer)(Integer) As String"
   IL_0011:  ret
 }
-]]>).VerifyIL("M1.B2.$VB$ClosureStub_F_MyClass(Of T)(T)",
+]]>)
+            c.VerifyIL("M1.B2.$VB$ClosureStub_F_MyClass(Of T)(T)",
             <![CDATA[
 {
   // Code size        8 (0x8)
@@ -3072,37 +3124,40 @@ B1::F
   IL_0002:  call       "Function M1.B2.F(Of T)(T) As String"
   IL_0007:  ret
 }
-]]>).VerifyIL("M1.B2.TestMyBase",
+]]>)
+            c.VerifyIL("M1.B2.TestMyBase",
             <![CDATA[
 {
   // Code size       41 (0x29)
   .maxstack  3
-  IL_0000:  newobj     "Sub M1.B2._Closure$__5..ctor()"
+  IL_0000:  newobj     "Sub M1.B2._Closure$__4-0..ctor()"
   IL_0005:  dup
   IL_0006:  ldarg.0
-  IL_0007:  stfld      "M1.B2._Closure$__5.$VB$Me As M1.B2"
+  IL_0007:  stfld      "M1.B2._Closure$__4-0.$VB$Me As M1.B2"
   IL_000c:  dup
   IL_000d:  ldc.i4.1
-  IL_000e:  stfld      "M1.B2._Closure$__5.$VB$Local_p As Integer"
-  IL_0013:  ldftn      "Function M1.B2._Closure$__5._Lambda$__6() As String"
+  IL_000e:  stfld      "M1.B2._Closure$__4-0.$VB$Local_p As Integer"
+  IL_0013:  ldftn      "Function M1.B2._Closure$__4-0._Lambda$__1() As String"
   IL_0019:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
   IL_001e:  callvirt   "Function System.Func(Of String).Invoke() As String"
   IL_0023:  call       "Sub System.Console.WriteLine(String)"
   IL_0028:  ret
 }
-]]>).VerifyIL("M1.B2._Closure$__5._Lambda$__6",
+]]>)
+            c.VerifyIL("M1.B2._Closure$__4-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       18 (0x12)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.B2._Closure$__5.$VB$Me As M1.B2"
+  IL_0001:  ldfld      "M1.B2._Closure$__4-0.$VB$Me As M1.B2"
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "M1.B2._Closure$__5.$VB$Local_p As Integer"
+  IL_0007:  ldfld      "M1.B2._Closure$__4-0.$VB$Local_p As Integer"
   IL_000c:  call       "Function M1.B2.$VB$ClosureStub_F_MyBase(Of Integer)(Integer) As String"
   IL_0011:  ret
 }
-]]>).VerifyIL("M1.B2.$VB$ClosureStub_F_MyBase(Of T)(T)",
+]]>)
+            c.VerifyIL("M1.B2.$VB$ClosureStub_F_MyBase(Of T)(T)",
             <![CDATA[
 {
   // Code size        8 (0x8)
@@ -3169,48 +3224,52 @@ Module M1
 End Module
     </file>
 </compilation>
-            CompileAndVerify(source,
+            Dim c = CompileAndVerify(source,
                              expectedOutput:=<![CDATA[
 D::F
 B1::F
 B1::F
-]]>).VerifyIL("M1.B2._Closure$__1._Lambda$__2",
+]]>)
+            c.VerifyIL("M1.B2._Closure$__1-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       18 (0x12)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.B2._Closure$__1.$VB$Me As M1.B2"
+  IL_0001:  ldfld      "M1.B2._Closure$__1-0.$VB$Me As M1.B2"
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "M1.B2._Closure$__1.$VB$Local_p As Integer"
+  IL_0007:  ldfld      "M1.B2._Closure$__1-0.$VB$Local_p As Integer"
   IL_000c:  callvirt   "Function M1.B1.F(Of Integer)(Integer) As String"
   IL_0011:  ret
 }
-]]>).VerifyIL("M1.B2._Closure$__3._Lambda$__4",
+]]>)
+            c.VerifyIL("M1.B2._Closure$__2-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       18 (0x12)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.B2._Closure$__3.$VB$Me As M1.B2"
+  IL_0001:  ldfld      "M1.B2._Closure$__2-0.$VB$Me As M1.B2"
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "M1.B2._Closure$__3.$VB$Local_p As Integer"
+  IL_0007:  ldfld      "M1.B2._Closure$__2-0.$VB$Local_p As Integer"
   IL_000c:  call       "Function M1.B2.$VB$ClosureStub_F_MyBase(Of Integer)(Integer) As String"
   IL_0011:  ret
 }
-]]>).VerifyIL("M1.B2._Closure$__5._Lambda$__6",
+]]>)
+            c.VerifyIL("M1.B2._Closure$__3-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       18 (0x12)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.B2._Closure$__5.$VB$Me As M1.B2"
+  IL_0001:  ldfld      "M1.B2._Closure$__3-0.$VB$Me As M1.B2"
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "M1.B2._Closure$__5.$VB$Local_p As Integer"
+  IL_0007:  ldfld      "M1.B2._Closure$__3-0.$VB$Local_p As Integer"
   IL_000c:  call       "Function M1.B2.$VB$ClosureStub_F_MyBase(Of Integer)(Integer) As String"
   IL_0011:  ret
 }
-]]>).VerifyIL("M1.B2.$VB$ClosureStub_F_MyBase(Of T)(T)",
+]]>)
+            c.VerifyIL("M1.B2.$VB$ClosureStub_F_MyBase(Of T)(T)",
             <![CDATA[
 {
   // Code size        8 (0x8)
@@ -3519,45 +3578,48 @@ Module M1
 End Module
     </file>
 </compilation>
-            CompileAndVerify(source,
+            Dim c = CompileAndVerify(source,
                              expectedOutput:=<![CDATA[
 D::F
 B2::F
 B1::F
-]]>).VerifyIL("M1.OuterClass(Of V).B2._Closure$__1._Lambda$__2",
+]]>)
+            c.VerifyIL("M1.OuterClass(Of V).B2._Closure$__2-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       36 (0x24)
   .maxstack  3
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.OuterClass(Of V).B2._Closure$__1.$VB$Me As M1.OuterClass(Of V).B2"
+  IL_0001:  ldfld      "M1.OuterClass(Of V).B2._Closure$__2-0.$VB$Me As M1.OuterClass(Of V).B2"
   IL_0006:  dup
   IL_0007:  ldvirtftn  "Function M1.OuterClass(Of V).B2.F(Of V)(V, V) As String"
   IL_000d:  newobj     "Sub System.Func(Of V, V, String)..ctor(Object, System.IntPtr)"
   IL_0012:  ldarg.0
-  IL_0013:  ldfld      "M1.OuterClass(Of V).B2._Closure$__1.$VB$Local_p As V"
+  IL_0013:  ldfld      "M1.OuterClass(Of V).B2._Closure$__2-0.$VB$Local_p As V"
   IL_0018:  ldarg.0
-  IL_0019:  ldfld      "M1.OuterClass(Of V).B2._Closure$__1.$VB$Local_p As V"
+  IL_0019:  ldfld      "M1.OuterClass(Of V).B2._Closure$__2-0.$VB$Local_p As V"
   IL_001e:  callvirt   "Function System.Func(Of V, V, String).Invoke(V, V) As String"
   IL_0023:  ret
 }
-]]>).VerifyIL("M1.OuterClass(Of V).B2._Closure$__3._Lambda$__4",
+]]>)
+            c.VerifyIL("M1.OuterClass(Of V).B2._Closure$__3-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       35 (0x23)
   .maxstack  3
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.OuterClass(Of V).B2._Closure$__3.$VB$Me As M1.OuterClass(Of V).B2"
+  IL_0001:  ldfld      "M1.OuterClass(Of V).B2._Closure$__3-0.$VB$Me As M1.OuterClass(Of V).B2"
   IL_0006:  ldftn      "Function M1.OuterClass(Of V).B2.$VB$ClosureStub_F_MyClass(Of V)(V, V) As String"
   IL_000c:  newobj     "Sub System.Func(Of V, V, String)..ctor(Object, System.IntPtr)"
   IL_0011:  ldarg.0
-  IL_0012:  ldfld      "M1.OuterClass(Of V).B2._Closure$__3.$VB$Local_p As V"
+  IL_0012:  ldfld      "M1.OuterClass(Of V).B2._Closure$__3-0.$VB$Local_p As V"
   IL_0017:  ldarg.0
-  IL_0018:  ldfld      "M1.OuterClass(Of V).B2._Closure$__3.$VB$Local_p As V"
+  IL_0018:  ldfld      "M1.OuterClass(Of V).B2._Closure$__3-0.$VB$Local_p As V"
   IL_001d:  callvirt   "Function System.Func(Of V, V, String).Invoke(V, V) As String"
   IL_0022:  ret
 }
-]]>).VerifyIL("M1.OuterClass(Of V).B2.$VB$ClosureStub_F_MyClass(Of U)",
+]]>)
+            c.VerifyIL("M1.OuterClass(Of V).B2.$VB$ClosureStub_F_MyClass(Of U)",
             <![CDATA[
 {
   // Code size        9 (0x9)
@@ -3568,23 +3630,25 @@ B1::F
   IL_0003:  call       "Function M1.OuterClass(Of V).B2.F(Of U)(V, U) As String"
   IL_0008:  ret       
 }
-]]>).VerifyIL("M1.OuterClass(Of V).B2._Closure$__5._Lambda$__6",
+]]>)
+            c.VerifyIL("M1.OuterClass(Of V).B2._Closure$__4-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       35 (0x23)
   .maxstack  3
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.OuterClass(Of V).B2._Closure$__5.$VB$Me As M1.OuterClass(Of V).B2"
+  IL_0001:  ldfld      "M1.OuterClass(Of V).B2._Closure$__4-0.$VB$Me As M1.OuterClass(Of V).B2"
   IL_0006:  ldftn      "Function M1.OuterClass(Of V).B2.$VB$ClosureStub_F_MyBase(Of V)(V, V) As String"
   IL_000c:  newobj     "Sub System.Func(Of V, V, String)..ctor(Object, System.IntPtr)"
   IL_0011:  ldarg.0
-  IL_0012:  ldfld      "M1.OuterClass(Of V).B2._Closure$__5.$VB$Local_p As V"
+  IL_0012:  ldfld      "M1.OuterClass(Of V).B2._Closure$__4-0.$VB$Local_p As V"
   IL_0017:  ldarg.0
-  IL_0018:  ldfld      "M1.OuterClass(Of V).B2._Closure$__5.$VB$Local_p As V"
+  IL_0018:  ldfld      "M1.OuterClass(Of V).B2._Closure$__4-0.$VB$Local_p As V"
   IL_001d:  callvirt   "Function System.Func(Of V, V, String).Invoke(V, V) As String"
   IL_0022:  ret
 }
-]]>).VerifyIL("M1.OuterClass(Of V).B2.$VB$ClosureStub_F_MyBase(Of U)",
+]]>)
+            c.VerifyIL("M1.OuterClass(Of V).B2.$VB$ClosureStub_F_MyBase(Of U)",
             <![CDATA[
 {
   // Code size        9 (0x9)
@@ -3664,60 +3728,63 @@ Module M1
 End Module
     </file>
 </compilation>
-            CompileAndVerify(source,
+            Dim c = CompileAndVerify(source,
                              expectedOutput:=<![CDATA[
 D::F1 - D::F2
 B2::F1 - B1::F2
 B1::F1 - B1::F2
-]]>).VerifyIL("M1.B2._Closure$__1._Lambda$__2",
+]]>)
+            c.VerifyIL("M1.B2._Closure$__2-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       69 (0x45)
   .maxstack  4
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.B2._Closure$__1.$VB$Me As M1.B2"
+  IL_0001:  ldfld      "M1.B2._Closure$__2-0.$VB$Me As M1.B2"
   IL_0006:  dup
   IL_0007:  ldvirtftn  "Function M1.B2.F1(Integer) As String"
   IL_000d:  newobj     "Sub System.Func(Of Integer, String)..ctor(Object, System.IntPtr)"
   IL_0012:  ldarg.0
-  IL_0013:  ldfld      "M1.B2._Closure$__1.$VB$Local_p As Integer"
+  IL_0013:  ldfld      "M1.B2._Closure$__2-0.$VB$Local_p As Integer"
   IL_0018:  callvirt   "Function System.Func(Of Integer, String).Invoke(Integer) As String"
   IL_001d:  ldstr      " - "
   IL_0022:  ldarg.0
-  IL_0023:  ldfld      "M1.B2._Closure$__1.$VB$Me As M1.B2"
+  IL_0023:  ldfld      "M1.B2._Closure$__2-0.$VB$Me As M1.B2"
   IL_0028:  dup
   IL_0029:  ldvirtftn  "Function M1.OuterClass(Of Integer).B1.F2(Integer) As String"
   IL_002f:  newobj     "Sub System.Func(Of Integer, String)..ctor(Object, System.IntPtr)"
   IL_0034:  ldarg.0
-  IL_0035:  ldfld      "M1.B2._Closure$__1.$VB$Local_p As Integer"
+  IL_0035:  ldfld      "M1.B2._Closure$__2-0.$VB$Local_p As Integer"
   IL_003a:  callvirt   "Function System.Func(Of Integer, String).Invoke(Integer) As String"
   IL_003f:  call       "Function String.Concat(String, String, String) As String"
   IL_0044:  ret
 }
-]]>).VerifyIL("M1.B2._Closure$__3._Lambda$__4",
+]]>)
+            c.VerifyIL("M1.B2._Closure$__3-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       67 (0x43)
   .maxstack  4
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.B2._Closure$__3.$VB$Me As M1.B2"
+  IL_0001:  ldfld      "M1.B2._Closure$__3-0.$VB$Me As M1.B2"
   IL_0006:  ldftn      "Function M1.B2.$VB$ClosureStub_F1_MyClass(Integer) As String"
   IL_000c:  newobj     "Sub System.Func(Of Integer, String)..ctor(Object, System.IntPtr)"
   IL_0011:  ldarg.0
-  IL_0012:  ldfld      "M1.B2._Closure$__3.$VB$Local_p As Integer"
+  IL_0012:  ldfld      "M1.B2._Closure$__3-0.$VB$Local_p As Integer"
   IL_0017:  callvirt   "Function System.Func(Of Integer, String).Invoke(Integer) As String"
   IL_001c:  ldstr      " - "
   IL_0021:  ldarg.0
-  IL_0022:  ldfld      "M1.B2._Closure$__3.$VB$Me As M1.B2"
+  IL_0022:  ldfld      "M1.B2._Closure$__3-0.$VB$Me As M1.B2"
   IL_0027:  ldftn      "Function M1.B2.$VB$ClosureStub_F2_MyBase(Integer) As String"
   IL_002d:  newobj     "Sub System.Func(Of Integer, String)..ctor(Object, System.IntPtr)"
   IL_0032:  ldarg.0
-  IL_0033:  ldfld      "M1.B2._Closure$__3.$VB$Local_p As Integer"
+  IL_0033:  ldfld      "M1.B2._Closure$__3-0.$VB$Local_p As Integer"
   IL_0038:  callvirt   "Function System.Func(Of Integer, String).Invoke(Integer) As String"
   IL_003d:  call       "Function String.Concat(String, String, String) As String"
   IL_0042:  ret
 }
-]]>).VerifyIL("M1.B2.$VB$ClosureStub_F1_MyClass",
+]]>)
+            c.VerifyIL("M1.B2.$VB$ClosureStub_F1_MyClass",
             <![CDATA[
 {
   // Code size        8 (0x8)
@@ -3727,30 +3794,32 @@ B1::F1 - B1::F2
   IL_0002:  call       "Function M1.B2.F1(Integer) As String"
   IL_0007:  ret
 }
-]]>).VerifyIL("M1.B2._Closure$__5._Lambda$__6",
+]]>)
+            c.VerifyIL("M1.B2._Closure$__4-0._Lambda$__1",
             <![CDATA[
 {
   // Code size       67 (0x43)
   .maxstack  4
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.B2._Closure$__5.$VB$Me As M1.B2"
+  IL_0001:  ldfld      "M1.B2._Closure$__4-0.$VB$Me As M1.B2"
   IL_0006:  ldftn      "Function M1.B2.$VB$ClosureStub_F1_MyBase(Integer) As String"
   IL_000c:  newobj     "Sub System.Func(Of Integer, String)..ctor(Object, System.IntPtr)"
   IL_0011:  ldarg.0
-  IL_0012:  ldfld      "M1.B2._Closure$__5.$VB$Local_p As Integer"
+  IL_0012:  ldfld      "M1.B2._Closure$__4-0.$VB$Local_p As Integer"
   IL_0017:  callvirt   "Function System.Func(Of Integer, String).Invoke(Integer) As String"
   IL_001c:  ldstr      " - "
   IL_0021:  ldarg.0
-  IL_0022:  ldfld      "M1.B2._Closure$__5.$VB$Me As M1.B2"
+  IL_0022:  ldfld      "M1.B2._Closure$__4-0.$VB$Me As M1.B2"
   IL_0027:  ldftn      "Function M1.B2.$VB$ClosureStub_F2_MyBase(Integer) As String"
   IL_002d:  newobj     "Sub System.Func(Of Integer, String)..ctor(Object, System.IntPtr)"
   IL_0032:  ldarg.0
-  IL_0033:  ldfld      "M1.B2._Closure$__5.$VB$Local_p As Integer"
+  IL_0033:  ldfld      "M1.B2._Closure$__4-0.$VB$Local_p As Integer"
   IL_0038:  callvirt   "Function System.Func(Of Integer, String).Invoke(Integer) As String"
   IL_003d:  call       "Function String.Concat(String, String, String) As String"
   IL_0042:  ret
 }
-]]>).VerifyIL("M1.B2.$VB$ClosureStub_F1_MyBase",
+]]>)
+            c.VerifyIL("M1.B2.$VB$ClosureStub_F1_MyBase",
             <![CDATA[
 {
   // Code size        8 (0x8)
@@ -3760,7 +3829,8 @@ B1::F1 - B1::F2
   IL_0002:  call       "Function M1.OuterClass(Of Integer).B1.F1(Integer) As String"
   IL_0007:  ret
 }
-]]>).VerifyIL("M1.B2.$VB$ClosureStub_F2_MyBase",
+]]>)
+            c.VerifyIL("M1.B2.$VB$ClosureStub_F2_MyBase",
             <![CDATA[
 {
   // Code size        8 (0x8)

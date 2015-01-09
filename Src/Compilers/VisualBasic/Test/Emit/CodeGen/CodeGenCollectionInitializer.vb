@@ -597,28 +597,28 @@ Hello World!
 {
   // Code size      106 (0x6a)
   .maxstack  4
-  .locals init (C1._Closure$__1 V_0) //$VB$Closure_0
-  IL_0000:  newobj     "Sub C1._Closure$__1..ctor()"
+  .locals init (C1._Closure$__1-0 V_0) //$VB$Closure_0
+  IL_0000:  newobj     "Sub C1._Closure$__1-0..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldstr      "Hello "
-  IL_000c:  stfld      "C1._Closure$__1.$VB$Local_hello As String"
+  IL_000c:  stfld      "C1._Closure$__1-0.$VB$Local_hello As String"
   IL_0011:  newobj     "Sub System.Collections.Generic.List(Of System.Action)..ctor()"
   IL_0016:  dup
   IL_0017:  ldloc.0
-  IL_0018:  ldftn      "Sub C1._Closure$__1._Lambda$__2()"
+  IL_0018:  ldftn      "Sub C1._Closure$__1-0._Lambda$__1()"
   IL_001e:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0023:  callvirt   "Sub System.Collections.Generic.List(Of System.Action).Add(System.Action)"
   IL_0028:  dup
-  IL_0029:  ldsfld     "C1._Closure$__3._ClosureCache$__5 As System.Action"
+  IL_0029:  ldsfld     "C1._Closure$__.$I1-2 As System.Action"
   IL_002e:  brfalse.s  IL_0037
-  IL_0030:  ldsfld     "C1._Closure$__3._ClosureCache$__5 As System.Action"
+  IL_0030:  ldsfld     "C1._Closure$__.$I1-2 As System.Action"
   IL_0035:  br.s       IL_004d
-  IL_0037:  ldsfld     "C1._Closure$__3.$I As C1._Closure$__3"
-  IL_003c:  ldftn      "Sub C1._Closure$__3._Lambda$__4()"
+  IL_0037:  ldsfld     "C1._Closure$__.$I As C1._Closure$__"
+  IL_003c:  ldftn      "Sub C1._Closure$__._Lambda$__1-2()"
   IL_0042:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0047:  dup
-  IL_0048:  stsfld     "C1._Closure$__3._ClosureCache$__5 As System.Action"
+  IL_0048:  stsfld     "C1._Closure$__.$I1-2 As System.Action"
   IL_004d:  callvirt   "Sub System.Collections.Generic.List(Of System.Action).Add(System.Action)"
   IL_0052:  dup
   IL_0053:  ldc.i4.0
@@ -664,19 +664,19 @@ End Class
 {
   // Code size       53 (0x35)
   .maxstack  5
-  .locals init (C1._Closure$__1 V_0) //$VB$Closure_0
-  IL_0000:  newobj     "Sub C1._Closure$__1..ctor()"
+  .locals init (C1._Closure$__1-0 V_0) //$VB$Closure_0
+  IL_0000:  newobj     "Sub C1._Closure$__1-0..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  newobj     "Sub System.Collections.Generic.List(Of System.Action)..ctor()"
   IL_000c:  dup
   IL_000d:  ldloc.0
-  IL_000e:  ldftn      "Sub C1._Closure$__1._Lambda$__2()"
+  IL_000e:  ldftn      "Sub C1._Closure$__1-0._Lambda$__1()"
   IL_0014:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0019:  callvirt   "Sub System.Collections.Generic.List(Of System.Action).Add(System.Action)"
-  IL_001e:  stfld      "C1._Closure$__1.$VB$Local_x As System.Collections.Generic.List(Of System.Action)"
+  IL_001e:  stfld      "C1._Closure$__1-0.$VB$Local_x As System.Collections.Generic.List(Of System.Action)"
   IL_0023:  ldloc.0
-  IL_0024:  ldfld      "C1._Closure$__1.$VB$Local_x As System.Collections.Generic.List(Of System.Action)"
+  IL_0024:  ldfld      "C1._Closure$__1-0.$VB$Local_x As System.Collections.Generic.List(Of System.Action)"
   IL_0029:  ldc.i4.0
   IL_002a:  callvirt   "Function System.Collections.Generic.List(Of System.Action).get_Item(Integer) As System.Action"
   IL_002f:  callvirt   "Sub System.Action.Invoke()"

@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Collections
@@ -10,54 +11,151 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' Helper class to generate synthesized names.
     ''' </summary>
     Friend NotInheritable Class GeneratedNames
+        Friend Const DotReplacementInTypeNames As Char = "-"c
+        Private Const MethodNameSeparator As Char = "_"c
+        Private Const IdSeparator As Char = "-"c
+        Private Const GenerationSeparator As Char = "#"c
 
         ''' <summary>
-        ''' Generates the name of an operator's function local based on the operator name.
+        ''' Generates the name of a state machine's type.
         ''' </summary>
-        Public Shared Function MakeOperatorLocalName(name As String) As String
-            Debug.Assert(name.StartsWith("op_"))
-            Return String.Format(StringConstants.OperatorLocalName, name)
+        Public Shared Function MakeStateMachineTypeName(methodName As String, methodOrdinal As Integer, generation As Integer) As String
+            Debug.Assert(methodOrdinal >= -1)
+            Return MakeMethodScopedSynthesizedName(StringConstants.StateMachineTypeNamePrefix, methodOrdinal, generation, methodName, isTypeName:=True)
         End Function
 
         ''' <summary>
-        ''' Generates the name of a state machine's type
+        ''' Generates the name of a state machine 'state' field 
         ''' </summary>
-        Public Shared Function MakeStateMachineTypeName(index As Integer, topMethodMetadataName As String) As String
-            topMethodMetadataName = EnsureNoDotsInTypeName(topMethodMetadataName)
-            Return String.Format(StringConstants.StateMachineTypeNameMask, index, topMethodMetadataName)
+        Public Shared Function MakeStateMachineStateFieldName() As String
+            Return StringConstants.StateMachineStateFieldName
         End Function
 
-        Public Shared Function TryParseStateMachineTypeName(stateMachineTypeName As String, <Out> ByRef index As Integer, <Out> ByRef methodName As String) As Boolean
+        Public Shared Function MakeBaseMethodWrapperName(methodName As String, isMyBase As Boolean) As String
+            Return StringConstants.BaseMethodWrapperNamePrefix & methodName & If(isMyBase, "_MyBase", "_MyClass")
+        End Function
+
+        Public Shared Function ReusableHoistedLocalFieldName(number As Integer) As String
+            Return StringConstants.ReusableHoistedLocalFieldName & StringExtensions.GetNumeral(number)
+        End Function
+
+        Public Shared Function MakeStaticLambdaDisplayClassName(methodOrdinal As Integer, generation As Integer) As String
+            Debug.Assert(methodOrdinal >= -1)
+            Debug.Assert(generation >= 0)
+
+            Return MakeMethodScopedSynthesizedName(StringConstants.DisplayClassPrefix, methodOrdinal, generation)
+        End Function
+
+        Friend Shared Function MakeLambdaDisplayClassName(methodOrdinal As Integer, generation As Integer, scopeOrdinal As Integer, isDelegateRelaxation As Boolean) As String
+            Debug.Assert(scopeOrdinal >= 0)
+            Debug.Assert(methodOrdinal >= 0)
+            Debug.Assert(generation >= 0)
+
+            Dim prefix = If(isDelegateRelaxation, StringConstants.DelegateRelaxationDisplayClassPrefix, StringConstants.DisplayClassPrefix)
+            Return MakeMethodScopedSynthesizedName(prefix, methodOrdinal, generation, uniqueId:=scopeOrdinal, isTypeName:=True)
+        End Function
+
+        Friend Shared Function MakeDisplayClassGenericParameterName(parameterIndex As Integer) As String
+            Return StringConstants.DisplayClassGenericParameterNamePrefix & StringExtensions.GetNumeral(parameterIndex)
+        End Function
+
+        Friend Shared Function MakeLambdaMethodName(methodOrdinal As Integer, generation As Integer, lambdaOrdinal As Integer, lambdaKind As SynthesizedLambdaKind) As String
+            Debug.Assert(methodOrdinal >= -1)
+            Debug.Assert(lambdaOrdinal >= 0)
+
+            Dim prefix = If(lambdaKind = SynthesizedLambdaKind.DelegateRelaxationStub,
+                            StringConstants.DelegateRelaxationMethodNamePrefix,
+                            StringConstants.LambdaMethodNamePrefix)
+
+            Return MakeMethodScopedSynthesizedName(prefix, methodOrdinal, generation, uniqueId:=lambdaOrdinal)
+        End Function
+
+        ''' <summary>
+        ''' Generates the name of a static lambda display class instance cache
+        ''' </summary>
+        Public Shared Function MakeCachedFrameInstanceName() As String
+            Return StringConstants.LambdaCacheFieldPrefix
+        End Function
+
+        Friend Shared Function MakeLambdaCacheFieldName(methodOrdinal As Integer, generation As Integer, lambdaOrdinal As Integer, lambdaKind As SynthesizedLambdaKind) As String
+            Debug.Assert(methodOrdinal >= -1)
+            Debug.Assert(lambdaOrdinal >= 0)
+
+            Dim prefix = If(lambdaKind = SynthesizedLambdaKind.DelegateRelaxationStub,
+                            StringConstants.DelegateRelaxationCacheFieldPrefix,
+                            StringConstants.LambdaCacheFieldPrefix)
+
+            Return MakeMethodScopedSynthesizedName(prefix, methodOrdinal, generation, uniqueId:=lambdaOrdinal)
+        End Function
+
+        Friend Shared Function MakeDelegateRelaxationParameterName(parameterIndex As Integer) As String
+            Return StringConstants.DelegateStubParameterPrefix & StringExtensions.GetNumeral(parameterIndex)
+        End Function
+
+        Private Shared Function MakeMethodScopedSynthesizedName(prefix As String,
+                                                                methodOrdinal As Integer,
+                                                                generation As Integer,
+                                                                Optional methodNameOpt As String = Nothing,
+                                                                Optional uniqueId As Integer = -1,
+                                                                Optional isTypeName As Boolean = False) As String
+            Debug.Assert(methodOrdinal >= -1)
+            Debug.Assert(generation >= 0)
+            Debug.Assert(uniqueId >= -1)
+
+            Dim result = PooledStringBuilder.GetInstance()
+            Dim builder = result.Builder
+
+            builder.Append(prefix)
+
+            If methodOrdinal >= 0 Then
+                builder.Append(methodOrdinal)
+
+                If generation > 0 Then
+                    builder.Append(GenerationSeparator)
+                    builder.Append(generation)
+                End If
+            End If
+
+            If uniqueId >= 0 Then
+                If methodOrdinal >= 0 Then
+                    ' Can't use underscore since name parser uses it to find the method name.
+                    builder.Append(IdSeparator)
+                End If
+
+                builder.Append(uniqueId)
+            End If
+
+            If methodNameOpt IsNot Nothing Then
+                builder.Append(MethodNameSeparator)
+                builder.Append(methodNameOpt)
+
+                ' CLR generally allows names with dots, however some APIs like IMetaDataImport
+                ' can only return full type names combined with namespaces. 
+                ' see: http://msdn.microsoft.com/en-us/library/ms230143.aspx (IMetaDataImport::GetTypeDefProps)
+                ' When working with such APIs, names with dots become ambiguous since metadata 
+                ' consumer cannot figure where namespace ends and actual type name starts.
+                ' Therefore it is a good practice to avoid type names with dots.
+                If isTypeName Then
+                    builder.Replace("."c, DotReplacementInTypeNames)
+                End If
+            End If
+
+            Return result.ToStringAndFree()
+        End Function
+
+        Public Shared Function TryParseStateMachineTypeName(stateMachineTypeName As String, <Out> ByRef methodName As String) As Boolean
             If Not stateMachineTypeName.StartsWith(StringConstants.StateMachineTypeNamePrefix, StringComparison.Ordinal) Then
                 Return False
             End If
 
             Dim prefixLength As Integer = StringConstants.StateMachineTypeNamePrefix.Length
-            Dim separatorPos = stateMachineTypeName.IndexOf("_"c, prefixLength)
+            Dim separatorPos = stateMachineTypeName.IndexOf(MethodNameSeparator, prefixLength)
             If separatorPos < 0 OrElse separatorPos = stateMachineTypeName.Length - 1 Then
-                Return False
-            End If
-
-            If Not Integer.TryParse(stateMachineTypeName.Substring(prefixLength, separatorPos - prefixLength), NumberStyles.None, CultureInfo.InvariantCulture, index) Then
                 Return False
             End If
 
             methodName = stateMachineTypeName.Substring(separatorPos + 1)
             Return True
-        End Function
-
-        Public Shared Function EnsureNoDotsInTypeName(Name As String) As String
-            ' CLR generally allows names with dots, however some APIs like IMetaDataImport
-            ' can only return full type names combined with namespaces. 
-            ' see: http://msdn.microsoft.com/en-us/library/ms230143.aspx (IMetaDataImport::GetTypeDefProps)
-            ' When working with such APIs, names with dots become ambiguous since metadata 
-            ' consumer cannot figure where namespace ends and actual type name starts.
-            ' Therefore it is a good practice to avoid type names with dots.
-            If (Name.IndexOf("."c) >= 0) Then
-                Name = Name.Replace("."c, "_"c)
-            End If
-
-            Return Name
         End Function
 
         ''' <summary>
@@ -68,17 +166,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
-        ''' Generates the name of a state machine 'state' field 
+        ''' Generates the name of a field that backs Current property
         ''' </summary>
-        Public Shared Function MakeStateMachineStateFieldName() As String
-            Return StringConstants.StateMachineStateFieldName
+        Public Shared Function MakeIteratorCurrentFieldName() As String
+            Return StringConstants.IteratorCurrentFieldName
         End Function
 
         ''' <summary>
-        ''' Generates the name of a state machine's 'awaiter_xyz' field 
+        ''' Generates the name of a state machine's awaiter field 
         ''' </summary>
         Public Shared Function MakeStateMachineAwaiterFieldName(index As Integer) As String
-            Return StringConstants.StateMachineAwaiterFieldPrefix & index
+            Return StringConstants.StateMachineAwaiterFieldPrefix & StringExtensions.GetNumeral(index)
         End Function
 
         ''' <summary>
@@ -96,21 +194,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         ''' <summary>
-        ''' Generates the name of a static lambda display class instance cache
-        ''' </summary>
-        ''' <returns></returns>
-        Public Shared Function MakeCachedFrameInstanceName() As String
-            Return StringConstants.CachedFrameInstanceName
-        End Function
-
-        ''' <summary>
-        ''' Generates the name of a field that backs Current property
-        ''' </summary>
-        Public Shared Function MakeIteratorCurrentFieldName() As String
-            Return StringConstants.IteratorCurrentFieldName
-        End Function
-
-        ''' <summary>
         ''' Generates the name of a field where initial thread ID is stored
         ''' </summary>
         Public Shared Function MakeIteratorInitialThreadIdName() As String
@@ -120,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Try to parse the local (or parameter) name and return <paramref name="variableName"/> if successful.
         ''' </summary>
-        Public Shared Function TryParseHoistedUserVariableName(proxyName As String, <Out()> ByRef variableName As String) As Boolean
+        Public Shared Function TryParseHoistedUserVariableName(proxyName As String, <Out> ByRef variableName As String) As Boolean
             variableName = Nothing
 
             Dim prefixLen As Integer = StringConstants.HoistedUserVariablePrefix.Length
@@ -140,7 +223,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         ''' Try to parse the local name and return <paramref name="variableName"/> and <paramref name="index"/> if successful.
         ''' </summary>
-        Public Shared Function TryParseStateMachineHoistedUserVariableName(proxyName As String, <Out()> ByRef variableName As String, <Out()> ByRef index As Integer) As Boolean
+        Public Shared Function TryParseStateMachineHoistedUserVariableName(proxyName As String, <Out> ByRef variableName As String, <Out()> ByRef index As Integer) As Boolean
             variableName = Nothing
             index = 0
 
@@ -206,7 +289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Case SynthesizedLocalKind.With
                     ' Dev12 didn't name the local. We do so that we can do better job in EE evaluating With statements.
-                    name = StringConstants.HoistedWithLocalPrefix & uniqueId
+                    name = StringConstants.HoistedWithLocalPrefix & StringExtensions.GetNumeral(uniqueId)
                     uniqueId += 1
 
                 Case Else
@@ -216,16 +299,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return name
         End Function
 
-        Friend Shared Function MakeLambdaMethodName(index As Integer) As String
-            Return StringConstants.LAMBDA_PREFIX & index
-        End Function
-
-        Friend Shared Function MakeLambdaDisplayClassName(index As Integer) As String
-            Return StringConstants.DisplayClassPrefix & index
-        End Function
-
         Friend Shared Function MakeLambdaDisplayClassStorageName(uniqueId As Integer) As String
-            Return StringConstants.ClosureVariablePrefix & uniqueId
+            Return StringConstants.ClosureVariablePrefix & StringExtensions.GetNumeral(uniqueId)
         End Function
 
         Friend Shared Function MakeSignatureString(signature As Byte()) As String
@@ -247,7 +322,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             methodSignature As String,
             localName As String) As String
 
-            Return String.Format(StringConstants.StaticLocalFieldNameMask, methodName, methodSignature, localName)
+            Return String.Format(StringConstants.StaticLocalFieldNamePrefix & "{0}${1}${2}", methodName, methodSignature, localName)
         End Function
 
         Friend Shared Function TryParseStaticLocalFieldName(
@@ -272,9 +347,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return False
         End Function
 
-        ' Extracts the slot index from a name of a field that stores hoisted variables Or awaiters.
+        ' Extracts the slot index from a name of a field that stores hoisted variables or awaiters.
         ' Such a name ends with "$prefix{slot index}". 
-        ' Returned slot index Is >= 0.
+        ' Returned slot index is >= 0.
         Friend Shared Function TryParseSlotIndex(prefix As String, fieldName As String, <Out> ByRef slotIndex As Integer) As Boolean
             If fieldName.StartsWith(prefix, StringComparison.Ordinal) AndAlso
                 Integer.TryParse(fieldName.Substring(prefix.Length), NumberStyles.None, CultureInfo.InvariantCulture, slotIndex) Then
@@ -283,7 +358,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             slotIndex = -1
             Return False
         End Function
-
     End Class
-
 End Namespace

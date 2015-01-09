@@ -1,9 +1,5 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -433,7 +429,6 @@ End Module
             Dim source =
 <compilation>
     <file name="a.vb">
-
 Imports System
 Imports System.Collections.Generic
 
@@ -450,19 +445,16 @@ Module Module1
         End Get
     End Property
 End Module
-
-
-
     </file>
 </compilation>
 
-            CompileAndVerify(source, expectedOutput:="42").VerifyIL("Module1.VB$StateMachine_1_get_p1.MoveNext()", <![CDATA[
+            CompileAndVerify(source, expectedOutput:="42").VerifyIL("Module1.VB$StateMachine_2_get_p1.MoveNext()", <![CDATA[
 {
   // Code size       55 (0x37)
   .maxstack  3
   .locals init (Integer V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "Module1.VB$StateMachine_1_get_p1.$State As Integer"
+  IL_0001:  ldfld      "Module1.VB$StateMachine_2_get_p1.$State As Integer"
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  brfalse.s  IL_0010
@@ -475,22 +467,22 @@ End Module
   IL_0011:  ldc.i4.m1
   IL_0012:  dup
   IL_0013:  stloc.0
-  IL_0014:  stfld      "Module1.VB$StateMachine_1_get_p1.$State As Integer"
+  IL_0014:  stfld      "Module1.VB$StateMachine_2_get_p1.$State As Integer"
   IL_0019:  ldarg.0
   IL_001a:  ldc.i4.s   42
-  IL_001c:  stfld      "Module1.VB$StateMachine_1_get_p1.$Current As Integer"
+  IL_001c:  stfld      "Module1.VB$StateMachine_2_get_p1.$Current As Integer"
   IL_0021:  ldarg.0
   IL_0022:  ldc.i4.1
   IL_0023:  dup
   IL_0024:  stloc.0
-  IL_0025:  stfld      "Module1.VB$StateMachine_1_get_p1.$State As Integer"
+  IL_0025:  stfld      "Module1.VB$StateMachine_2_get_p1.$State As Integer"
   IL_002a:  ldc.i4.1
   IL_002b:  ret
   IL_002c:  ldarg.0
   IL_002d:  ldc.i4.m1
   IL_002e:  dup
   IL_002f:  stloc.0
-  IL_0030:  stfld      "Module1.VB$StateMachine_1_get_p1.$State As Integer"
+  IL_0030:  stfld      "Module1.VB$StateMachine_2_get_p1.$State As Integer"
   IL_0035:  ldc.i4.0
   IL_0036:  ret
 }

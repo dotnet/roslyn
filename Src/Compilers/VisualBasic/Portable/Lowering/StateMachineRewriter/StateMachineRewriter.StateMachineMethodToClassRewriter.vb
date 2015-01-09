@@ -60,7 +60,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' </summary>
             Protected Friend ReadOnly HoistedVariables As IReadOnlySet(Of Symbol) = Nothing
 
-            Protected ReadOnly SlotAllocatorOpt As VariableSlotAllocator
             Private ReadOnly _synthesizedLocalOrdinals As SynthesizedLocalOrdinalsDispenser
             Private _nextFreeHoistedLocalSlot As Integer
 
@@ -73,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                            nextFreeHoistedLocalSlot As Integer,
                            Diagnostics As DiagnosticBag)
 
-                MyBase.New(F.CompilationState, Diagnostics)
+                MyBase.New(slotAllocatorOpt, F.CompilationState, Diagnostics)
 
                 Debug.Assert(F IsNot Nothing)
                 Debug.Assert(stateField IsNot Nothing)
@@ -86,7 +85,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Me.StateField = stateField
                 Me.CachedState = F.SynthesizedLocal(F.SpecialType(SpecialType.System_Int32), SynthesizedLocalKind.StateMachineCachedState, F.Syntax)
                 Me.HoistedVariables = hoistedVariables
-                Me.SlotAllocatorOpt = slotAllocatorOpt
                 Me._synthesizedLocalOrdinals = synthesizedLocalOrdinals
                 Me._nextFreeHoistedLocalSlot = nextFreeHoistedLocalSlot
 

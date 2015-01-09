@@ -84,14 +84,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             expression = SyntaxFactory.GetStandaloneExpression(expression)
 
             If destination Is Nothing Then
-                Throw New ArgumentNullException("destination")
+                Throw New ArgumentNullException(NameOf(destination))
             End If
 
-            Dim vbdestination = destination.EnsureVbSymbolOrNothing(Of TypeSymbol)("destination")
+            Dim vbDestination = destination.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(destination))
 
             Dim boundExpression = TryCast(Me.GetLowerBoundNode(expression), BoundExpression)
 
-            If boundExpression Is Nothing OrElse vbdestination.IsErrorType() Then
+            If boundExpression Is Nothing OrElse vbDestination.IsErrorType() Then
                 Return New Conversion(Nothing)  ' NoConversion
             End If
 
@@ -105,11 +105,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' and the result of that binding is also cached.  That is, even though the list of trial-bindings
                     ' may change, it will never again be consumed for error recovery (only as a cache), so there
                     ' should be no problems.
-                    Dim unbound As UnboundLambda = DirectCast(boundExpression, BoundLambda).LambdaSymbol.UnboundLambdaOpt
-                    Debug.Assert(unbound IsNot Nothing)
+                    Dim sourceLambda = TryCast(DirectCast(boundExpression, BoundLambda).LambdaSymbol, SourceLambdaSymbol)
 
-                    If unbound IsNot Nothing Then
-                        boundExpression = unbound
+                    ' Can we get a synthesized lambda here? Handle the case that we do just in case.
+                    Debug.Assert(sourceLambda IsNot Nothing)
+                    If sourceLambda IsNot Nothing Then
+                        boundExpression = sourceLambda.UnboundLambda
                     End If
 
                 Case BoundKind.ArrayCreation
@@ -121,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
             End Select
 
-            Return New Conversion(Conversions.ClassifyConversion(boundExpression, vbdestination, GetEnclosingBinder(boundExpression.Syntax), Nothing))
+            Return New Conversion(Conversions.ClassifyConversion(boundExpression, vbDestination, GetEnclosingBinder(boundExpression.Syntax), Nothing))
         End Function
 
         ''' <summary>

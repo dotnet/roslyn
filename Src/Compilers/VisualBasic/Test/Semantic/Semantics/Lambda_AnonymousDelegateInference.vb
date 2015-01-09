@@ -1,12 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.IO
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.SpecialType
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.OverloadResolution
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -16,7 +11,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
     Public Class Lambda_AnonymousDelegateInference
         Inherits BasicTestBase
-
 
         <Fact>
         Public Sub Test1()
@@ -487,37 +481,37 @@ End Module
 {
   // Code size      131 (0x83)
   .maxstack  2
-  IL_0000:  ldsfld     "Program._Closure$__1._ClosureCache$__3 As <generated method>"
+  IL_0000:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "Program._Closure$__1._ClosureCache$__3 As <generated method>"
+  IL_0007:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "Program._Closure$__1.$I As Program._Closure$__1"
-  IL_0013:  ldftn      "Sub Program._Closure$__1._Lambda$__2(Integer)"
+  IL_000e:  ldsfld     "Program._Closure$__.$I As Program._Closure$__"
+  IL_0013:  ldftn      "Sub Program._Closure$__._Lambda$__0-1(Integer)"
   IL_0019:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_001e:  dup
-  IL_001f:  stsfld     "Program._Closure$__1._ClosureCache$__3 As <generated method>"
+  IL_001f:  stsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0024:  ldc.i4.1
   IL_0025:  callvirt   "Sub VB$AnonymousDelegate_0(Of Integer).Invoke(Integer)"
-  IL_002a:  ldsfld     "Program._Closure$__1._ClosureCache$__5 As <generated method>"
+  IL_002a:  ldsfld     "Program._Closure$__.$I0-2 As <generated method>"
   IL_002f:  brfalse.s  IL_0038
-  IL_0031:  ldsfld     "Program._Closure$__1._ClosureCache$__5 As <generated method>"
+  IL_0031:  ldsfld     "Program._Closure$__.$I0-2 As <generated method>"
   IL_0036:  br.s       IL_004e
-  IL_0038:  ldsfld     "Program._Closure$__1.$I As Program._Closure$__1"
-  IL_003d:  ldftn      "Sub Program._Closure$__1._Lambda$__4(Integer)"
+  IL_0038:  ldsfld     "Program._Closure$__.$I As Program._Closure$__"
+  IL_003d:  ldftn      "Sub Program._Closure$__._Lambda$__0-2(Integer)"
   IL_0043:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_0048:  dup
-  IL_0049:  stsfld     "Program._Closure$__1._ClosureCache$__5 As <generated method>"
+  IL_0049:  stsfld     "Program._Closure$__.$I0-2 As <generated method>"
   IL_004e:  ldc.i4.2
   IL_004f:  callvirt   "Sub VB$AnonymousDelegate_0(Of Integer).Invoke(Integer)"
-  IL_0054:  ldsfld     "Program._Closure$__1._ClosureCache$__7 As <generated method>"
+  IL_0054:  ldsfld     "Program._Closure$__.$I0-3 As <generated method>"
   IL_0059:  brfalse.s  IL_0062
-  IL_005b:  ldsfld     "Program._Closure$__1._ClosureCache$__7 As <generated method>"
+  IL_005b:  ldsfld     "Program._Closure$__.$I0-3 As <generated method>"
   IL_0060:  br.s       IL_0078
-  IL_0062:  ldsfld     "Program._Closure$__1.$I As Program._Closure$__1"
-  IL_0067:  ldftn      "Function Program._Closure$__1._Lambda$__6() As Integer"
+  IL_0062:  ldsfld     "Program._Closure$__.$I As Program._Closure$__"
+  IL_0067:  ldftn      "Function Program._Closure$__._Lambda$__0-3() As Integer"
   IL_006d:  newobj     "Sub VB$AnonymousDelegate_1(Of Integer)..ctor(Object, System.IntPtr)"
   IL_0072:  dup
-  IL_0073:  stsfld     "Program._Closure$__1._ClosureCache$__7 As <generated method>"
+  IL_0073:  stsfld     "Program._Closure$__.$I0-3 As <generated method>"
   IL_0078:  callvirt   "Function VB$AnonymousDelegate_1(Of Integer).Invoke() As Integer"
   IL_007d:  call       "Sub System.Console.WriteLine(Integer)"
   IL_0082:  ret
@@ -567,23 +561,23 @@ End Module
 {
   // Code size       51 (0x33)
   .maxstack  3
-  IL_0000:  newobj     "Sub Program._Closure$__1..ctor()"
+  IL_0000:  newobj     "Sub Program._Closure$__0-0..ctor()"
   IL_0005:  dup
   IL_0006:  ldc.i4.2
-  IL_0007:  stfld      "Program._Closure$__1.$VB$Local_y1 As Integer"
+  IL_0007:  stfld      "Program._Closure$__0-0.$VB$Local_y1 As Integer"
   IL_000c:  dup
   IL_000d:  ldc.i4.3
-  IL_000e:  stfld      "Program._Closure$__1.$VB$Local_y2 As Integer"
+  IL_000e:  stfld      "Program._Closure$__0-0.$VB$Local_y2 As Integer"
   IL_0013:  dup
   IL_0014:  ldc.i4.4
-  IL_0015:  stfld      "Program._Closure$__1.$VB$Local_y3 As Integer"
+  IL_0015:  stfld      "Program._Closure$__0-0.$VB$Local_y3 As Integer"
   IL_001a:  dup
   IL_001b:  ldc.i4.1
-  IL_001c:  callvirt   "Sub Program._Closure$__1._Lambda$__2(Integer)"
+  IL_001c:  callvirt   "Sub Program._Closure$__0-0._Lambda$__1(Integer)"
   IL_0021:  dup
   IL_0022:  ldc.i4.2
-  IL_0023:  callvirt   "Sub Program._Closure$__1._Lambda$__3(Integer)"
-  IL_0028:  callvirt   "Function Program._Closure$__1._Lambda$__4() As Integer"
+  IL_0023:  callvirt   "Sub Program._Closure$__0-0._Lambda$__2(Integer)"
+  IL_0028:  callvirt   "Function Program._Closure$__0-0._Lambda$__3() As Integer"
   IL_002d:  call       "Sub System.Console.WriteLine(Integer)"
   IL_0032:  ret
 }

@@ -1,10 +1,5 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
     Public Class CodeGenGoto
         Inherits BasicTestBase
@@ -562,7 +557,7 @@ End Module
 ]]>)
         End Sub
 
-        ' Finally is executed while use ‘goto’ to exit try block
+        ' Finally is executed while use 'goto' to exit try block
         <Fact()>
         Sub BranchOutFromTry()
             Dim source =
@@ -786,15 +781,15 @@ End Class
 {
   // Code size       26 (0x1a)
   .maxstack  3
-  .locals init (c1._Closure$__1 V_0) //$VB$Closure_0
+  .locals init (c1._Closure$__1-0 V_0) //$VB$Closure_0
   IL_0000:  ldloc.0
-  IL_0001:  newobj     "Sub c1._Closure$__1..ctor(c1._Closure$__1)"
+  IL_0001:  newobj     "Sub c1._Closure$__1-0..ctor(c1._Closure$__1-0)"
   IL_0006:  stloc.0
   IL_0007:  ldloc.0
   IL_0008:  dup
-  IL_0009:  ldftn      "Function c1._Closure$__1._Lambda$__2(Integer) As Integer"
+  IL_0009:  ldftn      "Function c1._Closure$__1-0._Lambda$__1(Integer) As Integer"
   IL_000f:  newobj     "Sub del..ctor(Object, System.IntPtr)"
-  IL_0014:  stfld      "c1._Closure$__1.$VB$Local_q As del"
+  IL_0014:  stfld      "c1._Closure$__1-0.$VB$Local_q As del"
   IL_0019:  ret
 }
 ]]>)

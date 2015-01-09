@@ -1084,7 +1084,7 @@ End Module
     <methods>
         <method containingType="Module1" name="Test" parameterNames="">
             <customDebugInfo version="4" count="1">
-                <forwardIterator version="4" kind="ForwardIterator" size="56" name="VB$StateMachine_1_Test"/>
+                <forwardIterator version="4" kind="ForwardIterator" size="56" name="VB$StateMachine_2_Test"/>
             </customDebugInfo>
             <sequencepoints total="0"/>
             <locals/>
@@ -1092,10 +1092,10 @@ End Module
     </methods>
 </symbols>)
 
-            compilation.VerifyPdb("Module1+VB$StateMachine_1_Test.MoveNext",
+            compilation.VerifyPdb("Module1+VB$StateMachine_2_Test.MoveNext",
 <symbols>
     <methods>
-        <method containingType="Module1+VB$StateMachine_1_Test" name="MoveNext" parameterNames="">
+        <method containingType="Module1+VB$StateMachine_2_Test" name="MoveNext" parameterNames="">
             <customDebugInfo version="4" count="1">
                 <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="24">
                     <slot kind="27" offset="-1"/>
@@ -1139,15 +1139,15 @@ End Module
             </scope>
             <async-info>
                 <kickoff-method declaringType="Module1" methodName="Test" parameterNames=""/>
-                <await yield="0x92" resume="0xb2" declaringType="Module1+VB$StateMachine_1_Test" methodName="MoveNext" parameterNames=""/>
-                <await yield="0x118" resume="0x138" declaringType="Module1+VB$StateMachine_1_Test" methodName="MoveNext" parameterNames=""/>
-                <await yield="0x1a1" resume="0x1c0" declaringType="Module1+VB$StateMachine_1_Test" methodName="MoveNext" parameterNames=""/>
-                <await yield="0x223" resume="0x243" declaringType="Module1+VB$StateMachine_1_Test" methodName="MoveNext" parameterNames=""/>
-                <await yield="0x2a0" resume="0x2c0" declaringType="Module1+VB$StateMachine_1_Test" methodName="MoveNext" parameterNames=""/>
-                <await yield="0x31d" resume="0x33d" declaringType="Module1+VB$StateMachine_1_Test" methodName="MoveNext" parameterNames=""/>
-                <await yield="0x3a3" resume="0x3c3" declaringType="Module1+VB$StateMachine_1_Test" methodName="MoveNext" parameterNames=""/>
-                <await yield="0x428" resume="0x447" declaringType="Module1+VB$StateMachine_1_Test" methodName="MoveNext" parameterNames=""/>
-                <await yield="0x4ab" resume="0x4c7" declaringType="Module1+VB$StateMachine_1_Test" methodName="MoveNext" parameterNames=""/>
+                <await yield="0x92" resume="0xb2" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext" parameterNames=""/>
+                <await yield="0x118" resume="0x138" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext" parameterNames=""/>
+                <await yield="0x1a1" resume="0x1c0" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext" parameterNames=""/>
+                <await yield="0x223" resume="0x243" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext" parameterNames=""/>
+                <await yield="0x2a0" resume="0x2c0" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext" parameterNames=""/>
+                <await yield="0x31d" resume="0x33d" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext" parameterNames=""/>
+                <await yield="0x3a3" resume="0x3c3" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext" parameterNames=""/>
+                <await yield="0x428" resume="0x447" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext" parameterNames=""/>
+                <await yield="0x4ab" resume="0x4c7" declaringType="Module1+VB$StateMachine_2_Test" methodName="MoveNext" parameterNames=""/>
             </async-info>
         </method>
     </methods>
@@ -1158,7 +1158,7 @@ End Module
     <methods>
         <method containingType="Module1" name="S" parameterNames="">
             <customDebugInfo version="4" count="1">
-                <forwardIterator version="4" kind="ForwardIterator" size="48" name="VB$StateMachine_1_S"/>
+                <forwardIterator version="4" kind="ForwardIterator" size="48" name="VB$StateMachine_3_S"/>
             </customDebugInfo>
             <sequencepoints total="0"/>
             <locals/>
@@ -1166,10 +1166,10 @@ End Module
     </methods>
 </symbols>)
 
-            compilation.VerifyPdb("Module1+VB$StateMachine_1_S.MoveNext",
+            compilation.VerifyPdb("Module1+VB$StateMachine_3_S.MoveNext",
 <symbols>
     <methods>
-        <method containingType="Module1+VB$StateMachine_1_S" name="MoveNext" parameterNames="">
+        <method containingType="Module1+VB$StateMachine_3_S" name="MoveNext" parameterNames="">
             <customDebugInfo version="4" count="1">
                 <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="16">
                     <slot kind="27" offset="-1"/>
@@ -1197,7 +1197,7 @@ End Module
             </scope>
             <async-info catch-IL-offset="0x86">
                 <kickoff-method declaringType="Module1" methodName="S" parameterNames=""/>
-                <await yield="0x33" resume="0x4f" declaringType="Module1+VB$StateMachine_1_S" methodName="MoveNext" parameterNames=""/>
+                <await yield="0x33" resume="0x4f" declaringType="Module1+VB$StateMachine_3_S" methodName="MoveNext" parameterNames=""/>
             </async-info>
         </method>
     </methods>
@@ -1649,11 +1649,11 @@ End Module
                     source,
                     TestOptions.DebugExe)
 
-            compilation.VerifyPdb("M1+C1`1+_Closure$__2`2._Lambda$__3",
+            compilation.VerifyPdb("M1+C1`1+_Closure$__3-1`2._Lambda$__1",
 <symbols>
     <entryPoint declaringType="M1" methodName="Main" parameterNames=""/>
     <methods>
-        <method containingType="M1+C1`1+_Closure$__2`2" name="_Lambda$__3" parameterNames="lifted, notLifted">
+        <method containingType="M1+C1`1+_Closure$__3-1`2" name="_Lambda$__1" parameterNames="lifted, notLifted">
             <customDebugInfo version="4" count="1">
                 <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="16">
                     <slot kind="30" offset="-1"/>
@@ -2862,11 +2862,11 @@ End Module
             </compilation>
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
 
-            compilation.VerifyPdb("Module1+_Closure$__1._Lambda$__2",
+            compilation.VerifyPdb("Module1+_Closure$__._Lambda$__0-1",
 <symbols>
     <entryPoint declaringType="Module1" methodName="Main" parameterNames=""/>
     <methods>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__0-1" parameterNames="">
             <customDebugInfo version="4" count="1">
                 <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
                     <slot kind="21" offset="-1"/>
@@ -3159,7 +3159,7 @@ End Module
                 <currentnamespace name=""/>
             </scope>
         </method>
-        <method containingType="M+_Closure$__1" name="_Lambda$__7" parameterNames="y">
+        <method containingType="M+_Closure$__0-0" name="_Lambda$__4" parameterNames="y">
             <customDebugInfo version="4" count="1">
                 <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
                     <slot kind="21" offset="-1"/>
@@ -3174,7 +3174,7 @@ End Module
                 <importsforward declaringType="M" methodName=".cctor" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="M+_Closure$__2" name="_Lambda$__3" parameterNames="x">
+        <method containingType="M+_Closure$__" name="_Lambda$__0-1" parameterNames="x">
             <customDebugInfo version="4" count="1">
                 <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="16">
                     <slot kind="21" offset="-1"/>
@@ -3199,7 +3199,7 @@ End Module
                 <local name="g" il_index="2" il_start="0x0" il_end="0x5d" attributes="0"/>
             </scope>
         </method>
-        <method containingType="M+_Closure$__2" name="_Lambda$__4" parameterNames="o">
+        <method containingType="M+_Closure$__" name="_Lambda$__0-2" parameterNames="o">
             <customDebugInfo version="4" count="1">
                 <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
                     <slot kind="21" offset="-1"/>
@@ -3214,7 +3214,7 @@ End Module
                 <importsforward declaringType="M" methodName=".cctor" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="M+_Closure$__2" name="_Lambda$__6" parameterNames="h">
+        <method containingType="M+_Closure$__" name="_Lambda$__0-3" parameterNames="h">
             <customDebugInfo version="4" count="1">
                 <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
                     <slot kind="30" offset="-1"/>
@@ -3323,7 +3323,7 @@ End Module
                 <local name="qq" il_index="1" il_start="0x0" il_end="0x108" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="x">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="x">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="13" start_column="26" end_row="13" end_column="27" file_ref="0"/>
             </sequencepoints>
@@ -3332,7 +3332,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__4" parameterNames="x">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="x">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="14" start_column="60" end_row="14" end_column="67" file_ref="0"/>
             </sequencepoints>
@@ -3341,7 +3341,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__6" parameterNames="x">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="x">
             <sequencepoints total="2">
                 <entry il_offset="0x0" start_row="14" start_column="27" end_row="14" end_column="33" file_ref="0"/>
                 <entry il_offset="0x4" start_row="14" start_column="39" end_row="14" end_column="46" file_ref="0"/>
@@ -3351,7 +3351,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__8" parameterNames="evenOdd, $VB$ItAnonymous">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="evenOdd, $VB$ItAnonymous">
             <sequencepoints total="3">
                 <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
                 <entry il_offset="0x1" start_row="15" start_column="30" end_row="15" end_column="44" file_ref="0"/>
@@ -3362,7 +3362,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__9" parameterNames="$VB$It">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-5" parameterNames="$VB$It">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="34" end_row="15" end_column="43" file_ref="0"/>
             </sequencepoints>
@@ -3371,7 +3371,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__11" parameterNames="$VB$It">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-6" parameterNames="$VB$It">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="54" end_row="15" end_column="63" file_ref="0"/>
             </sequencepoints>
@@ -3380,7 +3380,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__14" parameterNames="x">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-7" parameterNames="x">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="19" start_column="25" end_row="19" end_column="32" file_ref="0"/>
             </sequencepoints>
@@ -3389,7 +3389,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__16" parameterNames="x">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-8" parameterNames="x">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="20" start_column="26" end_row="20" end_column="27" file_ref="0"/>
             </sequencepoints>
@@ -3560,7 +3560,7 @@ End Module
                 <local name="x" il_index="1" il_start="0x0" il_end="0x8a" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="14" start_column="28" end_row="14" end_column="35" file_ref="0"/>
             </sequencepoints>
@@ -3569,7 +3569,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__4" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar1">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="14" start_column="68" end_row="14" end_column="74" file_ref="0"/>
             </sequencepoints>
@@ -3578,7 +3578,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__5" parameterNames="rangeVar2">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="14" start_column="57" end_row="14" end_column="64" file_ref="0"/>
             </sequencepoints>
@@ -3669,7 +3669,7 @@ End Module
                 <local name="x" il_index="1" il_start="0x0" il_end="0x3d" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
             <sequencepoints total="2">
                 <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
                 <entry il_offset="0x1" start_row="15" start_column="29" end_row="15" end_column="42" file_ref="0"/>
@@ -3761,7 +3761,7 @@ End Module
                 <local name="x" il_index="1" il_start="0x0" il_end="0x66" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
             <sequencepoints total="2">
                 <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
                 <entry il_offset="0x1" start_row="15" start_column="37" end_row="15" end_column="50" file_ref="0"/>
@@ -3771,7 +3771,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__4" parameterNames="$VB$It">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="$VB$It">
             <sequencepoints total="2">
                 <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
                 <entry il_offset="0xc" start_row="15" start_column="64" end_row="15" end_column="85" file_ref="0"/>
@@ -3863,7 +3863,7 @@ End Module
                 <local name="x" il_index="1" il_start="0x0" il_end="0x3d" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="32" end_row="15" end_column="45" file_ref="0"/>
             </sequencepoints>
@@ -3954,7 +3954,7 @@ End Module
                 <local name="x" il_index="1" il_start="0x0" il_end="0x3d" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="20" end_row="15" end_column="33" file_ref="0"/>
             </sequencepoints>
@@ -4045,7 +4045,7 @@ End Module
                 <local name="x" il_index="1" il_start="0x0" il_end="0x3d" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
             <sequencepoints total="2">
                 <entry il_offset="0x0" start_row="15" start_column="32" end_row="15" end_column="45" file_ref="0"/>
                 <entry il_offset="0x3" start_row="15" start_column="59" end_row="15" end_column="72" file_ref="0"/>
@@ -4137,7 +4137,7 @@ End Module
                 <local name="x" il_index="1" il_start="0x0" il_end="0xb3" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="rangeVar2">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar2">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="14" start_column="53" end_row="14" end_column="60" file_ref="0"/>
             </sequencepoints>
@@ -4146,7 +4146,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__4" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar1">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="41" end_row="15" end_column="50" file_ref="0"/>
             </sequencepoints>
@@ -4155,7 +4155,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__6" parameterNames="rangeVar2">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="58" end_row="15" end_column="67" file_ref="0"/>
             </sequencepoints>
@@ -4248,7 +4248,7 @@ End Module
                 <local name="x" il_index="1" il_start="0x0" il_end="0x100" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="rangeVar2">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar2">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="16" start_column="63" end_row="16" end_column="72" file_ref="0"/>
             </sequencepoints>
@@ -4257,7 +4257,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__4" parameterNames="rangeVar3">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar3">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="16" start_column="46" end_row="16" end_column="55" file_ref="0"/>
             </sequencepoints>
@@ -4266,7 +4266,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__8" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="rangeVar1">
             <sequencepoints total="2">
                 <entry il_offset="0x0" start_row="17" start_column="41" end_row="17" end_column="50" file_ref="0"/>
                 <entry il_offset="0x1" start_row="17" start_column="93" end_row="17" end_column="106" file_ref="0"/>
@@ -4276,7 +4276,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__10" parameterNames="$VB$It">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-5" parameterNames="$VB$It">
             <sequencepoints total="2">
                 <entry il_offset="0x0" start_row="17" start_column="58" end_row="17" end_column="67" file_ref="0"/>
                 <entry il_offset="0x6" start_row="17" start_column="72" end_row="17" end_column="85" file_ref="0"/>
@@ -4369,7 +4369,7 @@ End Module
                 <local name="x" il_index="1" il_start="0x0" il_end="0xb3" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="rangeVar2">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar2">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="14" start_column="59" end_row="14" end_column="66" file_ref="0"/>
             </sequencepoints>
@@ -4378,7 +4378,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__4" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar1">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="41" end_row="15" end_column="50" file_ref="0"/>
             </sequencepoints>
@@ -4387,7 +4387,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__6" parameterNames="rangeVar2">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="58" end_row="15" end_column="67" file_ref="0"/>
             </sequencepoints>
@@ -4482,7 +4482,7 @@ End Module
                 <local name="x" il_index="1" il_start="0x0" il_end="0x152" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="rangeVar2">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar2">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="14" start_column="59" end_row="14" end_column="66" file_ref="0"/>
             </sequencepoints>
@@ -4491,7 +4491,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__4" parameterNames="rangeVar3">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar3">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="63" end_row="15" end_column="70" file_ref="0"/>
             </sequencepoints>
@@ -4500,7 +4500,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__6" parameterNames="rangeVar2">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="16" start_column="69" end_row="16" end_column="78" file_ref="0"/>
             </sequencepoints>
@@ -4509,7 +4509,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__8" parameterNames="rangeVar3">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="rangeVar3">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="16" start_column="52" end_row="16" end_column="61" file_ref="0"/>
             </sequencepoints>
@@ -4518,7 +4518,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__10" parameterNames="rangeVar2, $VB$ItAnonymous">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-5" parameterNames="rangeVar2, $VB$ItAnonymous">
             <sequencepoints total="2">
                 <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
                 <entry il_offset="0x1" start_row="17" start_column="47" end_row="17" end_column="61" file_ref="0"/>
@@ -4528,7 +4528,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__11" parameterNames="rangeVar3">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-6" parameterNames="rangeVar3">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="17" start_column="51" end_row="17" end_column="60" file_ref="0"/>
             </sequencepoints>
@@ -4537,7 +4537,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__14" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-7" parameterNames="rangeVar1">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="18" start_column="41" end_row="18" end_column="50" file_ref="0"/>
             </sequencepoints>
@@ -4546,7 +4546,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__16" parameterNames="$VB$It">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-8" parameterNames="$VB$It">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="18" start_column="58" end_row="18" end_column="67" file_ref="0"/>
             </sequencepoints>
@@ -4555,7 +4555,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__18" parameterNames="rangeVar1, $VB$ItAnonymous">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-9" parameterNames="rangeVar1, $VB$ItAnonymous">
             <sequencepoints total="2">
                 <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
                 <entry il_offset="0x1" start_row="19" start_column="43" end_row="19" end_column="57" file_ref="0"/>
@@ -4565,7 +4565,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__19" parameterNames="$VB$It">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-10" parameterNames="$VB$It">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="19" start_column="47" end_row="19" end_column="56" file_ref="0"/>
             </sequencepoints>
@@ -4657,7 +4657,7 @@ End Module
                 <local name="x" il_index="1" il_start="0x0" il_end="0x8a" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
             <sequencepoints total="2">
                 <entry il_offset="0x0" start_row="15" start_column="41" end_row="15" end_column="50" file_ref="0"/>
                 <entry il_offset="0x1" start_row="15" start_column="93" end_row="15" end_column="106" file_ref="0"/>
@@ -4667,7 +4667,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__4" parameterNames="rangeVar2">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar2">
             <sequencepoints total="2">
                 <entry il_offset="0x0" start_row="15" start_column="58" end_row="15" end_column="67" file_ref="0"/>
                 <entry il_offset="0x1" start_row="15" start_column="72" end_row="15" end_column="85" file_ref="0"/>
@@ -4677,7 +4677,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__6" parameterNames="rangeVar1, $VB$ItAnonymous">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar1, $VB$ItAnonymous">
             <sequencepoints total="3">
                 <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
                 <entry il_offset="0x2" start_row="16" start_column="56" end_row="16" end_column="70" file_ref="0"/>
@@ -4688,7 +4688,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__7" parameterNames="rangeVar2">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="rangeVar2">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="16" start_column="60" end_row="16" end_column="69" file_ref="0"/>
             </sequencepoints>
@@ -4779,7 +4779,7 @@ End Module
                 <local name="x" il_index="1" il_start="0x0" il_end="0x8a" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="14" start_column="52" end_row="14" end_column="58" file_ref="0"/>
             </sequencepoints>
@@ -4788,7 +4788,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__6" parameterNames="$VB$It">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="$VB$It">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="19" end_row="15" end_column="73" file_ref="0"/>
             </sequencepoints>
@@ -4879,7 +4879,7 @@ End Module
                 <local name="x" il_index="1" il_start="0x0" il_end="0x8a" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="14" start_column="52" end_row="14" end_column="58" file_ref="0"/>
             </sequencepoints>
@@ -4888,7 +4888,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__6" parameterNames="$VB$It">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="$VB$It">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="24" end_row="15" end_column="78" file_ref="0"/>
             </sequencepoints>
@@ -4979,7 +4979,7 @@ End Module
                 <local name="x" il_index="1" il_start="0x0" il_end="0x8a" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="14" start_column="52" end_row="14" end_column="58" file_ref="0"/>
             </sequencepoints>
@@ -4988,7 +4988,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__6" parameterNames="$VB$It">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="$VB$It">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="24" end_row="15" end_column="78" file_ref="0"/>
             </sequencepoints>
@@ -5244,7 +5244,7 @@ End Module
                 <local name="x" il_index="1" il_start="0x0" il_end="0xae" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="14" start_column="52" end_row="14" end_column="58" file_ref="0"/>
             </sequencepoints>
@@ -5253,7 +5253,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__6" parameterNames="$VB$It">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="$VB$It">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="22" end_row="15" end_column="31" file_ref="0"/>
             </sequencepoints>
@@ -5345,7 +5345,7 @@ End Module
                 <local name="x" il_index="1" il_start="0x0" il_end="0xae" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="14" start_column="52" end_row="14" end_column="58" file_ref="0"/>
             </sequencepoints>
@@ -5354,7 +5354,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__6" parameterNames="$VB$It">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="$VB$It">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="34" end_row="15" end_column="47" file_ref="0"/>
             </sequencepoints>
@@ -5363,7 +5363,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__8" parameterNames="rangeVar2, $VB$ItAnonymous">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="rangeVar2, $VB$ItAnonymous">
             <sequencepoints total="2">
                 <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
                 <entry il_offset="0x1" start_row="16" start_column="18" end_row="16" end_column="32" file_ref="0"/>
@@ -5373,7 +5373,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__9" parameterNames="$VB$It">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-5" parameterNames="$VB$It">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="16" start_column="22" end_row="16" end_column="31" file_ref="0"/>
             </sequencepoints>
@@ -5465,7 +5465,7 @@ End Module
                 <local name="x" il_index="1" il_start="0x0" il_end="0xae" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="14" start_column="52" end_row="14" end_column="58" file_ref="0"/>
             </sequencepoints>
@@ -5474,7 +5474,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__6" parameterNames="$VB$It">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="$VB$It">
             <sequencepoints total="2">
                 <entry il_offset="0x0" start_row="15" start_column="34" end_row="15" end_column="47" file_ref="0"/>
                 <entry il_offset="0x8" start_row="15" start_column="61" end_row="15" end_column="74" file_ref="0"/>
@@ -5484,7 +5484,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__8" parameterNames="$VB$It, $VB$ItAnonymous">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="$VB$It, $VB$ItAnonymous">
             <sequencepoints total="3">
                 <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
                 <entry il_offset="0xd" start_row="16" start_column="31" end_row="16" end_column="45" file_ref="0"/>
@@ -5495,7 +5495,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__9" parameterNames="$VB$It">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-5" parameterNames="$VB$It">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="16" start_column="35" end_row="16" end_column="44" file_ref="0"/>
             </sequencepoints>
@@ -5587,7 +5587,7 @@ End Module
                 <local name="x" il_index="1" il_start="0x0" il_end="0x3d" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="13" end_row="16" end_column="36" file_ref="0"/>
             </sequencepoints>
@@ -5596,7 +5596,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__3" parameterNames="rangeVar2">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar2">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="33" end_row="15" end_column="40" file_ref="0"/>
             </sequencepoints>
@@ -5605,7 +5605,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__5" parameterNames="rangeVar2">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="16" start_column="22" end_row="16" end_column="35" file_ref="0"/>
             </sequencepoints>
@@ -5697,7 +5697,7 @@ End Module
                 <local name="x" il_index="1" il_start="0x0" il_end="0x3d" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="13" end_row="16" end_column="50" file_ref="0"/>
             </sequencepoints>
@@ -5706,7 +5706,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__3" parameterNames="rangeVar2">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar2">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="33" end_row="15" end_column="40" file_ref="0"/>
             </sequencepoints>
@@ -5715,7 +5715,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__5" parameterNames="rangeVar2">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="65" end_row="15" end_column="71" file_ref="0"/>
             </sequencepoints>
@@ -5724,7 +5724,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__9" parameterNames="$VB$It">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-5" parameterNames="$VB$It">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="16" start_column="28" end_row="16" end_column="49" file_ref="0"/>
             </sequencepoints>
@@ -5817,7 +5817,7 @@ End Module
                 <local name="x" il_index="1" il_start="0x0" il_end="0x66" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="20" end_row="15" end_column="21" file_ref="0"/>
             </sequencepoints>
@@ -5826,7 +5826,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__4" parameterNames="$VB$ItAnonymous">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="$VB$ItAnonymous">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="16" start_column="13" end_row="17" end_column="36" file_ref="0"/>
             </sequencepoints>
@@ -5835,7 +5835,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__5" parameterNames="rangeVar2">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="16" start_column="33" end_row="16" end_column="40" file_ref="0"/>
             </sequencepoints>
@@ -5844,7 +5844,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__7" parameterNames="rangeVar2">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="rangeVar2">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="17" start_column="22" end_row="17" end_column="35" file_ref="0"/>
             </sequencepoints>
@@ -5936,7 +5936,7 @@ End Module
                 <local name="x" il_index="1" il_start="0x0" il_end="0x66" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="13" end_row="15" end_column="42" file_ref="0"/>
             </sequencepoints>
@@ -5945,7 +5945,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__4" parameterNames="$VB$It">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="$VB$It">
             <sequencepoints total="3">
                 <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
                 <entry il_offset="0x6" start_row="16" start_column="24" end_row="16" end_column="38" file_ref="0"/>
@@ -5956,7 +5956,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__5" parameterNames="rangeVar2">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="16" start_column="28" end_row="16" end_column="37" file_ref="0"/>
             </sequencepoints>
@@ -6048,7 +6048,7 @@ End Module
                 <local name="x" il_index="1" il_start="0x0" il_end="0x66" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="13" end_row="15" end_column="71" file_ref="0"/>
             </sequencepoints>
@@ -6057,7 +6057,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__3" parameterNames="rangeVar2">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar2">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="33" end_row="15" end_column="40" file_ref="0"/>
             </sequencepoints>
@@ -6066,7 +6066,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__5" parameterNames="rangeVar2">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="65" end_row="15" end_column="71" file_ref="0"/>
             </sequencepoints>
@@ -6075,7 +6075,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__10" parameterNames="$VB$It">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-5" parameterNames="$VB$It">
             <sequencepoints total="3">
                 <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
                 <entry il_offset="0x6" start_row="16" start_column="24" end_row="16" end_column="38" file_ref="0"/>
@@ -6086,7 +6086,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__11" parameterNames="$VB$It">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-6" parameterNames="$VB$It">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="16" start_column="28" end_row="16" end_column="37" file_ref="0"/>
             </sequencepoints>
@@ -6178,7 +6178,7 @@ End Module
                 <local name="x" il_index="1" il_start="0x0" il_end="0x66" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="13" end_row="15" end_column="105" file_ref="0"/>
             </sequencepoints>
@@ -6187,7 +6187,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__3" parameterNames="rangeVar2">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar2">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="33" end_row="15" end_column="40" file_ref="0"/>
             </sequencepoints>
@@ -6196,7 +6196,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__5" parameterNames="rangeVar2">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="79" end_row="15" end_column="88" file_ref="0"/>
             </sequencepoints>
@@ -6205,7 +6205,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__7" parameterNames="rangeVar3">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="rangeVar3">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="96" end_row="15" end_column="105" file_ref="0"/>
             </sequencepoints>
@@ -6214,7 +6214,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__12" parameterNames="$VB$It">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-6" parameterNames="$VB$It">
             <sequencepoints total="3">
                 <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
                 <entry il_offset="0x6" start_row="16" start_column="24" end_row="16" end_column="38" file_ref="0"/>
@@ -6225,7 +6225,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__13" parameterNames="$VB$It">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-7" parameterNames="$VB$It">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="16" start_column="28" end_row="16" end_column="37" file_ref="0"/>
             </sequencepoints>
@@ -6318,7 +6318,7 @@ End Module
                 <local name="x" il_index="1" il_start="0x0" il_end="0x8f" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="20" end_row="15" end_column="21" file_ref="0"/>
             </sequencepoints>
@@ -6327,7 +6327,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__4" parameterNames="$VB$ItAnonymous">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="$VB$ItAnonymous">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="16" start_column="13" end_row="16" end_column="42" file_ref="0"/>
             </sequencepoints>
@@ -6336,7 +6336,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__6" parameterNames="$VB$Group">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="$VB$Group">
             <sequencepoints total="2">
                 <entry il_offset="0x0" start_row="17" start_column="24" end_row="17" end_column="38" file_ref="0"/>
                 <entry il_offset="0x2a" start_row="17" start_column="40" end_row="17" end_column="47" file_ref="0"/>
@@ -6346,7 +6346,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__7" parameterNames="rangeVar2">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="rangeVar2">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="17" start_column="28" end_row="17" end_column="37" file_ref="0"/>
             </sequencepoints>
@@ -6439,7 +6439,7 @@ End Module
                 <local name="x" il_index="1" il_start="0x0" il_end="0x8f" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="20" end_row="15" end_column="21" file_ref="0"/>
             </sequencepoints>
@@ -6448,7 +6448,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__4" parameterNames="$VB$ItAnonymous">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="$VB$ItAnonymous">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="16" start_column="13" end_row="16" end_column="71" file_ref="0"/>
             </sequencepoints>
@@ -6457,7 +6457,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__5" parameterNames="rangeVar2">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="16" start_column="33" end_row="16" end_column="40" file_ref="0"/>
             </sequencepoints>
@@ -6466,7 +6466,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__7" parameterNames="rangeVar2">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="rangeVar2">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="16" start_column="65" end_row="16" end_column="71" file_ref="0"/>
             </sequencepoints>
@@ -6475,7 +6475,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__12" parameterNames="$VB$Group">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-6" parameterNames="$VB$Group">
             <sequencepoints total="2">
                 <entry il_offset="0x0" start_row="17" start_column="24" end_row="17" end_column="38" file_ref="0"/>
                 <entry il_offset="0x2a" start_row="17" start_column="40" end_row="17" end_column="47" file_ref="0"/>
@@ -6485,7 +6485,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__13" parameterNames="$VB$It">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-7" parameterNames="$VB$It">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="17" start_column="28" end_row="17" end_column="37" file_ref="0"/>
             </sequencepoints>
@@ -6578,7 +6578,7 @@ End Module
                 <local name="x" il_index="1" il_start="0x0" il_end="0x8f" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="15" start_column="20" end_row="15" end_column="21" file_ref="0"/>
             </sequencepoints>
@@ -6587,7 +6587,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__4" parameterNames="$VB$ItAnonymous">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="$VB$ItAnonymous">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="16" start_column="13" end_row="16" end_column="105" file_ref="0"/>
             </sequencepoints>
@@ -6596,7 +6596,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__5" parameterNames="rangeVar2">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-3" parameterNames="rangeVar2">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="16" start_column="33" end_row="16" end_column="40" file_ref="0"/>
             </sequencepoints>
@@ -6605,7 +6605,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__7" parameterNames="rangeVar2">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="rangeVar2">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="16" start_column="79" end_row="16" end_column="88" file_ref="0"/>
             </sequencepoints>
@@ -6614,7 +6614,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__9" parameterNames="rangeVar3">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-5" parameterNames="rangeVar3">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="16" start_column="96" end_row="16" end_column="105" file_ref="0"/>
             </sequencepoints>
@@ -6623,7 +6623,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__14" parameterNames="$VB$Group">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-7" parameterNames="$VB$Group">
             <sequencepoints total="2">
                 <entry il_offset="0x0" start_row="17" start_column="24" end_row="17" end_column="38" file_ref="0"/>
                 <entry il_offset="0x2a" start_row="17" start_column="40" end_row="17" end_column="47" file_ref="0"/>
@@ -6633,7 +6633,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__15" parameterNames="$VB$It">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-8" parameterNames="$VB$It">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="17" start_column="28" end_row="17" end_column="37" file_ref="0"/>
             </sequencepoints>
@@ -6717,7 +6717,7 @@ End Module
                 <local name="x" il_index="0" il_start="0x0" il_end="0x5f" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="12" start_column="33" end_row="12" end_column="40" file_ref="0"/>
             </sequencepoints>
@@ -6726,7 +6726,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__4" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar1">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="13" start_column="22" end_row="13" end_column="35" file_ref="0"/>
             </sequencepoints>
@@ -6811,7 +6811,7 @@ End Module
                 <local name="x" il_index="0" il_start="0x0" il_end="0x8b" attributes="0"/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__2" parameterNames="rangeVar1">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-1" parameterNames="rangeVar1">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="12" start_column="65" end_row="12" end_column="71" file_ref="0"/>
             </sequencepoints>
@@ -6820,7 +6820,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__3" parameterNames="rangeVar2">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-2" parameterNames="rangeVar2">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="12" start_column="54" end_row="12" end_column="61" file_ref="0"/>
             </sequencepoints>
@@ -6829,7 +6829,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Nums" parameterNames=""/>
             </scope>
         </method>
-        <method containingType="Module1+_Closure$__1" name="_Lambda$__8" parameterNames="$VB$It">
+        <method containingType="Module1+_Closure$__" name="_Lambda$__1-4" parameterNames="$VB$It">
             <sequencepoints total="1">
                 <entry il_offset="0x0" start_row="13" start_column="28" end_row="13" end_column="37" file_ref="0"/>
             </sequencepoints>
@@ -7222,7 +7222,7 @@ End Class
                 <local name="$VB$ResumableLocal_a$1" il_index="1" il_start="0x12" il_end="0x100" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x13d">
-                <importsforward declaringType="C+_Closure$__1" methodName="_Lambda$__2" parameterNames=""/>
+                <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__1" parameterNames=""/>
                 <scope startOffset="0x12" endOffset="0x100">
                     <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x12" il_end="0x100" attributes="0"/>
                     <local name="$VB$ResumableLocal_a$1" il_index="1" il_start="0x12" il_end="0x100" attributes="0"/>
@@ -7298,7 +7298,7 @@ End Class
                 <local name="$VB$ResumableLocal_a$1" il_index="1" il_start="0x12" il_end="0xdb" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x118">
-                <importsforward declaringType="C+_Closure$__1" methodName="_Lambda$__2" parameterNames=""/>
+                <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__1" parameterNames=""/>
                 <scope startOffset="0x12" endOffset="0xdb">
                     <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x12" il_end="0xdb" attributes="0"/>
                     <local name="$VB$ResumableLocal_a$1" il_index="1" il_start="0x12" il_end="0xdb" attributes="0"/>

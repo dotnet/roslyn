@@ -1,20 +1,15 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Generic
 Imports System.Collections.Immutable
-Imports System.Collections.ObjectModel
 Imports System.Runtime.InteropServices
 Imports System.Threading
-
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
     ''' Represents a method symbol for a lambda method.
     ''' </summary>
-    Friend Class LambdaSymbol
+    Friend MustInherit Class LambdaSymbol
         Inherits MethodSymbol
 
         ''' <summary>
@@ -47,7 +42,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Shared ReadOnly ErrorRecoveryInferenceError As TypeSymbol = New ErrorTypeSymbol()
 
         Private ReadOnly m_SyntaxNode As VisualBasicSyntaxNode
-        Private ReadOnly m_UnboundLambdaOpt As UnboundLambda
         Private ReadOnly m_Parameters As ImmutableArray(Of ParameterSymbol)
 
         ''' <summary>
@@ -59,22 +53,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' The binder associated with the block containing this lambda
         Private ReadOnly m_Binder As Binder
 
-        ' The anonymous type symbol associated with this lambda
-        Private m_lazyAnonymousDelegateSymbol As NamedTypeSymbol = ErrorTypeSymbol.UnknownResultType
-
-        Public Sub New(
+        Protected Sub New(
             syntaxNode As VisualBasicSyntaxNode,
-            unboundLambdaOpt As UnboundLambda,
             parameters As ImmutableArray(Of BoundLambdaParameterSymbol),
             returnType As TypeSymbol,
             binder As Binder
         )
             Debug.Assert(syntaxNode IsNot Nothing)
             Debug.Assert(returnType IsNot Nothing)
-            Debug.Assert((returnType Is ReturnTypePendingDelegate) = Me.IsQueryLambdaMethod)
 
             m_SyntaxNode = syntaxNode
-            m_UnboundLambdaOpt = unboundLambdaOpt
             m_Parameters = StaticCast(Of ParameterSymbol).From(parameters)
             m_ReturnType = returnType
             m_Binder = binder
@@ -84,44 +72,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Next
         End Sub
 
-        Public ReadOnly Property UnboundLambdaOpt As UnboundLambda
+        Public MustOverride ReadOnly Property SynthesizedKind As SynthesizedLambdaKind
+
+        Friend NotOverridable Overrides ReadOnly Property IsQueryLambdaMethod As Boolean
             Get
-                Return m_UnboundLambdaOpt
+                Return SynthesizedKind = SynthesizedLambdaKind.QueryLambda
             End Get
         End Property
-
-        Public Overrides ReadOnly Property AssociatedAnonymousDelegate As NamedTypeSymbol
-            Get
-                If Me.m_lazyAnonymousDelegateSymbol Is ErrorTypeSymbol.UnknownResultType Then
-                    Dim newValue As NamedTypeSymbol = MakeAssociatedAnonymousDelegate()
-                    Dim oldValue As NamedTypeSymbol = Interlocked.CompareExchange(Me.m_lazyAnonymousDelegateSymbol, newValue,
-                                                                                  DirectCast(ErrorTypeSymbol.UnknownResultType, NamedTypeSymbol))
-                    Debug.Assert(oldValue Is ErrorTypeSymbol.UnknownResultType OrElse oldValue Is newValue)
-                End If
-                Return Me.m_lazyAnonymousDelegateSymbol
-            End Get
-        End Property
-
-        Friend Function MakeAssociatedAnonymousDelegate() As NamedTypeSymbol
-            If Me.m_UnboundLambdaOpt Is Nothing Then
-                Return Nothing
-            End If
-
-            Dim anonymousDelegateSymbol As NamedTypeSymbol = Me.m_UnboundLambdaOpt.InferredAnonymousDelegate.Key
-            Dim targetSignature As New UnboundLambda.TargetSignature(anonymousDelegateSymbol.DelegateInvokeMethod)
-            Dim boundLambda As BoundLambda = Me.m_UnboundLambdaOpt.Bind(targetSignature)
-
-            ' NOTE: If the lambda does not have an associated anonymous delegate, but 
-            ' NOTE: the target signature of the lambda is the same as its anonymous delegate 
-            ' NOTE: would have had if it were created, we still return this delegate. 
-            ' NOTE: This is caused by performance trade-offs made in lambda binding
-
-            If boundLambda.LambdaSymbol IsNot Me Then
-                Return Nothing
-            End If
-
-            Return anonymousDelegateSymbol
-        End Function
 
         Public Overrides ReadOnly Property Arity As Integer
             Get
@@ -280,18 +237,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        Public Overrides ReadOnly Property IsAsync As Boolean
-            Get
-                Return m_UnboundLambdaOpt IsNot Nothing AndAlso (m_UnboundLambdaOpt.Flags And SourceMemberFlags.Async) <> 0
-            End Get
-        End Property
-
-        Public Overrides ReadOnly Property IsIterator As Boolean
-            Get
-                Return m_UnboundLambdaOpt IsNot Nothing AndAlso (m_UnboundLambdaOpt.Flags And SourceMemberFlags.Iterator) <> 0
-            End Get
-        End Property
-
         Public Overrides ReadOnly Property IsVararg As Boolean
             Get
                 Return False
@@ -407,33 +352,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return hc
         End Function
 
-    End Class
-
-    Friend NotInheritable Class QueryLambdaSymbol
-        Inherits SynthesizedLambdaSymbol
-
-        Public Sub New(
-            syntaxNode As VisualBasicSyntaxNode,
-            parameters As ImmutableArray(Of BoundLambdaParameterSymbol),
-            binder As Binder
-        )
-            MyBase.New(syntaxNode,
-                       parameters,
-                       ReturnTypePendingDelegate,
-                       binder,
-                       isDelegateRelaxationStub:=False)
-        End Sub
-
-        Public Sub SetQueryLambdaReturnType(returnType As TypeSymbol)
-            Debug.Assert(m_ReturnType Is ReturnTypePendingDelegate)
-            m_ReturnType = returnType
-        End Sub
-
-        Friend Overrides ReadOnly Property IsQueryLambdaMethod As Boolean
-            Get
-                Return True
-            End Get
-        End Property
     End Class
 End Namespace
 

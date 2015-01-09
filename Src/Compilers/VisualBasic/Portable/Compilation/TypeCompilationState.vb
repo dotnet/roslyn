@@ -121,14 +121,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         End Sub
 
-        Private _nextTempNumber As Integer = 1
-
-        Public Function GenerateTempNumber() As Integer
-            Dim result As Integer = _nextTempNumber
-            _nextTempNumber = _nextTempNumber + 1
-            Return result
-        End Function
-
         Public Sub AddToInitializeComponentCallTree(method As MethodSymbol, callees As ImmutableArray(Of MethodSymbol))
 #If DEBUG Then
             Debug.Assert(method.IsDefinition)

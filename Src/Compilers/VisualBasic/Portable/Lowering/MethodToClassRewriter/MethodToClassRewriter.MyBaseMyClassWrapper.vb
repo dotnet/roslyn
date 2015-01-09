@@ -55,10 +55,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return originalMethodBeingCalled
         End Function
 
-        Private Shared Function GenerateWrapperMethodName(isMyBase As Boolean, method As MethodSymbol) As String
-            Return String.Format("$VB$ClosureStub_{0}_{1}", method.Name, If(isMyBase, "MyBase", "MyClass"))
-        End Function
-
         Private Function GetOrCreateMyBaseOrMyClassWrapperFunction(receiver As BoundExpression, method As MethodSymbol) As MethodSymbol
             Debug.Assert(receiver IsNot Nothing)
             Debug.Assert(receiver.IsMyClassReference() OrElse receiver.IsMyBaseReference())
@@ -89,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
             ' generate and register wrapper method
-            Dim wrapperMethodName As String = GenerateWrapperMethodName(isMyBase, method)
+            Dim wrapperMethodName As String = GeneratedNames.MakeBaseMethodWrapperName(method.Name, isMyBase)
             Dim wrapperMethod As New SynthesizedWrapperMethod(DirectCast(containingType, InstanceTypeSymbol), method, wrapperMethodName, syntax)
 
             ' register a new method

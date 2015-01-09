@@ -726,7 +726,7 @@ C
 ]]>)
         End Sub
 
-        ' Traversing items in ‘Dictionary’
+        ' Traversing items in Dictionary
         <Fact>
         Public Sub TraversingDictionary()
             Dim TEMP = CompileAndVerify(
@@ -929,15 +929,15 @@ End Class
     IL_0006:  dup
     IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.$$method0x6000001-E429CCA3F703A39CC5954A6572FEC9086135B34E"
     IL_000c:  call       "Sub System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
-    IL_0011:  ldsfld     "C._Closure$__1._ClosureCache$__3 As System.Func(Of Integer, String)"
+    IL_0011:  ldsfld     "C._Closure$__.$I1-1 As System.Func(Of Integer, String)"
     IL_0016:  brfalse.s  IL_001f
-    IL_0018:  ldsfld     "C._Closure$__1._ClosureCache$__3 As System.Func(Of Integer, String)"
+    IL_0018:  ldsfld     "C._Closure$__.$I1-1 As System.Func(Of Integer, String)"
     IL_001d:  br.s       IL_0035
-    IL_001f:  ldsfld     "C._Closure$__1.$I As C._Closure$__1"
-    IL_0024:  ldftn      "Function C._Closure$__1._Lambda$__2(Integer) As String"
+    IL_001f:  ldsfld     "C._Closure$__.$I As C._Closure$__"
+    IL_0024:  ldftn      "Function C._Closure$__._Lambda$__1-1(Integer) As String"
     IL_002a:  newobj     "Sub System.Func(Of Integer, String)..ctor(Object, System.IntPtr)"
     IL_002f:  dup
-    IL_0030:  stsfld     "C._Closure$__1._ClosureCache$__3 As System.Func(Of Integer, String)"
+    IL_0030:  stsfld     "C._Closure$__.$I1-1 As System.Func(Of Integer, String)"
     IL_0035:  call       "Function System.Linq.Enumerable.Select(Of Integer, String)(System.Collections.Generic.IEnumerable(Of Integer), System.Func(Of Integer, String)) As System.Collections.Generic.IEnumerable(Of String)"
     IL_003a:  callvirt   "Function System.Collections.Generic.IEnumerable(Of String).GetEnumerator() As System.Collections.Generic.IEnumerator(Of String)"
     IL_003f:  stloc.0
@@ -1047,7 +1047,7 @@ End Class
 ]]>)
         End Sub
 
-        ' Customer defined type of collection to support ‘foreach’
+        ' Customer defined type of collection to support 'foreach'
         <Fact>
         Public Sub CustomerDefinedCollections()
             Dim TEMP = CompileAndVerify(
@@ -2592,8 +2592,8 @@ End Module
   .locals init (System.Collections.Generic.List(Of System.Action) V_0, //actions
                System.Collections.Generic.List(Of Integer) V_1, //values
                System.Collections.Generic.List(Of Integer).Enumerator V_2,
-               m1._Closure$__1 V_3, //$VB$Closure_0
-               System.Collections.Generic.List(Of System.Action).Enumerator V_4)
+                m1._Closure$__0-0 V_3, //$VB$Closure_0
+                System.Collections.Generic.List(Of System.Action).Enumerator V_4)
   IL_0000:  newobj     "Sub System.Collections.Generic.List(Of System.Action)..ctor()"
   IL_0005:  stloc.0
   IL_0006:  newobj     "Sub System.Collections.Generic.List(Of Integer)..ctor()"
@@ -2608,57 +2608,57 @@ End Module
   IL_001b:  callvirt   "Sub System.Collections.Generic.List(Of Integer).Add(Integer)"
   IL_0020:  stloc.1
   .try
-{
-  IL_0021:  ldloc.1
-  IL_0022:  callvirt   "Function System.Collections.Generic.List(Of Integer).GetEnumerator() As System.Collections.Generic.List(Of Integer).Enumerator"
-  IL_0027:  stloc.2
-  IL_0028:  br.s       IL_0050
-  IL_002a:  ldloc.3
-  IL_002b:  newobj     "Sub m1._Closure$__1..ctor(m1._Closure$__1)"
-  IL_0030:  stloc.3
-  IL_0031:  ldloc.3
-  IL_0032:  ldloca.s   V_2
-  IL_0034:  call       "Function System.Collections.Generic.List(Of Integer).Enumerator.get_Current() As Integer"
-  IL_0039:  stfld      "m1._Closure$__1.$VB$Local_i As Integer"
-  IL_003e:  ldloc.0
-  IL_003f:  ldloc.3
-  IL_0040:  ldftn      "Sub m1._Closure$__1._Lambda$__2()"
-  IL_0046:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
-  IL_004b:  callvirt   "Sub System.Collections.Generic.List(Of System.Action).Add(System.Action)"
-  IL_0050:  ldloca.s   V_2
-  IL_0052:  call       "Function System.Collections.Generic.List(Of Integer).Enumerator.MoveNext() As Boolean"
-  IL_0057:  brtrue.s   IL_002a
-  IL_0059:  leave.s    IL_0069
-}
+  {
+    IL_0021:  ldloc.1
+    IL_0022:  callvirt   "Function System.Collections.Generic.List(Of Integer).GetEnumerator() As System.Collections.Generic.List(Of Integer).Enumerator"
+    IL_0027:  stloc.2
+    IL_0028:  br.s       IL_0050
+    IL_002a:  ldloc.3
+    IL_002b:  newobj     "Sub m1._Closure$__0-0..ctor(m1._Closure$__0-0)"
+    IL_0030:  stloc.3
+    IL_0031:  ldloc.3
+    IL_0032:  ldloca.s   V_2
+    IL_0034:  call       "Function System.Collections.Generic.List(Of Integer).Enumerator.get_Current() As Integer"
+    IL_0039:  stfld      "m1._Closure$__0-0.$VB$Local_i As Integer"
+    IL_003e:  ldloc.0
+    IL_003f:  ldloc.3
+    IL_0040:  ldftn      "Sub m1._Closure$__0-0._Lambda$__1()"
+    IL_0046:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
+    IL_004b:  callvirt   "Sub System.Collections.Generic.List(Of System.Action).Add(System.Action)"
+    IL_0050:  ldloca.s   V_2
+    IL_0052:  call       "Function System.Collections.Generic.List(Of Integer).Enumerator.MoveNext() As Boolean"
+    IL_0057:  brtrue.s   IL_002a
+    IL_0059:  leave.s    IL_0069
+  }
   finally
-{
-  IL_005b:  ldloca.s   V_2
-  IL_005d:  constrained. "System.Collections.Generic.List(Of Integer).Enumerator"
-  IL_0063:  callvirt   "Sub System.IDisposable.Dispose()"
-  IL_0068:  endfinally
-}
+  {
+    IL_005b:  ldloca.s   V_2
+    IL_005d:  constrained. "System.Collections.Generic.List(Of Integer).Enumerator"
+    IL_0063:  callvirt   "Sub System.IDisposable.Dispose()"
+    IL_0068:  endfinally
+  }
   IL_0069:  nop
   .try
-{
-  IL_006a:  ldloc.0
-  IL_006b:  callvirt   "Function System.Collections.Generic.List(Of System.Action).GetEnumerator() As System.Collections.Generic.List(Of System.Action).Enumerator"
-  IL_0070:  stloc.s    V_4
-  IL_0072:  br.s       IL_0080
-  IL_0074:  ldloca.s   V_4
-  IL_0076:  call       "Function System.Collections.Generic.List(Of System.Action).Enumerator.get_Current() As System.Action"
-  IL_007b:  callvirt   "Sub System.Action.Invoke()"
-  IL_0080:  ldloca.s   V_4
-  IL_0082:  call       "Function System.Collections.Generic.List(Of System.Action).Enumerator.MoveNext() As Boolean"
-  IL_0087:  brtrue.s   IL_0074
-  IL_0089:  leave.s    IL_0099
-}
+  {
+    IL_006a:  ldloc.0
+    IL_006b:  callvirt   "Function System.Collections.Generic.List(Of System.Action).GetEnumerator() As System.Collections.Generic.List(Of System.Action).Enumerator"
+    IL_0070:  stloc.s    V_4
+    IL_0072:  br.s       IL_0080
+    IL_0074:  ldloca.s   V_4
+    IL_0076:  call       "Function System.Collections.Generic.List(Of System.Action).Enumerator.get_Current() As System.Action"
+    IL_007b:  callvirt   "Sub System.Action.Invoke()"
+    IL_0080:  ldloca.s   V_4
+    IL_0082:  call       "Function System.Collections.Generic.List(Of System.Action).Enumerator.MoveNext() As Boolean"
+    IL_0087:  brtrue.s   IL_0074
+    IL_0089:  leave.s    IL_0099
+  }
   finally
-{
-  IL_008b:  ldloca.s   V_4
-  IL_008d:  constrained. "System.Collections.Generic.List(Of System.Action).Enumerator"
-  IL_0093:  callvirt   "Sub System.IDisposable.Dispose()"
-  IL_0098:  endfinally
-}
+  {
+    IL_008b:  ldloca.s   V_4
+    IL_008d:  constrained. "System.Collections.Generic.List(Of System.Action).Enumerator"
+    IL_0093:  callvirt   "Sub System.IDisposable.Dispose()"
+    IL_0098:  endfinally
+  }
   IL_0099:  ret
 }
 ]]>)
@@ -2701,30 +2701,30 @@ End Module
   .locals init (System.Action() V_0, //x
                 Integer() V_1,
                 Integer V_2,
-                m1._Closure$__2 V_3, //$VB$Closure_0
+                m1._Closure$__0-1 V_3, //$VB$Closure_0
                 Integer V_4) //i
   IL_0000:  ldc.i4.s   11
   IL_0002:  newarr     "System.Action"
   IL_0007:  stloc.0
-  IL_0008:  newobj     "Sub m1._Closure$__1..ctor()"
-  IL_000d:  callvirt   "Function m1._Closure$__1._Lambda$__3() As Integer()"
+  IL_0008:  newobj     "Sub m1._Closure$__0-0..ctor()"
+  IL_000d:  callvirt   "Function m1._Closure$__0-0._Lambda$__1() As Integer()"
   IL_0012:  stloc.1
   IL_0013:  ldc.i4.0
   IL_0014:  stloc.2
   IL_0015:  br.s       IL_003f
   IL_0017:  ldloc.3
-  IL_0018:  newobj     "Sub m1._Closure$__2..ctor(m1._Closure$__2)"
+  IL_0018:  newobj     "Sub m1._Closure$__0-1..ctor(m1._Closure$__0-1)"
   IL_001d:  stloc.3
   IL_001e:  ldloc.3
   IL_001f:  ldloc.1
   IL_0020:  ldloc.2
   IL_0021:  ldelem.i4
-  IL_0022:  stfld      "m1._Closure$__2.$VB$Local_i As Integer"
+  IL_0022:  stfld      "m1._Closure$__0-1.$VB$Local_i As Integer"
   IL_0027:  ldloc.0
   IL_0028:  ldloc.3
-  IL_0029:  ldfld      "m1._Closure$__2.$VB$Local_i As Integer"
+  IL_0029:  ldfld      "m1._Closure$__0-1.$VB$Local_i As Integer"
   IL_002e:  ldloc.3
-  IL_002f:  ldftn      "Sub m1._Closure$__2._Lambda$__4()"
+  IL_002f:  ldftn      "Sub m1._Closure$__0-1._Lambda$__2()"
   IL_0035:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_003a:  stelem.ref
   IL_003b:  ldloc.2
@@ -2802,7 +2802,7 @@ End Module
                 Integer V_1, //j
                 Integer V_2,
                 System.Collections.Generic.IEnumerator(Of Integer) V_3,
-                m1._Closure$__1 V_4, //$VB$Closure_0
+                m1._Closure$__0-0 V_4, //$VB$Closure_0
                 Integer V_5) //i
   IL_0000:  ldc.i4.s   11
   IL_0002:  newarr     "System.Action"
@@ -2812,15 +2812,15 @@ End Module
   IL_000a:  nop
   .try
   {
-    IL_000b:  ldsfld     "m1._Closure$__2._ClosureCache$__4 As <generated method>"
+    IL_000b:  ldsfld     "m1._Closure$__.$I0-1 As <generated method>"
     IL_0010:  brfalse.s  IL_0019
-    IL_0012:  ldsfld     "m1._Closure$__2._ClosureCache$__4 As <generated method>"
+    IL_0012:  ldsfld     "m1._Closure$__.$I0-1 As <generated method>"
     IL_0017:  br.s       IL_002f
-    IL_0019:  ldsfld     "m1._Closure$__2.$I As m1._Closure$__2"
-    IL_001e:  ldftn      "Function m1._Closure$__2._Lambda$__3(Object) As System.Collections.Generic.IEnumerable(Of Integer)"
+    IL_0019:  ldsfld     "m1._Closure$__.$I As m1._Closure$__"
+    IL_001e:  ldftn      "Function m1._Closure$__._Lambda$__0-1(Object) As System.Collections.Generic.IEnumerable(Of Integer)"
     IL_0024:  newobj     "Sub VB$AnonymousDelegate_0(Of Object, System.Collections.Generic.IEnumerable(Of Integer))..ctor(Object, System.IntPtr)"
     IL_0029:  dup
-    IL_002a:  stsfld     "m1._Closure$__2._ClosureCache$__4 As <generated method>"
+    IL_002a:  stsfld     "m1._Closure$__.$I0-1 As <generated method>"
     IL_002f:  ldloc.2
     IL_0030:  box        "Integer"
     IL_0035:  callvirt   "Function VB$AnonymousDelegate_0(Of Object, System.Collections.Generic.IEnumerable(Of Integer)).Invoke(Object) As System.Collections.Generic.IEnumerable(Of Integer)"
@@ -2828,17 +2828,17 @@ End Module
     IL_003f:  stloc.3
     IL_0040:  br.s       IL_006e
     IL_0042:  ldloc.s    V_4
-    IL_0044:  newobj     "Sub m1._Closure$__1..ctor(m1._Closure$__1)"
+    IL_0044:  newobj     "Sub m1._Closure$__0-0..ctor(m1._Closure$__0-0)"
     IL_0049:  stloc.s    V_4
     IL_004b:  ldloc.s    V_4
     IL_004d:  ldloc.3
     IL_004e:  callvirt   "Function System.Collections.Generic.IEnumerator(Of Integer).get_Current() As Integer"
-    IL_0053:  stfld      "m1._Closure$__1.$VB$Local_i As Integer"
+    IL_0053:  stfld      "m1._Closure$__0-0.$VB$Local_i As Integer"
     IL_0058:  ldloc.0
     IL_0059:  ldloc.s    V_4
-    IL_005b:  ldfld      "m1._Closure$__1.$VB$Local_i As Integer"
+    IL_005b:  ldfld      "m1._Closure$__0-0.$VB$Local_i As Integer"
     IL_0060:  ldloc.s    V_4
-    IL_0062:  ldftn      "Sub m1._Closure$__1._Lambda$__5()"
+    IL_0062:  ldftn      "Sub m1._Closure$__0-0._Lambda$__2()"
     IL_0068:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
     IL_006d:  stelem.ref
     IL_006e:  ldloc.3
@@ -2927,7 +2927,7 @@ End Module
                 Integer V_1, //y
                 Object() V_2,
                 Integer V_3,
-                m1._Closure$__2 V_4, //$VB$Closure_0
+                m1._Closure$__0-1 V_4, //$VB$Closure_0
                 System.Collections.Generic.List(Of System.Action).Enumerator V_5)
   IL_0000:  newobj     "Sub System.Collections.Generic.List(Of System.Action)..ctor()"
   IL_0005:  stloc.0
@@ -2935,27 +2935,27 @@ End Module
   IL_0007:  callvirt   "Sub System.Collections.Generic.List(Of System.Action).Clear()"
   IL_000c:  ldc.i4.1
   IL_000d:  stloc.1
-  IL_000e:  newobj     "Sub m1._Closure$__1..ctor()"
+  IL_000e:  newobj     "Sub m1._Closure$__0-0..ctor()"
   IL_0013:  dup
-  IL_0014:  ldfld      "m1._Closure$__1.$VB$NonLocal_2 As Integer"
+  IL_0014:  ldfld      "m1._Closure$__0-0.$VB$NonLocal_2 As Integer"
   IL_0019:  box        "Integer"
-  IL_001e:  callvirt   "Function m1._Closure$__1._Lambda$__3(Object) As Object()"
+  IL_001e:  callvirt   "Function m1._Closure$__0-0._Lambda$__1(Object) As Object()"
   IL_0023:  stloc.2
   IL_0024:  ldc.i4.0
   IL_0025:  stloc.3
   IL_0026:  br.s       IL_0057
   IL_0028:  ldloc.s    V_4
-  IL_002a:  newobj     "Sub m1._Closure$__2..ctor(m1._Closure$__2)"
+  IL_002a:  newobj     "Sub m1._Closure$__0-1..ctor(m1._Closure$__0-1)"
   IL_002f:  stloc.s    V_4
   IL_0031:  ldloc.s    V_4
   IL_0033:  ldloc.2
   IL_0034:  ldloc.3
   IL_0035:  ldelem.ref
   IL_0036:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(Object) As Integer"
-  IL_003b:  stfld      "m1._Closure$__2.$VB$Local_x As Integer"
+  IL_003b:  stfld      "m1._Closure$__0-1.$VB$Local_x As Integer"
   IL_0040:  ldloc.0
   IL_0041:  ldloc.s    V_4
-  IL_0043:  ldftn      "Sub m1._Closure$__2._Lambda$__4()"
+  IL_0043:  ldftn      "Sub m1._Closure$__0-1._Lambda$__2()"
   IL_0049:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_004e:  callvirt   "Sub System.Collections.Generic.List(Of System.Action).Add(System.Action)"
   IL_0053:  ldloc.3
@@ -2968,15 +2968,15 @@ End Module
   IL_005a:  conv.i4
   IL_005b:  blt.s      IL_0028
   IL_005d:  ldloc.0
-  IL_005e:  ldsfld     "m1._Closure$__5._ClosureCache$__7 As System.Action"
+  IL_005e:  ldsfld     "m1._Closure$__.$I0-3 As System.Action"
   IL_0063:  brfalse.s  IL_006c
-  IL_0065:  ldsfld     "m1._Closure$__5._ClosureCache$__7 As System.Action"
+  IL_0065:  ldsfld     "m1._Closure$__.$I0-3 As System.Action"
   IL_006a:  br.s       IL_0082
-  IL_006c:  ldsfld     "m1._Closure$__5.$I As m1._Closure$__5"
-  IL_0071:  ldftn      "Sub m1._Closure$__5._Lambda$__6()"
+  IL_006c:  ldsfld     "m1._Closure$__.$I As m1._Closure$__"
+  IL_0071:  ldftn      "Sub m1._Closure$__._Lambda$__0-3()"
   IL_0077:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_007c:  dup
-  IL_007d:  stsfld     "m1._Closure$__5._ClosureCache$__7 As System.Action"
+  IL_007d:  stsfld     "m1._Closure$__.$I0-3 As System.Action"
   IL_0082:  callvirt   "Sub System.Collections.Generic.List(Of System.Action).Add(System.Action)"
   IL_0087:  ldloc.1
   IL_0088:  ldc.i4.1

@@ -1442,7 +1442,7 @@
            as they might have references to the original LambdaSymbol because it is the ContainingMember 
            for the binder used to interpret the Expression.
       -->
-      <Field Name="LambdaSymbol" Type="QueryLambdaSymbol"/>
+      <Field Name="LambdaSymbol" Type="SynthesizedLambdaSymbol"/>
 
       <!-- Range variables in scope within Expression -->
       <Field Name="RangeVariables" Type="ImmutableArray(Of RangeVariableSymbol)" Null="disallow"/>

@@ -76,8 +76,8 @@ Lambda(
               Convert(
                 MemberAccess(
                   Constant(
-                    Form1+_Closure$__1
-                    type: Form1+_Closure$__1
+                    Form1+_Closure$__5-0
+                    type: Form1+_Closure$__5-0
                   )
                   -> $VB$Local_c1
                   type: Form1+Class1
@@ -126,8 +126,8 @@ Lambda(
     Invoke(
       MemberAccess(
         Constant(
-          Form1+_Closure$__1
-          type: Form1+_Closure$__1
+          Form1+_Closure$__5-0
+          type: Form1+_Closure$__5-0
         )
         -> $VB$Local_d2
         type: Form1+DeleFunc
@@ -135,8 +135,8 @@ Lambda(
       (
         MemberAccess(
           Constant(
-            Form1+_Closure$__1
-            type: Form1+_Closure$__1
+            Form1+_Closure$__5-0
+            type: Form1+_Closure$__5-0
           )
           -> $VB$Local_d1
           type: Form1+DeleSub
@@ -173,8 +173,8 @@ Lambda(
     Invoke(
       MemberAccess(
         Constant(
-          Form1+_Closure$__1
-          type: Form1+_Closure$__1
+          Form1+_Closure$__5-0
+          type: Form1+_Closure$__5-0
         )
         -> $VB$Local_d2
         type: Form1+DeleFunc
@@ -182,8 +182,8 @@ Lambda(
       (
         MemberAccess(
           Constant(
-            Form1+_Closure$__1
-            type: Form1+_Closure$__1
+            Form1+_Closure$__5-0
+            type: Form1+_Closure$__5-0
           )
           -> $VB$Local_d1
           type: Form1+DeleSub
@@ -221,8 +221,8 @@ Lambda(
       Call(
         MemberAccess(
           Constant(
-            Form1+_Closure$__1
-            type: Form1+_Closure$__1
+            Form1+_Closure$__5-0
+            type: Form1+_Closure$__5-0
           )
           -> $VB$Local_d2
           type: Form1+DeleFunc
@@ -230,16 +230,16 @@ Lambda(
         method: System.IAsyncResult BeginInvoke(DeleSub, System.AsyncCallback, System.Object) in Form1+DeleFunc (
           MemberAccess(
             Constant(
-              Form1+_Closure$__1
-              type: Form1+_Closure$__1
+              Form1+_Closure$__5-0
+              type: Form1+_Closure$__5-0
             )
             -> $VB$Local_d1
             type: Form1+DeleSub
           )
           MemberAccess(
             Constant(
-              Form1+_Closure$__1
-              type: Form1+_Closure$__1
+              Form1+_Closure$__5-0
+              type: Form1+_Closure$__5-0
             )
             -> $VB$Local_callback
             type: System.AsyncCallback
@@ -296,8 +296,8 @@ Lambda(
               Convert(
                 MemberAccess(
                   Constant(
-                    Form1+_Closure$__1
-                    type: Form1+_Closure$__1
+                    Form1+_Closure$__5-0
+                    type: Form1+_Closure$__5-0
                   )
                   -> $VB$Local_c1
                   type: Form1+Class1
@@ -346,8 +346,8 @@ Lambda(
     Invoke(
       MemberAccess(
         Constant(
-          Form1+_Closure$__1
-          type: Form1+_Closure$__1
+          Form1+_Closure$__5-0
+          type: Form1+_Closure$__5-0
         )
         -> $VB$Local_d3
         type: Form1+DeleFunc
@@ -355,8 +355,8 @@ Lambda(
       (
         MemberAccess(
           Constant(
-            Form1+_Closure$__1
-            type: Form1+_Closure$__1
+            Form1+_Closure$__5-0
+            type: Form1+_Closure$__5-0
           )
           -> $VB$Local_d1
           type: Form1+DeleSub

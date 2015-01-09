@@ -17,6 +17,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         StateMachineStateField
         StateMachineHoistedUserVariableField
         StaticLocalField
+
+        LambdaCacheField
     End Enum
 
     Partial Friend Class GeneratedNames

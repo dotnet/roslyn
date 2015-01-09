@@ -289,12 +289,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private LambdaFrame GetFrameForScope(BoundNode scope, ref int scopeIndexDispenser)
+        private LambdaFrame GetFrameForScope(BoundNode scope, ref int scopeOrdinalDispenser)
         {
             LambdaFrame frame;
             if (!frames.TryGetValue(scope, out frame))
             {
-                frame = new LambdaFrame(slotAllocatorOpt, CompilationState, topLevelMethod, topLevelMethodOrdinal, scope.Syntax, scopeIndexDispenser++, isStatic: false);
+                frame = new LambdaFrame(slotAllocatorOpt, CompilationState, topLevelMethod, topLevelMethodOrdinal, scope.Syntax, scopeOrdinalDispenser++, isStatic: false);
                 frames.Add(scope, frame);
 
                 if (CompilationState.Emitting)
@@ -1047,7 +1047,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var F = new SyntheticBoundNodeFactory(currentMethod, node.Syntax, CompilationState, Diagnostics);
                 try
                 {
-                    BoundExpression cacheVariable;
+                    BoundExpression cache;
                     if (shouldCacheForStaticMethod || shouldCacheInLoop && (object)containerAsFrame != null)
                     {
                         var cacheVariableType = containerAsFrame?
@@ -1057,7 +1057,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // If we are generating the field into a display class created exclusively for the lambda the lambdaOrdinal itself is unique already, 
                         // no need to include the top-level method ordinal in the field name.
                         
-                        // TODO: slot allocator
                         var cacheVariableName = GeneratedNames.MakeLambdaCacheFieldName(
                             (closureKind == ClosureKind.General) ? -1 : topLevelMethodOrdinal,
                             CompilationState.ModuleBuilderOpt.CurrentGenerationOrdinal,
@@ -1065,7 +1064,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         var cacheField = new SynthesizedLambdaCacheFieldSymbol(translatedLambdaContainer, cacheVariableType, cacheVariableName, topLevelMethod, isReadOnly: false, isStatic: closureKind == ClosureKind.Static);
                         CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, cacheField);
-                        cacheVariable = F.Field(receiver, cacheField.AsMember(constructedFrame)); //NOTE: the field was added to the unconstructed frame type.
+                        cache = F.Field(receiver, cacheField.AsMember(constructedFrame)); //NOTE: the field was added to the unconstructed frame type.
                     }
                     else
                     {
@@ -1074,11 +1073,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (addedLocals == null) addedLocals = ArrayBuilder<LocalSymbol>.GetInstance();
                         addedLocals.Add(cacheLocal);
                         if (addedStatements == null) addedStatements = ArrayBuilder<BoundStatement>.GetInstance();
-                        cacheVariable = F.Local(cacheLocal);
-                        addedStatements.Add(F.Assignment(cacheVariable, F.Null(type)));
+                        cache = F.Local(cacheLocal);
+                        addedStatements.Add(F.Assignment(cache, F.Null(type)));
                     }
 
-                    result = F.Coalesce(cacheVariable, F.AssignmentExpression(cacheVariable, result));
+                    result = F.Coalesce(cache, F.AssignmentExpression(cache, result));
                 }
                 catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)
                 {

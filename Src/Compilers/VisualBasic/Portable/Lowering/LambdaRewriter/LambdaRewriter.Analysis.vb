@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' normally the block where the variable is introduced, but method parameters are moved
             ''' to a frame class within the body of the method.
             ''' </summary>
-            Friend variableBlock As Dictionary(Of Symbol, BoundNode) = New Dictionary(Of Symbol, BoundNode)(ReferenceEqualityComparer.Instance)
+            Friend variableScope As Dictionary(Of Symbol, BoundNode) = New Dictionary(Of Symbol, BoundNode)(ReferenceEqualityComparer.Instance)
 
             ''' <summary>
             ''' For a given label, the nearest enclosing block that captures variables
@@ -99,12 +99,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ''' <summary>
             ''' The set of captured variables seen in the method body.
             ''' </summary>
-            Friend captured As HashSet(Of Symbol) = New HashSet(Of Symbol)(ReferenceEqualityComparer.Instance)
+            Friend capturedVariables As HashSet(Of Symbol) = New HashSet(Of Symbol)(ReferenceEqualityComparer.Instance)
 
             ''' <summary>
             ''' For each lambda in the code, the set of variables that it captures.
             ''' </summary>
-            Friend captures As MultiDictionary(Of LambdaSymbol, Symbol) = New MultiDictionary(Of LambdaSymbol, Symbol)(ReferenceEqualityComparer.Instance)
+            Friend capturedVariablesByLambda As MultiDictionary(Of LambdaSymbol, Symbol) = New MultiDictionary(Of LambdaSymbol, Symbol)(ReferenceEqualityComparer.Instance)
 
             ''' <summary>
             ''' The set of variables that were declared anywhere inside an expression lambda.
@@ -149,7 +149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 If method IsNot Nothing Then
                     For Each parameter In method.Parameters
-                        variableBlock.Add(parameter, currentBlock)
+                        variableScope.Add(parameter, currentBlock)
                         If inExpressionLambda Then
                             declaredInsideExpressionLambda.Add(parameter)
                         End If
@@ -166,7 +166,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 lambdaScopes = New Dictionary(Of LambdaSymbol, BoundNode)(ReferenceEqualityComparer.Instance)
                 needsParentFrame = New HashSet(Of BoundNode)
 
-                For Each kvp In captures
+                For Each kvp In capturedVariablesByLambda
                     ' get innermost and outermost scopes from which a lambda captures
 
                     Dim innermostScopeDepth As Integer = -1
@@ -179,7 +179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim curBlock As BoundNode = Nothing
                         Dim curBlockDepth As Integer
 
-                        If Not variableBlock.TryGetValue(v, curBlock) Then
+                        If Not variableScope.TryGetValue(v, curBlock) Then
                             ' this is something that is not defined in a block, like "Me"
                             ' Since it is defined outside of the method, the depth is -1
                             curBlockDepth = -1
@@ -253,7 +253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                  local.ContainingSymbol.Kind <> SymbolKind.Method,
                                  "locals should be owned by current method")
 
-                    variableBlock.Add(local, currentBlock)
+                    variableScope.Add(local, currentBlock)
                     If inExpressionLambda Then
                         declaredInsideExpressionLambda.Add(local)
                     End If
@@ -310,14 +310,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
 
                 For Each parameter In node.LambdaSymbol.Parameters
-                    variableBlock.Add(parameter, currentBlock)
+                    variableScope.Add(parameter, currentBlock)
                     If inExpressionLambda Then
                         declaredInsideExpressionLambda.Add(parameter)
                     End If
                 Next
 
                 For Each local In node.Body.Locals
-                    variableBlock.Add(local, currentBlock)
+                    variableScope.Add(local, currentBlock)
                     If inExpressionLambda Then
                         declaredInsideExpressionLambda.Add(local)
                     End If
@@ -380,7 +380,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim curBlock As BoundNode = currentBlock
 
                 Dim declBlock As BoundNode = Nothing
-                If Not variableBlock.TryGetValue(variableOrParameter, declBlock) Then
+                If Not variableScope.TryGetValue(variableOrParameter, declBlock) Then
                     Debug.Assert(DirectCast(variableOrParameter, ParameterSymbol).IsMe)
                 End If
 
@@ -419,13 +419,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim isCaptured As Boolean = False
 
                 If parent IsNot Nothing AndAlso parent <> container Then
-                    captured.Add(variableOrParameter)
+                    capturedVariables.Add(variableOrParameter)
                     isCaptured = True
                     RecordCaptureInIntermediateBlocks(variableOrParameter)
 
                     Do
                         Dim lambda = DirectCast(parent, LambdaSymbol)
-                        captures.Add(lambda, variableOrParameter)
+                        capturedVariablesByLambda.Add(lambda, variableOrParameter)
                         parent = lambdaParent(lambda)
                     Loop While parent.MethodKind = MethodKind.LambdaMethod AndAlso parent IsNot container
                     '  the loop exits when the sequence of nested lambdas ends or one of 

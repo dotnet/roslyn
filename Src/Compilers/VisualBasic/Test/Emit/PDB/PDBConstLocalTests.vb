@@ -2,6 +2,7 @@
 
 Imports Roslyn.Test.Utilities
 Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
 
@@ -29,29 +30,29 @@ end class
 
             compilation.VerifyDiagnostics()
 
-            Dim actual As XElement = GetPdbXml(compilation, "C.M")
-            Dim expected = <symbols>
-                               <methods>
-                                   <method containingType="C" name="M" parameterNames="">
-                                       <sequencepoints total="3">
-                                           <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="19" file_ref="0"/>
-                                           <entry il_offset="0x1" start_row="6" start_column="9" end_row="6" end_column="33" file_ref="0"/>
-                                           <entry il_offset="0x8" start_row="7" start_column="5" end_row="7" end_column="12" file_ref="0"/>
-                                       </sequencepoints>
-                                       <locals>
-                                           <constant name="x" value="1" type="Int32"/>
-                                           <constant name="y" value="2" type="Int32"/>
-                                       </locals>
-                                       <scope startOffset="0x0" endOffset="0x9">
-                                           <namespace name="System" importlevel="file"/>
-                                           <currentnamespace name=""/>
-                                           <constant name="x" value="1" type="Int32"/>
-                                           <constant name="y" value="2" type="Int32"/>
-                                       </scope>
-                                   </method>
-                               </methods>
-                           </symbols>
-            AssertXmlEqual(expected, actual)
+            compilation.VerifyPdb("C.M",
+<symbols>
+    <methods>
+        <method containingType="C" name="M" parameterNames="">
+            <sequencepoints total="3">
+                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="19" file_ref="0"/>
+                <entry il_offset="0x1" start_row="6" start_column="9" end_row="6" end_column="33" file_ref="0"/>
+                <entry il_offset="0x8" start_row="7" start_column="5" end_row="7" end_column="12" file_ref="0"/>
+            </sequencepoints>
+            <locals>
+                <constant name="x" value="1" type="Int32"/>
+                <constant name="y" value="2" type="Int32"/>
+            </locals>
+            <scope startOffset="0x0" endOffset="0x9">
+                <namespace name="System" importlevel="file"/>
+                <currentnamespace name=""/>
+                <constant name="x" value="1" type="Int32"/>
+                <constant name="y" value="2" type="Int32"/>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
+
         End Sub
 
         <Fact()>
@@ -75,49 +76,44 @@ end class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
-                source,
-                TestOptions.DebugDll)
+            Dim c = CompileAndVerify(source, options:=TestOptions.DebugDll)
 
-            Dim actual As XElement = GetPdbXml(compilation)
-            Dim expected = <symbols>
-                               <methods>
-                                   <method containingType="C" name="M" parameterNames="a">
-                                       <sequencepoints total="3">
-                                           <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="30" file_ref="0"/>
-                                           <entry il_offset="0x1" start_row="5" start_column="9" end_row="11" end_column="11" file_ref="0"/>
-                                           <entry il_offset="0x2c" start_row="12" start_column="5" end_row="12" end_column="12" file_ref="0"/>
-                                       </sequencepoints>
-                                       <locals>
-                                           <constant name="x" value="1" type="Int32"/>
-                                       </locals>
-                                       <scope startOffset="0x0" endOffset="0x2d">
-                                           <namespace name="System" importlevel="file"/>
-                                           <currentnamespace name=""/>
-                                           <constant name="x" value="1" type="Int32"/>
-                                       </scope>
-                                   </method>
-                                   <method containingType="C+_Closure$__1" name="_Lambda$__2" parameterNames="">
-                                       <sequencepoints total="3">
-                                           <entry il_offset="0x0" start_row="6" start_column="13" end_row="6" end_column="18" file_ref="0"/>
-                                           <entry il_offset="0x1" start_row="9" start_column="17" end_row="9" end_column="45" file_ref="0"/>
-                                           <entry il_offset="0x8" start_row="10" start_column="13" end_row="10" end_column="20" file_ref="0"/>
-                                       </sequencepoints>
-                                       <locals>
-                                           <constant name="y" value="2" type="Int32"/>
-                                           <constant name="z" value="3" type="Int32"/>
-                                       </locals>
-                                       <scope startOffset="0x0" endOffset="0x9">
-                                           <importsforward declaringType="C" methodName="M" parameterNames="a"/>
-                                           <constant name="y" value="2" type="Int32"/>
-                                           <constant name="z" value="3" type="Int32"/>
-                                       </scope>
-                                   </method>
-                               </methods>
-                           </symbols>
-            AssertXmlEqual(expected, actual)
-
-            compilation.VerifyDiagnostics()
+            c.VerifyPdb(
+<symbols>
+    <methods>
+        <method containingType="C" name="M" parameterNames="a">
+            <sequencepoints total="3">
+                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="30" file_ref="0"/>
+                <entry il_offset="0x1" start_row="5" start_column="9" end_row="11" end_column="11" file_ref="0"/>
+                <entry il_offset="0x2c" start_row="12" start_column="5" end_row="12" end_column="12" file_ref="0"/>
+            </sequencepoints>
+            <locals>
+                <constant name="x" value="1" type="Int32"/>
+            </locals>
+            <scope startOffset="0x0" endOffset="0x2d">
+                <namespace name="System" importlevel="file"/>
+                <currentnamespace name=""/>
+                <constant name="x" value="1" type="Int32"/>
+            </scope>
+        </method>
+        <method containingType="C+_Closure$__" name="_Lambda$__1-1" parameterNames="">
+            <sequencepoints total="3">
+                <entry il_offset="0x0" start_row="6" start_column="13" end_row="6" end_column="18" file_ref="0"/>
+                <entry il_offset="0x1" start_row="9" start_column="17" end_row="9" end_column="45" file_ref="0"/>
+                <entry il_offset="0x8" start_row="10" start_column="13" end_row="10" end_column="20" file_ref="0"/>
+            </sequencepoints>
+            <locals>
+                <constant name="y" value="2" type="Int32"/>
+                <constant name="z" value="3" type="Int32"/>
+            </locals>
+            <scope startOffset="0x0" endOffset="0x9">
+                <importsforward declaringType="C" methodName="M" parameterNames="a"/>
+                <constant name="y" value="2" type="Int32"/>
+                <constant name="z" value="3" type="Int32"/>
+            </scope>
+        </method>
+    </methods>
+</symbols>)
         End Sub
 
 #If False Then

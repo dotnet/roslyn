@@ -868,7 +868,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                          Optional candidateEventSymbols As ArrayBuilder(Of Symbol) = Nothing,
                                          Optional ByRef resultKind As LookupResultKind = Nothing) As EventSymbol
 
-            Dim options = CType(LookupOptions.IgnoreExtensionMethods Or LookupOptions.EventsOnly, LookupOptions)
+            Dim options = LookupOptions.IgnoreExtensionMethods Or LookupOptions.EventsOnly
             If isThroughMyBase Then
                 options = options Or LookupOptions.UseBaseReferenceAccessibility
             End If

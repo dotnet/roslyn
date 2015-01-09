@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -55,11 +56,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Protected ReadOnly CompilationState As TypeCompilationState
 
         Protected ReadOnly Diagnostics As DiagnosticBag
+        Protected ReadOnly SlotAllocatorOpt As VariableSlotAllocator
 
-        Protected Sub New(compilationState As TypeCompilationState, diagnostics As DiagnosticBag)
+        Protected Sub New(slotAllocatorOpt As VariableSlotAllocator, compilationState As TypeCompilationState, diagnostics As DiagnosticBag)
             Debug.Assert(compilationState IsNot Nothing)
             Me.CompilationState = compilationState
             Me.Diagnostics = diagnostics
+            Me.SlotAllocatorOpt = slotAllocatorOpt
         End Sub
 
 #Region "Visitors"

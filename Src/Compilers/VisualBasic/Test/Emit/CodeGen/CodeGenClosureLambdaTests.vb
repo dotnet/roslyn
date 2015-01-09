@@ -1,9 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis
-Imports Roslyn.Test.Utilities
-Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -151,25 +149,25 @@ End Module
 {
   // Code size       83 (0x53)
   .maxstack  2
-  IL_0000:  ldsfld     "M1._Closure$__1._ClosureCache$__3 As System.Action"
+  IL_0000:  ldsfld     "M1._Closure$__.$I0-1 As System.Action"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "M1._Closure$__1._ClosureCache$__3 As System.Action"
+  IL_0007:  ldsfld     "M1._Closure$__.$I0-1 As System.Action"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "M1._Closure$__1.$I As M1._Closure$__1"
-  IL_0013:  ldftn      "Sub M1._Closure$__1._Lambda$__2()"
+  IL_000e:  ldsfld     "M1._Closure$__.$I As M1._Closure$__"
+  IL_0013:  ldftn      "Sub M1._Closure$__._Lambda$__0-1()"
   IL_0019:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_001e:  dup
-  IL_001f:  stsfld     "M1._Closure$__1._ClosureCache$__3 As System.Action"
+  IL_001f:  stsfld     "M1._Closure$__.$I0-1 As System.Action"
   IL_0024:  callvirt   "Sub System.Action.Invoke()"
-  IL_0029:  ldsfld     "M1._Closure$__1._ClosureCache$__5 As System.Action"
+  IL_0029:  ldsfld     "M1._Closure$__.$I0-2 As System.Action"
   IL_002e:  brfalse.s  IL_0037
-  IL_0030:  ldsfld     "M1._Closure$__1._ClosureCache$__5 As System.Action"
+  IL_0030:  ldsfld     "M1._Closure$__.$I0-2 As System.Action"
   IL_0035:  br.s       IL_004d
-  IL_0037:  ldsfld     "M1._Closure$__1.$I As M1._Closure$__1"
-  IL_003c:  ldftn      "Sub M1._Closure$__1._Lambda$__4()"
+  IL_0037:  ldsfld     "M1._Closure$__.$I As M1._Closure$__"
+  IL_003c:  ldftn      "Sub M1._Closure$__._Lambda$__0-2()"
   IL_0042:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0047:  dup
-  IL_0048:  stsfld     "M1._Closure$__1._ClosureCache$__5 As System.Action"
+  IL_0048:  stsfld     "M1._Closure$__.$I0-2 As System.Action"
   IL_004d:  callvirt   "Sub System.Action.Invoke()"
   IL_0052:  ret
 }
@@ -201,24 +199,24 @@ End Module
 {
   // Code size       56 (0x38)
   .maxstack  4
-  .locals init (M1._Closure$__1 V_0) //$VB$Closure_0
-  IL_0000:  newobj     "Sub M1._Closure$__1..ctor()"
+  .locals init (M1._Closure$__0-0 V_0) //$VB$Closure_0
+  IL_0000:  newobj     "Sub M1._Closure$__0-0..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldc.i4.3
-  IL_0008:  stfld      "M1._Closure$__1.$VB$Local_X As Integer"
+  IL_0008:  stfld      "M1._Closure$__0-0.$VB$Local_X As Integer"
   IL_000d:  ldloc.0
-  IL_000e:  ldftn      "Sub M1._Closure$__1._Lambda$__2()"
+  IL_000e:  ldftn      "Sub M1._Closure$__0-0._Lambda$__1()"
   IL_0014:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0019:  dup
   IL_001a:  callvirt   "Sub System.Action.Invoke()"
   IL_001f:  ldloc.0
   IL_0020:  dup
-  IL_0021:  ldfld      "M1._Closure$__1.$VB$Local_X As Integer"
+  IL_0021:  ldfld      "M1._Closure$__0-0.$VB$Local_X As Integer"
   IL_0026:  ldloc.0
-  IL_0027:  ldfld      "M1._Closure$__1.$VB$Local_X As Integer"
+  IL_0027:  ldfld      "M1._Closure$__0-0.$VB$Local_X As Integer"
   IL_002c:  add.ovf
-  IL_002d:  stfld      "M1._Closure$__1.$VB$Local_X As Integer"
+  IL_002d:  stfld      "M1._Closure$__0-0.$VB$Local_X As Integer"
   IL_0032:  callvirt   "Sub System.Action.Invoke()"
   IL_0037:  ret
 }
@@ -258,24 +256,24 @@ End Module
 {
   // Code size       56 (0x38)
   .maxstack  4
-  .locals init (M1.C1._Closure$__1 V_0) //$VB$Closure_0
-  IL_0000:  newobj     "Sub M1.C1._Closure$__1..ctor()"
+  .locals init (M1.C1._Closure$__1-0 V_0) //$VB$Closure_0
+  IL_0000:  newobj     "Sub M1.C1._Closure$__1-0..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldc.i4.3
-  IL_0008:  stfld      "M1.C1._Closure$__1.$VB$Local_X As Integer"
+  IL_0008:  stfld      "M1.C1._Closure$__1-0.$VB$Local_X As Integer"
   IL_000d:  ldloc.0
-  IL_000e:  ldftn      "Sub M1.C1._Closure$__1._Lambda$__2()"
+  IL_000e:  ldftn      "Sub M1.C1._Closure$__1-0._Lambda$__1()"
   IL_0014:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0019:  dup
   IL_001a:  callvirt   "Sub System.Action.Invoke()"
   IL_001f:  ldloc.0
   IL_0020:  dup
-  IL_0021:  ldfld      "M1.C1._Closure$__1.$VB$Local_X As Integer"
+  IL_0021:  ldfld      "M1.C1._Closure$__1-0.$VB$Local_X As Integer"
   IL_0026:  ldloc.0
-  IL_0027:  ldfld      "M1.C1._Closure$__1.$VB$Local_X As Integer"
+  IL_0027:  ldfld      "M1.C1._Closure$__1-0.$VB$Local_X As Integer"
   IL_002c:  add.ovf
-  IL_002d:  stfld      "M1.C1._Closure$__1.$VB$Local_X As Integer"
+  IL_002d:  stfld      "M1.C1._Closure$__1-0.$VB$Local_X As Integer"
   IL_0032:  callvirt   "Sub System.Action.Invoke()"
   IL_0037:  ret
 }
@@ -325,27 +323,27 @@ End Module
 {
   // Code size       63 (0x3f)
   .maxstack  4
-  .locals init (M1.C1._Closure$__1 V_0) //$VB$Closure_0
-  IL_0000:  newobj     "Sub M1.C1._Closure$__1..ctor()"
+  .locals init (M1.C1._Closure$__1-0 V_0) //$VB$Closure_0
+  IL_0000:  newobj     "Sub M1.C1._Closure$__1-0..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldarg.0
-  IL_0008:  stfld      "M1.C1._Closure$__1.$VB$Me As M1.C1"
+  IL_0008:  stfld      "M1.C1._Closure$__1-0.$VB$Me As M1.C1"
   IL_000d:  ldloc.0
   IL_000e:  ldc.i4.3
-  IL_000f:  stfld      "M1.C1._Closure$__1.$VB$Local_X As Integer"
+  IL_000f:  stfld      "M1.C1._Closure$__1-0.$VB$Local_X As Integer"
   IL_0014:  ldloc.0
-  IL_0015:  ldftn      "Sub M1.C1._Closure$__1._Lambda$__3()"
+  IL_0015:  ldftn      "Sub M1.C1._Closure$__1-0._Lambda$__1()"
   IL_001b:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0020:  dup
   IL_0021:  callvirt   "Sub System.Action.Invoke()"
   IL_0026:  ldloc.0
   IL_0027:  dup
-  IL_0028:  ldfld      "M1.C1._Closure$__1.$VB$Local_X As Integer"
+  IL_0028:  ldfld      "M1.C1._Closure$__1-0.$VB$Local_X As Integer"
   IL_002d:  ldloc.0
-  IL_002e:  ldfld      "M1.C1._Closure$__1.$VB$Local_X As Integer"
+  IL_002e:  ldfld      "M1.C1._Closure$__1-0.$VB$Local_X As Integer"
   IL_0033:  add.ovf
-  IL_0034:  stfld      "M1.C1._Closure$__1.$VB$Local_X As Integer"
+  IL_0034:  stfld      "M1.C1._Closure$__1-0.$VB$Local_X As Integer"
   IL_0039:  callvirt   "Sub System.Action.Invoke()"
   IL_003e:  ret
 }
@@ -394,35 +392,35 @@ End Module
 {
   // Code size       89 (0x59)
   .maxstack  4
-  .locals init (M1.C1._Closure$__1 V_0) //$VB$Closure_0
-  IL_0000:  newobj     "Sub M1.C1._Closure$__1..ctor()"
+  .locals init (M1.C1._Closure$__1-0 V_0) //$VB$Closure_0
+  IL_0000:  newobj     "Sub M1.C1._Closure$__1-0..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldarg.0
-  IL_0008:  stfld      "M1.C1._Closure$__1.$VB$Me As M1.C1"
+  IL_0008:  stfld      "M1.C1._Closure$__1-0.$VB$Me As M1.C1"
   IL_000d:  ldloc.0
   IL_000e:  ldarg.1
-  IL_000f:  stfld      "M1.C1._Closure$__1.$VB$Local_x As Integer"
+  IL_000f:  stfld      "M1.C1._Closure$__1-0.$VB$Local_x As Integer"
   IL_0014:  ldloc.0
-  IL_0015:  ldftn      "Sub M1.C1._Closure$__1._Lambda$__3(Integer)"
+  IL_0015:  ldftn      "Sub M1.C1._Closure$__1-0._Lambda$__1(Integer)"
   IL_001b:  newobj     "Sub System.Action(Of Integer)..ctor(Object, System.IntPtr)"
   IL_0020:  dup
   IL_0021:  ldloc.0
-  IL_0022:  ldfld      "M1.C1._Closure$__1.$VB$Local_x As Integer"
+  IL_0022:  ldfld      "M1.C1._Closure$__1-0.$VB$Local_x As Integer"
   IL_0027:  ldc.i4.1
   IL_0028:  add.ovf
   IL_0029:  callvirt   "Sub System.Action(Of Integer).Invoke(Integer)"
   IL_002e:  ldloc.0
   IL_002f:  dup
-  IL_0030:  ldfld      "M1.C1._Closure$__1.$VB$Local_x As Integer"
+  IL_0030:  ldfld      "M1.C1._Closure$__1-0.$VB$Local_x As Integer"
   IL_0035:  ldloc.0
-  IL_0036:  ldfld      "M1.C1._Closure$__1.$VB$Local_x As Integer"
+  IL_0036:  ldfld      "M1.C1._Closure$__1-0.$VB$Local_x As Integer"
   IL_003b:  add.ovf
-  IL_003c:  stfld      "M1.C1._Closure$__1.$VB$Local_x As Integer"
+  IL_003c:  stfld      "M1.C1._Closure$__1-0.$VB$Local_x As Integer"
   IL_0041:  ldstr      " "
   IL_0046:  call       "Sub System.Console.Write(String)"
   IL_004b:  ldloc.0
-  IL_004c:  ldfld      "M1.C1._Closure$__1.$VB$Local_x As Integer"
+  IL_004c:  ldfld      "M1.C1._Closure$__1-0.$VB$Local_x As Integer"
   IL_0051:  ldc.i4.1
   IL_0052:  add.ovf
   IL_0053:  callvirt   "Sub System.Action(Of Integer).Invoke(Integer)"
@@ -453,21 +451,21 @@ End Module
     </file>
 </compilation>, expectedOutput:="654321")
 
-            c.VerifyIL("M1._Closure$__1._Lambda$__5", <![CDATA[
+            c.VerifyIL("M1._Closure$__1-0._Lambda$__2", <![CDATA[
 {
   // Code size       38 (0x26)
   .maxstack  3
-  IL_0000:  newobj     "Sub M1._Closure$__2..ctor()"
+  IL_0000:  newobj     "Sub M1._Closure$__1-1..ctor()"
   IL_0005:  dup
   IL_0006:  ldarg.0
-  IL_0007:  stfld      "M1._Closure$__2.$VB$NonLocal_$VB$Closure_2 As M1._Closure$__1"
+  IL_0007:  stfld      "M1._Closure$__1-1.$VB$NonLocal_$VB$Closure_2 As M1._Closure$__1-0"
   IL_000c:  dup
   IL_000d:  ldarg.1
-  IL_000e:  stfld      "M1._Closure$__2.$VB$Local_c As Integer"
+  IL_000e:  stfld      "M1._Closure$__1-1.$VB$Local_c As Integer"
   IL_0013:  dup
   IL_0014:  ldarg.2
-  IL_0015:  stfld      "M1._Closure$__2.$VB$Local_d As Integer"
-  IL_001a:  ldftn      "Function M1._Closure$__2._Lambda$__6(Integer, Integer) As M1.D"
+  IL_0015:  stfld      "M1._Closure$__1-1.$VB$Local_d As Integer"
+  IL_001a:  ldftn      "Function M1._Closure$__1-1._Lambda$__3(Integer, Integer) As M1.D"
   IL_0020:  newobj     "Sub M1.D..ctor(Object, System.IntPtr)"
   IL_0025:  ret
 }
@@ -503,23 +501,23 @@ Module M1
 End Module
     </file>
 </compilation>, expectedOutput:="654321M1+cls1").
-    VerifyIL("M1.cls1._Closure$__2._Lambda$__5",
+    VerifyIL("M1.cls1._Closure$__1-1._Lambda$__3",
             <![CDATA[
 {
   // Code size       64 (0x40)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.cls1._Closure$__2.$VB$NonLocal_$VB$Closure_2 As M1.cls1._Closure$__1"
-  IL_0006:  ldfld      "M1.cls1._Closure$__1.$VB$Local_a As Integer"
+  IL_0001:  ldfld      "M1.cls1._Closure$__1-1.$VB$NonLocal_$VB$Closure_2 As M1.cls1._Closure$__1-0"
+  IL_0006:  ldfld      "M1.cls1._Closure$__1-0.$VB$Local_a As Integer"
   IL_000b:  ldarg.0
-  IL_000c:  ldfld      "M1.cls1._Closure$__2.$VB$NonLocal_$VB$Closure_2 As M1.cls1._Closure$__1"
-  IL_0011:  ldfld      "M1.cls1._Closure$__1.$VB$Local_b As Integer"
+  IL_000c:  ldfld      "M1.cls1._Closure$__1-1.$VB$NonLocal_$VB$Closure_2 As M1.cls1._Closure$__1-0"
+  IL_0011:  ldfld      "M1.cls1._Closure$__1-0.$VB$Local_b As Integer"
   IL_0016:  add.ovf
   IL_0017:  ldarg.0
-  IL_0018:  ldfld      "M1.cls1._Closure$__2.$VB$Local_c As Integer"
+  IL_0018:  ldfld      "M1.cls1._Closure$__1-1.$VB$Local_c As Integer"
   IL_001d:  add.ovf
   IL_001e:  ldarg.0
-  IL_001f:  ldfld      "M1.cls1._Closure$__2.$VB$Local_d As Integer"
+  IL_001f:  ldfld      "M1.cls1._Closure$__1-1.$VB$Local_d As Integer"
   IL_0024:  add.ovf
   IL_0025:  ldarg.1
   IL_0026:  add.ovf
@@ -527,8 +525,8 @@ End Module
   IL_0028:  add.ovf
   IL_0029:  call       "Sub System.Console.Write(Integer)"
   IL_002e:  ldarg.0
-  IL_002f:  ldfld      "M1.cls1._Closure$__2.$VB$NonLocal_$VB$Closure_2 As M1.cls1._Closure$__1"
-  IL_0034:  ldfld      "M1.cls1._Closure$__1.$VB$Me As M1.cls1"
+  IL_002f:  ldfld      "M1.cls1._Closure$__1-1.$VB$NonLocal_$VB$Closure_2 As M1.cls1._Closure$__1-0"
+  IL_0034:  ldfld      "M1.cls1._Closure$__1-0.$VB$Me As M1.cls1"
   IL_0039:  call       "Sub System.Console.Write(Object)"
   IL_003e:  ldnull
   IL_003f:  ret
@@ -1060,15 +1058,15 @@ End Module
 {
   // Code size       60 (0x3c)
   .maxstack  3
-  IL_0000:  ldsfld     "M1.C1._Closure$__1(Of T)._ClosureCache$__3 As System.Action"
+  IL_0000:  ldsfld     "M1.C1._Closure$__2(Of T).$I2-1 As System.Action"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "M1.C1._Closure$__1(Of T)._ClosureCache$__3 As System.Action"
+  IL_0007:  ldsfld     "M1.C1._Closure$__2(Of T).$I2-1 As System.Action"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "M1.C1._Closure$__1(Of T).$I As M1.C1._Closure$__1(Of T)"
-  IL_0013:  ldftn      "Sub M1.C1._Closure$__1(Of T)._Lambda$__2()"
+  IL_000e:  ldsfld     "M1.C1._Closure$__2(Of T).$I As M1.C1._Closure$__2(Of T)"
+  IL_0013:  ldftn      "Sub M1.C1._Closure$__2(Of T)._Lambda$__2-1()"
   IL_0019:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_001e:  dup
-  IL_001f:  stsfld     "M1.C1._Closure$__1(Of T)._ClosureCache$__3 As System.Action"
+  IL_001f:  stsfld     "M1.C1._Closure$__2(Of T).$I2-1 As System.Action"
   IL_0024:  dup
   IL_0025:  callvirt   "Sub System.Action.Invoke()"
   IL_002a:  ldsfld     "M1.C1.X As Integer"
@@ -1155,20 +1153,20 @@ End Module
 {
   // Code size       44 (0x2c)
   .maxstack  4
-  .locals init (M1.C1._Closure$__1(Of T) V_0) //$VB$Closure_0
-  IL_0000:  newobj     "Sub M1.C1._Closure$__1(Of T)..ctor()"
+  .locals init (M1.C1._Closure$__1-0(Of T) V_0) //$VB$Closure_0
+  IL_0000:  newobj     "Sub M1.C1._Closure$__1-0(Of T)..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
-  IL_0007:  ldftn      "Sub M1.C1._Closure$__1(Of T)._Lambda$__2()"
+  IL_0007:  ldftn      "Sub M1.C1._Closure$__1-0(Of T)._Lambda$__1()"
   IL_000d:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0012:  dup
   IL_0013:  callvirt   "Sub System.Action.Invoke()"
   IL_0018:  ldloc.0
   IL_0019:  dup
-  IL_001a:  ldfld      "M1.C1._Closure$__1(Of T).$VB$Local_X As Integer"
+  IL_001a:  ldfld      "M1.C1._Closure$__1-0(Of T).$VB$Local_X As Integer"
   IL_001f:  ldc.i4.5
   IL_0020:  add.ovf
-  IL_0021:  stfld      "M1.C1._Closure$__1(Of T).$VB$Local_X As Integer"
+  IL_0021:  stfld      "M1.C1._Closure$__1-0(Of T).$VB$Local_X As Integer"
   IL_0026:  callvirt   "Sub System.Action.Invoke()"
   IL_002b:  ret
 }
@@ -1207,18 +1205,18 @@ End Module
   // Code size       49 (0x31)
   .maxstack  3
   .locals init (System.Action V_0) //d1
-  IL_0000:  newobj     "Sub M1.C1._Closure$__1(Of T)..ctor()"
+  IL_0000:  newobj     "Sub M1.C1._Closure$__1-0(Of T)..ctor()"
   IL_0005:  dup
-  IL_0006:  ldflda     "M1.C1._Closure$__1(Of T).$VB$Local_X As T"
+  IL_0006:  ldflda     "M1.C1._Closure$__1-0(Of T).$VB$Local_X As T"
   IL_000b:  initobj    "T"
   IL_0011:  dup
-  IL_0012:  ldftn      "Sub M1.C1._Closure$__1(Of T)._Lambda$__2()"
+  IL_0012:  ldftn      "Sub M1.C1._Closure$__1-0(Of T)._Lambda$__1()"
   IL_0018:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_001d:  stloc.0
   IL_001e:  ldloc.0
   IL_001f:  callvirt   "Sub System.Action.Invoke()"
   IL_0024:  ldarg.0
-  IL_0025:  stfld      "M1.C1._Closure$__1(Of T).$VB$Local_X As T"
+  IL_0025:  stfld      "M1.C1._Closure$__1-0(Of T).$VB$Local_X As T"
   IL_002a:  ldloc.0
   IL_002b:  callvirt   "Sub System.Action.Invoke()"
   IL_0030:  ret
@@ -1257,17 +1255,17 @@ End Module
   // Code size       49 (0x31)
   .maxstack  3
   .locals init (System.Action V_0) //d1
-  IL_0000:  newobj     "Sub M1.C1._Closure$__1(Of T)..ctor()"
+  IL_0000:  newobj     "Sub M1.C1._Closure$__1-0(Of T)..ctor()"
   IL_0005:  dup
   IL_0006:  ldarg.0
-  IL_0007:  stfld      "M1.C1._Closure$__1(Of T).$VB$Local_p As T"
+  IL_0007:  stfld      "M1.C1._Closure$__1-0(Of T).$VB$Local_p As T"
   IL_000c:  dup
-  IL_000d:  ldftn      "Sub M1.C1._Closure$__1(Of T)._Lambda$__2()"
+  IL_000d:  ldftn      "Sub M1.C1._Closure$__1-0(Of T)._Lambda$__1()"
   IL_0013:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0018:  stloc.0
   IL_0019:  ldloc.0
   IL_001a:  callvirt   "Sub System.Action.Invoke()"
-  IL_001f:  ldflda     "M1.C1._Closure$__1(Of T).$VB$Local_p As T"
+  IL_001f:  ldflda     "M1.C1._Closure$__1-0(Of T).$VB$Local_p As T"
   IL_0024:  initobj    "T"
   IL_002a:  ldloc.0
   IL_002b:  callvirt   "Sub System.Action.Invoke()"
@@ -1316,13 +1314,13 @@ End Module
 
             Dim c = CompileAndVerify(source, expectedOutput:="42")
 
-            c.VerifyIL("M1.C1._Closure$__1(Of $CLS0)._Lambda$__2()", <![CDATA[
+            c.VerifyIL("M1.C1._Closure$__3-0(Of $CLS0)._Lambda$__1()", <![CDATA[
 {
   // Code size       27 (0x1b)
   .maxstack  2
   .locals init ($CLS0() V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.C1._Closure$__1(Of $CLS0).$VB$Local_p As $CLS0()"
+  IL_0001:  ldfld      "M1.C1._Closure$__3-0(Of $CLS0).$VB$Local_p As $CLS0()"
   IL_0006:  dup
   IL_0007:  call       "Function M1.C1.C2(Of $CLS0).get_M($CLS0()) As $CLS0()"
   IL_000c:  stloc.0
@@ -1372,24 +1370,24 @@ Module M1
 End Module
     </file>
 </compilation>, expectedOutput:="42042000").
-    VerifyIL("M1.C1._Closure$__1(Of $CLS0)._Lambda$__3()",
+    VerifyIL("M1.C1._Closure$__1-0(Of $CLS0)._Lambda$__1()",
             <![CDATA[
 {
   // Code size       54 (0x36)
   .maxstack  3
   .locals init (System.Action V_0) //d2
-  IL_0000:  newobj     "Sub M1.C1._Closure$__2(Of $CLS0)..ctor()"
+  IL_0000:  newobj     "Sub M1.C1._Closure$__1-1(Of $CLS0)..ctor()"
   IL_0005:  dup
   IL_0006:  ldarg.0
-  IL_0007:  ldfld      "M1.C1._Closure$__1(Of $CLS0).$VB$Local_p As $CLS0"
-  IL_000c:  stfld      "M1.C1._Closure$__2(Of $CLS0).$VB$Local_X As $CLS0"
+  IL_0007:  ldfld      "M1.C1._Closure$__1-0(Of $CLS0).$VB$Local_p As $CLS0"
+  IL_000c:  stfld      "M1.C1._Closure$__1-1(Of $CLS0).$VB$Local_X As $CLS0"
   IL_0011:  dup
-  IL_0012:  ldftn      "Sub M1.C1._Closure$__2(Of $CLS0)._Lambda$__4()"
+  IL_0012:  ldftn      "Sub M1.C1._Closure$__1-1(Of $CLS0)._Lambda$__2()"
   IL_0018:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_001d:  stloc.0
   IL_001e:  ldloc.0
   IL_001f:  callvirt   "Sub System.Action.Invoke()"
-  IL_0024:  ldflda     "M1.C1._Closure$__2(Of $CLS0).$VB$Local_X As $CLS0"
+  IL_0024:  ldflda     "M1.C1._Closure$__1-1(Of $CLS0).$VB$Local_X As $CLS0"
   IL_0029:  initobj    "$CLS0"
   IL_002f:  ldloc.0
   IL_0030:  callvirt   "Sub System.Action.Invoke()"
@@ -1442,22 +1440,22 @@ End Module
   // Code size       62 (0x3e)
   .maxstack  3
   .locals init (System.Action V_0) //d1
-  IL_0000:  newobj     "Sub M1.C1._Closure$__1(Of T, U)..ctor()"
+  IL_0000:  newobj     "Sub M1.C1._Closure$__1-0(Of T, U)..ctor()"
   IL_0005:  dup
   IL_0006:  ldarg.0
-  IL_0007:  stfld      "M1.C1._Closure$__1(Of T, U).$VB$Local_p As T"
+  IL_0007:  stfld      "M1.C1._Closure$__1-0(Of T, U).$VB$Local_p As T"
   IL_000c:  dup
   IL_000d:  ldarg.1
-  IL_000e:  stfld      "M1.C1._Closure$__1(Of T, U).$VB$Local_p1 As U"
+  IL_000e:  stfld      "M1.C1._Closure$__1-0(Of T, U).$VB$Local_p1 As U"
   IL_0013:  dup
-  IL_0014:  ldftn      "Sub M1.C1._Closure$__1(Of T, U)._Lambda$__3()"
+  IL_0014:  ldftn      "Sub M1.C1._Closure$__1-0(Of T, U)._Lambda$__1()"
   IL_001a:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_001f:  stloc.0
   IL_0020:  ldloc.0
   IL_0021:  callvirt   "Sub System.Action.Invoke()"
   IL_0026:  ldloc.0
   IL_0027:  callvirt   "Sub System.Action.Invoke()"
-  IL_002c:  ldflda     "M1.C1._Closure$__1(Of T, U).$VB$Local_p As T"
+  IL_002c:  ldflda     "M1.C1._Closure$__1-0(Of T, U).$VB$Local_p As T"
   IL_0031:  initobj    "T"
   IL_0037:  ldloc.0
   IL_0038:  callvirt   "Sub System.Action.Invoke()"
@@ -1501,35 +1499,35 @@ Module M1
 End Module
     </file>
 </compilation>, expectedOutput:="423334204204200000").
-    VerifyIL("M1.C1._Closure$__1(Of $CLS0, $CLS1)._Lambda$__2",
+    VerifyIL("M1.C1._Closure$__1-0(Of $CLS0, $CLS1)._Lambda$__1",
             <![CDATA[
 {
   // Code size       73 (0x49)
   .maxstack  3
   .locals init (System.Action(Of $CLS0) V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.C1._Closure$__1(Of $CLS0, $CLS1)._ClosureCache$__4 As System.Action(Of $CLS0)"
+  IL_0001:  ldfld      "M1.C1._Closure$__1-0(Of $CLS0, $CLS1).$I2 As System.Action(Of $CLS0)"
   IL_0006:  brfalse.s  IL_0010
   IL_0008:  ldarg.0
-  IL_0009:  ldfld      "M1.C1._Closure$__1(Of $CLS0, $CLS1)._ClosureCache$__4 As System.Action(Of $CLS0)"
+  IL_0009:  ldfld      "M1.C1._Closure$__1-0(Of $CLS0, $CLS1).$I2 As System.Action(Of $CLS0)"
   IL_000e:  br.s       IL_0025
   IL_0010:  ldarg.0
   IL_0011:  ldarg.0
-  IL_0012:  ldftn      "Sub M1.C1._Closure$__1(Of $CLS0, $CLS1)._Lambda$__3($CLS0)"
+  IL_0012:  ldftn      "Sub M1.C1._Closure$__1-0(Of $CLS0, $CLS1)._Lambda$__2($CLS0)"
   IL_0018:  newobj     "Sub System.Action(Of $CLS0)..ctor(Object, System.IntPtr)"
   IL_001d:  dup
   IL_001e:  stloc.0
-  IL_001f:  stfld      "M1.C1._Closure$__1(Of $CLS0, $CLS1)._ClosureCache$__4 As System.Action(Of $CLS0)"
+  IL_001f:  stfld      "M1.C1._Closure$__1-0(Of $CLS0, $CLS1).$I2 As System.Action(Of $CLS0)"
   IL_0024:  ldloc.0
   IL_0025:  dup
   IL_0026:  ldarg.0
-  IL_0027:  ldfld      "M1.C1._Closure$__1(Of $CLS0, $CLS1).$VB$Local_p As $CLS0"
+  IL_0027:  ldfld      "M1.C1._Closure$__1-0(Of $CLS0, $CLS1).$VB$Local_p As $CLS0"
   IL_002c:  callvirt   "Sub System.Action(Of $CLS0).Invoke($CLS0)"
   IL_0031:  ldarg.0
-  IL_0032:  ldflda     "M1.C1._Closure$__1(Of $CLS0, $CLS1).$VB$Local_p1 As $CLS1"
+  IL_0032:  ldflda     "M1.C1._Closure$__1-0(Of $CLS0, $CLS1).$VB$Local_p1 As $CLS1"
   IL_0037:  initobj    "$CLS1"
   IL_003d:  ldarg.0
-  IL_003e:  ldfld      "M1.C1._Closure$__1(Of $CLS0, $CLS1).$VB$Local_p As $CLS0"
+  IL_003e:  ldfld      "M1.C1._Closure$__1-0(Of $CLS0, $CLS1).$VB$Local_p As $CLS0"
   IL_0043:  callvirt   "Sub System.Action(Of $CLS0).Invoke($CLS0)"
   IL_0048:  ret
 }
@@ -1583,18 +1581,18 @@ Module M1
 End Module
     </file>
 </compilation>, expectedOutput:="4242333424204242042420000000").
-    VerifyIL("M1.C1(Of G)._Closure$__1(Of $CLS0, $CLS1)._Lambda$__3($CLS0)",
+    VerifyIL("M1.C1(Of G)._Closure$__3-0(Of $CLS0, $CLS1)._Lambda$__2($CLS0)",
             <![CDATA[
 {
   // Code size       25 (0x19)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "M1.C1(Of G)._Closure$__1(Of $CLS0, $CLS1).$VB$Me As M1.C1(Of G)"
+  IL_0001:  ldfld      "M1.C1(Of G)._Closure$__3-0(Of $CLS0, $CLS1).$VB$Me As M1.C1(Of G)"
   IL_0006:  ldarg.1
   IL_0007:  call       "Sub M1.C1(Of G).Print(Of $CLS0)($CLS0)"
   IL_000c:  ldarg.1
   IL_000d:  ldarg.0
-  IL_000e:  ldfld      "M1.C1(Of G)._Closure$__1(Of $CLS0, $CLS1).$VB$Local_p1 As $CLS1"
+  IL_000e:  ldfld      "M1.C1(Of G)._Closure$__3-0(Of $CLS0, $CLS1).$VB$Local_p1 As $CLS1"
   IL_0013:  call       "Sub M1.C1(Of $CLS1).PrintShared(Of $CLS0)($CLS0, $CLS1)"
   IL_0018:  ret
 }
@@ -1646,20 +1644,20 @@ End Module
 
     </file>
 </compilation>, expectedOutput:="123456").
-    VerifyIL("Module1._Closure$__1..ctor",
+    VerifyIL("Module1._Closure$__0-0..ctor",
             <![CDATA[
 {
-// Code size       22 (0x16)
-.maxstack  2
-IL_0000:  ldarg.0
-IL_0001:  call       "Sub Object..ctor()"
-IL_0006:  ldarg.1
-IL_0007:  brfalse.s  IL_0015
-IL_0009:  ldarg.0
-IL_000a:  ldarg.1
-IL_000b:  ldfld      "Module1._Closure$__1.$VB$Local_x As Integer"
-IL_0010:  stfld      "Module1._Closure$__1.$VB$Local_x As Integer"
-IL_0015:  ret
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Sub Object..ctor()"
+  IL_0006:  ldarg.1
+  IL_0007:  brfalse.s  IL_0015
+  IL_0009:  ldarg.0
+  IL_000a:  ldarg.1
+  IL_000b:  ldfld      "Module1._Closure$__0-0.$VB$Local_x As Integer"
+  IL_0010:  stfld      "Module1._Closure$__0-0.$VB$Local_x As Integer"
+  IL_0015:  ret
 }
 ]]>)
         End Sub
@@ -1705,7 +1703,7 @@ End Module
 
     </file>
 </compilation>, expectedOutput:="1").
-    VerifyIL("Module1._Closure$__1..ctor",
+    VerifyIL("Module1._Closure$__0-0..ctor",
             <![CDATA[
 {
 // Code size        7 (0x7)
@@ -1754,20 +1752,20 @@ End Module
 
     </file>
 </compilation>, expectedOutput:="123456").
-    VerifyIL("Module1._Closure$__1..ctor",
+    VerifyIL("Module1._Closure$__0-0..ctor",
             <![CDATA[
 {
-// Code size       22 (0x16)
-.maxstack  2
-IL_0000:  ldarg.0
-IL_0001:  call       "Sub Object..ctor()"
-IL_0006:  ldarg.1
-IL_0007:  brfalse.s  IL_0015
-IL_0009:  ldarg.0
-IL_000a:  ldarg.1
-IL_000b:  ldfld      "Module1._Closure$__1.$VB$Local_x As Integer"
-IL_0010:  stfld      "Module1._Closure$__1.$VB$Local_x As Integer"
-IL_0015:  ret
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Sub Object..ctor()"
+  IL_0006:  ldarg.1
+  IL_0007:  brfalse.s  IL_0015
+  IL_0009:  ldarg.0
+  IL_000a:  ldarg.1
+  IL_000b:  ldfld      "Module1._Closure$__0-0.$VB$Local_x As Integer"
+  IL_0010:  stfld      "Module1._Closure$__0-0.$VB$Local_x As Integer"
+  IL_0015:  ret
 }
 ]]>)
         End Sub
@@ -1817,20 +1815,20 @@ tryAgain:
 End Module
     </file>
 </compilation>, expectedOutput:="1357911").
-    VerifyIL("Module1._Closure$__1..ctor",
+    VerifyIL("Module1._Closure$__0-0..ctor",
             <![CDATA[
 {
-// Code size       22 (0x16)
-.maxstack  2
-IL_0000:  ldarg.0
-IL_0001:  call       "Sub Object..ctor()"
-IL_0006:  ldarg.1
-IL_0007:  brfalse.s  IL_0015
-IL_0009:  ldarg.0
-IL_000a:  ldarg.1
-IL_000b:  ldfld      "Module1._Closure$__1.$VB$Local_x As Integer"
-IL_0010:  stfld      "Module1._Closure$__1.$VB$Local_x As Integer"
-IL_0015:  ret
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Sub Object..ctor()"
+  IL_0006:  ldarg.1
+  IL_0007:  brfalse.s  IL_0015
+  IL_0009:  ldarg.0
+  IL_000a:  ldarg.1
+  IL_000b:  ldfld      "Module1._Closure$__0-0.$VB$Local_x As Integer"
+  IL_0010:  stfld      "Module1._Closure$__0-0.$VB$Local_x As Integer"
+  IL_0015:  ret
 }
 ]]>)
         End Sub
@@ -1972,27 +1970,27 @@ End Module
   .maxstack  4
   .locals init (System.Action() V_0, //a
                 Integer V_1, //i
-                Module1._Closure$__1 V_2) //$VB$Closure_0
+                Module1._Closure$__0-0 V_2) //$VB$Closure_0
   IL_0000:  ldc.i4.6
   IL_0001:  newarr     "System.Action"
   IL_0006:  stloc.0
   IL_0007:  ldc.i4.0
   IL_0008:  stloc.1
   IL_0009:  ldloc.2
-  IL_000a:  newobj     "Sub Module1._Closure$__1..ctor(Module1._Closure$__1)"
+  IL_000a:  newobj     "Sub Module1._Closure$__0-0..ctor(Module1._Closure$__0-0)"
   IL_000f:  stloc.2
   IL_0010:  ldloc.0
   IL_0011:  ldloc.1
   IL_0012:  ldloc.2
-  IL_0013:  ldftn      "Sub Module1._Closure$__1._Lambda$__2()"
+  IL_0013:  ldftn      "Sub Module1._Closure$__0-0._Lambda$__1()"
   IL_0019:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_001e:  stelem.ref
   IL_001f:  ldloc.2
   IL_0020:  dup
-  IL_0021:  ldfld      "Module1._Closure$__1.$VB$Local_x As Integer"
+  IL_0021:  ldfld      "Module1._Closure$__0-0.$VB$Local_x As Integer"
   IL_0026:  ldc.i4.1
   IL_0027:  add.ovf
-  IL_0028:  stfld      "Module1._Closure$__1.$VB$Local_x As Integer"
+  IL_0028:  stfld      "Module1._Closure$__0-0.$VB$Local_x As Integer"
   IL_002d:  ldloc.1
   IL_002e:  ldc.i4.1
   IL_002f:  add.ovf
@@ -2045,19 +2043,19 @@ End Module
     </file>
 </compilation>, expectedOutput:="616263646566")
 
-            c.VerifyIL("Module1._Closure$__2..ctor", <![CDATA[
+            c.VerifyIL("Module1._Closure$__0-0..ctor", <![CDATA[
 {
-// Code size       22 (0x16)
-.maxstack  2
-IL_0000:  ldarg.0
-IL_0001:  call       "Sub Object..ctor()"
-IL_0006:  ldarg.1
-IL_0007:  brfalse.s  IL_0015
-IL_0009:  ldarg.0
-IL_000a:  ldarg.1
-IL_000b:  ldfld      "Module1._Closure$__2.$VB$Local_x As Integer"
-IL_0010:  stfld      "Module1._Closure$__2.$VB$Local_x As Integer"
-IL_0015:  ret
+  // Code size       22 (0x16)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Sub Object..ctor()"
+  IL_0006:  ldarg.1
+  IL_0007:  brfalse.s  IL_0015
+  IL_0009:  ldarg.0
+  IL_000a:  ldarg.1
+  IL_000b:  ldfld      "Module1._Closure$__0-0.$VB$Local_i As Integer"
+  IL_0010:  stfld      "Module1._Closure$__0-0.$VB$Local_i As Integer"
+  IL_0015:  ret
 }
 ]]>)
             c.VerifyIL("Module1.Main", <![CDATA[
@@ -2066,54 +2064,54 @@ IL_0015:  ret
   .maxstack  4
   .locals init (System.Action() V_0, //a
                 Integer V_1, //S
-                Module1._Closure$__1 V_2, //$VB$Closure_0
+                Module1._Closure$__0-0 V_2, //$VB$Closure_0
                 Integer V_3,
-                Module1._Closure$__2 V_4) //$VB$Closure_1
+                Module1._Closure$__0-1 V_4) //$VB$Closure_1
   IL_0000:  ldc.i4.6
   IL_0001:  newarr     "System.Action"
   IL_0006:  stloc.0
   IL_0007:  ldc.i4.1
   IL_0008:  stloc.1
   IL_0009:  ldloc.2
-  IL_000a:  newobj     "Sub Module1._Closure$__1..ctor(Module1._Closure$__1)"
+  IL_000a:  newobj     "Sub Module1._Closure$__0-0..ctor(Module1._Closure$__0-0)"
   IL_000f:  stloc.2
   IL_0010:  ldloc.2
   IL_0011:  ldloc.1
   IL_0012:  stloc.3
   IL_0013:  ldc.i4.0
-  IL_0014:  stfld      "Module1._Closure$__1.$VB$Local_i As Integer"
+  IL_0014:  stfld      "Module1._Closure$__0-0.$VB$Local_i As Integer"
   IL_0019:  br.s       IL_0064
   IL_001b:  ldloc.s    V_4
-  IL_001d:  newobj     "Sub Module1._Closure$__2..ctor(Module1._Closure$__2)"
+  IL_001d:  newobj     "Sub Module1._Closure$__0-1..ctor(Module1._Closure$__0-1)"
   IL_0022:  stloc.s    V_4
   IL_0024:  ldloc.s    V_4
   IL_0026:  ldloc.2
-  IL_0027:  stfld      "Module1._Closure$__2.$VB$NonLocal_$VB$Closure_2 As Module1._Closure$__1"
+  IL_0027:  stfld      "Module1._Closure$__0-1.$VB$NonLocal_$VB$Closure_2 As Module1._Closure$__0-0"
   IL_002c:  ldloc.0
   IL_002d:  ldloc.s    V_4
-  IL_002f:  ldfld      "Module1._Closure$__2.$VB$NonLocal_$VB$Closure_2 As Module1._Closure$__1"
-  IL_0034:  ldfld      "Module1._Closure$__1.$VB$Local_i As Integer"
+  IL_002f:  ldfld      "Module1._Closure$__0-1.$VB$NonLocal_$VB$Closure_2 As Module1._Closure$__0-0"
+  IL_0034:  ldfld      "Module1._Closure$__0-0.$VB$Local_i As Integer"
   IL_0039:  ldloc.s    V_4
-  IL_003b:  ldftn      "Sub Module1._Closure$__2._Lambda$__3()"
+  IL_003b:  ldftn      "Sub Module1._Closure$__0-1._Lambda$__1()"
   IL_0041:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0046:  stelem.ref
   IL_0047:  ldloc.s    V_4
   IL_0049:  dup
-  IL_004a:  ldfld      "Module1._Closure$__2.$VB$Local_x As Integer"
+  IL_004a:  ldfld      "Module1._Closure$__0-1.$VB$Local_x As Integer"
   IL_004f:  ldc.i4.1
   IL_0050:  add.ovf
-  IL_0051:  stfld      "Module1._Closure$__2.$VB$Local_x As Integer"
+  IL_0051:  stfld      "Module1._Closure$__0-1.$VB$Local_x As Integer"
   IL_0056:  ldloc.2
   IL_0057:  dup
-  IL_0058:  ldfld      "Module1._Closure$__1.$VB$Local_i As Integer"
+  IL_0058:  ldfld      "Module1._Closure$__0-0.$VB$Local_i As Integer"
   IL_005d:  ldloc.3
   IL_005e:  add.ovf
-  IL_005f:  stfld      "Module1._Closure$__1.$VB$Local_i As Integer"
+  IL_005f:  stfld      "Module1._Closure$__0-0.$VB$Local_i As Integer"
   IL_0064:  ldloc.3
   IL_0065:  ldc.i4.s   31
   IL_0067:  shr
   IL_0068:  ldloc.2
-  IL_0069:  ldfld      "Module1._Closure$__1.$VB$Local_i As Integer"
+  IL_0069:  ldfld      "Module1._Closure$__0-0.$VB$Local_i As Integer"
   IL_006e:  xor
   IL_006f:  ldloc.3
   IL_0070:  ldc.i4.s   31
@@ -2153,7 +2151,7 @@ End Class
   IL_0001:  call       "Sub Object..ctor()"
   IL_0006:  ldarg.0
   IL_0007:  ldarg.0
-  IL_0008:  ldftn      "Sub C._Lambda$__1()"
+  IL_0008:  ldftn      "Sub C._Lambda$__0-1()"
   IL_000e:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0013:  stfld      "C.A As System.Action"
   IL_0018:  ret
@@ -2189,22 +2187,22 @@ End Class
 {
   // Code size       56 (0x38)
   .maxstack  3
-  .locals init (C._Closure$__1 V_0) //$VB$Closure_0
-  IL_0000:  newobj     "Sub C._Closure$__1..ctor()"
+  .locals init (C._Closure$__3-0 V_0) //$VB$Closure_0
+  IL_0000:  newobj     "Sub C._Closure$__3-0..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldarg.1
-  IL_0008:  stfld      "C._Closure$__1.$VB$Local_x As Integer"
+  IL_0008:  stfld      "C._Closure$__3-0.$VB$Local_x As Integer"
   IL_000d:  ldarg.0
   IL_000e:  call       "Sub Object..ctor()"
   IL_0013:  ldarg.0
   IL_0014:  ldarg.0
-  IL_0015:  ldftn      "Sub C._Lambda$__2()"
+  IL_0015:  ldftn      "Sub C._Lambda$__3-1()"
   IL_001b:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0020:  stfld      "C.A As System.Action"
   IL_0025:  ldarg.0
   IL_0026:  ldloc.0
-  IL_0027:  ldftn      "Sub C._Closure$__1._Lambda$__3()"
+  IL_0027:  ldftn      "Sub C._Closure$__3-0._Lambda$__2()"
   IL_002d:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0032:  stfld      "C.B As System.Action"
   IL_0037:  ret
@@ -2239,15 +2237,15 @@ End Class
 {
   // Code size       46 (0x2e)
   .maxstack  3
-  IL_0000:  newobj     "Sub C._Closure$__1..ctor()"
+  IL_0000:  newobj     "Sub C._Closure$__2-0..ctor()"
   IL_0005:  dup
   IL_0006:  ldarg.1
-  IL_0007:  stfld      "C._Closure$__1.$VB$Local_x As Integer"
-  IL_000c:  ldftn      "Sub C._Closure$__1._Lambda$__2()"
+  IL_0007:  stfld      "C._Closure$__2-0.$VB$Local_x As Integer"
+  IL_000c:  ldftn      "Sub C._Closure$__2-0._Lambda$__1()"
   IL_0012:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0017:  callvirt   "Sub System.Action.Invoke()"
   IL_001c:  ldarg.0
-  IL_001d:  ldftn      "Sub C._Lambda$__3()"
+  IL_001d:  ldftn      "Sub C._Lambda$__2-2()"
   IL_0023:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0028:  callvirt   "Sub System.Action.Invoke()"
   IL_002d:  ret
@@ -2329,59 +2327,59 @@ End Class
 {
   // Code size      131 (0x83)
   .maxstack  3
-  .locals init (Program._Closure$__1 V_0, //$VB$Closure_0
-  System.Action V_1, //a
-  System.Exception V_2)
-  IL_0000:  newobj     "Sub Program._Closure$__1..ctor()"
+  .locals init (Program._Closure$__2-0 V_0, //$VB$Closure_0
+                System.Action V_1, //a
+                System.Exception V_2)
+  IL_0000:  newobj     "Sub Program._Closure$__2-0..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldnull
-  IL_0008:  stfld      "Program._Closure$__1.$VB$Local_ex As System.Exception"
+  IL_0008:  stfld      "Program._Closure$__2-0.$VB$Local_ex As System.Exception"
   IL_000d:  ldloc.0
-  IL_000e:  ldftn      "Sub Program._Closure$__1._Lambda$__2()"
+  IL_000e:  ldftn      "Sub Program._Closure$__2-0._Lambda$__1()"
   IL_0014:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0019:  stloc.1
   .try
-{
-  IL_001a:  ldstr      "_try"
-  IL_001f:  newobj     "Sub System.Exception..ctor(String)"
-  IL_0024:  throw
-}
+  {
+    IL_001a:  ldstr      "_try"
+    IL_001f:  newobj     "Sub System.Exception..ctor(String)"
+    IL_0024:  throw
+  }
   filter
-{
-  IL_0025:  isinst     "System.Exception"
-  IL_002a:  dup
-  IL_002b:  brtrue.s   IL_0031
-  IL_002d:  pop
-  IL_002e:  ldc.i4.0
-  IL_002f:  br.s       IL_0052
-  IL_0031:  dup
-  IL_0032:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_0037:  stloc.2
-  IL_0038:  ldloc.0
-  IL_0039:  ldloc.2
-  IL_003a:  stfld      "Program._Closure$__1.$VB$Local_ex As System.Exception"
-  IL_003f:  ldloc.0
-  IL_0040:  ldflda     "Program._Closure$__1.$VB$Local_ex As System.Exception"
-  IL_0045:  ldstr      "_filter"
-  IL_004a:  call       "Function Program.AppendMessage(ByRef System.Exception, String) As Boolean"
-  IL_004f:  ldc.i4.0
-  IL_0050:  cgt.un
-  IL_0052:  endfilter
-}  // end filter
-{  // handler
-  IL_0054:  pop
-  IL_0055:  ldloc.0
-  IL_0056:  ldloc.0
-  IL_0057:  ldfld      "Program._Closure$__1.$VB$Local_ex As System.Exception"
-  IL_005c:  callvirt   "Function System.Exception.get_Message() As String"
-  IL_0061:  ldstr      "_catch"
-  IL_0066:  call       "Function String.Concat(String, String) As String"
-  IL_006b:  newobj     "Sub System.Exception..ctor(String)"
-  IL_0070:  stfld      "Program._Closure$__1.$VB$Local_ex As System.Exception"
-  IL_0075:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_007a:  leave.s    IL_007c
-}
+  {
+    IL_0025:  isinst     "System.Exception"
+    IL_002a:  dup
+    IL_002b:  brtrue.s   IL_0031
+    IL_002d:  pop
+    IL_002e:  ldc.i4.0
+    IL_002f:  br.s       IL_0052
+    IL_0031:  dup
+    IL_0032:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_0037:  stloc.2
+    IL_0038:  ldloc.0
+    IL_0039:  ldloc.2
+    IL_003a:  stfld      "Program._Closure$__2-0.$VB$Local_ex As System.Exception"
+    IL_003f:  ldloc.0
+    IL_0040:  ldflda     "Program._Closure$__2-0.$VB$Local_ex As System.Exception"
+    IL_0045:  ldstr      "_filter"
+    IL_004a:  call       "Function Program.AppendMessage(ByRef System.Exception, String) As Boolean"
+    IL_004f:  ldc.i4.0
+    IL_0050:  cgt.un
+    IL_0052:  endfilter
+  }  // end filter
+  {  // handler
+    IL_0054:  pop
+    IL_0055:  ldloc.0
+    IL_0056:  ldloc.0
+    IL_0057:  ldfld      "Program._Closure$__2-0.$VB$Local_ex As System.Exception"
+    IL_005c:  callvirt   "Function System.Exception.get_Message() As String"
+    IL_0061:  ldstr      "_catch"
+    IL_0066:  call       "Function String.Concat(String, String) As String"
+    IL_006b:  newobj     "Sub System.Exception..ctor(String)"
+    IL_0070:  stfld      "Program._Closure$__2-0.$VB$Local_ex As System.Exception"
+    IL_0075:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_007a:  leave.s    IL_007c
+  }
   IL_007c:  ldloc.1
   IL_007d:  callvirt   "Sub System.Action.Invoke()"
   IL_0082:  ret
@@ -2425,16 +2423,16 @@ End Class
 {
   // Code size      132 (0x84)
   .maxstack  3
-  .locals init (Program._Closure$__1 V_0, //$VB$Closure_0
+  .locals init (Program._Closure$__2-0 V_0, //$VB$Closure_0
                 System.Action V_1, //a
                 System.Exception V_2)
-  IL_0000:  newobj     "Sub Program._Closure$__1..ctor()"
+  IL_0000:  newobj     "Sub Program._Closure$__2-0..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldnull
-  IL_0008:  stfld      "Program._Closure$__1.$VB$Local_ex As System.Exception"
+  IL_0008:  stfld      "Program._Closure$__2-0.$VB$Local_ex As System.Exception"
   IL_000d:  ldloc.0
-  IL_000e:  ldftn      "Sub Program._Closure$__1._Lambda$__2()"
+  IL_000e:  ldftn      "Sub Program._Closure$__2-0._Lambda$__1()"
   IL_0014:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_0019:  stloc.1
   .try
@@ -2456,9 +2454,9 @@ End Class
     IL_0037:  stloc.2
     IL_0038:  ldloc.0
     IL_0039:  ldloc.2
-    IL_003a:  stfld      "Program._Closure$__1.$VB$Local_ex As System.Exception"
+    IL_003a:  stfld      "Program._Closure$__2-0.$VB$Local_ex As System.Exception"
     IL_003f:  ldloc.0
-    IL_0040:  ldftn      "Sub Program._Closure$__1._Lambda$__3()"
+    IL_0040:  ldftn      "Sub Program._Closure$__2-0._Lambda$__2()"
     IL_0046:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
     IL_004b:  call       "Function Program.Filter(System.Action) As Boolean"
     IL_0050:  ldc.i4.0
@@ -2469,12 +2467,12 @@ End Class
     IL_0055:  pop
     IL_0056:  ldloc.0
     IL_0057:  ldloc.0
-    IL_0058:  ldfld      "Program._Closure$__1.$VB$Local_ex As System.Exception"
+    IL_0058:  ldfld      "Program._Closure$__2-0.$VB$Local_ex As System.Exception"
     IL_005d:  callvirt   "Function System.Exception.get_Message() As String"
     IL_0062:  ldstr      "_catch"
     IL_0067:  call       "Function String.Concat(String, String) As String"
     IL_006c:  newobj     "Sub System.Exception..ctor(String)"
-    IL_0071:  stfld      "Program._Closure$__1.$VB$Local_ex As System.Exception"
+    IL_0071:  stfld      "Program._Closure$__2-0.$VB$Local_ex As System.Exception"
     IL_0076:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
     IL_007b:  leave.s    IL_007d
   }
@@ -2512,7 +2510,7 @@ End Class
   // Code size       58 (0x3a)
   .maxstack  2
   .locals init (System.Action V_0, //a
-                Program._Closure$__1 V_1, //$VB$Closure_0
+                Program._Closure$__1-0 V_1, //$VB$Closure_0
                 System.Exception V_2)
   .try
   {
@@ -2524,14 +2522,14 @@ End Class
   {
     IL_000b:  dup
     IL_000c:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-    IL_0011:  newobj     "Sub Program._Closure$__1..ctor()"
+    IL_0011:  newobj     "Sub Program._Closure$__1-0..ctor()"
     IL_0016:  stloc.1
     IL_0017:  stloc.2
     IL_0018:  ldloc.1
     IL_0019:  ldloc.2
-    IL_001a:  stfld      "Program._Closure$__1.$VB$Local_ex As System.Exception"
+    IL_001a:  stfld      "Program._Closure$__1-0.$VB$Local_ex As System.Exception"
     IL_001f:  ldloc.1
-    IL_0020:  ldftn      "Sub Program._Closure$__1._Lambda$__2()"
+    IL_0020:  ldftn      "Sub Program._Closure$__1-0._Lambda$__1()"
     IL_0026:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
     IL_002b:  stloc.0
     IL_002c:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
@@ -2580,47 +2578,47 @@ End Class
   // Code size       93 (0x5d)
   .maxstack  2
   .locals init (System.Action V_0, //a
-  Program._Closure$__1 V_1, //$VB$Closure_0
-  System.Exception V_2)
+                Program._Closure$__2-0 V_1, //$VB$Closure_0
+                System.Exception V_2)
   .try
-{
-  IL_0000:  ldstr      "_try"
-  IL_0005:  newobj     "Sub System.Exception..ctor(String)"
-  IL_000a:  throw
-}
+  {
+    IL_0000:  ldstr      "_try"
+    IL_0005:  newobj     "Sub System.Exception..ctor(String)"
+    IL_000a:  throw
+  }
   filter
-{
-  IL_000b:  isinst     "System.Exception"
-  IL_0010:  dup
-  IL_0011:  brtrue.s   IL_0017
-  IL_0013:  pop
-  IL_0014:  ldc.i4.0
-  IL_0015:  br.s       IL_003f
-  IL_0017:  dup
-  IL_0018:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_001d:  newobj     "Sub Program._Closure$__1..ctor()"
-  IL_0022:  stloc.1
-  IL_0023:  stloc.2
-  IL_0024:  ldloc.1
-  IL_0025:  ldloc.2
-  IL_0026:  stfld      "Program._Closure$__1.$VB$Local_ex As System.Exception"
-  IL_002b:  ldloc.1
-  IL_002c:  ldftn      "Sub Program._Closure$__1._Lambda$__2()"
-  IL_0032:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
-  IL_0037:  call       "Function Program.Foo(System.Action) As Boolean"
-  IL_003c:  ldc.i4.0
-  IL_003d:  cgt.un
-  IL_003f:  endfilter
-}  // end filter
-{  // handler
-  IL_0041:  pop
-  IL_0042:  ldloc.1
-  IL_0043:  ldftn      "Sub Program._Closure$__1._Lambda$__3()"
-  IL_0049:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
-  IL_004e:  stloc.0
-  IL_004f:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0054:  leave.s    IL_0056
-}
+  {
+    IL_000b:  isinst     "System.Exception"
+    IL_0010:  dup
+    IL_0011:  brtrue.s   IL_0017
+    IL_0013:  pop
+    IL_0014:  ldc.i4.0
+    IL_0015:  br.s       IL_003f
+    IL_0017:  dup
+    IL_0018:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_001d:  newobj     "Sub Program._Closure$__2-0..ctor()"
+    IL_0022:  stloc.1
+    IL_0023:  stloc.2
+    IL_0024:  ldloc.1
+    IL_0025:  ldloc.2
+    IL_0026:  stfld      "Program._Closure$__2-0.$VB$Local_ex As System.Exception"
+    IL_002b:  ldloc.1
+    IL_002c:  ldftn      "Sub Program._Closure$__2-0._Lambda$__1()"
+    IL_0032:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
+    IL_0037:  call       "Function Program.Foo(System.Action) As Boolean"
+    IL_003c:  ldc.i4.0
+    IL_003d:  cgt.un
+    IL_003f:  endfilter
+  }  // end filter
+  {  // handler
+    IL_0041:  pop
+    IL_0042:  ldloc.1
+    IL_0043:  ldftn      "Sub Program._Closure$__2-0._Lambda$__2()"
+    IL_0049:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
+    IL_004e:  stloc.0
+    IL_004f:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0054:  leave.s    IL_0056
+  }
   IL_0056:  ldloc.0
   IL_0057:  callvirt   "Sub System.Action.Invoke()"
   IL_005c:  ret
@@ -2652,7 +2650,7 @@ End Class
 {
   // Code size       84 (0x54)
   .maxstack  2
-  .locals init (Program._Closure$__1 V_0, //$VB$Closure_0
+  .locals init (Program._Closure$__1-0 V_0, //$VB$Closure_0
                 System.Exception V_1)
   .try
   {
@@ -2670,14 +2668,14 @@ End Class
     IL_0015:  br.s       IL_003f
     IL_0017:  dup
     IL_0018:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-    IL_001d:  newobj     "Sub Program._Closure$__1..ctor()"
+    IL_001d:  newobj     "Sub Program._Closure$__1-0..ctor()"
     IL_0022:  stloc.0
     IL_0023:  stloc.1
     IL_0024:  ldloc.0
     IL_0025:  ldloc.1
-    IL_0026:  stfld      "Program._Closure$__1.$VB$Local_e As System.Exception"
+    IL_0026:  stfld      "Program._Closure$__1-0.$VB$Local_e As System.Exception"
     IL_002b:  ldloc.0
-    IL_002c:  ldftn      "Function Program._Closure$__1._Lambda$__2() As Boolean"
+    IL_002c:  ldftn      "Function Program._Closure$__1-0._Lambda$__1() As Boolean"
     IL_0032:  newobj     "Sub System.Func(Of Boolean)..ctor(Object, System.IntPtr)"
     IL_0037:  callvirt   "Function System.Func(Of Boolean).Invoke() As Boolean"
     IL_003c:  ldc.i4.0
@@ -2731,47 +2729,47 @@ End Class
 {
   // Code size       90 (0x5a)
   .maxstack  2
-  .locals init (Program._Closure$__1 V_0, //$VB$Closure_0
+  .locals init (Program._Closure$__2-0 V_0, //$VB$Closure_0
                 System.Exception V_1)
   .try
-{
-  IL_0000:  ldstr      "blah"
-  IL_0005:  newobj     "Sub System.Exception..ctor(String)"
-  IL_000a:  throw
-}
+  {
+    IL_0000:  ldstr      "blah"
+    IL_0005:  newobj     "Sub System.Exception..ctor(String)"
+    IL_000a:  throw
+  }
   filter
-{
-  IL_000b:  isinst     "System.Exception"
-  IL_0010:  dup
-  IL_0011:  brtrue.s   IL_0017
-  IL_0013:  pop
-  IL_0014:  ldc.i4.0
-  IL_0015:  br.s       IL_003f
-  IL_0017:  dup
-  IL_0018:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_001d:  newobj     "Sub Program._Closure$__1..ctor()"
-  IL_0022:  stloc.0
-  IL_0023:  stloc.1
-  IL_0024:  ldloc.0
-  IL_0025:  ldloc.1
-  IL_0026:  stfld      "Program._Closure$__1.$VB$Local_ex As System.Exception"
-  IL_002b:  ldloc.0
-  IL_002c:  ldftn      "Sub Program._Closure$__1._Lambda$__2()"
-  IL_0032:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
-  IL_0037:  call       "Function Program.Foo(System.Action) As Boolean"
-  IL_003c:  ldc.i4.0
-  IL_003d:  cgt.un
-  IL_003f:  endfilter
-}  // end filter
-{  // handler
-  IL_0041:  pop
-  IL_0042:  ldloc.0
-  IL_0043:  ldfld      "Program._Closure$__1.$VB$Local_ex As System.Exception"
-  IL_0048:  callvirt   "Function System.Exception.get_Message() As String"
-  IL_004d:  call       "Sub System.Console.Write(String)"
-  IL_0052:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0057:  leave.s    IL_0059
-}
+  {
+    IL_000b:  isinst     "System.Exception"
+    IL_0010:  dup
+    IL_0011:  brtrue.s   IL_0017
+    IL_0013:  pop
+    IL_0014:  ldc.i4.0
+    IL_0015:  br.s       IL_003f
+    IL_0017:  dup
+    IL_0018:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_001d:  newobj     "Sub Program._Closure$__2-0..ctor()"
+    IL_0022:  stloc.0
+    IL_0023:  stloc.1
+    IL_0024:  ldloc.0
+    IL_0025:  ldloc.1
+    IL_0026:  stfld      "Program._Closure$__2-0.$VB$Local_ex As System.Exception"
+    IL_002b:  ldloc.0
+    IL_002c:  ldftn      "Sub Program._Closure$__2-0._Lambda$__1()"
+    IL_0032:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
+    IL_0037:  call       "Function Program.Foo(System.Action) As Boolean"
+    IL_003c:  ldc.i4.0
+    IL_003d:  cgt.un
+    IL_003f:  endfilter
+  }  // end filter
+  {  // handler
+    IL_0041:  pop
+    IL_0042:  ldloc.0
+    IL_0043:  ldfld      "Program._Closure$__2-0.$VB$Local_ex As System.Exception"
+    IL_0048:  callvirt   "Function System.Exception.get_Message() As String"
+    IL_004d:  call       "Sub System.Console.Write(String)"
+    IL_0052:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0057:  leave.s    IL_0059
+  }
   IL_0059:  ret
 }
 ]]>)
@@ -2807,7 +2805,7 @@ End Class
     </file>
 </compilation>
             Dim verifier = CompileAndVerify(source, expectedOutput:="pass")
-            verifier.VerifyIL("Program._Closure$__1(Of $CLS0)._Lambda$__2", <![CDATA[
+            verifier.VerifyIL("Program._Closure$__2(Of $CLS0)._Lambda$__2-1", <![CDATA[
 {
   // Code size       86 (0x56)
   .maxstack  3
@@ -2986,8 +2984,8 @@ End Class
 {
   // Code size       28 (0x1c)
   .maxstack  2
-  IL_0000:  ldsfld     "Test._Closure$__1.$I As Test._Closure$__1"
-  IL_0005:  ldftn      "Function Test._Closure$__1._Lambda$__2() As Integer"
+  IL_0000:  ldsfld     "Test._Closure$__.$I As Test._Closure$__"
+  IL_0005:  ldftn      "Function Test._Closure$__._Lambda$__0-1() As Integer"
   IL_000b:  newobj     "Sub D..ctor(Object, System.IntPtr)"
   IL_0010:  stsfld     "Test.field As D"
   IL_0015:  ldc.i4.m1
@@ -3372,15 +3370,15 @@ End Module
 {
   // Code size       41 (0x29)
   .maxstack  4
-  .locals init (SLamContext01mod._Closure$__1 V_0) //$VB$Closure_0
-  IL_0000:  newobj     "Sub SLamContext01mod._Closure$__1..ctor()"
+  .locals init (SLamContext01mod._Closure$__2-0 V_0) //$VB$Closure_0
+  IL_0000:  newobj     "Sub SLamContext01mod._Closure$__2-0..ctor()"
   IL_0005:  stloc.0
-  IL_0006:  newobj     "Sub SLamContext01mod._Closure$__3..ctor()"
+  IL_0006:  newobj     "Sub SLamContext01mod._Closure$__R2-1..ctor()"
   IL_000b:  dup
   IL_000c:  ldloc.0
-  IL_000d:  ldftn      "Function SLamContext01mod._Closure$__1._Lambda$__4(Short) As Object"
+  IL_000d:  ldftn      "Function SLamContext01mod._Closure$__2-0._Lambda$__1(Short) As Object"
   IL_0013:  newobj     "Sub VB$AnonymousDelegate_0(Of Short, Object)..ctor(Object, System.IntPtr)"
-  IL_0018:  stfld      "SLamContext01mod._Closure$__3.$VB$NonLocal_3 As <generated method>"
+  IL_0018:  stfld      "SLamContext01mod._Closure$__R2-1.$VB$NonLocal_3 As <generated method>"
   IL_001d:  pop
   IL_001e:  ldstr      "success"
   IL_0023:  call       "Sub System.Console.WriteLine(String)"
@@ -3497,45 +3495,45 @@ End Class
                 Dim c = m.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
                 AssertEx.Equal({
                     "C._Closure$__1(Of $CLS0)",
-                    "C._Closure$__4(Of $CLS0)",
-                    "C._Closure$__7(Of $CLS0, $CLS1)",
-                    "C._Closure$__10(Of $CLS0, $CLS1)"
+                    "C._Closure$__2(Of $CLS0)",
+                    "C._Closure$__3(Of $CLS0, $CLS1)",
+                    "C._Closure$__4(Of $CLS0, $CLS1)"
                 }, c.GetMembers().Where(Function(member) member.Kind = SymbolKind.NamedType).Select(Function(member) member.ToString()))
 
                 Dim c0 = c.GetMember(Of NamedTypeSymbol)("_Closure$__1")
                 AssertEx.SetEqual({
                     "Public Shared ReadOnly $I As C._Closure$__1(Of $CLS0)",
-                    "Public Shared _ClosureCache$__3 As System.Func(Of $CLS0)",
+                    "Public Shared $I1-1 As System.Func(Of $CLS0)",
                     "Public Sub New()",
                     "Private Shared Sub New()",
-                    "Friend Function _Lambda$__2() As $CLS0"
+                    "Friend Function _Lambda$__1-1() As $CLS0"
                 }, c0.GetMembers().Select(Function(member) member.ToString()))
 
-                Dim c1 = c.GetMember(Of NamedTypeSymbol)("_Closure$__4")
+                Dim c1 = c.GetMember(Of NamedTypeSymbol)("_Closure$__2")
                 AssertEx.SetEqual({
-                    "Public Shared ReadOnly $I As C._Closure$__4(Of $CLS0)",
-                    "Public Shared _ClosureCache$__6 As System.Func(Of $CLS0)",
+                    "Public Shared ReadOnly $I As C._Closure$__2(Of $CLS0)",
+                    "Public Shared $I2-1 As System.Func(Of $CLS0)",
                     "Public Sub New()",
                     "Private Shared Sub New()",
-                    "Friend Function _Lambda$__5() As $CLS0"
+                    "Friend Function _Lambda$__2-1() As $CLS0"
                 }, c1.GetMembers().Select(Function(member) member.ToString()))
 
-                Dim c2 = c.GetMember(Of NamedTypeSymbol)("_Closure$__7")
+                Dim c2 = c.GetMember(Of NamedTypeSymbol)("_Closure$__3")
                 AssertEx.SetEqual({
-                    "Public Shared ReadOnly $I As C._Closure$__7(Of $CLS0, $CLS1)",
-                    "Public Shared _ClosureCache$__9 As System.Func(Of $CLS0, $CLS1)",
+                    "Public Shared ReadOnly $I As C._Closure$__3(Of $CLS0, $CLS1)",
+                    "Public Shared $I3-1 As System.Func(Of $CLS0, $CLS1)",
                     "Public Sub New()",
                     "Private Shared Sub New()",
-                    "Friend Function _Lambda$__8(a As $CLS0) As $CLS1"
+                    "Friend Function _Lambda$__3-1(a As $CLS0) As $CLS1"
                 }, c2.GetMembers().Select(Function(member) member.ToString()))
 
-                Dim c3 = c.GetMember(Of NamedTypeSymbol)("_Closure$__10")
+                Dim c3 = c.GetMember(Of NamedTypeSymbol)("_Closure$__4")
                 AssertEx.SetEqual({
-                    "Public Shared ReadOnly $I As C._Closure$__10(Of $CLS0, $CLS1)",
-                    "Public Shared _ClosureCache$__12 As System.Func(Of $CLS0, $CLS1)",
+                    "Public Shared ReadOnly $I As C._Closure$__4(Of $CLS0, $CLS1)",
+                    "Public Shared $I4-1 As System.Func(Of $CLS0, $CLS1)",
                     "Public Sub New()",
                     "Private Shared Sub New()",
-                    "Friend Function _Lambda$__11(a As $CLS0) As $CLS1"
+                    "Friend Function _Lambda$__4-1(a As $CLS0) As $CLS1"
                 }, c3.GetMembers().Select(Function(member) member.ToString()))
             End Sub)
         End Sub
@@ -3591,10 +3589,10 @@ End Class
                     "Public Sub F(Of TF1, TF2)()",
                     "Public Sub G(Of TG1, TG2)()",
                     "Public Sub F()",
-                    "Private Function _Lambda$__1(Of $CLS0)() As $CLS0",
-                    "Private Function _Lambda$__2(Of $CLS0)() As $CLS0",
-                    "Private Function _Lambda$__3(Of $CLS0, $CLS1)(a As $CLS0) As $CLS1",
-                    "Private Function _Lambda$__4(Of $CLS0, $CLS1)(a As $CLS0) As $CLS1"
+                    "Private Function _Lambda$__1-1(Of $CLS0)() As $CLS0",
+                    "Private Function _Lambda$__2-1(Of $CLS0)() As $CLS0",
+                    "Private Function _Lambda$__3-1(Of $CLS0, $CLS1)(a As $CLS0) As $CLS1",
+                    "Private Function _Lambda$__4-1(Of $CLS0, $CLS1)(a As $CLS0) As $CLS1"
                 }, c.GetMembers().Select(Function(member) member.ToString()))
             End Sub)
         End Sub

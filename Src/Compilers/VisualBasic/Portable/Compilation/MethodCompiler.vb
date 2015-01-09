@@ -333,6 +333,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim manager = _compilation.EmbeddedSymbolManager
             Dim processedSymbols As New ConcurrentSet(Of Symbol)(ReferenceEqualityComparer.Instance)
 
+
+            Dim methodOrdinal = 0
+
             Dim builder = ArrayBuilder(Of Symbol).GetInstance
             Do
                 ' We iterate all the symbols for embedded code that are CURRENTLY known
@@ -404,15 +407,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                         method.ContainingType.Locations(0).PossiblyEmbeddedOrMySourceTree(),
                                                         method.ContainingType))
 
+            ' Since embedded method bodies don't produce synthesized methods (see the assertion below)
+            ' there is no need to assign an ordinal to embedded methods.
+            Const methodOrdinal As Integer = -1
+
+            Dim withEventPropertyIdDispenser = 0
+            Dim delegateRelaxationIdDispenser = 0
 
             Dim referencedConstructor As MethodSymbol = Nothing
             CompileMethod(method,
+                          methodOrdinal,
+                          withEventPropertyIdDispenser,
+                          delegateRelaxationIdDispenser,
                           filter:=Nothing,
                           compilationState:=compilationState,
                           processedInitializers:=Binder.ProcessedFieldOrPropertyInitializers.Empty,
                           containingTypeBinder:=sourceTypeBinder,
                           previousSubmissionFields:=Nothing,
                           referencedConstructor:=referencedConstructor)
+
+            ' Do not expect WithEvents
+            Debug.Assert(withEventPropertyIdDispenser = 0)
+
+            ' Do not expect delegate relaxation stubs
+            Debug.Assert(delegateRelaxationIdDispenser = 0)
 
             ' Do not expect constructor --> constructor calls for embedded types
             Debug.Assert(referencedConstructor Is Nothing OrElse
@@ -509,6 +527,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Find the constructor of a script class.
             Dim scriptCtor As MethodSymbol = Nothing
+            Dim submissionCtorOrdinal = -1
             If symbol.IsScriptClass Then
                 scriptCtor = symbol.InstanceConstructors(0)
                 Debug.Assert(scriptCtor IsNot Nothing)
@@ -560,7 +579,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' creating one and call CompileMethod to rewrite the field initializers. 
                 Dim sharedDefaultConstructor = sourceTypeSymbol.CreateSharedConstructorsForConstFieldsIfRequired(sourceTypeBinder, _diagnostics)
                 If sharedDefaultConstructor IsNot Nothing AndAlso PassesFilter(filter, sharedDefaultConstructor) Then
-                    CompileMethod(sharedDefaultConstructor, filter, compilationState, processedStaticInitializers, sourceTypeBinder, synthesizedSubmissionFields)
+
+                    Dim sharedConstructorWithEventPropertyIdDispenser = 0
+                    Dim sharedConstructorDelegateRelaxationIdDispenser = 0
+
+                    CompileMethod(sharedDefaultConstructor,
+                                  -1,
+                                  sharedConstructorWithEventPropertyIdDispenser,
+                                  sharedConstructorDelegateRelaxationIdDispenser,
+                                  filter,
+                                  compilationState,
+                                  processedStaticInitializers,
+                                  sourceTypeBinder,
+                                  synthesizedSubmissionFields)
+
+                    ' Default shared constructor shall not have any Handles clause
+                    Debug.Assert(sharedConstructorWithEventPropertyIdDispenser = 0)
+
+                    ' Default shared constructor shall not produce delegate relaxation stubs
+                    Debug.Assert(sharedConstructorDelegateRelaxationIdDispenser = 0)
 
                     If _moduleBeingBuiltOpt IsNot Nothing Then
                         _moduleBeingBuiltOpt.AddSynthesizedDefinition(sourceTypeSymbol, sharedDefaultConstructor)
@@ -570,19 +607,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Constructor --> Constructor calls to be used in cycles detection
             Dim constructorCallMap As Dictionary(Of MethodSymbol, MethodSymbol) = Nothing
+            Dim members = symbol.GetMembers()
 
-            For Each member In symbol.GetMembers()
+            ' Unique ids assigned to synthesized overrides of WithEvents properties.
+            Dim withEventPropertyIdDispenser = 0
+
+            ' Unique ids assigned to synthesized delegate relaxation stubs.
+            Dim delegateRelaxationIdDispenser = 0
+
+            For memberOrdinal = 0 To members.Length - 1
+                Dim member = members(memberOrdinal)
+
                 If Not PassesFilter(filter, member) Then
                     Continue For
                 End If
 
-                ' process all members that are not methods as usual                     
-                If member.Kind = SymbolKind.NamedType Then
-                    member.Accept(Me)
-                ElseIf member.Kind = SymbolKind.Method Then
+                Select Case member.Kind
+                    Case SymbolKind.NamedType
+                        member.Accept(Me)
 
-                    Dim method = DirectCast(member, MethodSymbol)
-                    If Not method.IsSubmissionConstructor Then
+                    Case SymbolKind.Method
+                        Dim method = DirectCast(member, MethodSymbol)
+                        If method.IsSubmissionConstructor Then
+                            Debug.Assert(submissionCtorOrdinal = -1)
+                            submissionCtorOrdinal = memberOrdinal
+                            Continue For
+                        End If
 
                         If method.IsPartial() Then
                             Dim impl = method.PartialImplementationPart
@@ -593,9 +643,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                                 If impl Is Nothing Then
                                     Continue For
-                                Else
-                                    method = impl
                                 End If
+
+                                method = impl
                             End If
                         End If
 
@@ -610,7 +660,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
 
                         Dim referencedConstructor As MethodSymbol = Nothing
-                        CompileMethod(method, filter, compilationState, processedInitializers, sourceTypeBinder, synthesizedSubmissionFields, referencedConstructor)
+
+                        CompileMethod(method,
+                                      memberOrdinal,
+                                      withEventPropertyIdDispenser,
+                                      delegateRelaxationIdDispenser,
+                                      filter,
+                                      compilationState,
+                                      processedInitializers,
+                                      sourceTypeBinder,
+                                      synthesizedSubmissionFields,
+                                      referencedConstructor)
 
                         ' If 'referencedConstructor' is returned by 'CompileMethod', the method just compiled 
                         ' was a constructor which references the returned symbol. We might want to store 
@@ -631,8 +691,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If DoEmitPhase AndAlso _moduleBeingBuiltOpt IsNot Nothing Then
                             CreateExplicitInterfaceImplementationStubs(compilationState, method)
                         End If
-                    End If
-                End If
+                End Select
             Next
 
             Debug.Assert(symbol.TypeKind <> TypeKind.Submission OrElse (scriptCtor IsNot Nothing AndAlso scriptCtor.IsSubmissionConstructor))
@@ -644,7 +703,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Compile submission constructor last so that synthesized submission fields are collected from all script methods:
             If scriptCtor IsNot Nothing AndAlso scriptCtor.IsSubmissionConstructor Then
-                CompileMethod(scriptCtor, filter, compilationState, processedInstanceInitializers, sourceTypeBinder, synthesizedSubmissionFields)
+                CompileMethod(scriptCtor,
+                              submissionCtorOrdinal,
+                              withEventPropertyIdDispenser,
+                              delegateRelaxationIdDispenser,
+                              filter,
+                              compilationState,
+                              processedInstanceInitializers,
+                              sourceTypeBinder,
+                              synthesizedSubmissionFields)
 
                 If synthesizedSubmissionFields IsNot Nothing AndAlso _moduleBeingBuiltOpt IsNot Nothing Then
                     synthesizedSubmissionFields.AddToType(symbol, _moduleBeingBuiltOpt)
@@ -803,6 +870,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim compilationState As New TypeCompilationState(_compilation, _moduleBeingBuiltOpt, initializeComponentOpt:=Nothing)
             For Each additionalType In additionalTypes
+                Dim methodOrdinal As Integer = 0
+
                 For Each method In additionalType.GetMethodsToEmit()
                     Dim diagnosticsThisMethod = DiagnosticBag.GetInstance()
 
@@ -814,13 +883,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim variableSlotAllocatorOpt As VariableSlotAllocator = Nothing
                         Dim statemachineTypeOpt As StateMachineTypeSymbol = Nothing
 
+                        Dim lambdaOrdinalDispenser = 0
+                        Dim scopeOrdinalDispenser = 0
+                        Dim delegateRelaxationIdDispenser = 0
+
                         Dim rewrittenBody = Rewriter.LowerBodyOrInitializer(
                             method,
+                            methodOrdinal,
                             boundBody,
                             previousSubmissionFields:=Nothing,
                             compilationState:=compilationState,
                             diagnostics:=diagnosticsThisMethod,
-                            statemachineTypeOpt:=statemachineTypeOpt,
+                            lambdaOrdinalDispenser:=lambdaOrdinalDispenser,
+                            scopeOrdinalDispenser:=scopeOrdinalDispenser,
+                            delegateRelaxationIdDispenser:=delegateRelaxationIdDispenser,
+                            stateMachineTypeOpt:=statemachineTypeOpt,
                             variableSlotAllocatorOpt:=variableSlotAllocatorOpt,
                             allowOmissionOfConditionalCalls:=_moduleBeingBuiltOpt.AllowOmissionOfConditionalCalls,
                             isBodySynthesized:=True)
@@ -846,6 +923,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     _moduleBeingBuiltOpt.SetMethodBody(method, emittedBody)
+                    methodOrdinal += 1
                 Next
             Next
 
@@ -1040,6 +1118,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </param>
         Private Sub CompileMethod(
             method As MethodSymbol,
+            methodOrdinal As Integer,
+            ByRef withEventPropertyIdDispenser As Integer,
+            ByRef delegateRelaxationIdDispenser As Integer,
             filter As Predicate(Of Symbol),
             compilationState As TypeCompilationState,
             processedInitializers As Binder.ProcessedFieldOrPropertyInitializers,
@@ -1123,6 +1204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If DoEmitPhase AndAlso Not hasErrors Then
                 LowerAndEmitMethod(method,
+                                   methodOrdinal,
                                    block,
                                    If(methodBinderOpt, containingTypeBinder),
                                    compilationState,
@@ -1130,12 +1212,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                    processedInitializers,
                                    previousSubmissionFields,
                                    If(injectConstructorCall, referencedConstructor, Nothing),
-                                   GetNamespaceScopes(method))
+                                   GetNamespaceScopes(method),
+                                   delegateRelaxationIdDispenser)
 
                 ' if method happen to handle events of a base WithEvents, ensure that we have an overriding WithEvents property
                 Dim handledEvents = method.HandledEvents
                 If Not handledEvents.IsEmpty Then
                     CreateSyntheticWithEventOverridesIfNeeded(handledEvents,
+                                                              delegateRelaxationIdDispenser,
+                                                              withEventPropertyIdDispenser,
                                                               compilationState,
                                                               containingTypeBinder,
                                                               diagsForCurrentMethod,
@@ -1164,49 +1249,71 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' property/accessors symbol into the emit module and assign bodies to the accessors.
         ''' </summary>
         Private Sub CreateSyntheticWithEventOverridesIfNeeded(handledEvents As ImmutableArray(Of HandledEvent),
+                                                              ByRef delegateRelaxationIdDispenser As Integer,
+                                                              ByRef withEventPropertyIdDispenser As Integer,
                                                               compilationState As TypeCompilationState,
                                                               containingTypeBinder As Binder,
-                                                              diagsForCurrentMethod As DiagnosticBag,
+                                                              diagnostics As DiagnosticBag,
                                                               previousSubmissionFields As SynthesizedSubmissionFields)
 
             Debug.Assert(_moduleBeingBuiltOpt Is Nothing OrElse _moduleBeingBuiltOpt.AllowOmissionOfConditionalCalls)
 
             For Each handledEvent In handledEvents
-                If handledEvent.HandlesKind = HandledEventKind.WithEvents Then
-                    Dim prop = TryCast(handledEvent.hookupMethod.AssociatedSymbol, SynthesizedOverridingWithEventsProperty)
-                    If prop IsNot Nothing Then
-                        Dim accessor = prop.GetMethod
-                        If Not compilationState.HasMethodWrapper(accessor) Then
-                            Dim body = accessor.GetBoundMethodBody(diagsForCurrentMethod, containingTypeBinder)
-
-                            ' no need to rewrite getter, they are pretty simple and 
-                            ' are already in a lowered form.
-                            compilationState.AddMethodWrapper(accessor, accessor, body)
-                            _moduleBeingBuiltOpt.AddSynthesizedDefinition(accessor.ContainingType, accessor)
-
-                            ' deal with setter too
-                            accessor = prop.SetMethod
-                            body = accessor.GetBoundMethodBody(diagsForCurrentMethod, containingTypeBinder)
-
-                            ' setter needs to rewritten as it may require lambda conversions
-                            body = Rewriter.LowerBodyOrInitializer(accessor,
-                                                                   body,
-                                                                   previousSubmissionFields,
-                                                                   compilationState,
-                                                                   diagsForCurrentMethod,
-                                                                   statemachineTypeOpt:=Nothing,
-                                                                   variableSlotAllocatorOpt:=Nothing,
-                                                                   allowOmissionOfConditionalCalls:=True,
-                                                                   isBodySynthesized:=True)
-
-                            compilationState.AddMethodWrapper(accessor, accessor, body)
-                            _moduleBeingBuiltOpt.AddSynthesizedDefinition(accessor.ContainingType, accessor)
-
-                            ' add property too
-                            _moduleBeingBuiltOpt.AddSynthesizedDefinition(prop.ContainingType, prop)
-                        End If
-                    End If
+                If handledEvent.HandlesKind <> HandledEventKind.WithEvents Then
+                    Continue For
                 End If
+
+                Dim prop = TryCast(handledEvent.hookupMethod.AssociatedSymbol, SynthesizedOverridingWithEventsProperty)
+                If prop Is Nothing Then
+                    Continue For
+                End If
+
+                Dim getter = prop.GetMethod
+                If compilationState.HasMethodWrapper(getter) Then
+                    Continue For
+                End If
+
+                Dim setter = prop.SetMethod
+                Dim containingType = prop.ContainingType
+                Debug.Assert(containingType Is getter.ContainingType AndAlso containingType Is setter.ContainingType)
+
+                Dim getterBody = getter.GetBoundMethodBody(diagnostics, containingTypeBinder)
+
+                ' no need to rewrite getter, they are pretty simple and 
+                ' are already in a lowered form.
+                compilationState.AddMethodWrapper(getter, getter, getterBody)
+                _moduleBeingBuiltOpt.AddSynthesizedDefinition(containingType, getter)
+
+                ' setter needs to rewritten as it may require lambda conversions
+                Dim setterBody = setter.GetBoundMethodBody(diagnostics, containingTypeBinder)
+
+                Dim lambdaOrdinalDispenser = 0
+                Dim scopeOrdinalDispenser = 0
+
+                setterBody = Rewriter.LowerBodyOrInitializer(setter,
+                                                             withEventPropertyIdDispenser,
+                                                             setterBody,
+                                                             previousSubmissionFields,
+                                                             compilationState,
+                                                             diagnostics,
+                                                             lambdaOrdinalDispenser:=lambdaOrdinalDispenser,
+                                                             scopeOrdinalDispenser:=scopeOrdinalDispenser,
+                                                             delegateRelaxationIdDispenser:=delegateRelaxationIdDispenser,
+                                                             stateMachineTypeOpt:=Nothing,
+                                                             variableSlotAllocatorOpt:=Nothing,
+                                                             allowOmissionOfConditionalCalls:=True,
+                                                             isBodySynthesized:=True)
+
+                ' There shall be no lambdas in the synthesized accessor but delegate relaxation conversions:
+                Debug.Assert(lambdaOrdinalDispenser = 0)
+                Debug.Assert(scopeOrdinalDispenser = 0)
+
+                compilationState.AddMethodWrapper(setter, setter, setterBody)
+                _moduleBeingBuiltOpt.AddSynthesizedDefinition(containingType, setter)
+
+                ' add property too
+                _moduleBeingBuiltOpt.AddSynthesizedDefinition(containingType, prop)
+                withEventPropertyIdDispenser += 1
             Next
         End Sub
 
@@ -1232,6 +1339,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Sub LowerAndEmitMethod(
             method As MethodSymbol,
+            methodOrdinal As Integer,
             block As BoundBlock,
             binderOpt As Binder,
             compilationState As TypeCompilationState,
@@ -1239,7 +1347,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             processedInitializers As Binder.ProcessedFieldOrPropertyInitializers,
             previousSubmissionFields As SynthesizedSubmissionFields,
             constructorToInject As MethodSymbol,
-            namespaceScopes As ImmutableArray(Of Cci.NamespaceScope)
+            namespaceScopes As ImmutableArray(Of Cci.NamespaceScope),
+            ByRef delegateRelaxationIdDispenser As Integer
         )
             Dim constructorInitializerOpt = If(constructorToInject Is Nothing,
                                                Nothing,
@@ -1260,9 +1369,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 body = InitializerRewriter.BuildConstructorBody(
                     compilationState,
                     method,
-                    If(method.IsSubmissionConstructor, Nothing, constructorInitializerOpt),
-                    processedInitializers,
-                    block)
+                    If(method.IsSubmissionConstructor, Nothing, constructorInitializerOpt), processedInitializers, block)
             Else
                 body = block
             End If
@@ -1278,11 +1385,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim variableSlotAllocatorOpt As VariableSlotAllocator = Nothing
             Dim stateMachineTypeOpt As StateMachineTypeSymbol = Nothing
             Dim allowOmissionOfConditionalCalls = _moduleBeingBuiltOpt Is Nothing OrElse _moduleBeingBuiltOpt.AllowOmissionOfConditionalCalls
+            Dim lambdaOrdinalDispenser = 0
+            Dim scopeOrdinalDispenser = 0
+
             body = Rewriter.LowerBodyOrInitializer(method,
+                                                   methodOrdinal,
                                                    body,
                                                    previousSubmissionFields,
                                                    compilationState,
                                                    diagnostics,
+                                                   lambdaOrdinalDispenser,
+                                                   scopeOrdinalDispenser,
+                                                   delegateRelaxationIdDispenser,
                                                    stateMachineTypeOpt,
                                                    variableSlotAllocatorOpt,
                                                    allowOmissionOfConditionalCalls,

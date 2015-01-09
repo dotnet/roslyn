@@ -1812,7 +1812,7 @@ End Class
             </Return>
         </Method>
     </Interface>
-    <Class Name="_Closure$__1">
+    <Class Name="_Closure$__1-0">
         <TypeDefFlags>nested assembly auto ansi sealed</TypeDefFlags>
         <Attributes>
             <System.Runtime.CompilerServices.CompilerGeneratedAttribute>
@@ -1830,7 +1830,7 @@ End Class
                 <Type>Void</Type>
             </Return>
         </Method>
-        <Method Name="_Lambda$__2" CallingConvention="HasThis">
+        <Method Name="_Lambda$__1" CallingConvention="HasThis">
             <MethodFlags>assembly specialname instance</MethodFlags>
             <MethodImplFlags>cil managed</MethodImplFlags>
             <Return>

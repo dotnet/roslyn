@@ -10,11 +10,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Shared Function LowerBodyOrInitializer(
             method As MethodSymbol,
+            methodOrdinal As Integer,
             body As BoundBlock,
             previousSubmissionFields As SynthesizedSubmissionFields,
             compilationState As TypeCompilationState,
             diagnostics As DiagnosticBag,
-            <Out> ByRef statemachineTypeOpt As StateMachineTypeSymbol,
+            ByRef lambdaOrdinalDispenser As Integer,
+            ByRef scopeOrdinalDispenser As Integer,
+            ByRef delegateRelaxationIdDispenser As Integer,
+            <Out> ByRef stateMachineTypeOpt As StateMachineTypeSymbol,
             <Out> ByRef variableSlotAllocatorOpt As VariableSlotAllocator,
             allowOmissionOfConditionalCalls As Boolean,
             isBodySynthesized As Boolean) As BoundBlock
@@ -55,6 +59,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If sawLambdas Then
                 bodyWithoutLambdas = LambdaRewriter.Rewrite(loweredBody,
                                                             method,
+                                                            methodOrdinal,
+                                                            lambdaOrdinalDispenser,
+                                                            scopeOrdinalDispenser,
+                                                            delegateRelaxationIdDispenser,
+                                                            variableSlotAllocatorOpt,
                                                             compilationState,
                                                             If(symbolsCapturedWithoutCopyCtor, SpecializedCollections.EmptySet(Of Symbol)),
                                                             diagnostics,
@@ -69,11 +78,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 variableSlotAllocatorOpt = compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method)
             End If
 
-            Return RewriteIteratorAndAsync(bodyWithoutLambdas, method, compilationState, diagnostics, variableSlotAllocatorOpt, statemachineTypeOpt)
+            Return RewriteIteratorAndAsync(bodyWithoutLambdas, method, methodOrdinal, compilationState, diagnostics, variableSlotAllocatorOpt, stateMachineTypeOpt)
         End Function
 
         Friend Shared Function RewriteIteratorAndAsync(bodyWithoutLambdas As BoundBlock,
                                                        method As MethodSymbol,
+                                                       methodOrdinal As Integer,
                                                        compilationState As TypeCompilationState,
                                                        diagnostics As DiagnosticBag,
                                                        slotAllocatorOpt As VariableSlotAllocator,
@@ -82,6 +92,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim iteratorStateMachine As IteratorStateMachine = Nothing
             Dim bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLambdas,
                                                                 method,
+                                                                methodOrdinal,
                                                                 slotAllocatorOpt,
                                                                 compilationState,
                                                                 diagnostics,
@@ -94,6 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim asyncStateMachine As AsyncStateMachine = Nothing
             Dim bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators,
                                                          method,
+                                                         methodOrdinal,
                                                          slotAllocatorOpt,
                                                          compilationState,
                                                          diagnostics,

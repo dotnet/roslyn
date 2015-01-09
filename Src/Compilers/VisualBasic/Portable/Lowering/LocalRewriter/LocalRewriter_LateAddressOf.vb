@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             For parameterIndex = 0 To invokeParameterCount - 1
                 Dim parameter = invokeParameters(parameterIndex)
-                lambdaSymbolParameters(parameterIndex) = New BoundLambdaParameterSymbol(String.Format(StringConstants.DelegateStubParameterName, parameterIndex),
+                lambdaSymbolParameters(parameterIndex) = New BoundLambdaParameterSymbol(GeneratedNames.MakeDelegateRelaxationParameterName(parameterIndex),
                                                                                         parameter.Ordinal,
                                                                                         parameter.Type,
                                                                                         parameter.IsByRef,
@@ -55,11 +55,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' even if the return value is dropped, we're using the delegate's return type for 
             ' this lambda symbol.
-            Dim lambdaSymbol = New SynthesizedLambdaSymbol(syntaxNode,
+            Dim lambdaSymbol = New SynthesizedLambdaSymbol(SynthesizedLambdaKind.LateBoundAddressOfLambda,
+                                                           syntaxNode,
                                                            lambdaSymbolParameters.AsImmutableOrNull,
                                                            delegateInvokeReturnType,
-                                                           binder,
-                                                           isDelegateRelaxationStub:=True)
+                                                           binder)
 
             ' the body of the lambda only contains a call to the target (or a return of the return value of 
             ' the call in case of a function)

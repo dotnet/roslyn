@@ -1074,7 +1074,7 @@ End Class
   IL_0013:  ldftn      "Sub Test.remove_E(System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)"
   IL_0019:  newobj     "Sub System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken)..ctor(Object, System.IntPtr)"
   IL_001e:  ldarg.0
-  IL_001f:  ldftn      "Sub Test._Lambda$__1(Integer)"
+  IL_001f:  ldftn      "Sub Test._Lambda$__R0-1(Integer)"
   IL_0025:  newobj     "Sub EventDelegate..ctor(Object, System.IntPtr)"
   IL_002a:  call       "Sub System.Runtime.InteropServices.WindowsRuntime.WindowsRuntimeMarshal.AddEventHandler(Of EventDelegate)(System.Func(Of EventDelegate, System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), System.Action(Of System.Runtime.InteropServices.WindowsRuntime.EventRegistrationToken), EventDelegate)"
   IL_002f:  ret
@@ -1089,7 +1089,7 @@ End Class
   .locals init (EventDelegate V_0,
   Test V_1)
   IL_0000:  ldarg.0
-  IL_0001:  ldftn      "Sub Test._Lambda$__2(Integer)"
+  IL_0001:  ldftn      "Sub Test._Lambda$__R3-2(Integer)"
   IL_0007:  newobj     "Sub EventDelegate..ctor(Object, System.IntPtr)"
   IL_000c:  stloc.0
   IL_000d:  ldarg.0

@@ -191,11 +191,11 @@ expectedOutput:="abcdefbye")
 {
   // Code size       38 (0x26)
   .maxstack  3
-  IL_0000:  newobj     "Sub Module1._Closure$__1..ctor()"
+  IL_0000:  newobj     "Sub Module1._Closure$__0-0..ctor()"
   IL_0005:  dup
   IL_0006:  ldstr      "bye"
-  IL_000b:  stfld      "Module1._Closure$__1.$VB$Local_expr2 As String"
-  IL_0010:  ldftn      "Function Module1._Closure$__1._Lambda$__2() As String"
+  IL_000b:  stfld      "Module1._Closure$__0-0.$VB$Local_expr2 As String"
+  IL_0010:  ldftn      "Function Module1._Closure$__0-0._Lambda$__1() As String"
   IL_0016:  newobj     "Sub System.Func(Of String)..ctor(Object, System.IntPtr)"
   IL_001b:  callvirt   "Function System.Func(Of String).Invoke() As String"
   IL_0020:  call       "Sub System.Console.WriteLine(String)"

@@ -12,9 +12,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _typeKind As TypeKind
         Private ReadOnly _constructor As SynthesizedSimpleConstructorSymbol
 
-        Protected Friend Sub New(slotAllocatorOpt As VariableSlotAllocator, asyncMethod As MethodSymbol, typeKind As TypeKind)
+        Protected Friend Sub New(slotAllocatorOpt As VariableSlotAllocator, compilationState As TypeCompilationState, asyncMethod As MethodSymbol, asyncMethodOrdinal As Integer, typeKind As TypeKind)
             MyBase.New(slotAllocatorOpt,
+                       compilationState,
                        asyncMethod,
+                       asyncMethodOrdinal,
                        asyncMethod.ContainingAssembly.GetSpecialType(If(typeKind = TypeKind.Struct, SpecialType.System_ValueType, SpecialType.System_Object)),
                        ImmutableArray.Create(asyncMethod.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_IAsyncStateMachine)))
 

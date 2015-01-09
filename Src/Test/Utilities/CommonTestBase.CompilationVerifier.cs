@@ -141,28 +141,38 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             public CompilationVerifier VerifyIL(
-                string methodName, 
+                string qualifiedMethodName, 
                 XCData expectedIL, 
                 bool realIL = false, 
                 string sequencePoints = null,
                 [CallerFilePath]string callerPath = null,
                 [CallerLineNumber]int callerLine = 0)
             {
-                return VerifyIL(methodName, expectedIL.Value, realIL, sequencePoints, callerPath, callerLine);
+                return VerifyILImpl(qualifiedMethodName, expectedIL.Value, realIL, sequencePoints, callerPath, callerLine, escapeQuotes: false);
             }
 
             public CompilationVerifier VerifyIL(
                 string qualifiedMethodName,
-                string expectedIL, 
-                bool realIL = false, 
+                string expectedIL,
+                bool realIL = false,
                 string sequencePoints = null,
                 [CallerFilePath]string callerPath = null,
                 [CallerLineNumber]int callerLine = 0)
             {
+                return VerifyILImpl(qualifiedMethodName, expectedIL, realIL, sequencePoints, callerPath, callerLine, escapeQuotes: true);
+            }
+
+            private CompilationVerifier VerifyILImpl(
+                string qualifiedMethodName,
+                string expectedIL,
+                bool realIL,
+                string sequencePoints,
+                string callerPath,
+                int callerLine,
+                bool escapeQuotes)
+            {
                 // TODO: Currently the qualifiedMethodName is a symbol display name while PDB need metadata name.
                 // So we need to pass the PDB metadata name of the method to sequencePoints (instead of just bool).
-
-                bool escapeQuotes = compilation is CSharp.CSharpCompilation;
 
                 var methodData = testData.GetMethodData(qualifiedMethodName);
 
@@ -174,6 +184,15 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 string actualRefEmitIL = VisualizeIL(methodData, realIL, sequencePoints, useRefEmitter: true);
                 AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualRefEmitIL, escapeQuotes, callerPath, callerLine);
 
+                return this;
+            }
+
+            public CompilationVerifier VerifyPdb(
+                XElement expectedPdb,
+                [CallerLineNumber]int expectedValueSourceLine = 0,
+                [CallerFilePath]string expectedValueSourcePath = null)
+            {
+                this.compilation.VerifyPdb(expectedPdb, expectedValueSourceLine, expectedValueSourcePath);
                 return this;
             }
 

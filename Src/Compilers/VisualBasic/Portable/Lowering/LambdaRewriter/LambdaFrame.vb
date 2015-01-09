@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -34,33 +35,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Shared ReadOnly CreateTypeParameter As Func(Of TypeParameterSymbol, Symbol, TypeParameterSymbol) =
             Function(typeParameter, container) New SynthesizedClonedTypeParameterSymbol(typeParameter,
                                                                                         container,
-                                                                                        StringConstants.CLOSURE_GENERICPARAM_PREFIX & typeParameter.Ordinal,
+                                                                                        GeneratedNames.MakeDisplayClassGenericParameterName(typeParameter.Ordinal),
                                                                                         TypeSubstitutionFactory)
-        ''' <summary>
-        ''' Creates a Frame definition
-        ''' </summary>
-        Friend Sub New(compilationState As TypeCompilationState,
+        Friend Sub New(slotAllocatorOpt As VariableSlotAllocator,
+                       compilationState As TypeCompilationState,
                        topLevelMethod As MethodSymbol,
-                       syntax As VisualBasicSyntaxNode,
+                       methodOrdinal As Integer,
+                       scopeSyntax As VisualBasicSyntaxNode,
+                       scopeOrdinal As Integer,
                        copyConstructor As Boolean,
-                       isShared As Boolean)
+                       isStatic As Boolean,
+                       isDelegateRelaxationFrame As Boolean)
 
-            MyBase.New(topLevelMethod, GeneratedNames.MakeLambdaDisplayClassName(compilationState.GenerateTempNumber()), topLevelMethod.ContainingType, ImmutableArray(Of NamedTypeSymbol).Empty)
+            MyBase.New(topLevelMethod, MakeName(slotAllocatorOpt, compilationState, methodOrdinal, scopeOrdinal, isStatic, isDelegateRelaxationFrame), topLevelMethod.ContainingType, ImmutableArray(Of NamedTypeSymbol).Empty)
 
             If copyConstructor Then
-                Me.m_constructor = New SynthesizedLambdaCopyConstructor(syntax, Me)
+                Me.m_constructor = New SynthesizedLambdaCopyConstructor(scopeSyntax, Me)
             Else
-                Me.m_constructor = New SynthesizedLambdaConstructor(syntax, Me)
+                Me.m_constructor = New SynthesizedLambdaConstructor(scopeSyntax, Me)
             End If
 
             ' static lambdas technically have the class scope so the scope syntax is Nothing 
-            If isShared Then
+            If isStatic Then
                 Me.m_sharedConstructor = New SynthesizedConstructorSymbol(Nothing, Me, isShared:=True, isDebuggable:=False, binder:=Nothing, diagnostics:=Nothing)
                 Dim cacheVariableName = GeneratedNames.MakeCachedFrameInstanceName()
                 Me.m_singletonCache = New SynthesizedFieldSymbol(Me, Me, Me, cacheVariableName, Accessibility.Public, isReadOnly:=True, isShared:=True)
                 m_scopeSyntaxOpt = Nothing
             Else
-                m_scopeSyntaxOpt = syntax
+                m_scopeSyntaxOpt = scopeSyntax
             End If
 
             AssertIsLambdaScopeSyntax(m_scopeSyntaxOpt)
@@ -70,9 +72,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Me.m_topLevelMethod = topLevelMethod
         End Sub
 
+        Private Shared Function MakeName(slotAllocatorOpt As VariableSlotAllocator,
+                                         compilationState As TypeCompilationState,
+                                         methodOrdinal As Integer,
+                                         scopeOrdinal As Integer,
+                                         isStatic As Boolean,
+                                         isDelegateRelaxation As Boolean) As String
+
+            ' Note: module builder is not available only when testing emit diagnostics
+            Dim generation = If(compilationState.ModuleBuilderOpt?.CurrentGenerationOrdinal, 0)
+
+            If isStatic Then
+                Debug.Assert(methodOrdinal >= -1)
+                Return GeneratedNames.MakeStaticLambdaDisplayClassName(methodOrdinal, generation)
+            End If
+
+            Debug.Assert(methodOrdinal >= 0)
+            Return GeneratedNames.MakeLambdaDisplayClassName(methodOrdinal, generation, scopeOrdinal, isDelegateRelaxation)
+        End Function
+
         <Conditional("DEBUG")>
         Private Shared Sub AssertIsLambdaScopeSyntax(syntax As VisualBasicSyntaxNode)
-
+            ' TODO:
         End Sub
 
         Public ReadOnly Property ScopeSyntax As VisualBasicSyntaxNode

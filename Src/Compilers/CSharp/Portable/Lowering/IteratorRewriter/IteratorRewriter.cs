@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.stateField = F.StateMachineField(F.SpecialType(SpecialType.System_Int32), GeneratedNames.MakeStateMachineStateFieldName());
 
             // Add a field: T current
-            currentField = F.StateMachineField(elementType, GeneratedNames.MakeIteratorCurrentBackingFieldName());
+            currentField = F.StateMachineField(elementType, GeneratedNames.MakeIteratorCurrentFieldName());
 
             // if it is an enumerable, and either Environment.CurrentManagedThreadId or System.Thread are available
             // add a field: int initialThreadId

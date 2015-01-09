@@ -1225,8 +1225,8 @@ Lambda(
       Call(
         MemberAccess(
           Constant(
-            Form1+_Closure$__1
-            type: Form1+_Closure$__1
+            Form1+_Closure$__1-0
+            type: Form1+_Closure$__1-0
           )
           -> $VB$Local_x
           type: System.Xml.Linq.XElement
@@ -1262,8 +1262,8 @@ Lambda(
       Call(
         MemberAccess(
           Constant(
-            Form1+_Closure$__1
-            type: Form1+_Closure$__1
+            Form1+_Closure$__1-0
+            type: Form1+_Closure$__1-0
           )
           -> $VB$Local_x
           type: System.Xml.Linq.XElement
@@ -1299,8 +1299,8 @@ Lambda(
       Call(
         MemberAccess(
           Constant(
-            Form1+_Closure$__1
-            type: Form1+_Closure$__1
+            Form1+_Closure$__1-0
+            type: Form1+_Closure$__1-0
           )
           -> $VB$Local_x
           type: System.Xml.Linq.XElement
@@ -1338,8 +1338,8 @@ Lambda(
         method: System.String get_AttributeValue(System.Xml.Linq.XElement, System.Xml.Linq.XName) in My.InternalXmlHelper (
           MemberAccess(
             Constant(
-              Form1+_Closure$__1
-              type: Form1+_Closure$__1
+              Form1+_Closure$__1-0
+              type: Form1+_Closure$__1-0
             )
             -> $VB$Local_x
             type: System.Xml.Linq.XElement
@@ -1376,8 +1376,8 @@ Lambda(
         method: System.String get_AttributeValue(System.Xml.Linq.XElement, System.Xml.Linq.XName) in My.InternalXmlHelper (
           MemberAccess(
             Constant(
-              Form1+_Closure$__1
-              type: Form1+_Closure$__1
+              Form1+_Closure$__1-0
+              type: Form1+_Closure$__1-0
             )
             -> $VB$Local_x
             type: System.Xml.Linq.XElement
@@ -1722,8 +1722,8 @@ Lambda(
         method: System.String get_AttributeValue(System.Xml.Linq.XElement, System.Xml.Linq.XName) in My.InternalXmlHelper (
           MemberAccess(
             Constant(
-              Form1+_Closure$__1
-              type: Form1+_Closure$__1
+              Form1+_Closure$__1-0
+              type: Form1+_Closure$__1-0
             )
             -> $VB$Local_f1
             type: System.Xml.Linq.XElement
@@ -1760,8 +1760,8 @@ Lambda(
         method: System.String get_AttributeValue(System.Xml.Linq.XElement, System.Xml.Linq.XName) in My.InternalXmlHelper (
           MemberAccess(
             Constant(
-              Form1+_Closure$__1
-              type: Form1+_Closure$__1
+              Form1+_Closure$__1-0
+              type: Form1+_Closure$__1-0
             )
             -> $VB$Local_f1
             type: System.Xml.Linq.XElement
@@ -1798,8 +1798,8 @@ Lambda(
         method: System.String get_AttributeValue(System.Xml.Linq.XElement, System.Xml.Linq.XName) in My.InternalXmlHelper (
           MemberAccess(
             Constant(
-              Form1+_Closure$__1
-              type: Form1+_Closure$__1
+              Form1+_Closure$__1-0
+              type: Form1+_Closure$__1-0
             )
             -> $VB$Local_f1
             type: System.Xml.Linq.XElement
@@ -1836,8 +1836,8 @@ Lambda(
         method: System.String get_AttributeValue(System.Xml.Linq.XElement, System.Xml.Linq.XName) in My.InternalXmlHelper (
           MemberAccess(
             Constant(
-              Form1+_Closure$__1
-              type: Form1+_Closure$__1
+              Form1+_Closure$__1-0
+              type: Form1+_Closure$__1-0
             )
             -> $VB$Local_f1
             type: System.Xml.Linq.XElement
@@ -1874,8 +1874,8 @@ Lambda(
         method: System.String get_AttributeValue(System.Xml.Linq.XElement, System.Xml.Linq.XName) in My.InternalXmlHelper (
           MemberAccess(
             Constant(
-              Form1+_Closure$__1
-              type: Form1+_Closure$__1
+              Form1+_Closure$__1-0
+              type: Form1+_Closure$__1-0
             )
             -> $VB$Local_f1
             type: System.Xml.Linq.XElement
@@ -1912,8 +1912,8 @@ Lambda(
         method: System.String get_AttributeValue(System.Xml.Linq.XElement, System.Xml.Linq.XName) in My.InternalXmlHelper (
           MemberAccess(
             Constant(
-              Form1+_Closure$__1
-              type: Form1+_Closure$__1
+              Form1+_Closure$__1-0
+              type: Form1+_Closure$__1-0
             )
             -> $VB$Local_f1
             type: System.Xml.Linq.XElement

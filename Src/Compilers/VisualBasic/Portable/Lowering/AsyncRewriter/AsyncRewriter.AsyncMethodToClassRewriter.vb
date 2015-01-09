@@ -55,7 +55,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Private ReadOnly _awaiterFields As New Dictionary(Of TypeSymbol, FieldSymbol)()
 
-            Private nextAwaiterId As Integer
+            Private _nextAwaiterId As Integer
 
             Private ReadOnly _owner As AsyncRewriter
 
@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Me._exprRetValue = Me.F.SynthesizedLocal(Me._owner._resultType, SynthesizedLocalKind.StateMachineReturnValue, F.Syntax)
                 End If
 
-                Me.nextAwaiterId = If(slotAllocatorOpt IsNot Nothing, slotAllocatorOpt.PreviousAwaiterSlotCount, 0)
+                Me._nextAwaiterId = If(slotAllocatorOpt IsNot Nothing, slotAllocatorOpt.PreviousAwaiterSlotCount, 0)
             End Sub
 
             Private Function GetAwaiterField(awaiterType As TypeSymbol) As FieldSymbol
@@ -108,8 +108,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     If slotIndex = -1 Then
-                        slotIndex = nextAwaiterId
-                        nextAwaiterId = nextAwaiterId + 1
+                        slotIndex = _nextAwaiterId
+                        _nextAwaiterId = _nextAwaiterId + 1
                     End If
 
                     Dim fieldName As String = GeneratedNames.MakeStateMachineAwaiterFieldName(slotIndex)

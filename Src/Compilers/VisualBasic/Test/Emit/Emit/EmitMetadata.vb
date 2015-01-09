@@ -734,7 +734,7 @@ End Namespace
                 Function(isFromSource As Boolean) _
                     Sub([module] As ModuleSymbol)
                         Dim type = [module].GlobalNamespace.GetNamespaceMembers().Single.GetTypeMembers("C").Single()
-                        Dim ctor = type.GetMember(Of MethodSymbol)(".ctor")
+                        Dim ctor = type.GetMethod(".ctor")
 
                         Assert.NotNull(ctor)
                         Assert.Equal(WellKnownMemberNames.InstanceConstructorName, ctor.Name)
@@ -756,7 +756,7 @@ End Namespace
                         Assert.Equal("Void", ctor.ReturnType.Name)
 
                         If isFromSource Then
-                            Dim cctor = type.GetMember(Of MethodSymbol)(".cctor")
+                            Dim cctor = type.GetMethod(".cctor")
                             Assert.NotNull(cctor)
                             Assert.Equal(WellKnownMemberNames.StaticConstructorName, cctor.Name)
                             Assert.Equal(MethodKind.SharedConstructor, cctor.MethodKind)

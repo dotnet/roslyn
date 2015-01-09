@@ -4,8 +4,6 @@ Imports System.IO
 Imports System.Text
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
@@ -2764,8 +2762,8 @@ Lambda(
                       Convert(
                         MemberAccess(
                           Constant(
-                            Form1+_Closure$__1
-                            type: Form1+_Closure$__1
+                            Form1+_Closure$__1-0
+                            type: Form1+_Closure$__1-0
                           )
                           -> $VB$Local_a
                           type: System.Int32
@@ -2774,8 +2772,8 @@ Lambda(
                       )
                       MemberAccess(
                         Constant(
-                          Form1+_Closure$__1
-                          type: Form1+_Closure$__1
+                          Form1+_Closure$__1-0
+                          type: Form1+_Closure$__1-0
                         )
                         -> $VB$Local_b
                         type: System.Double
@@ -3033,8 +3031,8 @@ Lambda(
         Convert(
           MemberAccess(
             Constant(
-              Module1+_Closure$__1
-              type: Module1+_Closure$__1
+              Module1+_Closure$__0-0
+              type: Module1+_Closure$__0-0
             )
             -> $VB$Local_val
             type: System.String
@@ -3512,8 +3510,8 @@ Lambda(
       method: Boolean Foo(Int32 ByRef) in Form1 (
         MemberAccess(
           Constant(
-            Form1+Class1+_Closure$__1
-            type: Form1+Class1+_Closure$__1
+            Form1+Class1+_Closure$__7-0
+            type: Form1+Class1+_Closure$__7-0
           )
           -> $VB$Local_t
           type: System.Int32
@@ -3553,8 +3551,8 @@ Lambda(
         ConvertChecked(
           MemberAccess(
             Constant(
-              Form1+Class1+_Closure$__2
-              type: Form1+Class1+_Closure$__2
+              Form1+Class1+_Closure$__8-0
+              type: Form1+Class1+_Closure$__8-0
             )
             -> $VB$Local_t
             type: System.String
@@ -3648,8 +3646,8 @@ Lambda(
       Convert(
         MemberAccess(
           Constant(
-            Form1+_Closure$__1
-            type: Form1+_Closure$__1
+            Form1+_Closure$__6-0
+            type: Form1+_Closure$__6-0
           )
           -> $VB$Local_t1
           type: System.Type
@@ -3695,8 +3693,8 @@ Lambda(
       Convert(
         MemberAccess(
           Constant(
-            Form1+_Closure$__1
-            type: Form1+_Closure$__1
+            Form1+_Closure$__6-0
+            type: Form1+_Closure$__6-0
           )
           -> $VB$Local_t2
           type: System.Type
@@ -3742,8 +3740,8 @@ Lambda(
       Convert(
         MemberAccess(
           Constant(
-            Form1+_Closure$__1
-            type: Form1+_Closure$__1
+            Form1+_Closure$__6-0
+            type: Form1+_Closure$__6-0
           )
           -> $VB$Local_t3
           type: System.Type
@@ -3788,8 +3786,8 @@ Lambda(
       )
       MemberAccess(
         Constant(
-          Form1+Class2`1+_Closure$__1[System.String]
-          type: Form1+Class2`1+_Closure$__1[System.String]
+          Form1+Class2`1+_Closure$__1-0[System.String]
+          type: Form1+Class2`1+_Closure$__1-0[System.String]
         )
         -> $VB$Local_t3
         type: System.Object
@@ -3833,8 +3831,8 @@ Lambda(
       Convert(
         MemberAccess(
           Constant(
-            Form1+_Closure$__1
-            type: Form1+_Closure$__1
+            Form1+_Closure$__6-0
+            type: Form1+_Closure$__6-0
           )
           -> $VB$Local_t3
           type: System.Type
@@ -3879,8 +3877,8 @@ Lambda(
       )
       MemberAccess(
         Constant(
-          Form1+Class2`1+_Closure$__2[System.Int32]
-          type: Form1+Class2`1+_Closure$__2[System.Int32]
+          Form1+Class2`1+_Closure$__2-0[System.Int32]
+          type: Form1+Class2`1+_Closure$__2-0[System.Int32]
         )
         -> $VB$Local_t1
         type: System.Object
@@ -3924,8 +3922,8 @@ Lambda(
       Convert(
         MemberAccess(
           Constant(
-            Form1+_Closure$__1
-            type: Form1+_Closure$__1
+            Form1+_Closure$__6-0
+            type: Form1+_Closure$__6-0
           )
           -> $VB$Local_t3
           type: System.Type
@@ -3971,8 +3969,8 @@ Lambda(
       Convert(
         MemberAccess(
           Constant(
-            Form1+_Closure$__1
-            type: Form1+_Closure$__1
+            Form1+_Closure$__6-0
+            type: Form1+_Closure$__6-0
           )
           -> $VB$Local_t3
           type: System.Type
@@ -5052,8 +5050,8 @@ Lambda(
     Coalesce(
       MemberAccess(
         Constant(
-          Form1+_Closure$__1`1[Form1+Struct1]
-          type: Form1+_Closure$__1`1[Form1+Struct1]
+          Form1+_Closure$__1-0`1[Form1+Struct1]
+          type: Form1+_Closure$__1-0`1[Form1+Struct1]
         )
         -> $VB$Local_x
         type: System.Nullable`1[Form1+Struct1]
@@ -5099,8 +5097,8 @@ Lambda(
     Coalesce(
       MemberAccess(
         Constant(
-          Form1+_Closure$__1`1[Form1+Struct1]
-          type: Form1+_Closure$__1`1[Form1+Struct1]
+          Form1+_Closure$__1-0`1[Form1+Struct1]
+          type: Form1+_Closure$__1-0`1[Form1+Struct1]
         )
         -> $VB$Local_x
         type: System.Nullable`1[Form1+Struct1]
@@ -6172,8 +6170,8 @@ Lambda(
       )
       MemberAccess(
         Constant(
-          Module1+_Closure$__1
-          type: Module1+_Closure$__1
+          Module1+_Closure$__0-0
+          type: Module1+_Closure$__0-0
         )
         -> $VB$Local_y
         type: System.Int32
@@ -6225,8 +6223,8 @@ Lambda(
   body {
     MemberAccess(
       Constant(
-        Gen`3+_Closure$__1[System.Int64,System.String,System.Decimal]
-        type: Gen`3+_Closure$__1[System.Int64,System.String,System.Decimal]
+        Gen`3+_Closure$__1-0[System.Int64,System.String,System.Decimal]
+        type: Gen`3+_Closure$__1-0[System.Int64,System.String,System.Decimal]
       )
       -> $VB$Local_y
       type: System.String
@@ -6259,13 +6257,13 @@ End Module
 {
   // Code size       88 (0x58)
   .maxstack  5
-  .locals init (Module1._Closure$__1 V_0, //$VB$Closure_0
-  System.Linq.Expressions.ParameterExpression V_1)
-  IL_0000:  newobj     "Sub Module1._Closure$__1..ctor()"
+  .locals init (Module1._Closure$__0-0 V_0, //$VB$Closure_0
+                System.Linq.Expressions.ParameterExpression V_1)
+  IL_0000:  newobj     "Sub Module1._Closure$__0-0..ctor()"
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
   IL_0007:  ldc.i4.7
-  IL_0008:  stfld      "Module1._Closure$__1.$VB$Local_y As Integer"
+  IL_0008:  stfld      "Module1._Closure$__0-0.$VB$Local_y As Integer"
   IL_000d:  ldtoken    "Integer"
   IL_0012:  call       "Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type"
   IL_0017:  ldstr      "x"
@@ -6273,10 +6271,10 @@ End Module
   IL_0021:  stloc.1
   IL_0022:  ldloc.1
   IL_0023:  ldloc.0
-  IL_0024:  ldtoken    "Module1._Closure$__1"
+  IL_0024:  ldtoken    "Module1._Closure$__0-0"
   IL_0029:  call       "Function System.Type.GetTypeFromHandle(System.RuntimeTypeHandle) As System.Type"
   IL_002e:  call       "Function System.Linq.Expressions.Expression.Constant(Object, System.Type) As System.Linq.Expressions.ConstantExpression"
-  IL_0033:  ldtoken    "Module1._Closure$__1.$VB$Local_y As Integer"
+  IL_0033:  ldtoken    "Module1._Closure$__0-0.$VB$Local_y As Integer"
   IL_0038:  call       "Function System.Reflection.FieldInfo.GetFieldFromHandle(System.RuntimeFieldHandle) As System.Reflection.FieldInfo"
   IL_003d:  call       "Function System.Linq.Expressions.Expression.Field(System.Linq.Expressions.Expression, System.Reflection.FieldInfo) As System.Linq.Expressions.MemberExpression"
   IL_0042:  call       "Function System.Linq.Expressions.Expression.AddChecked(System.Linq.Expressions.Expression, System.Linq.Expressions.Expression) As System.Linq.Expressions.BinaryExpression"
@@ -6607,7 +6605,7 @@ End Module
 
             CompileAndVerify(source,
                  additionalRefs:={SystemCoreRef},
-                 expectedOutput:="() => (value(Form1+_Closure$__1).$VB$Local_s1_a ?? Convert(value(Form1+_Closure$__1).$VB$Local_s1_b))").VerifyDiagnostics()
+                 expectedOutput:="() => (value(Form1+_Closure$__0-0).$VB$Local_s1_a ?? Convert(value(Form1+_Closure$__0-0).$VB$Local_s1_b))").VerifyDiagnostics()
         End Sub
 
         <WorkItem(531513, "DevDiv")>
@@ -7795,14 +7793,14 @@ End Module
                  additionalRefs:={SystemCoreRef},
                  options:=TestOptions.ReleaseExe,
                  expectedOutput:=<![CDATA[
-() => (value(M+_Closure$__1`1[M+X]).$VB$Local_x == null)
-() => (value(M+_Closure$__1`1[M+X]).$VB$Local_x != null)
-() => (null == value(M+_Closure$__1`1[M+X]).$VB$Local_x)
-() => (null != value(M+_Closure$__1`1[M+X]).$VB$Local_x)
-() => (value(M+_Closure$__1`1[M+X]).$VB$Local_x == null)
-() => (value(M+_Closure$__1`1[M+X]).$VB$Local_x != null)
-() => (null == value(M+_Closure$__1`1[M+X]).$VB$Local_x)
-() => (null != value(M+_Closure$__1`1[M+X]).$VB$Local_x)
+() => (value(M+_Closure$__2-0`1[M+X]).$VB$Local_x == null)
+() => (value(M+_Closure$__2-0`1[M+X]).$VB$Local_x != null)
+() => (null == value(M+_Closure$__2-0`1[M+X]).$VB$Local_x)
+() => (null != value(M+_Closure$__2-0`1[M+X]).$VB$Local_x)
+() => (value(M+_Closure$__2-0`1[M+X]).$VB$Local_x == null)
+() => (value(M+_Closure$__2-0`1[M+X]).$VB$Local_x != null)
+() => (null == value(M+_Closure$__2-0`1[M+X]).$VB$Local_x)
+() => (null != value(M+_Closure$__2-0`1[M+X]).$VB$Local_x)
 () => null
 () => new X()
 () => Convert(null)
@@ -7854,14 +7852,14 @@ End Module
                  additionalRefs:={SystemCoreRef},
                  options:=TestOptions.ReleaseExe,
                  expectedOutput:=<![CDATA[
-() => (value(M+_Closure$__1`1[M+X]).$VB$Local_x == null)
-() => (value(M+_Closure$__1`1[M+X]).$VB$Local_x != null)
-() => (null == value(M+_Closure$__1`1[M+X]).$VB$Local_x)
-() => (null != value(M+_Closure$__1`1[M+X]).$VB$Local_x)
-() => (value(M+_Closure$__1`1[M+X]).$VB$Local_x == null)
-() => (value(M+_Closure$__1`1[M+X]).$VB$Local_x != null)
-() => (null == value(M+_Closure$__1`1[M+X]).$VB$Local_x)
-() => (null != value(M+_Closure$__1`1[M+X]).$VB$Local_x)
+() => (value(M+_Closure$__2-0`1[M+X]).$VB$Local_x == null)
+() => (value(M+_Closure$__2-0`1[M+X]).$VB$Local_x != null)
+() => (null == value(M+_Closure$__2-0`1[M+X]).$VB$Local_x)
+() => (null != value(M+_Closure$__2-0`1[M+X]).$VB$Local_x)
+() => (value(M+_Closure$__2-0`1[M+X]).$VB$Local_x == null)
+() => (value(M+_Closure$__2-0`1[M+X]).$VB$Local_x != null)
+() => (null == value(M+_Closure$__2-0`1[M+X]).$VB$Local_x)
+() => (null != value(M+_Closure$__2-0`1[M+X]).$VB$Local_x)
 () => null
 () => new X()
 () => Convert(null)
@@ -7895,8 +7893,8 @@ End Module
                  additionalRefs:={SystemCoreRef},
                  options:=TestOptions.ReleaseExe,
                  expectedOutput:=<![CDATA[
-() => Concat(value(M+_Closure$__1).$VB$Local_str, null)
-() => Concat(null, value(M+_Closure$__1).$VB$Local_str)
+() => Concat(value(M+_Closure$__0-0).$VB$Local_str, null)
+() => Concat(null, value(M+_Closure$__0-0).$VB$Local_str)
 ]]>).VerifyDiagnostics()
         End Sub
 

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public readonly MethodSymbol KickoffMethod;
 
         public StateMachineTypeSymbol(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, MethodSymbol kickoffMethod, int kickoffMethodOrdinal)
-            : base(MakeName(slotAllocatorOpt, compilationState, kickoffMethod, kickoffMethodOrdinal),  kickoffMethod)
+            : base(MakeName(slotAllocatorOpt, compilationState, kickoffMethod, kickoffMethodOrdinal), kickoffMethod)
         {
             Debug.Assert(kickoffMethod != null);
             this.KickoffMethod = kickoffMethod;
@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static string MakeName(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, MethodSymbol kickoffMethod, int kickoffMethodOrdinal)
         {
-            return slotAllocatorOpt?.PreviousStateMachineTypeName ??
+            return slotAllocatorOpt?.PreviousStateMachineTypeName ?? 
                    GeneratedNames.MakeStateMachineTypeName(kickoffMethod.Name, kickoffMethodOrdinal, compilationState.ModuleBuilderOpt.CurrentGenerationOrdinal);
         }
 

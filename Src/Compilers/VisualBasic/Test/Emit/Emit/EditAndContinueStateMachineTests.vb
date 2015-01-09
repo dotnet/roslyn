@@ -1089,7 +1089,7 @@ End Class
                 Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
                 AssertEx.Equal(Of Integer)({&H06000002UI, &H06000005UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
@@ -1245,7 +1245,7 @@ End Class
                 Dim generation0 = EmitBaseline.CreateInitialBaseline(md0, EmptyLocalsProvider)
                 Dim diff1 = compilation1.EmitDifference(
                     generation0,
-                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
+                    ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1, preserveLocalVariables:=True)))
 
                 ' only methods with sequence points should be listed in UpdatedMethods:
                 AssertEx.Equal(Of Integer)({&H06000004UI}, diff1.UpdatedMethods.Select(Function(m) MetadataTokens.GetToken(m)))
@@ -2981,9 +2981,9 @@ End Class
                         New SemanticEdit(SemanticEditKind.Update, g0, g1, GetEquivalentNodesMap(g1, g0), preserveLocalVariables:=True)))
 
             diff1.VerifySynthesizedMembers(
-                "C: {VB$StateMachine_1_F, VB$StateMachine_1_G}",
+                "C: {VB$StateMachine_1_F, VB$StateMachine_2_G}",
                 "C.VB$StateMachine_1_F: {$State, $Builder, $VB$Me, $VB$ResumableLocal_a1$2, $VB$ResumableLocal_a2$1, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}",
-                "C.VB$StateMachine_1_G: {$State, $Builder, $VB$Me, $VB$ResumableLocal_c$0, $VB$ResumableLocal_a1$1, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}")
+                "C.VB$StateMachine_2_G: {$State, $Builder, $VB$Me, $VB$ResumableLocal_c$0, $VB$ResumableLocal_a1$1, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}")
 
             Dim diff2 = compilation2.EmitDifference(
                     diff1.NextGeneration,
@@ -2991,9 +2991,9 @@ End Class
                         New SemanticEdit(SemanticEditKind.Update, f1, f2, GetEquivalentNodesMap(f2, f1), preserveLocalVariables:=True)))
 
             diff2.VerifySynthesizedMembers(
-                "C: {VB$StateMachine_1_F, VB$StateMachine_1_G}",
+                "C: {VB$StateMachine_1_F, VB$StateMachine_2_G}",
                 "C.VB$StateMachine_1_F: {$State, $Builder, $VB$Me, $VB$ResumableLocal_a1$3, $VB$ResumableLocal_a2$4, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $VB$ResumableLocal_a1$2, $VB$ResumableLocal_a2$1}",
-                "C.VB$StateMachine_1_G: {$State, $Builder, $VB$Me, $VB$ResumableLocal_c$0, $VB$ResumableLocal_a1$1, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}")
+                "C.VB$StateMachine_2_G: {$State, $Builder, $VB$Me, $VB$ResumableLocal_c$0, $VB$ResumableLocal_a1$1, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}")
 
             Dim diff3 = compilation3.EmitDifference(
                     diff2.NextGeneration,
@@ -3002,10 +3002,10 @@ End Class
                         New SemanticEdit(SemanticEditKind.Update, h2, h3, GetEquivalentNodesMap(h3, h2), preserveLocalVariables:=True)))
 
             diff3.VerifySynthesizedMembers(
-                "C: {VB$StateMachine_1_G, VB$StateMachine_1_H, VB$StateMachine_1_F}",
+                "C: {VB$StateMachine_2_G, VB$StateMachine_3_H, VB$StateMachine_1_F}",
                 "C.VB$StateMachine_1_F: {$State, $Builder, $VB$Me, $VB$ResumableLocal_a1$3, $VB$ResumableLocal_a2$4, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $VB$ResumableLocal_a1$2, $VB$ResumableLocal_a2$1}",
-                "C.VB$StateMachine_1_G: {$State, $Builder, $VB$Me, $VB$ResumableLocal_c$0, $VB$ResumableLocal_a1$2, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $VB$ResumableLocal_a1$1}",
-                "C.VB$StateMachine_1_H: {$State, $Builder, $VB$Me, $VB$ResumableLocal_c$0, $VB$ResumableLocal_a1$2, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}")
+                "C.VB$StateMachine_2_G: {$State, $Builder, $VB$Me, $VB$ResumableLocal_c$0, $VB$ResumableLocal_a1$2, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $VB$ResumableLocal_a1$1}",
+                "C.VB$StateMachine_3_H: {$State, $Builder, $VB$Me, $VB$ResumableLocal_c$0, $VB$ResumableLocal_a1$2, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}")
 
             ' Verify delta metadata contains expected rows.
             Dim md1 = diff1.GetMetadata()
@@ -3314,7 +3314,7 @@ End Class
                                                                                         "$VB$Me: C",
                                                                                         "$A0: System.Runtime.CompilerServices.TaskAwaiter(Of System.Boolean)",
                                                                                         "$A1: System.Runtime.CompilerServices.TaskAwaiter(Of System.Int32)"
-                                                                                      }, [module].GetFieldNamesAndTypes("C.VB$StateMachine_1_F"))
+                                                                                      }, [module].GetFieldNamesAndTypes("C.VB$StateMachine_4_F"))
 
                                                                              Assert.Equal(
                                                                                       {
@@ -3323,7 +3323,7 @@ End Class
                                                                                         "$VB$Me: C",
                                                                                         "$A0: System.Runtime.CompilerServices.TaskAwaiter(Of System.Int32)",
                                                                                         "$A1: System.Runtime.CompilerServices.TaskAwaiter(Of System.Boolean)"
-                                                                                      }, [module].GetFieldNamesAndTypes("C.VB$StateMachine_1_G"))
+                                                                                      }, [module].GetFieldNamesAndTypes("C.VB$StateMachine_5_G"))
                                                                          End Sub)
         End Sub
 
@@ -3475,16 +3475,17 @@ End Class
             Dim h2 = compilation2.GetMember(Of MethodSymbol)("C.H")
             Dim h3 = compilation3.GetMember(Of MethodSymbol)("C.H")
 
-            Dim v0 = CompileAndVerify(compilation:=compilation0, symbolValidator:=Sub([module] As ModuleSymbol)
-                                                                                      Assert.Equal(
-                                                                                      {
-                                                                                        "$State: System.Int32",
-                                                                                        "$Builder: System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of System.Int32)",
-                                                                                        "$VB$Me: C",
-                                                                                        "$A0: System.Runtime.CompilerServices.TaskAwaiter(Of System.Boolean)",
-                                                                                        "$A1: System.Runtime.CompilerServices.TaskAwaiter(Of System.Int32)"
-                                                                                      }, [module].GetFieldNamesAndTypes("C.VB$StateMachine_1_F"))
-                                                                                  End Sub)
+            Dim v0 = CompileAndVerify(compilation:=compilation0, symbolValidator:=
+                Sub([module] As ModuleSymbol)
+                    Assert.Equal(
+                    {
+                        "$State: System.Int32",
+                        "$Builder: System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of System.Int32)",
+                        "$VB$Me: C",
+                        "$A0: System.Runtime.CompilerServices.TaskAwaiter(Of System.Boolean)",
+                        "$A1: System.Runtime.CompilerServices.TaskAwaiter(Of System.Int32)"
+                    }, [module].GetFieldNamesAndTypes("C.VB$StateMachine_4_F"))
+                End Sub)
 
             Dim md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData)
 
@@ -3497,9 +3498,9 @@ End Class
                         New SemanticEdit(SemanticEditKind.Update, g0, g1, GetSyntaxMapByKind(g0, SyntaxKind.FunctionBlock), preserveLocalVariables:=True)))
 
             diff1.VerifySynthesizedMembers(
-                "C: {VB$StateMachine_1_F, VB$StateMachine_1_G}",
-                "C.VB$StateMachine_1_F: {$State, $Builder, $VB$Me, $A2, $A1, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}",
-                "C.VB$StateMachine_1_G: {$State, $Builder, $VB$Me, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}")
+                "C: {VB$StateMachine_4_F, VB$StateMachine_5_G}",
+                "C.VB$StateMachine_4_F: {$State, $Builder, $VB$Me, $A2, $A1, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}",
+                "C.VB$StateMachine_5_G: {$State, $Builder, $VB$Me, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}")
 
             Dim diff2 = compilation2.EmitDifference(
                     diff1.NextGeneration,
@@ -3507,9 +3508,9 @@ End Class
                         New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapByKind(f1, SyntaxKind.FunctionBlock), preserveLocalVariables:=True)))
 
             diff2.VerifySynthesizedMembers(
-                "C: {VB$StateMachine_1_F, VB$StateMachine_1_G}",
-                "C.VB$StateMachine_1_F: {$State, $Builder, $VB$Me, $A3, $A2, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $A1}",
-                "C.VB$StateMachine_1_G: {$State, $Builder, $VB$Me, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}")
+                "C: {VB$StateMachine_4_F, VB$StateMachine_5_G}",
+                "C.VB$StateMachine_4_F: {$State, $Builder, $VB$Me, $A3, $A2, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $A1}",
+                "C.VB$StateMachine_5_G: {$State, $Builder, $VB$Me, $A0, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}")
 
             Dim diff3 = compilation3.EmitDifference(
                     diff2.NextGeneration,
@@ -3518,10 +3519,10 @@ End Class
                         New SemanticEdit(SemanticEditKind.Update, h2, h3, GetSyntaxMapByKind(h2, SyntaxKind.FunctionBlock), preserveLocalVariables:=True)))
 
             diff3.VerifySynthesizedMembers(
-                "C: {VB$StateMachine_1_G, VB$StateMachine_1_H, VB$StateMachine_1_F}",
-                "C.VB$StateMachine_1_G: {$State, $Builder, $VB$Me, $A1, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $A0}",
-                "C.VB$StateMachine_1_H: {$State, $Builder, $VB$Me, $A1, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}",
-                "C.VB$StateMachine_1_F: {$State, $Builder, $VB$Me, $A3, $A2, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $A1}")
+                "C: {VB$StateMachine_5_G, VB$StateMachine_6_H, VB$StateMachine_4_F}",
+                "C.VB$StateMachine_4_F: {$State, $Builder, $VB$Me, $A3, $A2, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $A1}",
+                "C.VB$StateMachine_5_G: {$State, $Builder, $VB$Me, $A1, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine, $A0}",
+                "C.VB$StateMachine_6_H: {$State, $Builder, $VB$Me, $A1, MoveNext, System.Runtime.CompilerServices.IAsyncStateMachine.SetStateMachine}")
 
             ' Verify delta metadata contains expected rows.
             Dim md1 = diff1.GetMetadata()
@@ -3545,7 +3546,7 @@ End Class
                     Row(18, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(19, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
 
-            diff1.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
+            diff1.VerifyIL("C.VB$StateMachine_4_F.MoveNext()", "
 {
   // Code size      327 (0x147)
   .maxstack  3
@@ -3554,11 +3555,11 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Runtime.CompilerServices.TaskAwaiter(Of C) V_3,
                 Boolean V_4,
-                C.VB$StateMachine_1_F V_5,
+                C.VB$StateMachine_4_F V_5,
                 System.Runtime.CompilerServices.TaskAwaiter(Of Integer) V_6,
                 System.Exception V_7)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0001:  ldfld      ""C.VB$StateMachine_4_F.$State As Integer""
   IL_0006:  stloc.1
   .try
   {
@@ -3576,7 +3577,7 @@ End Class
     IL_001b:  nop
     IL_001c:  nop
     IL_001d:  ldarg.0
-    IL_001e:  ldfld      ""C.VB$StateMachine_1_F.$VB$Me As C""
+    IL_001e:  ldfld      ""C.VB$StateMachine_4_F.$VB$Me As C""
     IL_0023:  callvirt   ""Function C.A3() As System.Threading.Tasks.Task(Of C)""
     IL_0028:  callvirt   ""Function System.Threading.Tasks.Task(Of C).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
     IL_002d:  stloc.3
@@ -3589,29 +3590,29 @@ End Class
     IL_003c:  ldc.i4.0
     IL_003d:  dup
     IL_003e:  stloc.1
-    IL_003f:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_003f:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
     IL_0044:  ldarg.0
     IL_0045:  ldloc.3
-    IL_0046:  stfld      ""C.VB$StateMachine_1_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
+    IL_0046:  stfld      ""C.VB$StateMachine_4_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
     IL_004b:  ldarg.0
-    IL_004c:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_004c:  ldflda     ""C.VB$StateMachine_4_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
     IL_0051:  ldloca.s   V_3
     IL_0053:  ldarg.0
     IL_0054:  stloc.s    V_5
     IL_0056:  ldloca.s   V_5
-    IL_0058:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of C), C.VB$StateMachine_1_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of C), ByRef C.VB$StateMachine_1_F)""
+    IL_0058:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of C), C.VB$StateMachine_4_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of C), ByRef C.VB$StateMachine_4_F)""
     IL_005d:  nop
     IL_005e:  leave      IL_0146
     IL_0063:  ldarg.0
     IL_0064:  ldc.i4.m1
     IL_0065:  dup
     IL_0066:  stloc.1
-    IL_0067:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_0067:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
     IL_006c:  ldarg.0
-    IL_006d:  ldfld      ""C.VB$StateMachine_1_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
+    IL_006d:  ldfld      ""C.VB$StateMachine_4_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
     IL_0072:  stloc.3
     IL_0073:  ldarg.0
-    IL_0074:  ldflda     ""C.VB$StateMachine_1_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
+    IL_0074:  ldflda     ""C.VB$StateMachine_4_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
     IL_0079:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of C)""
     IL_007f:  br.s       IL_0081
     IL_0081:  ldloca.s   V_3
@@ -3621,7 +3622,7 @@ End Class
     IL_008b:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of C)""
     IL_0091:  nop
     IL_0092:  ldarg.0
-    IL_0093:  ldfld      ""C.VB$StateMachine_1_F.$VB$Me As C""
+    IL_0093:  ldfld      ""C.VB$StateMachine_4_F.$VB$Me As C""
     IL_0098:  callvirt   ""Function C.A2() As System.Threading.Tasks.Task(Of Integer)""
     IL_009d:  callvirt   ""Function System.Threading.Tasks.Task(Of Integer).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
     IL_00a2:  stloc.s    V_6
@@ -3634,29 +3635,29 @@ End Class
     IL_00b2:  ldc.i4.1
     IL_00b3:  dup
     IL_00b4:  stloc.1
-    IL_00b5:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_00b5:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
     IL_00ba:  ldarg.0
     IL_00bb:  ldloc.s    V_6
-    IL_00bd:  stfld      ""C.VB$StateMachine_1_F.$A1 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_00bd:  stfld      ""C.VB$StateMachine_4_F.$A1 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
     IL_00c2:  ldarg.0
-    IL_00c3:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_00c3:  ldflda     ""C.VB$StateMachine_4_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
     IL_00c8:  ldloca.s   V_6
     IL_00ca:  ldarg.0
     IL_00cb:  stloc.s    V_5
     IL_00cd:  ldloca.s   V_5
-    IL_00cf:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), C.VB$StateMachine_1_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef C.VB$StateMachine_1_F)""
+    IL_00cf:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Integer), C.VB$StateMachine_4_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Integer), ByRef C.VB$StateMachine_4_F)""
     IL_00d4:  nop
     IL_00d5:  leave.s    IL_0146
     IL_00d7:  ldarg.0
     IL_00d8:  ldc.i4.m1
     IL_00d9:  dup
     IL_00da:  stloc.1
-    IL_00db:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_00db:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
     IL_00e0:  ldarg.0
-    IL_00e1:  ldfld      ""C.VB$StateMachine_1_F.$A1 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_00e1:  ldfld      ""C.VB$StateMachine_4_F.$A1 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
     IL_00e6:  stloc.s    V_6
     IL_00e8:  ldarg.0
-    IL_00e9:  ldflda     ""C.VB$StateMachine_1_F.$A1 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
+    IL_00e9:  ldflda     ""C.VB$StateMachine_4_F.$A1 As System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
     IL_00ee:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Integer)""
     IL_00f4:  br.s       IL_00f6
     IL_00f6:  ldloca.s   V_6
@@ -3675,9 +3676,9 @@ End Class
     IL_0110:  stloc.s    V_7
     IL_0112:  ldarg.0
     IL_0113:  ldc.i4.s   -2
-    IL_0115:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_0115:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
     IL_011a:  ldarg.0
-    IL_011b:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_011b:  ldflda     ""C.VB$StateMachine_4_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
     IL_0120:  ldloc.s    V_7
     IL_0122:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)""
     IL_0127:  nop
@@ -3688,9 +3689,9 @@ End Class
   IL_0130:  ldc.i4.s   -2
   IL_0132:  dup
   IL_0133:  stloc.1
-  IL_0134:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0134:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
   IL_0139:  ldarg.0
-  IL_013a:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+  IL_013a:  ldflda     ""C.VB$StateMachine_4_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
   IL_013f:  ldloc.0
   IL_0140:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)""
   IL_0145:  nop
@@ -3709,7 +3710,7 @@ End Class
                     Row(20, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(21, TableIndex.CustomAttribute, EditAndContinueOperation.Default))
 
-            diff2.VerifyIL("C.VB$StateMachine_1_F.MoveNext()", "
+            diff2.VerifyIL("C.VB$StateMachine_4_F.MoveNext()", "
 {
   // Code size      327 (0x147)
   .maxstack  3
@@ -3718,11 +3719,11 @@ End Class
                 System.Threading.Tasks.Task(Of Integer) V_2,
                 System.Runtime.CompilerServices.TaskAwaiter(Of Boolean) V_3,
                 Boolean V_4,
-                C.VB$StateMachine_1_F V_5,
+                C.VB$StateMachine_4_F V_5,
                 System.Runtime.CompilerServices.TaskAwaiter(Of C) V_6,
                 System.Exception V_7)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0001:  ldfld      ""C.VB$StateMachine_4_F.$State As Integer""
   IL_0006:  stloc.1
   .try
   {
@@ -3740,7 +3741,7 @@ End Class
     IL_001b:  nop
     IL_001c:  nop
     IL_001d:  ldarg.0
-    IL_001e:  ldfld      ""C.VB$StateMachine_1_F.$VB$Me As C""
+    IL_001e:  ldfld      ""C.VB$StateMachine_4_F.$VB$Me As C""
     IL_0023:  callvirt   ""Function C.A1() As System.Threading.Tasks.Task(Of Boolean)""
     IL_0028:  callvirt   ""Function System.Threading.Tasks.Task(Of Boolean).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)""
     IL_002d:  stloc.3
@@ -3753,29 +3754,29 @@ End Class
     IL_003c:  ldc.i4.0
     IL_003d:  dup
     IL_003e:  stloc.1
-    IL_003f:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_003f:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
     IL_0044:  ldarg.0
     IL_0045:  ldloc.3
-    IL_0046:  stfld      ""C.VB$StateMachine_1_F.$A3 As System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)""
+    IL_0046:  stfld      ""C.VB$StateMachine_4_F.$A3 As System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)""
     IL_004b:  ldarg.0
-    IL_004c:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_004c:  ldflda     ""C.VB$StateMachine_4_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
     IL_0051:  ldloca.s   V_3
     IL_0053:  ldarg.0
     IL_0054:  stloc.s    V_5
     IL_0056:  ldloca.s   V_5
-    IL_0058:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Boolean), C.VB$StateMachine_1_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Boolean), ByRef C.VB$StateMachine_1_F)""
+    IL_0058:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of Boolean), C.VB$StateMachine_4_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of Boolean), ByRef C.VB$StateMachine_4_F)""
     IL_005d:  nop
     IL_005e:  leave      IL_0146
     IL_0063:  ldarg.0
     IL_0064:  ldc.i4.m1
     IL_0065:  dup
     IL_0066:  stloc.1
-    IL_0067:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_0067:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
     IL_006c:  ldarg.0
-    IL_006d:  ldfld      ""C.VB$StateMachine_1_F.$A3 As System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)""
+    IL_006d:  ldfld      ""C.VB$StateMachine_4_F.$A3 As System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)""
     IL_0072:  stloc.3
     IL_0073:  ldarg.0
-    IL_0074:  ldflda     ""C.VB$StateMachine_1_F.$A3 As System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)""
+    IL_0074:  ldflda     ""C.VB$StateMachine_4_F.$A3 As System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)""
     IL_0079:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)""
     IL_007f:  br.s       IL_0081
     IL_0081:  ldloca.s   V_3
@@ -3785,7 +3786,7 @@ End Class
     IL_008b:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of Boolean)""
     IL_0091:  nop
     IL_0092:  ldarg.0
-    IL_0093:  ldfld      ""C.VB$StateMachine_1_F.$VB$Me As C""
+    IL_0093:  ldfld      ""C.VB$StateMachine_4_F.$VB$Me As C""
     IL_0098:  callvirt   ""Function C.A3() As System.Threading.Tasks.Task(Of C)""
     IL_009d:  callvirt   ""Function System.Threading.Tasks.Task(Of C).GetAwaiter() As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
     IL_00a2:  stloc.s    V_6
@@ -3798,29 +3799,29 @@ End Class
     IL_00b2:  ldc.i4.1
     IL_00b3:  dup
     IL_00b4:  stloc.1
-    IL_00b5:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_00b5:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
     IL_00ba:  ldarg.0
     IL_00bb:  ldloc.s    V_6
-    IL_00bd:  stfld      ""C.VB$StateMachine_1_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
+    IL_00bd:  stfld      ""C.VB$StateMachine_4_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
     IL_00c2:  ldarg.0
-    IL_00c3:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_00c3:  ldflda     ""C.VB$StateMachine_4_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
     IL_00c8:  ldloca.s   V_6
     IL_00ca:  ldarg.0
     IL_00cb:  stloc.s    V_5
     IL_00cd:  ldloca.s   V_5
-    IL_00cf:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of C), C.VB$StateMachine_1_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of C), ByRef C.VB$StateMachine_1_F)""
+    IL_00cf:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.TaskAwaiter(Of C), C.VB$StateMachine_4_F)(ByRef System.Runtime.CompilerServices.TaskAwaiter(Of C), ByRef C.VB$StateMachine_4_F)""
     IL_00d4:  nop
     IL_00d5:  leave.s    IL_0146
     IL_00d7:  ldarg.0
     IL_00d8:  ldc.i4.m1
     IL_00d9:  dup
     IL_00da:  stloc.1
-    IL_00db:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_00db:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
     IL_00e0:  ldarg.0
-    IL_00e1:  ldfld      ""C.VB$StateMachine_1_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
+    IL_00e1:  ldfld      ""C.VB$StateMachine_4_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
     IL_00e6:  stloc.s    V_6
     IL_00e8:  ldarg.0
-    IL_00e9:  ldflda     ""C.VB$StateMachine_1_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
+    IL_00e9:  ldflda     ""C.VB$StateMachine_4_F.$A2 As System.Runtime.CompilerServices.TaskAwaiter(Of C)""
     IL_00ee:  initobj    ""System.Runtime.CompilerServices.TaskAwaiter(Of C)""
     IL_00f4:  br.s       IL_00f6
     IL_00f6:  ldloca.s   V_6
@@ -3839,9 +3840,9 @@ End Class
     IL_0110:  stloc.s    V_7
     IL_0112:  ldarg.0
     IL_0113:  ldc.i4.s   -2
-    IL_0115:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+    IL_0115:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
     IL_011a:  ldarg.0
-    IL_011b:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+    IL_011b:  ldflda     ""C.VB$StateMachine_4_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
     IL_0120:  ldloc.s    V_7
     IL_0122:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetException(System.Exception)""
     IL_0127:  nop
@@ -3852,9 +3853,9 @@ End Class
   IL_0130:  ldc.i4.s   -2
   IL_0132:  dup
   IL_0133:  stloc.1
-  IL_0134:  stfld      ""C.VB$StateMachine_1_F.$State As Integer""
+  IL_0134:  stfld      ""C.VB$StateMachine_4_F.$State As Integer""
   IL_0139:  ldarg.0
-  IL_013a:  ldflda     ""C.VB$StateMachine_1_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
+  IL_013a:  ldflda     ""C.VB$StateMachine_4_F.$Builder As System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer)""
   IL_013f:  ldloc.0
   IL_0140:  call       ""Sub System.Runtime.CompilerServices.AsyncTaskMethodBuilder(Of Integer).SetResult(Integer)""
   IL_0145:  nop
@@ -3975,8 +3976,8 @@ End Class
                         New SemanticEdit(SemanticEditKind.Insert, Nothing, f1)))
 
             diff1.VerifySynthesizedMembers(
-                "C: {VB$StateMachine_1_F}",
-                "C.VB$StateMachine_1_F: {$State, $Current, $InitialThreadId, $VB$Me, Dispose, MoveNext, GetEnumerator, IEnumerable.GetEnumerator, get_Current, Reset, IEnumerator.get_Current, Current, IEnumerator.Current}")
+                "C: {VB$StateMachine_1#1_F}",
+                "C.VB$StateMachine_1#1_F: {$State, $Current, $InitialThreadId, $VB$Me, Dispose, MoveNext, GetEnumerator, IEnumerable.GetEnumerator, get_Current, Reset, IEnumerator.get_Current, Current, IEnumerator.Current}")
 
             Dim diff2 = compilation2.EmitDifference(
                     diff1.NextGeneration,
@@ -3984,8 +3985,8 @@ End Class
                         New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapByKind(f1, SyntaxKind.FunctionBlock), preserveLocalVariables:=True)))
 
             diff2.VerifySynthesizedMembers(
-                "C: {VB$StateMachine_1_F}",
-                "C.VB$StateMachine_1_F: {$State, $Current, $InitialThreadId, $VB$Me, Dispose, MoveNext, GetEnumerator, IEnumerable.GetEnumerator, get_Current, Reset, IEnumerator.get_Current, Current, IEnumerator.Current}")
+                "C: {VB$StateMachine_1#1_F}",
+                "C.VB$StateMachine_1#1_F: {$State, $Current, $InitialThreadId, $VB$Me, Dispose, MoveNext, GetEnumerator, IEnumerable.GetEnumerator, get_Current, Reset, IEnumerator.get_Current, Current, IEnumerator.Current}")
 
             Dim diff3 = compilation3.EmitDifference(
                     diff2.NextGeneration,
@@ -3993,8 +3994,8 @@ End Class
                         New SemanticEdit(SemanticEditKind.Insert, Nothing, g3)))
 
             diff3.VerifySynthesizedMembers(
-                "C: {VB$StateMachine_1_F}",
-                "C.VB$StateMachine_1_F: {$State, $Current, $InitialThreadId, $VB$Me, Dispose, MoveNext, GetEnumerator, IEnumerable.GetEnumerator, get_Current, Reset, IEnumerator.get_Current, Current, IEnumerator.Current}")
+                "C: {VB$StateMachine_1#1_F}",
+                "C.VB$StateMachine_1#1_F: {$State, $Current, $InitialThreadId, $VB$Me, Dispose, MoveNext, GetEnumerator, IEnumerable.GetEnumerator, get_Current, Reset, IEnumerator.get_Current, Current, IEnumerator.Current}")
 
             Dim diff4 = compilation4.EmitDifference(
                     diff3.NextGeneration,
@@ -4002,9 +4003,9 @@ End Class
                         New SemanticEdit(SemanticEditKind.Insert, Nothing, h4)))
 
             diff4.VerifySynthesizedMembers(
-                "C.VB$StateMachine_1_H: {$State, $Current, $InitialThreadId, $VB$Me, Dispose, MoveNext, GetEnumerator, IEnumerable.GetEnumerator, get_Current, Reset, IEnumerator.get_Current, Current, IEnumerator.Current}",
-                "C.VB$StateMachine_1_F: {$State, $Current, $InitialThreadId, $VB$Me, Dispose, MoveNext, GetEnumerator, IEnumerable.GetEnumerator, get_Current, Reset, IEnumerator.get_Current, Current, IEnumerator.Current}",
-                "C: {VB$StateMachine_1_H, VB$StateMachine_1_F}")
+                "C: {VB$StateMachine_3#4_H, VB$StateMachine_1#1_F}",
+                "C.VB$StateMachine_1#1_F: {$State, $Current, $InitialThreadId, $VB$Me, Dispose, MoveNext, GetEnumerator, IEnumerable.GetEnumerator, get_Current, Reset, IEnumerator.get_Current, Current, IEnumerator.Current}",
+                "C.VB$StateMachine_3#4_H: {$State, $Current, $InitialThreadId, $VB$Me, Dispose, MoveNext, GetEnumerator, IEnumerable.GetEnumerator, get_Current, Reset, IEnumerator.get_Current, Current, IEnumerator.Current}")
         End Sub
     End Class
 End Namespace

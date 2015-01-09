@@ -183,6 +183,14 @@ namespace Microsoft.CodeAnalysis
         /// Not serialized to <see cref="EditAndContinueMethodDebugInformation"/>.
         /// </summary>
         AwaiterField = 0x100,
+
+        /// <summary>
+        /// The receiver of a delegate relaxation stub.
+        /// Created as a local variable but always lifted to a relaxation display class field. 
+        /// We never emit debug info for hoisted relaxation variable. 
+        /// TODO: Avoid using lambdas and display classes for implementation of relaxation stubs and remove this kind.
+        /// </summary>
+        DelegateRelaxationReceiver = 0x101,
     }
 
     internal static class SynthesizedLocalKindExtensions

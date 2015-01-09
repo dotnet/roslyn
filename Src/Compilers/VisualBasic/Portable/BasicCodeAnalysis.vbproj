@@ -3,10 +3,10 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
     <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
+    <Import Project="..\..\..\..\..\Closed\Tools\Source\Microsoft.CodeAnalysis.Toolset\Targets\VSL.Settings.Closed.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
-    <OutDir>..\..\..\..\Binaries\$(Configuration)\</OutDir>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{2523D0E6-DF32-4A3E-8AE0-A19BFFAE2EF6}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -63,7 +63,8 @@
     <CodeAnalysisRuleSet>..\BasicCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>
+    </RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
@@ -441,6 +442,7 @@
     <Compile Include="Lowering\AsyncRewriter\AsyncRewriter.SpillFieldAllocator.vb" />
     <Compile Include="Lowering\AsyncRewriter\AsyncRewriter.vb" />
     <Compile Include="Lowering\AsyncRewriter\AsyncStateMachine.vb" />
+    <Compile Include="Lowering\AsyncRewriter\ClosureKind.vb" />
     <Compile Include="Lowering\DebugAttributes.vb" />
     <Compile Include="Lowering\Diagnostics\DiagnosticsPass.vb" />
     <Compile Include="Lowering\Diagnostics\DiagnosticsPass_ExpressionLambdas.vb" />
@@ -764,6 +766,7 @@
     <Compile Include="Symbols\Source\SourceFieldSymbol.vb" />
     <Compile Include="Symbols\Source\SourceFile.vb" />
     <Compile Include="Symbols\Source\SourceLabelSymbol.vb" />
+    <Compile Include="Symbols\Source\SourceLambdaSymbol.vb" />
     <Compile Include="Symbols\Source\SourceMemberContainerTypeSymbol.vb" />
     <Compile Include="Symbols\Source\SourceMemberFieldSymbol.vb" />
     <Compile Include="Symbols\Source\SourceMemberMethodSymbol.vb" />
@@ -788,6 +791,7 @@
     <Compile Include="Symbols\Source\SynthesizedEventAccessorSymbol.vb" />
     <Compile Include="Symbols\Source\SynthesizedEventBackingFieldSymbol.vb" />
     <Compile Include="Symbols\Source\SynthesizedFieldSymbol.vb" />
+    <Compile Include="Symbols\Source\SynthesizedLambdaKind.vb" />
     <Compile Include="Symbols\Source\SynthesizedLambdaSymbol.vb" />
     <Compile Include="Symbols\Source\SynthesizedMainTypeEntryPoint.vb" />
     <Compile Include="Symbols\Source\SynthesizedMyGroupCollectionPropertyAccessorSymbol.vb" />
@@ -1005,6 +1009,7 @@
   <Import Project="..\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
+    <Import Project="..\..\..\..\..\Closed\Tools\Source\Microsoft.CodeAnalysis.Toolset\Targets\VSL.Imports.Closed.targets" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

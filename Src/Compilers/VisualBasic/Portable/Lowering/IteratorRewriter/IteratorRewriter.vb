@@ -42,6 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Overloads Shared Function Rewrite(body As BoundBlock,
                                                  method As MethodSymbol,
+                                                 methodOrdinal As Integer,
                                                  slotAllocatorOpt As VariableSlotAllocator,
                                                  compilationState As TypeCompilationState,
                                                  diagnostics As DiagnosticBag,
@@ -64,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 elementType = DirectCast(methodReturnType, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics(0)
             End If
 
-            stateMachineType = New IteratorStateMachine(slotAllocatorOpt, method, elementType, isEnumerable)
+            stateMachineType = New IteratorStateMachine(slotAllocatorOpt, compilationState, method, methodOrdinal, elementType, isEnumerable)
 
             If compilationState.ModuleBuilderOpt IsNot Nothing Then
                 compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType)

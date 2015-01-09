@@ -301,8 +301,8 @@ End Module
 
             Assert.True(x16.IsAnonymousType)
             Assert.Equal("Function <generated method>(ByRef Pp1 As System.Int64) As System.Int64", x16.ToTestDisplayString())
-            Assert.Equal(MethodKind.Constructor, x16.GetMember(Of MethodSymbol)(".ctor").MethodKind)
-            Assert.Equal("Sub <generated method>..ctor(TargetObject As System.Object, TargetMethod As System.IntPtr)", x16.GetMember(".ctor").ToTestDisplayString())
+            Assert.Equal(MethodKind.Constructor, x16.GetMethod(".ctor").MethodKind)
+            Assert.Equal("Sub <generated method>..ctor(TargetObject As System.Object, TargetMethod As System.IntPtr)", x16.GetMethod(".ctor").ToTestDisplayString())
             Assert.Equal(MethodKind.DelegateInvoke, x16.GetMember(Of MethodSymbol)("Invoke").MethodKind)
             Assert.Equal("Function <generated method>.Invoke(ByRef Pp1 As System.Int64) As System.Int64", x16.GetMember("Invoke").ToTestDisplayString())
             Assert.Equal(MethodKind.Ordinary, x16.GetMember(Of MethodSymbol)("BeginInvoke").MethodKind)
@@ -315,7 +315,7 @@ End Module
 
             Assert.True(x15.IsAnonymousType)
             Assert.Equal("Function <generated method>(ByRef Pp1 As System.Int64) As System.Int64", x15.ToTestDisplayString())
-            Assert.Equal("Sub <generated method>..ctor(TargetObject As System.Object, TargetMethod As System.IntPtr)", x15.GetMember(".ctor").ToTestDisplayString())
+            Assert.Equal("Sub <generated method>..ctor(TargetObject As System.Object, TargetMethod As System.IntPtr)", x15.GetMethod(".ctor").ToTestDisplayString())
             Assert.Equal("Function <generated method>.Invoke(ByRef Pp1 As System.Int64) As System.Int64", x15.GetMember("Invoke").ToTestDisplayString())
             Assert.Equal("Function <generated method>.BeginInvoke(ByRef Pp1 As System.Int64, DelegateCallback As System.AsyncCallback, DelegateAsyncState As System.Object) As System.IAsyncResult", x15.GetMember("BeginInvoke").ToTestDisplayString())
             Assert.Equal("Function <generated method>.EndInvoke(ByRef Pp1 As System.Int64, DelegateAsyncResult As System.IAsyncResult) As System.Int64", x15.GetMember("EndInvoke").ToTestDisplayString())
@@ -391,7 +391,7 @@ End Module
 
             Assert.True(x2.IsAnonymousType)
             Assert.Equal("Sub <generated method>()", x2.ToTestDisplayString())
-            Assert.Equal("Sub <generated method>..ctor(TargetObject As System.Object, TargetMethod As System.IntPtr)", x2.GetMember(".ctor").ToTestDisplayString())
+            Assert.Equal("Sub <generated method>..ctor(TargetObject As System.Object, TargetMethod As System.IntPtr)", x2.GetMethod(".ctor").ToTestDisplayString())
             Assert.Equal("Sub <generated method>.Invoke()", x2.GetMember("Invoke").ToTestDisplayString())
             Assert.True(x2.IsDefinition)
             Assert.False(x2.IsGenericType)

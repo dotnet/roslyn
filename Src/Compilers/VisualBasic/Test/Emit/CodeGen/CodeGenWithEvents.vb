@@ -235,15 +235,15 @@ End Class
   IL_0000:  ldarg.0
   IL_0001:  call       "Sub Object..ctor()"
   IL_0006:  ldarg.0
-  IL_0007:  ldsfld     "Program._Closure$__1._ClosureCache$__3 As Program.E1EventHandler"
+  IL_0007:  ldsfld     "Program._Closure$__.$IR6-1 As Program.E1EventHandler"
   IL_000c:  brfalse.s  IL_0015
-  IL_000e:  ldsfld     "Program._Closure$__1._ClosureCache$__3 As Program.E1EventHandler"
+  IL_000e:  ldsfld     "Program._Closure$__.$IR6-1 As Program.E1EventHandler"
   IL_0013:  br.s       IL_002b
-  IL_0015:  ldsfld     "Program._Closure$__1.$I As Program._Closure$__1"
-  IL_001a:  ldftn      "Sub Program._Closure$__1._Lambda$__2(Integer)"
+  IL_0015:  ldsfld     "Program._Closure$__.$I As Program._Closure$__"
+  IL_001a:  ldftn      "Sub Program._Closure$__._Lambda$__R6-1(Integer)"
   IL_0020:  newobj     "Sub Program.E1EventHandler..ctor(Object, System.IntPtr)"
   IL_0025:  dup
-  IL_0026:  stsfld     "Program._Closure$__1._ClosureCache$__3 As Program.E1EventHandler"
+  IL_0026:  stsfld     "Program._Closure$__.$IR6-1 As Program.E1EventHandler"
   IL_002b:  call       "Sub Program.add_E1(Program.E1EventHandler)"
   IL_0030:  ret
 }
@@ -254,15 +254,15 @@ End Class
   IL_0000:  ldarg.0
   IL_0001:  call       "Sub Object..ctor()"
   IL_0006:  ldarg.0
-  IL_0007:  ldsfld     "Program._Closure$__1._ClosureCache$__5 As Program.E1EventHandler"
+  IL_0007:  ldsfld     "Program._Closure$__.$IR7-2 As Program.E1EventHandler"
   IL_000c:  brfalse.s  IL_0015
-  IL_000e:  ldsfld     "Program._Closure$__1._ClosureCache$__5 As Program.E1EventHandler"
+  IL_000e:  ldsfld     "Program._Closure$__.$IR7-2 As Program.E1EventHandler"
   IL_0013:  br.s       IL_002b
-  IL_0015:  ldsfld     "Program._Closure$__1.$I As Program._Closure$__1"
-  IL_001a:  ldftn      "Sub Program._Closure$__1._Lambda$__4(Integer)"
+  IL_0015:  ldsfld     "Program._Closure$__.$I As Program._Closure$__"
+  IL_001a:  ldftn      "Sub Program._Closure$__._Lambda$__R7-2(Integer)"
   IL_0020:  newobj     "Sub Program.E1EventHandler..ctor(Object, System.IntPtr)"
   IL_0025:  dup
-  IL_0026:  stsfld     "Program._Closure$__1._ClosureCache$__5 As Program.E1EventHandler"
+  IL_0026:  stsfld     "Program._Closure$__.$IR7-2 As Program.E1EventHandler"
   IL_002b:  call       "Sub Program.add_E1(Program.E1EventHandler)"
   IL_0030:  ret
 }
@@ -319,19 +319,19 @@ handled2
   IL_0000:  ldarg.0
   IL_0001:  call       "Sub base..ctor()"
   IL_0006:  ldarg.0
-  IL_0007:  ldftn      "Sub Program._Lambda$__1(Integer)"
+  IL_0007:  ldftn      "Sub Program._Lambda$__R0-1(Integer)"
   IL_000d:  newobj     "Sub Program.E1EventHandler..ctor(Object, System.IntPtr)"
   IL_0012:  call       "Sub Program.add_E1(Program.E1EventHandler)"
   IL_0017:  ldarg.0
-  IL_0018:  ldsfld     "Program._Closure$__2._ClosureCache$__4 As base.E2EventHandler"
+  IL_0018:  ldsfld     "Program._Closure$__.$IR0-2 As base.E2EventHandler"
   IL_001d:  brfalse.s  IL_0026
-  IL_001f:  ldsfld     "Program._Closure$__2._ClosureCache$__4 As base.E2EventHandler"
+  IL_001f:  ldsfld     "Program._Closure$__.$IR0-2 As base.E2EventHandler"
   IL_0024:  br.s       IL_003c
-  IL_0026:  ldsfld     "Program._Closure$__2.$I As Program._Closure$__2"
-  IL_002b:  ldftn      "Sub Program._Closure$__2._Lambda$__3(ByRef Integer)"
+  IL_0026:  ldsfld     "Program._Closure$__.$I As Program._Closure$__"
+  IL_002b:  ldftn      "Sub Program._Closure$__._Lambda$__R0-2(ByRef Integer)"
   IL_0031:  newobj     "Sub base.E2EventHandler..ctor(Object, System.IntPtr)"
   IL_0036:  dup
-  IL_0037:  stsfld     "Program._Closure$__2._ClosureCache$__4 As base.E2EventHandler"
+  IL_0037:  stsfld     "Program._Closure$__.$IR0-2 As base.E2EventHandler"
   IL_003c:  call       "Sub base.add_E2(base.E2EventHandler)"
   IL_0041:  ret
 }
@@ -389,7 +389,7 @@ handled1
   IL_0000:  ldarg.0
   IL_0001:  call       "Sub base..ctor()"
   IL_0006:  ldarg.0
-  IL_0007:  ldftn      "Sub Program._Lambda$__3(Integer)"
+  IL_0007:  ldftn      "Sub Program._Lambda$__R1-2(Integer)"
   IL_000d:  newobj     "Sub Program.E1EventHandler..ctor(Object, System.IntPtr)"
   IL_0012:  call       "Sub Program.add_E1(Program.E1EventHandler)"
   IL_0017:  ret
@@ -616,32 +616,32 @@ handledS
                 cls1.E1EventHandler V_3,
                 cls1 V_4)
   IL_0000:  ldarg.0
-  IL_0001:  ldftn      "Sub cls2._Lambda$__1(Integer)"
+  IL_0001:  ldftn      "Sub cls2._Lambda$__R0-1(Integer)"
   IL_0007:  newobj     "Sub cls1.E1EventHandler..ctor(Object, System.IntPtr)"
   IL_000c:  stloc.0
   IL_000d:  ldarg.0
-  IL_000e:  ldftn      "Sub cls2._Lambda$__2(Integer)"
+  IL_000e:  ldftn      "Sub cls2._Lambda$__R0-2(Integer)"
   IL_0014:  newobj     "Sub cls1.E1EventHandler..ctor(Object, System.IntPtr)"
   IL_0019:  stloc.1
-  IL_001a:  ldsfld     "cls2._Closure$__3._ClosureCache$__5 As cls1.E1EventHandler"
+  IL_001a:  ldsfld     "cls2._Closure$__.$IR0-3 As cls1.E1EventHandler"
   IL_001f:  brfalse.s  IL_0028
-  IL_0021:  ldsfld     "cls2._Closure$__3._ClosureCache$__5 As cls1.E1EventHandler"
+  IL_0021:  ldsfld     "cls2._Closure$__.$IR0-3 As cls1.E1EventHandler"
   IL_0026:  br.s       IL_003e
-  IL_0028:  ldsfld     "cls2._Closure$__3.$I As cls2._Closure$__3"
-  IL_002d:  ldftn      "Sub cls2._Closure$__3._Lambda$__4(Integer)"
+  IL_0028:  ldsfld     "cls2._Closure$__.$I As cls2._Closure$__"
+  IL_002d:  ldftn      "Sub cls2._Closure$__._Lambda$__R0-3(Integer)"
   IL_0033:  newobj     "Sub cls1.E1EventHandler..ctor(Object, System.IntPtr)"
   IL_0038:  dup
-  IL_0039:  stsfld     "cls2._Closure$__3._ClosureCache$__5 As cls1.E1EventHandler"
+  IL_0039:  stsfld     "cls2._Closure$__.$IR0-3 As cls1.E1EventHandler"
   IL_003e:  stloc.2
-  IL_003f:  ldsfld     "cls2._Closure$__3._ClosureCache$__7 As cls1.E1EventHandler"
+  IL_003f:  ldsfld     "cls2._Closure$__.$IR0-4 As cls1.E1EventHandler"
   IL_0044:  brfalse.s  IL_004d
-  IL_0046:  ldsfld     "cls2._Closure$__3._ClosureCache$__7 As cls1.E1EventHandler"
+  IL_0046:  ldsfld     "cls2._Closure$__.$IR0-4 As cls1.E1EventHandler"
   IL_004b:  br.s       IL_0063
-  IL_004d:  ldsfld     "cls2._Closure$__3.$I As cls2._Closure$__3"
-  IL_0052:  ldftn      "Sub cls2._Closure$__3._Lambda$__6(Integer)"
+  IL_004d:  ldsfld     "cls2._Closure$__.$I As cls2._Closure$__"
+  IL_0052:  ldftn      "Sub cls2._Closure$__._Lambda$__R0-4(Integer)"
   IL_0058:  newobj     "Sub cls1.E1EventHandler..ctor(Object, System.IntPtr)"
   IL_005d:  dup
-  IL_005e:  stsfld     "cls2._Closure$__3._ClosureCache$__7 As cls1.E1EventHandler"
+  IL_005e:  stsfld     "cls2._Closure$__.$IR0-4 As cls1.E1EventHandler"
   IL_0063:  stloc.3
   IL_0064:  ldarg.0
   IL_0065:  call       "Function base.get_w() As cls1"
@@ -753,19 +753,19 @@ handled
   cls1.E1EventHandler V_3,
   cls1 V_4)
   IL_0000:  ldarg.0
-  IL_0001:  ldftn      "Sub cls2._Lambda$__1(Integer)"
+  IL_0001:  ldftn      "Sub cls2._Lambda$__R0-1(Integer)"
   IL_0007:  newobj     "Sub cls1.E1EventHandler..ctor(Object, System.IntPtr)"
   IL_000c:  stloc.0
   IL_000d:  ldarg.0
-  IL_000e:  ldftn      "Sub cls2._Lambda$__2(Integer)"
+  IL_000e:  ldftn      "Sub cls2._Lambda$__R0-2(Integer)"
   IL_0014:  newobj     "Sub cls1.E1EventHandler..ctor(Object, System.IntPtr)"
   IL_0019:  stloc.1
   IL_001a:  ldarg.0
-  IL_001b:  ldftn      "Sub cls2._Lambda$__3(Integer)"
+  IL_001b:  ldftn      "Sub cls2._Lambda$__R0-3(Integer)"
   IL_0021:  newobj     "Sub cls1.E1EventHandler..ctor(Object, System.IntPtr)"
   IL_0026:  stloc.2
   IL_0027:  ldarg.0
-  IL_0028:  ldftn      "Sub cls2._Lambda$__4(Integer)"
+  IL_0028:  ldftn      "Sub cls2._Lambda$__R0-4(Integer)"
   IL_002e:  newobj     "Sub cls1.E1EventHandler..ctor(Object, System.IntPtr)"
   IL_0033:  stloc.3
   IL_0034:  ldarg.0
@@ -1911,6 +1911,92 @@ End Module]]>,
                 Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo", "ev"),
                 Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo", "ev"),
                 Diagnostic(ERRID.ERR_EventHandlerSignatureIncompatible2, "ev").WithArguments("Foo", "ev"))
+        End Sub
+
+        <Fact>
+        Public Sub DelegateRelaxationStubsUniqueNaming1()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Class WE
+    Event V As Action(Of Integer, Integer)
+    Event W As Action(Of Long, Long)
+End Class
+
+Class B
+    Public WithEvents A3 As WE
+End Class
+
+Class D
+    Inherits B
+
+    Public WithEvents A1 As WE
+    Public WithEvents A2 As WE
+End Class
+
+Class E
+    Inherits D
+
+    Sub G(z1 As Double, z2 As Double) Handles A1.V, A3.W
+        Console.WriteLine(z1 + z2)
+    End Sub
+
+    Sub G(z1 As Double, z2 As Integer) Handles A1.V, A3.W
+        Console.WriteLine(z1 + z2)
+    End Sub
+
+    Sub G(z1 As Integer, z2 As Double) Handles A2.V, A3.W, A1.V
+        Console.WriteLine(z1 + z2)
+    End Sub
+
+    Sub G(z1 As Byte, z2 As Integer) Handles A2.V, A3.W, A1.V
+        Console.WriteLine(z1 + z2)
+    End Sub
+
+    Sub F(z1 As Byte, z2 As Integer) Handles A2.V, A3.W, A1.V
+        Console.WriteLine(z1 + z2)
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            CompileAndVerify(source)
+        End Sub
+
+        <Fact>
+        Public Sub DelegateRelaxationStubsUniqueNaming2()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Class WE
+    Public Event V1 As Action(Of Integer)
+    Public Event V2 As Action(Of Integer)
+End Class
+
+Class B
+    Public WithEvents we As WE = New WE
+    
+    Public Event W1 As Action(Of Integer)
+    Public Event W2 As Action(Of Integer)
+End Class
+
+Class C 
+    Inherits B
+
+    Public Event U1 As Action(Of Integer)
+    Public Event U2 As Action(Of Integer)
+    
+    Sub F() Handles we.V1, we.V2, MyBase.W1, MyBase.W2, Me.U1, Me.U2   
+    End Sub
+End Class
+    </file>
+</compilation>
+
+            CompileAndVerify(source)
         End Sub
     End Class
 End Namespace

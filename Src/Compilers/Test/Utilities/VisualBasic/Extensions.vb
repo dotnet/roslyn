@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -45,32 +46,58 @@ Module Extensions
     End Function
 
     <Extension>
-    Public Function GetMembers(comp As Compilation, name As String) As ImmutableArray(Of Symbol)
-        Return GetMembers(DirectCast(comp, VisualBasicCompilation).GlobalNamespace, name)
+    Public Function GetMembers(comp As Compilation, qualifiedName As String) As ImmutableArray(Of Symbol)
+        Dim lastContainer As NamespaceOrTypeSymbol = Nothing
+        Return GetMembers(DirectCast(comp, VisualBasicCompilation).GlobalNamespace, qualifiedName, lastContainer)
     End Function
 
-    Private Function GetMembers([namespace] As NamespaceSymbol, qualifiedName As String) As ImmutableArray(Of Symbol)
+    Private Function GetMembers(container As NamespaceOrTypeSymbol, qualifiedName As String, <Out> ByRef lastContainer As NamespaceOrTypeSymbol) As ImmutableArray(Of Symbol)
         Dim parts = SplitMemberName(qualifiedName)
-        Dim symbol As NamespaceOrTypeSymbol = [namespace]
+
+        lastContainer = container
         For i = 0 To parts.Length - 2
-            symbol = DirectCast(symbol.GetMember(parts(i)), NamespaceOrTypeSymbol)
+            lastContainer = DirectCast(lastContainer.GetMember(parts(i)), NamespaceOrTypeSymbol)
         Next
-        Return symbol.GetMembers(parts(parts.Length - 1))
+
+        Return lastContainer.GetMembers(parts(parts.Length - 1))
     End Function
 
     <Extension>
-    Public Function GetMember([namespace] As NamespaceSymbol, qualifiedName As String) As Symbol
-        Return GetMembers([namespace], qualifiedName).Single()
+    Public Function GetMember(container As NamespaceOrTypeSymbol, qualifiedName As String) As Symbol
+        Dim lastContainer As NamespaceOrTypeSymbol = Nothing
+        Dim members = GetMembers(container, qualifiedName, lastContainer)
+        If members.Length = 0 Then
+            Assert.True(False, "Available members:" & vbCrLf + String.Join(vbCrLf, lastContainer.GetMembers()))
+        ElseIf members.Length > 1 Then
+            Assert.True(False, "Found multiple members of specified name:" & vbCrLf + String.Join(vbCrLf, members))
+        End If
+
+        Return members.Single()
     End Function
 
     <Extension>
-    Public Function GetMember(symbol As NamespaceOrTypeSymbol, name As String) As Symbol
-        Return symbol.GetMembers(name).Single()
+    Public Function GetMember(Of T As Symbol)(container As NamespaceOrTypeSymbol, qualifiedName As String) As T
+        Return DirectCast(container.GetMember(qualifiedName), T)
     End Function
 
     <Extension>
-    Public Function GetMember(Of T As Symbol)(symbol As NamespaceOrTypeSymbol, name As String) As T
-        Return DirectCast(symbol.GetMember(name), T)
+    Public Function GetProperty(symbol As TypeSymbol, name As String) As PropertySymbol
+        Return DirectCast(symbol.GetMembers(name).Single(), PropertySymbol)
+    End Function
+
+    <Extension>
+    Public Function GetEvent(symbol As TypeSymbol, name As String) As EventSymbol
+        Return DirectCast(symbol.GetMembers(name).Single(), EventSymbol)
+    End Function
+
+    <Extension>
+    Public Function GetMethod(symbol As TypeSymbol, name As String) As MethodSymbol
+        Return DirectCast(symbol.GetMembers(name).Single(), MethodSymbol)
+    End Function
+
+    <Extension>
+    Public Function GetField(symbol As TypeSymbol, name As String) As FieldSymbol
+        Return DirectCast(symbol.GetMembers(name).Single(), FieldSymbol)
     End Function
 
     <Extension>

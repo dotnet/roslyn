@@ -503,15 +503,15 @@ Class Async
     End Function
 End Class
 ]]>
-            Dim padding = GeneratedNames.MakeStateMachineTypeName(1, "A").Length - 1
+            Dim padding = GeneratedNames.MakeStateMachineTypeName("A", 1, 0).Length - 1
             Dim longName = LongSymbolName.Substring(padding)
             Dim longSquiggle As New String("~"c, longName.Length)
             Dim source = Format(sourceTemplate, longName)
             Dim comp = CreateCompilationWithMscorlib45(source)
             comp.AssertNoDiagnostics()
             comp.AssertTheseEmitDiagnostics(<errors>
-BC37220: Name 'VB$StateMachine_1_<%= longName %>1' exceeds the maximum length allowed in metadata.
-BC37220: Name 'VB$StateMachine_1_<%= longName %>1' exceeds the maximum length allowed in metadata.
+BC37220: Name 'VB$StateMachine_2_<%= longName %>1' exceeds the maximum length allowed in metadata.
+BC37220: Name 'VB$StateMachine_2_<%= longName %>1' exceeds the maximum length allowed in metadata.
                                             </errors>)
         End Sub
 

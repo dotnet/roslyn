@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _resultType As TypeSymbol
 
         Private _builderField As FieldSymbol
-        Private _lastExpressionCaptureNumber As Integer = 0
+        Private _lastExpressionCaptureNumber As Integer
 
         Public Sub New(body As BoundStatement,
                        method As MethodSymbol,
@@ -65,6 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Friend Overloads Shared Function Rewrite(body As BoundBlock,
                                                  method As MethodSymbol,
+                                                 methodOrdinal As Integer,
                                                  slotAllocatorOpt As VariableSlotAllocator,
                                                  compilationState As TypeCompilationState,
                                                  diagnostics As DiagnosticBag,
@@ -82,7 +83,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' The CLR doesn't support adding fields to structs, so in order to enable EnC in an async method we need to generate a class.
             Dim kind = If(compilationState.Compilation.Options.EnableEditAndContinue, TypeKind.Class, TypeKind.Struct)
 
-            stateMachineType = New AsyncStateMachine(slotAllocatorOpt, method, kind)
+            stateMachineType = New AsyncStateMachine(slotAllocatorOpt, compilationState, method, methodOrdinal, kind)
 
             If compilationState.ModuleBuilderOpt IsNot Nothing Then
                 compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType)

@@ -1,13 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.IO
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.SpecialType
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.OverloadResolution
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Imports Roslyn.Test.Utilities
@@ -70,15 +63,15 @@ End Module
   // Code size       67 (0x43)
   .maxstack  2
   .locals init (VB$AnonymousDelegate_0(Of System.Collections.Generic.IEnumerable(Of Integer)) V_0)
-  IL_0000:  ldsfld     "Program._Closure$__1._ClosureCache$__3 As <generated method>"
+  IL_0000:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "Program._Closure$__1._ClosureCache$__3 As <generated method>"
+  IL_0007:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "Program._Closure$__1.$I As Program._Closure$__1"
-  IL_0013:  ldftn      "Sub Program._Closure$__1._Lambda$__2(System.Collections.Generic.IEnumerable(Of Integer))"
+  IL_000e:  ldsfld     "Program._Closure$__.$I As Program._Closure$__"
+  IL_0013:  ldftn      "Sub Program._Closure$__._Lambda$__0-1(System.Collections.Generic.IEnumerable(Of Integer))"
   IL_0019:  newobj     "Sub VB$AnonymousDelegate_0(Of System.Collections.Generic.IEnumerable(Of Integer))..ctor(Object, System.IntPtr)"
   IL_001e:  dup
-  IL_001f:  stsfld     "Program._Closure$__1._ClosureCache$__3 As <generated method>"
+  IL_001f:  stsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0024:  stloc.0
   IL_0025:  ldloc.0
   IL_0026:  brfalse.s  IL_0036
@@ -94,7 +87,7 @@ End Module
 }
 ]]>)
 
-                verifier.VerifyIL("Program._Closure$__1._Lambda$__2",
+                verifier.VerifyIL("Program._Closure$__._Lambda$__0-1",
                 <![CDATA[
 {
   // Code size        7 (0x7)
@@ -218,15 +211,15 @@ End Module
   // Code size       67 (0x43)
   .maxstack  2
   .locals init (VB$AnonymousDelegate_0(Of System.Collections.Generic.IEnumerable(Of Integer)) V_0)
-  IL_0000:  ldsfld     "Program._Closure$__1._ClosureCache$__3 As <generated method>"
+  IL_0000:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "Program._Closure$__1._ClosureCache$__3 As <generated method>"
+  IL_0007:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "Program._Closure$__1.$I As Program._Closure$__1"
-  IL_0013:  ldftn      "Sub Program._Closure$__1._Lambda$__2(System.Collections.Generic.IEnumerable(Of Integer))"
+  IL_000e:  ldsfld     "Program._Closure$__.$I As Program._Closure$__"
+  IL_0013:  ldftn      "Sub Program._Closure$__._Lambda$__0-1(System.Collections.Generic.IEnumerable(Of Integer))"
   IL_0019:  newobj     "Sub VB$AnonymousDelegate_0(Of System.Collections.Generic.IEnumerable(Of Integer))..ctor(Object, System.IntPtr)"
   IL_001e:  dup
-  IL_001f:  stsfld     "Program._Closure$__1._ClosureCache$__3 As <generated method>"
+  IL_001f:  stsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0024:  stloc.0
   IL_0025:  ldloc.0
   IL_0026:  brfalse.s  IL_0036
@@ -242,7 +235,7 @@ End Module
 }
 ]]>)
 
-                verifier.VerifyIL("Program._Closure$__1._Lambda$__2",
+                verifier.VerifyIL("Program._Closure$__._Lambda$__0-1",
                 <![CDATA[
 {
   // Code size        7 (0x7)
@@ -303,23 +296,23 @@ End Module
   // Code size       73 (0x49)
   .maxstack  3
   .locals init (VB$AnonymousDelegate_0(Of Object) V_0)
-  IL_0000:  ldsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_0000:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_0007:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "Program._Closure$__2.$I As Program._Closure$__2"
-  IL_0013:  ldftn      "Sub Program._Closure$__2._Lambda$__3(Object)"
+  IL_000e:  ldsfld     "Program._Closure$__.$I As Program._Closure$__"
+  IL_0013:  ldftn      "Sub Program._Closure$__._Lambda$__0-1(Object)"
   IL_0019:  newobj     "Sub VB$AnonymousDelegate_0(Of Object)..ctor(Object, System.IntPtr)"
   IL_001e:  dup
-  IL_001f:  stsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_001f:  stsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0024:  stloc.0
   IL_0025:  ldloc.0
   IL_0026:  brfalse.s  IL_0041
-  IL_0028:  newobj     "Sub Program._Closure$__1..ctor()"
+  IL_0028:  newobj     "Sub Program._Closure$__R0-0..ctor()"
   IL_002d:  dup
   IL_002e:  ldloc.0
-  IL_002f:  stfld      "Program._Closure$__1.$VB$NonLocal_2 As <generated method>"
-  IL_0034:  ldftn      "Sub Program._Closure$__1._Lambda$__5(Integer)"
+  IL_002f:  stfld      "Program._Closure$__R0-0.$VB$NonLocal_2 As <generated method>"
+  IL_0034:  ldftn      "Sub Program._Closure$__R0-0._Lambda$__R2(Integer)"
   IL_003a:  newobj     "Sub System.Action(Of Integer)..ctor(Object, System.IntPtr)"
   IL_003f:  br.s       IL_0042
   IL_0041:  ldnull
@@ -329,7 +322,7 @@ End Module
 }
 ]]>)
 
-            verifier.VerifyIL("Program._Closure$__2._Lambda$__3",
+            verifier.VerifyIL("Program._Closure$__._Lambda$__0-1",
             <![CDATA[
 {
   // Code size       12 (0xc)
@@ -341,13 +334,13 @@ End Module
 }
 ]]>)
 
-            verifier.VerifyIL("Program._Closure$__1._Lambda$__5",
+            verifier.VerifyIL("Program._Closure$__R0-0._Lambda$__R2",
             <![CDATA[
 {
   // Code size       18 (0x12)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "Program._Closure$__1.$VB$NonLocal_2 As <generated method>"
+  IL_0001:  ldfld      "Program._Closure$__R0-0.$VB$NonLocal_2 As <generated method>"
   IL_0006:  ldarg.1
   IL_0007:  box        "Integer"
   IL_000c:  callvirt   "Sub VB$AnonymousDelegate_0(Of Object).Invoke(Object)"
@@ -452,23 +445,23 @@ End Module
   // Code size       78 (0x4e)
   .maxstack  3
   .locals init (VB$AnonymousDelegate_0(Of Integer) V_0)
-  IL_0000:  ldsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_0000:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_0007:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "Program._Closure$__2.$I As Program._Closure$__2"
-  IL_0013:  ldftn      "Sub Program._Closure$__2._Lambda$__3(Integer)"
+  IL_000e:  ldsfld     "Program._Closure$__.$I As Program._Closure$__"
+  IL_0013:  ldftn      "Sub Program._Closure$__._Lambda$__0-1(Integer)"
   IL_0019:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_001e:  dup
-  IL_001f:  stsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_001f:  stsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0024:  stloc.0
   IL_0025:  ldloc.0
   IL_0026:  brfalse.s  IL_0041
-  IL_0028:  newobj     "Sub Program._Closure$__1..ctor()"
+  IL_0028:  newobj     "Sub Program._Closure$__R0-0..ctor()"
   IL_002d:  dup
   IL_002e:  ldloc.0
-  IL_002f:  stfld      "Program._Closure$__1.$VB$NonLocal_2 As <generated method>"
-  IL_0034:  ldftn      "Sub Program._Closure$__1._Lambda$__5(Object)"
+  IL_002f:  stfld      "Program._Closure$__R0-0.$VB$NonLocal_2 As <generated method>"
+  IL_0034:  ldftn      "Sub Program._Closure$__R0-0._Lambda$__R2(Object)"
   IL_003a:  newobj     "Sub System.Action(Of Object)..ctor(Object, System.IntPtr)"
   IL_003f:  br.s       IL_0042
   IL_0041:  ldnull
@@ -479,7 +472,7 @@ End Module
 }
 ]]>)
 
-            verifier.VerifyIL("Program._Closure$__2._Lambda$__3",
+            verifier.VerifyIL("Program._Closure$__._Lambda$__0-1",
             <![CDATA[
 {
   // Code size        7 (0x7)
@@ -490,13 +483,13 @@ End Module
 }
 ]]>)
 
-            verifier.VerifyIL("Program._Closure$__1._Lambda$__5",
+            verifier.VerifyIL("Program._Closure$__R0-0._Lambda$__R2",
             <![CDATA[
 {
   // Code size       18 (0x12)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "Program._Closure$__1.$VB$NonLocal_2 As <generated method>"
+  IL_0001:  ldfld      "Program._Closure$__R0-0.$VB$NonLocal_2 As <generated method>"
   IL_0006:  ldarg.1
   IL_0007:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(Object) As Integer"
   IL_000c:  callvirt   "Sub VB$AnonymousDelegate_0(Of Integer).Invoke(Integer)"
@@ -598,23 +591,23 @@ End Module
   // Code size       78 (0x4e)
   .maxstack  3
   .locals init (VB$AnonymousDelegate_0(Of Integer) V_0)
-  IL_0000:  ldsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_0000:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_0007:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "Program._Closure$__2.$I As Program._Closure$__2"
-  IL_0013:  ldftn      "Sub Program._Closure$__2._Lambda$__3(Integer)"
+  IL_000e:  ldsfld     "Program._Closure$__.$I As Program._Closure$__"
+  IL_0013:  ldftn      "Sub Program._Closure$__._Lambda$__0-1(Integer)"
   IL_0019:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_001e:  dup
-  IL_001f:  stsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_001f:  stsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0024:  stloc.0
   IL_0025:  ldloc.0
   IL_0026:  brfalse.s  IL_0041
-  IL_0028:  newobj     "Sub Program._Closure$__1..ctor()"
+  IL_0028:  newobj     "Sub Program._Closure$__R0-0..ctor()"
   IL_002d:  dup
   IL_002e:  ldloc.0
-  IL_002f:  stfld      "Program._Closure$__1.$VB$NonLocal_2 As <generated method>"
-  IL_0034:  ldftn      "Sub Program._Closure$__1._Lambda$__5(Object)"
+  IL_002f:  stfld      "Program._Closure$__R0-0.$VB$NonLocal_2 As <generated method>"
+  IL_0034:  ldftn      "Sub Program._Closure$__R0-0._Lambda$__R2(Object)"
   IL_003a:  newobj     "Sub System.Action(Of Object)..ctor(Object, System.IntPtr)"
   IL_003f:  br.s       IL_0042
   IL_0041:  ldnull
@@ -625,7 +618,7 @@ End Module
 }
 ]]>)
 
-                verifier.VerifyIL("Program._Closure$__2._Lambda$__3",
+                verifier.VerifyIL("Program._Closure$__._Lambda$__0-1",
                 <![CDATA[
 {
     // Code size        7 (0x7)
@@ -636,13 +629,13 @@ End Module
 }
 ]]>)
 
-                verifier.VerifyIL("Program._Closure$__1._Lambda$__5",
+                verifier.VerifyIL("Program._Closure$__R0-0._Lambda$__R2",
                 <![CDATA[
 {
     // Code size       18 (0x12)
     .maxstack  2
     IL_0000:  ldarg.0
-    IL_0001:  ldfld      "Program._Closure$__1.$VB$NonLocal_2 As <generated method>"
+    IL_0001:  ldfld      "Program._Closure$__R0-0.$VB$NonLocal_2 As <generated method>"
     IL_0006:  ldarg.1
     IL_0007:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(Object) As Integer"
   IL_000c:  callvirt   "Sub VB$AnonymousDelegate_0(Of Integer).Invoke(Integer)"
@@ -690,21 +683,21 @@ End Module
   // Code size       72 (0x48)
   .maxstack  3
   .locals init (VB$AnonymousDelegate_0(Of Integer) V_0) //d1
-  IL_0000:  ldsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_0000:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_0007:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "Program._Closure$__2.$I As Program._Closure$__2"
-  IL_0013:  ldftn      "Sub Program._Closure$__2._Lambda$__3(Integer)"
+  IL_000e:  ldsfld     "Program._Closure$__.$I As Program._Closure$__"
+  IL_0013:  ldftn      "Sub Program._Closure$__._Lambda$__0-1(Integer)"
   IL_0019:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_001e:  dup
-  IL_001f:  stsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_001f:  stsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0024:  stloc.0
-  IL_0025:  newobj     "Sub Program._Closure$__1..ctor()"
+  IL_0025:  newobj     "Sub Program._Closure$__R0-0..ctor()"
   IL_002a:  dup
   IL_002b:  ldloc.0
-  IL_002c:  stfld      "Program._Closure$__1.$VB$NonLocal_2 As <generated method>"
-  IL_0031:  ldftn      "Sub Program._Closure$__1._Lambda$__5(Object)"
+  IL_002c:  stfld      "Program._Closure$__R0-0.$VB$NonLocal_2 As <generated method>"
+  IL_0031:  ldftn      "Sub Program._Closure$__R0-0._Lambda$__R2(Object)"
   IL_0037:  newobj     "Sub System.Action(Of Object)..ctor(Object, System.IntPtr)"
   IL_003c:  ldc.i4.2
   IL_003d:  box        "Integer"
@@ -713,7 +706,7 @@ End Module
 }
 ]]>)
 
-                verifier.VerifyIL("Program._Closure$__2._Lambda$__3",
+                verifier.VerifyIL("Program._Closure$__._Lambda$__0-1",
                 <![CDATA[
 {
     // Code size        7 (0x7)
@@ -724,13 +717,13 @@ End Module
 }
 ]]>)
 
-                verifier.VerifyIL("Program._Closure$__1._Lambda$__5",
+                verifier.VerifyIL("Program._Closure$__R0-0._Lambda$__R2",
                 <![CDATA[
 {
     // Code size       18 (0x12)
     .maxstack  2
     IL_0000:  ldarg.0
-    IL_0001:  ldfld      "Program._Closure$__1.$VB$NonLocal_2 As <generated method>"
+    IL_0001:  ldfld      "Program._Closure$__R0-0.$VB$NonLocal_2 As <generated method>"
     IL_0006:  ldarg.1
     IL_0007:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(Object) As Integer"
   IL_000c:  callvirt   "Sub VB$AnonymousDelegate_0(Of Integer).Invoke(Integer)"
@@ -778,21 +771,21 @@ End Module
   // Code size       72 (0x48)
   .maxstack  3
   .locals init (VB$AnonymousDelegate_0(Of Integer) V_0) //d1
-  IL_0000:  ldsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_0000:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_0007:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "Program._Closure$__2.$I As Program._Closure$__2"
-  IL_0013:  ldftn      "Sub Program._Closure$__2._Lambda$__3(Integer)"
+  IL_000e:  ldsfld     "Program._Closure$__.$I As Program._Closure$__"
+  IL_0013:  ldftn      "Sub Program._Closure$__._Lambda$__0-1(Integer)"
   IL_0019:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_001e:  dup
-  IL_001f:  stsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_001f:  stsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0024:  stloc.0
-  IL_0025:  newobj     "Sub Program._Closure$__1..ctor()"
+  IL_0025:  newobj     "Sub Program._Closure$__R0-0..ctor()"
   IL_002a:  dup
   IL_002b:  ldloc.0
-  IL_002c:  stfld      "Program._Closure$__1.$VB$NonLocal_2 As <generated method>"
-  IL_0031:  ldftn      "Sub Program._Closure$__1._Lambda$__5(Object)"
+  IL_002c:  stfld      "Program._Closure$__R0-0.$VB$NonLocal_2 As <generated method>"
+  IL_0031:  ldftn      "Sub Program._Closure$__R0-0._Lambda$__R2(Object)"
   IL_0037:  newobj     "Sub System.Action(Of Object)..ctor(Object, System.IntPtr)"
   IL_003c:  ldc.i4.2
   IL_003d:  box        "Integer"
@@ -801,7 +794,7 @@ End Module
 }
 ]]>)
 
-                verifier.VerifyIL("Program._Closure$__2._Lambda$__3",
+                verifier.VerifyIL("Program._Closure$__._Lambda$__0-1",
                 <![CDATA[
 {
     // Code size        7 (0x7)
@@ -812,13 +805,13 @@ End Module
 }
 ]]>)
 
-                verifier.VerifyIL("Program._Closure$__1._Lambda$__5",
+                verifier.VerifyIL("Program._Closure$__R0-0._Lambda$__R2",
                 <![CDATA[
 {
     // Code size       18 (0x12)
     .maxstack  2
     IL_0000:  ldarg.0
-    IL_0001:  ldfld      "Program._Closure$__1.$VB$NonLocal_2 As <generated method>"
+    IL_0001:  ldfld      "Program._Closure$__R0-0.$VB$NonLocal_2 As <generated method>"
     IL_0006:  ldarg.1
     IL_0007:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(Object) As Integer"
   IL_000c:  callvirt   "Sub VB$AnonymousDelegate_0(Of Integer).Invoke(Integer)"
@@ -867,21 +860,21 @@ End Module
   // Code size       72 (0x48)
   .maxstack  3
   .locals init (VB$AnonymousDelegate_0(Of Integer) V_0) //d1
-  IL_0000:  ldsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_0000:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_0007:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "Program._Closure$__2.$I As Program._Closure$__2"
-  IL_0013:  ldftn      "Sub Program._Closure$__2._Lambda$__3(Integer)"
+  IL_000e:  ldsfld     "Program._Closure$__.$I As Program._Closure$__"
+  IL_0013:  ldftn      "Sub Program._Closure$__._Lambda$__0-1(Integer)"
   IL_0019:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_001e:  dup
-  IL_001f:  stsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_001f:  stsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0024:  stloc.0
-  IL_0025:  newobj     "Sub Program._Closure$__1..ctor()"
+  IL_0025:  newobj     "Sub Program._Closure$__R0-0..ctor()"
   IL_002a:  dup
   IL_002b:  ldloc.0
-  IL_002c:  stfld      "Program._Closure$__1.$VB$NonLocal_2 As <generated method>"
-  IL_0031:  ldftn      "Sub Program._Closure$__1._Lambda$__5(Object)"
+  IL_002c:  stfld      "Program._Closure$__R0-0.$VB$NonLocal_2 As <generated method>"
+  IL_0031:  ldftn      "Sub Program._Closure$__R0-0._Lambda$__R2(Object)"
   IL_0037:  newobj     "Sub System.Action(Of Object)..ctor(Object, System.IntPtr)"
   IL_003c:  ldc.i4.2
   IL_003d:  box        "Integer"
@@ -890,7 +883,7 @@ End Module
 }
 ]]>)
 
-                verifier.VerifyIL("Program._Closure$__2._Lambda$__3",
+                verifier.VerifyIL("Program._Closure$__._Lambda$__0-1",
                 <![CDATA[
 {
     // Code size        7 (0x7)
@@ -901,13 +894,13 @@ End Module
 }
 ]]>)
 
-                verifier.VerifyIL("Program._Closure$__1._Lambda$__5",
+                verifier.VerifyIL("Program._Closure$__R0-0._Lambda$__R2",
                 <![CDATA[
 {
     // Code size       18 (0x12)
     .maxstack  2
     IL_0000:  ldarg.0
-    IL_0001:  ldfld      "Program._Closure$__1.$VB$NonLocal_2 As <generated method>"
+    IL_0001:  ldfld      "Program._Closure$__R0-0.$VB$NonLocal_2 As <generated method>"
     IL_0006:  ldarg.1
     IL_0007:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(Object) As Integer"
   IL_000c:  callvirt   "Sub VB$AnonymousDelegate_0(Of Integer).Invoke(Integer)"
@@ -971,15 +964,15 @@ End Module
   // Code size       67 (0x43)
   .maxstack  2
   .locals init (VB$AnonymousDelegate_0(Of System.Collections.IEnumerable) V_0)
-  IL_0000:  ldsfld     "Program._Closure$__1._ClosureCache$__3 As <generated method>"
+  IL_0000:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "Program._Closure$__1._ClosureCache$__3 As <generated method>"
+  IL_0007:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "Program._Closure$__1.$I As Program._Closure$__1"
-  IL_0013:  ldftn      "Sub Program._Closure$__1._Lambda$__2(System.Collections.IEnumerable)"
+  IL_000e:  ldsfld     "Program._Closure$__.$I As Program._Closure$__"
+  IL_0013:  ldftn      "Sub Program._Closure$__._Lambda$__0-1(System.Collections.IEnumerable)"
   IL_0019:  newobj     "Sub VB$AnonymousDelegate_0(Of System.Collections.IEnumerable)..ctor(Object, System.IntPtr)"
   IL_001e:  dup
-  IL_001f:  stsfld     "Program._Closure$__1._ClosureCache$__3 As <generated method>"
+  IL_001f:  stsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0024:  stloc.0
   IL_0025:  ldloc.0
   IL_0026:  brfalse.s  IL_0036
@@ -995,7 +988,7 @@ End Module
 }
 ]]>)
 
-                verifier.VerifyIL("Program._Closure$__1._Lambda$__2",
+                verifier.VerifyIL("Program._Closure$__._Lambda$__0-1",
                 <![CDATA[
 {
   // Code size        7 (0x7)
@@ -1110,23 +1103,23 @@ End Module
   // Code size       72 (0x48)
   .maxstack  3
   .locals init (VB$AnonymousDelegate_0(Of Integer) V_0)
-  IL_0000:  ldsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_0000:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_0007:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "Program._Closure$__2.$I As Program._Closure$__2"
-  IL_0013:  ldftn      "Function Program._Closure$__2._Lambda$__3() As Integer"
+  IL_000e:  ldsfld     "Program._Closure$__.$I As Program._Closure$__"
+  IL_0013:  ldftn      "Function Program._Closure$__._Lambda$__0-1() As Integer"
   IL_0019:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_001e:  dup
-  IL_001f:  stsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_001f:  stsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0024:  stloc.0
   IL_0025:  ldloc.0
   IL_0026:  brfalse.s  IL_0041
-  IL_0028:  newobj     "Sub Program._Closure$__1..ctor()"
+  IL_0028:  newobj     "Sub Program._Closure$__R0-0..ctor()"
   IL_002d:  dup
   IL_002e:  ldloc.0
-  IL_002f:  stfld      "Program._Closure$__1.$VB$NonLocal_2 As <generated method>"
-  IL_0034:  ldftn      "Sub Program._Closure$__1._Lambda$__5()"
+  IL_002f:  stfld      "Program._Closure$__R0-0.$VB$NonLocal_2 As <generated method>"
+  IL_0034:  ldftn      "Sub Program._Closure$__R0-0._Lambda$__R2()"
   IL_003a:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
   IL_003f:  br.s       IL_0042
   IL_0041:  ldnull
@@ -1135,7 +1128,7 @@ End Module
 }
 ]]>)
 
-                verifier.VerifyIL("Program._Closure$__2._Lambda$__3",
+                verifier.VerifyIL("Program._Closure$__._Lambda$__0-1",
                 <![CDATA[
 {
   // Code size       12 (0xc)
@@ -1147,13 +1140,13 @@ End Module
 }
 ]]>)
 
-                verifier.VerifyIL("Program._Closure$__1._Lambda$__5",
+                verifier.VerifyIL("Program._Closure$__R0-0._Lambda$__R2",
                 <![CDATA[
 {
   // Code size       13 (0xd)
   .maxstack  1
   IL_0000:  ldarg.0   
-  IL_0001:  ldfld      "Program._Closure$__1.$VB$NonLocal_2 As <generated method>"
+  IL_0001:  ldfld      "Program._Closure$__R0-0.$VB$NonLocal_2 As <generated method>"
   IL_0006:  callvirt   "Function VB$AnonymousDelegate_0(Of Integer).Invoke() As Integer"
   IL_000b:  pop       
   IL_000c:  ret       
@@ -1260,23 +1253,23 @@ End Module
   // Code size       77 (0x4d)
   .maxstack  3
   .locals init (VB$AnonymousDelegate_0(Of Object) V_0)
-  IL_0000:  ldsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_0000:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_0007:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "Program._Closure$__2.$I As Program._Closure$__2"
-  IL_0013:  ldftn      "Function Program._Closure$__2._Lambda$__3() As Object"
+  IL_000e:  ldsfld     "Program._Closure$__.$I As Program._Closure$__"
+  IL_0013:  ldftn      "Function Program._Closure$__._Lambda$__0-1() As Object"
   IL_0019:  newobj     "Sub VB$AnonymousDelegate_0(Of Object)..ctor(Object, System.IntPtr)"
   IL_001e:  dup
-  IL_001f:  stsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_001f:  stsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0024:  stloc.0
   IL_0025:  ldloc.0
   IL_0026:  brfalse.s  IL_0041
-  IL_0028:  newobj     "Sub Program._Closure$__1..ctor()"
+  IL_0028:  newobj     "Sub Program._Closure$__R0-0..ctor()"
   IL_002d:  dup
   IL_002e:  ldloc.0
-  IL_002f:  stfld      "Program._Closure$__1.$VB$NonLocal_2 As <generated method>"
-  IL_0034:  ldftn      "Function Program._Closure$__1._Lambda$__5() As Integer"
+  IL_002f:  stfld      "Program._Closure$__R0-0.$VB$NonLocal_2 As <generated method>"
+  IL_0034:  ldftn      "Function Program._Closure$__R0-0._Lambda$__R2() As Integer"
   IL_003a:  newobj     "Sub System.Func(Of Integer)..ctor(Object, System.IntPtr)"
   IL_003f:  br.s       IL_0042
   IL_0041:  ldnull
@@ -1286,7 +1279,7 @@ End Module
 }
 ]]>)
 
-            verifier.VerifyIL("Program._Closure$__2._Lambda$__3",
+            verifier.VerifyIL("Program._Closure$__._Lambda$__0-1",
             <![CDATA[
 {
   // Code size        7 (0x7)
@@ -1297,13 +1290,13 @@ End Module
 }
 ]]>)
 
-            verifier.VerifyIL("Program._Closure$__1._Lambda$__5",
+            verifier.VerifyIL("Program._Closure$__R0-0._Lambda$__R2",
             <![CDATA[
 {
   // Code size       17 (0x11)
   .maxstack  1
   IL_0000:  ldarg.0   
-  IL_0001:  ldfld      "Program._Closure$__1.$VB$NonLocal_2 As <generated method>"
+  IL_0001:  ldfld      "Program._Closure$__R0-0.$VB$NonLocal_2 As <generated method>"
   IL_0006:  callvirt   "Function VB$AnonymousDelegate_0(Of Object).Invoke() As Object"
   IL_000b:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(Object) As Integer"
   IL_0010:  ret       
@@ -1422,23 +1415,23 @@ End Module
   // Code size       82 (0x52)
   .maxstack  3
   .locals init (VB$AnonymousDelegate_0(Of Integer) V_0)
-  IL_0000:  ldsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_0000:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_0007:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "Program._Closure$__2.$I As Program._Closure$__2"
-  IL_0013:  ldftn      "Function Program._Closure$__2._Lambda$__3() As Integer"
+  IL_000e:  ldsfld     "Program._Closure$__.$I As Program._Closure$__"
+  IL_0013:  ldftn      "Function Program._Closure$__._Lambda$__0-1() As Integer"
   IL_0019:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_001e:  dup
-  IL_001f:  stsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_001f:  stsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0024:  stloc.0
   IL_0025:  ldloc.0
   IL_0026:  brfalse.s  IL_0041
-  IL_0028:  newobj     "Sub Program._Closure$__1..ctor()"
+  IL_0028:  newobj     "Sub Program._Closure$__R0-0..ctor()"
   IL_002d:  dup
   IL_002e:  ldloc.0
-  IL_002f:  stfld      "Program._Closure$__1.$VB$NonLocal_2 As <generated method>"
-  IL_0034:  ldftn      "Function Program._Closure$__1._Lambda$__5() As Object"
+  IL_002f:  stfld      "Program._Closure$__R0-0.$VB$NonLocal_2 As <generated method>"
+  IL_0034:  ldftn      "Function Program._Closure$__R0-0._Lambda$__R2() As Object"
   IL_003a:  newobj     "Sub System.Func(Of Object)..ctor(Object, System.IntPtr)"
   IL_003f:  br.s       IL_0042
   IL_0041:  ldnull
@@ -1449,7 +1442,7 @@ End Module
 }
 ]]>)
 
-                verifier.VerifyIL("Program._Closure$__2._Lambda$__3",
+                verifier.VerifyIL("Program._Closure$__._Lambda$__0-1",
                 <![CDATA[
 {
   // Code size        2 (0x2)
@@ -1459,13 +1452,13 @@ End Module
 }
 ]]>)
 
-                verifier.VerifyIL("Program._Closure$__1._Lambda$__5",
+                verifier.VerifyIL("Program._Closure$__R0-0._Lambda$__R2",
                 <![CDATA[
 {
   // Code size       17 (0x11)
   .maxstack  1
   IL_0000:  ldarg.0   
-  IL_0001:  ldfld      "Program._Closure$__1.$VB$NonLocal_2 As <generated method>"
+  IL_0001:  ldfld      "Program._Closure$__R0-0.$VB$NonLocal_2 As <generated method>"
   IL_0006:  callvirt   "Function VB$AnonymousDelegate_0(Of Integer).Invoke() As Integer"
   IL_000b:  box        "Integer"
   IL_0010:  ret       
@@ -1526,15 +1519,15 @@ End Module
   // Code size       66 (0x42)
   .maxstack  2
   .locals init (VB$AnonymousDelegate_0(Of System.Collections.Generic.IEnumerable(Of Integer)) V_0)
-  IL_0000:  ldsfld     "Program._Closure$__1._ClosureCache$__3 As <generated method>"
+  IL_0000:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "Program._Closure$__1._ClosureCache$__3 As <generated method>"
+  IL_0007:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "Program._Closure$__1.$I As Program._Closure$__1"
-  IL_0013:  ldftn      "Function Program._Closure$__1._Lambda$__2() As System.Collections.Generic.IEnumerable(Of Integer)"
+  IL_000e:  ldsfld     "Program._Closure$__.$I As Program._Closure$__"
+  IL_0013:  ldftn      "Function Program._Closure$__._Lambda$__0-1() As System.Collections.Generic.IEnumerable(Of Integer)"
   IL_0019:  newobj     "Sub VB$AnonymousDelegate_0(Of System.Collections.Generic.IEnumerable(Of Integer))..ctor(Object, System.IntPtr)"
   IL_001e:  dup
-  IL_001f:  stsfld     "Program._Closure$__1._ClosureCache$__3 As <generated method>"
+  IL_001f:  stsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0024:  stloc.0
   IL_0025:  ldloc.0
   IL_0026:  brfalse.s  IL_0036
@@ -1549,7 +1542,7 @@ End Module
 }
 ]]>)
 
-                verifier.VerifyIL("Program._Closure$__1._Lambda$__2",
+                verifier.VerifyIL("Program._Closure$__._Lambda$__0-1",
                 <![CDATA[
 {
   // Code size        7 (0x7)
@@ -1660,23 +1653,23 @@ End Module
   // Code size       79 (0x4f)
   .maxstack  3
   .locals init (VB$AnonymousDelegate_0(Of Integer) V_0)
-  IL_0000:  ldsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_0000:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_0007:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "Program._Closure$__2.$I As Program._Closure$__2"
-  IL_0013:  ldftn      "Function Program._Closure$__2._Lambda$__3() As Integer"
+  IL_000e:  ldsfld     "Program._Closure$__.$I As Program._Closure$__"
+  IL_0013:  ldftn      "Function Program._Closure$__._Lambda$__0-1() As Integer"
   IL_0019:  newobj     "Sub VB$AnonymousDelegate_0(Of Integer)..ctor(Object, System.IntPtr)"
   IL_001e:  dup
-  IL_001f:  stsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_001f:  stsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0024:  stloc.0
   IL_0025:  ldloc.0
   IL_0026:  brfalse.s  IL_0041
-  IL_0028:  newobj     "Sub Program._Closure$__1..ctor()"
+  IL_0028:  newobj     "Sub Program._Closure$__R0-0..ctor()"
   IL_002d:  dup
   IL_002e:  ldloc.0
-  IL_002f:  stfld      "Program._Closure$__1.$VB$NonLocal_2 As <generated method>"
-  IL_0034:  ldftn      "Function Program._Closure$__1._Lambda$__5(Integer) As Integer"
+  IL_002f:  stfld      "Program._Closure$__R0-0.$VB$NonLocal_2 As <generated method>"
+  IL_0034:  ldftn      "Function Program._Closure$__R0-0._Lambda$__R2(Integer) As Integer"
   IL_003a:  newobj     "Sub System.Func(Of Integer, Integer)..ctor(Object, System.IntPtr)"
   IL_003f:  br.s       IL_0042
   IL_0041:  ldnull
@@ -1687,7 +1680,7 @@ End Module
 }
 ]]>)
 
-            verifier.VerifyIL("Program._Closure$__2._Lambda$__3",
+            verifier.VerifyIL("Program._Closure$__._Lambda$__0-1",
             <![CDATA[
 {
   // Code size        2 (0x2)
@@ -1697,13 +1690,13 @@ End Module
 }
 ]]>)
 
-            verifier.VerifyIL("Program._Closure$__1._Lambda$__5",
+            verifier.VerifyIL("Program._Closure$__R0-0._Lambda$__R2",
             <![CDATA[
 {
   // Code size       12 (0xc)
   .maxstack  1
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "Program._Closure$__1.$VB$NonLocal_2 As <generated method>"
+  IL_0001:  ldfld      "Program._Closure$__R0-0.$VB$NonLocal_2 As <generated method>"
   IL_0006:  callvirt   "Function VB$AnonymousDelegate_0(Of Integer).Invoke() As Integer"
   IL_000b:  ret
 }
@@ -1913,23 +1906,23 @@ End Module
   .maxstack  3
   .locals init (String V_0, //x2
                 VB$AnonymousDelegate_0(Of Object) V_1)
-  IL_0000:  ldsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_0000:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0005:  brfalse.s  IL_000e
-  IL_0007:  ldsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_0007:  ldsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_000c:  br.s       IL_0024
-  IL_000e:  ldsfld     "Program._Closure$__2.$I As Program._Closure$__2"
-  IL_0013:  ldftn      "Sub Program._Closure$__2._Lambda$__3(ByRef Object)"
+  IL_000e:  ldsfld     "Program._Closure$__.$I As Program._Closure$__"
+  IL_0013:  ldftn      "Sub Program._Closure$__._Lambda$__0-1(ByRef Object)"
   IL_0019:  newobj     "Sub VB$AnonymousDelegate_0(Of Object)..ctor(Object, System.IntPtr)"
   IL_001e:  dup
-  IL_001f:  stsfld     "Program._Closure$__2._ClosureCache$__4 As <generated method>"
+  IL_001f:  stsfld     "Program._Closure$__.$I0-1 As <generated method>"
   IL_0024:  stloc.1
   IL_0025:  ldloc.1
   IL_0026:  brfalse.s  IL_0041
-  IL_0028:  newobj     "Sub Program._Closure$__1..ctor()"
+  IL_0028:  newobj     "Sub Program._Closure$__R0-0..ctor()"
   IL_002d:  dup
   IL_002e:  ldloc.1
-  IL_002f:  stfld      "Program._Closure$__1.$VB$NonLocal_2 As <generated method>"
-  IL_0034:  ldftn      "Sub Program._Closure$__1._Lambda$__5(ByRef String)"
+  IL_002f:  stfld      "Program._Closure$__R0-0.$VB$NonLocal_2 As <generated method>"
+  IL_0034:  ldftn      "Sub Program._Closure$__R0-0._Lambda$__R2(ByRef String)"
   IL_003a:  newobj     "Sub d1..ctor(Object, System.IntPtr)"
   IL_003f:  br.s       IL_0042
   IL_0041:  ldnull
@@ -1943,7 +1936,7 @@ End Module
 }
 ]]>)
 
-            verifier.VerifyIL("Program._Closure$__2._Lambda$__3",
+            verifier.VerifyIL("Program._Closure$__._Lambda$__0-1",
             <![CDATA[
 {
   // Code size       20 (0x14)
@@ -1959,14 +1952,14 @@ End Module
 }
 ]]>)
 
-            verifier.VerifyIL("Program._Closure$__1._Lambda$__5",
+            verifier.VerifyIL("Program._Closure$__R0-0._Lambda$__R2",
             <![CDATA[
 {
   // Code size       25 (0x19)
   .maxstack  2
   .locals init (Object V_0)
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "Program._Closure$__1.$VB$NonLocal_2 As <generated method>"
+  IL_0001:  ldfld      "Program._Closure$__R0-0.$VB$NonLocal_2 As <generated method>"
   IL_0006:  ldarg.1
   IL_0007:  ldind.ref
   IL_0008:  stloc.0

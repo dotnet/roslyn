@@ -15,22 +15,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly MethodSymbol topLevelMethod;
 
         internal SynthesizedLambdaMethod(
-            VariableSlotAllocator slotAllocatorOpt,
+            VariableSlotAllocator slotAllocatorOpt, 
             TypeCompilationState compilationState,
             NamedTypeSymbol containingType,
-            ClosureKind closureKind,
-            MethodSymbol topLevelMethod,
-            int topLevelMethodOrdinal,
-            BoundLambda node,
+            ClosureKind closureKind, 
+            MethodSymbol topLevelMethod, 
+            int topLevelMethodOrdinal, 
+            BoundLambda lambdaNode,
             int lambdaOrdinal)
             : base(containingType,
-                   node.Symbol,
+                   lambdaNode.Symbol,
                    null,
-                   node.SyntaxTree.GetReference(node.Body.Syntax),
-                   node.Syntax.GetLocation(),
+                   lambdaNode.SyntaxTree.GetReference(lambdaNode.Body.Syntax),
+                   lambdaNode.Syntax.GetLocation(),
                    MakeName(slotAllocatorOpt, compilationState, closureKind, topLevelMethod, topLevelMethodOrdinal, lambdaOrdinal),
                    (closureKind == ClosureKind.ThisOnly ? DeclarationModifiers.Private : DeclarationModifiers.Internal)
-                       | (node.Symbol.IsAsync ? DeclarationModifiers.Async : 0))
+                       | (lambdaNode.Symbol.IsAsync ? DeclarationModifiers.Async : 0))
         {
             this.topLevelMethod = topLevelMethod;
 
@@ -72,17 +72,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override int ParameterCount => this.BaseMethod.ParameterCount;
 
-        // The lambda symbol might have declared no parameters in the case
-        //
-        // D d = delegate {};
-        //
-        // but there still might be parameters that need to be generated for the
-        // synthetic method. If there are no lambda parameters, try the delegate 
-        // parameters instead. 
-        // 
-        // UNDONE: In the native compiler in this scenario we make up new names for
-        // UNDONE: synthetic parameters; in this implementation we use the parameter
-        // UNDONE: names from the delegate. Does it really matter?
+                // The lambda symbol might have declared no parameters in the case
+                //
+                // D d = delegate {};
+                //
+                // but there still might be parameters that need to be generated for the
+                // synthetic method. If there are no lambda parameters, try the delegate 
+                // parameters instead. 
+                // 
+                // UNDONE: In the native compiler in this scenario we make up new names for
+                // UNDONE: synthetic parameters; in this implementation we use the parameter
+                // UNDONE: names from the delegate. Does it really matter?
         protected override ImmutableArray<ParameterSymbol> BaseMethodParameters => this.BaseMethod.Parameters;
 
         internal override bool GenerateDebugInfo => !this.IsAsync;

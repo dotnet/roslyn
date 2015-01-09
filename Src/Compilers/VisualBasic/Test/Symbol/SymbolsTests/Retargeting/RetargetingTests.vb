@@ -93,8 +93,8 @@ End Class
             retargetingType = retargetingNamespace.GetMember(Of NamedTypeSymbol)("A")
             CheckTypes(sourceType, retargetingType)
 
-            CheckMethods(sourceType.GetMember(".cctor"), retargetingType.GetMember(".cctor"))
-            CheckMethods(sourceType.GetMember(".ctor"), retargetingType.GetMember(".ctor"))
+            CheckMethods(sourceType.GetMethod(".cctor"), retargetingType.GetMethod(".cctor"))
+            CheckMethods(sourceType.GetMethod(".ctor"), retargetingType.GetMethod(".ctor"))
             CheckFields(sourceType.GetMember("B"), retargetingType.GetMember("B"))
             CheckFields(sourceType.GetMember("MF"), retargetingType.GetMember("MF"))
             CheckMethods(sourceType.GetMember("M"), retargetingType.GetMember("M"))
@@ -121,8 +121,8 @@ End Class
             retargetingType = retargetingNamespace.GetMember(Of NamedTypeSymbol)("B")
             CheckTypes(sourceType, retargetingType)
 
-            CheckMethods(sourceType.GetMember(".cctor"), retargetingType.GetMember(".cctor"))
-            CheckMethods(sourceType.GetMember(".ctor"), retargetingType.GetMember(".ctor"))
+            CheckMethods(sourceType.GetMethod(".cctor"), retargetingType.GetMethod(".cctor"))
+            CheckMethods(sourceType.GetMethod(".ctor"), retargetingType.GetMethod(".ctor"))
 
             sourceType = sourceNamespace.GetMember(Of NamedTypeSymbol)("C")
             retargetingType = retargetingNamespace.GetMember(Of NamedTypeSymbol)("C")
@@ -963,8 +963,8 @@ End Namespace
             retargetingType = retargetingNamespace.GetMember(Of NamedTypeSymbol)("TestClass")
             CheckTypes(sourceType, retargetingType)
 
-            ' CheckMethods(sourceType.GetMember(".cctor"), retargetingType.GetMember(".cctor"))
-            CheckMethods(sourceType.GetMember(".ctor"), retargetingType.GetMember(".ctor"))
+            ' CheckMethods(sourceType.GetMethod(".cctor"), retargetingType.GetMethod(".cctor"))
+            CheckMethods(sourceType.GetMethod(".ctor"), retargetingType.GetMethod(".ctor"))
             CheckFields(sourceType.GetMember("_Field"), retargetingType.GetMember("_Field"))
             CheckProperties(sourceType.GetMember("TestProperty"), retargetingType.GetMember("TestProperty"))
             CheckProperties(sourceType.GetMember("ReadOnlyProperty"), retargetingType.GetMember("ReadOnlyProperty"))
@@ -1515,7 +1515,7 @@ End Namespace
             sourceType = sourceNamespace.GetMember(Of NamedTypeSymbol)("TestClass")
             retargetingType = retargetingNamespace.GetMember(Of NamedTypeSymbol)("TestClass")
             CheckTypes(sourceType, retargetingType)
-            CheckMethods(sourceType.GetMember(".ctor"), retargetingType.GetMember(".ctor"))
+            CheckMethods(sourceType.GetMethod(".ctor"), retargetingType.GetMethod(".ctor"))
             CheckFields(sourceType.GetMember("_Field"), retargetingType.GetMember("_Field"))
             CheckProperties(sourceType.GetMember("TestProperty"), retargetingType.GetMember("TestProperty"))
             CheckProperties(sourceType.GetMember("ReadOnlyProperty"), retargetingType.GetMember("ReadOnlyProperty"))
@@ -1525,7 +1525,7 @@ End Namespace
             sourceType = sourceNamespace.GetMember(Of NamedTypeSymbol)("TestStructure")
             retargetingType = retargetingNamespace.GetMember(Of NamedTypeSymbol)("TestStructure")
             CheckTypes(sourceType, retargetingType)
-            CheckMethods(sourceType.GetMember(".ctor"), retargetingType.GetMember(".ctor"))
+            CheckMethods(sourceType.GetMethod(".ctor"), retargetingType.GetMethod(".ctor"))
             CheckProperties(sourceType.GetMember("String_Property"), retargetingType.GetMember("String_Property"))
             CheckFields(sourceType.GetMember("_int_In_Structure"), retargetingType.GetMember("_int_In_Structure")) 'Public member in Private Type
             CheckFields(sourceType.GetMember("PrivateField"), retargetingType.GetMember("PrivateField")) 'Private member in Private Type
@@ -1535,7 +1535,7 @@ End Namespace
             sourceType = sourceNamespace.GetMember(Of NamedTypeSymbol)("ContainingClass").GetMember(Of NamedTypeSymbol)("PrivateTestClass")
             retargetingType = retargetingNamespace.GetMember(Of NamedTypeSymbol)("ContainingClass").GetMember(Of NamedTypeSymbol)("PrivateTestClass")
             CheckTypes(sourceType, retargetingType)
-            CheckMethods(sourceType.GetMember(".ctor"), retargetingType.GetMember(".ctor"))
+            CheckMethods(sourceType.GetMethod(".ctor"), retargetingType.GetMethod(".ctor"))
             CheckProperties(sourceType.GetMember("String_Property"), retargetingType.GetMember("String_Property"))
             CheckFields(sourceType.GetMember("_int_In_Structure"), retargetingType.GetMember("_int_In_Structure")) 'Public member in Private Type
             CheckFields(sourceType.GetMember("PrivateField"), retargetingType.GetMember("PrivateField")) 'Private member in Private Type
@@ -1720,7 +1720,7 @@ Imports System
             retargetingType = retargetingNamespace.GetMember(Of NamedTypeSymbol)("TestClass")
             CheckTypes(sourceType, retargetingType)
 
-            CheckMethods(sourceType.GetMember(".ctor"), retargetingType.GetMember(".ctor"))
+            CheckMethods(sourceType.GetMethod(".ctor"), retargetingType.GetMethod(".ctor"))
             CheckFields(sourceType.GetMember("_Field"), retargetingType.GetMember("_Field"))
             CheckProperties(sourceType.GetMember("TestProperty"), retargetingType.GetMember("TestProperty"))
             CheckProperties(sourceType.GetMember("ReadOnlyProperty"), retargetingType.GetMember("ReadOnlyProperty"))

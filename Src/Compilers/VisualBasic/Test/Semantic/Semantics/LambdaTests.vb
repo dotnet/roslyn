@@ -1,21 +1,13 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.IO
 Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.SpecialType
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.OverloadResolution
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
     Public Class LambdaTests
         Inherits BasicTestBase
-
 
         <Fact>
         Public Sub Test1()
@@ -1907,7 +1899,7 @@ Done.
   IL_0011:  ldarg.0
   IL_0012:  ldfld      "PropertyPathBindingItem._DestinationBinding As OnePropertyPathBinding"
   IL_0017:  ldarg.0
-  IL_0018:  ldftn      "Function PropertyPathBindingItem._Lambda$__2(Integer, EqualityWeakReference) As System.Action(Of Object)"
+  IL_0018:  ldftn      "Function PropertyPathBindingItem._Lambda$__2-1(Integer, EqualityWeakReference) As System.Action(Of Object)"
   IL_001e:  newobj     "Sub OnChangeDelegateFactoryDelegate..ctor(Object, System.IntPtr)"
   IL_0023:  ldnull
   IL_0024:  callvirt   "Sub OnePropertyPathBinding.Bind(OnChangeDelegateFactoryDelegate, OnBindLastItem)"
@@ -1915,34 +1907,34 @@ Done.
 }
 ]]>)
 
-            verifier.VerifyIL("PropertyPathBindingItem._Lambda$__2",
+            verifier.VerifyIL("PropertyPathBindingItem._Lambda$__2-1",
             <![CDATA[
 {
   // Code size       31 (0x1f)
   .maxstack  3
-  IL_0000:  newobj     "Sub PropertyPathBindingItem._Closure$__1..ctor()"
+  IL_0000:  newobj     "Sub PropertyPathBindingItem._Closure$__2-0..ctor()"
   IL_0005:  dup
   IL_0006:  ldarg.0
-  IL_0007:  stfld      "PropertyPathBindingItem._Closure$__1.$VB$Me As PropertyPathBindingItem"
+  IL_0007:  stfld      "PropertyPathBindingItem._Closure$__2-0.$VB$Me As PropertyPathBindingItem"
   IL_000c:  dup
   IL_000d:  ldarg.1
-  IL_000e:  stfld      "PropertyPathBindingItem._Closure$__1.$VB$Local_currentIndex As Integer"
-  IL_0013:  ldftn      "Sub PropertyPathBindingItem._Closure$__1._Lambda$__3(Object)"
+  IL_000e:  stfld      "PropertyPathBindingItem._Closure$__2-0.$VB$Local_currentIndex As Integer"
+  IL_0013:  ldftn      "Sub PropertyPathBindingItem._Closure$__2-0._Lambda$__2(Object)"
   IL_0019:  newobj     "Sub System.Action(Of Object)..ctor(Object, System.IntPtr)"
   IL_001e:  ret
 }
 ]]>)
 
-            verifier.VerifyIL("PropertyPathBindingItem._Closure$__1._Lambda$__3",
+            verifier.VerifyIL("PropertyPathBindingItem._Closure$__2-0._Lambda$__2",
             <![CDATA[
 {
   // Code size       23 (0x17)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "PropertyPathBindingItem._Closure$__1.$VB$Me As PropertyPathBindingItem"
+  IL_0001:  ldfld      "PropertyPathBindingItem._Closure$__2-0.$VB$Me As PropertyPathBindingItem"
   IL_0006:  ldfld      "PropertyPathBindingItem._DestinationBinding As OnePropertyPathBinding"
   IL_000b:  ldarg.0
-  IL_000c:  ldfld      "PropertyPathBindingItem._Closure$__1.$VB$Local_currentIndex As Integer"
+  IL_000c:  ldfld      "PropertyPathBindingItem._Closure$__2-0.$VB$Local_currentIndex As Integer"
   IL_0011:  callvirt   "Sub OnePropertyPathBinding.RemoveNotify(Integer)"
   IL_0016:  ret
 }
@@ -2023,14 +2015,14 @@ End Class
   IL_0011:  ldarg.0
   IL_0012:  ldfld      "PropertyPathBindingItem._DestinationBinding As OnePropertyPathBinding"
   IL_0017:  ldarg.0
-  IL_0018:  ldftn      "Function PropertyPathBindingItem._Lambda$__3(Integer, EqualityWeakReference) As System.Action(Of Object)"
+  IL_0018:  ldftn      "Function PropertyPathBindingItem._Lambda$__1-1(Integer, EqualityWeakReference) As System.Action(Of Object)"
   IL_001e:  newobj     "Sub OnChangeDelegateFactoryDelegate..ctor(Object, System.IntPtr)"
   IL_0023:  ldnull
   IL_0024:  callvirt   "Sub OnePropertyPathBinding.Bind(OnChangeDelegateFactoryDelegate, OnBindLastItem)"
   IL_0029:  ldarg.0
   IL_002a:  ldfld      "PropertyPathBindingItem._DestinationBinding As OnePropertyPathBinding"
   IL_002f:  ldarg.0
-  IL_0030:  ldftn      "Function PropertyPathBindingItem._Lambda$__5(Integer, EqualityWeakReference) As System.Action(Of Object)"
+  IL_0030:  ldftn      "Function PropertyPathBindingItem._Lambda$__1-3(Integer, EqualityWeakReference) As System.Action(Of Object)"
   IL_0036:  newobj     "Sub OnChangeDelegateFactoryDelegate..ctor(Object, System.IntPtr)"
   IL_003b:  ldnull
   IL_003c:  callvirt   "Sub OnePropertyPathBinding.Bind(OnChangeDelegateFactoryDelegate, OnBindLastItem)"
@@ -2038,67 +2030,67 @@ End Class
 }
 ]]>)
 
-            verifier.VerifyIL("PropertyPathBindingItem._Lambda$__3",
+            verifier.VerifyIL("PropertyPathBindingItem._Lambda$__1-1",
             <![CDATA[
 {
   // Code size       31 (0x1f)
   .maxstack  3
-  IL_0000:  newobj     "Sub PropertyPathBindingItem._Closure$__1..ctor()"
+  IL_0000:  newobj     "Sub PropertyPathBindingItem._Closure$__1-0..ctor()"
   IL_0005:  dup
   IL_0006:  ldarg.0
-  IL_0007:  stfld      "PropertyPathBindingItem._Closure$__1.$VB$Me As PropertyPathBindingItem"
+  IL_0007:  stfld      "PropertyPathBindingItem._Closure$__1-0.$VB$Me As PropertyPathBindingItem"
   IL_000c:  dup
   IL_000d:  ldarg.1
-  IL_000e:  stfld      "PropertyPathBindingItem._Closure$__1.$VB$Local_currentIndex As Integer"
-  IL_0013:  ldftn      "Sub PropertyPathBindingItem._Closure$__1._Lambda$__4(Object)"
+  IL_000e:  stfld      "PropertyPathBindingItem._Closure$__1-0.$VB$Local_currentIndex As Integer"
+  IL_0013:  ldftn      "Sub PropertyPathBindingItem._Closure$__1-0._Lambda$__2(Object)"
   IL_0019:  newobj     "Sub System.Action(Of Object)..ctor(Object, System.IntPtr)"
   IL_001e:  ret
 }
 ]]>)
 
-            verifier.VerifyIL("PropertyPathBindingItem._Lambda$__5",
+            verifier.VerifyIL("PropertyPathBindingItem._Lambda$__1-3",
             <![CDATA[
 {
   // Code size       31 (0x1f)
   .maxstack  3
-  IL_0000:  newobj     "Sub PropertyPathBindingItem._Closure$__2..ctor()"
+  IL_0000:  newobj     "Sub PropertyPathBindingItem._Closure$__1-1..ctor()"
   IL_0005:  dup
   IL_0006:  ldarg.0
-  IL_0007:  stfld      "PropertyPathBindingItem._Closure$__2.$VB$Me As PropertyPathBindingItem"
+  IL_0007:  stfld      "PropertyPathBindingItem._Closure$__1-1.$VB$Me As PropertyPathBindingItem"
   IL_000c:  dup
   IL_000d:  ldarg.1
-  IL_000e:  stfld      "PropertyPathBindingItem._Closure$__2.$VB$Local_currentIndex As Integer"
-  IL_0013:  ldftn      "Sub PropertyPathBindingItem._Closure$__2._Lambda$__6(Object)"
+  IL_000e:  stfld      "PropertyPathBindingItem._Closure$__1-1.$VB$Local_currentIndex As Integer"
+  IL_0013:  ldftn      "Sub PropertyPathBindingItem._Closure$__1-1._Lambda$__4(Object)"
   IL_0019:  newobj     "Sub System.Action(Of Object)..ctor(Object, System.IntPtr)"
   IL_001e:  ret
 }
 ]]>)
 
-            verifier.VerifyIL("PropertyPathBindingItem._Closure$__1._Lambda$__4",
+            verifier.VerifyIL("PropertyPathBindingItem._Closure$__1-0._Lambda$__2",
             <![CDATA[
 {
   // Code size       23 (0x17)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "PropertyPathBindingItem._Closure$__1.$VB$Me As PropertyPathBindingItem"
+  IL_0001:  ldfld      "PropertyPathBindingItem._Closure$__1-0.$VB$Me As PropertyPathBindingItem"
   IL_0006:  ldfld      "PropertyPathBindingItem._DestinationBinding As OnePropertyPathBinding"
   IL_000b:  ldarg.0
-  IL_000c:  ldfld      "PropertyPathBindingItem._Closure$__1.$VB$Local_currentIndex As Integer"
+  IL_000c:  ldfld      "PropertyPathBindingItem._Closure$__1-0.$VB$Local_currentIndex As Integer"
   IL_0011:  callvirt   "Sub OnePropertyPathBinding.RemoveNotify(Integer)"
   IL_0016:  ret
 }
 ]]>)
 
-            verifier.VerifyIL("PropertyPathBindingItem._Closure$__2._Lambda$__6",
+            verifier.VerifyIL("PropertyPathBindingItem._Closure$__1-1._Lambda$__4",
             <![CDATA[
 {
   // Code size       23 (0x17)
   .maxstack  2
   IL_0000:  ldarg.0
-  IL_0001:  ldfld      "PropertyPathBindingItem._Closure$__2.$VB$Me As PropertyPathBindingItem"
+  IL_0001:  ldfld      "PropertyPathBindingItem._Closure$__1-1.$VB$Me As PropertyPathBindingItem"
   IL_0006:  ldfld      "PropertyPathBindingItem._DestinationBinding As OnePropertyPathBinding"
   IL_000b:  ldarg.0
-  IL_000c:  ldfld      "PropertyPathBindingItem._Closure$__2.$VB$Local_currentIndex As Integer"
+  IL_000c:  ldfld      "PropertyPathBindingItem._Closure$__1-1.$VB$Local_currentIndex As Integer"
   IL_0011:  callvirt   "Sub OnePropertyPathBinding.RemoveNotify(Integer)"
   IL_0016:  ret
 }

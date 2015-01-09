@@ -24,16 +24,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private ReadOnly AllocatedFields As New KeyedStack(Of TypeSymbol, FieldSymbol)
             Private ReadOnly RealizedSpills As New HashSet(Of FieldSymbol)(ReferenceEqualityComparer.Instance)
 
+            Private _nextHoistedFieldId As Integer
+
             Friend Sub New(f As SyntheticBoundNodeFactory)
                 Me.F = f
+                Me._nextHoistedFieldId = 0
             End Sub
 
             Friend Function AllocateField(type As TypeSymbol) As FieldSymbol
                 Dim field As FieldSymbol = Nothing
                 If Not Me.AllocatedFields.TryPop(type, field) Then
+                    _nextHoistedFieldId += 1
+
                     field = F.StateMachineField(type,
                                               F.CurrentMethod,
-                                              StringConstants.StateMachineStackSpillPrefix & Me.F.CompilationState.GenerateTempNumber(),
+                                              GeneratedNames.ReusableHoistedLocalFieldName(_nextHoistedFieldId),
                                               Accessibility.Friend)
                 End If
                 Me.RealizedSpills.Add(field)

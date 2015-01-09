@@ -50,6 +50,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly _analysis As Analysis
         Private ReadOnly _topLevelMethod As MethodSymbol
+        Private ReadOnly _topLevelMethodOrdinal As Integer
 
         ' lambda frame for static lambdas. 
         ' initialized lazily and could be Nothing if there are no static lambdas
@@ -68,6 +69,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' "This" in the context of current method.
         Private currentFrameThis As ParameterSymbol
+
+        Private _lambdaOrdinalDispenser As Integer
+        Private _delegateRelaxationIdDispenser As Integer
 
         ' ID dispenser for field names of frame references.
         Private synthesizedFieldNameIdDispenser As Integer
@@ -96,10 +100,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary> WARNING: used ONLY in DEBUG </summary>
         Private rewrittenNodes As HashSet(Of BoundNode) = Nothing
 
-        Private Sub New(analysis As Analysis, method As MethodSymbol, diagnostics As DiagnosticBag, compilationState As TypeCompilationState)
-            MyBase.New(compilationState, diagnostics)
+        Private Sub New(analysis As Analysis,
+                        method As MethodSymbol,
+                        methodOrdinal As Integer,
+                        lambdaOrdinalDispenser As Integer,
+                        delegateRelaxationIdDispenser As Integer,
+                        slotAllocatorOpt As VariableSlotAllocator,
+                        compilationState As TypeCompilationState,
+                        diagnostics As DiagnosticBag)
+            MyBase.New(slotAllocatorOpt, compilationState, diagnostics)
 
             Me._topLevelMethod = method
+            Me._topLevelMethodOrdinal = methodOrdinal
+            Me._lambdaOrdinalDispenser = lambdaOrdinalDispenser
+            Me._delegateRelaxationIdDispenser = delegateRelaxationIdDispenser
             Me._currentMethod = method
             Me._analysis = analysis
             Me.currentTypeParameters = Me._topLevelMethod.TypeParameters
@@ -122,12 +136,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         ''' <param name="node">The bound node to be rewritten</param>
         ''' <param name="method">The containing method of the node to be rewritten</param>
+        ''' <param name="methodOrdinal">Index of the method symbol in its containing type member list.</param>
         ''' <param name="compilationState">The caller's buffer into which we produce additional methods to be emitted by the caller</param>
         ''' <param name="symbolsCapturedWithoutCopyCtor">Set of symbols that should not be captured using a copy constructor</param>
         ''' <param name="diagnostics">The caller's buffer into which we place any diagnostics for problems encountered</param>
         Public Shared Function Rewrite(node As BoundBlock,
                                        method As MethodSymbol,
-                                       compilationState As TypeCompilationState,
+                                       methodOrdinal As Integer,
+                                       ByRef lambdaOrdinalDispenser As Integer,
+                                       ByRef scopeOrdinalDispenser As Integer,
+                                       ByRef delegateRelaxationIdDispenser As Integer,
+                                       slotAllocatorOpt As VariableSlotAllocator,
+                                       CompilationState As TypeCompilationState,
                                        symbolsCapturedWithoutCopyCtor As ISet(Of Symbol),
                                        diagnostics As DiagnosticBag,
                                        rewrittenNodes As HashSet(Of BoundNode)) As BoundBlock
@@ -137,16 +157,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return node
             End If
 
-            Dim rewriter = New LambdaRewriter(analysis, method, diagnostics, compilationState)
+            Dim rewriter = New LambdaRewriter(analysis,
+                                              method,
+                                              methodOrdinal,
+                                              lambdaOrdinalDispenser,
+                                              delegateRelaxationIdDispenser,
+                                              slotAllocatorOpt,
+                                              CompilationState,
+                                              diagnostics)
 #If DEBUG Then
             Debug.Assert(rewrittenNodes IsNot Nothing)
             rewriter.rewrittenNodes = rewrittenNodes
 #End If
 
             analysis.ComputeLambdaScopesAndFrameCaptures()
-            rewriter.MakeFrames()
+            rewriter.MakeFrames(scopeOrdinalDispenser)
 
-            Return DirectCast(rewriter.Visit(node), BoundBlock)
+            Dim body = DirectCast(rewriter.Visit(node), BoundBlock)
+
+            ' Lambdas created during the rewriter are assigned indices And the dispenser field Is updated.
+            lambdaOrdinalDispenser = rewriter._lambdaOrdinalDispenser
+            delegateRelaxationIdDispenser = rewriter._delegateRelaxationIdDispenser
+
+            Return body
         End Function
 
         Protected Overrides ReadOnly Property CurrentMethod As MethodSymbol
@@ -176,7 +209,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Create the frame types.
         ''' </summary>
-        Private Sub MakeFrames()
+        Private Sub MakeFrames(ByRef scopeOrdinalDispenser As Integer)
             ' There is a simple test to determine whether to do copy-construction:
             ' If method contains a backward branch, then all closures should attempt copy-construction.
             ' In the worst case, we will redundantly check if a previous version exists which is cheap
@@ -186,13 +219,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '  _analysis.symbolsCapturedWithoutCopyCtor.
             Dim copyConstructor = _analysis.seenBackBranches
 
-            For Each captured In _analysis.captured
+            For Each captured In _analysis.capturedVariables
                 Dim node As BoundNode = Nothing
-                If Not _analysis.variableBlock.TryGetValue(captured, node) OrElse _analysis.declaredInsideExpressionLambda.Contains(captured) Then
+                If Not _analysis.variableScope.TryGetValue(captured, node) OrElse _analysis.declaredInsideExpressionLambda.Contains(captured) Then
                     Continue For
                 End If
 
-                Dim frame As LambdaFrame = GetFrameForScope(copyConstructor, captured, node)
+                Dim frame As LambdaFrame = GetFrameForScope(copyConstructor, captured, node, scopeOrdinalDispenser, _delegateRelaxationIdDispenser)
 
                 Dim proxy = LambdaCapturedVariable.Create(frame, captured, synthesizedFieldNameIdDispenser)
                 Proxies.Add(captured, proxy)
@@ -208,7 +241,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Function GetFrameForScope(copyConstructor As Boolean, captured As Symbol, node As BoundNode) As LambdaFrame
+        Private Function GetFrameForScope(copyConstructor As Boolean,
+                                          captured As Symbol,
+                                          node As BoundNode,
+                                          ByRef scopeOrdinalDispenser As Integer,
+                                          ByRef delegateRelaxationIdDispenser As Integer) As LambdaFrame
             Dim frame As LambdaFrame = Nothing
 
             If Not frames.TryGetValue(node, frame) Then
@@ -217,11 +254,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                              Not DirectCast(captured, LocalSymbol).IsForEach OrElse
                              copyConstructor)
 
-                frame = New LambdaFrame(CompilationState,
+                ' Frames created for delegate relaxations are just immutable wrappers of the delegate target object.
+                ' They are not reused during EnC update and thus don't have a closure scope.
+                Dim isDelegateRelaxationFrame = If(TryCast(captured, SynthesizedLocal)?.SynthesizedKind = SynthesizedLocalKind.DelegateRelaxationReceiver, False)
+                Dim scopeOrdinal As Integer
+                If isDelegateRelaxationFrame Then
+                    scopeOrdinal = delegateRelaxationIdDispenser
+                    delegateRelaxationIdDispenser += 1
+                Else
+                    scopeOrdinal = scopeOrdinalDispenser
+                    scopeOrdinalDispenser += 1
+                End If
+
+                frame = New LambdaFrame(SlotAllocatorOpt,
+                                        CompilationState,
                                         _topLevelMethod,
+                                        _topLevelMethodOrdinal,
                                         node.Syntax,
+                                        scopeOrdinal,
                                         copyConstructor AndAlso Not _analysis.symbolsCapturedWithoutCopyCtor.Contains(captured),
-                                        isShared:=False)
+                                        isStatic:=False,
+                                        isDelegateRelaxationFrame:=isDelegateRelaxationFrame)
+
                 frames(node) = frame
 
                 If CompilationState.ModuleBuilderOpt IsNot Nothing Then
@@ -246,14 +300,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' we need to associate this with somme syntax.
                     ' unfortunately either containing method or containing class could be synthetic
                     ' therefore could have no syntax.
-                    Me.lazyStaticLambdaFrame = New LambdaFrame(CompilationState, TopLevelMethod, lambda.Syntax, copyConstructor:=False, isShared:=True)
+                    Me.lazyStaticLambdaFrame = New LambdaFrame(SlotAllocatorOpt, CompilationState, _topLevelMethod, If(isNonGeneric, -1, _topLevelMethodOrdinal), lambda.Syntax, scopeOrdinal:=-1, copyConstructor:=False, isStatic:=True, isDelegateRelaxationFrame:=False)
 
-                    ' nongeneric static lambdas can share the frame
-                    ' as long as we do not do EnC
-                    If isNonGeneric AndAlso Not CompilationState.Compilation.Options.EnableEditAndContinue Then
+                    ' non-generic static lambdas can share the frame
+                    If isNonGeneric Then
                         CompilationState.staticLambdaFrame = Me.lazyStaticLambdaFrame
                     End If
-
 
                     If CompilationState.ModuleBuilderOpt IsNot Nothing Then
                         Dim frame = Me.lazyStaticLambdaFrame
@@ -267,7 +319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         ' add cctor
                         ' Frame.inst = New Frame()
-                        Dim F = New SyntheticBoundNodeFactory(frame.SharedConstructor, frame.SharedConstructor, Syntax, CompilationState, diagnostics)
+                        Dim F = New SyntheticBoundNodeFactory(frame.SharedConstructor, frame.SharedConstructor, syntax, CompilationState, diagnostics)
                         Dim body = F.Block(
                                 F.Assignment(
                                     F.Field(Nothing, frame.SingletonCache, isLValue:=True),
@@ -803,7 +855,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim slotAllocatorOpt As VariableSlotAllocator = Nothing
             Dim stateMachineTypeOpt As StateMachineTypeSymbol = Nothing
 
-            Return Rewriter.RewriteIteratorAndAsync(loweredBody, method, CompilationState, Diagnostics, slotAllocatorOpt, stateMachineTypeOpt)
+            ' In case of async/iterator lambdas, the method has already been uniquely named, so there is no need to
+            ' produce a unique method ordinal for the corresponding state machine type, whose name includes the (unique) method name.
+            Const methodOrdinal As Integer = -1
+
+            Return Rewriter.RewriteIteratorAndAsync(loweredBody, method, methodOrdinal, CompilationState, Diagnostics, slotAllocatorOpt, stateMachineTypeOpt)
         End Function
 
         Public Overrides Function VisitTryCast(node As BoundTryCast) As BoundNode
@@ -881,25 +937,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim translatedLambdaContainer As InstanceTypeSymbol
             Dim lambdaScope As BoundNode = Nothing
-            Dim lambdaIsStatic As Boolean = _analysis.captures(node.LambdaSymbol).Count = 0
+            Dim closureKind As ClosureKind
 
             If _analysis.lambdaScopes.TryGetValue(node.LambdaSymbol, lambdaScope) Then
                 translatedLambdaContainer = frames(lambdaScope)
-            ElseIf lambdaIsStatic
+                closureKind = ClosureKind.General
+            ElseIf _analysis.capturedVariablesByLambda(node.LambdaSymbol).Count = 0
                 translatedLambdaContainer = GetStaticFrame(node, Diagnostics)
+                closureKind = ClosureKind.Static
             Else
                 translatedLambdaContainer = DirectCast(_topLevelMethod.ContainingType, InstanceTypeSymbol)
+                closureKind = ClosureKind.ThisOnly
             End If
 
-            ' Move the body of the lambda to a freshly generated synthetic method on its frame.
-            Dim generatedMethod = New SynthesizedLambdaMethod(translatedLambdaContainer, _topLevelMethod, node, CompilationState.GenerateTempNumber(), Me.Diagnostics)
+            Dim lambdaOrdinal As Integer
+            If node.LambdaSymbol.SynthesizedKind = SynthesizedLambdaKind.DelegateRelaxationStub Then
+                _delegateRelaxationIdDispenser += 1
+                lambdaOrdinal = _delegateRelaxationIdDispenser
+            Else
+                _lambdaOrdinalDispenser += 1
+                lambdaOrdinal = _lambdaOrdinalDispenser
+            End If
+
+            ' Move the body of the lambda to a freshly generated synthetic method on its container.
+            Dim synthesizedMethod = New SynthesizedLambdaMethod(SlotAllocatorOpt, CompilationState, translatedLambdaContainer, closureKind, _topLevelMethod, _topLevelMethodOrdinal, node, lambdaOrdinal, Me.Diagnostics)
 
             If CompilationState.ModuleBuilderOpt IsNot Nothing Then
-                CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, generatedMethod)
+                CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, synthesizedMethod)
             End If
 
             For Each parameter In node.LambdaSymbol.Parameters
-                ParameterMap.Add(parameter, generatedMethod.Parameters(parameter.Ordinal))
+                ParameterMap.Add(parameter, synthesizedMethod.Parameters(parameter.Ordinal))
             Next
 
             Dim oldMethod = _currentMethod
@@ -910,14 +978,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim containerAsFrame = TryCast(translatedLambdaContainer, LambdaFrame)
 
-            Me._currentMethod = generatedMethod
+            Me._currentMethod = synthesizedMethod
 
-            If lambdaIsStatic Then
+            If closureKind = ClosureKind.Static Then
                 ' no link from a static lambda to its container
                 innermostFramePointer = Nothing
                 currentFrameThis = Nothing
             Else
-                currentFrameThis = generatedMethod.MeParameter
+                currentFrameThis = synthesizedMethod.MeParameter
                 innermostFramePointer = Nothing
                 framePointers.TryGetValue(translatedLambdaContainer, innermostFramePointer)
             End If
@@ -926,12 +994,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 currentTypeParameters = translatedLambdaContainer.TypeParameters
                 currentLambdaBodyTypeSubstitution = containerAsFrame.TypeMap
             Else
-                currentTypeParameters = generatedMethod.TypeParameters
+                currentTypeParameters = synthesizedMethod.TypeParameters
                 currentLambdaBodyTypeSubstitution = TypeSubstitution.Create(_topLevelMethod, _topLevelMethod.TypeParameters, _currentMethod.TypeArguments)
             End If
 
-            Dim body = DirectCast(RewriteLambdaAsMethod(generatedMethod, node), BoundStatement)
-            CompilationState.AddSynthesizedMethod(generatedMethod, body)
+            Dim body = DirectCast(RewriteLambdaAsMethod(synthesizedMethod, node), BoundStatement)
+            CompilationState.AddSynthesizedMethod(synthesizedMethod, body)
 
             ' return to old method
 
@@ -952,14 +1020,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' for instance lambdas, receiver is the frame
             ' for static lambdas, get the singleton receiver 
             Dim receiver As BoundExpression
-            If Not lambdaIsStatic Then
+            If closureKind <> ClosureKind.Static Then
                 receiver = FrameOfType(node.Syntax, constructedFrame)
             Else
                 Dim field = containerAsFrame.SingletonCache.AsMember(constructedFrame)
                 receiver = New BoundFieldAccess(node.Syntax, Nothing, field, isLValue:=False, type:=field.Type)
             End If
 
-            Dim referencedMethod As MethodSymbol = generatedMethod.AsMember(constructedFrame)
+            Dim referencedMethod As MethodSymbol = synthesizedMethod.AsMember(constructedFrame)
 
             If referencedMethod.IsGenericMethod Then
                 referencedMethod = referencedMethod.Construct(StaticCast(Of TypeSymbol).From(currentTypeParameters))
@@ -983,23 +1051,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' NOTE: we are not caching static lambdas in static ctors - cannot reuse such cache
             ' NOTE: we require lambdaScope IsNot Nothing. We do not want to introduce a field into a user's class (not a synthetic frame)
             Dim shouldCacheStaticlambda As Boolean =
-                (lambdaIsStatic AndAlso CurrentMethod.MethodKind <> MethodKind.SharedConstructor AndAlso Not referencedMethod.IsGenericMethod)
+                (closureKind = ClosureKind.Static AndAlso CurrentMethod.MethodKind <> MethodKind.SharedConstructor AndAlso Not referencedMethod.IsGenericMethod)
 
             Dim shouldCacheInLoop As Boolean =
                 (lambdaScope IsNot Nothing AndAlso lambdaScope IsNot _analysis.blockParent(node.Body)) AndAlso
                 InLoopOrLambda(node.Syntax, lambdaScope.Syntax)
 
-            If (shouldCacheStaticlambda OrElse shouldCacheInLoop) Then
+            If shouldCacheStaticlambda OrElse shouldCacheInLoop Then
                 ' replace the expression "new Delegate(frame.M)" with "(frame.cache == null) ? (frame.cache = new Delegate(frame.M)) : frame.cache"
-                Dim cacheFieldName As String = "_ClosureCache$__" & CompilationState.GenerateTempNumber()
-                Dim cachedFieldType As TypeSymbol = If(containerAsFrame Is Nothing,
-                                                        type,
-                                                        type.InternalSubstituteTypeParameters(containerAsFrame.TypeMap))
 
-                Dim cacheField As FieldSymbol = New SynthesizedFieldSymbol(translatedLambdaContainer, implicitlyDefinedBy:=node.LambdaSymbol,
-                                                            type:=cachedFieldType, name:=cacheFieldName,
-                                                            accessibility:=Accessibility.Public,
-                                                            isShared:=lambdaIsStatic)
+                Dim cachedFieldType As TypeSymbol = If(containerAsFrame Is Nothing,
+                                                       type,
+                                                       type.InternalSubstituteTypeParameters(containerAsFrame.TypeMap))
+
+                ' If we are generating the field into a display class created exclusively for the lambda the lambdaOrdinal itself Is unique already, 
+                ' no need to include the top-level method ordinal in the field name.
+                Dim cacheFieldName As String = GeneratedNames.MakeLambdaCacheFieldName(
+                    If(closureKind = ClosureKind.General, -1, _topLevelMethodOrdinal),
+                    If(CompilationState.ModuleBuilderOpt?.CurrentGenerationOrdinal, 0), ' Note: module builder is not available only when testing emit diagnostics
+                    lambdaOrdinal,
+                    node.LambdaSymbol.SynthesizedKind)
+
+                Dim cacheField As FieldSymbol = New SynthesizedFieldSymbol(translatedLambdaContainer,
+                                                                           implicitlyDefinedBy:=node.LambdaSymbol,
+                                                                           type:=cachedFieldType,
+                                                                           name:=cacheFieldName,
+                                                                           accessibility:=Accessibility.Public,
+                                                                           isShared:=(closureKind = ClosureKind.Static))
+
                 If CompilationState.ModuleBuilderOpt IsNot Nothing Then
                     CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, cacheField)
                 End If

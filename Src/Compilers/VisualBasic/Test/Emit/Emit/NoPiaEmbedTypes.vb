@@ -1172,7 +1172,7 @@ End Class
 
                                                            Assert.Equal(4, test11.GetMembers().Length)
 
-                                                           Dim ctor = test11.GetMember(Of PEMethodSymbol)(".ctor")
+                                                           Dim ctor = DirectCast(test11.GetMethod(".ctor"), PEMethodSymbol)
 
                                                            ' MethodName: .ctor (0600000F)
                                                            ' Flags     : [Public] [ReuseSlot] [SpecialName] [RTSpecialName] [.ctor]  (00001886)

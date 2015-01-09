@@ -908,8 +908,8 @@ Lambda(
       method: Boolean Bar(Foo) in Form1 (
         MemberAccess(
           Constant(
-            Form1+_Closure$__1
-            type: Form1+_Closure$__1
+            Form1+_Closure$__18-0
+            type: Form1+_Closure$__18-0
           )
           -> $VB$Local_d
           type: Form1+Foo

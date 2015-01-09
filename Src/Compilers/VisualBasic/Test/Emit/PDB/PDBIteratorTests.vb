@@ -35,11 +35,11 @@ End Module
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
-            compilation.VerifyPdb("Program+_Closure$__1+VB$StateMachine_0__Lambda$__2.MoveNext",
+            compilation.VerifyPdb("Program+_Closure$__+VB$StateMachine___Lambda$__0-1.MoveNext",
 <symbols>
     <entryPoint declaringType="Program" methodName="Main" parameterNames="args"/>
     <methods>
-        <method containingType="Program+_Closure$__1+VB$StateMachine_0__Lambda$__2" name="MoveNext" parameterNames="">
+        <method containingType="Program+_Closure$__+VB$StateMachine___Lambda$__0-1" name="MoveNext" parameterNames="">
             <customDebugInfo version="4" count="1">
                 <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="16">
                     <slot kind="20" offset="-1"/>
@@ -187,10 +187,8 @@ End Class
                     source,
                     TestOptions.ReleaseDll)
 
-            Dim actual = PDBTests.GetPdbXml(compilation, "C+VB$StateMachine_1_Iterator_Lambda_Hoisted.MoveNext")
-
             ' Goal: We're looking for the double-mangled name "$VB$ResumableLocal_$VB$Closure_$0".
-            Dim expected =
+            compilation.VerifyPdb("C+VB$StateMachine_1_Iterator_Lambda_Hoisted.MoveNext",
 <symbols>
     <methods>
         <method containingType="C+VB$StateMachine_1_Iterator_Lambda_Hoisted" name="MoveNext" parameterNames="">
@@ -209,16 +207,14 @@ End Class
                 <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x19" il_end="0x97" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x98">
-                <importsforward declaringType="C+_Closure$__1" methodName="_Lambda$__2" parameterNames=""/>
+                <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__1" parameterNames=""/>
                 <scope startOffset="0x19" endOffset="0x97">
                     <local name="$VB$ResumableLocal_$VB$Closure_$0" il_index="0" il_start="0x19" il_end="0x97" attributes="0"/>
                 </scope>
             </scope>
         </method>
     </methods>
-</symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
@@ -246,10 +242,8 @@ End Class
                     source,
                     TestOptions.ReleaseDll)
 
-            Dim actual = PDBTests.GetPdbXml(compilation, "C+VB$StateMachine_1_Iterator_Lambda_NotHoisted.MoveNext")
-
             ' Goal: We're looking for the single-mangled name "$VB$Closure_0".
-            Dim expected =
+            compilation.VerifyPdb("C+VB$StateMachine_1_Iterator_Lambda_NotHoisted.MoveNext",
 <symbols>
     <methods>
         <method containingType="C+VB$StateMachine_1_Iterator_Lambda_NotHoisted" name="MoveNext" parameterNames="">
@@ -265,16 +259,14 @@ End Class
                 <local name="$VB$Closure_0" il_index="1" il_start="0x19" il_end="0x55" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x56">
-                <importsforward declaringType="C+_Closure$__1" methodName="_Lambda$__2" parameterNames=""/>
+                <importsforward declaringType="C+_Closure$__1-0" methodName="_Lambda$__1" parameterNames=""/>
                 <scope startOffset="0x19" endOffset="0x55">
                     <local name="$VB$Closure_0" il_index="1" il_start="0x19" il_end="0x55" attributes="0"/>
                 </scope>
             </scope>
         </method>
     </methods>
-</symbols>
-
-            PDBTests.AssertXmlEqual(expected, actual)
+</symbols>)
         End Sub
 
         <Fact(), WorkItem(827337, "DevDiv"), WorkItem(836491, "DevDiv")>
