@@ -10,5 +10,6 @@
         public const string InvalidSyntaxKindTypeArgumentRuleId = "RS1006";
         public const string UseLocalizableStringsInDescriptorRuleId = "RS1007";
         public const string DoNotStorePerCompilationDataOntoFieldsRuleId = "RS1008";
+        public const string InternalImplementationOnlyRuleId = "RS1009";
     }
 }

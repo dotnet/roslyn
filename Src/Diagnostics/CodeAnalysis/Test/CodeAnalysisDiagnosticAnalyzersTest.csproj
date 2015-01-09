@@ -102,6 +102,7 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
+    <Compile Include="InternalImplementationOnlyTests.cs" />
     <Compile Include="MetaAnalyzers\DoNotStorePerCompilationDataOntoFieldsRuleTests.cs" />
     <Compile Include="MetaAnalyzers\InvalidReportDiagnosticRuleTests.cs" />
     <Compile Include="MetaAnalyzers\InvalidSyntaxKindTypeArgumentRuleTests.cs" />

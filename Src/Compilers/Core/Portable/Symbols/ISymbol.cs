@@ -4,8 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Threading;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis
     /// Represents a symbol (namespace, class, method, parameter, etc.)
     /// exposed by the compiler.
     /// </summary>
+    [InternalImplementationOnly]
     public interface ISymbol : IEquatable<ISymbol>
     {
         /// <summary>

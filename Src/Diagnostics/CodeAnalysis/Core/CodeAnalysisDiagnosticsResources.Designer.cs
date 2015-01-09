@@ -143,6 +143,33 @@ namespace Microsoft.CodeAnalysis.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The author of this interface did not intend to have third party implementations of this interface and reserves the right to change it. Implementing this interface could therefore result in a source or binary compatibility issue with a future version of this interface..
+        /// </summary>
+        internal static string InternalImplementationOnlyDescription {
+            get {
+                return ResourceManager.GetString("InternalImplementationOnlyDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type {0} cannot implement interface {1} because {1} is not available for public implementation..
+        /// </summary>
+        internal static string InternalImplementationOnlyMessage {
+            get {
+                return ResourceManager.GetString("InternalImplementationOnlyMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &quot;Only internal implementations of this interface are allowed.&quot;.
+        /// </summary>
+        internal static string InternalImplementationOnlyTitle {
+            get {
+                return ResourceManager.GetString("InternalImplementationOnlyTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to ReportDiagnostic should only be invoked with supported DiagnosticDescriptors that are returned from DiagnosticAnalyzer.SupportedDiagnostics property. Otherwise, the reported diagnostic will be filtered out by the analysis engine..
         /// </summary>
         internal static string InvalidReportDiagnosticDescription {

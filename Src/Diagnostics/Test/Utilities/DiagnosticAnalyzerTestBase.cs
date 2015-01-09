@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return CreateProject(new[] { source }, language, addLanguageSpecificCodeAnalysisReference).Documents.First();
         }
 
-        protected static Project CreateProject(string[] sources, string language = LanguageNames.CSharp, bool addLanguageSpecificCodeAnalysisReference = true)
+        protected static Project CreateProject(string[] sources, string language = LanguageNames.CSharp, bool addLanguageSpecificCodeAnalysisReference = true, Solution addToSolution = null)
         {
             string fileNamePrefix = DefaultFilePathPrefix;
             string fileExt = language == LanguageNames.CSharp ? CSharpDefaultFileExt : VisualBasicDefaultExt;
@@ -260,8 +260,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             
             var projectId = ProjectId.CreateNewId(debugName: TestProjectName);
 
-            var solution = new CustomWorkspace()
-                .CurrentSolution
+            var solution = (addToSolution ?? new CustomWorkspace().CurrentSolution)
                 .AddProject(projectId, TestProjectName, TestProjectName, language)
                 .AddMetadataReference(projectId, CorlibReference)
                 .AddMetadataReference(projectId, SystemCoreReference)

@@ -64,6 +64,9 @@
     <Compile Include="Helpers\AttributeHelpers.cs" />
     <Compile Include="Helpers\DocumentChangedAction.cs" />
     <Compile Include="Helpers\ITypeSymbolExtensions.cs" />
+    <Compile Include="InternalImplementationOnlyAnalyzer.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
     <Compile Include="MetaAnalyzers\DiagnosticAnalyzerFieldsAnalyzer.cs" />
     <Compile Include="MetaAnalyzers\DiagnosticAnalyzerAttributeAnalyzer.cs" />
     <Compile Include="MetaAnalyzers\DiagnosticAnalyzerCorrectnessAnalyzer.CompilationAnalyzer.cs" />
