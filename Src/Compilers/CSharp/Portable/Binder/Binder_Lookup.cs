@@ -1097,7 +1097,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return LookupResult.NotInvocable(unwrappedSymbol, symbol, diagnose);
             }
-            else if (!this.IsAccessible(unwrappedSymbol, RefineAccessThroughType(options, this.InCref, accessThroughType), out inaccessibleViaQualifier, ref useSiteDiagnostics, basesBeingResolved))
+            else if (!InCref &&
+                     !this.IsAccessible(unwrappedSymbol,
+                                        RefineAccessThroughType(options, accessThroughType),
+                                        out inaccessibleViaQualifier,
+                                        ref useSiteDiagnostics,
+                                        basesBeingResolved))
             {
                 if (inaccessibleViaQualifier)
                 {
@@ -1205,7 +1210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return false;
             }
-            else if (!this.IsAccessible(symbol, ref useSiteDiagnostics, RefineAccessThroughType(options, this.InCref, accessThroughType)))
+            else if (!InCref && !this.IsAccessible(symbol, ref useSiteDiagnostics, RefineAccessThroughType(options, accessThroughType)))
             {
                 return false;
             }
@@ -1230,13 +1235,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private static TypeSymbol RefineAccessThroughType(LookupOptions options, bool inCref, TypeSymbol accessThroughType)
+        private static TypeSymbol RefineAccessThroughType(LookupOptions options, TypeSymbol accessThroughType)
         {
             // Normally, when we access a protected instance member, we need to know the type of the receiver so we
-            // can determine whether the member is actually accessible in the containing type.  There are two exceptions:
-            //   1) If the receiver is "base", then it's okay if the receiver type isn't derived from the containing type; or
-            //   2) If we're in a cref, then there isn't really a receiver so the test makes no sense.
-            return ((options & LookupOptions.UseBaseReferenceAccessibility) != 0 || inCref)
+            // can determine whether the member is actually accessible in the containing type.  There is one exception:
+            // If the receiver is "base", then it's okay if the receiver type isn't derived from the containing type.
+            return ((options & LookupOptions.UseBaseReferenceAccessibility) != 0)
                 ? null
                 : accessThroughType;
         }

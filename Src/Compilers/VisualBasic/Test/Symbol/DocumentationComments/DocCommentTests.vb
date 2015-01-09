@@ -6671,8 +6671,10 @@ End Class
             Assert.Equal(1, names.Length)
 
             ' BREAK: works in dev11.
-            symbols = CheckSymbolInfoAndTypeInfo(model, DirectCast(names(0), ExpressionSyntax))
-            Assert.Equal(0, symbols.Length)
+            symbols = CheckSymbolInfoAndTypeInfo(model,
+                                                 DirectCast(names(0), ExpressionSyntax),
+                                                 "C(Of T).N1.N2.T.C")
+            Assert.Equal(1, symbols.Length)
 
 
             ' "t"
@@ -6730,6 +6732,38 @@ End Class
                                                         container:=secondSymbols(0).ContainingType),
                                     SymbolKind.NamedType, SymbolKind.TypeParameter))
 
+        End Sub
+
+        <Fact(Skip:="1104815")>
+        Public Sub CrefLookup()
+            Dim source =
+                <compilation name="AssemblyName">
+                    <file name="a.vb">
+                        <![CDATA[
+''' <summary>
+''' See <see cref="C(Of U)" />
+''' </summary>
+Class C(Of T)
+    Sub M()
+    End Sub
+End Class
+
+Class Outer
+    Private Class Inner
+    End Class
+End Class
+]]>
+                    </file>
+                </compilation>
+            Dim comp = CompileCheckDiagnosticsAndXmlDocument(source, <errors/>)
+            Dim syntaxTree = comp.SyntaxTrees(0)
+            Dim model = comp.GetSemanticModel(syntaxTree)
+
+            Dim outer = comp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Outer")
+            Dim inner = outer.GetMember(Of NamedTypeSymbol)("Inner")
+
+            Dim position = syntaxTree.ToString().IndexOf("(Of U)")
+            Assert.Equal(inner, model.LookupSymbols(position, outer, inner.Name).Single())
         End Sub
 
         <Fact()>
@@ -11345,12 +11379,8 @@ End Class
 
             Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=OptionsDiagnoseDocComments)
 
-            ' BREAK: Works in dev11.
-            compilation.AssertTheseDiagnostics(<errors><![CDATA[
-BC42309: XML comment has a tag with a 'cref' attribute 'C.M' that could not be resolved.
-''' See <see cref="C.M"/>.
-             ~~~~~~~~~~
-]]></errors>)
+            ' Compat fix: match dev11 with inaccessible lookup
+            compilation.AssertNoDiagnostics()
         End Sub
 
         <WorkItem(568006, "DevDiv")>
@@ -11378,12 +11408,8 @@ End Class
 
             Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=OptionsDiagnoseDocComments)
 
-            ' BREAK: Works in dev11.
-            compilation.AssertTheseDiagnostics(<errors><![CDATA[
-BC42309: XML comment has a tag with a 'cref' attribute 'C.Inner.M' that could not be resolved.
-''' See <see cref="C.Inner.M"/>.
-             ~~~~~~~~~~~~~~~~
-]]></errors>)
+            ' Compat fix: match dev11 with inaccessible lookup
+            compilation.AssertNoDiagnostics()
         End Sub
 
         <WorkItem(568006, "DevDiv")>
@@ -11427,9 +11453,13 @@ End Class
 
             Dim crefSyntax = tree.GetRoot().DescendantNodes(descendIntoTrivia:=True).OfType(Of CrefReferenceSyntax).Single()
 
-            ' NOTE: Matches dev11 - accessible symbol is preferred.
-            Dim actualSymbol = model.GetSymbolInfo(crefSyntax).Symbol
-            Assert.Equal("B", actualSymbol.ContainingAssembly.Name)
+            ' Break: In dev11 the accessible symbol is preferred. We produce an ambiguity
+            Dim symbolInfo = model.GetSymbolInfo(crefSyntax)
+            Dim symbols = symbolInfo.CandidateSymbols
+            Assert.Equal(CandidateReason.Ambiguous, symbolInfo.CandidateReason)
+            Assert.Equal(2, symbols.Length)
+            Assert.Equal("A", symbols(0).ContainingAssembly.Name)
+            Assert.Equal("B", symbols(1).ContainingAssembly.Name)
         End Sub
 
         <WorkItem(568006, "DevDiv")>
@@ -11456,11 +11486,7 @@ End Class
 
 
             Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=OptionsDiagnoseDocComments)
-            compilation.AssertTheseDiagnostics(<errors><![CDATA[
-BC42309: XML comment has a tag with a 'cref' attribute 'Base.F' that could not be resolved.
-''' Inaccessible: <see cref="Base.F"/>
-                       ~~~~~~~~~~~~~
-]]></errors>)
+            compilation.AssertNoDiagnostics()
 
             Dim tree = compilation.SyntaxTrees.Single()
             Dim model = compilation.GetSemanticModel(tree)
@@ -11496,11 +11522,7 @@ End Class
 
 
             Dim compilation = CreateCompilationWithMscorlib(source, parseOptions:=OptionsDiagnoseDocComments)
-            compilation.AssertTheseDiagnostics(<errors><![CDATA[
-BC42309: XML comment has a tag with a 'cref' attribute 'Base.F' that could not be resolved.
-''' Inaccessible: <see cref="Base.F"/>
-                       ~~~~~~~~~~~~~
-]]></errors>)
+            compilation.AssertNoDiagnostics()
 
             Dim tree = compilation.SyntaxTrees.Single()
             Dim model = compilation.GetSemanticModel(tree)

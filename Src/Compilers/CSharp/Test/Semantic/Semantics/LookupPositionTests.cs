@@ -1435,7 +1435,7 @@ label1:
     private int Private;
 `}
 
-/// <see cref='explicit operator `int`(`Derived`)'/>
+/// <see cref=`'explicit operator `int`(`Derived`)`'/>
 class Derived : Base<int>
 `{
     public static explicit operator int(Derived d) 
@@ -1480,6 +1480,15 @@ class Derived : Base<int>
                 "void System.Object.Finalize()",
                 "System.String System.Object.ToString()",
                 "System.Type System.Object.GetType()",
+                "System.Int32 Base<System.Int32>.Private",
+            };
+
+            var inaccessibleGlobalMembers = new[]
+            {
+                "AssemblyRef",
+                "FXAssembly",
+                "SRETW",
+                "ThisAssembly"
             };
 
             var expectedNames = MakeExpectedSymbols(
@@ -1493,8 +1502,10 @@ class Derived : Base<int>
                 Pop, //Base members are not in scope in Base declaration list
                 Add(baseMembers), //Base<T> body
                 Combine(Pop, Pop), //Base<T> body
-                Add(derivedInheritedMembers), Pop, //cref return type
-                Add(derivedInheritedMembers), Pop, //cref parameter type
+                Add(inaccessibleGlobalMembers), // Start of cref
+                Add(derivedInheritedMembers), Pop, // cref return type
+                Add(derivedInheritedMembers), Pop, // cref parameter type
+                Pop, // end cref
                 Add(derivedMembers), //Derived body
                 Add("Derived d"), Pop, //Derived.op_Explicit body
                 Pop //Derived body
@@ -1584,8 +1595,8 @@ class Derived : Base<int>
             var actualSymbols = model.LookupSymbols(position).Select(SymbolUtilities.ToTestDisplayString).ToArray();
             Array.Sort(actualSymbols);
 
-            SyntaxToken token = model.SyntaxTree.GetCompilationUnitRoot().FindToken(position);
-            AssertEx.Equal(actualSymbols, expectedSymbols, 
+            SyntaxToken token = model.SyntaxTree.GetCompilationUnitRoot().FindToken(position, findInsideTrivia: true);
+            AssertEx.Equal(expectedSymbols, actualSymbols, 
                 message: string.Format("Lookup({0}) - '{1}' in '{2}' after {3}th '{4}' - \"-->\" found but not expected, \"++>\" expected but not found",
                          position, token.ToString(), token.Parent.ToString(), keyPositionNum, KeyPositionMarker));
         }

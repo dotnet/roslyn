@@ -3951,6 +3951,40 @@ public class C
             Assert.Equal(expected, actual);
         }
 
+        [Fact, WorkItem(921838, "DevDiv")]
+        public void InaccessibleMembers()
+        {
+            var source =
+@"/// <summary>
+/// See <see cref=""C.M""/>.
+/// </summary>
+class A
+{
+}
+
+class C
+{
+    private void M() { }
+}";
+            var comp = CreateCompilationWithMscorlibAndDocumentationComments(source);
+            var actual = GetDocumentationCommentText(comp, "OutputName");
+            var expected = (@"
+<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>OutputName</name>
+    </assembly>
+    <members>
+        <member name=""T:A"">
+            <summary>
+            See <see cref=""M:C.M""/>.
+            </summary>
+        </member>
+    </members>
+</doc>").Trim();
+            Assert.Equal(expected, actual);
+        }
+
         [WorkItem(531144, "DevDiv")]
         [Fact]
         public void NamespaceCref()

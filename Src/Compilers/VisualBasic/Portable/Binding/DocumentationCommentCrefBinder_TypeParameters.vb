@@ -30,7 +30,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim typeParameter As CrefTypeParameterSymbol = Nothing
                 If Me._typeParameters.TryGetValue(name, typeParameter) Then
-                    lookupResult.SetFrom(CheckViability(typeParameter, arity, options, Nothing, useSiteDiagnostics))
+                    lookupResult.SetFrom(CheckViability(typeParameter,
+                                                        arity,
+                                                        options Or LookupOptions.IgnoreAccessibility,
+                                                        Nothing,
+                                                        useSiteDiagnostics))
                 End If
             End Sub
 

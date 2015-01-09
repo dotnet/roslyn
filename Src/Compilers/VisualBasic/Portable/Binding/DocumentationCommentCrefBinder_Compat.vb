@@ -118,13 +118,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If right.Kind = SyntaxKind.GenericName Then
                 ' Generic name
                 Dim genericName = DirectCast(right, GenericNameSyntax)
-                BindSimpleNameForCref(singleSymbol,
-                                      allowColorColor,
-                                      genericName.Identifier.ValueText,
+                BindSimpleNameForCref(genericName.Identifier.ValueText,
                                       genericName.TypeArgumentList.Arguments.Count,
                                       symbols,
                                       preserveAliases,
-                                      useSiteDiagnostics)
+                                      useSiteDiagnostics,
+                                      containingSymbol:=singleSymbol,
+                                      allowColorColor:=allowColorColor)
 
                 If symbols.Count <> 1 Then
                     ' Don't do any construction in case nothing was found or
@@ -139,49 +139,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim identifierName As String = DirectCast(right, IdentifierNameSyntax).Identifier.ValueText
 
                 ' Search for 0 arity first
-                BindSimpleNameForCref(singleSymbol, allowColorColor, identifierName, 0, symbols, preserveAliases, useSiteDiagnostics)
+                BindSimpleNameForCref(identifierName,
+                                      0,
+                                      symbols,
+                                      preserveAliases,
+                                      useSiteDiagnostics,
+                                      containingSymbol:=singleSymbol,
+                                      allowColorColor:=allowColorColor)
                 If symbols.Count > 0 Then
                     Return
                 End If
 
                 ' Search with any arity, if we find the single result, it is going to be 
                 ' selected as the right one, otherwise we will return ambiguous result
-                BindSimpleNameForCref(singleSymbol, allowColorColor, identifierName, -1, symbols, preserveAliases, useSiteDiagnostics)
+                BindSimpleNameForCref(identifierName,
+                                      -1,
+                                      symbols,
+                                      preserveAliases,
+                                      useSiteDiagnostics,
+                                      containingSymbol:=singleSymbol,
+                                      allowColorColor:=allowColorColor)
             End If
         End Sub
 
-        Private Sub BindSimpleNameForCref(containingSymbol As Symbol,
-                                          allowColorColor As Boolean,
-                                          name As String,
-                                          arity As Integer,
-                                          symbols As ArrayBuilder(Of Symbol),
-                                          preserveAliases As Boolean,
-                                          <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
-
-            If String.IsNullOrEmpty(name) Then
-                ' Return an empty symbol collection in error scenario
-                Return
-            End If
-
-            Dim lookupResult As LookupResult = lookupResult.GetInstance()
-
-            Const optionsWithNoArity As LookupOptions =
-                                LookupOptions.UseBaseReferenceAccessibility Or
-                                LookupOptions.MustNotBeReturnValueVariable Or
-                                LookupOptions.IgnoreExtensionMethods Or
-                                LookupOptions.MustNotBeLocalOrParameter Or
-                                LookupOptions.AllMethodsOfAnyArity Or
-                                LookupOptions.NoSystemObjectLookupForInterfaces
-
-            Const optionsWithArity As LookupOptions =
-                                LookupOptions.UseBaseReferenceAccessibility Or
-                                LookupOptions.MustNotBeReturnValueVariable Or
-                                LookupOptions.IgnoreExtensionMethods Or
-                                LookupOptions.MustNotBeLocalOrParameter Or
-                                LookupOptions.NoSystemObjectLookupForInterfaces
-
-            Dim options As LookupOptions = If(arity < 0, optionsWithNoArity, optionsWithArity)
-
+        Private Sub LookupSimpleNameInContainingSymbol(containingSymbol As Symbol,
+                                                       allowColorColor As Boolean,
+                                                       name As String,
+                                                       arity As Integer,
+                                                       preserveAliases As Boolean,
+                                                       lookupResult As LookupResult,
+                                                       options As LookupOptions,
+                                                       <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo))
 lAgain:
             Select Case containingSymbol.Kind
                 Case SymbolKind.Namespace
@@ -235,6 +223,53 @@ lAgain:
                     ' Nothing can be found in context of these symbols
 
             End Select
+        End Sub
+
+        Private Sub BindSimpleNameForCref(name As String,
+                                          arity As Integer,
+                                          symbols As ArrayBuilder(Of Symbol),
+                                          preserveAliases As Boolean,
+                                          <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+                                          Optional containingSymbol As Symbol = Nothing,
+                                          Optional allowColorColor As Boolean = False,
+                                          Optional typeOrNamespaceOnly As Boolean = False)
+
+            Debug.Assert(Not String.IsNullOrEmpty(name))
+
+            If String.IsNullOrEmpty(name) Then
+                ' Return an empty symbol collection in error scenario
+                Return
+            End If
+
+            Dim options = LookupOptions.UseBaseReferenceAccessibility Or
+                          LookupOptions.MustNotBeReturnValueVariable Or
+                          LookupOptions.IgnoreExtensionMethods Or
+                          LookupOptions.MustNotBeLocalOrParameter Or
+                          LookupOptions.NoSystemObjectLookupForInterfaces Or
+                          LookupOptions.IgnoreAccessibility
+
+            If arity < 0 Then
+                options = options Or LookupOptions.AllMethodsOfAnyArity
+            End If
+
+            If typeOrNamespaceOnly Then
+                options = options Or LookupOptions.NamespacesOrTypesOnly
+            End If
+
+            Dim lookupResult As LookupResult = LookupResult.GetInstance()
+
+            If containingSymbol Is Nothing Then
+                Me.Lookup(lookupResult, name, arity, options, useSiteDiagnostics)
+            Else
+                LookupSimpleNameInContainingSymbol(containingSymbol,
+                                               allowColorColor,
+                                               name,
+                                               arity,
+                                               preserveAliases,
+                                               lookupResult,
+                                               options,
+                                               useSiteDiagnostics)
+            End If
 
             If Not lookupResult.IsGoodOrAmbiguous OrElse Not lookupResult.HasSymbol Then
                 lookupResult.Free()
@@ -265,7 +300,7 @@ lAgain:
                                       symbols,
                                       preserveAliases,
                                       useSiteDiagnostics,
-                                      typeOrNamespaceOnly)
+                                      typeOrNamespaceOnly:=typeOrNamespaceOnly)
 
                 If symbols.Count <> 1 Then
                     ' Don't do any construction in case nothing was found or there is an ambiguity
@@ -281,7 +316,12 @@ lAgain:
                 Dim identifierName As String = identifier.ValueText
 
                 ' Search for 0 arity first
-                BindSimpleNameForCref(identifierName, 0, symbols, preserveAliases, useSiteDiagnostics, typeOrNamespaceOnly)
+                BindSimpleNameForCref(identifierName,
+                                      0,
+                                      symbols,
+                                      preserveAliases,
+                                      useSiteDiagnostics,
+                                      typeOrNamespaceOnly:=typeOrNamespaceOnly)
 
                 If symbols.Count > 0 Then
                     Return
@@ -289,7 +329,12 @@ lAgain:
 
                 ' Search with any arity, if we find the single result, it is going to be 
                 ' selected as the right one, otherwise we will return ambiguous result
-                BindSimpleNameForCref(identifierName, -1, symbols, preserveAliases, useSiteDiagnostics, typeOrNamespaceOnly)
+                BindSimpleNameForCref(identifierName,
+                                      -1,
+                                      symbols,
+                                      preserveAliases,
+                                      useSiteDiagnostics,
+                                      typeOrNamespaceOnly:=typeOrNamespaceOnly)
             End If
         End Sub
 
@@ -376,47 +421,6 @@ lAgain:
             diagBag.Free()
             Return result.AsImmutableOrNull()
         End Function
-
-        Private Sub BindSimpleNameForCref(name As String,
-                                          arity As Integer,
-                                          symbols As ArrayBuilder(Of Symbol),
-                                          preserveAliases As Boolean,
-                                          <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
-                                          typeOrNamespaceOnly As Boolean)
-
-            Debug.Assert(Not String.IsNullOrEmpty(name))
-
-            Const optionsWithNoArity As LookupOptions =
-                                LookupOptions.UseBaseReferenceAccessibility Or
-                                LookupOptions.MustNotBeReturnValueVariable Or
-                                LookupOptions.IgnoreExtensionMethods Or
-                                LookupOptions.MustNotBeLocalOrParameter Or
-                                LookupOptions.AllMethodsOfAnyArity Or
-                                LookupOptions.NoSystemObjectLookupForInterfaces
-
-            Const optionsWithArity As LookupOptions =
-                                LookupOptions.UseBaseReferenceAccessibility Or
-                                LookupOptions.MustNotBeReturnValueVariable Or
-                                LookupOptions.IgnoreExtensionMethods Or
-                                LookupOptions.MustNotBeLocalOrParameter Or
-                                LookupOptions.NoSystemObjectLookupForInterfaces
-
-            Dim options As LookupOptions = If(arity < 0, optionsWithNoArity, optionsWithArity)
-            If typeOrNamespaceOnly Then
-                options = options Or LookupOptions.NamespacesOrTypesOnly
-            End If
-
-            Dim result As LookupResult = LookupResult.GetInstance()
-
-            Me.Lookup(result, name, arity, options, useSiteDiagnostics)
-
-            If Not result.IsGoodOrAmbiguous OrElse Not result.HasSymbol Then
-                result.Free()
-                Return
-            End If
-
-            CreateGoodOrAmbiguousFromLookupResultAndFree(result, symbols, preserveAliases)
-        End Sub
 
         Private Sub CreateGoodOrAmbiguousFromLookupResultAndFree(lookupResult As LookupResult, result As ArrayBuilder(Of Symbol), preserveAliases As Boolean)
             Dim di As DiagnosticInfo = lookupResult.Diagnostic

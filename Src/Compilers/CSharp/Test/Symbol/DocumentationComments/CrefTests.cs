@@ -1796,11 +1796,18 @@ class C
             var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
 
-            var actualSymbol = GetReferencedSymbol(crefSyntax, compilation,
-                // (3,20): warning CS1574: XML comment has cref attribute 'C.M' that could not be resolved
-                // /// See <see cref="C.M"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "C.M").WithArguments("M"));
-            Assert.Null(actualSymbol);
+            var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
+            Assert.NotNull(actualSymbol);
+            Assert.Equal(
+                compilation.GlobalNamespace
+                           .GetMember<NamedTypeSymbol>("C")
+                           .GetMember<SourceMemberMethodSymbol>("M"),
+                actualSymbol);
+            Assert.Equal(SymbolKind.Method, actualSymbol.Kind);
+            var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
+            var info = model.GetSymbolInfo(crefSyntax);
+            Assert.Equal(info.CandidateReason, CandidateReason.None);
+            Assert.Equal(info.Symbol, actualSymbol);
         }
 
         [Fact]
@@ -1824,13 +1831,14 @@ class Outer
 ";
             var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
+            var expectedSymbol = compilation.GlobalNamespace
+                                            .GetMember<NamedTypeSymbol>("Outer")
+                                            .GetMember<NamedTypeSymbol>("Inner")
+                                            .GetMember<SourceMemberMethodSymbol>("M");
 
-            // Break: dev11 considers inaccessible symbols.
-            var actualSymbol = GetReferencedSymbol(crefSyntax, compilation,
-                // (3,20): warning CS1574: XML comment has cref attribute 'Outer.Inner.M' that could not be resolved
-                // /// See <see cref="Outer.Inner.M"/>.
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "Outer.Inner.M").WithArguments("M"));
-            Assert.Null(actualSymbol);
+            // Consider inaccessible symbols, as in Dev11
+            var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
+            Assert.Equal(expectedSymbol, actualSymbol);
         }
 
         [WorkItem(568006, "DevDiv")]
@@ -1853,9 +1861,13 @@ class Test { }
             var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source, new[] { lib1Ref, lib2Ref });
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
 
-            // NOTE: Matches dev11 - the accessible symbol is preferred.
-            var actualSymbol = GetReferencedSymbol(crefSyntax, compilation);
-            Assert.Equal("B", actualSymbol.ContainingAssembly.Name);
+            // Break: In dev11 the accessible symbol is preferred. We simply prefer the "first"
+            Symbol actualSymbol;
+            var symbols = GetReferencedSymbols(crefSyntax, compilation, out actualSymbol,
+                // (3,20): warning CS0419: Ambiguous reference in cref attribute: 'C'. Assuming 'C', but could have also matched other overloads including 'C'.
+                // /// See <see cref="C"/>.
+                Diagnostic(ErrorCode.WRN_AmbiguousXMLReference, "C").WithArguments("C", "C", "C").WithLocation(3, 20));
+            Assert.Equal("A", actualSymbol.ContainingAssembly.Name);
         }
 
         [WorkItem(568006, "DevDiv")]
@@ -1912,10 +1924,6 @@ class Other
 
             var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
             compilation.VerifyDiagnostics(
-                // (12,32): warning CS1574: XML comment has cref attribute 'Base.F' that could not be resolved
-                // /// Not accessible: <see cref="Base.F"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "Base.F").WithArguments("F"),
-
                 // (4,26): warning CS0649: Field 'Base.F' is never assigned to, and will always have its default value 0
                 //     protected static int F;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("Base.F", "0"));
@@ -1951,10 +1959,6 @@ class Other
 
             var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
             compilation.VerifyDiagnostics(
-                // (12,32): warning CS1574: XML comment has cref attribute 'Base.F' that could not be resolved
-                // /// Not accessible: <see cref="Base.F"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "Base.F").WithArguments("F"),
-
                 // (4,26): warning CS0649: Field 'Base.F' is never assigned to, and will always have its default value 0
                 //     protected static int F;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "F").WithArguments("Base.F", "0"));
@@ -3351,10 +3355,16 @@ class Outer
 
                 // Boring
                 "System",
-                "Microsoft");
+                "Microsoft",
 
-            // Break: Unlike dev11, we consider accessibility in cref lookup.
-            Assert.Equal(0, model.LookupSymbols(position, typeOuter, typeInner.Name).Length);
+                // Inaccessible and boring
+                "FXAssembly",
+                "ThisAssembly",
+                "AssemblyRef",
+                "SRETW");
+
+            // Consider inaccessible symbols, as in Dev11
+            Assert.Equal(typeInner, model.LookupSymbols(position, typeOuter, typeInner.Name).Single());
         }
 
         [Fact]
@@ -5812,15 +5822,9 @@ using System;
 enum E { }
 ";
 
-            // Break: this works in dev11.
+            // Restore compat: include inaccessible members in cref lookup
             var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
-            compilation.VerifyDiagnostics(
-                // (4,16): warning CS1574: XML comment has cref attribute 'RuntimeType.Equals' that could not be resolved
-                // /// <see cref="RuntimeType.Equals"/>
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "RuntimeType.Equals").WithArguments("Equals"),
-                // (2,1): info CS8019: Unnecessary using directive.
-                // using System;
-                Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System;"));
+            compilation.VerifyDiagnostics();
         }
 
         [WorkItem(554086, "DevDiv")]
@@ -6308,10 +6312,8 @@ class Outer
             nonCrefInfo = model.GetSpeculativeSymbolInfo(nonCrefPosition, inheritedTypeName, SpeculativeBindingOption.BindAsExpression);
 
             Assert.Equal(SymbolInfo.None, crefInfo);
-            Assert.Equal(inheritedType, returnInfo.CandidateSymbols.Single());
-            Assert.Equal(CandidateReason.Inaccessible, returnInfo.CandidateReason);
-            Assert.Equal(inheritedType, paramInfo.CandidateSymbols.Single());
-            Assert.Equal(CandidateReason.Inaccessible, paramInfo.CandidateReason);
+            Assert.Equal(inheritedType, returnInfo.Symbol);
+            Assert.Equal(inheritedType, paramInfo.Symbol);
             Assert.Equal(inheritedType, nonCrefInfo.CandidateSymbols.Single());
             Assert.Equal(CandidateReason.Inaccessible, nonCrefInfo.CandidateReason);
         }
@@ -6467,15 +6469,15 @@ class C<T>
 
             var compilation = CreateCompilationWithMscorlibAndDocumentationComments(source);
             compilation.VerifyDiagnostics(
-                // (2,16): warning CS1574: XML comment has cref attribute 'C' that could not be resolved
-                // /// <see cref="C" />
-                Diagnostic(ErrorCode.WRN_BadXMLRef, "C").WithArguments("C"),
                 // (3,16): warning CS1584: XML comment has syntactically incorrect cref attribute 'C{}'
                 // /// <see cref="C{}" />
-                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "C{}").WithArguments("C{}"),
+                Diagnostic(ErrorCode.WRN_BadXMLRefSyntax, "C{}").WithArguments("C{}").WithLocation(3, 16),
                 // (3,18): warning CS1658: Identifier expected. See also error CS1001.
                 // /// <see cref="C{}" />
-                Diagnostic(ErrorCode.WRN_ErrorOverride, "}").WithArguments("Identifier expected", "1001"));
+                Diagnostic(ErrorCode.WRN_ErrorOverride, "}").WithArguments("Identifier expected", "1001").WithLocation(3, 18),
+                // (2,16): warning CS1574: XML comment has cref attribute 'C' that could not be resolved
+                // /// <see cref="C" />
+                Diagnostic(ErrorCode.WRN_BadXMLRef, "C").WithArguments("C").WithLocation(2, 16));
 
             var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
             var crefs = GetCrefSyntaxes(compilation).ToArray();
