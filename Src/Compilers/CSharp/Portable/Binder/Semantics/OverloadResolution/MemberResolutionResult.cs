@@ -98,33 +98,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return result; }
         }
 
-        internal CommonMemberResolutionResult<TSymbol> ToCommon<TSymbol>()
-            where TSymbol : ISymbol
-        {
-            return new CommonMemberResolutionResult<TSymbol>(
-                (TSymbol)(ISymbol)this.Member,
-                ConvertKind(this.Resolution),
-                this.IsValid);
-        }
-
-        private static CommonMemberResolutionKind ConvertKind(MemberResolutionKind kind)
-        {
-            switch (kind)
-            {
-                case MemberResolutionKind.ApplicableInExpandedForm:
-                case MemberResolutionKind.ApplicableInNormalForm:
-                    return CommonMemberResolutionKind.Applicable;
-                case MemberResolutionKind.UseSiteError:
-                case MemberResolutionKind.UnsupportedMetadata:
-                    return CommonMemberResolutionKind.UseSiteError;
-                case MemberResolutionKind.TypeInferenceFailed:
-                case MemberResolutionKind.TypeInferenceExtensionInstanceArgument:
-                    return CommonMemberResolutionKind.TypeInferenceFailed;
-                default:
-                    return CommonMemberResolutionKind.Worse;
-            }
-        }
-
         public override bool Equals(object obj)
         {
             throw new NotSupportedException();

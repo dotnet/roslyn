@@ -72,13 +72,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return m_Results
             End Get
         End Property
-
-        Friend Function ToCommon(Of TSymbol As ISymbol)() As CommonOverloadResolutionResult(Of TSymbol)
-            Return New CommonOverloadResolutionResult(Of TSymbol)(
-                Me.Succeeded,
-                If(Me.ValidResult.HasValue, Me.ValidResult.Value.ToCommon(Of TSymbol)(), New CommonMemberResolutionResult(Of TSymbol) ?()),
-                If(Me.BestResult.HasValue, Me.BestResult.Value.ToCommon(Of TSymbol)(), New CommonMemberResolutionResult(Of TSymbol) ?()),
-                Me.Results.SelectAsArray(Function(r) r.ToCommon(Of TSymbol)()))
-        End Function
     End Class
 End Namespace

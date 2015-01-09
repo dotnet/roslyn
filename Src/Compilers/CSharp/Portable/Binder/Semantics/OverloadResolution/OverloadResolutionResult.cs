@@ -1237,15 +1237,5 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         #endregion
-
-        internal CommonOverloadResolutionResult<TSymbol> ToCommon<TSymbol>()
-            where TSymbol : ISymbol
-        {
-            return new CommonOverloadResolutionResult<TSymbol>(
-                this.Succeeded,
-                this.Succeeded ? this.ValidResult.ToCommon<TSymbol>() : default(CommonMemberResolutionResult<TSymbol>?),
-                this.HasBestResult ? this.BestResult.ToCommon<TSymbol>() : default(CommonMemberResolutionResult<TSymbol>?),
-                this.Results.SelectAsArray(r => r.ToCommon<TSymbol>()));
-        }
     }
 }

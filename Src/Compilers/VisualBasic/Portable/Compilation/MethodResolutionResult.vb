@@ -86,25 +86,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return m_Candidate.IsExpandedParamArrayForm
             End Get
         End Property
-
-        Friend Function ToCommon(Of TSymbol As ISymbol)() As CommonMemberResolutionResult(Of TSymbol)
-            Return New CommonMemberResolutionResult(Of TSymbol)(
-                DirectCast(DirectCast(Me.Member, ISymbol), TSymbol),
-                ConvertResolution(Me.Resolution),
-                Me.IsValid)
-        End Function
-
-        Private Shared Function ConvertResolution(resolution As MemberResolutionKind) As CommonMemberResolutionKind
-            Select Case resolution
-                Case MemberResolutionKind.Applicable
-                    Return CommonMemberResolutionKind.Applicable
-                Case MemberResolutionKind.HasUseSiteError
-                    Return CommonMemberResolutionKind.UseSiteError
-                Case MemberResolutionKind.TypeInferenceFailed
-                    Return CommonMemberResolutionKind.TypeInferenceFailed
-                Case Else
-                    Return CommonMemberResolutionKind.Worse
-            End Select
-        End Function
     End Structure
 End Namespace
