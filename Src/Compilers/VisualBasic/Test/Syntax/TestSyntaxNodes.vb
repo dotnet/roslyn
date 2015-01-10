@@ -3625,7 +3625,7 @@ End Module
         End Sub
 
         <Fact>
-        Public Sub SyntaxWalkerMehthod_VerifyImcompleteSyntaxClause()
+        Public Sub SyntaxWalkerMethod_VerifyImcompleteSyntaxClause()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">
@@ -3643,7 +3643,7 @@ End Module
         End Sub
 
         <Fact>
-        Public Sub SyntaxWalkerMehthod_VerifySkippedTokenTrivia()
+        Public Sub SyntaxWalkerMethod_VerifySkippedTokenTrivia()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">                
@@ -3663,10 +3663,10 @@ End Module
         End Sub
 
         <Fact>
-        Public Sub SyntaxWalkerMehthod_VerifyInferredFieldName()
+        Public Sub SyntaxWalkerMethod_VerifyInferredFieldName()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
-                                                                                                                                                                                                                                                                     <file name="Test.vb">                
+    <file name="Test.vb">                
 Imports System
 Module Module1
     Sub Main()
@@ -3676,7 +3676,7 @@ Module Module1
     End Sub
 End Module
                     </file>
-                                                                                                                                                                                                                                                                 </compilation>)
+</compilation>)
 
             Dim tree = Compilation.SyntaxTrees(0)
             Dim root = tree.GetCompilationUnitRoot()
