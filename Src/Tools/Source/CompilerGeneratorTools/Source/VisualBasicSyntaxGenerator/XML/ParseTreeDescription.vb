@@ -97,7 +97,7 @@ Public Class ParseTree
                 RootToken = struct
             End If
 
-            ' Check for triva root.
+            ' Check for trivia root.
             If struct.IsTriviaRoot Then
                 If RootTrivia IsNot Nothing Then ReportError(struct.Element, "More than one trivia root specified.")
                 RootTrivia = struct

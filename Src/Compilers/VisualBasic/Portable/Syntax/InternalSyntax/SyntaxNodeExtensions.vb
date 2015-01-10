@@ -451,7 +451,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Private addDiagnosticsToFirstTokenOnly As Boolean
             Private diagnosticsToAdd As IEnumerable(Of DiagnosticInfo)
 
-            ' Add a trivia to the triva we are accumulating.
+            ' Add a trivia to the trivia we are accumulating.
             Private Sub AddTrivia(trivia As VisualBasicSyntaxNode)
                 FinishInProgressTokens()
                 triviaListBuilder.AddRange(trivia)
@@ -484,7 +484,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Me.diagnosticsToAdd = diagnosticsToAdd
             End Sub
 
-            ' Process a token. and add to the list of triva/tokens we're accumulating.
+            ' Process a token. and add to the list of trivia/tokens we're accumulating.
             Public Sub AddToken(token As SyntaxToken, isFirst As Boolean, isLast As Boolean)
                 Dim isMissing As Boolean = token.IsMissing
 

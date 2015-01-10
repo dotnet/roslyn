@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             Public Overrides Function VisitInvocationExpression(node As InvocationExpressionSyntax) As SyntaxNode
                 Dim newNode = MyBase.VisitInvocationExpression(node)
 
-                ' make sure we are not under structured triva
+                ' make sure we are not under structured trivia
                 If _underStructuredTrivia Then
                     Return newNode
                 End If

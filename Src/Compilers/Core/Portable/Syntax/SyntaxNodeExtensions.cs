@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Creates a new tree of nodes with the specified old triva replaced with new trivia.
+        /// Creates a new tree of nodes with the specified old trivia replaced with new trivia.
         /// </summary>
         /// <typeparam name="TRoot">The type of the root node.</typeparam>
         /// <param name="root">The root of the tree of nodes.</param>

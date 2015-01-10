@@ -1600,13 +1600,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return IsChildOf(node, SyntaxKind.FieldDeclaration) OrElse IsChildOf(node, SyntaxKind.LocalDeclarationStatement)
         End Function
 
-        Private Function Isolate(declaration As SyntaxNode, editor As Func(Of SyntaxNode, SyntaxNode), Optional preserveTriva As Boolean = True) As SyntaxNode
+        Private Function Isolate(declaration As SyntaxNode, editor As Func(Of SyntaxNode, SyntaxNode), Optional preserveTrivia As Boolean = True) As SyntaxNode
             Dim isolated = AsIsolatedDeclaration(declaration)
 
             Dim result As SyntaxNode = Nothing
 
-            If preserveTriva Then
-                result = PreserveTrivia(isolated, editor)
+            If preserveTrivia Then
+                result = preserveTrivia(isolated, editor)
             Else
                 result = editor(isolated)
             End If

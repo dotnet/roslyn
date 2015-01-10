@@ -2118,7 +2118,7 @@ End Class]]>
 
         <WorkItem(539940, "DevDiv")>
         <Fact>
-        Public Sub TestFindTrivaNoTriviaExistsAtPosition()
+        Public Sub TestFindTriviaNoTriviaExistsAtPosition()
             Dim code = <code>Class Foo
     Sub Bar()
     End Sub
@@ -3643,7 +3643,7 @@ End Module
         End Sub
 
         <Fact>
-        Public Sub SyntaxWalkerMehthod_VerifySkippedTokenTriva()
+        Public Sub SyntaxWalkerMehthod_VerifySkippedTokenTrivia()
             Dim Compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="SyntaxWalkerTestTypes">
     <file name="Test.vb">                

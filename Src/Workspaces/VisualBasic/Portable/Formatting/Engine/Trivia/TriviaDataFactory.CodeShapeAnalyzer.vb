@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                 Debug.Assert(trivia.ToString() = trivia.ToFullString())
                 Dim text = trivia.ToString()
 
-                ' if text contains tab, we will give up perf optimization and use more expensive one to see whether we need to format this triva
+                ' if text contains tab, we will give up perf optimization and use more expensive one to see whether we need to format this trivia
                 If text.IndexOf(vbTab) >= 0 Then
                     Return True
                 End If

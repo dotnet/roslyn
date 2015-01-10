@@ -458,7 +458,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Gets the DirectiveTriviaSyntax items for a specified SytaxNode with optional filtering.
         ''' </summary>
         ''' <param name="node">The source SyntaxNode.</param>
-        ''' <param name="filter">The optional DirectiveTriva Syntax filter predicate.</param>
+        ''' <param name="filter">The optional DirectiveTrivia Syntax filter predicate.</param>
         ''' <returns>A list of DirectiveTriviaSyntax items</returns>
         <Extension>
         Public Function GetDirectives(node As SyntaxNode, Optional filter As Func(Of DirectiveTriviaSyntax, Boolean) = Nothing) As IList(Of DirectiveTriviaSyntax)

@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             {
                 var operation = operations[i];
 
-                // if an operation contains elastic trivia itself and the operation is not marked to ignore the elastic triva
+                // if an operation contains elastic trivia itself and the operation is not marked to ignore the elastic trivia
                 // ignore the operation
                 if (operation.ContainsElasticTrivia(tokenStream) && !operation.Option.IsOn(SuppressOption.IgnoreElastic))
                 {

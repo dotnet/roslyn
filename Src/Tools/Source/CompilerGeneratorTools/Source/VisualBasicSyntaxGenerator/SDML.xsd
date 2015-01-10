@@ -56,8 +56,8 @@ the definition of VB parse tree nodes. -->
                    abstract - if true, this is an abstract class that is never instantiated, only used as a base class.
                    partial - if true, make this a partial class [optional]
                    token-root - sets this at the root of all tokens. Exactly one structure must have this.
-                   trivia-root - sets this at the root of all trivate. zero or structure must have this.
-                   default-trailing-triva - can be "space", "newline"; indicates default trailing trivia
+                   trivia-root - sets this at the root of all trivia. zero or structure must have this.
+                   default-trailing-trivia - can be "space", "newline"; indicates default trailing trivia
                              to add for the simplified factory method.
                    no-factory - if true, no factory method is auto-generated.
                 Sub-Elements:
