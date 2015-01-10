@@ -873,6 +873,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
         End Function
 
+        ' Atomically set flag value into variable, and raise the symbol declared event.
+        ' When this routine returns, variable is not equal to comparand. If this routine stored value into variable,
+        ' then the symbol declared event was raised for the symbol.
+        Friend Function AtomicSetFlagAndRaiseSymbolDeclaredEvent(ByRef variable As Integer,
+                                               mask As Integer,
+                                               comparand As Integer,
+                                               symbol As Symbol) As Boolean
+            Debug.Assert(Me.DeclaringCompilation.EventQueue IsNot Nothing)
+
+            SyncLock diagnosticLock
+                Dim change = (variable And mask) = comparand
+                If change Then
+                    Me.DeclaringCompilation.SymbolDeclaredEvent(symbol)
+
+                    If Not ThreadSafeFlagOperations.Set(variable, mask) Then
+                        ' If this gets hit, then someone wrote to variable without going through this
+                        ' routine, which is a bug.
+                        Throw ExceptionUtilities.Unreachable
+                    End If
+                End If
+                Return change
+            End SyncLock
+        End Function
+
         Friend Function AtomicStoreArrayAndDiagnostics(Of T)(ByRef variable As ImmutableArray(Of T),
                                                              value As ImmutableArray(Of T),
                                                              diagBag As DiagnosticBag,

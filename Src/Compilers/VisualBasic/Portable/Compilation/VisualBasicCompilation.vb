@@ -1646,7 +1646,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Friend Sub SymbolDeclaredEvent(symbol As Symbol)
-            If EventQueue IsNot Nothing Then EventQueue.Enqueue(New SymbolDeclaredCompilationEvent(Me, symbol))
+            If EventQueue IsNot Nothing Then
+                Debug.Assert(Not EventQueue.IsCompleted)
+                EventQueue.Enqueue(New SymbolDeclaredCompilationEvent(Me, symbol))
+            End If
         End Sub
 
         Friend Sub RecordImports(syntax As ImportsStatementSyntax)

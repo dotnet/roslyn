@@ -45,6 +45,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' The overridden or hidden property.
         Private m_lazyOverriddenProperties As OverriddenMembersResult(Of PropertySymbol)
 
+        Private m_lazyState As Integer
+
+        <Flags>
+        Private Enum StateFlags As Integer
+            SymbolDeclaredEvent = &H1           ' Bit value for generating SymbolDeclaredEvent
+        End Enum
+
         Private Sub New(container As SourceMemberContainerTypeSymbol,
                         name As String,
                         flags As SourceMemberFlags,
@@ -62,6 +69,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             m_blockRef = blockRef
             m_location = location
             m_flags = flags
+            m_lazyState = 0
         End Sub
 
         Friend Shared Function Create(containingType As SourceMemberContainerTypeSymbol,
@@ -351,7 +359,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                         Dim restrictedType As TypeSymbol = Nothing
                         If type.IsRestrictedTypeOrArrayType(restrictedType) Then
-                            binder.ReportDiagnostic(diagnostics, errorLocation, ERRID.ERR_RestrictedType1, restrictedType)
+                            Binder.ReportDiagnostic(diagnostics, errorLocation, ERRID.ERR_RestrictedType1, restrictedType)
                         End If
 
                         Dim getMethod = Me.GetMethod
@@ -821,12 +829,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If m_lazyImplementedProperties.IsDefault Then
                     Dim diagnostics = DiagnosticBag.GetInstance()
                     Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
-                    If sourceModule.AtomicStoreArrayAndDiagnostics(m_lazyImplementedProperties,
+                    sourceModule.AtomicStoreArrayAndDiagnostics(m_lazyImplementedProperties,
                                                                 ComputeExplicitInterfaceImplementations(diagnostics),
                                                                 diagnostics,
-                                                                CompilationStage.Declare) Then
-                        ContainingAssembly.DeclaringCompilation.SymbolDeclaredEvent(Me)
-                    End If
+                                                                CompilationStage.Declare)
                     diagnostics.Free()
                 End If
 
@@ -1164,6 +1170,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim unusedParameters = Me.Parameters
             Me.GetReturnTypeAttributesBag()
             Dim unusedImplementations = Me.ExplicitInterfaceImplementations
+
+            If DeclaringCompilation.EventQueue IsNot Nothing Then
+                DirectCast(Me.ContainingModule, SourceModuleSymbol).AtomicSetFlagAndRaiseSymbolDeclaredEvent(m_lazyState, StateFlags.SymbolDeclaredEvent, 0, Me)
+            End If
         End Sub
 
         Friend Overrides ReadOnly Property IsMyGroupCollectionProperty As Boolean

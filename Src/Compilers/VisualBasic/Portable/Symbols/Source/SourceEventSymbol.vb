@@ -37,6 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             IsTypeInferred = &H1                                ' Bit value valid once m_lazyType is assigned.
             IsDelegateFromImplements = &H2                      ' Bit value valid once m_lazyType is assigned.
             ReportedExplicitImplementationDiagnostics = &H4
+            SymbolDeclaredEvent = &H8                           ' Bit value for generating SymbolDeclaredEvent
         End Enum
 
         Private m_lazyType As TypeSymbol
@@ -83,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Events cannot have type characters
             If identifier.GetTypeCharacter() <> TypeCharacter.None Then
-                binder.ReportDiagnostic(diagnostics, identifier, ERRID.ERR_TypecharNotallowed)
+                Binder.ReportDiagnostic(diagnostics, identifier, ERRID.ERR_TypecharNotallowed)
             End If
 
             Dim location = identifier.GetLocation()
@@ -164,26 +165,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 type = binder.DecodeIdentifierType(syntax.Identifier, syntax.AsClause, Nothing, diagnostics)
                 If Not syntax.AsClause.AsKeyword.IsMissing Then
                     If Not type.IsDelegateType Then
-                        binder.ReportDiagnostic(diagnostics, syntax.AsClause.Type, ERRID.ERR_EventTypeNotDelegate)
+                        Binder.ReportDiagnostic(diagnostics, syntax.AsClause.Type, ERRID.ERR_EventTypeNotDelegate)
                     Else
                         Dim invoke = DirectCast(type, NamedTypeSymbol).DelegateInvokeMethod
                         If invoke Is Nothing Then
-                            binder.ReportDiagnostic(diagnostics, syntax.AsClause.Type, ERRID.ERR_UnsupportedType1, type.Name)
+                            Binder.ReportDiagnostic(diagnostics, syntax.AsClause.Type, ERRID.ERR_UnsupportedType1, type.Name)
                         Else
                             If Not invoke.IsSub Then
-                                binder.ReportDiagnostic(diagnostics, syntax.AsClause.Type, ERRID.ERR_EventDelegatesCantBeFunctions)
+                                Binder.ReportDiagnostic(diagnostics, syntax.AsClause.Type, ERRID.ERR_EventDelegatesCantBeFunctions)
                             End If
                         End If
                     End If
                 ElseIf requiresDelegateType Then
                     ' This will always be a cascading diagnostic but, arguably, it does provide additional context
                     ' and dev11 reports it.
-                    binder.ReportDiagnostic(diagnostics, syntax.Identifier, ERRID.ERR_WinRTEventWithoutDelegate)
+                    Binder.ReportDiagnostic(diagnostics, syntax.Identifier, ERRID.ERR_WinRTEventWithoutDelegate)
                 End If
 
             Else
                 If requiresDelegateType Then
-                    binder.ReportDiagnostic(diagnostics, syntax.Identifier, ERRID.ERR_WinRTEventWithoutDelegate)
+                    Binder.ReportDiagnostic(diagnostics, syntax.Identifier, ERRID.ERR_WinRTEventWithoutDelegate)
                 End If
 
                 Dim implementedEvents = ExplicitInterfaceImplementations
@@ -200,7 +201,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         Dim implemented = implementedEvents(i)
                         If Not implemented.Type = implementedEventType Then
                             Dim errLocation = GetImplementingLocation(implemented)
-                            binder.ReportDiagnostic(diagnostics,
+                            Binder.ReportDiagnostic(diagnostics,
                                                     errLocation,
                                                     ERRID.ERR_MultipleEventImplMismatch3,
                                                     Me,
@@ -245,11 +246,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If m_containingType.IsInterfaceType Then
                     Dim implementsKeyword = implementsClause.ImplementsKeyword
                     ' // Interface events can't claim to implement anything
-                    binder.ReportDiagnostic(diagnostics, implementsKeyword, ERRID.ERR_InterfaceEventCantUse1, implementsKeyword.ValueText)
+                    Binder.ReportDiagnostic(diagnostics, implementsKeyword, ERRID.ERR_InterfaceEventCantUse1, implementsKeyword.ValueText)
 
                 ElseIf IsShared AndAlso Not m_containingType.IsModuleType Then
                     ' // Implementing with shared events is illegal.
-                    binder.ReportDiagnostic(diagnostics, syntax.Modifiers.First(SyntaxKind.SharedKeyword), ERRID.ERR_SharedOnProcThatImpl)
+                    Binder.ReportDiagnostic(diagnostics, syntax.Modifiers.First(SyntaxKind.SharedKeyword), ERRID.ERR_SharedOnProcThatImpl)
 
                 Else
                     ' if event is inferred, only signature needs to match
@@ -501,12 +502,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 If m_lazyImplementedEvents.IsDefault Then
                     Dim diagnostics = DiagnosticBag.GetInstance()
-                    If ContainingSourceModule.AtomicStoreArrayAndDiagnostics(m_lazyImplementedEvents,
+                    ContainingSourceModule.AtomicStoreArrayAndDiagnostics(m_lazyImplementedEvents,
                                                                           ComputeImplementedEvents(diagnostics),
                                                                           diagnostics,
-                                                                          CompilationStage.Declare) Then
-                        DeclaringCompilation.SymbolDeclaredEvent(Me)
-                    End If
+                                                                          CompilationStage.Declare)
                     diagnostics.Free()
                 End If
 
@@ -729,6 +728,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim unusedType = Me.Type
             Dim unusedImplementations = Me.ExplicitInterfaceImplementations
             Me.CheckExplicitImplementationTypes()
+
+            If DeclaringCompilation.EventQueue IsNot Nothing Then
+                Me.ContainingSourceModule.AtomicSetFlagAndRaiseSymbolDeclaredEvent(m_lazyState, StateFlags.SymbolDeclaredEvent, 0, Me)
+            End If
         End Sub
 
         Public Overrides ReadOnly Property IsWindowsRuntimeEvent As Boolean
