@@ -1,15 +1,7 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -18,8 +10,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         /// <summary>
         /// Represents an anonymous type template's type parameter.
-        /// 
-        /// TODO: The symbol dones't have any behavior specific to anonymous type, so we should consider consolidating with <see cref="SynthesizedParameterSymbol"/>.
         /// </summary>
         internal sealed class AnonymousTypeParameterSymbol : TypeParameterSymbol
         {
@@ -29,7 +19,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public AnonymousTypeParameterSymbol(Symbol container, int ordinal, string name)
             {
-                Debug.Assert((object)container != null && !String.IsNullOrEmpty(name));
+                Debug.Assert((object)container != null);
+                Debug.Assert(!string.IsNullOrEmpty(name));
+
                 this.container = container;
                 this.ordinal = ordinal;
                 this.name = name;

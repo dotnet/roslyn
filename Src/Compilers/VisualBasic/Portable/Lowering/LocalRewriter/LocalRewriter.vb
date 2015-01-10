@@ -55,18 +55,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Returns substitution currently used by the rewriter for a placeholder node.
-        ''' Each occurance of the placeholder node is replaced with the node returned.
+        ''' Each occurrence of the placeholder node is replaced with the node returned.
         ''' Throws if there is no substitution.
         ''' </summary>
         Private ReadOnly Property PlaceholderReplacement(placeholder As BoundValuePlaceholderBase) As BoundExpression
             Get
-#If DEBUG Then
                 Dim value = placeholderReplacementMapDoNotUseDirectly(placeholder)
                 AssertPlaceholderReplacement(placeholder, value)
                 Return value
-#Else
-                Return placeholderReplacementMapDoNotUseDirectly(placeholder)
-#End If
             End Get
         End Property
 
@@ -83,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Sets substitution used by the rewriter for a placeholder node.
-        ''' Each occurance of the placeholder node is replaced with the node returned.
+        ''' Each occurrence of the placeholder node is replaced with the node returned.
         ''' Throws if there is already a substitution.
         ''' </summary>
         Private Sub AddPlaceholderReplacement(placeholder As BoundValuePlaceholderBase, value As BoundExpression)

@@ -106,6 +106,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Case BoundKind.SequencePointExpression
                     EmitSequencePointExpressionAddress(DirectCast(expression, BoundSequencePointExpression), addressKind)
 
+                Case BoundKind.PseudoVariable
+                    EmitPseudoVariableAddress(DirectCast(expression, BoundPseudoVariable))
+
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(kind)
 
@@ -113,6 +116,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             Return tempOpt
         End Function
+
+        Private Sub EmitPseudoVariableAddress(expression As BoundPseudoVariable)
+            EmitExpression(expression.EmitExpressions.GetAddress(expression), used:=True)
+        End Sub
 
         ''' <summary>
         ''' Emits address of a temp.
@@ -288,6 +295,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Case BoundKind.Parameter
                         ' parameters can be readonly (parameters in query lambdas) 
                         ' we ignore their read-onlyness for Dev10 compatibility
+                        Return True
+
+                    Case BoundKind.PseudoVariable
                         Return True
 
                     Case BoundKind.Dup

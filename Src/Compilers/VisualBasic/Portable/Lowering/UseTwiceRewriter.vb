@@ -117,6 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return UseTwiceFieldAccess(containingMember, DirectCast(value, BoundFieldAccess), temporaries)
                 Case BoundKind.Local,
                      BoundKind.Parameter,
+                     BoundKind.PseudoVariable,
                      BoundKind.WithLValueExpressionPlaceholder
                     Return New Result(value, value)
                 Case Else

@@ -3,10 +3,10 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
     <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
+    <Import Project="..\..\..\..\..\Closed\Tools\Source\Microsoft.CodeAnalysis.Toolset\Targets\VSL.Settings.Closed.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
-    <OutDir>..\..\..\..\Binaries\$(Configuration)\</OutDir>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{B501A547-C911-4A05-AC6E-274A50DFF30E}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -215,6 +215,7 @@
     <Compile Include="BoundTree\BoundTreeVisitors.cs" />
     <Compile Include="BoundTree\BoundTreeWalker.cs" />
     <Compile Include="BoundTree\Constructors.cs" />
+    <Compile Include="BoundTree\PseudoVariableExpressions.cs" />
     <Compile Include="BoundTree\Formatting.cs" />
     <Compile Include="BoundTree\NoOpStatementFlavor.cs" />
     <Compile Include="BoundTree\UnboundLambda.cs" />
@@ -888,6 +889,7 @@
   <Import Project="..\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
+    <Import Project="..\..\..\..\..\Closed\Tools\Source\Microsoft.CodeAnalysis.Toolset\Targets\VSL.Imports.Closed.targets" />
     <Import Project="..\..\..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets" Condition="Exists('..\..\..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets')" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>

@@ -83,6 +83,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitExpression(operand, used: true);
                     break;
 
+                case BoundKind.PseudoVariable:
+                    EmitPseudoVariableAddress((BoundPseudoVariable)expression);
+                    break;
+
                 default:
                     Debug.Assert(!HasHome(expression));
                     return EmitAddressOfTempClone(expression);
@@ -112,6 +116,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 builder.EmitLocalAddress(GetLocal(localAccess));
             }
+        }
+
+        private void EmitPseudoVariableAddress(BoundPseudoVariable expression)
+        {
+            EmitExpression(expression.EmitExpressions.GetAddress(expression), used: true);
         }
 
         private void EmitRefValueAddress(BoundRefValueOperator refValue)

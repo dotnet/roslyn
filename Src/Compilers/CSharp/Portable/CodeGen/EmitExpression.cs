@@ -221,6 +221,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitConditionalReceiver((BoundConditionalReceiver)expression, used);
                     break;
 
+                case BoundKind.PseudoVariable:
+                    EmitPseudoVariableValue((BoundPseudoVariable)expression, used);
+                    break;
+
                 default:
                     // Code gen should not be invoked if there are errors.
                     Debug.Assert(expression.Kind != BoundKind.BadExpression);
@@ -506,6 +510,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             {
                 EmitLoadIndirect(thisType, thisRef.Syntax);
             }
+        }
+
+        private void EmitPseudoVariableValue(BoundPseudoVariable expression, bool used)
+        {
+            EmitExpression(expression.EmitExpressions.GetValue(expression), used);
         }
 
         private void EmitSequencePointExpression(BoundSequencePointExpression node, bool used)
@@ -1829,17 +1838,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private bool EmitAssignmentPreamble(BoundAssignmentOperator assignmentOperator)
         {
+            var assignmentTarget = assignmentOperator.Left;
             bool lhsUsesStack = false;
 
-            switch (assignmentOperator.Left.Kind)
+            switch (assignmentTarget.Kind)
             {
                 case BoundKind.RefValueOperator:
-                    EmitRefValueAddress((BoundRefValueOperator)assignmentOperator.Left);
+                    EmitRefValueAddress((BoundRefValueOperator)assignmentTarget);
                     break;
 
                 case BoundKind.FieldAccess:
                     {
-                        var left = (BoundFieldAccess)assignmentOperator.Left;
+                        var left = (BoundFieldAccess)assignmentTarget;
                         if (!left.FieldSymbol.IsStatic)
                         {
                             var temp = EmitReceiverRef(left.ReceiverOpt);
@@ -1851,7 +1861,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.Parameter:
                     {
-                        var left = (BoundParameter)assignmentOperator.Left;
+                        var left = (BoundParameter)assignmentTarget;
                         if (left.ParameterSymbol.RefKind != RefKind.None)
                         {
                             builder.EmitLoadArgumentOpcode(ParameterSlot(left));
@@ -1862,7 +1872,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.Local:
                     {
-                        var left = (BoundLocal)assignmentOperator.Left;
+                        var left = (BoundLocal)assignmentTarget;
 
                         // Again, consider our earlier case:
                         //
@@ -1914,7 +1924,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.ArrayAccess:
                     {
-                        var left = (BoundArrayAccess)assignmentOperator.Left;
+                        var left = (BoundArrayAccess)assignmentTarget;
                         EmitExpression(left.Expression, used: true);
                         EmitArrayIndices(left.Indices);
                         lhsUsesStack = true;
@@ -1923,7 +1933,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.ThisReference:
                     {
-                        var left = (BoundThisReference)assignmentOperator.Left;
+                        var left = (BoundThisReference)assignmentTarget;
 
                         var temp = EmitAddress(left, AddressKind.Writeable);
                         Debug.Assert(temp == null, "taking ref of this should not create a temp");
@@ -1934,7 +1944,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.Dup:
                     {
-                        var left = (BoundDup)assignmentOperator.Left;
+                        var left = (BoundDup)assignmentTarget;
 
                         var temp = EmitAddress(left, AddressKind.Writeable);
                         Debug.Assert(temp == null, "taking ref of Dup should not create a temp");
@@ -1945,7 +1955,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.PointerIndirectionOperator:
                     {
-                        var left = (BoundPointerIndirectionOperator)assignmentOperator.Left;
+                        var left = (BoundPointerIndirectionOperator)assignmentTarget;
 
                         EmitExpression(left.Operand, used: true);
 
@@ -1955,7 +1965,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.Sequence:
                     {
-                        var sequence = (BoundSequence)assignmentOperator.Left;
+                        var sequence = (BoundSequence)assignmentTarget;
 
                         DefineLocals(sequence);
                         EmitSideEffects(sequence);
@@ -1979,8 +1989,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // Property access should have been rewritten.
                 case BoundKind.PreviousSubmissionReference:
                     // Script references are lowered to a this reference and a field access.
-                    throw ExceptionUtilities.UnexpectedValue(assignmentOperator.Left.Kind);
+                    throw ExceptionUtilities.UnexpectedValue(assignmentTarget.Kind);
+
+                case BoundKind.PseudoVariable:
+                    EmitPseudoVariableAddress((BoundPseudoVariable)assignmentTarget);
+                    lhsUsesStack = true;
+                    break;
             }
+
             return lhsUsesStack;
         }
 
@@ -2102,6 +2118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
                 case BoundKind.RefValueOperator:
                 case BoundKind.PointerIndirectionOperator:
+                case BoundKind.PseudoVariable:
                     EmitIndirectStore(expression.Type, expression.Syntax);
                     break;
 

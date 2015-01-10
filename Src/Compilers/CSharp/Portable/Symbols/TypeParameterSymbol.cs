@@ -2,15 +2,10 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    // TODO: Should document how the BaseType and Interfaces members behave.
-
     /// <summary>
     /// Represents a type parameter in a generic type or generic method.
     /// </summary>

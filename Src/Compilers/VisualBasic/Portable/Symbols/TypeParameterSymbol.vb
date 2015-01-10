@@ -1,13 +1,10 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports System.Runtime.InteropServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
-
 
     ' TypeParameters are always directly contained in a NamedTypeDefinition,
     ' and always have referenced identity (assuming the NamedTypeDefinition also
@@ -15,7 +12,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
     ''' <summary>
     ''' Represents a type parameter in a generic type or generic method.
-    ''' TODO: Should document how the BaseType and Interfaces members behave.
     ''' </summary>
     Friend MustInherit Class TypeParameterSymbol
         Inherits TypeSymbol

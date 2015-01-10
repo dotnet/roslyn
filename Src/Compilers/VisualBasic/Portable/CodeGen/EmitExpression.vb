@@ -5,11 +5,8 @@ Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Linq
-Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
@@ -134,6 +131,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 Case BoundKind.ConditionalAccessReceiverPlaceholder
                     EmitConditionalAccessReceiverPlaceholder(DirectCast(expression, BoundConditionalAccessReceiverPlaceholder), used)
+
+                Case BoundKind.PseudoVariable
+                    EmitPseudoVariableValue(DirectCast(expression, BoundPseudoVariable), used)
 
                 Case Else
                     ' Code gen should not be invoked if there are errors.
@@ -370,6 +370,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 EmitSymbolToken(thisRef.Type, thisRef.Syntax)
             End If
 
+        End Sub
+
+        Private Sub EmitPseudoVariableValue(expression As BoundPseudoVariable, used As Boolean)
+            EmitExpression(expression.EmitExpressions.GetValue(expression), used)
         End Sub
 
         Private Sub EmitSequenceExpression(sequence As BoundSequence, used As Boolean)
@@ -1726,6 +1730,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Debug.Assert(temp Is Nothing, "taking ref of Me should not create a temp")
                     lhsUsesStack = True
 
+                Case BoundKind.PseudoVariable
+                    EmitPseudoVariableAddress(DirectCast(assignmentTarget, BoundPseudoVariable))
+                    lhsUsesStack = True
+
             End Select
 
             Return lhsUsesStack
@@ -1793,7 +1801,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                         _builder.EmitLocalStore(local)
                     End If
 
-                Case BoundKind.ReferenceAssignment
+                Case BoundKind.ReferenceAssignment,
+                     BoundKind.PseudoVariable
                     EmitStoreIndirect(expression.Type, expression.Syntax)
 
                 Case BoundKind.ArrayAccess
