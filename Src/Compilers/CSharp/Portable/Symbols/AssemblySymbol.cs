@@ -966,7 +966,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool q1 = otherIdentity.IsStrongName;
             bool q2 = !key.IsDefaultOrEmpty;
             bool q3 = !this.PublicKey.IsDefaultOrEmpty;
-            bool q4 = (q2 & q3) && ByteSequenceComparer.Instance.Equals(key, this.PublicKey);
+            bool q4 = (q2 & q3) && ByteSequenceComparer.Equals(key, this.PublicKey);
 
             // Cases 2, 3, 7 and 8:
             if (q2 && !q4)

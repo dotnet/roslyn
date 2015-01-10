@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis
             try
             {
                 var lastSeen = lastSeenKeyPair;
-                if (lastSeen != null && ByteSequenceComparer.ValueEquals(lastSeen.Item1, keyFileContents))
+                if (lastSeen != null && ByteSequenceComparer.Equals(lastSeen.Item1, keyFileContents))
                 {
                     return lastSeen.Item2;
                 }

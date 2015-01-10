@@ -2492,7 +2492,7 @@ namespace Microsoft.Cci
 
                 return
                     x.Version.Equals(y.Version) &&
-                    ByteSequenceComparer.Instance.Equals(x.PublicKeyToken, y.PublicKeyToken) &&
+                    ByteSequenceComparer.Equals(x.PublicKeyToken, y.PublicKeyToken) &&
                     x.Name == y.Name &&
                     x.Culture == y.Culture;
             }
@@ -2500,7 +2500,7 @@ namespace Microsoft.Cci
             public int GetHashCode(IAssemblyReference reference)
             {
                 return Hash.Combine(reference.Version,
-                       Hash.Combine(ByteSequenceComparer.Instance.GetHashCode(reference.PublicKeyToken),
+                       Hash.Combine(ByteSequenceComparer.GetHashCode(reference.PublicKeyToken),
                        Hash.Combine(reference.Name.GetHashCode(),
                        Hash.Combine(reference.Culture, 0))));
             }

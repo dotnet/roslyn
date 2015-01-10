@@ -565,7 +565,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     ' key is NullOrEmpty, Me.PublicKey is not.
                     result = IVTConclusion.NoRelationshipClaimed
                 End If
-            ElseIf ByteSequenceComparer.Instance.Equals(key, Me.PublicKey) Then
+            ElseIf ByteSequenceComparer.Equals(key, Me.PublicKey) Then
                 result = If(otherIdentity.IsStrongName, IVTConclusion.Match, IVTConclusion.OneSignedOneNot)
             Else
                 result = IVTConclusion.PublicKeyDoesntMatch

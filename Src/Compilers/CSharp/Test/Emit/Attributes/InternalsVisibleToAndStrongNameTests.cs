@@ -77,7 +77,7 @@ public class Test
 
         var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
         other.VerifyDiagnostics();
-        Assert.True(ByteSequenceComparer.Instance.Equals(PublicKey, other.Assembly.Identity.PublicKey));
+        Assert.True(ByteSequenceComparer.Equals(PublicKey, other.Assembly.Identity.PublicKey));
 
         CompileAndVerify(other, symbolValidator: (ModuleSymbol m) =>
             {
@@ -121,7 +121,7 @@ public class Test
 
         comp.VerifyDiagnostics();
 
-        Assert.True(ByteSequenceComparer.Instance.Equals(PublicKey, comp.Assembly.Identity.PublicKey));
+        Assert.True(ByteSequenceComparer.Equals(PublicKey, comp.Assembly.Identity.PublicKey));
     }
 
     [Fact]
@@ -149,7 +149,7 @@ public class Test
             TestOptions.ReleaseDll.WithStrongNameProvider(GetProviderWithPath(PathUtilities.CombineAbsoluteAndRelativePaths(keyFileDir, @"TempSubDir\"))));
 
         Assert.Empty(comp.GetDiagnostics());
-        Assert.True(ByteSequenceComparer.Instance.Equals(PublicKey, comp.Assembly.Identity.PublicKey));
+        Assert.True(ByteSequenceComparer.Equals(PublicKey, comp.Assembly.Identity.PublicKey));
     }
     
     [Fact]
@@ -160,7 +160,7 @@ public class Test
 
         var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
         other.VerifyDiagnostics();
-        Assert.True(ByteSequenceComparer.Instance.Equals(PublicKey, other.Assembly.Identity.PublicKey));
+        Assert.True(ByteSequenceComparer.Equals(PublicKey, other.Assembly.Identity.PublicKey));
 
         CompileAndVerify(other, symbolValidator: (ModuleSymbol m) =>
         {
@@ -186,7 +186,7 @@ public class Test
         var other = CreateCompilationWithMscorlib(s, options: TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider));
 
         other.VerifyDiagnostics();
-        Assert.True(ByteSequenceComparer.Instance.Equals(PublicKey, other.Assembly.Identity.PublicKey));
+        Assert.True(ByteSequenceComparer.Equals(PublicKey, other.Assembly.Identity.PublicKey));
     }
 
     [Fact]
@@ -215,7 +215,7 @@ public class Test
             TestOptions.ReleaseDll.WithCryptoKeyFile(keyFileName).WithStrongNameProvider(GetProviderWithPath(keyFileDir)));
 
         Assert.Empty(comp.GetDiagnostics());
-        Assert.True(ByteSequenceComparer.Instance.Equals(PublicKey, comp.Assembly.Identity.PublicKey));
+        Assert.True(ByteSequenceComparer.Equals(PublicKey, comp.Assembly.Identity.PublicKey));
     }
 
     [Fact]
@@ -225,7 +225,7 @@ public class Test
         var other = CreateCompilationWithMscorlib(s, 
             options: TestOptions.ReleaseDll.WithCryptoKeyFile(PublicKeyFile).WithDelaySign(true).WithStrongNameProvider(DefaultProvider));
         other.VerifyDiagnostics();
-        Assert.True(ByteSequenceComparer.Instance.Equals(TestResources.SymbolsTests.General.snPublicKey.AsImmutableOrNull(), other.Assembly.Identity.PublicKey));
+        Assert.True(ByteSequenceComparer.Equals(TestResources.SymbolsTests.General.snPublicKey.AsImmutableOrNull(), other.Assembly.Identity.PublicKey));
     }
 
     [Fact]
@@ -257,7 +257,7 @@ public class Test
             new[] { MscorlibRef },
             TestOptions.ReleaseDll.WithCryptoKeyFile(publicKeyFileName).WithDelaySign(true).WithStrongNameProvider(GetProviderWithPath(publicKeyFileDir)));
         Assert.Empty(comp.GetDiagnostics());
-        Assert.True(ByteSequenceComparer.Instance.Equals(PublicKey, comp.Assembly.Identity.PublicKey));
+        Assert.True(ByteSequenceComparer.Equals(PublicKey, comp.Assembly.Identity.PublicKey));
     }
 
     [Fact]
@@ -313,7 +313,7 @@ public class Test
             options: TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider));
 
         other.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_CmdOptionConflictsSource).WithArguments("CryptoKeyFile", "System.Reflection.AssemblyKeyFileAttribute"));
-        Assert.True(ByteSequenceComparer.Instance.Equals(PublicKey, other.Assembly.Identity.PublicKey));
+        Assert.True(ByteSequenceComparer.Equals(PublicKey, other.Assembly.Identity.PublicKey));
     }
 
     [Fact]
@@ -325,7 +325,7 @@ public class Test
             options: TestOptions.ReleaseDll.WithCryptoKeyContainer("RoslynTestContainer").WithStrongNameProvider(DefaultProvider));
 
         other.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_CmdOptionConflictsSource).WithArguments("CryptoKeyContainer", "System.Reflection.AssemblyKeyNameAttribute"));
-        Assert.True(ByteSequenceComparer.Instance.Equals(PublicKey, other.Assembly.Identity.PublicKey));
+        Assert.True(ByteSequenceComparer.Equals(PublicKey, other.Assembly.Identity.PublicKey));
     }
 
     [Fact]
@@ -527,7 +527,7 @@ public class A
             assemblyName: "John",
             options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
 
-        Assert.True(ByteSequenceComparer.Instance.Equals(PublicKey, requestor.Assembly.Identity.PublicKey));
+        Assert.True(ByteSequenceComparer.Equals(PublicKey, requestor.Assembly.Identity.PublicKey));
         Assert.Empty(requestor.GetDiagnostics());
     }
 
@@ -554,7 +554,7 @@ public class A
             assemblyName: "John",
             options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
 
-        Assert.True(ByteSequenceComparer.Instance.Equals(PublicKey, requestor.Assembly.Identity.PublicKey));
+        Assert.True(ByteSequenceComparer.Equals(PublicKey, requestor.Assembly.Identity.PublicKey));
         requestor.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FriendRefSigningMismatch, null, new object[] { "Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null" }));
     }
 
@@ -582,7 +582,7 @@ public class A
           assemblyName: "John",
           options: TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider));
 
-        Assert.True(ByteSequenceComparer.Instance.Equals(PublicKey, requestor.Assembly.Identity.PublicKey));
+        Assert.True(ByteSequenceComparer.Equals(PublicKey, requestor.Assembly.Identity.PublicKey));
         requestor.VerifyDiagnostics(Diagnostic(ErrorCode.ERR_FriendRefNotEqualToThis, null, new object[] { "Paul, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2" }));
     }
 

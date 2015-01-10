@@ -2,13 +2,14 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Collections
 {
-    internal sealed class ByteSequenceComparer : IEqualityComparer<byte[]>, IEqualityComparer<IEnumerable<byte>>, IEqualityComparer<ImmutableArray<byte>>
+    internal sealed class ByteSequenceComparer : IEqualityComparer<byte[]>, IEqualityComparer<ImmutableArray<byte>>
     {
         internal static readonly ByteSequenceComparer Instance = new ByteSequenceComparer();
 
@@ -16,41 +17,30 @@ namespace Microsoft.CodeAnalysis.Collections
         {
         }
 
-        public bool Equals(IEnumerable<byte> x, IEnumerable<byte> y)
+        internal static bool Equals(ImmutableArray<byte> x, ImmutableArray<byte> y)
         {
-            if (ReferenceEquals(x, y))
+            if (x == y)
             {
                 return true;
             }
 
-            if (x == null || y == null)
+            if (x.IsDefault || y.IsDefault || x.Length != y.Length)
             {
                 return false;
             }
 
-            var ax = x as byte[];
-            var ay = y as byte[];
-            return (ax != null && ay != null)
-                ? Equals(ax, ay)
-                : x.SequenceEqual(y);
+            for (var i = 0; i < x.Length; i++)
+            {
+                if (x[i] != y[i])
+                {   
+                    return false;
+                }
+            }
+
+            return true;
         }
 
-        public bool Equals(ImmutableArray<byte> x, ImmutableArray<byte> y)
-        {
-            return ValueEquals(x, y);
-        }
-
-        internal static bool ValueEquals(ImmutableArray<byte> x, ImmutableArray<byte> y)
-        {
-            return x.SequenceEqual(y);
-        }
-
-        public bool Equals(byte[] x, byte[] y)
-        {
-            return ValueEquals(x, y);
-        }
-
-        internal static bool ValueEquals(byte[] x, byte[] y)
+        internal static bool Equals(byte[] x, byte[] y)
         {
             if (ReferenceEquals(x, y))
             {
@@ -73,54 +63,38 @@ namespace Microsoft.CodeAnalysis.Collections
             return true;
         }
 
-        public int GetHashCode(IEnumerable<byte> x)
+        // Both hash computations below use the FNV-1a algorithm (http://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function).
+
+        internal static int GetHashCode(byte[] x)
         {
-            if (x == null)
-            {
-                return 0;
-            }
-
-            var ax = x as byte[];
-            if (ax != null)
-            {
-                return GetHashCode(ax);
-            }
-
-            var result = 7;
-            foreach (var b in x)
-            {
-                result = (result << 5) ^ b;
-            }
-
-            return result;
-        }
-
-        public int GetHashCode(byte[] x)
-        {
-            return GetValueHashCode(x);
-        }
-
-        /// <summary>
-        /// Compute the FNV-1a hash code for a sequence of bytes.
-        /// See http://en.wikipedia.org/wiki/Fowler%E2%80%93Noll%E2%80%93Vo_hash_function
-        /// </summary>
-        /// <param name="x">The sequence of bytes</param>
-        /// <returns>The FNV-1a hash code for the input sequence</returns>
-        /// <exception cref="System.NullReferenceException">The input sequence was null (IsDefault)</exception>
-        public int GetHashCode(ImmutableArray<byte> x)
-        {
+            Debug.Assert(x != null);
             return Hash.GetFNVHashCode(x);
         }
 
-        // This uses FNV1a as a string hash
-        internal static int GetValueHashCode(byte[] x)
+        internal static int GetHashCode(ImmutableArray<byte> x)
         {
-            if (x == null)
-            {
-                return 0;
-            }
-
+            Debug.Assert(!x.IsDefault);
             return Hash.GetFNVHashCode(x);
+        }
+
+        bool IEqualityComparer<byte[]>.Equals(byte[] x, byte[] y)
+        {
+            return Equals(x, y);
+        }
+
+        int IEqualityComparer<byte[]>.GetHashCode(byte[] x)
+        {
+            return GetHashCode(x);
+        }
+
+        bool IEqualityComparer<ImmutableArray<byte>>.Equals(ImmutableArray<byte> x, ImmutableArray<byte> y)
+        {
+            return Equals(x, y);
+        }
+
+        int IEqualityComparer<ImmutableArray<byte>>.GetHashCode(ImmutableArray<byte> x)
+        {
+            return GetHashCode(x);
         }
     }
 }

@@ -50,7 +50,7 @@ Public Class InternalsVisibleToAndStrongNameTests
             TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         other.VerifyDiagnostics()
-        Assert.True(ByteSequenceComparer.Instance.Equals(PublicKey, other.Assembly.Identity.PublicKey))
+        Assert.True(ByteSequenceComparer.Equals(PublicKey, other.Assembly.Identity.PublicKey))
     End Sub
 
     <Fact>
@@ -79,7 +79,7 @@ Public Class InternalsVisibleToAndStrongNameTests
             TestOptions.ReleaseDll.WithStrongNameProvider(GetProviderWithPath(keyFileDir)))
 
         comp.VerifyDiagnostics()
-        Assert.True(ByteSequenceComparer.Instance.Equals(PublicKey, comp.Assembly.Identity.PublicKey))
+        Assert.True(ByteSequenceComparer.Equals(PublicKey, comp.Assembly.Identity.PublicKey))
     End Sub
 
     <Fact>
@@ -108,7 +108,7 @@ Public Class InternalsVisibleToAndStrongNameTests
             options:=TestOptions.ReleaseDll.WithStrongNameProvider(GetProviderWithPath(PathUtilities.CombineAbsoluteAndRelativePaths(keyFileDir, "TempSubDir\"))))
 
         comp.VerifyDiagnostics()
-        Assert.True(ByteSequenceComparer.Instance.Equals(PublicKey, comp.Assembly.Identity.PublicKey))
+        Assert.True(ByteSequenceComparer.Equals(PublicKey, comp.Assembly.Identity.PublicKey))
     End Sub
 
     <Fact>
@@ -126,7 +126,7 @@ End Class
 </compilation>, TestOptions.ReleaseDll.WithStrongNameProvider(DefaultProvider))
 
         other.VerifyDiagnostics()
-        Assert.True(ByteSequenceComparer.Instance.Equals(PublicKey, other.Assembly.Identity.PublicKey))
+        Assert.True(ByteSequenceComparer.Equals(PublicKey, other.Assembly.Identity.PublicKey))
     End Sub
 
     <Fact>
@@ -144,7 +144,7 @@ End Class
         options:=TestOptions.ReleaseDll.WithCryptoKeyFile(KeyPairFile).WithStrongNameProvider(DefaultProvider))
 
         other.VerifyDiagnostics()
-        Assert.True(ByteSequenceComparer.Instance.Equals(PublicKey, other.Assembly.Identity.PublicKey))
+        Assert.True(ByteSequenceComparer.Equals(PublicKey, other.Assembly.Identity.PublicKey))
     End Sub
 
     <Fact>
@@ -181,7 +181,7 @@ End Class
             options:=TestOptions.ReleaseDll.WithCryptoKeyFile(keyFileName).WithStrongNameProvider(GetProviderWithPath(keyFileDir)))
 
         comp.VerifyDiagnostics()
-        Assert.True(ByteSequenceComparer.Instance.Equals(PublicKey, comp.Assembly.Identity.PublicKey))
+        Assert.True(ByteSequenceComparer.Equals(PublicKey, comp.Assembly.Identity.PublicKey))
     End Sub
 
     <Fact>
@@ -199,7 +199,7 @@ End Class
         Dim other = CreateCompilationWithMscorlib(s, options:=TestOptions.ReleaseDll.WithCryptoKeyFile(PublicKeyFile).WithDelaySign(True).WithStrongNameProvider(DefaultProvider))
 
         Assert.Empty(other.GetDiagnostics())
-        Assert.True(ByteSequenceComparer.Instance.Equals(TestResources.SymbolsTests.General.snPublicKey.AsImmutableOrNull(), other.Assembly.Identity.PublicKey))
+        Assert.True(ByteSequenceComparer.Equals(TestResources.SymbolsTests.General.snPublicKey.AsImmutableOrNull(), other.Assembly.Identity.PublicKey))
     End Sub
 
     <Fact>
@@ -239,7 +239,7 @@ End Class
             options:=TestOptions.ReleaseDll.WithCryptoKeyFile(publicKeyFileName).WithDelaySign(True).WithStrongNameProvider(GetProviderWithPath(publicKeyFileDir)))
 
         comp.VerifyDiagnostics()
-        Assert.True(ByteSequenceComparer.Instance.Equals(PublicKey, comp.Assembly.Identity.PublicKey))
+        Assert.True(ByteSequenceComparer.Equals(PublicKey, comp.Assembly.Identity.PublicKey))
     End Sub
 
     <Fact>
