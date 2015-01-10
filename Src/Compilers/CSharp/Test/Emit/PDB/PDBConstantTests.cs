@@ -30,18 +30,18 @@ class C
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb("C.M", @"
 <symbols>
   <methods>
-    <method containingType=""C"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""0"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""4"">
-        <entry il_offset=""0x0"" start_row=""5"" start_column=""5"" end_row=""5"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""7"" start_column=""9"" end_row=""7"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x2"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x3"" start_row=""10"" start_column=""5"" end_row=""10"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x2"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x3"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals>
         <constant name=""x"" value=""1"" type=""Int32"" />
         <constant name=""y"" value=""2"" type=""Int32"" />
@@ -83,16 +83,16 @@ class C
 <symbols>
   <methods>
     <method containingType=""C"" name=""M"" parameterNames=""a"">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""3"">
-        <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""9"" start_column=""9"" end_row=""15"" end_column=""12"" file_ref=""0"" />
-        <entry il_offset=""0x27"" start_row=""16"" start_column=""5"" end_row=""16"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""15"" endColumn=""12"" document=""0"" />
+        <entry offset=""0x27"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals>
         <constant name=""x"" value=""1"" type=""Int32"" />
       </locals>
@@ -101,16 +101,16 @@ class C
         <constant name=""x"" value=""1"" type=""Int32"" />
       </scope>
     </method>
-    <method containingType=""C+&lt;&gt;c"" name=""&lt;M&gt;b__0_0"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""M"" parameterNames=""a"" />
+    <method containingType=""C+&lt;&gt;c"" name=""&lt;M&gt;b__0_0"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""M"" parameterNames=""a"" />
       </customDebugInfo>
-      <sequencepoints total=""4"">
-        <entry il_offset=""0x0"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""12"" start_column=""13"" end_row=""12"" end_column=""14"" file_ref=""0"" />
-        <entry il_offset=""0x2"" start_row=""14"" start_column=""13"" end_row=""14"" end_column=""14"" file_ref=""0"" />
-        <entry il_offset=""0x5"" start_row=""15"" start_column=""9"" end_row=""15"" end_column=""10"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x1"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""14"" document=""0"" />
+        <entry offset=""0x2"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""14"" document=""0"" />
+        <entry offset=""0x5"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" document=""0"" />
+      </sequencePoints>
       <locals>
         <constant name=""y"" value=""2"" type=""Int32"" />
         <constant name=""z"" value=""3"" type=""Int32"" />
@@ -165,35 +165,35 @@ class C
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <methods>
-    <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""3"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
         </using>
-        <hoistedLocalScopes version=""4"" kind=""StateMachineHoistedLocalScopes"" size=""20"" count=""1"">
+        <hoistedLocalScopes>
           <slot startOffset=""0x22"" endOffset=""0x6a"" />
         </hoistedLocalScopes>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
+        <encLocalSlotMap>
           <slot kind=""27"" offset=""0"" />
           <slot kind=""temp"" />
           <slot kind=""temp"" />
           <slot kind=""1"" offset=""37"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""12"">
-        <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x21"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x22"" start_row=""9"" start_column=""14"" end_row=""9"" end_column=""23"" file_ref=""0"" />
-        <entry il_offset=""0x29"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x2b"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x2c"" start_row=""12"" start_column=""13"" end_row=""12"" end_column=""36"" file_ref=""0"" />
-        <entry il_offset=""0x45"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x4c"" start_row=""13"" start_column=""9"" end_row=""13"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x4d"" start_row=""9"" start_column=""33"" end_row=""9"" end_column=""36"" file_ref=""0"" />
-        <entry il_offset=""0x5d"" start_row=""9"" start_column=""25"" end_row=""9"" end_column=""31"" file_ref=""0"" />
-        <entry il_offset=""0x68"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x6b"" start_row=""14"" start_column=""5"" end_row=""14"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""0"" />
+        <entry offset=""0x21"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x22"" startLine=""9"" startColumn=""14"" endLine=""9"" endColumn=""23"" document=""0"" />
+        <entry offset=""0x29"" hidden=""true"" document=""0"" />
+        <entry offset=""0x2b"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x2c"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""36"" document=""0"" />
+        <entry offset=""0x45"" hidden=""true"" document=""0"" />
+        <entry offset=""0x4c"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x4d"" startLine=""9"" startColumn=""33"" endLine=""9"" endColumn=""36"" document=""0"" />
+        <entry offset=""0x5d"" startLine=""9"" startColumn=""25"" endLine=""9"" endColumn=""31"" document=""0"" />
+        <entry offset=""0x68"" hidden=""true"" document=""0"" />
+        <entry offset=""0x6b"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals>
         <constant name=""x"" value=""1"" type=""Int32"" />
         <constant name=""y"" value=""2"" type=""Int32"" />
@@ -232,16 +232,16 @@ class C
                 CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb("C.M", @"
 <symbols>
   <methods>
-    <method containingType=""C"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""0"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""5"" start_column=""5"" end_row=""5"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""10"" start_column=""5"" end_row=""10"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals>
         <constant name=""o"" value=""0"" type=""Int32"" />
         <constant name=""s"" value=""hello"" type=""String"" />
@@ -311,16 +311,16 @@ this is a string constant that is too long to fit into the PDB"";
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb("C.M", @"
 <symbols>
   <methods>
-    <method containingType=""C"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""0"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""5"" start_column=""5"" end_row=""5"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""43"" start_column=""5"" end_row=""43"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""43"" startColumn=""5"" endLine=""43"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
   </methods>
@@ -344,16 +344,16 @@ class C
                 CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb("C.M", @"
 <symbols>
   <methods>
-    <method containingType=""C"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""0"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""5"" start_column=""5"" end_row=""5"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals>
         <constant name=""d"" value=""1.5"" type=""Decimal"" />
       </locals>

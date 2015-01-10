@@ -516,11 +516,12 @@ Public MustInherit Class BasicTestBaseBase
 
     Public Shared Shadows Function GetSequencePoints(pdbXml As XElement) As XElement
         Return <sequencePoints>
-                   <%= From entry In pdbXml.<methods>.<method>.<sequencepoints>.<entry>
-                       Select <entry start_row=<%= entry.@start_row %>
-                                  start_column=<%= entry.@start_column %>
-                                  end_row=<%= entry.@end_row %>
-                                  end_column=<%= entry.@end_column %>/> %>
+                   <%= From entry In pdbXml.<methods>.<method>.<sequencePoints>.<entry>
+                       Select <entry
+                                  startLine=<%= entry.@startLine %>
+                                  startColumn=<%= entry.@startColumn %>
+                                  endLine=<%= entry.@endLine %>
+                                  endColumn=<%= entry.@endColumn %>/> %>
                </sequencePoints>
     End Function
 

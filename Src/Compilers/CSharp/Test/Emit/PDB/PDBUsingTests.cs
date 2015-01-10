@@ -49,18 +49,18 @@ namespace X
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""X.Y.C"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""3"">
+    <method containingType=""X.Y.C"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
           <namespace usingCount=""1"" />
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""16"" start_column=""28"" end_row=""16"" end_column=""29"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""16"" start_column=""30"" end_row=""16"" end_column=""31"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""16"" startColumn=""28"" endLine=""16"" endColumn=""29"" document=""0"" />
+        <entry offset=""0x1"" startLine=""16"" startColumn=""30"" endLine=""16"" endColumn=""31"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <namespace name=""System.Threading"" />
@@ -68,33 +68,33 @@ namespace X
         <namespace name=""System"" />
       </scope>
     </method>
-    <method containingType=""X.B"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+    <method containingType=""X.B"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""10"" start_column=""24"" end_row=""10"" end_column=""25"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""10"" start_column=""26"" end_row=""10"" end_column=""27"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""10"" startColumn=""24"" endLine=""10"" endColumn=""25"" document=""0"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""26"" endLine=""10"" endColumn=""27"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <namespace name=""System.IO"" />
         <namespace name=""System"" />
       </scope>
     </method>
-    <method containingType=""A"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""A"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""4"" start_column=""20"" end_row=""4"" end_column=""21"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""4"" start_column=""22"" end_row=""4"" end_column=""23"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""4"" startColumn=""20"" endLine=""4"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x1"" startLine=""4"" startColumn=""22"" endLine=""4"" endColumn=""23"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <namespace name=""System"" />
@@ -129,18 +129,18 @@ namespace X
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""X.Y.C"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""3"">
+    <method containingType=""X.Y.C"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
           <namespace usingCount=""1"" />
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""16"" start_column=""28"" end_row=""16"" end_column=""29"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""16"" start_column=""30"" end_row=""16"" end_column=""31"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""16"" startColumn=""28"" endLine=""16"" endColumn=""29"" document=""0"" />
+        <entry offset=""0x1"" startLine=""16"" startColumn=""30"" endLine=""16"" endColumn=""31"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <alias name=""R"" target=""System.Threading"" kind=""namespace"" />
@@ -148,33 +148,33 @@ namespace X
         <alias name=""P"" target=""System"" kind=""namespace"" />
       </scope>
     </method>
-    <method containingType=""X.B"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+    <method containingType=""X.B"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""10"" start_column=""24"" end_row=""10"" end_column=""25"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""10"" start_column=""26"" end_row=""10"" end_column=""27"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""10"" startColumn=""24"" endLine=""10"" endColumn=""25"" document=""0"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""26"" endLine=""10"" endColumn=""27"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <alias name=""Q"" target=""System.IO"" kind=""namespace"" />
         <alias name=""P"" target=""System"" kind=""namespace"" />
       </scope>
     </method>
-    <method containingType=""A"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""A"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""4"" start_column=""20"" end_row=""4"" end_column=""21"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""4"" start_column=""22"" end_row=""4"" end_column=""23"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""4"" startColumn=""20"" endLine=""4"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x1"" startLine=""4"" startColumn=""22"" endLine=""4"" endColumn=""23"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <alias name=""P"" target=""System"" kind=""namespace"" />
@@ -209,18 +209,18 @@ namespace X
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""X.Y.C"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""3"">
+    <method containingType=""X.Y.C"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
           <namespace usingCount=""1"" />
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""16"" start_column=""28"" end_row=""16"" end_column=""29"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""16"" start_column=""30"" end_row=""16"" end_column=""31"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""16"" startColumn=""28"" endLine=""16"" endColumn=""29"" document=""0"" />
+        <entry offset=""0x1"" startLine=""16"" startColumn=""30"" endLine=""16"" endColumn=""31"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <alias name=""R"" target=""System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
@@ -228,33 +228,33 @@ namespace X
         <alias name=""P"" target=""System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
       </scope>
     </method>
-    <method containingType=""X.B"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+    <method containingType=""X.B"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""10"" start_column=""24"" end_row=""10"" end_column=""25"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""10"" start_column=""26"" end_row=""10"" end_column=""27"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""10"" startColumn=""24"" endLine=""10"" endColumn=""25"" document=""0"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""26"" endLine=""10"" endColumn=""27"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <alias name=""Q"" target=""System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
         <alias name=""P"" target=""System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
       </scope>
     </method>
-    <method containingType=""A"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""A"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""4"" start_column=""20"" end_row=""4"" end_column=""21"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""4"" start_column=""22"" end_row=""4"" end_column=""23"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""4"" startColumn=""20"" endLine=""4"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x1"" startLine=""4"" startColumn=""22"" endLine=""4"" endColumn=""23"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <alias name=""P"" target=""System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
@@ -289,18 +289,18 @@ namespace X
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""X.Y.C"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""3"">
+    <method containingType=""X.Y.C"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
           <namespace usingCount=""1"" />
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""16"" start_column=""28"" end_row=""16"" end_column=""29"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""16"" start_column=""30"" end_row=""16"" end_column=""31"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""16"" startColumn=""28"" endLine=""16"" endColumn=""29"" document=""0"" />
+        <entry offset=""0x1"" startLine=""16"" startColumn=""30"" endLine=""16"" endColumn=""31"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <alias name=""P"" target=""System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
@@ -308,33 +308,33 @@ namespace X
         <alias name=""P"" target=""System.Collections.Generic.List`1[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
       </scope>
     </method>
-    <method containingType=""X.B"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+    <method containingType=""X.B"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""10"" start_column=""24"" end_row=""10"" end_column=""25"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""10"" start_column=""26"" end_row=""10"" end_column=""27"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""10"" startColumn=""24"" endLine=""10"" endColumn=""25"" document=""0"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""26"" endLine=""10"" endColumn=""27"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <alias name=""Q"" target=""System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
         <alias name=""P"" target=""System.Collections.Generic.List`1[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
       </scope>
     </method>
-    <method containingType=""A"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""A"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""4"" start_column=""20"" end_row=""4"" end_column=""21"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""4"" start_column=""22"" end_row=""4"" end_column=""23"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""4"" startColumn=""20"" endLine=""4"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x1"" startLine=""4"" startColumn=""22"" endLine=""4"" endColumn=""23"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <alias name=""P"" target=""System.Collections.Generic.List`1[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
@@ -395,16 +395,16 @@ namespace X
             string expected = @"
 <symbols>
   <methods>
-    <method containingType=""A"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""A"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""4"" start_column=""20"" end_row=""4"" end_column=""21"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""4"" start_column=""22"" end_row=""4"" end_column=""23"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""4"" startColumn=""20"" endLine=""4"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x1"" startLine=""4"" startColumn=""22"" endLine=""4"" endColumn=""23"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <extern alias=""P"" />
@@ -413,37 +413,37 @@ namespace X
         <externinfo alias=""R"" assembly=""c, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
       </scope>
     </method>
-    <method containingType=""X.B"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""2"">
-        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+    <method containingType=""X.B"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
           <namespace usingCount=""1"" />
         </using>
-        <forwardToModule version=""4"" kind=""ForwardToModuleInfo"" size=""12"" declaringType=""A"" methodName=""M"" parameterNames="""" />
+        <forwardToModule declaringType=""A"" methodName=""M"" />
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""10"" start_column=""24"" end_row=""10"" end_column=""25"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""10"" start_column=""26"" end_row=""10"" end_column=""27"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""10"" startColumn=""24"" endLine=""10"" endColumn=""25"" document=""0"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""26"" endLine=""10"" endColumn=""27"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <extern alias=""Q"" />
         <extern alias=""P"" />
       </scope>
     </method>
-    <method containingType=""X.Y.C"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""2"">
-        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""3"">
+    <method containingType=""X.Y.C"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
           <namespace usingCount=""1"" />
           <namespace usingCount=""1"" />
         </using>
-        <forwardToModule version=""4"" kind=""ForwardToModuleInfo"" size=""12"" declaringType=""A"" methodName=""M"" parameterNames="""" />
+        <forwardToModule declaringType=""A"" methodName=""M"" />
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""16"" start_column=""28"" end_row=""16"" end_column=""29"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""16"" start_column=""30"" end_row=""16"" end_column=""31"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""16"" startColumn=""28"" endLine=""16"" endColumn=""29"" document=""0"" />
+        <entry offset=""0x1"" startLine=""16"" startColumn=""30"" endLine=""16"" endColumn=""31"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <extern alias=""R"" />
@@ -501,16 +501,16 @@ class C { void M() { } }
             string expected = @"
 <symbols>
     <methods>
-        <method containingType=""C"" name=""M"" parameterNames="""">
-            <customDebugInfo version=""4"" count=""1"">
-                <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+        <method containingType=""C"" name=""M"">
+            <customDebugInfo>
+                <using>
                     <namespace usingCount=""5""/>
                 </using>
             </customDebugInfo>
-            <sequencepoints total=""2"">
-                <entry il_offset=""0x0"" start_row=""8"" start_column=""20"" end_row=""8"" end_column=""21"" file_ref=""0""/>
-                <entry il_offset=""0x1"" start_row=""8"" start_column=""22"" end_row=""8"" end_column=""23"" file_ref=""0""/>
-            </sequencepoints>
+            <sequencePoints>
+                <entry offset=""0x0"" startLine=""8"" startColumn=""20"" endLine=""8"" endColumn=""21"" document=""0""/>
+                <entry offset=""0x1"" startLine=""8"" startColumn=""22"" endLine=""8"" endColumn=""23"" document=""0""/>
+            </sequencePoints>
             <locals/>
             <scope startOffset=""0x0"" endOffset=""0x2"">
                 <extern alias=""A""/>
@@ -560,17 +560,17 @@ namespace N
             string expected = @"
 <symbols>
   <methods>
-    <method containingType=""N.B"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+    <method containingType=""N.B"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""0"" />
           <namespace usingCount=""7"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""12"" start_column=""24"" end_row=""12"" end_column=""25"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""12"" start_column=""26"" end_row=""12"" end_column=""27"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""12"" startColumn=""24"" endLine=""12"" endColumn=""25"" document=""0"" />
+        <entry offset=""0x1"" startLine=""12"" startColumn=""26"" endLine=""12"" endColumn=""27"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <extern alias=""P"" />
@@ -675,16 +675,16 @@ namespace X
             string expected = @"
 <symbols>
   <methods>
-    <method containingType=""A"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""A"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""4"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""7"" start_column=""20"" end_row=""7"" end_column=""21"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""7"" start_column=""22"" end_row=""7"" end_column=""23"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""20"" endLine=""7"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""22"" endLine=""7"" endColumn=""23"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <extern alias=""P"" />
@@ -696,18 +696,18 @@ namespace X
         <externinfo alias=""R"" assembly=""c, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
       </scope>
     </method>
-    <method containingType=""X.B"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""2"">
-        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+    <method containingType=""X.B"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""4"" />
           <namespace usingCount=""4"" />
         </using>
-        <forwardToModule version=""4"" kind=""ForwardToModuleInfo"" size=""12"" declaringType=""A"" methodName=""M"" parameterNames="""" />
+        <forwardToModule declaringType=""A"" methodName=""M"" />
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""16"" start_column=""24"" end_row=""16"" end_column=""25"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""16"" start_column=""26"" end_row=""16"" end_column=""27"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""16"" startColumn=""24"" endLine=""16"" endColumn=""25"" document=""0"" />
+        <entry offset=""0x1"" startLine=""16"" startColumn=""26"" endLine=""16"" endColumn=""27"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <extern alias=""Q"" />
@@ -720,19 +720,19 @@ namespace X
         <alias name=""AT1"" target=""System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
       </scope>
     </method>
-    <method containingType=""X.Y.C"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""2"">
-        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""3"">
+    <method containingType=""X.Y.C"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""4"" />
           <namespace usingCount=""4"" />
           <namespace usingCount=""4"" />
         </using>
-        <forwardToModule version=""4"" kind=""ForwardToModuleInfo"" size=""12"" declaringType=""A"" methodName=""M"" parameterNames="""" />
+        <forwardToModule declaringType=""A"" methodName=""M"" />
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""25"" start_column=""28"" end_row=""25"" end_column=""29"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""25"" start_column=""30"" end_row=""25"" end_column=""31"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""25"" startColumn=""28"" endLine=""25"" endColumn=""29"" document=""0"" />
+        <entry offset=""0x1"" startLine=""25"" startColumn=""30"" endLine=""25"" endColumn=""31"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <extern alias=""R"" />
@@ -796,20 +796,20 @@ public class C
             string expected = @"
 <symbols>
     <methods>
-        <method containingType=""C"" name=""Main"" parameterNames="""">
-            <customDebugInfo version=""4"" count=""1"">
-                <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+        <method containingType=""C"" name=""Main"">
+            <customDebugInfo>
+                <using>
                     <namespace usingCount=""6""/>
                 </using>
             </customDebugInfo>
-            <sequencepoints total=""6"">
-                <entry il_offset=""0x0"" start_row=""13"" start_column=""5"" end_row=""13"" end_column=""6"" file_ref=""0""/>
-                <entry il_offset=""0x1"" start_row=""14"" start_column=""9"" end_row=""14"" end_column=""43"" file_ref=""0""/>
-                <entry il_offset=""0xc"" start_row=""15"" start_column=""9"" end_row=""15"" end_column=""43"" file_ref=""0""/>
-                <entry il_offset=""0x17"" start_row=""16"" start_column=""9"" end_row=""16"" end_column=""45"" file_ref=""0""/>
-                <entry il_offset=""0x22"" start_row=""17"" start_column=""9"" end_row=""17"" end_column=""45"" file_ref=""0""/>
-                <entry il_offset=""0x2d"" start_row=""18"" start_column=""5"" end_row=""18"" end_column=""6"" file_ref=""0""/>
-            </sequencepoints>
+            <sequencePoints>
+                <entry offset=""0x0"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""0""/>
+                <entry offset=""0x1"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""43"" document=""0""/>
+                <entry offset=""0xc"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""43"" document=""0""/>
+                <entry offset=""0x17"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""45"" document=""0""/>
+                <entry offset=""0x22"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""45"" document=""0""/>
+                <entry offset=""0x2d"" startLine=""18"" startColumn=""5"" endLine=""18"" endColumn=""6"" document=""0""/>
+            </sequencePoints>
             <locals/>
             <scope startOffset=""0x0"" endOffset=""0x2e"">
                 <extern alias=""A""/>
@@ -863,19 +863,19 @@ public class C
             string expected = @"
 <symbols>
   <methods>
-    <method containingType=""C"" name=""Main"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""C"" name=""Main"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""2"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""5"">
-        <entry il_offset=""0x0"" start_row=""8"" start_column=""5"" end_row=""8"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""45"" file_ref=""0"" />
-        <entry il_offset=""0xc"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""48"" file_ref=""0"" />
-        <entry il_offset=""0x17"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""48"" file_ref=""0"" />
-        <entry il_offset=""0x22"" start_row=""12"" start_column=""5"" end_row=""12"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""45"" document=""0"" />
+        <entry offset=""0xc"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""48"" document=""0"" />
+        <entry offset=""0x17"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""48"" document=""0"" />
+        <entry offset=""0x22"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x23"">
         <extern alias=""A"" />
@@ -983,17 +983,17 @@ namespace X
             string expected = @"
 <symbols>
   <methods>
-    <method containingType=""X.C"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+    <method containingType=""X.C"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""4"" />
           <namespace usingCount=""4"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""30"" start_column=""26"" end_row=""30"" end_column=""27"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""30"" start_column=""28"" end_row=""30"" end_column=""29"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""30"" startColumn=""26"" endLine=""30"" endColumn=""27"" document=""0"" />
+        <entry offset=""0x1"" startLine=""30"" startColumn=""28"" endLine=""30"" endColumn=""29"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <extern alias=""R"" />
@@ -1009,18 +1009,18 @@ namespace X
         <externinfo alias=""R"" assembly=""c, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
       </scope>
     </method>
-    <method containingType=""X.C"" name=""N1"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""2"">
-        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+    <method containingType=""X.C"" name=""N1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""4"" />
           <namespace usingCount=""4"" />
         </using>
-        <forwardToModule version=""4"" kind=""ForwardToModuleInfo"" size=""12"" declaringType=""X.C"" methodName=""M"" parameterNames="""" />
+        <forwardToModule declaringType=""X.C"" methodName=""M"" />
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""17"" start_column=""19"" end_row=""17"" end_column=""20"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""17"" start_column=""21"" end_row=""17"" end_column=""22"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""17"" startColumn=""19"" endLine=""17"" endColumn=""20"" document=""0"" />
+        <entry offset=""0x1"" startLine=""17"" startColumn=""21"" endLine=""17"" endColumn=""22"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <extern alias=""Q"" />
@@ -1033,18 +1033,18 @@ namespace X
         <alias name=""AT1"" target=""System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
       </scope>
     </method>
-    <method containingType=""X.C"" name=""N2"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""2"">
-        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+    <method containingType=""X.C"" name=""N2"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""4"" />
           <namespace usingCount=""4"" />
         </using>
-        <forwardToModule version=""4"" kind=""ForwardToModuleInfo"" size=""12"" declaringType=""X.C"" methodName=""M"" parameterNames="""" />
+        <forwardToModule declaringType=""X.C"" methodName=""M"" />
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""31"" start_column=""19"" end_row=""31"" end_column=""20"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""31"" start_column=""21"" end_row=""31"" end_column=""22"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""31"" startColumn=""19"" endLine=""31"" endColumn=""20"" document=""0"" />
+        <entry offset=""0x1"" startLine=""31"" startColumn=""21"" endLine=""31"" endColumn=""22"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <extern alias=""R"" />
@@ -1175,17 +1175,17 @@ namespace X
             compilation.VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""X.C"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+    <method containingType=""X.C"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""4"" />
           <namespace usingCount=""4"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""16"" start_column=""26"" end_row=""16"" end_column=""27"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""16"" start_column=""28"" end_row=""16"" end_column=""29"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""16"" startColumn=""26"" endLine=""16"" endColumn=""27"" document=""0"" />
+        <entry offset=""0x1"" startLine=""16"" startColumn=""28"" endLine=""16"" endColumn=""29"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <extern alias=""S"" />
@@ -1202,18 +1202,18 @@ namespace X
         <externinfo alias=""S"" assembly=""d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
       </scope>
     </method>
-    <method containingType=""X.C"" name=""N1"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""2"">
-        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+    <method containingType=""X.C"" name=""N1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""4"" />
           <namespace usingCount=""4"" />
         </using>
-        <forwardToModule version=""4"" kind=""ForwardToModuleInfo"" size=""12"" declaringType=""X.C"" methodName=""M"" parameterNames="""" />
+        <forwardToModule declaringType=""X.C"" methodName=""M"" />
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""17"" start_column=""19"" end_row=""17"" end_column=""20"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""17"" start_column=""21"" end_row=""17"" end_column=""22"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""17"" startColumn=""19"" endLine=""17"" endColumn=""20"" document=""0"" />
+        <entry offset=""0x1"" startLine=""17"" startColumn=""21"" endLine=""17"" endColumn=""22"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <extern alias=""Q"" />
@@ -1226,18 +1226,18 @@ namespace X
         <alias name=""AT1"" target=""System.Char, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
       </scope>
     </method>
-    <method containingType=""X.C"" name=""N2"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""2"">
-        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+    <method containingType=""X.C"" name=""N2"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""4"" />
           <namespace usingCount=""4"" />
         </using>
-        <forwardToModule version=""4"" kind=""ForwardToModuleInfo"" size=""12"" declaringType=""X.C"" methodName=""M"" parameterNames="""" />
+        <forwardToModule declaringType=""X.C"" methodName=""M"" />
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""17"" start_column=""19"" end_row=""17"" end_column=""20"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""17"" start_column=""21"" end_row=""17"" end_column=""22"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""17"" startColumn=""19"" endLine=""17"" endColumn=""20"" document=""0"" />
+        <entry offset=""0x1"" startLine=""17"" startColumn=""21"" endLine=""17"" endColumn=""22"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <extern alias=""S"" />
@@ -1284,30 +1284,30 @@ namespace X
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
     <methods>
-        <method containingType=""X.C"" name="".ctor"" parameterNames="""">
-            <customDebugInfo version=""4"" count=""1"">
-                <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+        <method containingType=""X.C"" name="".ctor"">
+            <customDebugInfo>
+                <using>
                     <namespace usingCount=""1""/>
                     <namespace usingCount=""0""/>
                 </using>
             </customDebugInfo>
-            <sequencepoints total=""2"">
-                <entry il_offset=""0x0"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""19"" file_ref=""0""/>
-                <entry il_offset=""0x7"" start_row=""19"" start_column=""9"" end_row=""19"" end_column=""19"" file_ref=""0""/>
-            </sequencepoints>
+            <sequencePoints>
+                <entry offset=""0x0"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""19"" document=""0""/>
+                <entry offset=""0x7"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""19"" document=""0""/>
+            </sequencePoints>
             <locals/>
             <scope startOffset=""0x0"" endOffset=""0x16"">
                 <namespace name=""System""/>
             </scope>
         </method>
-        <method containingType=""X.C"" name="".cctor"" parameterNames="""">
-            <customDebugInfo version=""4"" count=""1"">
-                <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""X.C"" methodName="".ctor"" parameterNames=""""/>
+        <method containingType=""X.C"" name="".cctor"">
+            <customDebugInfo>
+                <forward declaringType=""X.C"" methodName="".ctor""/>
             </customDebugInfo>
-            <sequencepoints total=""2"">
-                <entry il_offset=""0x0"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""27"" file_ref=""0""/>
-                <entry il_offset=""0x6"" start_row=""20"" start_column=""9"" end_row=""20"" end_column=""27"" file_ref=""0""/>
-            </sequencepoints>
+            <sequencePoints>
+                <entry offset=""0x0"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""27"" document=""0""/>
+                <entry offset=""0x6"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""27"" document=""0""/>
+            </sequencePoints>
             <locals/>
         </method>
     </methods>
@@ -1332,49 +1332,49 @@ class C
             CompileAndVerify(text, new[] { SystemCoreRef }, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""C"" name="".ctor"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""C"" name="".ctor"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""1"">
-        <entry il_offset=""0x0"" start_row=""6"" start_column=""5"" end_row=""6"" end_column=""59"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""59"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x38"">
         <namespace name=""System.Linq"" />
       </scope>
     </method>
-    <method containingType=""C"" name="".cctor"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".ctor"" parameterNames="""" />
+    <method containingType=""C"" name="".cctor"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName="".ctor"" />
       </customDebugInfo>
-      <sequencepoints total=""1"">
-        <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""10"" end_column=""8"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""10"" endColumn=""8"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;.ctor&gt;b__2_0"" parameterNames=""x"">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".ctor"" parameterNames="""" />
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName="".ctor"" />
       </customDebugInfo>
-      <sequencepoints total=""3"">
-        <entry il_offset=""0x0"" start_row=""6"" start_column=""35"" end_row=""6"" end_column=""36"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""6"" start_column=""37"" end_row=""6"" end_column=""55"" file_ref=""0"" />
-        <entry il_offset=""0xa"" start_row=""6"" start_column=""56"" end_row=""6"" end_column=""57"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""6"" startColumn=""35"" endLine=""6"" endColumn=""36"" document=""0"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""37"" endLine=""6"" endColumn=""55"" document=""0"" />
+        <entry offset=""0xa"" startLine=""6"" startColumn=""56"" endLine=""6"" endColumn=""57"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;.cctor&gt;b__3_0"" parameterNames=""x"">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName="".ctor"" parameterNames="""" />
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName="".ctor"" />
       </customDebugInfo>
-      <sequencepoints total=""3"">
-        <entry il_offset=""0x0"" start_row=""8"" start_column=""5"" end_row=""8"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""27"" file_ref=""0"" />
-        <entry il_offset=""0xa"" start_row=""10"" start_column=""5"" end_row=""10"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""27"" document=""0"" />
+        <entry offset=""0xa"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
   </methods>
@@ -1400,83 +1400,83 @@ class C
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""C"" name=""get_P1"" parameterNames="""">
-      <sequencepoints total=""1"">
-        <entry il_offset=""0x0"" start_row=""6"" start_column=""14"" end_row=""6"" end_column=""18"" file_ref=""0"" />
-      </sequencepoints>
+    <method containingType=""C"" name=""get_P1"">
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""6"" startColumn=""14"" endLine=""6"" endColumn=""18"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
     <method containingType=""C"" name=""set_P1"" parameterNames=""value"">
-      <sequencepoints total=""1"">
-        <entry il_offset=""0x0"" start_row=""6"" start_column=""19"" end_row=""6"" end_column=""23"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""6"" startColumn=""19"" endLine=""6"" endColumn=""23"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
-    <method containingType=""C"" name=""get_P2"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""C"" name=""get_P2"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""3"">
-        <entry il_offset=""0x0"" start_row=""7"" start_column=""18"" end_row=""7"" end_column=""19"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""7"" start_column=""20"" end_row=""7"" end_column=""29"" file_ref=""0"" />
-        <entry il_offset=""0x5"" start_row=""7"" start_column=""30"" end_row=""7"" end_column=""31"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""18"" endLine=""7"" endColumn=""19"" document=""0"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""20"" endLine=""7"" endColumn=""29"" document=""0"" />
+        <entry offset=""0x5"" startLine=""7"" startColumn=""30"" endLine=""7"" endColumn=""31"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x7"">
         <namespace name=""System"" />
       </scope>
     </method>
     <method containingType=""C"" name=""set_P2"" parameterNames=""value"">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""get_P2"" parameterNames="""" />
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""get_P2"" />
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""7"" start_column=""36"" end_row=""7"" end_column=""37"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""7"" start_column=""38"" end_row=""7"" end_column=""39"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""36"" endLine=""7"" endColumn=""37"" document=""0"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""38"" endLine=""7"" endColumn=""39"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
     <method containingType=""C"" name=""add_E2"" parameterNames=""value"">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""get_P2"" parameterNames="""" />
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""get_P2"" />
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""10"" start_column=""34"" end_row=""10"" end_column=""35"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""10"" start_column=""36"" end_row=""10"" end_column=""37"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""10"" startColumn=""34"" endLine=""10"" endColumn=""35"" document=""0"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""36"" endLine=""10"" endColumn=""37"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
     <method containingType=""C"" name=""remove_E2"" parameterNames=""value"">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""get_P2"" parameterNames="""" />
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""get_P2"" />
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""10"" start_column=""45"" end_row=""10"" end_column=""46"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""10"" start_column=""47"" end_row=""10"" end_column=""48"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""10"" startColumn=""45"" endLine=""10"" endColumn=""46"" document=""0"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""47"" endLine=""10"" endColumn=""48"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
     <method containingType=""C"" name=""get_Item"" parameterNames=""x"">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""get_P2"" parameterNames="""" />
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""get_P2"" />
       </customDebugInfo>
-      <sequencepoints total=""3"">
-        <entry il_offset=""0x0"" start_row=""8"" start_column=""27"" end_row=""8"" end_column=""28"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""8"" start_column=""29"" end_row=""8"" end_column=""38"" file_ref=""0"" />
-        <entry il_offset=""0x5"" start_row=""8"" start_column=""39"" end_row=""8"" end_column=""40"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""8"" startColumn=""27"" endLine=""8"" endColumn=""28"" document=""0"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""29"" endLine=""8"" endColumn=""38"" document=""0"" />
+        <entry offset=""0x5"" startLine=""8"" startColumn=""39"" endLine=""8"" endColumn=""40"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
     <method containingType=""C"" name=""set_Item"" parameterNames=""x, value"">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""get_P2"" parameterNames="""" />
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""get_P2"" />
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""8"" start_column=""45"" end_row=""8"" end_column=""46"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""8"" start_column=""47"" end_row=""8"" end_column=""48"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""8"" startColumn=""45"" endLine=""8"" endColumn=""46"" document=""0"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""47"" endLine=""8"" endColumn=""48"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
   </methods>
@@ -1503,28 +1503,28 @@ class Derived : Base
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""Base"" name=""get_P"" parameterNames="""">
-      <sequencepoints total=""1"">
-        <entry il_offset=""0x0"" start_row=""6"" start_column=""28"" end_row=""6"" end_column=""32"" file_ref=""0"" />
-      </sequencepoints>
+    <method containingType=""Base"" name=""get_P"">
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""6"" startColumn=""28"" endLine=""6"" endColumn=""32"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
     <method containingType=""Base"" name=""set_P"" parameterNames=""value"">
-      <sequencepoints total=""1"">
-        <entry il_offset=""0x0"" start_row=""6"" start_column=""33"" end_row=""6"" end_column=""37"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""6"" startColumn=""33"" endLine=""6"" endColumn=""37"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
     <method containingType=""Derived"" name=""set_P"" parameterNames=""value"">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""11"" start_column=""40"" end_row=""11"" end_column=""41"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""11"" start_column=""42"" end_row=""11"" end_column=""43"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""11"" startColumn=""40"" endLine=""11"" endColumn=""41"" document=""0"" />
+        <entry offset=""0x1"" startLine=""11"" startColumn=""42"" endLine=""11"" endColumn=""43"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <namespace name=""System"" />
@@ -1562,29 +1562,29 @@ class C : I1, I2
 <symbols>
   <methods>
     <method containingType=""C"" name=""get_Item"" parameterNames=""x"">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""3"">
-        <entry il_offset=""0x0"" start_row=""18"" start_column=""34"" end_row=""18"" end_column=""35"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""18"" start_column=""36"" end_row=""18"" end_column=""45"" file_ref=""0"" />
-        <entry il_offset=""0x5"" start_row=""18"" start_column=""46"" end_row=""18"" end_column=""47"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""18"" startColumn=""34"" endLine=""18"" endColumn=""35"" document=""0"" />
+        <entry offset=""0x1"" startLine=""18"" startColumn=""36"" endLine=""18"" endColumn=""45"" document=""0"" />
+        <entry offset=""0x5"" startLine=""18"" startColumn=""46"" endLine=""18"" endColumn=""47"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x7"">
         <namespace name=""System.Runtime.CompilerServices"" />
       </scope>
     </method>
     <method containingType=""C"" name=""set_Item"" parameterNames=""x, value"">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""get_Item"" parameterNames=""x"" />
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""get_Item"" parameterNames=""x"" />
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""18"" start_column=""52"" end_row=""18"" end_column=""53"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""18"" start_column=""54"" end_row=""18"" end_column=""55"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""18"" startColumn=""52"" endLine=""18"" endColumn=""53"" document=""0"" />
+        <entry offset=""0x1"" startLine=""18"" startColumn=""54"" endLine=""18"" endColumn=""55"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
   </methods>
@@ -1665,18 +1665,18 @@ public class Test
 ";
             CompileAndVerify(source, new[] { libRef }, options: TestOptions.DebugExe).VerifyPdb("Test.Main", @"
 <symbols>
-  <entryPoint declaringType=""Test"" methodName=""Main"" parameterNames="""" />
+  <entryPoint declaringType=""Test"" methodName=""Main"" />
   <methods>
-    <method containingType=""Test"" name=""Main"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""Test"" name=""Main"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""8"" start_column=""5"" end_row=""8"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <alias name=""I"" target=""Outer+Inner, Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" kind=""type"" />
@@ -1714,15 +1714,15 @@ class Test { static void Main() { } }
             var expectedXml = @"
 <symbols>
   <methods>
-    <method containingType=""Test"" name=""Main"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""Test"" name=""Main"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""3"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""1"">
-        <entry il_offset=""0x0"" start_row=""20"" start_column=""35"" end_row=""20"" end_column=""36"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""20"" startColumn=""35"" endLine=""20"" endColumn=""36"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x1"">
         <namespace name=""namespace"" />
@@ -1766,16 +1766,16 @@ namespace N
             var expectedXml = @"
 <symbols>
   <methods>
-    <method containingType=""N.D"" name=""Main"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""16"" namespaceCount=""2"">
+    <method containingType=""N.D"" name=""Main"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""2"" />
           <namespace usingCount=""3"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""1"">
-        <entry il_offset=""0x0"" start_row=""13"" start_column=""30"" end_row=""13"" end_column=""31"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""13"" startColumn=""30"" endLine=""13"" endColumn=""31"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x1"">
         <namespace qualifier=""Q"" name="""" />
@@ -1809,15 +1809,15 @@ class D
             var expectedXml = @"
 <symbols>
   <methods>
-    <method containingType=""D"" name=""Main"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""D"" name=""Main"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""1"">
-        <entry il_offset=""0x0"" start_row=""6"" start_column=""26"" end_row=""6"" end_column=""27"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""6"" startColumn=""26"" endLine=""6"" endColumn=""27"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x1"">
         <alias name=""AD"" target=""System.Action`1[[System.Object, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"" kind=""type"" />
@@ -1906,18 +1906,18 @@ public class C1
 
             comp2.VerifyPdb(@"
 <symbols>
-  <entryPoint declaringType=""C1"" methodName=""Main"" parameterNames="""" />
+  <entryPoint declaringType=""C1"" methodName=""Main"" />
   <methods>
-    <method containingType=""C1"" name=""Main"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""C1"" name=""Main"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""6"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""12"" start_column=""5"" end_row=""12"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""13"" start_column=""5"" end_row=""13"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x2"">
         <alias name=""t1"" target=""Y`1[[W[], Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], Comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" kind=""type"" />
@@ -1984,16 +1984,16 @@ class D
             var expectedXml = @"
 <symbols>
     <methods>
-        <method containingType=""D"" name=""Main"" parameterNames="""">
-            <customDebugInfo version=""4"" count=""1"">
-                <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+        <method containingType=""D"" name=""Main"">
+            <customDebugInfo>
+                <using>
                     <namespace usingCount=""1""/>
                 </using>
             </customDebugInfo>
-            <sequencepoints total=""2"">
-                <entry il_offset=""0x0"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""19"" file_ref=""0""/>
-                <entry il_offset=""0x8"" start_row=""9"" start_column=""5"" end_row=""9"" end_column=""6"" file_ref=""0""/>
-            </sequencepoints>
+            <sequencePoints>
+                <entry offset=""0x0"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""19"" document=""0""/>
+                <entry offset=""0x8"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""0""/>
+            </sequencePoints>
             <locals/>
             <scope startOffset=""0x0"" endOffset=""0x9"">
                 <type name=""System.Math, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089""/>

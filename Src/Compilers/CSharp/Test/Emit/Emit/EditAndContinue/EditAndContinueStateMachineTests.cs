@@ -237,18 +237,18 @@ class C
   </files>
   <methods>
     <method token=""0x600000f"">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""5"">
-        <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""1"" />
-        <entry il_offset=""0x21"" start_row=""9"" start_column=""5"" end_row=""9"" end_column=""6"" file_ref=""1"" />
-        <entry il_offset=""0x22"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""24"" file_ref=""1"" />
-        <entry il_offset=""0x34"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""1"" />
-        <entry il_offset=""0x3b"" start_row=""11"" start_column=""5"" end_row=""11"" end_column=""6"" file_ref=""1"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x21"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x22"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""24"" document=""1"" />
+        <entry offset=""0x34"" hidden=""true"" document=""1"" />
+        <entry offset=""0x3b"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x3f"">
         <namespace name=""System.Collections.Generic"" />

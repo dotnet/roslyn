@@ -263,9 +263,9 @@ class C
 <symbols>
   <methods>
     <method containingType=""C"" name=""M"" parameterNames=""disposable"">
-      <customDebugInfo version=""4"" count=""2"">
-        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;M&gt;d__3"" />
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""64"">
+      <customDebugInfo>
+        <forwardIterator name=""&lt;M&gt;d__3"" />
+        <encLocalSlotMap>
           <slot kind=""6"" offset=""11"" />
           <slot kind=""8"" offset=""11"" />
           <slot kind=""0"" offset=""11"" />
@@ -287,7 +287,7 @@ class C
           <slot kind=""2"" offset=""410"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""0"" />
+      <sequencePoints />
       <locals />
     </method>
   </methods>

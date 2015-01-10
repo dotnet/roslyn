@@ -1632,16 +1632,16 @@ class C
   </files>
   <methods>
     <method token=""0x6000001"">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""0"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""3"">
-        <entry il_offset=""0x0"" start_row=""5"" start_column=""5"" end_row=""5"" end_column=""6"" file_ref=""1"" />
-        <entry il_offset=""0x1"" start_row=""6"" start_column=""9"" end_row=""6"" end_column=""40"" file_ref=""1"" />
-        <entry il_offset=""0x18"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""1"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""40"" document=""1"" />
+        <entry offset=""0x18"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
       <locals>
         <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0x19"" attributes=""0"" />
       </locals>
@@ -3170,20 +3170,20 @@ class B : A<B>
 <symbols>
   <methods>
     <method token=""0x6000003"">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""0"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""7"">
-        <entry il_offset=""0x0"" start_row=""9"" start_column=""5"" end_row=""9"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""19"" file_ref=""0"" />
-        <entry il_offset=""0x7"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""22"" file_ref=""0"" />
-        <entry il_offset=""0xd"" start_row=""12"" start_column=""9"" end_row=""12"" end_column=""24"" file_ref=""0"" />
-        <entry il_offset=""0x14"" start_row=""13"" start_column=""9"" end_row=""13"" end_column=""14"" file_ref=""0"" />
-        <entry il_offset=""0x1c"" start_row=""14"" start_column=""9"" end_row=""14"" end_column=""14"" file_ref=""0"" />
-        <entry il_offset=""0x23"" start_row=""15"" start_column=""5"" end_row=""15"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""19"" document=""0"" />
+        <entry offset=""0x7"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""22"" document=""0"" />
+        <entry offset=""0xd"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""24"" document=""0"" />
+        <entry offset=""0x14"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""14"" document=""0"" />
+        <entry offset=""0x1c"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""14"" document=""0"" />
+        <entry offset=""0x23"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""z"" il_index=""3"" il_start=""0x0"" il_end=""0x24"" attributes=""0"" />
         <local name=""y"" il_index=""1"" il_start=""0x0"" il_end=""0x24"" attributes=""0"" />
@@ -3229,19 +3229,19 @@ class B : A<B>
 <symbols>
   <methods>
     <method token=""0x6000003"">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""0"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""6"">
-        <entry il_offset=""0x0"" start_row=""9"" start_column=""5"" end_row=""9"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""24"" file_ref=""0"" />
-        <entry il_offset=""0x8"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""19"" file_ref=""0"" />
-        <entry il_offset=""0xe"" start_row=""12"" start_column=""9"" end_row=""12"" end_column=""14"" file_ref=""0"" />
-        <entry il_offset=""0x16"" start_row=""13"" start_column=""9"" end_row=""13"" end_column=""14"" file_ref=""0"" />
-        <entry il_offset=""0x1d"" start_row=""14"" start_column=""5"" end_row=""14"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""24"" document=""0"" />
+        <entry offset=""0x8"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""19"" document=""0"" />
+        <entry offset=""0xe"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""14"" document=""0"" />
+        <entry offset=""0x16"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""14"" document=""0"" />
+        <entry offset=""0x1d"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""x"" il_index=""5"" il_start=""0x0"" il_end=""0x1e"" attributes=""0"" />
         <local name=""z"" il_index=""3"" il_start=""0x0"" il_end=""0x1e"" attributes=""0"" />
@@ -3287,19 +3287,19 @@ class B : A<B>
 <symbols>
   <methods>
     <method token=""0x6000004"">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""0"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""6"">
-        <entry il_offset=""0x0"" start_row=""16"" start_column=""5"" end_row=""16"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""17"" start_column=""9"" end_row=""17"" end_column=""24"" file_ref=""0"" />
-        <entry il_offset=""0x7"" start_row=""18"" start_column=""9"" end_row=""18"" end_column=""24"" file_ref=""0"" />
-        <entry il_offset=""0xd"" start_row=""19"" start_column=""9"" end_row=""19"" end_column=""14"" file_ref=""0"" />
-        <entry il_offset=""0x14"" start_row=""20"" start_column=""9"" end_row=""20"" end_column=""14"" file_ref=""0"" />
-        <entry il_offset=""0x1b"" start_row=""21"" start_column=""5"" end_row=""21"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""24"" document=""0"" />
+        <entry offset=""0x7"" startLine=""18"" startColumn=""9"" endLine=""18"" endColumn=""24"" document=""0"" />
+        <entry offset=""0xd"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""14"" document=""0"" />
+        <entry offset=""0x14"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""14"" document=""0"" />
+        <entry offset=""0x1b"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""c"" il_index=""2"" il_start=""0x0"" il_end=""0x1c"" attributes=""0"" />
         <local name=""b"" il_index=""1"" il_start=""0x0"" il_end=""0x1c"" attributes=""0"" />
@@ -3377,17 +3377,17 @@ class B : A<B>
 <symbols>
   <methods>
     <method token=""0x6000002"">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""0"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""4"">
-        <entry il_offset=""0x0"" start_row=""4"" start_column=""5"" end_row=""4"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""5"" start_column=""9"" end_row=""5"" end_column=""19"" file_ref=""0"" />
-        <entry il_offset=""0x3"" start_row=""6"" start_column=""9"" end_row=""6"" end_column=""30"" file_ref=""0"" />
-        <entry il_offset=""0x9"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""19"" document=""0"" />
+        <entry offset=""0x3"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""30"" document=""0"" />
+        <entry offset=""0x9"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""a"" il_index=""2"" il_start=""0x0"" il_end=""0xa"" attributes=""0"" />
         <local name=""b"" il_index=""1"" il_start=""0x0"" il_end=""0xa"" attributes=""0"" />

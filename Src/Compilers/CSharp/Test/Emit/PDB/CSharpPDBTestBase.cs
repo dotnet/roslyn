@@ -42,14 +42,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             var doc = new XmlDocument();
             doc.LoadXml(pdb);
 
-            foreach (XmlNode entry in doc.GetElementsByTagName("sequencepoints"))
+            foreach (XmlNode entry in doc.GetElementsByTagName("sequencePoints"))
             {
                 foreach (XmlElement item in entry.ChildNodes)
                 {
-                    if (startRow.ToString() == item.GetAttribute("start_row") &&
-                        startColumn.ToString() == item.GetAttribute("start_column") &&
-                        endRow.ToString() == item.GetAttribute("end_row") &&
-                        endColumn.ToString() == item.GetAttribute("end_column"))
+                    if (startRow.ToString() == item.GetAttribute("startLine") &&
+                        startColumn.ToString() == item.GetAttribute("startColumn") &&
+                        endRow.ToString() == item.GetAttribute("endLine") &&
+                        endColumn.ToString() == item.GetAttribute("endColumn"))
                     {
                         return true;
                     }

@@ -530,12 +530,12 @@ class Test
 
             v.VerifyPdb("Test.G", @"
 <symbols>
-  <entryPoint declaringType=""Test"" methodName=""Main"" parameterNames="""" />
+  <entryPoint declaringType=""Test"" methodName=""Main"" />
   <methods>
-    <method containingType=""Test"" name=""G"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""2"">
-        <forwardIterator version=""4"" kind=""ForwardIterator"" size=""24"" name=""&lt;G&gt;d__1"" />
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""28"">
+    <method containingType=""Test"" name=""G"">
+      <customDebugInfo>
+        <forwardIterator name=""&lt;G&gt;d__1"" />
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""15"" />
           <slot kind=""22"" offset=""33"" />
           <slot kind=""23"" offset=""33"" />
@@ -545,7 +545,7 @@ class Test
           <slot kind=""28"" offset=""156"" ordinal=""1"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""0"" />
+      <sequencePoints />
       <locals />
     </method>
   </methods>

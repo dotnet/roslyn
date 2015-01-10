@@ -199,11 +199,11 @@ End Class
         <file id="1" name="b:\base\b.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="90, B2, 29, 4D,  5, C7, A7, 47, 73,  0, EF, F4, 75, 92, E5, 84, E4, 4A, BB, E4, "/>
     </files>
     <methods>
-        <method containingType="C" name="M" parameterNames="">
-            <sequencepoints total="2">
-                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="10" file_ref="1"/>
-                <entry il_offset="0x1" start_row="4" start_column="5" end_row="4" end_column="12" file_ref="1"/>
-            </sequencepoints>
+        <method containingType="C" name="M">
+            <sequencePoints>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="10" document="1"/>
+                <entry offset="0x1" startLine="4" startColumn="5" endLine="4" endColumn="12" document="1"/>
+            </sequencePoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x2">
                 <currentnamespace name=""/>
@@ -254,17 +254,17 @@ End Class
         <file id="3" name="q:\absolute\line.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
     </files>
     <methods>
-        <method containingType="C" name="M" parameterNames="">
-            <sequencepoints total="8">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x1" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x8" start_row="1" start_column="9" end_row="1" end_column="12" file_ref="2"/>
-                <entry il_offset="0xf" start_row="2" start_column="9" end_row="2" end_column="12" file_ref="2"/>
-                <entry il_offset="0x16" start_row="3" start_column="9" end_row="3" end_column="12" file_ref="2"/>
-                <entry il_offset="0x1d" start_row="4" start_column="9" end_row="4" end_column="12" file_ref="2"/>
-                <entry il_offset="0x24" start_row="5" start_column="9" end_row="5" end_column="12" file_ref="3"/>
-                <entry il_offset="0x2b" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="3"/>
-            </sequencepoints>
+        <method containingType="C" name="M">
+            <sequencePoints>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x1" hidden="true" document="1"/>
+                <entry offset="0x8" startLine="1" startColumn="9" endLine="1" endColumn="12" document="2"/>
+                <entry offset="0xf" startLine="2" startColumn="9" endLine="2" endColumn="12" document="2"/>
+                <entry offset="0x16" startLine="3" startColumn="9" endLine="3" endColumn="12" document="2"/>
+                <entry offset="0x1d" startLine="4" startColumn="9" endLine="4" endColumn="12" document="2"/>
+                <entry offset="0x24" startLine="5" startColumn="9" endLine="5" endColumn="12" document="3"/>
+                <entry offset="0x2b" hidden="true" document="3"/>
+            </sequencePoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x2c">
                 <currentnamespace name=""/>
@@ -322,17 +322,17 @@ End Class
         <file id="6" name="b:\base\e.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="406ea660-64cf-4c82-b6f0-42d48172a79a" checkSum="AB,  0, 7F, 1D, 23, DE, "/>
     </files>
     <methods>
-        <method containingType="C" name="M" parameterNames="">
-            <sequencepoints total="8">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x1" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x8" start_row="1" start_column="9" end_row="1" end_column="12" file_ref="2"/>
-                <entry il_offset="0xf" start_row="2" start_column="9" end_row="2" end_column="12" file_ref="3"/>
-                <entry il_offset="0x16" start_row="3" start_column="9" end_row="3" end_column="12" file_ref="4"/>
-                <entry il_offset="0x1d" start_row="4" start_column="9" end_row="4" end_column="12" file_ref="5"/>
-                <entry il_offset="0x24" start_row="5" start_column="9" end_row="5" end_column="12" file_ref="6"/>
-                <entry il_offset="0x2b" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="6"/>
-            </sequencepoints>
+        <method containingType="C" name="M">
+            <sequencePoints>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x1" hidden="true" document="1"/>
+                <entry offset="0x8" startLine="1" startColumn="9" endLine="1" endColumn="12" document="2"/>
+                <entry offset="0xf" startLine="2" startColumn="9" endLine="2" endColumn="12" document="3"/>
+                <entry offset="0x16" startLine="3" startColumn="9" endLine="3" endColumn="12" document="4"/>
+                <entry offset="0x1d" startLine="4" startColumn="9" endLine="4" endColumn="12" document="5"/>
+                <entry offset="0x24" startLine="5" startColumn="9" endLine="5" endColumn="12" document="6"/>
+                <entry offset="0x2b" hidden="true" document="6"/>
+            </sequencePoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x2c">
                 <currentnamespace name=""/>
@@ -378,15 +378,15 @@ End Class
         <file id="4" name="b.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
     </files>
     <methods>
-        <method containingType="C" name="M" parameterNames="">
-            <sequencepoints total="6">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x1" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x8" start_row="1" start_column="9" end_row="1" end_column="12" file_ref="2"/>
-                <entry il_offset="0xf" start_row="2" start_column="9" end_row="2" end_column="12" file_ref="3"/>
-                <entry il_offset="0x16" start_row="3" start_column="9" end_row="3" end_column="12" file_ref="4"/>
-                <entry il_offset="0x1d" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="4"/>
-            </sequencepoints>
+        <method containingType="C" name="M">
+            <sequencePoints>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x1" hidden="true" document="1"/>
+                <entry offset="0x8" startLine="1" startColumn="9" endLine="1" endColumn="12" document="2"/>
+                <entry offset="0xf" startLine="2" startColumn="9" endLine="2" endColumn="12" document="3"/>
+                <entry offset="0x16" startLine="3" startColumn="9" endLine="3" endColumn="12" document="4"/>
+                <entry offset="0x1d" hidden="true" document="4"/>
+            </sequencePoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x1e">
                 <currentnamespace name=""/>

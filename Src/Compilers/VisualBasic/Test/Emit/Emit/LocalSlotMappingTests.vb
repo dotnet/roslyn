@@ -87,9 +87,9 @@ End Class
     <file id=""1"" name=""a.vb"" language=""3a12d0b8-c26c-11d0-b442-00a0244a1dd2"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""9E,  5, 67, 8D, 19, 11, 32, B1, 10, EF, 60, 66, 68, 44, D1, 36, E9, 39, 7D, 4C, "" />
   </files>
   <methods>
-    <method containingType=""C"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""20"">
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <encLocalSlotMap>
           <slot kind=""13"" offset=""0"" />
           <slot kind=""0"" offset=""4"" />
           <slot kind=""temp"" />
@@ -97,18 +97,18 @@ End Class
           <slot kind=""0"" offset=""91"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""10"">
-        <entry il_offset=""0x0"" start_row=""3"" start_column=""5"" end_row=""3"" end_column=""12"" file_ref=""1"" />
-        <entry il_offset=""0x1"" start_row=""4"" start_column=""9"" end_row=""4"" end_column=""38"" file_ref=""1"" />
-        <entry il_offset=""0x3"" start_row=""5"" start_column=""13"" end_row=""5"" end_column=""33"" file_ref=""1"" />
-        <entry il_offset=""0xa"" start_row=""6"" start_column=""9"" end_row=""6"" end_column=""13"" file_ref=""1"" />
-        <entry il_offset=""0xe"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""1"" />
-        <entry il_offset=""0x19"" start_row=""7"" start_column=""9"" end_row=""7"" end_column=""38"" file_ref=""1"" />
-        <entry il_offset=""0x1c"" start_row=""8"" start_column=""13"" end_row=""8"" end_column=""33"" file_ref=""1"" />
-        <entry il_offset=""0x23"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""13"" file_ref=""1"" />
-        <entry il_offset=""0x29"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""1"" />
-        <entry il_offset=""0x35"" start_row=""10"" start_column=""5"" end_row=""10"" end_column=""12"" file_ref=""1"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""3"" startColumn=""5"" endLine=""3"" endColumn=""12"" document=""1"" />
+        <entry offset=""0x1"" startLine=""4"" startColumn=""9"" endLine=""4"" endColumn=""38"" document=""1"" />
+        <entry offset=""0x3"" startLine=""5"" startColumn=""13"" endLine=""5"" endColumn=""33"" document=""1"" />
+        <entry offset=""0xa"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""13"" document=""1"" />
+        <entry offset=""0xe"" hidden=""true"" document=""1"" />
+        <entry offset=""0x19"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""38"" document=""1"" />
+        <entry offset=""0x1c"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""33"" document=""1"" />
+        <entry offset=""0x23"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""13"" document=""1"" />
+        <entry offset=""0x29"" hidden=""true"" document=""1"" />
+        <entry offset=""0x35"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""12"" document=""1"" />
+      </sequencePoints>
       <locals>
         <local name=""index"" il_index=""1"" il_start=""0x1"" il_end=""0x18"" attributes=""0"" />
         <local name=""index"" il_index=""4"" il_start=""0x19"" il_end=""0x34"" attributes=""0"" />
@@ -226,23 +226,23 @@ End Class
     <file id=""1"" name=""a.vb"" language=""3a12d0b8-c26c-11d0-b442-00a0244a1dd2"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""B1, 88, 10, 98, B9, 30, FE, B8, AD, 46, 3F,  5, 46, 9B, AF, A9, 4F, CB, 65, B1, "" />
   </files>
   <methods>
-    <method containingType=""C"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <encLocalSlotMap>
           <slot kind=""4"" offset=""0"" />
           <slot kind=""temp"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""5"">
-        <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""12"" file_ref=""1"" />
-        <entry il_offset=""0x1"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""18"" file_ref=""1"" />
-        <entry il_offset=""0x9"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""1"" />
-        <entry il_offset=""0xb"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""18"" file_ref=""1"" />
-        <entry il_offset=""0x1c"" start_row=""10"" start_column=""5"" end_row=""10"" end_column=""12"" file_ref=""1"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""12"" document=""1"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""18"" document=""1"" />
+        <entry offset=""0x9"" hidden=""true"" document=""1"" />
+        <entry offset=""0xb"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" document=""1"" />
+        <entry offset=""0x1c"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""12"" document=""1"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x1d"">
-        <importsforward declaringType=""C"" methodName=""F"" parameterNames="""" />
+        <importsforward declaringType=""C"" methodName=""F"" />
       </scope>
     </method>
   </methods>
@@ -255,16 +255,16 @@ End Class
     <file id=""1"" name=""a.vb"" language=""3a12d0b8-c26c-11d0-b442-00a0244a1dd2"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""B1, 88, 10, 98, B9, 30, FE, B8, AD, 46, 3F,  5, 46, 9B, AF, A9, 4F, CB, 65, B1, "" />
   </files>
   <methods>
-    <method containingType=""C"" name=""M"" parameterNames="""">
-      <sequencepoints total=""4"">
-        <entry il_offset=""0x0"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""18"" file_ref=""1"" />
-        <entry il_offset=""0x7"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""1"" />
-        <entry il_offset=""0x9"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""18"" file_ref=""1"" />
-        <entry il_offset=""0x13"" start_row=""10"" start_column=""5"" end_row=""10"" end_column=""12"" file_ref=""1"" />
-      </sequencepoints>
+    <method containingType=""C"" name=""M"">
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""18"" document=""1"" />
+        <entry offset=""0x7"" hidden=""true"" document=""1"" />
+        <entry offset=""0x9"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" document=""1"" />
+        <entry offset=""0x13"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""12"" document=""1"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x14"">
-        <importsforward declaringType=""C"" methodName=""F"" parameterNames="""" />
+        <importsforward declaringType=""C"" methodName=""F"" />
       </scope>
     </method>
   </methods>
@@ -582,24 +582,24 @@ End Class
     <file id=""1"" name=""a.vb"" language=""3a12d0b8-c26c-11d0-b442-00a0244a1dd2"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""CB, 10, 23, 23, 67, CE, AD, BE, 85, D1, 57, F2, D2, CB, 12, A0,  4, 4F, 66, C7, "" />
   </files>
   <methods>
-    <method containingType=""C"" name=""_Lambda$__2-1"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
+    <method containingType=""C"" name=""_Lambda$__2-1"">
+      <customDebugInfo>
+        <encLocalSlotMap>
           <slot kind=""21"" offset=""-1"" />
           <slot kind=""4"" offset=""0"" />
           <slot kind=""temp"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""5"">
-        <entry il_offset=""0x0"" start_row=""10"" start_column=""17"" end_row=""10"" end_column=""27"" file_ref=""1"" />
-        <entry il_offset=""0x1"" start_row=""11"" start_column=""21"" end_row=""11"" end_column=""30"" file_ref=""1"" />
-        <entry il_offset=""0x9"" start_row=""12"" start_column=""25"" end_row=""12"" end_column=""39"" file_ref=""1"" />
-        <entry il_offset=""0xd"" start_row=""13"" start_column=""21"" end_row=""13"" end_column=""30"" file_ref=""1"" />
-        <entry il_offset=""0x1e"" start_row=""14"" start_column=""17"" end_row=""14"" end_column=""29"" file_ref=""1"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""10"" startColumn=""17"" endLine=""10"" endColumn=""27"" document=""1"" />
+        <entry offset=""0x1"" startLine=""11"" startColumn=""21"" endLine=""11"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x9"" startLine=""12"" startColumn=""25"" endLine=""12"" endColumn=""39"" document=""1"" />
+        <entry offset=""0xd"" startLine=""13"" startColumn=""21"" endLine=""13"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x1e"" startLine=""14"" startColumn=""17"" endLine=""14"" endColumn=""29"" document=""1"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0x20"">
-        <importsforward declaringType=""C"" methodName=""F"" parameterNames="""" />
+        <importsforward declaringType=""C"" methodName=""F"" />
       </scope>
     </method>
   </methods>
@@ -786,32 +786,32 @@ End Class
     <file id=""1"" name=""a.vb"" language=""3a12d0b8-c26c-11d0-b442-00a0244a1dd2"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum="" E, DD, DB, BF, A5, 4D, 75, 50, 39, C6, 6C, D8, 6D, 49, 1B, 2A, 56, 79, F8, E8, "" />
   </files>
   <methods>
-    <method containingType=""C+VB$StateMachine_2_M"" name=""MoveNext"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
+    <method containingType=""C+VB$StateMachine_2_M"" name=""MoveNext"">
+      <customDebugInfo>
+        <encLocalSlotMap>
           <slot kind=""20"" offset=""-1"" />
           <slot kind=""27"" offset=""-1"" />
           <slot kind=""temp"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""13"">
-        <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""1"" />
-        <entry il_offset=""0x36"" start_row=""8"" start_column=""5"" end_row=""8"" end_column=""53"" file_ref=""1"" />
-        <entry il_offset=""0x37"" start_row=""8"" start_column=""5"" end_row=""8"" end_column=""53"" file_ref=""1"" />
-        <entry il_offset=""0x38"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""18"" file_ref=""1"" />
-        <entry il_offset=""0x4a"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""1"" />
-        <entry il_offset=""0x4b"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""1"" />
-        <entry il_offset=""0x6c"" start_row=""10"" start_column=""13"" end_row=""10"" end_column=""20"" file_ref=""1"" />
-        <entry il_offset=""0x89"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""1"" />
-        <entry il_offset=""0x8b"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""1"" />
-        <entry il_offset=""0x96"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""18"" file_ref=""1"" />
-        <entry il_offset=""0xb2"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""1"" />
-        <entry il_offset=""0xb3"" start_row=""12"" start_column=""9"" end_row=""12"" end_column=""16"" file_ref=""1"" />
-        <entry il_offset=""0xce"" start_row=""13"" start_column=""5"" end_row=""13"" end_column=""17"" file_ref=""1"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x36"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""53"" document=""1"" />
+        <entry offset=""0x37"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""53"" document=""1"" />
+        <entry offset=""0x38"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" document=""1"" />
+        <entry offset=""0x4a"" hidden=""true"" document=""1"" />
+        <entry offset=""0x4b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x6c"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""20"" document=""1"" />
+        <entry offset=""0x89"" hidden=""true"" document=""1"" />
+        <entry offset=""0x8b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x96"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""18"" document=""1"" />
+        <entry offset=""0xb2"" hidden=""true"" document=""1"" />
+        <entry offset=""0xb3"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""16"" document=""1"" />
+        <entry offset=""0xce"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""17"" document=""1"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0xd2"">
-        <importsforward declaringType=""C"" methodName=""F"" parameterNames="""" />
+        <importsforward declaringType=""C"" methodName=""F"" />
       </scope>
     </method>
   </methods>
@@ -986,9 +986,9 @@ End Class
     <file id=""1"" name=""a.vb"" language=""3a12d0b8-c26c-11d0-b442-00a0244a1dd2"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""30, DD, 7D, 76, D3, C3, 98, A6, 4F, 3D, 96, F9, 8C, 84, 5B, EC, EC, 10, 83, C7, "" />
   </files>
   <methods>
-    <method containingType=""C+VB$StateMachine_2_M"" name=""MoveNext"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""20"">
+    <method containingType=""C+VB$StateMachine_2_M"" name=""MoveNext"">
+      <customDebugInfo>
+        <encLocalSlotMap>
           <slot kind=""20"" offset=""-1"" />
           <slot kind=""27"" offset=""-1"" />
           <slot kind=""0"" offset=""-1"" />
@@ -998,30 +998,30 @@ End Class
           <slot kind=""temp"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""14"">
-        <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""1"" />
-        <entry il_offset=""0x7"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""1"" />
-        <entry il_offset=""0xf"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""43"" file_ref=""1"" />
-        <entry il_offset=""0x10"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""18"" file_ref=""1"" />
-        <entry il_offset=""0x22"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""1"" />
-        <entry il_offset=""0x24"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""1"" />
-        <entry il_offset=""0x2f"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""18"" file_ref=""1"" />
-        <entry il_offset=""0x4b"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""1"" />
-        <entry il_offset=""0x4c"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""34"" file_ref=""1"" />
-        <entry il_offset=""0xbb"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""17"" file_ref=""1"" />
-        <entry il_offset=""0xbf"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""1"" />
-        <entry il_offset=""0xc7"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""1"" />
-        <entry il_offset=""0xe4"" start_row=""12"" start_column=""5"" end_row=""12"" end_column=""17"" file_ref=""1"" />
-        <entry il_offset=""0xee"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""1"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7"" hidden=""true"" document=""1"" />
+        <entry offset=""0xf"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""43"" document=""1"" />
+        <entry offset=""0x10"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""18"" document=""1"" />
+        <entry offset=""0x22"" hidden=""true"" document=""1"" />
+        <entry offset=""0x24"" hidden=""true"" document=""1"" />
+        <entry offset=""0x2f"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" document=""1"" />
+        <entry offset=""0x4b"" hidden=""true"" document=""1"" />
+        <entry offset=""0x4c"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""34"" document=""1"" />
+        <entry offset=""0xbb"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""17"" document=""1"" />
+        <entry offset=""0xbf"" hidden=""true"" document=""1"" />
+        <entry offset=""0xc7"" hidden=""true"" document=""1"" />
+        <entry offset=""0xe4"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""17"" document=""1"" />
+        <entry offset=""0xee"" hidden=""true"" document=""1"" />
+      </sequencePoints>
       <locals />
       <scope startOffset=""0x0"" endOffset=""0xfc"">
-        <importsforward declaringType=""C"" methodName=""F"" parameterNames="""" />
+        <importsforward declaringType=""C"" methodName=""F"" />
       </scope>
-      <async-info>
-        <kickoff-method declaringType=""C"" methodName=""M"" parameterNames="""" />
-        <await yield=""0x6f"" resume=""0x8c"" declaringType=""C+VB$StateMachine_2_M"" methodName=""MoveNext"" parameterNames="""" />
-      </async-info>
+      <asyncInfo>
+        <kickoffMethod declaringType=""C"" methodName=""M"" />
+        <await yield=""0x6f"" resume=""0x8c"" declaringType=""C+VB$StateMachine_2_M"" methodName=""MoveNext"" />
+      </asyncInfo>
     </method>
   </methods>
 </symbols>

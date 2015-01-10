@@ -355,13 +355,13 @@ End Class
     </files>
     <methods>
         <method token="0x600000e">
-            <sequencepoints total="5">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x23" start_row="6" start_column="5" end_row="6" end_column="53" file_ref="1"/>
-                <entry il_offset="0x24" start_row="6" start_column="5" end_row="6" end_column="53" file_ref="1"/>
-                <entry il_offset="0x25" start_row="7" start_column="9" end_row="7" end_column="16" file_ref="1"/>
-                <entry il_offset="0x40" start_row="8" start_column="5" end_row="8" end_column="17" file_ref="1"/>
-            </sequencepoints>
+            <sequencePoints>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x23" startLine="6" startColumn="5" endLine="6" endColumn="53" document="1"/>
+                <entry offset="0x24" startLine="6" startColumn="5" endLine="6" endColumn="53" document="1"/>
+                <entry offset="0x25" startLine="7" startColumn="9" endLine="7" endColumn="16" document="1"/>
+                <entry offset="0x40" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
+            </sequencePoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0x42">
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -664,26 +664,26 @@ End Class
     </files>
     <methods>
         <method token="0x6000004">
-            <sequencepoints total="9">
-                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x7" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0xf" start_row="3" start_column="5" end_row="3" end_column="43" file_ref="1"/>
-                <entry il_offset="0x10" start_row="4" start_column="9" end_row="4" end_column="33" file_ref="1"/>
-                <entry il_offset="0x7d" start_row="5" start_column="9" end_row="5" end_column="17" file_ref="1"/>
-                <entry il_offset="0x81" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0x89" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                <entry il_offset="0xa6" start_row="6" start_column="5" end_row="6" end_column="17" file_ref="1"/>
-                <entry il_offset="0xb0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-            </sequencepoints>
+            <sequencePoints>
+                <entry offset="0x0" hidden="true" document="1"/>
+                <entry offset="0x7" hidden="true" document="1"/>
+                <entry offset="0xf" startLine="3" startColumn="5" endLine="3" endColumn="43" document="1"/>
+                <entry offset="0x10" startLine="4" startColumn="9" endLine="4" endColumn="33" document="1"/>
+                <entry offset="0x7d" startLine="5" startColumn="9" endLine="5" endColumn="17" document="1"/>
+                <entry offset="0x81" hidden="true" document="1"/>
+                <entry offset="0x89" hidden="true" document="1"/>
+                <entry offset="0xa6" startLine="6" startColumn="5" endLine="6" endColumn="17" document="1"/>
+                <entry offset="0xb0" hidden="true" document="1"/>
+            </sequencePoints>
             <locals/>
             <scope startOffset="0x0" endOffset="0xbe">
                 <namespace name="System.Threading.Tasks" importlevel="file"/>
                 <currentnamespace name=""/>
             </scope>
-            <async-info>
-                <kickoff-method token="0x6000002"/>
+            <asyncInfo>
+                <kickoffMethod token="0x6000002"/>
                 <await yield="0x33" resume="0x4f" token="0x6000004"/>
-            </async-info>
+            </asyncInfo>
         </method>
     </methods>
 </symbols>.ToString)

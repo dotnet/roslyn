@@ -37,20 +37,20 @@ End Class
 
             Dim expected =
 <symbols>
-    <entryPoint declaringType="C1" methodName="Main" parameterNames=""/>
+    <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
-        <method containingType="C1" name="Main" parameterNames="">
-            <customDebugInfo version="4" count="1">
-                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+        <method containingType="C1" name="Main">
+            <customDebugInfo>
+                <encLocalSlotMap>
                     <slot kind="0" offset="4"/>
                     <slot kind="temp"/>
                 </encLocalSlotMap>
             </customDebugInfo>
-            <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="14" start_column="5" end_row="14" end_column="29" file_ref="0"/>
-                <entry il_offset="0x1" start_row="15" start_column="13" end_row="15" end_column="78" file_ref="0"/>
-                <entry il_offset="0x19" start_row="16" start_column="5" end_row="16" end_column="12" file_ref="0"/>
-            </sequencepoints>
+            <sequencePoints>
+                <entry offset="0x0" startLine="14" startColumn="5" endLine="14" endColumn="29" document="0"/>
+                <entry offset="0x1" startLine="15" startColumn="13" endLine="15" endColumn="78" document="0"/>
+                <entry offset="0x19" startLine="16" startColumn="5" endLine="16" endColumn="12" document="0"/>
+            </sequencePoints>
             <locals>
                 <local name="inst" il_index="0" il_start="0x0" il_end="0x1a" attributes="0"/>
             </locals>
@@ -100,20 +100,20 @@ End Class
 
             Dim expected =
 <symbols>
-    <entryPoint declaringType="C1" methodName="Main" parameterNames=""/>
+    <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
-        <method containingType="C1" name="Main" parameterNames="">
-            <customDebugInfo version="4" count="1">
-                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+        <method containingType="C1" name="Main">
+            <customDebugInfo>
+                <encLocalSlotMap>
                     <slot kind="0" offset="4"/>
                     <slot kind="temp"/>
                 </encLocalSlotMap>
             </customDebugInfo>
-            <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="14" start_column="5" end_row="14" end_column="29" file_ref="0"/>
-                <entry il_offset="0x1" start_row="15" start_column="13" end_row="15" end_column="68" file_ref="0"/>
-                <entry il_offset="0x19" start_row="16" start_column="5" end_row="16" end_column="12" file_ref="0"/>
-            </sequencepoints>
+            <sequencePoints>
+                <entry offset="0x0" startLine="14" startColumn="5" endLine="14" endColumn="29" document="0"/>
+                <entry offset="0x1" startLine="15" startColumn="13" endLine="15" endColumn="68" document="0"/>
+                <entry offset="0x19" startLine="16" startColumn="5" endLine="16" endColumn="12" document="0"/>
+            </sequencePoints>
             <locals>
                 <local name="inst" il_index="0" il_start="0x0" il_end="0x1a" attributes="0"/>
             </locals>
@@ -162,21 +162,21 @@ End Class
 
             Dim expected =
 <symbols>
-    <entryPoint declaringType="C1" methodName="Main" parameterNames=""/>
+    <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
-        <method containingType="C1" name="Main" parameterNames="">
-            <customDebugInfo version="4" count="1">
-                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+        <method containingType="C1" name="Main">
+            <customDebugInfo>
+                <encLocalSlotMap>
                     <slot kind="0" offset="4"/>
                     <slot kind="temp"/>
                     <slot kind="temp"/>
                 </encLocalSlotMap>
             </customDebugInfo>
-            <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="13" start_column="5" end_row="13" end_column="29" file_ref="0"/>
-                <entry il_offset="0x1" start_row="14" start_column="13" end_row="14" end_column="90" file_ref="0"/>
-                <entry il_offset="0x1d" start_row="15" start_column="5" end_row="15" end_column="12" file_ref="0"/>
-            </sequencepoints>
+            <sequencePoints>
+                <entry offset="0x0" startLine="13" startColumn="5" endLine="13" endColumn="29" document="0"/>
+                <entry offset="0x1" startLine="14" startColumn="13" endLine="14" endColumn="90" document="0"/>
+                <entry offset="0x1d" startLine="15" startColumn="5" endLine="15" endColumn="12" document="0"/>
+            </sequencePoints>
             <locals>
                 <local name="inst" il_index="0" il_start="0x0" il_end="0x1e" attributes="0"/>
             </locals>
@@ -226,22 +226,22 @@ End Class
 
             Dim expected =
 <symbols>
-    <entryPoint declaringType="C1" methodName="Main" parameterNames=""/>
+    <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
-        <method containingType="C1" name="Main" parameterNames="">
-            <customDebugInfo version="4" count="1">
-                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="16">
+        <method containingType="C1" name="Main">
+            <customDebugInfo>
+                <encLocalSlotMap>
                     <slot kind="0" offset="4"/>
                     <slot kind="0" offset="11"/>
                     <slot kind="temp"/>
                 </encLocalSlotMap>
             </customDebugInfo>
-            <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="14" start_column="5" end_row="14" end_column="29" file_ref="0"/>
-                <entry il_offset="0x1" start_row="15" start_column="13" end_row="15" end_column="18" file_ref="0"/>
-                <entry il_offset="0x19" start_row="15" start_column="20" end_row="15" end_column="25" file_ref="0"/>
-                <entry il_offset="0x31" start_row="16" start_column="5" end_row="16" end_column="12" file_ref="0"/>
-            </sequencepoints>
+            <sequencePoints>
+                <entry offset="0x0" startLine="14" startColumn="5" endLine="14" endColumn="29" document="0"/>
+                <entry offset="0x1" startLine="15" startColumn="13" endLine="15" endColumn="18" document="0"/>
+                <entry offset="0x19" startLine="15" startColumn="20" endLine="15" endColumn="25" document="0"/>
+                <entry offset="0x31" startLine="16" startColumn="5" endLine="16" endColumn="12" document="0"/>
+            </sequencePoints>
             <locals>
                 <local name="inst1" il_index="0" il_start="0x0" il_end="0x32" attributes="0"/>
                 <local name="inst2" il_index="1" il_start="0x0" il_end="0x32" attributes="0"/>

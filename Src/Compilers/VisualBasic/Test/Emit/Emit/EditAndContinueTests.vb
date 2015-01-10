@@ -1420,15 +1420,15 @@ End Class
 <symbols>
     <methods>
         <method token="0x6000004">
-            <sequencepoints total="7">
-                <entry il_offset="0x0" start_row="8" start_column="5" end_row="8" end_column="30" file_ref="0"/>
-                <entry il_offset="0x1" start_row="9" start_column="13" end_row="9" end_column="25" file_ref="0"/>
-                <entry il_offset="0x7" start_row="10" start_column="13" end_row="10" end_column="31" file_ref="0"/>
-                <entry il_offset="0xd" start_row="11" start_column="13" end_row="11" end_column="30" file_ref="0"/>
-                <entry il_offset="0x14" start_row="12" start_column="9" end_row="12" end_column="13" file_ref="0"/>
-                <entry il_offset="0x21" start_row="13" start_column="9" end_row="13" end_column="13" file_ref="0"/>
-                <entry il_offset="0x28" start_row="14" start_column="5" end_row="14" end_column="12" file_ref="0"/>
-            </sequencepoints>
+            <sequencePoints>
+                <entry offset="0x0" startLine="8" startColumn="5" endLine="8" endColumn="30" document="0"/>
+                <entry offset="0x1" startLine="9" startColumn="13" endLine="9" endColumn="25" document="0"/>
+                <entry offset="0x7" startLine="10" startColumn="13" endLine="10" endColumn="31" document="0"/>
+                <entry offset="0xd" startLine="11" startColumn="13" endLine="11" endColumn="30" document="0"/>
+                <entry offset="0x14" startLine="12" startColumn="9" endLine="12" endColumn="13" document="0"/>
+                <entry offset="0x21" startLine="13" startColumn="9" endLine="13" endColumn="13" document="0"/>
+                <entry offset="0x28" startLine="14" startColumn="5" endLine="14" endColumn="12" document="0"/>
+            </sequencePoints>
             <locals>
                 <local name="z" il_index="3" il_start="0x0" il_end="0x29" attributes="0"/>
                 <local name="y" il_index="1" il_start="0x0" il_end="0x29" attributes="0"/>
@@ -1475,14 +1475,14 @@ End Class
 <symbols>
     <methods>
         <method token="0x6000004">
-            <sequencepoints total="6">
-                <entry il_offset="0x0" start_row="8" start_column="5" end_row="8" end_column="30" file_ref="0"/>
-                <entry il_offset="0x1" start_row="9" start_column="13" end_row="9" end_column="30" file_ref="0"/>
-                <entry il_offset="0x8" start_row="10" start_column="13" end_row="10" end_column="25" file_ref="0"/>
-                <entry il_offset="0xe" start_row="11" start_column="9" end_row="11" end_column="13" file_ref="0"/>
-                <entry il_offset="0x1b" start_row="12" start_column="9" end_row="12" end_column="13" file_ref="0"/>
-                <entry il_offset="0x22" start_row="13" start_column="5" end_row="13" end_column="12" file_ref="0"/>
-            </sequencepoints>
+            <sequencePoints>
+                <entry offset="0x0" startLine="8" startColumn="5" endLine="8" endColumn="30" document="0"/>
+                <entry offset="0x1" startLine="9" startColumn="13" endLine="9" endColumn="30" document="0"/>
+                <entry offset="0x8" startLine="10" startColumn="13" endLine="10" endColumn="25" document="0"/>
+                <entry offset="0xe" startLine="11" startColumn="9" endLine="11" endColumn="13" document="0"/>
+                <entry offset="0x1b" startLine="12" startColumn="9" endLine="12" endColumn="13" document="0"/>
+                <entry offset="0x22" startLine="13" startColumn="5" endLine="13" endColumn="12" document="0"/>
+            </sequencePoints>
             <locals>
                 <local name="x" il_index="5" il_start="0x0" il_end="0x23" attributes="0"/>
                 <local name="z" il_index="3" il_start="0x0" il_end="0x23" attributes="0"/>
@@ -1535,14 +1535,14 @@ End Class
 <symbols>
     <methods>
         <method token="0x6000005">
-            <sequencepoints total="6">
-                <entry il_offset="0x0" start_row="14" start_column="5" end_row="14" end_column="19" file_ref="0"/>
-                <entry il_offset="0x1" start_row="15" start_column="13" end_row="15" end_column="30" file_ref="0"/>
-                <entry il_offset="0x7" start_row="16" start_column="13" end_row="16" end_column="30" file_ref="0"/>
-                <entry il_offset="0xd" start_row="17" start_column="9" end_row="17" end_column="13" file_ref="0"/>
-                <entry il_offset="0x19" start_row="18" start_column="9" end_row="18" end_column="13" file_ref="0"/>
-                <entry il_offset="0x25" start_row="19" start_column="5" end_row="19" end_column="12" file_ref="0"/>
-            </sequencepoints>
+            <sequencePoints>
+                <entry offset="0x0" startLine="14" startColumn="5" endLine="14" endColumn="19" document="0"/>
+                <entry offset="0x1" startLine="15" startColumn="13" endLine="15" endColumn="30" document="0"/>
+                <entry offset="0x7" startLine="16" startColumn="13" endLine="16" endColumn="30" document="0"/>
+                <entry offset="0xd" startLine="17" startColumn="9" endLine="17" endColumn="13" document="0"/>
+                <entry offset="0x19" startLine="18" startColumn="9" endLine="18" endColumn="13" document="0"/>
+                <entry offset="0x25" startLine="19" startColumn="5" endLine="19" endColumn="12" document="0"/>
+            </sequencePoints>
             <locals>
                 <local name="c" il_index="2" il_start="0x0" il_end="0x26" attributes="0"/>
                 <local name="b" il_index="1" il_start="0x0" il_end="0x26" attributes="0"/>
@@ -1626,12 +1626,12 @@ End Class
 <symbols>
     <methods>
         <method token="0x6000002">
-            <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="2" start_column="5" end_row="2" end_column="19" file_ref="0"/>
-                <entry il_offset="0x1" start_row="3" start_column="13" end_row="3" end_column="18" file_ref="0"/>
-                <entry il_offset="0x3" start_row="4" start_column="13" end_row="4" end_column="29" file_ref="0"/>
-                <entry il_offset="0x9" start_row="5" start_column="5" end_row="5" end_column="12" file_ref="0"/>
-            </sequencepoints>
+            <sequencePoints>
+                <entry offset="0x0" startLine="2" startColumn="5" endLine="2" endColumn="19" document="0"/>
+                <entry offset="0x1" startLine="3" startColumn="13" endLine="3" endColumn="18" document="0"/>
+                <entry offset="0x3" startLine="4" startColumn="13" endLine="4" endColumn="29" document="0"/>
+                <entry offset="0x9" startLine="5" startColumn="5" endLine="5" endColumn="12" document="0"/>
+            </sequencePoints>
             <locals>
                 <local name="a" il_index="2" il_start="0x0" il_end="0xa" attributes="0"/>
                 <local name="b" il_index="1" il_start="0x0" il_end="0xa" attributes="0"/>

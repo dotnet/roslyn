@@ -263,8 +263,6 @@ namespace Roslyn.Test.PdbUtilities
             var records = CustomDebugInfoReader.GetCustomDebugInfoRecords(bytes).ToArray();
             
             writer.WriteStartElement("customDebugInfo");
-            writer.WriteAttributeString("version", CDIC.CdiVersion.ToString());
-            writer.WriteAttributeString("count", records.Length.ToString());
 
             foreach (var record in records)
             {
@@ -308,16 +306,6 @@ namespace Roslyn.Test.PdbUtilities
         }
 
         /// <summary>
-        /// Write version, kind, and size attributes.
-        /// </summary>
-        private void WriteCustomDebugInfoRecordHeaderAttributes(CustomDebugInfoRecord record)
-        {
-            writer.WriteAttributeString("version", record.Version.ToString());
-            writer.WriteAttributeString("kind", record.Kind.ToString());
-            writer.WriteAttributeString("size", (record.Data.Length + CDIC.CdiRecordHeaderSize).ToString());
-        }
-
-        /// <summary>
         /// If the custom debug info is in a format that we don't understand, then we will
         /// just print a standard record header followed by the rest of the record as a
         /// single hex string.
@@ -325,8 +313,8 @@ namespace Roslyn.Test.PdbUtilities
         private void WriteUnknownCustomDebugInfo(CustomDebugInfoRecord record)
         {
             writer.WriteStartElement("unknown");
-
-            WriteCustomDebugInfoRecordHeaderAttributes(record);
+            writer.WriteAttributeString("kind", record.Kind.ToString());
+            writer.WriteAttributeString("version", record.Version.ToString());
 
             PooledStringBuilder pooled = PooledStringBuilder.GetInstance();
             StringBuilder builder = pooled.Builder;
@@ -353,11 +341,7 @@ namespace Roslyn.Test.PdbUtilities
 
             writer.WriteStartElement("using");
 
-            WriteCustomDebugInfoRecordHeaderAttributes(record);
-
             ImmutableArray<short> counts = CDI.DecodeUsingRecord(record.Data);
-
-            writer.WriteAttributeString("namespaceCount", counts.Length.ToString());
 
             foreach (short importCount in counts)
             {
@@ -382,8 +366,6 @@ namespace Roslyn.Test.PdbUtilities
 
             writer.WriteStartElement("forward");
 
-            WriteCustomDebugInfoRecordHeaderAttributes(record);
-
             int token = CDI.DecodeForwardRecord(record.Data);
             WriteMethodAttributes(token, isReference: true);
 
@@ -403,8 +385,6 @@ namespace Roslyn.Test.PdbUtilities
             Debug.Assert(record.Kind == CustomDebugInfoKind.ForwardToModuleInfo);
 
             writer.WriteStartElement("forwardToModule");
-
-            WriteCustomDebugInfoRecordHeaderAttributes(record);
 
             int token = CDI.DecodeForwardRecord(record.Data);
             WriteMethodAttributes(token, isReference: true);
@@ -426,11 +406,7 @@ namespace Roslyn.Test.PdbUtilities
 
             writer.WriteStartElement("hoistedLocalScopes");
 
-            WriteCustomDebugInfoRecordHeaderAttributes(record);
-
             var scopes = CDI.DecodeStateMachineHoistedLocalScopesRecord(record.Data);
-
-            writer.WriteAttributeString("count", scopes.Length.ToString());
 
             foreach (StateMachineHoistedLocalScope scope in scopes)
             {
@@ -456,8 +432,6 @@ namespace Roslyn.Test.PdbUtilities
 
             writer.WriteStartElement("forwardIterator");
 
-            WriteCustomDebugInfoRecordHeaderAttributes(record);
-
             string name = CDI.DecodeForwardIteratorRecord(record.Data);
 
             writer.WriteAttributeString("name", name);
@@ -478,11 +452,7 @@ namespace Roslyn.Test.PdbUtilities
 
             writer.WriteStartElement("dynamicLocals");
 
-            WriteCustomDebugInfoRecordHeaderAttributes(record);
-
             var buckets = CDI.DecodeDynamicLocalsRecord(record.Data);
-
-            writer.WriteAttributeString("bucketCount", buckets.Length.ToString());
 
             foreach (DynamicLocalBucket bucket in buckets)
             {
@@ -512,8 +482,6 @@ namespace Roslyn.Test.PdbUtilities
             Debug.Assert(record.Kind == CustomDebugInfoKind.EditAndContinueLocalSlotMap);
 
             writer.WriteStartElement("encLocalSlotMap");
-
-            WriteCustomDebugInfoRecordHeaderAttributes(record);
 
             int syntaxOffsetBaseline = -1;
 
@@ -792,15 +760,17 @@ namespace Roslyn.Test.PdbUtilities
                 return;
             }
 
-            writer.WriteStartElement("async-info");
+            writer.WriteStartElement("asyncInfo");
 
             var catchOffset = asyncMethod.GetCatchHandlerILOffset();
             if (catchOffset >= 0)
             {
-                writer.WriteAttributeString("catch-IL-offset", AsILOffset(catchOffset));
+                writer.WriteStartElement("catchHandler");
+                writer.WriteAttributeString("offset", AsILOffset(catchOffset));
+                writer.WriteEndElement();
             }
 
-            writer.WriteStartElement("kickoff-method");
+            writer.WriteStartElement("kickoffMethod");
             WriteMethodAttributes(asyncMethod.GetKickoffMethod(), isReference: true);
             writer.WriteEndElement();
 
@@ -936,33 +906,42 @@ namespace Roslyn.Test.PdbUtilities
         // A single method could span multiple files (use C#'s #line directive to see for yourself).        
         private void WriteSequencePoints(ISymUnmanagedMethod method)
         {
-            writer.WriteStartElement("sequencepoints");
+            writer.WriteStartElement("sequencePoints");
 
             var sequencePoints = method.GetSequencePoints();
-            writer.WriteAttributeString("total", CultureInvariantToString(sequencePoints.Length));
             
             // Write out sequence points
             foreach (var sequencePoint in sequencePoints)
             {
                 writer.WriteStartElement("entry");
-                writer.WriteAttributeString("il_offset", AsILOffset(sequencePoint.Offset));
+                writer.WriteAttributeString("offset", AsILOffset(sequencePoint.Offset));
 
                 // If it's a special 0xFeeFee sequence point (eg, "hidden"), 
                 // place an attribute on it to make it very easy for tools to recognize.
                 // See http://blogs.msdn.com/jmstall/archive/2005/06/19/FeeFee_SequencePoints.aspx
                 if (sequencePoint.IsHidden)
                 {
-                    writer.WriteAttributeString("hidden", XmlConvert.ToString(true));
+                    if (sequencePoint.StartLine != sequencePoint.EndLine || sequencePoint.StartColumn != 0 || sequencePoint.EndColumn != 0)
+                    {
+                        writer.WriteAttributeString("hidden", "invalid");
+                    }
+                    else
+                    {
+                        writer.WriteAttributeString("hidden", XmlConvert.ToString(true));
+                    }
+                }
+                else
+                {
+                    writer.WriteAttributeString("startLine", CultureInvariantToString(sequencePoint.StartLine));
+                    writer.WriteAttributeString("startColumn", CultureInvariantToString(sequencePoint.StartColumn));
+                    writer.WriteAttributeString("endLine", CultureInvariantToString(sequencePoint.EndLine));
+                    writer.WriteAttributeString("endColumn", CultureInvariantToString(sequencePoint.EndColumn));
                 }
 
-                writer.WriteAttributeString("start_row", CultureInvariantToString(sequencePoint.StartLine));
-                writer.WriteAttributeString("start_column", CultureInvariantToString(sequencePoint.StartColumn));
-                writer.WriteAttributeString("end_row", CultureInvariantToString(sequencePoint.EndLine));
-                writer.WriteAttributeString("end_column", CultureInvariantToString(sequencePoint.EndColumn));
                 //EDMAURER allow there to be PDBs generated for sources that don't have a name (document).
                 int fileRefVal = -1;
                 this.m_fileMapping.TryGetValue(sequencePoint.Document.GetName(), out fileRefVal);
-                writer.WriteAttributeString("file_ref", CultureInvariantToString(fileRefVal));
+                writer.WriteAttributeString("document", CultureInvariantToString(fileRefVal));
 
                 writer.WriteEndElement();
             }
@@ -1131,12 +1110,15 @@ namespace Roslyn.Test.PdbUtilities
             writer.WriteAttributeString(isReference ? "methodName" : "name", metadataReader.GetString(method.Name));
 
             // parameters:
-            var parameterNames = from paramHandle in method.GetParameters()
-                                 let parameter = metadataReader.GetParameter(paramHandle)
-                                 where parameter.SequenceNumber > 0 // exclude return parameter
-                                 select parameter.Name.IsNil ? "?" : metadataReader.GetString(parameter.Name);
+            var parameterNames = (from paramHandle in method.GetParameters()
+                                  let parameter = metadataReader.GetParameter(paramHandle)
+                                  where parameter.SequenceNumber > 0 // exclude return parameter
+                                  select parameter.Name.IsNil ? "?" : metadataReader.GetString(parameter.Name)).ToArray();
 
-            writer.WriteAttributeString("parameterNames", string.Join(", ", parameterNames));           
+            if (parameterNames.Length > 0)
+            {
+                writer.WriteAttributeString("parameterNames", string.Join(", ", parameterNames));
+            }
         }
 
         private void WriteResolvedToken(MemberReferenceHandle memberRefHandle)

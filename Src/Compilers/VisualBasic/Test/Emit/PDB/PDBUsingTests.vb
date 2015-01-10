@@ -44,39 +44,39 @@ End Class
 
             Dim expected =
 <symbols>
-    <entryPoint declaringType="C1" methodName="Main" parameterNames=""/>
+    <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
-        <method containingType="C1" name="Main" parameterNames="">
-            <customDebugInfo version="4" count="1">
-                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="16">
+        <method containingType="C1" name="Main">
+            <customDebugInfo>
+                <encLocalSlotMap>
                     <slot kind="0" offset="6"/>
                     <slot kind="0" offset="34"/>
                     <slot kind="0" offset="62"/>
                     <slot kind="temp"/>
                 </encLocalSlotMap>
             </customDebugInfo>
-            <sequencepoints total="13">
-                <entry il_offset="0x0" start_row="16" start_column="5" end_row="16" end_column="29" file_ref="0"/>
-                <entry il_offset="0x1" start_row="18" start_column="9" end_row="18" end_column="101" file_ref="0"/>
-                <entry il_offset="0x2" start_row="18" start_column="15" end_row="18" end_column="41" file_ref="0"/>
-                <entry il_offset="0x8" start_row="18" start_column="43" end_row="18" end_column="69" file_ref="0"/>
-                <entry il_offset="0xe" start_row="18" start_column="71" end_row="18" end_column="101" file_ref="0"/>
-                <entry il_offset="0x10" start_row="19" start_column="13" end_row="19" end_column="47" file_ref="0"/>
-                <entry il_offset="0x1b" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
-                <entry il_offset="0x1d" start_row="20" start_column="9" end_row="20" end_column="18" file_ref="0"/>
-                <entry il_offset="0x2e" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
-                <entry il_offset="0x30" start_row="20" start_column="9" end_row="20" end_column="18" file_ref="0"/>
-                <entry il_offset="0x41" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
-                <entry il_offset="0x43" start_row="20" start_column="9" end_row="20" end_column="18" file_ref="0"/>
-                <entry il_offset="0x54" start_row="21" start_column="5" end_row="21" end_column="12" file_ref="0"/>
-            </sequencepoints>
+            <sequencePoints>
+                <entry offset="0x0" startLine="16" startColumn="5" endLine="16" endColumn="29" document="0"/>
+                <entry offset="0x1" startLine="18" startColumn="9" endLine="18" endColumn="101" document="0"/>
+                <entry offset="0x2" startLine="18" startColumn="15" endLine="18" endColumn="41" document="0"/>
+                <entry offset="0x8" startLine="18" startColumn="43" endLine="18" endColumn="69" document="0"/>
+                <entry offset="0xe" startLine="18" startColumn="71" endLine="18" endColumn="101" document="0"/>
+                <entry offset="0x10" startLine="19" startColumn="13" endLine="19" endColumn="47" document="0"/>
+                <entry offset="0x1b" hidden="true" document="0"/>
+                <entry offset="0x1d" startLine="20" startColumn="9" endLine="20" endColumn="18" document="0"/>
+                <entry offset="0x2e" hidden="true" document="0"/>
+                <entry offset="0x30" startLine="20" startColumn="9" endLine="20" endColumn="18" document="0"/>
+                <entry offset="0x41" hidden="true" document="0"/>
+                <entry offset="0x43" startLine="20" startColumn="9" endLine="20" endColumn="18" document="0"/>
+                <entry offset="0x54" startLine="21" startColumn="5" endLine="21" endColumn="12" document="0"/>
+            </sequencePoints>
             <locals>
                 <local name="foo1" il_index="0" il_start="0x2" il_end="0x53" attributes="0"/>
                 <local name="foo2" il_index="1" il_start="0x2" il_end="0x53" attributes="0"/>
                 <local name="foo3" il_index="2" il_start="0x2" il_end="0x53" attributes="0"/>
             </locals>
             <scope startOffset="0x0" endOffset="0x55">
-                <importsforward declaringType="MyDisposable" methodName="Dispose" parameterNames=""/>
+                <importsforward declaringType="MyDisposable" methodName="Dispose"/>
                 <scope startOffset="0x2" endOffset="0x53">
                     <local name="foo1" il_index="0" il_start="0x2" il_end="0x53" attributes="0"/>
                     <local name="foo2" il_index="1" il_start="0x2" il_end="0x53" attributes="0"/>
@@ -117,11 +117,11 @@ End Class
 </compilation>
 
             Dim expected = <sequencePoints>
-                               <entry start_row="4" start_column="5" end_row="4" end_column="15"/>
-                               <entry start_row="5" start_column="9" end_row="5" end_column="39"/>
-                               <entry start_row="16707566" start_column="0" end_row="16707566" end_column="0"/>
-                               <entry start_row="6" start_column="9" end_row="6" end_column="18"/>
-                               <entry start_row="7" start_column="5" end_row="7" end_column="12"/>
+                               <entry startLine="4" startColumn="5" endLine="4" endColumn="15"/>
+                               <entry startLine="5" startColumn="9" endLine="5" endColumn="39"/>
+                               <entry/>
+                               <entry startLine="6" startColumn="9" endLine="6" endColumn="18"/>
+                               <entry startLine="7" startColumn="5" endLine="7" endColumn="12"/>
                            </sequencePoints>
 
             AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
@@ -154,11 +154,11 @@ End Class
 </compilation>
 
             Dim expected = <sequencePoints>
-                               <entry start_row="4" start_column="5" end_row="4" end_column="15"/>
-                               <entry start_row="5" start_column="9" end_row="5" end_column="42"/>
-                               <entry start_row="16707566" start_column="0" end_row="16707566" end_column="0"/>
-                               <entry start_row="6" start_column="9" end_row="6" end_column="18"/>
-                               <entry start_row="7" start_column="5" end_row="7" end_column="12"/>
+                               <entry startLine="4" startColumn="5" endLine="4" endColumn="15"/>
+                               <entry startLine="5" startColumn="9" endLine="5" endColumn="42"/>
+                               <entry/>
+                               <entry startLine="6" startColumn="9" endLine="6" endColumn="18"/>
+                               <entry startLine="7" startColumn="5" endLine="7" endColumn="12"/>
                            </sequencePoints>
 
             AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
@@ -191,15 +191,15 @@ End Class
 </compilation>
 
             Dim expected = <sequencePoints>
-                               <entry start_row="4" start_column="5" end_row="4" end_column="15"/>
-                               <entry start_row="5" start_column="9" end_row="5" end_column="73"/>
-                               <entry start_row="5" start_column="15" end_row="5" end_column="43"/>
-                               <entry start_row="5" start_column="45" end_row="5" end_column="73"/>
-                               <entry start_row="16707566" start_column="0" end_row="16707566" end_column="0"/>
-                               <entry start_row="6" start_column="9" end_row="6" end_column="18"/>
-                               <entry start_row="16707566" start_column="0" end_row="16707566" end_column="0"/>
-                               <entry start_row="6" start_column="9" end_row="6" end_column="18"/>
-                               <entry start_row="7" start_column="5" end_row="7" end_column="12"/>
+                               <entry startLine="4" startColumn="5" endLine="4" endColumn="15"/>
+                               <entry startLine="5" startColumn="9" endLine="5" endColumn="73"/>
+                               <entry startLine="5" startColumn="15" endLine="5" endColumn="43"/>
+                               <entry startLine="5" startColumn="45" endLine="5" endColumn="73"/>
+                               <entry/>
+                               <entry startLine="6" startColumn="9" endLine="6" endColumn="18"/>
+                               <entry/>
+                               <entry startLine="6" startColumn="9" endLine="6" endColumn="18"/>
+                               <entry startLine="7" startColumn="5" endLine="7" endColumn="12"/>
                            </sequencePoints>
 
             AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
@@ -232,13 +232,13 @@ End Class
 </compilation>
 
             Dim expected = <sequencePoints>
-                               <entry start_row="4" start_column="5" end_row="4" end_column="15"/>
-                               <entry start_row="5" start_column="9" end_row="5" end_column="47"/>
-                               <entry start_row="16707566" start_column="0" end_row="16707566" end_column="0"/>
-                               <entry start_row="6" start_column="9" end_row="6" end_column="18"/>
-                               <entry start_row="16707566" start_column="0" end_row="16707566" end_column="0"/>
-                               <entry start_row="6" start_column="9" end_row="6" end_column="18"/>
-                               <entry start_row="7" start_column="5" end_row="7" end_column="12"/>
+                               <entry startLine="4" startColumn="5" endLine="4" endColumn="15"/>
+                               <entry startLine="5" startColumn="9" endLine="5" endColumn="47"/>
+                               <entry/>
+                               <entry startLine="6" startColumn="9" endLine="6" endColumn="18"/>
+                               <entry/>
+                               <entry startLine="6" startColumn="9" endLine="6" endColumn="18"/>
+                               <entry startLine="7" startColumn="5" endLine="7" endColumn="12"/>
                            </sequencePoints>
 
             AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
@@ -271,21 +271,21 @@ End Class
 </compilation>
 
             Dim expected = <sequencePoints>
-                               <entry start_row="4" start_column="5" end_row="4" end_column="15"/>
-                               <entry start_row="5" start_column="9" end_row="5" end_column="81"/>
-                               <entry start_row="5" start_column="15" end_row="5" end_column="47"/>
-                               <entry start_row="5" start_column="15" end_row="5" end_column="47"/>
-                               <entry start_row="5" start_column="49" end_row="5" end_column="81"/>
-                               <entry start_row="5" start_column="49" end_row="5" end_column="81"/>
-                               <entry start_row="16707566" start_column="0" end_row="16707566" end_column="0"/>
-                               <entry start_row="6" start_column="9" end_row="6" end_column="18"/>
-                               <entry start_row="16707566" start_column="0" end_row="16707566" end_column="0"/>
-                               <entry start_row="6" start_column="9" end_row="6" end_column="18"/>
-                               <entry start_row="16707566" start_column="0" end_row="16707566" end_column="0"/>
-                               <entry start_row="6" start_column="9" end_row="6" end_column="18"/>
-                               <entry start_row="16707566" start_column="0" end_row="16707566" end_column="0"/>
-                               <entry start_row="6" start_column="9" end_row="6" end_column="18"/>
-                               <entry start_row="7" start_column="5" end_row="7" end_column="12"/>
+                               <entry startLine="4" startColumn="5" endLine="4" endColumn="15"/>
+                               <entry startLine="5" startColumn="9" endLine="5" endColumn="81"/>
+                               <entry startLine="5" startColumn="15" endLine="5" endColumn="47"/>
+                               <entry startLine="5" startColumn="15" endLine="5" endColumn="47"/>
+                               <entry startLine="5" startColumn="49" endLine="5" endColumn="81"/>
+                               <entry startLine="5" startColumn="49" endLine="5" endColumn="81"/>
+                               <entry/>
+                               <entry startLine="6" startColumn="9" endLine="6" endColumn="18"/>
+                               <entry/>
+                               <entry startLine="6" startColumn="9" endLine="6" endColumn="18"/>
+                               <entry/>
+                               <entry startLine="6" startColumn="9" endLine="6" endColumn="18"/>
+                               <entry/>
+                               <entry startLine="6" startColumn="9" endLine="6" endColumn="18"/>
+                               <entry startLine="7" startColumn="5" endLine="7" endColumn="12"/>
                            </sequencePoints>
 
             AssertXmlEqual(expected, GetSequencePoints(GetPdbXml(source, TestOptions.DebugDll, "C1.Main")))
@@ -332,17 +332,17 @@ End Namespace
             Dim expected =
                 <symbols>
                     <methods>
-                        <method containingType="N1.C" name="M" parameterNames="">
-                            <customDebugInfo version="4" count="1">
-                                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+                        <method containingType="N1.C" name="M">
+                            <customDebugInfo>
+                                <encLocalSlotMap>
                                     <slot kind="0" offset="4"/>
                                 </encLocalSlotMap>
                             </customDebugInfo>
-                            <sequencepoints total="3">
-                                <entry il_offset="0x0" start_row="4" start_column="9" end_row="4" end_column="23" file_ref="0"/>
-                                <entry il_offset="0x1" start_row="5" start_column="17" end_row="5" end_column="33" file_ref="0"/>
-                                <entry il_offset="0x3" start_row="6" start_column="9" end_row="6" end_column="16" file_ref="0"/>
-                            </sequencepoints>
+                            <sequencePoints>
+                                <entry offset="0x0" startLine="4" startColumn="9" endLine="4" endColumn="23" document="0"/>
+                                <entry offset="0x1" startLine="5" startColumn="17" endLine="5" endColumn="33" document="0"/>
+                                <entry offset="0x3" startLine="6" startColumn="9" endLine="6" endColumn="16" document="0"/>
+                            </sequencePoints>
                             <locals>
                                 <local name="o" il_index="0" il_start="0x0" il_end="0x4" attributes="0"/>
                             </locals>
@@ -352,11 +352,11 @@ End Namespace
                                 <local name="o" il_index="0" il_start="0x0" il_end="0x4" attributes="0"/>
                             </scope>
                         </method>
-                        <method containingType="N2.D" name="M" parameterNames="">
-                            <sequencepoints total="2">
-                                <entry il_offset="0x0" start_row="12" start_column="9" end_row="12" end_column="23" file_ref="0"/>
-                                <entry il_offset="0x1" start_row="13" start_column="9" end_row="13" end_column="16" file_ref="0"/>
-                            </sequencepoints>
+                        <method containingType="N2.D" name="M">
+                            <sequencePoints>
+                                <entry offset="0x0" startLine="12" startColumn="9" endLine="12" endColumn="23" document="0"/>
+                                <entry offset="0x1" startLine="13" startColumn="9" endLine="13" endColumn="16" document="0"/>
+                            </sequencePoints>
                             <locals/>
                             <scope startOffset="0x0" endOffset="0x2">
                                 <defunct name="&amp;PIA"/>

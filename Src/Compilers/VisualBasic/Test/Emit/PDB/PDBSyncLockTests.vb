@@ -42,11 +42,11 @@ End Class
 
             Dim expected =
 <symbols>
-    <entryPoint declaringType="C1" methodName="Main" parameterNames=""/>
+    <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
-        <method containingType="C1" name="Main" parameterNames="">
-            <customDebugInfo version="4" count="1">
-                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="20">
+        <method containingType="C1" name="Main">
+            <customDebugInfo>
+                <encLocalSlotMap>
                     <slot kind="0" offset="21"/>
                     <slot kind="3" offset="55"/>
                     <slot kind="2" offset="55"/>
@@ -54,21 +54,21 @@ End Class
                     <slot kind="temp"/>
                 </encLocalSlotMap>
             </customDebugInfo>
-            <sequencepoints total="13">
-                <entry il_offset="0x0" start_row="10" start_column="5" end_row="10" end_column="29" file_ref="0"/>
-                <entry il_offset="0x1" start_row="11" start_column="9" end_row="11" end_column="12" file_ref="0"/>
-                <entry il_offset="0x2" start_row="12" start_column="17" end_row="12" end_column="37" file_ref="0"/>
-                <entry il_offset="0xd" start_row="13" start_column="13" end_row="13" end_column="35" file_ref="0"/>
-                <entry il_offset="0xe" start_row="13" start_column="22" end_row="13" end_column="35" file_ref="0"/>
-                <entry il_offset="0x21" start_row="14" start_column="21" end_row="14" end_column="38" file_ref="0"/>
-                <entry il_offset="0x24" start_row="15" start_column="17" end_row="15" end_column="38" file_ref="0"/>
-                <entry il_offset="0x2a" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
-                <entry il_offset="0x3b" start_row="17" start_column="13" end_row="17" end_column="25" file_ref="0"/>
-                <entry il_offset="0x3d" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="0"/>
-                <entry il_offset="0x42" start_row="18" start_column="9" end_row="18" end_column="14" file_ref="0"/>
-                <entry il_offset="0x4a" start_row="19" start_column="9" end_row="19" end_column="16" file_ref="0"/>
-                <entry il_offset="0x4b" start_row="20" start_column="5" end_row="20" end_column="12" file_ref="0"/>
-            </sequencepoints>
+            <sequencePoints>
+                <entry offset="0x0" startLine="10" startColumn="5" endLine="10" endColumn="29" document="0"/>
+                <entry offset="0x1" startLine="11" startColumn="9" endLine="11" endColumn="12" document="0"/>
+                <entry offset="0x2" startLine="12" startColumn="17" endLine="12" endColumn="37" document="0"/>
+                <entry offset="0xd" startLine="13" startColumn="13" endLine="13" endColumn="35" document="0"/>
+                <entry offset="0xe" startLine="13" startColumn="22" endLine="13" endColumn="35" document="0"/>
+                <entry offset="0x21" startLine="14" startColumn="21" endLine="14" endColumn="38" document="0"/>
+                <entry offset="0x24" startLine="15" startColumn="17" endLine="15" endColumn="38" document="0"/>
+                <entry offset="0x2a" hidden="true" document="0"/>
+                <entry offset="0x3b" startLine="17" startColumn="13" endLine="17" endColumn="25" document="0"/>
+                <entry offset="0x3d" hidden="true" document="0"/>
+                <entry offset="0x42" startLine="18" startColumn="9" endLine="18" endColumn="14" document="0"/>
+                <entry offset="0x4a" startLine="19" startColumn="9" endLine="19" endColumn="16" document="0"/>
+                <entry offset="0x4b" startLine="20" startColumn="5" endLine="20" endColumn="12" document="0"/>
+            </sequencePoints>
             <locals>
                 <local name="lock" il_index="0" il_start="0x2" il_end="0x3c" attributes="0"/>
                 <local name="x" il_index="3" il_start="0x21" il_end="0x29" attributes="0"/>

@@ -59,15 +59,15 @@ End Class
         </files>
         <entryPoint declaringType="C1" methodName="Main" parameterNames="args"/>
         <methods>
-            <method containingType="C1" name=".ctor" parameterNames="">
-                <sequencepoints total="6">
-                    <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                    <entry il_offset="0x6" start_row="6" start_column="12" end_row="6" end_column="30" file_ref="1"/>
-                    <entry il_offset="0xe" start_row="7" start_column="12" end_row="7" end_column="26" file_ref="1"/>
-                    <entry il_offset="0x19" start_row="8" start_column="12" end_row="8" end_column="14" file_ref="1"/>
-                    <entry il_offset="0x24" start_row="8" start_column="16" end_row="8" end_column="18" file_ref="1"/>
-                    <entry il_offset="0x2f" start_row="11" start_column="36" end_row="11" end_column="54" file_ref="2"/>
-                </sequencepoints>
+            <method containingType="C1" name=".ctor">
+                <sequencePoints>
+                    <entry offset="0x0" hidden="true" document="1"/>
+                    <entry offset="0x6" startLine="6" startColumn="12" endLine="6" endColumn="30" document="1"/>
+                    <entry offset="0xe" startLine="7" startColumn="12" endLine="7" endColumn="26" document="1"/>
+                    <entry offset="0x19" startLine="8" startColumn="12" endLine="8" endColumn="14" document="1"/>
+                    <entry offset="0x24" startLine="8" startColumn="16" endLine="8" endColumn="18" document="1"/>
+                    <entry offset="0x2f" startLine="11" startColumn="36" endLine="11" endColumn="54" document="2"/>
+                </sequencePoints>
                 <locals/>
                 <scope startOffset="0x0" endOffset="0x38">
                     <namespace name="System" importlevel="file"/>
@@ -107,8 +107,8 @@ End Class
 
             Dim expected =
 <sequencePoints>
-    <entry start_row="16707566" start_column="0" end_row="16707566" end_column="0"/>
-    <entry start_row="8" start_column=<%= expectedStart1 %> end_row="8" end_column=<%= expectedEnd1 %>/>
+    <entry/>
+    <entry startLine="8" startColumn=<%= expectedStart1 %> endLine="8" endColumn=<%= expectedEnd1 %>/>
 </sequencePoints>
 
             AssertXmlEqual(expected, actual)
@@ -141,8 +141,8 @@ End Class
 
             Dim expected =
 <sequencePoints>
-    <entry start_row="16707566" start_column="0" end_row="16707566" end_column="0"/>
-    <entry start_row="8" start_column=<%= expectedStart1 %> end_row="8" end_column=<%= expectedEnd1 %>/>
+    <entry/>
+    <entry startLine="8" startColumn=<%= expectedStart1 %> endLine="8" endColumn=<%= expectedEnd1 %>/>
 </sequencePoints>
 
             AssertXmlEqual(expected, actual)
@@ -175,8 +175,8 @@ End Class
 
             Dim expected =
 <sequencePoints>
-    <entry start_row="16707566" start_column="0" end_row="16707566" end_column="0"/>
-    <entry start_row="8" start_column=<%= expectedStart1 %> end_row="8" end_column=<%= expectedEnd1 %>/>
+    <entry/>
+    <entry startLine="8" startColumn=<%= expectedStart1 %> endLine="8" endColumn=<%= expectedEnd1 %>/>
 </sequencePoints>
 
             AssertXmlEqual(expected, actual)
@@ -206,9 +206,9 @@ End Class
 
             Dim expected =
 <sequencePoints>
-    <entry start_row="16707566" start_column="0" end_row="16707566" end_column="0"/>
-    <entry start_row="2" start_column=<%= expectedStart1 %> end_row="2" end_column=<%= expectedEnd1 %>/>
-    <entry start_row="2" start_column=<%= expectedStart2 %> end_row="2" end_column=<%= expectedEnd2 %>/>
+    <entry/>
+    <entry startLine="2" startColumn=<%= expectedStart1 %> endLine="2" endColumn=<%= expectedEnd1 %>/>
+    <entry startLine="2" startColumn=<%= expectedStart2 %> endLine="2" endColumn=<%= expectedEnd2 %>/>
 </sequencePoints>
 
             AssertXmlEqual(expected, actual)
@@ -240,10 +240,10 @@ End Class
 
             Dim expected =
 <sequencePoints>
-    <entry start_row="2" start_column="5" end_row="2" end_column="10"/>
-    <entry start_row="3" start_column=<%= expectedStart1 %> end_row="3" end_column=<%= expectedEnd1 %>/>
-    <entry start_row="3" start_column=<%= expectedStart2 %> end_row="3" end_column=<%= expectedEnd2 %>/>
-    <entry start_row="4" start_column="5" end_row="4" end_column="12"/>
+    <entry startLine="2" startColumn="5" endLine="2" endColumn="10"/>
+    <entry startLine="3" startColumn=<%= expectedStart1 %> endLine="3" endColumn=<%= expectedEnd1 %>/>
+    <entry startLine="3" startColumn=<%= expectedStart2 %> endLine="3" endColumn=<%= expectedEnd2 %>/>
+    <entry startLine="4" startColumn="5" endLine="4" endColumn="12"/>
 </sequencePoints>
 
             AssertXmlEqual(expected, actual)
@@ -273,9 +273,9 @@ End Class
 
             Dim expected =
 <sequencePoints>
-    <entry start_row="16707566" start_column="0" end_row="16707566" end_column="0"/>
-    <entry start_row="2" start_column=<%= expectedStart1 %> end_row="2" end_column=<%= expectedEnd1 %>/>
-    <entry start_row="2" start_column=<%= expectedStart2 %> end_row="2" end_column=<%= expectedEnd2 %>/>
+    <entry/>
+    <entry startLine="2" startColumn=<%= expectedStart1 %> endLine="2" endColumn=<%= expectedEnd1 %>/>
+    <entry startLine="2" startColumn=<%= expectedStart2 %> endLine="2" endColumn=<%= expectedEnd2 %>/>
 </sequencePoints>
 
             AssertXmlEqual(expected, actual)
@@ -307,10 +307,10 @@ End Class
 
             Dim expected =
 <sequencePoints>
-    <entry start_row="2" start_column="5" end_row="2" end_column="10"/>
-    <entry start_row="3" start_column=<%= expectedStart1 %> end_row="3" end_column=<%= expectedEnd1 %>/>
-    <entry start_row="3" start_column=<%= expectedStart2 %> end_row="3" end_column=<%= expectedEnd2 %>/>
-    <entry start_row="4" start_column="5" end_row="4" end_column="12"/>
+    <entry startLine="2" startColumn="5" endLine="2" endColumn="10"/>
+    <entry startLine="3" startColumn=<%= expectedStart1 %> endLine="3" endColumn=<%= expectedEnd1 %>/>
+    <entry startLine="3" startColumn=<%= expectedStart2 %> endLine="3" endColumn=<%= expectedEnd2 %>/>
+    <entry startLine="4" startColumn="5" endLine="4" endColumn="12"/>
 </sequencePoints>
 
             AssertXmlEqual(expected, actual)
@@ -337,8 +337,8 @@ End Class
 
             Dim expected =
 <sequencePoints>
-    <entry start_row="16707566" start_column="0" end_row="16707566" end_column="0"/>
-    <entry start_row="2" start_column=<%= expectedStart1 %> end_row="2" end_column=<%= expectedEnd1 %>/>
+    <entry/>
+    <entry startLine="2" startColumn=<%= expectedStart1 %> endLine="2" endColumn=<%= expectedEnd1 %>/>
 </sequencePoints>
 
             AssertXmlEqual(expected, actual)
@@ -367,9 +367,9 @@ End Class
 
             Dim expected =
 <sequencePoints>
-    <entry start_row="2" start_column="5" end_row="2" end_column="10"/>
-    <entry start_row="3" start_column=<%= expectedStart1 %> end_row="3" end_column=<%= expectedEnd1 %>/>
-    <entry start_row="4" start_column="5" end_row="4" end_column="12"/>
+    <entry startLine="2" startColumn="5" endLine="2" endColumn="10"/>
+    <entry startLine="3" startColumn=<%= expectedStart1 %> endLine="3" endColumn=<%= expectedEnd1 %>/>
+    <entry startLine="4" startColumn="5" endLine="4" endColumn="12"/>
 </sequencePoints>
 
             AssertXmlEqual(expected, actual)
@@ -396,8 +396,8 @@ End Class
 
             Dim expected =
 <sequencePoints>
-    <entry start_row="16707566" start_column="0" end_row="16707566" end_column="0"/>
-    <entry start_row="2" start_column=<%= expectedStart1 %> end_row="2" end_column=<%= expectedEnd1 %>/>
+    <entry/>
+    <entry startLine="2" startColumn=<%= expectedStart1 %> endLine="2" endColumn=<%= expectedEnd1 %>/>
 </sequencePoints>
 
             AssertXmlEqual(expected, actual)
@@ -426,9 +426,9 @@ End Class
 
             Dim expected =
 <sequencePoints>
-    <entry start_row="2" start_column="5" end_row="2" end_column="10"/>
-    <entry start_row="3" start_column=<%= expectedStart1 %> end_row="3" end_column=<%= expectedEnd1 %>/>
-    <entry start_row="4" start_column="5" end_row="4" end_column="12"/>
+    <entry startLine="2" startColumn="5" endLine="2" endColumn="10"/>
+    <entry startLine="3" startColumn=<%= expectedStart1 %> endLine="3" endColumn=<%= expectedEnd1 %>/>
+    <entry startLine="4" startColumn="5" endLine="4" endColumn="12"/>
 </sequencePoints>
 
             AssertXmlEqual(expected, actual)

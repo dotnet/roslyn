@@ -2562,17 +2562,17 @@ End Class
     <entryPoint declaringType="Program" methodName="Main" parameterNames="args"/>
     <methods>
         <method containingType="Program" name="Main" parameterNames="args">
-            <customDebugInfo version="4" count="1">
-                <encLocalSlotMap version="4" kind="EditAndContinueLocalSlotMap" size="12">
+            <customDebugInfo>
+                <encLocalSlotMap>
                     <slot kind="0" offset="4"/>
                 </encLocalSlotMap>
             </customDebugInfo>
-            <sequencepoints total="4">
-                <entry il_offset="0x0" start_row="5" start_column="5" end_row="5" end_column="38" file_ref="1"/>
-                <entry il_offset="0x1" start_row="6" start_column="13" end_row="6" end_column="31" file_ref="1"/>
-                <entry il_offset="0x4" start_row="7" start_column="9" end_row="7" end_column="32" file_ref="1"/>
-                <entry il_offset="0x10" start_row="8" start_column="5" end_row="8" end_column="12" file_ref="1"/>
-            </sequencepoints>
+            <sequencePoints>
+                <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="38" document="1"/>
+                <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="31" document="1"/>
+                <entry offset="0x4" startLine="7" startColumn="9" endLine="7" endColumn="32" document="1"/>
+                <entry offset="0x10" startLine="8" startColumn="5" endLine="8" endColumn="12" document="1"/>
+            </sequencePoints>
             <locals>
                 <local name="ch" il_index="0" il_start="0x0" il_end="0x11" attributes="0"/>
             </locals>

@@ -40,26 +40,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
     <file id=""2"" name=""sha256.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""8829d00f-11b8-4213-878b-770e8597ac16"" checkSum=""83, 31, 5B, 52,  8, 2D, 68, 54, 14, 88,  E, E3, 3A, 5E, B7, 83, 86, 53, 83, B4, 5A, 3F, 36, 9E, 5F, 1B, 60, 33, 27,  A, 8A, EC, "" />
   </files>
   <methods>
-    <method containingType=""C1"" name="".ctor"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""C1"" name="".ctor"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""0"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""1"" start_column=""19"" end_row=""1"" end_column=""30"" file_ref=""1"" />
-        <entry il_offset=""0x6"" start_row=""1"" start_column=""33"" end_row=""1"" end_column=""34"" file_ref=""1"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""1"" startColumn=""19"" endLine=""1"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x6"" startLine=""1"" startColumn=""33"" endLine=""1"" endColumn=""34"" document=""1"" />
+      </sequencePoints>
       <locals />
     </method>
-    <method containingType=""C256"" name="".ctor"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C1"" methodName="".ctor"" parameterNames="""" />
+    <method containingType=""C256"" name="".ctor"">
+      <customDebugInfo>
+        <forward declaringType=""C1"" methodName="".ctor"" />
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""1"" start_column=""21"" end_row=""1"" end_column=""34"" file_ref=""2"" />
-        <entry il_offset=""0x6"" start_row=""1"" start_column=""37"" end_row=""1"" end_column=""38"" file_ref=""2"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""1"" startColumn=""21"" endLine=""1"" endColumn=""34"" document=""2"" />
+        <entry offset=""0x6"" startLine=""1"" startColumn=""37"" endLine=""1"" endColumn=""38"" document=""2"" />
+      </sequencePoints>
       <locals />
     </method>
   </methods>
@@ -245,17 +245,17 @@ int y = 1;
     <file id=""4"" name=""a.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""F0, C4, 23, 63, A5, 89, B9, 29, AF, 94,  7, 85, 2F, 3A, 40, D3, 70, 14, 8F, 9B, "" />
   </files>
   <methods>
-    <method containingType=""C"" name=""Main"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""C"" name=""Main"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""0"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""3"">
-        <entry il_offset=""0x0"" start_row=""112"" start_column=""9"" end_row=""112"" end_column=""23"" file_ref=""1"" />
-        <entry il_offset=""0x6"" start_row=""112"" start_column=""9"" end_row=""112"" end_column=""24"" file_ref=""2"" />
-        <entry il_offset=""0xc"" start_row=""19"" start_column=""5"" end_row=""19"" end_column=""6"" file_ref=""3"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""112"" startColumn=""9"" endLine=""112"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x6"" startLine=""112"" startColumn=""9"" endLine=""112"" endColumn=""24"" document=""2"" />
+        <entry offset=""0xc"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""3"" />
+      </sequencePoints>
       <locals />
     </method>
   </methods>
@@ -287,16 +287,16 @@ class C
     <file id=""1"" name=""b:\base\b.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum="" 5, 25, 26, AE, 53, A0, 54, 46, AC, A6, 1D, 8A, 3B, 1E, 3F, C3, 43, 39, FB, 59, "" />
   </files>
   <methods>
-    <method containingType=""C"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""0"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""5"" start_column=""5"" end_row=""5"" end_column=""6"" file_ref=""1"" />
-        <entry il_offset=""0x1"" start_row=""6"" start_column=""5"" end_row=""6"" end_column=""6"" file_ref=""1"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
       <locals />
     </method>
   </methods>
@@ -328,16 +328,16 @@ class C { void M() { } }
     <file id=""1"" name=""a\..\a.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""406ea660-64cf-4c82-b6f0-42d48172a799"" checkSum=""AB,  0, 7F, 1D, 23, D5, "" />
   </files>
   <methods>
-    <method containingType=""C"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""0"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""10"" start_column=""20"" end_row=""10"" end_column=""21"" file_ref=""1"" />
-        <entry il_offset=""0x1"" start_row=""10"" start_column=""22"" end_row=""10"" end_column=""23"" file_ref=""1"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""10"" startColumn=""20"" endLine=""10"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""22"" endLine=""10"" endColumn=""23"" document=""1"" />
+      </sequencePoints>
       <locals />
     </method>
   </methods>
@@ -383,22 +383,22 @@ class C
     <file id=""3"" name=""q:\absolute\file.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
   </files>
   <methods>
-    <method containingType=""C"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""0"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""8"">
-        <entry il_offset=""0x0"" start_row=""5"" start_column=""5"" end_row=""5"" end_column=""6"" file_ref=""1"" />
-        <entry il_offset=""0x1"" start_row=""6"" start_column=""9"" end_row=""6"" end_column=""13"" file_ref=""1"" />
-        <entry il_offset=""0x8"" start_row=""1"" start_column=""9"" end_row=""1"" end_column=""13"" file_ref=""2"" />
-        <entry il_offset=""0xf"" start_row=""2"" start_column=""9"" end_row=""2"" end_column=""13"" file_ref=""2"" />
-        <entry il_offset=""0x16"" start_row=""3"" start_column=""9"" end_row=""3"" end_column=""13"" file_ref=""2"" />
-        <entry il_offset=""0x1d"" start_row=""4"" start_column=""9"" end_row=""4"" end_column=""13"" file_ref=""2"" />
-        <entry il_offset=""0x24"" start_row=""5"" start_column=""9"" end_row=""5"" end_column=""13"" file_ref=""3"" />
-        <entry il_offset=""0x2b"" start_row=""6"" start_column=""5"" end_row=""6"" end_column=""6"" file_ref=""3"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""13"" document=""1"" />
+        <entry offset=""0x8"" startLine=""1"" startColumn=""9"" endLine=""1"" endColumn=""13"" document=""2"" />
+        <entry offset=""0xf"" startLine=""2"" startColumn=""9"" endLine=""2"" endColumn=""13"" document=""2"" />
+        <entry offset=""0x16"" startLine=""3"" startColumn=""9"" endLine=""3"" endColumn=""13"" document=""2"" />
+        <entry offset=""0x1d"" startLine=""4"" startColumn=""9"" endLine=""4"" endColumn=""13"" document=""2"" />
+        <entry offset=""0x24"" startLine=""5"" startColumn=""9"" endLine=""5"" endColumn=""13"" document=""3"" />
+        <entry offset=""0x2b"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""3"" />
+      </sequencePoints>
       <locals />
     </method>
   </methods>
@@ -452,22 +452,22 @@ class C
     <file id=""6"" name=""b:\base\e.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""406ea660-64cf-4c82-b6f0-42d48172a799"" checkSum=""AB,  0, 7F, 1D, 23, D9, "" />
   </files>
   <methods>
-    <method containingType=""C"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""0"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""8"">
-        <entry il_offset=""0x0"" start_row=""10"" start_column=""5"" end_row=""10"" end_column=""6"" file_ref=""1"" />
-        <entry il_offset=""0x1"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""13"" file_ref=""1"" />
-        <entry il_offset=""0x8"" start_row=""1"" start_column=""9"" end_row=""1"" end_column=""13"" file_ref=""2"" />
-        <entry il_offset=""0xf"" start_row=""1"" start_column=""9"" end_row=""1"" end_column=""13"" file_ref=""3"" />
-        <entry il_offset=""0x16"" start_row=""1"" start_column=""9"" end_row=""1"" end_column=""13"" file_ref=""4"" />
-        <entry il_offset=""0x1d"" start_row=""1"" start_column=""9"" end_row=""1"" end_column=""13"" file_ref=""5"" />
-        <entry il_offset=""0x24"" start_row=""1"" start_column=""9"" end_row=""1"" end_column=""13"" file_ref=""6"" />
-        <entry il_offset=""0x2b"" start_row=""2"" start_column=""5"" end_row=""2"" end_column=""6"" file_ref=""6"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""13"" document=""1"" />
+        <entry offset=""0x8"" startLine=""1"" startColumn=""9"" endLine=""1"" endColumn=""13"" document=""2"" />
+        <entry offset=""0xf"" startLine=""1"" startColumn=""9"" endLine=""1"" endColumn=""13"" document=""3"" />
+        <entry offset=""0x16"" startLine=""1"" startColumn=""9"" endLine=""1"" endColumn=""13"" document=""4"" />
+        <entry offset=""0x1d"" startLine=""1"" startColumn=""9"" endLine=""1"" endColumn=""13"" document=""5"" />
+        <entry offset=""0x24"" startLine=""1"" startColumn=""9"" endLine=""1"" endColumn=""13"" document=""6"" />
+        <entry offset=""0x2b"" startLine=""2"" startColumn=""5"" endLine=""2"" endColumn=""6"" document=""6"" />
+      </sequencePoints>
       <locals />
     </method>
   </methods>
@@ -511,20 +511,20 @@ class C
     <file id=""4"" name=""b.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
   </files>
   <methods>
-    <method containingType=""C"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""0"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""6"">
-        <entry il_offset=""0x0"" start_row=""6"" start_column=""5"" end_row=""6"" end_column=""6"" file_ref=""1"" />
-        <entry il_offset=""0x1"" start_row=""7"" start_column=""9"" end_row=""7"" end_column=""13"" file_ref=""1"" />
-        <entry il_offset=""0x8"" start_row=""1"" start_column=""9"" end_row=""1"" end_column=""13"" file_ref=""2"" />
-        <entry il_offset=""0xf"" start_row=""1"" start_column=""9"" end_row=""1"" end_column=""13"" file_ref=""3"" />
-        <entry il_offset=""0x16"" start_row=""1"" start_column=""9"" end_row=""1"" end_column=""13"" file_ref=""4"" />
-        <entry il_offset=""0x1d"" start_row=""2"" start_column=""5"" end_row=""2"" end_column=""6"" file_ref=""4"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""13"" document=""1"" />
+        <entry offset=""0x8"" startLine=""1"" startColumn=""9"" endLine=""1"" endColumn=""13"" document=""2"" />
+        <entry offset=""0xf"" startLine=""1"" startColumn=""9"" endLine=""1"" endColumn=""13"" document=""3"" />
+        <entry offset=""0x16"" startLine=""1"" startColumn=""9"" endLine=""1"" endColumn=""13"" document=""4"" />
+        <entry offset=""0x1d"" startLine=""2"" startColumn=""5"" endLine=""2"" endColumn=""6"" document=""4"" />
+      </sequencePoints>
       <locals />
     </method>
   </methods>

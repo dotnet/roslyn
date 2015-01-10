@@ -42,47 +42,47 @@ class Test
 <symbols>
   <methods>
     <method containingType=""Helper"" name=""foo"" parameterNames=""y"">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""0"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""5"" start_column=""24"" end_row=""5"" end_column=""25"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""5"" start_column=""25"" end_row=""5"" end_column=""26"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""24"" endLine=""5"" endColumn=""25"" document=""0"" />
+        <entry offset=""0x1"" startLine=""5"" startColumn=""25"" endLine=""5"" endColumn=""26"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
-    <method containingType=""Helper"" name="".ctor"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Helper"" methodName=""foo"" parameterNames=""y"" />
+    <method containingType=""Helper"" name="".ctor"">
+      <customDebugInfo>
+        <forward declaringType=""Helper"" methodName=""foo"" parameterNames=""y"" />
       </customDebugInfo>
-      <sequencepoints total=""3"">
-        <entry il_offset=""0x0"" start_row=""6"" start_column=""2"" end_row=""6"" end_column=""17"" file_ref=""0"" />
-        <entry il_offset=""0x7"" start_row=""6"" start_column=""17"" end_row=""6"" end_column=""18"" file_ref=""0"" />
-        <entry il_offset=""0x8"" start_row=""6"" start_column=""18"" end_row=""6"" end_column=""19"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""6"" startColumn=""2"" endLine=""6"" endColumn=""17"" document=""0"" />
+        <entry offset=""0x7"" startLine=""6"" startColumn=""17"" endLine=""6"" endColumn=""18"" document=""0"" />
+        <entry offset=""0x8"" startLine=""6"" startColumn=""18"" endLine=""6"" endColumn=""19"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
     <method containingType=""Helper"" name="".ctor"" parameterNames=""x"">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Helper"" methodName=""foo"" parameterNames=""y"" />
+      <customDebugInfo>
+        <forward declaringType=""Helper"" methodName=""foo"" parameterNames=""y"" />
       </customDebugInfo>
-      <sequencepoints total=""3"">
-        <entry il_offset=""0x0"" start_row=""7"" start_column=""2"" end_row=""7"" end_column=""22"" file_ref=""0"" />
-        <entry il_offset=""0x7"" start_row=""7"" start_column=""22"" end_row=""7"" end_column=""23"" file_ref=""0"" />
-        <entry il_offset=""0x8"" start_row=""7"" start_column=""23"" end_row=""7"" end_column=""24"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""2"" endLine=""7"" endColumn=""22"" document=""0"" />
+        <entry offset=""0x7"" startLine=""7"" startColumn=""22"" endLine=""7"" endColumn=""23"" document=""0"" />
+        <entry offset=""0x8"" startLine=""7"" startColumn=""23"" endLine=""7"" endColumn=""24"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
-      <customDebugInfo version=""4"" count=""3"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Helper"" methodName=""foo"" parameterNames=""y"" />
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""412"" bucketCount=""2"">
+      <customDebugInfo>
+        <forward declaringType=""Helper"" methodName=""foo"" parameterNames=""y"" />
+        <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d1"" />
           <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""d2"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""20"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""13"" />
           <slot kind=""0"" offset=""43"" />
           <slot kind=""0"" offset=""67"" />
@@ -90,14 +90,14 @@ class Test
           <slot kind=""temp"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""6"">
-        <entry il_offset=""0x0"" start_row=""18"" start_column=""3"" end_row=""18"" end_column=""4"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""19"" start_column=""3"" end_row=""19"" end_column=""29"" file_ref=""0"" />
-        <entry il_offset=""0x7"" start_row=""20"" start_column=""3"" end_row=""20"" end_column=""28"" file_ref=""0"" />
-        <entry il_offset=""0x17"" start_row=""21"" start_column=""3"" end_row=""21"" end_column=""24"" file_ref=""0"" />
-        <entry il_offset=""0xb1"" start_row=""22"" start_column=""3"" end_row=""22"" end_column=""30"" file_ref=""0"" />
-        <entry il_offset=""0x10f"" start_row=""24"" start_column=""3"" end_row=""24"" end_column=""4"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""18"" startColumn=""3"" endLine=""18"" endColumn=""4"" document=""0"" />
+        <entry offset=""0x1"" startLine=""19"" startColumn=""3"" endLine=""19"" endColumn=""29"" document=""0"" />
+        <entry offset=""0x7"" startLine=""20"" startColumn=""3"" endLine=""20"" endColumn=""28"" document=""0"" />
+        <entry offset=""0x17"" startLine=""21"" startColumn=""3"" endLine=""21"" endColumn=""24"" document=""0"" />
+        <entry offset=""0xb1"" startLine=""22"" startColumn=""3"" endLine=""22"" endColumn=""30"" document=""0"" />
+        <entry offset=""0x10f"" startLine=""24"" startColumn=""3"" endLine=""24"" endColumn=""4"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""d1"" il_index=""0"" il_start=""0x0"" il_end=""0x110"" attributes=""0"" />
         <local name=""d2"" il_index=""1"" il_start=""0x0"" il_end=""0x110"" attributes=""0"" />
@@ -136,34 +136,34 @@ class Test
 <symbols>
   <methods>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
-      <customDebugInfo version=""4"" count=""3"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
         </using>
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""412"" bucketCount=""2"">
+        <dynamicLocals>
           <bucket flagCount=""2"" flags=""01"" slotId=""0"" localName=""arrDynamic"" />
           <bucket flagCount=""1"" flags=""1"" slotId=""3"" localName=""d"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""15"" />
           <slot kind=""6"" offset=""58"" />
           <slot kind=""8"" offset=""58"" />
           <slot kind=""0"" offset=""58"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""11"">
-        <entry il_offset=""0x0"" start_row=""6"" start_column=""5"" end_row=""6"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""7"" start_column=""3"" end_row=""7"" end_column=""46"" file_ref=""0"" />
-        <entry il_offset=""0x10"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""16"" file_ref=""0"" />
-        <entry il_offset=""0x11"" start_row=""8"" start_column=""31"" end_row=""8"" end_column=""41"" file_ref=""0"" />
-        <entry il_offset=""0x15"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x17"" start_row=""8"" start_column=""18"" end_row=""8"" end_column=""27"" file_ref=""0"" />
-        <entry il_offset=""0x1b"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x1c"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x1d"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x21"" start_row=""8"" start_column=""28"" end_row=""8"" end_column=""30"" file_ref=""0"" />
-        <entry il_offset=""0x27"" start_row=""12"" start_column=""5"" end_row=""12"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""3"" endLine=""7"" endColumn=""46"" document=""0"" />
+        <entry offset=""0x10"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""16"" document=""0"" />
+        <entry offset=""0x11"" startLine=""8"" startColumn=""31"" endLine=""8"" endColumn=""41"" document=""0"" />
+        <entry offset=""0x15"" hidden=""true"" document=""0"" />
+        <entry offset=""0x17"" startLine=""8"" startColumn=""18"" endLine=""8"" endColumn=""27"" document=""0"" />
+        <entry offset=""0x1b"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x1c"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x1d"" hidden=""true"" document=""0"" />
+        <entry offset=""0x21"" startLine=""8"" startColumn=""28"" endLine=""8"" endColumn=""30"" document=""0"" />
+        <entry offset=""0x27"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""arrDynamic"" il_index=""0"" il_start=""0x0"" il_end=""0x28"" attributes=""0"" />
         <local name=""d"" il_index=""3"" il_start=""0x17"" il_end=""0x1d"" attributes=""0"" />
@@ -196,18 +196,18 @@ class Test
 <symbols>
   <methods>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
-      <customDebugInfo version=""4"" count=""2"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""0"" />
         </using>
-	    <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""212"" bucketCount=""1"">
+	    <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
         </dynamicLocals>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""5"" start_column=""2"" end_row=""5"" end_column=""3"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""7"" start_column=""2"" end_row=""7"" end_column=""3"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""2"" endLine=""5"" endColumn=""3"" document=""0"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""2"" endLine=""7"" endColumn=""3"" document=""0"" />
+      </sequencePoints>
       <locals>
         <constant name=""d"" value=""0"" type=""Int32"" />
       </locals>
@@ -243,28 +243,28 @@ class Test
 <symbols>
   <methods>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
-      <customDebugInfo version=""4"" count=""3"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""0"" />
         </using>
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""612"" bucketCount=""3"">
+        <dynamicLocals>
           <bucket flagCount=""2"" flags=""01"" slotId=""0"" localName=""arr"" />
           <bucket flagCount=""2"" flags=""01"" slotId=""1"" localName=""arrdim"" />
           <bucket flagCount=""2"" flags=""01"" slotId=""2"" localName=""arrobj"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""15"" />
           <slot kind=""0"" offset=""52"" />
           <slot kind=""0"" offset=""91"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""5"">
-        <entry il_offset=""0x0"" start_row=""9"" start_column=""3"" end_row=""9"" end_column=""4"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""10"" start_column=""3"" end_row=""10"" end_column=""35"" file_ref=""0"" />
-        <entry il_offset=""0x9"" start_row=""11"" start_column=""3"" end_row=""11"" end_column=""39"" file_ref=""0"" />
-        <entry il_offset=""0x11"" start_row=""12"" start_column=""3"" end_row=""12"" end_column=""39"" file_ref=""0"" />
-        <entry il_offset=""0x18"" start_row=""13"" start_column=""3"" end_row=""13"" end_column=""4"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""9"" startColumn=""3"" endLine=""9"" endColumn=""4"" document=""0"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""3"" endLine=""10"" endColumn=""35"" document=""0"" />
+        <entry offset=""0x9"" startLine=""11"" startColumn=""3"" endLine=""11"" endColumn=""39"" document=""0"" />
+        <entry offset=""0x11"" startLine=""12"" startColumn=""3"" endLine=""12"" endColumn=""39"" document=""0"" />
+        <entry offset=""0x18"" startLine=""13"" startColumn=""3"" endLine=""13"" endColumn=""4"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""arr"" il_index=""0"" il_start=""0x0"" il_end=""0x19"" attributes=""0"" />
         <local name=""arrdim"" il_index=""1"" il_start=""0x0"" il_end=""0x19"" attributes=""0"" />
@@ -301,18 +301,18 @@ class Test
 <symbols>
   <methods>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
-      <customDebugInfo version=""4"" count=""3"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
         </using>
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""1012"" bucketCount=""5"">
+        <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""l1"" />
           <bucket flagCount=""2"" flags=""01"" slotId=""1"" localName=""l2"" />
           <bucket flagCount=""1"" flags=""1"" slotId=""2"" localName=""l3"" />
           <bucket flagCount=""3"" flags=""011"" slotId=""3"" localName=""d1"" />
           <bucket flagCount=""1"" flags=""1"" slotId=""4"" localName=""d2"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""20"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""13"" />
           <slot kind=""0"" offset=""52"" />
           <slot kind=""0"" offset=""89"" />
@@ -320,15 +320,15 @@ class Test
           <slot kind=""0"" offset=""197"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""7"">
-        <entry il_offset=""0x0"" start_row=""6"" start_column=""3"" end_row=""6"" end_column=""4"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""7"" start_column=""3"" end_row=""7"" end_column=""32"" file_ref=""0"" />
-        <entry il_offset=""0x7"" start_row=""8"" start_column=""3"" end_row=""8"" end_column=""42"" file_ref=""0"" />
-        <entry il_offset=""0xd"" start_row=""9"" start_column=""3"" end_row=""9"" end_column=""36"" file_ref=""0"" />
-        <entry il_offset=""0x13"" start_row=""10"" start_column=""3"" end_row=""10"" end_column=""70"" file_ref=""0"" />
-        <entry il_offset=""0x19"" start_row=""11"" start_column=""3"" end_row=""11"" end_column=""42"" file_ref=""0"" />
-        <entry il_offset=""0x20"" start_row=""12"" start_column=""3"" end_row=""12"" end_column=""4"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""6"" startColumn=""3"" endLine=""6"" endColumn=""4"" document=""0"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""3"" endLine=""7"" endColumn=""32"" document=""0"" />
+        <entry offset=""0x7"" startLine=""8"" startColumn=""3"" endLine=""8"" endColumn=""42"" document=""0"" />
+        <entry offset=""0xd"" startLine=""9"" startColumn=""3"" endLine=""9"" endColumn=""36"" document=""0"" />
+        <entry offset=""0x13"" startLine=""10"" startColumn=""3"" endLine=""10"" endColumn=""70"" document=""0"" />
+        <entry offset=""0x19"" startLine=""11"" startColumn=""3"" endLine=""11"" endColumn=""42"" document=""0"" />
+        <entry offset=""0x20"" startLine=""12"" startColumn=""3"" endLine=""12"" endColumn=""4"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""l1"" il_index=""0"" il_start=""0x0"" il_end=""0x21"" attributes=""0"" />
         <local name=""l2"" il_index=""1"" il_start=""0x0"" il_end=""0x21"" attributes=""0"" />
@@ -381,59 +381,59 @@ class Test
 <symbols>
   <methods>
     <method containingType=""Helper"" name=""foo"" parameterNames=""y"">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""0"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""5"" start_column=""24"" end_row=""5"" end_column=""25"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""5"" start_column=""25"" end_row=""5"" end_column=""26"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""24"" endLine=""5"" endColumn=""25"" document=""0"" />
+        <entry offset=""0x1"" startLine=""5"" startColumn=""25"" endLine=""5"" endColumn=""26"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
-    <method containingType=""Helper"" name="".ctor"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Helper"" methodName=""foo"" parameterNames=""y"" />
+    <method containingType=""Helper"" name="".ctor"">
+      <customDebugInfo>
+        <forward declaringType=""Helper"" methodName=""foo"" parameterNames=""y"" />
       </customDebugInfo>
-      <sequencepoints total=""3"">
-        <entry il_offset=""0x0"" start_row=""6"" start_column=""2"" end_row=""6"" end_column=""17"" file_ref=""0"" />
-        <entry il_offset=""0x7"" start_row=""6"" start_column=""17"" end_row=""6"" end_column=""18"" file_ref=""0"" />
-        <entry il_offset=""0x8"" start_row=""6"" start_column=""18"" end_row=""6"" end_column=""19"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""6"" startColumn=""2"" endLine=""6"" endColumn=""17"" document=""0"" />
+        <entry offset=""0x7"" startLine=""6"" startColumn=""17"" endLine=""6"" endColumn=""18"" document=""0"" />
+        <entry offset=""0x8"" startLine=""6"" startColumn=""18"" endLine=""6"" endColumn=""19"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
     <method containingType=""Helper"" name="".ctor"" parameterNames=""x"">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Helper"" methodName=""foo"" parameterNames=""y"" />
+      <customDebugInfo>
+        <forward declaringType=""Helper"" methodName=""foo"" parameterNames=""y"" />
       </customDebugInfo>
-      <sequencepoints total=""3"">
-        <entry il_offset=""0x0"" start_row=""7"" start_column=""2"" end_row=""7"" end_column=""22"" file_ref=""0"" />
-        <entry il_offset=""0x7"" start_row=""7"" start_column=""22"" end_row=""7"" end_column=""23"" file_ref=""0"" />
-        <entry il_offset=""0x8"" start_row=""7"" start_column=""23"" end_row=""7"" end_column=""24"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""2"" endLine=""7"" endColumn=""22"" document=""0"" />
+        <entry offset=""0x7"" startLine=""7"" startColumn=""22"" endLine=""7"" endColumn=""23"" document=""0"" />
+        <entry offset=""0x8"" startLine=""7"" startColumn=""23"" endLine=""7"" endColumn=""24"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
-      <customDebugInfo version=""4"" count=""3"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Helper"" methodName=""foo"" parameterNames=""y"" />
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""412"" bucketCount=""2"">
+      <customDebugInfo>
+        <forward declaringType=""Helper"" methodName=""foo"" parameterNames=""y"" />
+        <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""d1"" />
           <bucket flagCount=""1"" flags=""1"" slotId=""2"" localName=""d3"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""12"" />
           <slot kind=""0"" offset=""49"" />
           <slot kind=""0"" offset=""79"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""5"">
-        <entry il_offset=""0x0"" start_row=""18"" start_column=""3"" end_row=""18"" end_column=""4"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""19"" start_column=""3"" end_row=""19"" end_column=""35"" file_ref=""0"" />
-        <entry il_offset=""0x7"" start_row=""20"" start_column=""3"" end_row=""20"" end_column=""29"" file_ref=""0"" />
-        <entry il_offset=""0xd"" start_row=""21"" start_column=""3"" end_row=""21"" end_column=""37"" file_ref=""0"" />
-        <entry il_offset=""0x1a"" start_row=""22"" start_column=""3"" end_row=""22"" end_column=""4"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""18"" startColumn=""3"" endLine=""18"" endColumn=""4"" document=""0"" />
+        <entry offset=""0x1"" startLine=""19"" startColumn=""3"" endLine=""19"" endColumn=""35"" document=""0"" />
+        <entry offset=""0x7"" startLine=""20"" startColumn=""3"" endLine=""20"" endColumn=""29"" document=""0"" />
+        <entry offset=""0xd"" startLine=""21"" startColumn=""3"" endLine=""21"" endColumn=""37"" document=""0"" />
+        <entry offset=""0x1a"" startLine=""22"" startColumn=""3"" endLine=""22"" endColumn=""4"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""staticObj"" il_index=""0"" il_start=""0x0"" il_end=""0x1b"" attributes=""0"" />
         <local name=""d1"" il_index=""1"" il_start=""0x0"" il_end=""0x1b"" attributes=""0"" />
@@ -467,23 +467,23 @@ class Test
             c.VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""Test"" name="".ctor"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""3"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""Test"" name="".ctor"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""0"" />
         </using>
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""212"" bucketCount=""1"">
+        <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""13"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""3"">
-        <entry il_offset=""0x0"" start_row=""4"" start_column=""2"" end_row=""4"" end_column=""15"" file_ref=""0"" />
-        <entry il_offset=""0x7"" start_row=""5"" start_column=""2"" end_row=""5"" end_column=""3"" file_ref=""0"" />
-        <entry il_offset=""0x8"" start_row=""7"" start_column=""2"" end_row=""7"" end_column=""3"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""4"" startColumn=""2"" endLine=""4"" endColumn=""15"" document=""0"" />
+        <entry offset=""0x7"" startLine=""5"" startColumn=""2"" endLine=""5"" endColumn=""3"" document=""0"" />
+        <entry offset=""0x8"" startLine=""7"" startColumn=""2"" endLine=""7"" endColumn=""3"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""d"" il_index=""0"" il_start=""0x7"" il_end=""0x8"" attributes=""0"" />
       </locals>
@@ -494,13 +494,13 @@ class Test
       </scope>
     </method>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test"" methodName="".ctor"" parameterNames="""" />
+      <customDebugInfo>
+        <forward declaringType=""Test"" methodName="".ctor"" />
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""9"" start_column=""2"" end_row=""9"" end_column=""3"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""10"" start_column=""2"" end_row=""10"" end_column=""3"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""9"" startColumn=""2"" endLine=""9"" endColumn=""3"" document=""0"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""2"" endLine=""10"" endColumn=""3"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
   </methods>
@@ -535,25 +535,25 @@ class Test
             c.VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""Test"" name=""get_Field"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""3"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""Test"" name=""get_Field"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""0"" />
         </using>
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""212"" bucketCount=""1"">
+        <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""23"" />
           <slot kind=""temp"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""4"">
-        <entry il_offset=""0x0"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""9"" start_column=""13"" end_row=""9"" end_column=""39"" file_ref=""0"" />
-        <entry il_offset=""0x13"" start_row=""10"" start_column=""13"" end_row=""10"" end_column=""22"" file_ref=""0"" />
-        <entry il_offset=""0x17"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""10"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""39"" document=""0"" />
+        <entry offset=""0x13"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""22"" document=""0"" />
+        <entry offset=""0x17"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0x19"" attributes=""0"" />
       </locals>
@@ -562,20 +562,20 @@ class Test
       </scope>
     </method>
     <method containingType=""Test"" name=""set_Field"" parameterNames=""value"">
-      <customDebugInfo version=""4"" count=""3"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test"" methodName=""get_Field"" parameterNames="""" />
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""212"" bucketCount=""1"">
+      <customDebugInfo>
+        <forward declaringType=""Test"" methodName=""get_Field"" />
+        <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""23"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""3"">
-        <entry il_offset=""0x0"" start_row=""13"" start_column=""9"" end_row=""13"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""14"" start_column=""13"" end_row=""14"" end_column=""30"" file_ref=""0"" />
-        <entry il_offset=""0x3"" start_row=""16"" start_column=""9"" end_row=""16"" end_column=""10"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x1"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""30"" document=""0"" />
+        <entry offset=""0x3"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""10"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0x4"" attributes=""0"" />
       </locals>
@@ -584,13 +584,13 @@ class Test
       </scope>
     </method>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test"" methodName=""get_Field"" parameterNames="""" />
+      <customDebugInfo>
+        <forward declaringType=""Test"" methodName=""get_Field"" />
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""19"" start_column=""5"" end_row=""19"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""20"" start_column=""5"" end_row=""20"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""19"" startColumn=""5"" endLine=""19"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""20"" startColumn=""5"" endLine=""20"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
   </methods>
@@ -628,37 +628,37 @@ class Test
 <symbols>
   <methods>
     <method containingType=""Complex"" name="".ctor"" parameterNames=""real, imaginery"">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""0"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""5"">
-        <entry il_offset=""0x0"" start_row=""6"" start_column=""5"" end_row=""6"" end_column=""44"" file_ref=""0"" />
-        <entry il_offset=""0x7"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x8"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""26"" file_ref=""0"" />
-        <entry il_offset=""0xf"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""36"" file_ref=""0"" />
-        <entry il_offset=""0x16"" start_row=""10"" start_column=""5"" end_row=""10"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""44"" document=""0"" />
+        <entry offset=""0x7"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x8"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""26"" document=""0"" />
+        <entry offset=""0xf"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""36"" document=""0"" />
+        <entry offset=""0x16"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
     <method containingType=""Complex"" name=""op_Addition"" parameterNames=""c1, c2"">
-      <customDebugInfo version=""4"" count=""3"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Complex"" methodName="".ctor"" parameterNames=""real, imaginery"" />
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""212"" bucketCount=""1"">
+      <customDebugInfo>
+        <forward declaringType=""Complex"" methodName="".ctor"" parameterNames=""real, imaginery"" />
+        <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
           <slot kind=""temp"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""4"">
-        <entry il_offset=""0x0"" start_row=""12"" start_column=""5"" end_row=""12"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""13"" start_column=""9"" end_row=""13"" end_column=""81"" file_ref=""0"" />
-        <entry il_offset=""0x21"" start_row=""14"" start_column=""9"" end_row=""14"" end_column=""18"" file_ref=""0"" />
-        <entry il_offset=""0x25"" start_row=""15"" start_column=""5"" end_row=""15"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""81"" document=""0"" />
+        <entry offset=""0x21"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""18"" document=""0"" />
+        <entry offset=""0x25"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
       </locals>
@@ -667,13 +667,13 @@ class Test
       </scope>
     </method>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Complex"" methodName="".ctor"" parameterNames=""real, imaginery"" />
+      <customDebugInfo>
+        <forward declaringType=""Complex"" methodName="".ctor"" parameterNames=""real, imaginery"" />
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""21"" start_column=""5"" end_row=""21"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""22"" start_column=""5"" end_row=""22"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""22"" startColumn=""5"" endLine=""22"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
   </methods>
@@ -710,24 +710,24 @@ class Test
 <symbols>
   <methods>
     <method containingType=""Test"" name=""get_Item"" parameterNames=""i"">
-      <customDebugInfo version=""4"" count=""3"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""0"" />
         </using>
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""212"" bucketCount=""1"">
+        <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""23"" />
           <slot kind=""temp"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""4"">
-        <entry il_offset=""0x0"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""9"" start_column=""13"" end_row=""9"" end_column=""32"" file_ref=""0"" />
-        <entry il_offset=""0xa"" start_row=""10"" start_column=""13"" end_row=""10"" end_column=""22"" file_ref=""0"" />
-        <entry il_offset=""0xe"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""10"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""32"" document=""0"" />
+        <entry offset=""0xa"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""22"" document=""0"" />
+        <entry offset=""0xe"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0x10"" attributes=""0"" />
       </locals>
@@ -736,21 +736,21 @@ class Test
       </scope>
     </method>
     <method containingType=""Test"" name=""set_Item"" parameterNames=""i, value"">
-      <customDebugInfo version=""4"" count=""3"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test"" methodName=""get_Item"" parameterNames=""i"" />
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""212"" bucketCount=""1"">
+      <customDebugInfo>
+        <forward declaringType=""Test"" methodName=""get_Item"" parameterNames=""i"" />
+        <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""23"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""4"">
-        <entry il_offset=""0x0"" start_row=""13"" start_column=""9"" end_row=""13"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""14"" start_column=""13"" end_row=""14"" end_column=""41"" file_ref=""0"" />
-        <entry il_offset=""0x3"" start_row=""15"" start_column=""13"" end_row=""15"" end_column=""24"" file_ref=""0"" />
-        <entry il_offset=""0xc"" start_row=""16"" start_column=""9"" end_row=""16"" end_column=""10"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x1"" startLine=""14"" startColumn=""13"" endLine=""14"" endColumn=""41"" document=""0"" />
+        <entry offset=""0x3"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""24"" document=""0"" />
+        <entry offset=""0xc"" startLine=""16"" startColumn=""9"" endLine=""16"" endColumn=""10"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0xd"" attributes=""0"" />
       </locals>
@@ -759,13 +759,13 @@ class Test
       </scope>
     </method>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test"" methodName=""get_Item"" parameterNames=""i"" />
+      <customDebugInfo>
+        <forward declaringType=""Test"" methodName=""get_Item"" parameterNames=""i"" />
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""20"" start_column=""5"" end_row=""20"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""21"" start_column=""5"" end_row=""21"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""20"" startColumn=""5"" endLine=""20"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
   </methods>
@@ -795,21 +795,21 @@ class Sample
             c.VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""Sample"" name=""Main"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""2"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""Sample"" name=""Main"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
         </using>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""26"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""4"">
-        <entry il_offset=""0x0"" start_row=""6"" start_column=""5"" end_row=""6"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""25"" file_ref=""0"" />
-        <entry il_offset=""0x7"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""76"" file_ref=""0"" />
-        <entry il_offset=""0x19"" start_row=""10"" start_column=""5"" end_row=""10"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""25"" document=""0"" />
+        <entry offset=""0x7"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""76"" document=""0"" />
+        <entry offset=""0x19"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""cki"" il_index=""0"" il_start=""0x0"" il_end=""0x1a"" attributes=""0"" />
       </locals>
@@ -819,19 +819,19 @@ class Sample
       </scope>
     </method>
     <method containingType=""Sample"" name=""myHandler"" parameterNames=""sender, args"">
-      <customDebugInfo version=""4"" count=""3"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Sample"" methodName=""Main"" parameterNames="""" />
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""212"" bucketCount=""1"">
+      <customDebugInfo>
+        <forward declaringType=""Sample"" methodName=""Main"" />
+        <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""12"" start_column=""5"" end_row=""12"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""14"" start_column=""5"" end_row=""14"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
       </locals>
@@ -885,22 +885,22 @@ struct Test
 <symbols>
   <methods>
     <method containingType=""Test"" name="".ctor"" parameterNames=""d"">
-      <customDebugInfo version=""4"" count=""3"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
         </using>
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""212"" bucketCount=""1"">
+        <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d1"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""3"">
-        <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""20"" file_ref=""0"" />
-        <entry il_offset=""0x8"" start_row=""10"" start_column=""5"" end_row=""10"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""20"" document=""0"" />
+        <entry offset=""0x8"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""d1"" il_index=""0"" il_start=""0x0"" il_end=""0x9"" attributes=""0"" />
       </locals>
@@ -909,22 +909,22 @@ struct Test
         <local name=""d1"" il_index=""0"" il_start=""0x0"" il_end=""0x9"" attributes=""0"" />
       </scope>
     </method>
-    <method containingType=""Test"" name=""get_D"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""3"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test"" methodName="".ctor"" parameterNames=""d"" />
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""212"" bucketCount=""1"">
+    <method containingType=""Test"" name=""get_D"">
+      <customDebugInfo>
+        <forward declaringType=""Test"" methodName="".ctor"" parameterNames=""d"" />
+        <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d2"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""23"" />
           <slot kind=""temp"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""3"">
-        <entry il_offset=""0x0"" start_row=""14"" start_column=""9"" end_row=""14"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""16"" start_column=""13"" end_row=""16"" end_column=""22"" file_ref=""0"" />
-        <entry il_offset=""0xa"" start_row=""17"" start_column=""9"" end_row=""17"" end_column=""10"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x1"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""22"" document=""0"" />
+        <entry offset=""0xa"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""d2"" il_index=""0"" il_start=""0x0"" il_end=""0xc"" attributes=""0"" />
       </locals>
@@ -933,20 +933,20 @@ struct Test
       </scope>
     </method>
     <method containingType=""Test"" name=""set_D"" parameterNames=""value"">
-      <customDebugInfo version=""4"" count=""3"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test"" methodName="".ctor"" parameterNames=""d"" />
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""212"" bucketCount=""1"">
+      <customDebugInfo>
+        <forward declaringType=""Test"" methodName="".ctor"" parameterNames=""d"" />
+        <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d3"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""23"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""3"">
-        <entry il_offset=""0x0"" start_row=""19"" start_column=""9"" end_row=""19"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""21"" start_column=""13"" end_row=""21"" end_column=""23"" file_ref=""0"" />
-        <entry il_offset=""0x8"" start_row=""22"" start_column=""9"" end_row=""22"" end_column=""10"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x1"" startLine=""21"" startColumn=""13"" endLine=""21"" endColumn=""23"" document=""0"" />
+        <entry offset=""0x8"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""10"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""d3"" il_index=""0"" il_start=""0x0"" il_end=""0x9"" attributes=""0"" />
       </locals>
@@ -955,21 +955,21 @@ struct Test
       </scope>
     </method>
     <method containingType=""Test"" name=""op_Addition"" parameterNames=""t1, t2"">
-      <customDebugInfo version=""4"" count=""3"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test"" methodName="".ctor"" parameterNames=""d"" />
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""212"" bucketCount=""1"">
+      <customDebugInfo>
+        <forward declaringType=""Test"" methodName="".ctor"" parameterNames=""d"" />
+        <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d4"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
           <slot kind=""temp"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""3"">
-        <entry il_offset=""0x0"" start_row=""26"" start_column=""5"" end_row=""26"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""28"" start_column=""9"" end_row=""28"" end_column=""38"" file_ref=""0"" />
-        <entry il_offset=""0x16"" start_row=""29"" start_column=""5"" end_row=""29"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""26"" startColumn=""5"" endLine=""26"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""38"" document=""0"" />
+        <entry offset=""0x16"" startLine=""29"" startColumn=""5"" endLine=""29"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""d4"" il_index=""0"" il_start=""0x0"" il_end=""0x18"" attributes=""0"" />
       </locals>
@@ -977,20 +977,20 @@ struct Test
         <local name=""d4"" il_index=""0"" il_start=""0x0"" il_end=""0x18"" attributes=""0"" />
       </scope>
     </method>
-    <method containingType=""Test"" name=""Main"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""3"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test"" methodName="".ctor"" parameterNames=""d"" />
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""212"" bucketCount=""1"">
+    <method containingType=""Test"" name=""Main"">
+      <customDebugInfo>
+        <forward declaringType=""Test"" methodName="".ctor"" parameterNames=""d"" />
+        <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d5"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""31"" start_column=""5"" end_row=""31"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""33"" start_column=""5"" end_row=""33"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""31"" startColumn=""5"" endLine=""31"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""33"" startColumn=""5"" endLine=""33"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""d5"" il_index=""0"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
       </locals>
@@ -1019,26 +1019,27 @@ class Test
     }
 }";
             var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"<symbols>
+            c.VerifyPdb(@"
+<symbols>
   <methods>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
-      <customDebugInfo version=""4"" count=""2"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
         </using>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""14"" />
           <slot kind=""0"" offset=""43"" />
           <slot kind=""0"" offset=""102"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""5"">
-        <entry il_offset=""0x0"" start_row=""8"" start_column=""5"" end_row=""8"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""28"" file_ref=""0"" />
-        <entry il_offset=""0x21"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""58"" file_ref=""0"" />
-        <entry il_offset=""0x41"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""50"" file_ref=""0"" />
-        <entry il_offset=""0x61"" start_row=""12"" start_column=""5"" end_row=""12"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""28"" document=""0"" />
+        <entry offset=""0x21"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""58"" document=""0"" />
+        <entry offset=""0x41"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""50"" document=""0"" />
+        <entry offset=""0x61"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""obj1"" il_index=""0"" il_start=""0x0"" il_end=""0x62"" attributes=""0"" />
         <local name=""obj2"" il_index=""1"" il_start=""0x0"" il_end=""0x62"" attributes=""0"" />
@@ -1052,29 +1053,29 @@ class Test
       </scope>
     </method>
     <method containingType=""Test+&lt;&gt;c"" name=""&lt;Main&gt;b__2_0"" parameterNames=""d3"">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test"" methodName=""Main"" parameterNames=""args"" />
+      <customDebugInfo>
+        <forward declaringType=""Test"" methodName=""Main"" parameterNames=""args"" />
       </customDebugInfo>
-      <sequencepoints total=""1"">
-        <entry il_offset=""0x0"" start_row=""9"" start_column=""25"" end_row=""9"" end_column=""27"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""9"" startColumn=""25"" endLine=""9"" endColumn=""27"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
     <method containingType=""Test+&lt;&gt;c"" name=""&lt;Main&gt;b__2_1"" parameterNames=""d4"">
-      <customDebugInfo version=""4"" count=""3"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test"" methodName=""Main"" parameterNames=""args"" />
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""212"" bucketCount=""1"">
+      <customDebugInfo>
+        <forward declaringType=""Test"" methodName=""Main"" parameterNames=""args"" />
+        <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d5"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""10"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""3"">
-        <entry il_offset=""0x0"" start_row=""10"" start_column=""32"" end_row=""10"" end_column=""33"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""10"" start_column=""46"" end_row=""10"" end_column=""54"" file_ref=""0"" />
-        <entry il_offset=""0x5"" start_row=""10"" start_column=""55"" end_row=""10"" end_column=""56"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""10"" startColumn=""32"" endLine=""10"" endColumn=""33"" document=""0"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""46"" endLine=""10"" endColumn=""54"" document=""0"" />
+        <entry offset=""0x5"" startLine=""10"" startColumn=""55"" endLine=""10"" endColumn=""56"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""d5"" il_index=""0"" il_start=""0x0"" il_end=""0x6"" attributes=""0"" />
       </locals>
@@ -1083,14 +1084,14 @@ class Test
       </scope>
     </method>
     <method containingType=""Test+&lt;&gt;c"" name=""&lt;Main&gt;b__2_2"" parameterNames=""d6"">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test"" methodName=""Main"" parameterNames=""args"" />
+      <customDebugInfo>
+        <forward declaringType=""Test"" methodName=""Main"" parameterNames=""args"" />
       </customDebugInfo>
-      <sequencepoints total=""3"">
-        <entry il_offset=""0x0"" start_row=""11"" start_column=""35"" end_row=""11"" end_column=""36"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""11"" start_column=""37"" end_row=""11"" end_column=""47"" file_ref=""0"" />
-        <entry il_offset=""0x5"" start_row=""11"" start_column=""48"" end_row=""11"" end_column=""49"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""11"" startColumn=""35"" endLine=""11"" endColumn=""36"" document=""0"" />
+        <entry offset=""0x1"" startLine=""11"" startColumn=""37"" endLine=""11"" endColumn=""47"" document=""0"" />
+        <entry offset=""0x5"" startLine=""11"" startColumn=""48"" endLine=""11"" endColumn=""49"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
   </methods>
@@ -1168,11 +1169,11 @@ class Test
 <symbols>
   <methods>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
-      <customDebugInfo version=""4"" count=""3"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""3"" />
         </using>
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""2812"" bucketCount=""14"">
+        <dynamicLocals>
           <bucket flagCount=""2"" flags=""01"" slotId=""2"" localName=""scores"" />
           <bucket flagCount=""2"" flags=""01"" slotId=""3"" localName=""arrDynamic"" />
           <bucket flagCount=""2"" flags=""01"" slotId=""4"" localName=""scoreQuery1"" />
@@ -1188,7 +1189,7 @@ class Test
           <bucket flagCount=""1"" flags=""1"" slotId=""23"" localName=""dInCatch"" />
           <bucket flagCount=""1"" flags=""1"" slotId=""24"" localName=""dInFinally"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""80"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""15"" />
           <slot kind=""0"" offset=""38"" />
           <slot kind=""0"" offset=""89"" />
@@ -1216,44 +1217,44 @@ class Test
           <slot kind=""0"" offset=""1018"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""36"">
-        <entry il_offset=""0x0"" start_row=""8"" start_column=""5"" end_row=""8"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""20"" file_ref=""0"" />
-        <entry il_offset=""0x3"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""46"" file_ref=""0"" />
-        <entry il_offset=""0x15"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""69"" file_ref=""0"" />
-        <entry il_offset=""0x3c"" start_row=""12"" start_column=""9"" end_row=""12"" end_column=""64"" file_ref=""0"" />
-        <entry il_offset=""0x5b"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x5d"" start_row=""14"" start_column=""9"" end_row=""14"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x5e"" start_row=""16"" start_column=""13"" end_row=""16"" end_column=""18"" file_ref=""0"" />
-        <entry il_offset=""0x66"" start_row=""17"" start_column=""9"" end_row=""17"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x67"" start_row=""13"" start_column=""9"" end_row=""13"" end_column=""23"" file_ref=""0"" />
-        <entry il_offset=""0x6d"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x71"" start_row=""19"" start_column=""9"" end_row=""19"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x72"" start_row=""21"" start_column=""13"" end_row=""21"" end_column=""18"" file_ref=""0"" />
-        <entry il_offset=""0x7a"" start_row=""22"" start_column=""9"" end_row=""22"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x7b"" start_row=""22"" start_column=""11"" end_row=""22"" end_column=""26"" file_ref=""0"" />
-        <entry il_offset=""0x81"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x85"" start_row=""23"" start_column=""9"" end_row=""23"" end_column=""16"" file_ref=""0"" />
-        <entry il_offset=""0x86"" start_row=""23"" start_column=""27"" end_row=""23"" end_column=""33"" file_ref=""0"" />
-        <entry il_offset=""0x8c"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x8e"" start_row=""23"" start_column=""18"" end_row=""23"" end_column=""23"" file_ref=""0"" />
-        <entry il_offset=""0x95"" start_row=""24"" start_column=""9"" end_row=""24"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x96"" start_row=""26"" start_column=""9"" end_row=""26"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x97"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x9d"" start_row=""23"" start_column=""24"" end_row=""23"" end_column=""26"" file_ref=""0"" />
-        <entry il_offset=""0xa5"" start_row=""27"" start_column=""14"" end_row=""27"" end_column=""23"" file_ref=""0"" />
-        <entry il_offset=""0xa8"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0xaa"" start_row=""28"" start_column=""9"" end_row=""28"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0xab"" start_row=""30"" start_column=""9"" end_row=""30"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0xac"" start_row=""27"" start_column=""32"" end_row=""27"" end_column=""35"" file_ref=""0"" />
-        <entry il_offset=""0xb6"" start_row=""27"" start_column=""25"" end_row=""27"" end_column=""30"" file_ref=""0"" />
-        <entry il_offset=""0xbd"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0xc1"" start_row=""31"" start_column=""14"" end_row=""31"" end_column=""29"" file_ref=""0"" />
-        <entry il_offset=""0xc8"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0xca"" start_row=""32"" start_column=""9"" end_row=""32"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0xcb"" start_row=""34"" start_column=""9"" end_row=""34"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0xcc"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""20"" document=""0"" />
+        <entry offset=""0x3"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""46"" document=""0"" />
+        <entry offset=""0x15"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""69"" document=""0"" />
+        <entry offset=""0x3c"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""64"" document=""0"" />
+        <entry offset=""0x5b"" hidden=""true"" document=""0"" />
+        <entry offset=""0x5d"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x5e"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""18"" document=""0"" />
+        <entry offset=""0x66"" startLine=""17"" startColumn=""9"" endLine=""17"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x67"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""23"" document=""0"" />
+        <entry offset=""0x6d"" hidden=""true"" document=""0"" />
+        <entry offset=""0x71"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x72"" startLine=""21"" startColumn=""13"" endLine=""21"" endColumn=""18"" document=""0"" />
+        <entry offset=""0x7a"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x7b"" startLine=""22"" startColumn=""11"" endLine=""22"" endColumn=""26"" document=""0"" />
+        <entry offset=""0x81"" hidden=""true"" document=""0"" />
+        <entry offset=""0x85"" startLine=""23"" startColumn=""9"" endLine=""23"" endColumn=""16"" document=""0"" />
+        <entry offset=""0x86"" startLine=""23"" startColumn=""27"" endLine=""23"" endColumn=""33"" document=""0"" />
+        <entry offset=""0x8c"" hidden=""true"" document=""0"" />
+        <entry offset=""0x8e"" startLine=""23"" startColumn=""18"" endLine=""23"" endColumn=""23"" document=""0"" />
+        <entry offset=""0x95"" startLine=""24"" startColumn=""9"" endLine=""24"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x96"" startLine=""26"" startColumn=""9"" endLine=""26"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x97"" hidden=""true"" document=""0"" />
+        <entry offset=""0x9d"" startLine=""23"" startColumn=""24"" endLine=""23"" endColumn=""26"" document=""0"" />
+        <entry offset=""0xa5"" startLine=""27"" startColumn=""14"" endLine=""27"" endColumn=""23"" document=""0"" />
+        <entry offset=""0xa8"" hidden=""true"" document=""0"" />
+        <entry offset=""0xaa"" startLine=""28"" startColumn=""9"" endLine=""28"" endColumn=""10"" document=""0"" />
+        <entry offset=""0xab"" startLine=""30"" startColumn=""9"" endLine=""30"" endColumn=""10"" document=""0"" />
+        <entry offset=""0xac"" startLine=""27"" startColumn=""32"" endLine=""27"" endColumn=""35"" document=""0"" />
+        <entry offset=""0xb6"" startLine=""27"" startColumn=""25"" endLine=""27"" endColumn=""30"" document=""0"" />
+        <entry offset=""0xbd"" hidden=""true"" document=""0"" />
+        <entry offset=""0xc1"" startLine=""31"" startColumn=""14"" endLine=""31"" endColumn=""29"" document=""0"" />
+        <entry offset=""0xc8"" hidden=""true"" document=""0"" />
+        <entry offset=""0xca"" startLine=""32"" startColumn=""9"" endLine=""32"" endColumn=""10"" document=""0"" />
+        <entry offset=""0xcb"" startLine=""34"" startColumn=""9"" endLine=""34"" endColumn=""10"" document=""0"" />
+        <entry offset=""0xcc"" hidden=""true"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""d1"" il_index=""0"" il_start=""0x0"" il_end=""0xce"" attributes=""0"" />
         <local name=""arrInt"" il_index=""1"" il_start=""0x0"" il_end=""0xce"" attributes=""0"" />
@@ -1303,21 +1304,21 @@ class Test
       </scope>
     </method>
     <method containingType=""Test+&lt;&gt;c"" name=""&lt;Main&gt;b__0_0"" parameterNames=""score"">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test"" methodName=""Main"" parameterNames=""args"" />
+      <customDebugInfo>
+        <forward declaringType=""Test"" methodName=""Main"" parameterNames=""args"" />
       </customDebugInfo>
-      <sequencepoints total=""1"">
-        <entry il_offset=""0x0"" start_row=""58"" start_column=""20"" end_row=""58"" end_column=""25"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""58"" startColumn=""20"" endLine=""58"" endColumn=""25"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
     <method containingType=""Test+&lt;&gt;c"" name=""&lt;Main&gt;b__0_1"" parameterNames=""score"">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Test"" methodName=""Main"" parameterNames=""args"" />
+      <customDebugInfo>
+        <forward declaringType=""Test"" methodName=""Main"" parameterNames=""args"" />
       </customDebugInfo>
-      <sequencepoints total=""1"">
-        <entry il_offset=""0x0"" start_row=""61"" start_column=""20"" end_row=""61"" end_column=""25"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""61"" startColumn=""20"" endLine=""61"" endColumn=""25"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
   </methods>
@@ -1342,25 +1343,25 @@ class Test
 <symbols>
   <methods>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
-      <customDebugInfo version=""4"" count=""3"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
         </using>
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""412"" bucketCount=""2"">
+        <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""d"" />
           <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""v"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""13"" />
           <slot kind=""0"" offset=""29"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""4"">
-        <entry il_offset=""0x0"" start_row=""6"" start_column=""2"" end_row=""6"" end_column=""3"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""7"" start_column=""3"" end_row=""7"" end_column=""19"" file_ref=""0"" />
-        <entry il_offset=""0x7"" start_row=""8"" start_column=""3"" end_row=""8"" end_column=""13"" file_ref=""0"" />
-        <entry il_offset=""0x9"" start_row=""9"" start_column=""2"" end_row=""9"" end_column=""3"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""6"" startColumn=""2"" endLine=""6"" endColumn=""3"" document=""0"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""3"" endLine=""7"" endColumn=""19"" document=""0"" />
+        <entry offset=""0x7"" startLine=""8"" startColumn=""3"" endLine=""8"" endColumn=""13"" document=""0"" />
+        <entry offset=""0x9"" startLine=""9"" startColumn=""2"" endLine=""9"" endColumn=""3"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0xa"" attributes=""0"" />
         <local name=""v"" il_index=""1"" il_start=""0x0"" il_end=""0xa"" attributes=""0"" />
@@ -1397,23 +1398,23 @@ class Test
 <symbols>
   <methods>
     <method containingType=""Test"" name=""Main"" parameterNames=""args"">
-      <customDebugInfo version=""4"" count=""3"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
         </using>
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""212"" bucketCount=""1"">
+        <dynamicLocals>
           <bucket flagCount=""2"" flags=""01"" slotId=""0"" localName=""obj"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""22"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""4"">
-        <entry il_offset=""0x0"" start_row=""10"" start_column=""2"" end_row=""10"" end_column=""3"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""11"" start_column=""3"" end_row=""11"" end_column=""49"" file_ref=""0"" />
-        <entry il_offset=""0x7"" start_row=""12"" start_column=""3"" end_row=""12"" end_column=""19"" file_ref=""0"" />
-        <entry il_offset=""0x12"" start_row=""13"" start_column=""2"" end_row=""13"" end_column=""3"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""10"" startColumn=""2"" endLine=""10"" endColumn=""3"" document=""0"" />
+        <entry offset=""0x1"" startLine=""11"" startColumn=""3"" endLine=""11"" endColumn=""49"" document=""0"" />
+        <entry offset=""0x7"" startLine=""12"" startColumn=""3"" endLine=""12"" endColumn=""19"" document=""0"" />
+        <entry offset=""0x12"" startLine=""13"" startColumn=""2"" endLine=""13"" endColumn=""3"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""obj"" il_index=""0"" il_start=""0x0"" il_end=""0x13"" attributes=""0"" />
       </locals>
@@ -1448,23 +1449,23 @@ class Program
 <symbols>
   <methods>
     <method containingType=""Program"" name=""Main"" parameterNames=""args"">
-      <customDebugInfo version=""4"" count=""3"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""2"" />
         </using>
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""412"" bucketCount=""2"">
+        <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""yyy"" />
           <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""zzz"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
           <slot kind=""0"" offset=""41"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""10"" start_column=""5"" end_row=""10"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""yyy"" il_index=""0"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
         <local name=""zzz"" il_index=""1"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
@@ -1507,23 +1508,23 @@ class Foo<T>
 <symbols>
   <methods>
     <method containingType=""Program"" name=""Main"" parameterNames=""args"">
-      <customDebugInfo version=""4"" count=""3"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""2"" />
         </using>
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""412"" bucketCount=""2"">
+        <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""yyy"" />
           <bucket flagCount=""2"" flags=""01"" slotId=""1"" localName=""zzz"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
           <slot kind=""0"" offset=""46"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""10"" start_column=""5"" end_row=""10"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""yyy"" il_index=""0"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
         <local name=""zzz"" il_index=""1"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
@@ -1566,23 +1567,23 @@ class Foo<T,V>
 <symbols>
   <methods>
     <method containingType=""Program"" name=""Main"" parameterNames=""args"">
-      <customDebugInfo version=""4"" count=""3"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""2"" />
         </using>
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""412"" bucketCount=""2"">
+        <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""yyy"" />
           <bucket flagCount=""5"" flags=""01011"" slotId=""1"" localName=""zzz"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
           <slot kind=""0"" offset=""68"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""10"" start_column=""5"" end_row=""10"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""yyy"" il_index=""0"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
         <local name=""zzz"" il_index=""1"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
@@ -1626,25 +1627,25 @@ class Foo<T,V>
 <symbols>
   <methods>
     <method containingType=""Program"" name=""Main"" parameterNames=""args"">
-      <customDebugInfo version=""4"" count=""3"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""2"" />
         </using>
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""412"" bucketCount=""2"">
+        <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""yyy"" />
           <bucket flagCount=""5"" flags=""01011"" slotId=""2"" localName=""zzz"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
           <slot kind=""0"" offset=""37"" />
           <slot kind=""0"" offset=""92"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""3"">
-        <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""23"" file_ref=""0"" />
-        <entry il_offset=""0x3"" start_row=""11"" start_column=""5"" end_row=""11"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""23"" document=""0"" />
+        <entry offset=""0x3"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""yyy"" il_index=""0"" il_start=""0x0"" il_end=""0x4"" attributes=""0"" />
         <local name=""dummy"" il_index=""1"" il_start=""0x0"" il_end=""0x4"" attributes=""0"" />
@@ -1688,21 +1689,21 @@ class F<T,V>
 <symbols>
   <methods>
     <method containingType=""Program"" name=""Main"" parameterNames=""args"">
-      <customDebugInfo version=""4"" count=""3"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""2"" />
         </using>
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""212"" bucketCount=""1"">
+        <dynamicLocals>
           <bucket flagCount=""63"" flags=""010101010101010101010101010101010101010101010101010101010101011"" slotId=""0"" localName=""zzz"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""361"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""9"" start_column=""5"" end_row=""9"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""zzz"" il_index=""0"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
       </locals>
@@ -1742,21 +1743,21 @@ class F<T,V>
 <symbols>
   <methods>
     <method containingType=""Program"" name=""Main"" parameterNames=""args"">
-      <customDebugInfo version=""4"" count=""3"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""2"" />
         </using>
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""212"" bucketCount=""1"">
+        <dynamicLocals>
           <bucket flagCount=""0"" flags="""" slotId=""0"" localName=""zzz"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""372"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""9"" start_column=""5"" end_row=""9"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""zzz"" il_index=""0"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
       </locals>
@@ -1800,16 +1801,16 @@ class F<T,V>
 <symbols>
   <methods>
     <method containingType=""Program"" name=""Main"" parameterNames=""args"">
-      <customDebugInfo version=""4"" count=""3"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""2"" />
         </using>
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""612"" bucketCount=""3"">
+        <dynamicLocals>
           <bucket flagCount=""0"" flags="""" slotId=""0"" localName=""z1"" />
           <bucket flagCount=""0"" flags="""" slotId=""2"" localName=""z2"" />
           <bucket flagCount=""0"" flags="""" slotId=""3"" localName=""z3"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""24"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""372"" />
           <slot kind=""0"" offset=""389"" />
           <slot kind=""0"" offset=""771"" />
@@ -1817,12 +1818,12 @@ class F<T,V>
           <slot kind=""0"" offset=""1162"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""4"">
-        <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""24"" file_ref=""0"" />
-        <entry il_offset=""0x3"" start_row=""12"" start_column=""9"" end_row=""12"" end_column=""24"" file_ref=""0"" />
-        <entry il_offset=""0x6"" start_row=""13"" start_column=""5"" end_row=""13"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""24"" document=""0"" />
+        <entry offset=""0x3"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""24"" document=""0"" />
+        <entry offset=""0x6"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""z1"" il_index=""0"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
         <local name=""dummy1"" il_index=""1"" il_start=""0x0"" il_end=""0x7"" attributes=""0"" />
@@ -1873,27 +1874,27 @@ class F<T,V>
 <symbols>
   <methods>
     <method containingType=""Program"" name=""Main"" parameterNames=""args"">
-      <customDebugInfo version=""4"" count=""3"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""2"" />
         </using>
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""812"" bucketCount=""4"">
+        <dynamicLocals>
           <bucket flagCount=""0"" flags="""" slotId=""0"" localName=""z3"" />
           <bucket flagCount=""1"" flags=""1"" slotId=""1"" localName=""www"" />
           <bucket flagCount=""1"" flags=""1"" slotId=""2"" localName=""length63length63length63length63length63length63length63length6"" />
           <bucket flagCount=""0"" flags="""" slotId=""0"" localName="""" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""20"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""372"" />
           <slot kind=""0"" offset=""393"" />
           <slot kind=""0"" offset=""415"" />
           <slot kind=""0"" offset=""497"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""12"" start_column=""5"" end_row=""12"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""z3"" il_index=""0"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
         <local name=""www"" il_index=""1"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
@@ -1940,25 +1941,25 @@ class F<T>
 <symbols>
   <methods>
     <method containingType=""Program"" name=""Main"" parameterNames=""args"">
-      <customDebugInfo version=""4"" count=""3"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""2"" />
         </using>
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""612"" bucketCount=""3"">
+        <dynamicLocals>
           <bucket flagCount=""64"" flags=""0000000000000000000000000000000000000000000000000000000000000001"" slotId=""0"" localName=""yes"" />
           <bucket flagCount=""0"" flags="""" slotId=""1"" localName=""no"" />
           <bucket flagCount=""1"" flags=""1"" slotId=""2"" localName=""www"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""20"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""208"" />
           <slot kind=""0"" offset=""422"" />
           <slot kind=""0"" offset=""443"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""11"" start_column=""5"" end_row=""11"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""yes"" il_index=""0"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
         <local name=""no"" il_index=""1"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
@@ -2003,15 +2004,15 @@ class Program
 <symbols>
   <methods>
     <method containingType=""Program"" name=""Main"" parameterNames=""args"">
-      <customDebugInfo version=""4"" count=""3"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""2"" />
         </using>
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""412"" bucketCount=""2"">
+        <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""simple"" />
           <bucket flagCount=""1"" flags=""1"" slotId=""2"" localName=""inner"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""20"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
           <slot kind=""0"" offset=""44"" />
           <slot kind=""0"" offset=""84"" />
@@ -2019,17 +2020,17 @@ class Program
           <slot kind=""1"" offset=""36"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""9"">
-        <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""9"" start_column=""13"" end_row=""9"" end_column=""21"" file_ref=""0"" />
-        <entry il_offset=""0x3"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x5"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x6"" start_row=""10"" start_column=""26"" end_row=""10"" end_column=""27"" file_ref=""0"" />
-        <entry il_offset=""0x7"" start_row=""9"" start_column=""33"" end_row=""9"" end_column=""36"" file_ref=""0"" />
-        <entry il_offset=""0xd"" start_row=""9"" start_column=""24"" end_row=""9"" end_column=""30"" file_ref=""0"" />
-        <entry il_offset=""0x14"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x18"" start_row=""11"" start_column=""5"" end_row=""11"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""13"" endLine=""9"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x3"" hidden=""true"" document=""0"" />
+        <entry offset=""0x5"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x6"" startLine=""10"" startColumn=""26"" endLine=""10"" endColumn=""27"" document=""0"" />
+        <entry offset=""0x7"" startLine=""9"" startColumn=""33"" endLine=""9"" endColumn=""36"" document=""0"" />
+        <entry offset=""0xd"" startLine=""9"" startColumn=""24"" endLine=""9"" endColumn=""30"" document=""0"" />
+        <entry offset=""0x14"" hidden=""true"" document=""0"" />
+        <entry offset=""0x18"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""simple"" il_index=""0"" il_start=""0x0"" il_end=""0x19"" attributes=""0"" />
         <local name=""x"" il_index=""1"" il_start=""0x1"" il_end=""0x18"" attributes=""0"" />
@@ -2048,19 +2049,19 @@ class Program
       </scope>
     </method>
     <method containingType=""Program"" name=""nothing"" parameterNames=""localArg"">
-      <customDebugInfo version=""4"" count=""3"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
-        <dynamicLocals version=""4"" kind=""DynamicLocals"" size=""212"" bucketCount=""1"">
+      <customDebugInfo>
+        <forward declaringType=""Program"" methodName=""Main"" parameterNames=""args"" />
+        <dynamicLocals>
           <bucket flagCount=""1"" flags=""1"" slotId=""0"" localName=""localInner"" />
         </dynamicLocals>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""19"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""14"" start_column=""5"" end_row=""14"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""16"" start_column=""5"" end_row=""16"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""14"" startColumn=""5"" endLine=""14"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""16"" startColumn=""5"" endLine=""16"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""localInner"" il_index=""0"" il_start=""0x0"" il_end=""0x2"" attributes=""0"" />
       </locals>
@@ -2095,25 +2096,25 @@ class C
             c.VerifyPdb(@"
 <symbols>
   <methods>
-    <method containingType=""C"" name=""Main"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""C"" name=""Main"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""0"" />
         </using>
       </customDebugInfo>
-      <sequencepoints total=""2"">
-        <entry il_offset=""0x0"" start_row=""6"" start_column=""9"" end_row=""6"" end_column=""34"" file_ref=""0"" />
-        <entry il_offset=""0x6"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""34"" document=""0"" />
+        <entry offset=""0x6"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
-    <method containingType=""C"" name=""GetDynamic"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""Main"" parameterNames="""" />
+    <method containingType=""C"" name=""GetDynamic"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""Main"" />
       </customDebugInfo>
-      <sequencepoints total=""1"">
-        <entry il_offset=""0x0"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""20"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""20"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
   </methods>

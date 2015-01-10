@@ -694,12 +694,12 @@ namespace Roslyn.Test.Utilities
             var doc = new XmlDocument();
             doc.LoadXml(pdbXml);
 
-            foreach (XmlNode entry in doc.GetElementsByTagName("sequencepoints"))
+            foreach (XmlNode entry in doc.GetElementsByTagName("sequencePoints"))
             {
                 foreach (XmlElement item in entry.ChildNodes)
                 {
                     yield return KeyValuePair.Create(
-                        Convert.ToInt32(item.GetAttribute("il_offset"), 16),
+                        Convert.ToInt32(item.GetAttribute("offset"), 16),
                         (item.GetAttribute("hidden") == "true") ? "~" : "-");
                 }
             }

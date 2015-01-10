@@ -110,12 +110,12 @@ public class C
             v0.VerifyPdb("C.M", @"
 <symbols>
   <methods>
-    <method containingType=""C"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""2"">
-        <using version=""4"" kind=""UsingInfo"" size=""12"" namespaceCount=""1"">
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <using>
           <namespace usingCount=""1"" />
         </using>
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""24"">
+        <encLocalSlotMap>
           <slot kind=""0"" offset=""135"" />
           <slot kind=""0"" offset=""20"" />
           <slot kind=""temp"" />
@@ -125,28 +125,28 @@ public class C
           <slot kind=""1"" offset=""147"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""20"">
-        <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""8"" start_column=""14"" end_row=""8"" end_column=""23"" file_ref=""0"" />
-        <entry il_offset=""0x3"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x5"" start_row=""8"" start_column=""37"" end_row=""8"" end_column=""58"" file_ref=""0"" />
-        <entry il_offset=""0xc"" start_row=""8"" start_column=""32"" end_row=""8"" end_column=""35"" file_ref=""0"" />
-        <entry il_offset=""0x12"" start_row=""8"" start_column=""25"" end_row=""8"" end_column=""30"" file_ref=""0"" />
-        <entry il_offset=""0x17"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x1a"" start_row=""9"" start_column=""14"" end_row=""9"" end_column=""23"" file_ref=""0"" />
-        <entry il_offset=""0x1d"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x1f"" start_row=""9"" start_column=""37"" end_row=""9"" end_column=""58"" file_ref=""0"" />
-        <entry il_offset=""0x26"" start_row=""9"" start_column=""32"" end_row=""9"" end_column=""35"" file_ref=""0"" />
-        <entry il_offset=""0x2e"" start_row=""9"" start_column=""25"" end_row=""9"" end_column=""30"" file_ref=""0"" />
-        <entry il_offset=""0x35"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x39"" start_row=""12"" start_column=""14"" end_row=""12"" end_column=""19"" file_ref=""0"" />
-        <entry il_offset=""0x3b"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x3d"" start_row=""12"" start_column=""33"" end_row=""12"" end_column=""54"" file_ref=""0"" />
-        <entry il_offset=""0x44"" start_row=""12"" start_column=""28"" end_row=""12"" end_column=""31"" file_ref=""0"" />
-        <entry il_offset=""0x4a"" start_row=""12"" start_column=""21"" end_row=""12"" end_column=""26"" file_ref=""0"" />
-        <entry il_offset=""0x50"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x54"" start_row=""13"" start_column=""5"" end_row=""13"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""14"" endLine=""8"" endColumn=""23"" document=""0"" />
+        <entry offset=""0x3"" hidden=""true"" document=""0"" />
+        <entry offset=""0x5"" startLine=""8"" startColumn=""37"" endLine=""8"" endColumn=""58"" document=""0"" />
+        <entry offset=""0xc"" startLine=""8"" startColumn=""32"" endLine=""8"" endColumn=""35"" document=""0"" />
+        <entry offset=""0x12"" startLine=""8"" startColumn=""25"" endLine=""8"" endColumn=""30"" document=""0"" />
+        <entry offset=""0x17"" hidden=""true"" document=""0"" />
+        <entry offset=""0x1a"" startLine=""9"" startColumn=""14"" endLine=""9"" endColumn=""23"" document=""0"" />
+        <entry offset=""0x1d"" hidden=""true"" document=""0"" />
+        <entry offset=""0x1f"" startLine=""9"" startColumn=""37"" endLine=""9"" endColumn=""58"" document=""0"" />
+        <entry offset=""0x26"" startLine=""9"" startColumn=""32"" endLine=""9"" endColumn=""35"" document=""0"" />
+        <entry offset=""0x2e"" startLine=""9"" startColumn=""25"" endLine=""9"" endColumn=""30"" document=""0"" />
+        <entry offset=""0x35"" hidden=""true"" document=""0"" />
+        <entry offset=""0x39"" startLine=""12"" startColumn=""14"" endLine=""12"" endColumn=""19"" document=""0"" />
+        <entry offset=""0x3b"" hidden=""true"" document=""0"" />
+        <entry offset=""0x3d"" startLine=""12"" startColumn=""33"" endLine=""12"" endColumn=""54"" document=""0"" />
+        <entry offset=""0x44"" startLine=""12"" startColumn=""28"" endLine=""12"" endColumn=""31"" document=""0"" />
+        <entry offset=""0x4a"" startLine=""12"" startColumn=""21"" endLine=""12"" endColumn=""26"" document=""0"" />
+        <entry offset=""0x50"" hidden=""true"" document=""0"" />
+        <entry offset=""0x54"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals>
         <local name=""j"" il_index=""0"" il_start=""0x0"" il_end=""0x55"" attributes=""0"" />
         <local name=""i"" il_index=""1"" il_start=""0x1"" il_end=""0x1a"" attributes=""0"" />
@@ -279,28 +279,28 @@ public class C
             CompileAndVerify(debug).VerifyPdb("C.M", @"
 <symbols>
   <methods>
-    <method containingType=""C"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""2"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""F"" parameterNames="""" />
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""16"">
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""F"" />
+        <encLocalSlotMap>
           <slot kind=""3"" offset=""11"" />
           <slot kind=""2"" offset=""11"" />
           <slot kind=""4"" offset=""35"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""11"">
-        <entry il_offset=""0x0"" start_row=""8"" start_column=""5"" end_row=""8"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x3"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""19"" file_ref=""0"" />
-        <entry il_offset=""0x12"" start_row=""9"" start_column=""20"" end_row=""9"" end_column=""21"" file_ref=""0"" />
-        <entry il_offset=""0x13"" start_row=""9"" start_column=""22"" end_row=""9"" end_column=""23"" file_ref=""0"" />
-        <entry il_offset=""0x16"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x21"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""20"" file_ref=""0"" />
-        <entry il_offset=""0x27"" start_row=""10"" start_column=""21"" end_row=""10"" end_column=""22"" file_ref=""0"" />
-        <entry il_offset=""0x28"" start_row=""10"" start_column=""23"" end_row=""10"" end_column=""24"" file_ref=""0"" />
-        <entry il_offset=""0x2b"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x36"" start_row=""11"" start_column=""5"" end_row=""11"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" hidden=""true"" document=""0"" />
+        <entry offset=""0x3"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""19"" document=""0"" />
+        <entry offset=""0x12"" startLine=""9"" startColumn=""20"" endLine=""9"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x13"" startLine=""9"" startColumn=""22"" endLine=""9"" endColumn=""23"" document=""0"" />
+        <entry offset=""0x16"" hidden=""true"" document=""0"" />
+        <entry offset=""0x21"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""20"" document=""0"" />
+        <entry offset=""0x27"" startLine=""10"" startColumn=""21"" endLine=""10"" endColumn=""22"" document=""0"" />
+        <entry offset=""0x28"" startLine=""10"" startColumn=""23"" endLine=""10"" endColumn=""24"" document=""0"" />
+        <entry offset=""0x2b"" hidden=""true"" document=""0"" />
+        <entry offset=""0x36"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
   </methods>
@@ -309,20 +309,20 @@ public class C
             CompileAndVerify(release).VerifyPdb("C.M", @"
 <symbols>
   <methods>
-    <method containingType=""C"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""1"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""F"" parameterNames="""" />
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""F"" />
       </customDebugInfo>
-      <sequencepoints total=""8"">
-        <entry il_offset=""0x0"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x2"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""19"" file_ref=""0"" />
-        <entry il_offset=""0x10"" start_row=""9"" start_column=""22"" end_row=""9"" end_column=""23"" file_ref=""0"" />
-        <entry il_offset=""0x12"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x1c"" start_row=""10"" start_column=""9"" end_row=""10"" end_column=""20"" file_ref=""0"" />
-        <entry il_offset=""0x22"" start_row=""10"" start_column=""23"" end_row=""10"" end_column=""24"" file_ref=""0"" />
-        <entry il_offset=""0x24"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x2e"" start_row=""11"" start_column=""5"" end_row=""11"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""0"" />
+        <entry offset=""0x2"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""19"" document=""0"" />
+        <entry offset=""0x10"" startLine=""9"" startColumn=""22"" endLine=""9"" endColumn=""23"" document=""0"" />
+        <entry offset=""0x12"" hidden=""true"" document=""0"" />
+        <entry offset=""0x1c"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""20"" document=""0"" />
+        <entry offset=""0x22"" startLine=""10"" startColumn=""23"" endLine=""10"" endColumn=""24"" document=""0"" />
+        <entry offset=""0x24"" hidden=""true"" document=""0"" />
+        <entry offset=""0x2e"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
   </methods>
@@ -2150,23 +2150,23 @@ class C
             v0.VerifyPdb("C.M", @"
 <symbols>
   <methods>
-    <method containingType=""C"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""2"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""F"" parameterNames="""" />
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""F"" />
+        <encLocalSlotMap>
           <slot kind=""1"" offset=""11"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""8"">
-        <entry il_offset=""0x0"" start_row=""6"" start_column=""5"" end_row=""6"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""7"" start_column=""9"" end_row=""7"" end_column=""21"" file_ref=""0"" />
-        <entry il_offset=""0x7"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x13"" start_row=""9"" start_column=""21"" end_row=""9"" end_column=""49"" file_ref=""0"" />
-        <entry il_offset=""0x1a"" start_row=""9"" start_column=""50"" end_row=""9"" end_column=""56"" file_ref=""0"" />
-        <entry il_offset=""0x1c"" start_row=""10"" start_column=""21"" end_row=""10"" end_column=""49"" file_ref=""0"" />
-        <entry il_offset=""0x23"" start_row=""10"" start_column=""50"" end_row=""10"" end_column=""56"" file_ref=""0"" />
-        <entry il_offset=""0x25"" start_row=""12"" start_column=""5"" end_row=""12"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x7"" hidden=""true"" document=""0"" />
+        <entry offset=""0x13"" startLine=""9"" startColumn=""21"" endLine=""9"" endColumn=""49"" document=""0"" />
+        <entry offset=""0x1a"" startLine=""9"" startColumn=""50"" endLine=""9"" endColumn=""56"" document=""0"" />
+        <entry offset=""0x1c"" startLine=""10"" startColumn=""21"" endLine=""10"" endColumn=""49"" document=""0"" />
+        <entry offset=""0x23"" startLine=""10"" startColumn=""50"" endLine=""10"" endColumn=""56"" document=""0"" />
+        <entry offset=""0x25"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
   </methods>
@@ -2265,22 +2265,22 @@ class C
             v0.VerifyPdb("C.M", @"
 <symbols>
   <methods>
-    <method containingType=""C"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""2"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""F"" parameterNames="""" />
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""F"" />
+        <encLocalSlotMap>
           <slot kind=""1"" offset=""11"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""7"">
-        <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""17"" file_ref=""0"" />
-        <entry il_offset=""0x7"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0xa"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0xb"" start_row=""10"" start_column=""13"" end_row=""10"" end_column=""41"" file_ref=""0"" />
-        <entry il_offset=""0x12"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x13"" start_row=""12"" start_column=""5"" end_row=""12"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""17"" document=""0"" />
+        <entry offset=""0x7"" hidden=""true"" document=""0"" />
+        <entry offset=""0xa"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""0"" />
+        <entry offset=""0xb"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" document=""0"" />
+        <entry offset=""0x12"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x13"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
   </methods>
@@ -2371,23 +2371,23 @@ class C
             v0.VerifyPdb("C.M", @"
 <symbols>
   <methods>
-    <method containingType=""C"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""2"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""F"" parameterNames="""" />
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""F"" />
+        <encLocalSlotMap>
           <slot kind=""1"" offset=""11"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""8"">
-        <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x3"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x4"" start_row=""10"" start_column=""13"" end_row=""10"" end_column=""41"" file_ref=""0"" />
-        <entry il_offset=""0xb"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0xc"" start_row=""8"" start_column=""9"" end_row=""8"" end_column=""20"" file_ref=""0"" />
-        <entry il_offset=""0x12"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x15"" start_row=""12"" start_column=""5"" end_row=""12"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" hidden=""true"" document=""0"" />
+        <entry offset=""0x3"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x4"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" document=""0"" />
+        <entry offset=""0xb"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""0"" />
+        <entry offset=""0xc"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""20"" document=""0"" />
+        <entry offset=""0x12"" hidden=""true"" document=""0"" />
+        <entry offset=""0x15"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
   </methods>
@@ -2479,22 +2479,22 @@ class C
             v0.VerifyPdb("C.M", @"
 <symbols>
   <methods>
-    <method containingType=""C"" name=""M"" parameterNames="""">
-      <customDebugInfo version=""4"" count=""2"">
-        <forward version=""4"" kind=""ForwardInfo"" size=""12"" declaringType=""C"" methodName=""F"" parameterNames="""" />
-        <encLocalSlotMap version=""4"" kind=""EditAndContinueLocalSlotMap"" size=""12"">
+    <method containingType=""C"" name=""M"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""F"" />
+        <encLocalSlotMap>
           <slot kind=""1"" offset=""11"" />
         </encLocalSlotMap>
       </customDebugInfo>
-      <sequencepoints total=""7"">
-        <entry il_offset=""0x0"" start_row=""7"" start_column=""5"" end_row=""7"" end_column=""6"" file_ref=""0"" />
-        <entry il_offset=""0x1"" start_row=""9"" start_column=""9"" end_row=""9"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0x2"" start_row=""10"" start_column=""13"" end_row=""10"" end_column=""41"" file_ref=""0"" />
-        <entry il_offset=""0x9"" start_row=""11"" start_column=""9"" end_row=""11"" end_column=""10"" file_ref=""0"" />
-        <entry il_offset=""0xa"" start_row=""12"" start_column=""9"" end_row=""12"" end_column=""21"" file_ref=""0"" />
-        <entry il_offset=""0x10"" hidden=""true"" start_row=""16707566"" start_column=""0"" end_row=""16707566"" end_column=""0"" file_ref=""0"" />
-        <entry il_offset=""0x13"" start_row=""13"" start_column=""5"" end_row=""13"" end_column=""6"" file_ref=""0"" />
-      </sequencepoints>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""10"" document=""0"" />
+        <entry offset=""0x2"" startLine=""10"" startColumn=""13"" endLine=""10"" endColumn=""41"" document=""0"" />
+        <entry offset=""0x9"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""0"" />
+        <entry offset=""0xa"" startLine=""12"" startColumn=""9"" endLine=""12"" endColumn=""21"" document=""0"" />
+        <entry offset=""0x10"" hidden=""true"" document=""0"" />
+        <entry offset=""0x13"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""0"" />
+      </sequencePoints>
       <locals />
     </method>
   </methods>

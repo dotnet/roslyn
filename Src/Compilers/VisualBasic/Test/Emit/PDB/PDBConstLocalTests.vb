@@ -33,12 +33,12 @@ end class
             compilation.VerifyPdb("C.M",
 <symbols>
     <methods>
-        <method containingType="C" name="M" parameterNames="">
-            <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="19" file_ref="0"/>
-                <entry il_offset="0x1" start_row="6" start_column="9" end_row="6" end_column="33" file_ref="0"/>
-                <entry il_offset="0x8" start_row="7" start_column="5" end_row="7" end_column="12" file_ref="0"/>
-            </sequencepoints>
+        <method containingType="C" name="M">
+            <sequencePoints>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="19" document="0"/>
+                <entry offset="0x1" startLine="6" startColumn="9" endLine="6" endColumn="33" document="0"/>
+                <entry offset="0x8" startLine="7" startColumn="5" endLine="7" endColumn="12" document="0"/>
+            </sequencePoints>
             <locals>
                 <constant name="x" value="1" type="Int32"/>
                 <constant name="y" value="2" type="Int32"/>
@@ -82,11 +82,11 @@ end class
 <symbols>
     <methods>
         <method containingType="C" name="M" parameterNames="a">
-            <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="30" file_ref="0"/>
-                <entry il_offset="0x1" start_row="5" start_column="9" end_row="11" end_column="11" file_ref="0"/>
-                <entry il_offset="0x2c" start_row="12" start_column="5" end_row="12" end_column="12" file_ref="0"/>
-            </sequencepoints>
+            <sequencePoints>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="30" document="0"/>
+                <entry offset="0x1" startLine="5" startColumn="9" endLine="11" endColumn="11" document="0"/>
+                <entry offset="0x2c" startLine="12" startColumn="5" endLine="12" endColumn="12" document="0"/>
+            </sequencePoints>
             <locals>
                 <constant name="x" value="1" type="Int32"/>
             </locals>
@@ -96,12 +96,12 @@ end class
                 <constant name="x" value="1" type="Int32"/>
             </scope>
         </method>
-        <method containingType="C+_Closure$__" name="_Lambda$__1-1" parameterNames="">
-            <sequencepoints total="3">
-                <entry il_offset="0x0" start_row="6" start_column="13" end_row="6" end_column="18" file_ref="0"/>
-                <entry il_offset="0x1" start_row="9" start_column="17" end_row="9" end_column="45" file_ref="0"/>
-                <entry il_offset="0x8" start_row="10" start_column="13" end_row="10" end_column="20" file_ref="0"/>
-            </sequencepoints>
+        <method containingType="C+_Closure$__" name="_Lambda$__1-1">
+            <sequencePoints>
+                <entry offset="0x0" startLine="6" startColumn="13" endLine="6" endColumn="18" document="0"/>
+                <entry offset="0x1" startLine="9" startColumn="17" endLine="9" endColumn="45" document="0"/>
+                <entry offset="0x8" startLine="10" startColumn="13" endLine="10" endColumn="20" document="0"/>
+            </sequencePoints>
             <locals>
                 <constant name="y" value="2" type="Int32"/>
                 <constant name="z" value="3" type="Int32"/>
@@ -179,11 +179,11 @@ End Class
             invariantStr = invariantStr.Replace("value=""1,5""", "value=""1.5""")
             Dim expected = <symbols>
                                <methods>
-                                   <method containingType="C" name="M" parameterNames="">
-                                       <sequencepoints total="2">
-                                           <entry il_offset="0x0" start_row="3" start_column="5" end_row="3" end_column="12" file_ref="0"/>
-                                           <entry il_offset="0x1" start_row="10" start_column="5" end_row="10" end_column="12" file_ref="0"/>
-                                       </sequencepoints>
+                                   <method containingType="C" name="M">
+                                       <sequencePoints>
+                                           <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="12" document="0"/>
+                                           <entry offset="0x1" startLine="10" startColumn="5" endLine="10" endColumn="12" document="0"/>
+                                       </sequencePoints>
                                        <locals>
                                            <constant name="o" value="0" type="Int32"/>
                                            <constant name="s" value="hello" type="String"/>

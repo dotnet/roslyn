@@ -104,14 +104,14 @@ End Namespace
                         <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="40, 26, 2D, BC, C1, 9A,  B, B7, 68, F0, ED, 8E, CA, 70, 22, 73, 78, 33, EA, C0, "/>
                         <file id="2" name="b.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="94, 7A, FB,  B, 3B, B0, EF, 63, B9, ED, E8, A9, D0, 58, BA, D0, 21,  7, C2, CE, "/>
                     </files>
-                    <entryPoint declaringType="Boo.C1" methodName="Main" parameterNames=""/>
+                    <entryPoint declaringType="Boo.C1" methodName="Main"/>
                     <methods>
-                        <method containingType="Boo.C1" name=".ctor" parameterNames="">
-                            <sequencepoints total="3">
-                                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                                <entry il_offset="0x6" start_row="22" start_column="12" end_row="22" end_column="43" file_ref="1"/>
-                                <entry il_offset="0x16" start_row="16" start_column="12" end_row="16" end_column="43" file_ref="2"/>
-                            </sequencepoints>
+                        <method containingType="Boo.C1" name=".ctor">
+                            <sequencePoints>
+                                <entry offset="0x0" hidden="true" document="1"/>
+                                <entry offset="0x6" startLine="22" startColumn="12" endLine="22" endColumn="43" document="1"/>
+                                <entry offset="0x16" startLine="16" startColumn="12" endLine="16" endColumn="43" document="2"/>
+                            </sequencePoints>
                             <locals/>
                             <scope startOffset="0x0" endOffset="0x27">
                                 <xmlnamespace prefix="file1" name="http://stuff/fromFile" importlevel="file"/>
@@ -131,34 +131,34 @@ End Namespace
                                 <currentnamespace name="Boo"/>
                             </scope>
                         </method>
-                        <method containingType="Boo.C1" name="Main" parameterNames="">
-                            <sequencepoints total="3">
-                                <entry il_offset="0x0" start_row="24" start_column="5" end_row="24" end_column="29" file_ref="1"/>
-                                <entry il_offset="0x1" start_row="25" start_column="9" end_row="25" end_column="42" file_ref="1"/>
-                                <entry il_offset="0xc" start_row="26" start_column="5" end_row="26" end_column="12" file_ref="1"/>
-                            </sequencepoints>
+                        <method containingType="Boo.C1" name="Main">
+                            <sequencePoints>
+                                <entry offset="0x0" startLine="24" startColumn="5" endLine="24" endColumn="29" document="1"/>
+                                <entry offset="0x1" startLine="25" startColumn="9" endLine="25" endColumn="42" document="1"/>
+                                <entry offset="0xc" startLine="26" startColumn="5" endLine="26" endColumn="12" document="1"/>
+                            </sequencePoints>
                             <locals/>
                             <scope startOffset="0x0" endOffset="0xd">
-                                <importsforward declaringType="Boo.C1" methodName=".ctor" parameterNames=""/>
+                                <importsforward declaringType="Boo.C1" methodName=".ctor"/>
                             </scope>
                         </method>
-                        <method containingType="Boo.C1" name="DoStuff" parameterNames="">
-                            <sequencepoints total="3">
-                                <entry il_offset="0x0" start_row="28" start_column="5" end_row="28" end_column="32" file_ref="1"/>
-                                <entry il_offset="0x1" start_row="29" start_column="9" end_row="29" end_column="48" file_ref="1"/>
-                                <entry il_offset="0xc" start_row="30" start_column="5" end_row="30" end_column="12" file_ref="1"/>
-                            </sequencepoints>
+                        <method containingType="Boo.C1" name="DoStuff">
+                            <sequencePoints>
+                                <entry offset="0x0" startLine="28" startColumn="5" endLine="28" endColumn="32" document="1"/>
+                                <entry offset="0x1" startLine="29" startColumn="9" endLine="29" endColumn="48" document="1"/>
+                                <entry offset="0xc" startLine="30" startColumn="5" endLine="30" endColumn="12" document="1"/>
+                            </sequencePoints>
                             <locals/>
                             <scope startOffset="0x0" endOffset="0xd">
-                                <importsforward declaringType="Boo.C1" methodName=".ctor" parameterNames=""/>
+                                <importsforward declaringType="Boo.C1" methodName=".ctor"/>
                             </scope>
                         </method>
-                        <method containingType="C2" name="DoStuff2" parameterNames="">
-                            <sequencepoints total="3">
-                                <entry il_offset="0x0" start_row="23" start_column="5" end_row="23" end_column="33" file_ref="2"/>
-                                <entry il_offset="0x1" start_row="24" start_column="9" end_row="24" end_column="65" file_ref="2"/>
-                                <entry il_offset="0xc" start_row="25" start_column="5" end_row="25" end_column="12" file_ref="2"/>
-                            </sequencepoints>
+                        <method containingType="C2" name="DoStuff2">
+                            <sequencePoints>
+                                <entry offset="0x0" startLine="23" startColumn="5" endLine="23" endColumn="33" document="2"/>
+                                <entry offset="0x1" startLine="24" startColumn="9" endLine="24" endColumn="65" document="2"/>
+                                <entry offset="0xc" startLine="25" startColumn="5" endLine="25" endColumn="12" document="2"/>
+                            </sequencePoints>
                             <locals/>
                             <scope startOffset="0x0" endOffset="0xd">
                                 <xmlnamespace prefix="file2" name="http://stuff/fromFile" importlevel="file"/>
@@ -282,14 +282,14 @@ End Namespace
                         <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="93, 20, A5, 3E, 2C, 50, B2,  E, 7C, D6, 29, 3F, E9, 9E, 33, 72, A6, 21, FD, 3F, "/>
                         <file id="2" name="b.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="94, 7A, FB,  B, 3B, B0, EF, 63, B9, ED, E8, A9, D0, 58, BA, D0, 21,  7, C2, CE, "/>
                     </files>
-                    <entryPoint declaringType="DefaultNamespace.Boo.C1" methodName="Main" parameterNames=""/>
+                    <entryPoint declaringType="DefaultNamespace.Boo.C1" methodName="Main"/>
                     <methods>
-                        <method containingType="DefaultNamespace.Boo.C1" name=".ctor" parameterNames="">
-                            <sequencepoints total="3">
-                                <entry il_offset="0x0" hidden="true" start_row="16707566" start_column="0" end_row="16707566" end_column="0" file_ref="1"/>
-                                <entry il_offset="0x6" start_row="22" start_column="12" end_row="22" end_column="43" file_ref="1"/>
-                                <entry il_offset="0x16" start_row="16" start_column="12" end_row="16" end_column="43" file_ref="2"/>
-                            </sequencepoints>
+                        <method containingType="DefaultNamespace.Boo.C1" name=".ctor">
+                            <sequencePoints>
+                                <entry offset="0x0" hidden="true" document="1"/>
+                                <entry offset="0x6" startLine="22" startColumn="12" endLine="22" endColumn="43" document="1"/>
+                                <entry offset="0x16" startLine="16" startColumn="12" endLine="16" endColumn="43" document="2"/>
+                            </sequencePoints>
                             <locals/>
                             <scope startOffset="0x0" endOffset="0x27">
                                 <xmlnamespace prefix="file1" name="http://stuff/fromFile" importlevel="file"/>
@@ -310,34 +310,34 @@ End Namespace
                                 <currentnamespace name="DefaultNamespace.Boo"/>
                             </scope>
                         </method>
-                        <method containingType="DefaultNamespace.Boo.C1" name="Main" parameterNames="">
-                            <sequencepoints total="3">
-                                <entry il_offset="0x0" start_row="24" start_column="5" end_row="24" end_column="29" file_ref="1"/>
-                                <entry il_offset="0x1" start_row="25" start_column="9" end_row="25" end_column="42" file_ref="1"/>
-                                <entry il_offset="0xc" start_row="26" start_column="5" end_row="26" end_column="12" file_ref="1"/>
-                            </sequencepoints>
+                        <method containingType="DefaultNamespace.Boo.C1" name="Main">
+                            <sequencePoints>
+                                <entry offset="0x0" startLine="24" startColumn="5" endLine="24" endColumn="29" document="1"/>
+                                <entry offset="0x1" startLine="25" startColumn="9" endLine="25" endColumn="42" document="1"/>
+                                <entry offset="0xc" startLine="26" startColumn="5" endLine="26" endColumn="12" document="1"/>
+                            </sequencePoints>
                             <locals/>
                             <scope startOffset="0x0" endOffset="0xd">
-                                <importsforward declaringType="DefaultNamespace.Boo.C1" methodName=".ctor" parameterNames=""/>
+                                <importsforward declaringType="DefaultNamespace.Boo.C1" methodName=".ctor"/>
                             </scope>
                         </method>
-                        <method containingType="DefaultNamespace.Boo.C1" name="DoStuff" parameterNames="">
-                            <sequencepoints total="3">
-                                <entry il_offset="0x0" start_row="28" start_column="5" end_row="28" end_column="32" file_ref="1"/>
-                                <entry il_offset="0x1" start_row="29" start_column="9" end_row="29" end_column="48" file_ref="1"/>
-                                <entry il_offset="0xc" start_row="30" start_column="5" end_row="30" end_column="12" file_ref="1"/>
-                            </sequencepoints>
+                        <method containingType="DefaultNamespace.Boo.C1" name="DoStuff">
+                            <sequencePoints>
+                                <entry offset="0x0" startLine="28" startColumn="5" endLine="28" endColumn="32" document="1"/>
+                                <entry offset="0x1" startLine="29" startColumn="9" endLine="29" endColumn="48" document="1"/>
+                                <entry offset="0xc" startLine="30" startColumn="5" endLine="30" endColumn="12" document="1"/>
+                            </sequencePoints>
                             <locals/>
                             <scope startOffset="0x0" endOffset="0xd">
-                                <importsforward declaringType="DefaultNamespace.Boo.C1" methodName=".ctor" parameterNames=""/>
+                                <importsforward declaringType="DefaultNamespace.Boo.C1" methodName=".ctor"/>
                             </scope>
                         </method>
-                        <method containingType="DefaultNamespace.C2" name="DoStuff2" parameterNames="">
-                            <sequencepoints total="3">
-                                <entry il_offset="0x0" start_row="23" start_column="5" end_row="23" end_column="33" file_ref="2"/>
-                                <entry il_offset="0x1" start_row="24" start_column="9" end_row="24" end_column="65" file_ref="2"/>
-                                <entry il_offset="0xc" start_row="25" start_column="5" end_row="25" end_column="12" file_ref="2"/>
-                            </sequencepoints>
+                        <method containingType="DefaultNamespace.C2" name="DoStuff2">
+                            <sequencePoints>
+                                <entry offset="0x0" startLine="23" startColumn="5" endLine="23" endColumn="33" document="2"/>
+                                <entry offset="0x1" startLine="24" startColumn="9" endLine="24" endColumn="65" document="2"/>
+                                <entry offset="0xc" startLine="25" startColumn="5" endLine="25" endColumn="12" document="2"/>
+                            </sequencePoints>
                             <locals/>
                             <scope startOffset="0x0" endOffset="0xd">
                                 <xmlnamespace prefix="file2" name="http://stuff/fromFile" importlevel="file"/>
