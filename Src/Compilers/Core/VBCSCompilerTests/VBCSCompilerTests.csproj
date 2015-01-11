@@ -3,11 +3,11 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
     <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
+    <Import Project="..\..\..\..\..\Closed\Tools\Source\Microsoft.CodeAnalysis.Toolset\Targets\VSL.Settings.Closed.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Nonshipping>true</Nonshipping>
     <Configuration Condition="'$(Configuration)' == ''">Debug</Configuration>
-    <OutDir>..\..\..\..\Binaries\$(Configuration)\</OutDir>
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{F5CE416E-B906-41D2-80B9-0078E887A3F6}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -67,18 +67,11 @@
     <Reference Include="..\..\..\..\packages\System.Reflection.Metadata.1.0.18-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll" />
     <Reference Include="..\..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll" />
     <Reference Include="..\..\..\..\packages\Moq.4.2.1402.2112\lib\net40\Moq.dll" />
-    <Reference Include="xunit.abstractions">
-      <HintPath>..\..\..\..\packages\xunit.abstractions.2.0.0-alpha-build2576\lib\net35\xunit.abstractions.dll</HintPath>
-    </Reference>
-    <Reference Include="xunit2.assert">
-      <HintPath>..\..\..\..\packages\xunit.assert.2.0.0-alpha-build2576\lib\net45\xunit2.assert.dll</HintPath>
-    </Reference>
-    <Reference Include="xunit2">
-      <HintPath>..\..\..\..\packages\xunit.core.2.0.0-alpha-build2576\lib\net45\xunit2.dll</HintPath>
-    </Reference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "></PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM' ">
     <PlatformTarget>ARM</PlatformTarget>
   </PropertyGroup>
@@ -118,7 +111,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="AssemblyAttributes.cs" />
     <Compile Include="BuildProtocolTest.cs" />
     <Compile Include="CompilerServerApiTest.cs" />
     <Compile Include="CompilerServerTests.cs" />
@@ -134,6 +126,8 @@
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
+    <Import Project="..\..\..\..\..\Closed\Tools\Source\Microsoft.CodeAnalysis.Toolset\Targets\VSL.Imports.Closed.targets" />
+    <Import Project="..\..\..\..\..\Closed\Tools\xUnit\Roslyn.Toolsets.Xunit.targets" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>
