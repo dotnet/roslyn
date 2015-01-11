@@ -414,6 +414,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             expressions.Push(leftMost);
 
             Debug.Assert(syntaxNodes.Count + 1 == expressions.Count);
+            int compoundStringLength = 0;
 
             while (syntaxNodes.Count > 0)
             {
@@ -422,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression left = expressions.Pop();
                 BoundExpression right = expressions.Pop();
                 left = CheckValue(left, bindValueKind, diagnostics);
-                BoundExpression boundOp = BindSimpleBinaryOperator(syntaxNode, diagnostics, left, right);
+                BoundExpression boundOp = BindSimpleBinaryOperator(syntaxNode, diagnostics, left, right, ref compoundStringLength);
                 expressions.Push(boundOp);
             }
 
@@ -436,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private BoundExpression BindSimpleBinaryOperator(BinaryExpressionSyntax node, DiagnosticBag diagnostics,
-            BoundExpression left, BoundExpression right)
+            BoundExpression left, BoundExpression right, ref int compoundStringLength)
         {
             BinaryOperatorKind kind = SyntaxKindToBinaryOperatorKind(node.Kind());
 
@@ -538,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultMethod = signature.Method;
                     resultLeft = CreateConversion(left, best.LeftConversion, signature.LeftType, diagnostics);
                     resultRight = CreateConversion(right, best.RightConversion, signature.RightType, diagnostics);
-                    resultConstant = FoldBinaryOperator(node, resultOperatorKind, resultLeft, resultRight, resultType.SpecialType, diagnostics);
+                    resultConstant = FoldBinaryOperator(node, resultOperatorKind, resultLeft, resultRight, resultType.SpecialType, diagnostics, ref compoundStringLength);
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     hasErrors = isObjectEquality && !BuiltInOperators.IsValidObjectEquality(Conversions, leftType, leftNull, rightType, rightNull, ref useSiteDiagnostics);
                     diagnostics.Add(node, useSiteDiagnostics);
@@ -1363,6 +1364,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             SpecialType resultType,
             DiagnosticBag diagnostics)
         {
+            int compoundStringLength = 0;
+            return FoldBinaryOperator(syntax, kind, left, right, resultType, diagnostics, ref compoundStringLength);
+        }
+
+        // Returns null if the operator can't be evaluated at compile time.
+        private ConstantValue FoldBinaryOperator(
+            CSharpSyntaxNode syntax,
+            BinaryOperatorKind kind,
+            BoundExpression left,
+            BoundExpression right,
+            SpecialType resultType,
+            DiagnosticBag diagnostics,
+            ref int compoundStringLength)
+        {
             Debug.Assert(left != null);
             Debug.Assert(right != null);
 
@@ -1414,6 +1429,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (newValue != null)
             {
                 return ConstantValue.Create(newValue, resultType);
+            }
+
+            ConstantValue concatResult = FoldStringConcatenation(kind, valueLeft, valueRight, ref compoundStringLength);
+            if (concatResult != null)
+            {
+                if (concatResult.IsBad)
+                {
+                    Error(diagnostics, ErrorCode.ERR_ContantStringTooLong, syntax);
+                }
+
+                return concatResult;
             }
 
             // Certain binary operations always fail if they overflow even when in an unchecked context;
@@ -1530,8 +1556,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (valueLeft.IsNull) return !valueRight.IsNull;
                     if (valueRight.IsNull) return true;
                     break;
-                case BinaryOperatorKind.StringConcatenation:
-                    return valueLeft.StringValue + valueRight.StringValue;
                 case BinaryOperatorKind.DoubleAddition:
                 case BinaryOperatorKind.FloatAddition:
                     return valueLeft.DoubleValue + valueRight.DoubleValue;
@@ -1697,6 +1721,55 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return valueLeft.UInt32Value % valueRight.UInt32Value;
                 case BinaryOperatorKind.ULongRemainder:
                     return valueLeft.UInt64Value % valueRight.UInt64Value;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Returns ConstantValue.Bad if, and only if, compound string length is out of supported limit.
+        /// The <paramref name="compoundStringLength"/> parameter contains value corresponding to the 
+        /// left node, or zero, which will trigger inference. Upon return, it will 
+        /// be adjusted to correspond future result node.
+        /// </summary>
+        private static ConstantValue FoldStringConcatenation(BinaryOperatorKind kind, ConstantValue valueLeft, ConstantValue valueRight, ref int compoundStringLength)
+        {
+            Debug.Assert(valueLeft != null);
+            Debug.Assert(valueRight != null);
+
+            if (kind == BinaryOperatorKind.StringConcatenation)
+            {
+                string leftValue = valueLeft.StringValue ?? string.Empty;
+                string rightValue = valueRight.StringValue ?? string.Empty;
+
+                if (compoundStringLength == 0)
+                {
+                    // Infer. Keep it simple for now.
+                    compoundStringLength = leftValue.Length;
+                }
+
+                Debug.Assert(compoundStringLength >= leftValue.Length);
+
+                long newCompoundLength = (long)compoundStringLength + (long)leftValue.Length + (long)rightValue.Length;
+
+                if (newCompoundLength > int.MaxValue)
+                {
+                    return ConstantValue.Bad;
+                }
+
+                ConstantValue result;
+
+                try
+                {
+                    result = ConstantValue.Create(String.Concat(leftValue, rightValue));
+                    compoundStringLength = (int)newCompoundLength;
+                }
+                catch (System.OutOfMemoryException)
+                {
+                    return ConstantValue.Bad;
+                }
+
+                return result;
             }
 
             return null;

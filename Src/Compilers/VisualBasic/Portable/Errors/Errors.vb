@@ -987,7 +987,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '//       Failure to do so may break customer code.
 
         '// AVAILABLE                             31451 - 31497
-        'ERR_ContantStringTooLong = 31498
+        ERR_ContantStringTooLong = 31498
         ERR_MustInheritEventNotOverridden = 31499
         ERR_BadAttributeSharedProperty1 = 31500
         ERR_BadAttributeReadOnlyProperty1 = 31501
@@ -1664,7 +1664,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_CannotBeMadeNullable1 = 37238
         ERR_BadConditionalWithRef = 37239
         ERR_NullPropagatingOpInExpressionTree = 37240
-        ERR_InsufficientStack = 37241
+        ERR_TooLongOrComplexExpression = 37241
 
         ERR_StructParameterlessInstanceCtorMustBePublic = 37242
         ERR_AutoPropertyCantBeWriteOnly = 37243

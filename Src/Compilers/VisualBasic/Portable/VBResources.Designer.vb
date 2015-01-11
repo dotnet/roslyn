@@ -2487,6 +2487,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants..
+        '''</summary>
+        Friend ReadOnly Property ERR_ContantStringTooLong() As String
+            Get
+                Return ResourceManager.GetString("ERR_ContantStringTooLong", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;Continue Do&apos; can only appear inside a &apos;Do&apos; statement..
         '''</summary>
         Friend ReadOnly Property ERR_ContinueDoNotWithinDo() As String
@@ -5447,15 +5456,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_InReferencedAssembly() As String
             Get
                 Return ResourceManager.GetString("ERR_InReferencedAssembly", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
-        '''  Looks up a localized string similar to An expression is too long or complex to compile.
-        '''</summary>
-        Friend ReadOnly Property ERR_InsufficientStack() As String
-            Get
-                Return ResourceManager.GetString("ERR_InsufficientStack", resourceCulture)
             End Get
         End Property
         
@@ -10133,6 +10133,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_TooLongMetadataName() As String
             Get
                 Return ResourceManager.GetString("ERR_TooLongMetadataName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to An expression is too long or complex to compile.
+        '''</summary>
+        Friend ReadOnly Property ERR_TooLongOrComplexExpression() As String
+            Get
+                Return ResourceManager.GetString("ERR_TooLongOrComplexExpression", resourceCulture)
             End Get
         End Property
         

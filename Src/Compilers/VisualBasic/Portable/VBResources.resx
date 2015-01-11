@@ -5208,7 +5208,7 @@
   <data name="ERR_StructParameterlessInstanceCtorMustBePublic" xml:space="preserve">
     <value>Parameterless instance constructors in structures must be public.</value>
   </data>
-  <data name="ERR_InsufficientStack" xml:space="preserve">
+  <data name="ERR_TooLongOrComplexExpression" xml:space="preserve">
     <value>An expression is too long or complex to compile</value>
   </data>
   <data name="ERR_ExpressionDoesntHaveName" xml:space="preserve">
@@ -5237,5 +5237,8 @@
   </data>
   <data name="HDN_UnusedImportStatement_Title" xml:space="preserve">
     <value>Unused import statement.</value>
+  </data>
+  <data name="ERR_ContantStringTooLong" xml:space="preserve">
+    <value>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</value>
   </data>
 </root>

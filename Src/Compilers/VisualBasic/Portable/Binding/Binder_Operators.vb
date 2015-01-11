@@ -176,11 +176,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' Bind
             Dim leftmost As BoundExpression = BindValue(expressionsStack.Pop(), diagnostics, False)
+            Dim compoundStringLength As Integer = 0
+
             While expressionsStack.Count > 0
                 Dim rightSyntax As ExpressionSyntax = expressionsStack.Pop()
                 Dim binarySyntax = DirectCast(rightSyntax.Parent, BinaryExpressionSyntax)
                 Dim right As BoundExpression = BindValue(rightSyntax, diagnostics, False)
-                leftmost = BindBinaryOperator(binarySyntax, leftmost, right, binarySyntax.OperatorToken.Kind, preliminaryOperatorKind, isOperandOfConditionalBranch, diagnostics)
+
+                leftmost = BindBinaryOperator(binarySyntax,
+                                              leftmost,
+                                              right,
+                                              binarySyntax.OperatorToken.Kind, preliminaryOperatorKind, isOperandOfConditionalBranch, diagnostics,
+                                              compoundStringLength:=compoundStringLength)
             End While
 
             expressionsStack.Free()
@@ -195,7 +202,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             preliminaryOperatorKind As BinaryOperatorKind,
             isOperandOfConditionalBranch As Boolean,
             diagnostics As DiagnosticBag,
-            Optional isSelectCase As Boolean = False
+            Optional isSelectCase As Boolean = False,
+            <[In], Out> Optional ByRef compoundStringLength As Integer = 0
         ) As BoundExpression
 
             Debug.Assert(left.IsValue)
@@ -286,7 +294,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If operatorKind = BinaryOperatorKind.Error Then
                 ReportUndefinedOperatorError(node, left, right, operatorTokenKind, preliminaryOperatorKind, diagnostics)
 
-                Return New BoundBinaryOperator(node, preliminaryOperatorKind Or BinaryOperatorKind.Error, left, right, CheckOverflow, ErrorTypeSymbol.UnknownResultType, HasErrors:=True)
+                Return New BoundBinaryOperator(node, preliminaryOperatorKind Or BinaryOperatorKind.Error, left, right, CheckOverflow, ErrorTypeSymbol.UnknownResultType, hasErrors:=True)
             End If
 
             ' We are dealing with intrinsic operator 
@@ -474,13 +482,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not (left.HasErrors OrElse right.HasErrors) Then
                 Dim integerOverflow As Boolean = False
                 Dim divideByZero As Boolean = False
+                Dim compoundLengthOutOfLimit As Boolean = False
 
-                value = OverloadResolution.TryFoldConstantBinaryOperator(operatorKind, left, right, operatorResultType, integerOverflow, divideByZero)
+                value = OverloadResolution.TryFoldConstantBinaryOperator(operatorKind,
+                                                                         left,
+                                                                         right,
+                                                                         operatorResultType,
+                                                                         integerOverflow,
+                                                                         divideByZero,
+                                                                         compoundLengthOutOfLimit,
+                                                                         compoundStringLength)
 
                 If value IsNot Nothing Then
                     If divideByZero Then
                         Debug.Assert(value.IsBad)
                         ReportDiagnostic(diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_ZeroDivide))
+                    ElseIf compoundLengthOutOfLimit
+                        Debug.Assert(value.IsBad)
+                        ReportDiagnostic(diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_ContantStringTooLong))
                     ElseIf (value.IsBad OrElse integerOverflow) Then
                         ' Overflows are reported regardless of the value of OptionRemoveIntegerOverflowChecks, Dev10 behavior.
                         ReportDiagnostic(diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_ExpressionOverflow1, operatorResultType))
@@ -777,7 +796,7 @@ Done:
             End If
 
             dbNullOperand = New BoundConversion(dbNullOperand.Syntax, dbNullOperand, ConversionKind.Widening,
-                                        checked:=False, explicitCastInCode:=False, Type:=stringType,
+                                        checked:=False, explicitCastInCode:=False, type:=stringType,
                                         constantValueOpt:=ConstantValue.Nothing)
 
             Return stringType

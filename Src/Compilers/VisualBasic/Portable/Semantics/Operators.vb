@@ -1005,7 +1005,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             right As BoundExpression,
             resultType As TypeSymbol,
             ByRef integerOverflow As Boolean,
-            ByRef divideByZero As Boolean
+            ByRef divideByZero As Boolean,
+            ByRef compoundLengthOutOfLimit As Boolean,
+            <[In], Out> Optional ByRef compoundStringLength As Integer = 0
         ) As ConstantValue
 
             Debug.Assert(left IsNot Nothing)
@@ -1014,6 +1016,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             integerOverflow = False
             divideByZero = False
+            compoundLengthOutOfLimit = False
 
             Dim leftConstantValue As ConstantValue = left.ConstantValueOpt
             Dim rightConstantValue As ConstantValue = right.ConstantValueOpt
@@ -1078,7 +1081,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     result = FoldStringBinaryOperator(
                                                 op,
                                                 leftConstantValue,
-                                                rightConstantValue)
+                                                rightConstantValue,
+                                                compoundStringLength)
+
+                    If result.IsBad Then
+                        compoundLengthOutOfLimit = True
+                    End If
 
                 ElseIf leftUnderlying.IsBooleanType() Then
                     result = FoldBooleanBinaryOperator(
@@ -1476,10 +1484,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 
+        ''' <summary>
+        ''' Returns ConstantValue.Bad if, and only if, compound string length is out of supported limit.
+        ''' The <paramref name="compoundStringLength"/> parameter contains value corresponding to the 
+        ''' <paramref name="left"/> node, or zero, which will trigger inference. Upon return, it will 
+        ''' be adjusted to correspond future result node.
+        ''' </summary>
         Private Shared Function FoldStringBinaryOperator(
             op As BinaryOperatorKind,
             left As ConstantValue,
-            right As ConstantValue
+            right As ConstantValue,
+            <[In], Out> Optional ByRef compoundStringLength As Integer = 0
         ) As ConstantValue
             Debug.Assert((op And BinaryOperatorKind.OpMask) = op)
 
@@ -1490,7 +1505,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Select Case op
                 Case BinaryOperatorKind.Concatenate
-                    result = ConstantValue.Create(String.Concat(leftValue, rightValue))
+                    If compoundStringLength = 0 Then
+                        ' Infer. Keep it simple for now.
+                        compoundStringLength = leftValue.Length
+                    End If
+
+                    Debug.Assert(compoundStringLength >= leftValue.Length)
+
+                    Dim newCompoundLength = CLng(compoundStringLength) + CLng(leftValue.Length) + CLng(rightValue.Length)
+
+                    If newCompoundLength > Integer.MaxValue Then
+                        Return ConstantValue.Bad
+                    End If
+
+                    Try
+                        result = ConstantValue.Create(String.Concat(leftValue, rightValue))
+                        compoundStringLength = CInt(newCompoundLength)
+                    Catch e As System.OutOfMemoryException
+                        Return ConstantValue.Bad
+                    End Try
 
                 Case BinaryOperatorKind.GreaterThan,
                      BinaryOperatorKind.LessThan,
@@ -1529,6 +1562,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Throw ExceptionUtilities.UnexpectedValue(op)
             End Select
 
+            Debug.Assert(Not result.IsBad)
             Return result
         End Function
 

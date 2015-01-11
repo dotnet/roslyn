@@ -4048,7 +4048,7 @@ lElseClause:
                 Dim integerOverflow As Boolean = False
                 Dim divideByZero As Boolean = False
                 ' Note: the value may overflow, but we ignore this and use the overflown value. 
-                Dim value = OverloadResolution.TryFoldConstantBinaryOperator(BinaryOperatorKind.Add, upperBound, one, int32Type, integerOverflow, divideByZero)
+                Dim value = OverloadResolution.TryFoldConstantBinaryOperator(BinaryOperatorKind.Add, upperBound, one, int32Type, integerOverflow, divideByZero, Nothing)
 
                 If knownSizes IsNot Nothing Then
                     If value IsNot Nothing Then

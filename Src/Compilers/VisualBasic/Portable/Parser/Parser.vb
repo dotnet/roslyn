@@ -531,7 +531,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 New SyntaxList(Of VisualBasicSyntaxNode)(),
                 DirectCast(CurrentToken, PunctuationSyntax))
 
-            Return result.AddLeadingSyntax(builder.ToList(Of SyntaxToken)(), ERRID.ERR_InsufficientStack)
+            Return result.AddLeadingSyntax(builder.ToList(Of SyntaxToken)(), ERRID.ERR_TooLongOrComplexExpression)
         End Function
 
         Friend Function ParseExecutableStatement() As StatementSyntax

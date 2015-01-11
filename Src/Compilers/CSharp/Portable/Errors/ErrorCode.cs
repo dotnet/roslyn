@@ -1305,5 +1305,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ExpressionOrDeclarationExpected = 8092,
         ERR_NameofExtensionMethod = 8093,
         WRN_AlignmentMagnitude = 8094,
+        ERR_ContantStringTooLong = 8095,
     }
 }

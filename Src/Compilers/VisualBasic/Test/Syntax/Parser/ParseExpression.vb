@@ -2697,7 +2697,7 @@ End Module]]>.Value)
 
         Dim tree = Parse(builder.ToString())
         Dim diagnostic = tree.GetDiagnostics().Single()
-        Assert.Equal(CInt(ERRID.ERR_InsufficientStack), diagnostic.Code)
+        Assert.Equal(CInt(ERRID.ERR_TooLongOrComplexExpression), diagnostic.Code)
     End Sub
 
     <Fact>
@@ -2731,7 +2731,7 @@ End Module]]>.Value)
 
         Dim tree = Parse(builder.ToString())
         Dim diagnostic = tree.GetDiagnostics().Single()
-        Assert.Equal(CInt(ERRID.ERR_InsufficientStack), diagnostic.Code)
+        Assert.Equal(CInt(ERRID.ERR_TooLongOrComplexExpression), diagnostic.Code)
     End Sub
 
 End Class
