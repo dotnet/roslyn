@@ -858,7 +858,7 @@ namespace Microsoft.CodeAnalysis
                 // added projects
                 foreach (var proj in solutionChanges.GetAddedProjects())
                 {
-                    this.AddProject(this.CreateProjectInfo(proj));
+                    this.ApplyProjectAdded(this.CreateProjectInfo(proj));
                 }
 
                 // changed projects
@@ -870,7 +870,7 @@ namespace Microsoft.CodeAnalysis
                 // removed projects
                 foreach (var proj in solutionChanges.GetRemovedProjects())
                 {
-                    this.RemoveProject(proj.Id);
+                    this.ApplyProjectRemoved(proj.Id);
                 }
 
                 return true;
@@ -980,61 +980,61 @@ namespace Microsoft.CodeAnalysis
             // changed compilation options
             if (projectChanges.OldProject.CompilationOptions != projectChanges.NewProject.CompilationOptions)
             {
-                this.ChangeCompilationOptions(projectChanges.ProjectId, projectChanges.NewProject.CompilationOptions);
+                this.ApplyCompilationOptionsChanged(projectChanges.ProjectId, projectChanges.NewProject.CompilationOptions);
             }
 
             // changed parse options
             if (projectChanges.OldProject.ParseOptions != projectChanges.NewProject.ParseOptions)
             {
-                this.ChangeParseOptions(projectChanges.ProjectId, projectChanges.NewProject.ParseOptions);
+                this.ApplyParseOptionsChanged(projectChanges.ProjectId, projectChanges.NewProject.ParseOptions);
             }
 
             // removed project references
             foreach (var removedProjectReference in projectChanges.GetRemovedProjectReferences())
             {
-                this.RemoveProjectReference(projectChanges.ProjectId, removedProjectReference);
+                this.ApplyProjectReferenceRemoved(projectChanges.ProjectId, removedProjectReference);
             }
 
             // added project references
             foreach (var addedProjectReference in projectChanges.GetAddedProjectReferences())
             {
-                this.AddProjectReference(projectChanges.ProjectId, addedProjectReference);
+                this.ApplyProjectReferenceAdded(projectChanges.ProjectId, addedProjectReference);
             }
 
             // removed metadata references
             foreach (var metadata in projectChanges.GetRemovedMetadataReferences())
             {
-                this.RemoveMetadataReference(projectChanges.ProjectId, metadata);
+                this.ApplyMetadataReferenceRemoved(projectChanges.ProjectId, metadata);
             }
 
             // added metadata references
             foreach (var metadata in projectChanges.GetAddedMetadataReferences())
             {
-                this.AddMetadataReference(projectChanges.ProjectId, metadata);
+                this.ApplyMetadataReferenceAdded(projectChanges.ProjectId, metadata);
             }
 
             // removed analyzer references
             foreach (var analyzerReference in projectChanges.GetRemovedAnalyzerReferences())
             {
-                this.RemoveAnalyzerReference(projectChanges.ProjectId, analyzerReference);
+                this.ApplyAnalyzerReferenceRemoved(projectChanges.ProjectId, analyzerReference);
             }
 
             // added analyzer references
             foreach (var analyzerReference in projectChanges.GetAddedAnalyzerReferences())
             {
-                this.AddAnalyzerReference(projectChanges.ProjectId, analyzerReference);
+                this.ApplyAnalyzerReferenceAdded(projectChanges.ProjectId, analyzerReference);
             }
 
             // removed documents
             foreach (var documentId in projectChanges.GetRemovedDocuments())
             {
-                this.RemoveDocument(documentId);
+                this.ApplyDocumentRemoved(documentId);
             }
 
             // removed documents
             foreach (var documentId in projectChanges.GetRemovedAdditionalDocuments())
             {
-                this.RemoveAdditionalDocument(documentId);
+                this.ApplyAdditionalDocumentRemoved(documentId);
             }
 
             // added documents
@@ -1043,7 +1043,7 @@ namespace Microsoft.CodeAnalysis
                 var doc = projectChanges.NewProject.GetDocument(documentId);
                 var text = this.GetTextForced(doc);
                 var info = this.CreateDocumentInfoWithoutText(doc);
-                this.AddDocument(info, text);
+                this.ApplyDocumentAdded(info, text);
             }
 
             // added additional documents
@@ -1052,7 +1052,7 @@ namespace Microsoft.CodeAnalysis
                 var doc = projectChanges.NewProject.GetAdditionalDocument(documentId);
                 var text = this.GetTextForced(doc);
                 var info = this.CreateDocumentInfoWithoutText(doc);
-                this.AddAdditionalDocument(info, text);
+                this.ApplyAdditionalDocumentAdded(info, text);
             }
 
             // changed documents
@@ -1067,7 +1067,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // we can't get old text, there is not much we can do except replacing whole text.
                     var currentText = newDoc.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None); // needs wait
-                    this.ChangedDocumentText(documentId, currentText);
+                    this.ApplyDocumentTextChanged(documentId, currentText);
                     continue;
                 }
 
@@ -1077,12 +1077,12 @@ namespace Microsoft.CodeAnalysis
                 {
                     // okay, we have old text, but no new text. let document determine text changes
                     var textChanges = newDoc.GetTextChangesAsync(oldDoc, CancellationToken.None).WaitAndGetResult(CancellationToken.None); // needs wait
-                    this.ChangedDocumentText(documentId, oldText.WithChanges(textChanges));
+                    this.ApplyDocumentTextChanged(documentId, oldText.WithChanges(textChanges));
                     continue;
                 }
 
                 // we have both old and new text, just update using the new text.
-                this.ChangedDocumentText(documentId, newText);
+                this.ApplyDocumentTextChanged(documentId, newText);
             }
 
             // changed additional documents
@@ -1093,7 +1093,7 @@ namespace Microsoft.CodeAnalysis
 
                 // We don't understand the text of additional documents and so we just replace the entire text.
                 var currentText = newDoc.GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None); // needs wait
-                this.ChangedAdditionalDocumentText(documentId, currentText);
+                this.ApplyAdditionalDocumentTextChanged(documentId, currentText);
             }
         }
 
@@ -1151,7 +1151,7 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// Override this method to implement the capability of adding projects.
         /// </summary>
-        protected virtual void AddProject(ProjectInfo project)
+        protected virtual void ApplyProjectAdded(ProjectInfo project)
         {
             Debug.Assert(CanApplyChange(ApplyChangesKind.AddProject));
             this.OnProjectAdded(project);
@@ -1162,7 +1162,7 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// Override this method to implement the capability of removing projects.
         /// </summary>
-        protected virtual void RemoveProject(ProjectId projectId)
+        protected virtual void ApplyProjectRemoved(ProjectId projectId)
         {
             Debug.Assert(CanApplyChange(ApplyChangesKind.RemoveProject));
             this.OnProjectRemoved(projectId);
@@ -1173,7 +1173,7 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// Override this method to implement the capability of changing compilation options.
         /// </summary>
-        protected virtual void ChangeCompilationOptions(ProjectId projectId, CompilationOptions options)
+        protected virtual void ApplyCompilationOptionsChanged(ProjectId projectId, CompilationOptions options)
         {
             Debug.Assert(CanApplyChange(ApplyChangesKind.ChangeCompilationOptions));
             this.OnCompilationOptionsChanged(projectId, options);
@@ -1184,7 +1184,7 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// Override this method to implement the capability of changing parse options.
         /// </summary>
-        protected virtual void ChangeParseOptions(ProjectId projectId, ParseOptions options)
+        protected virtual void ApplyParseOptionsChanged(ProjectId projectId, ParseOptions options)
         {
             Debug.Assert(CanApplyChange(ApplyChangesKind.ChangeParseOptions));
             this.OnParseOptionsChanged(projectId, options);
@@ -1195,7 +1195,7 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// Override this method to implement the capability of adding project references.
         /// </summary>
-        protected virtual void AddProjectReference(ProjectId projectId, ProjectReference projectReference)
+        protected virtual void ApplyProjectReferenceAdded(ProjectId projectId, ProjectReference projectReference)
         {
             Debug.Assert(CanApplyChange(ApplyChangesKind.AddProjectReference));
             this.OnProjectReferenceAdded(projectId, projectReference);
@@ -1206,7 +1206,7 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// Override this method to implement the capability of removing project references.
         /// </summary>
-        protected virtual void RemoveProjectReference(ProjectId projectId, ProjectReference projectReference)
+        protected virtual void ApplyProjectReferenceRemoved(ProjectId projectId, ProjectReference projectReference)
         {
             Debug.Assert(CanApplyChange(ApplyChangesKind.RemoveProjectReference));
             this.OnProjectReferenceRemoved(projectId, projectReference);
@@ -1217,7 +1217,7 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// Override this method to implement the capability of adding metadata references.
         /// </summary>
-        protected virtual void AddMetadataReference(ProjectId projectId, MetadataReference metadataReference)
+        protected virtual void ApplyMetadataReferenceAdded(ProjectId projectId, MetadataReference metadataReference)
         {
             Debug.Assert(CanApplyChange(ApplyChangesKind.AddMetadataReference));
             this.OnMetadataReferenceAdded(projectId, metadataReference);
@@ -1228,7 +1228,7 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// Override this method to implement the capability of removing metadata references.
         /// </summary>
-        protected virtual void RemoveMetadataReference(ProjectId projectId, MetadataReference metadataReference)
+        protected virtual void ApplyMetadataReferenceRemoved(ProjectId projectId, MetadataReference metadataReference)
         {
             Debug.Assert(CanApplyChange(ApplyChangesKind.RemoveMetadataReference));
             this.OnMetadataReferenceRemoved(projectId, metadataReference);
@@ -1239,7 +1239,7 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// Override this method to implement the capability of adding analyzer references.
         /// </summary>
-        protected virtual void AddAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
+        protected virtual void ApplyAnalyzerReferenceAdded(ProjectId projectId, AnalyzerReference analyzerReference)
         {
             Debug.Assert(CanApplyChange(ApplyChangesKind.AddAnalyzerReference));
             this.OnAnalyzerReferenceAdded(projectId, analyzerReference);
@@ -1250,7 +1250,7 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// Override this method to implement the capability of removing analyzer references.
         /// </summary>
-        protected virtual void RemoveAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
+        protected virtual void ApplyAnalyzerReferenceRemoved(ProjectId projectId, AnalyzerReference analyzerReference)
         {
             Debug.Assert(CanApplyChange(ApplyChangesKind.RemoveAnalyzerReference));
             this.OnAnalyzerReferenceRemoved(projectId, analyzerReference);
@@ -1261,7 +1261,7 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// Override this method to implement the capability of adding documents.
         /// </summary>
-        protected virtual void AddDocument(DocumentInfo info, SourceText text)
+        protected virtual void ApplyDocumentAdded(DocumentInfo info, SourceText text)
         {
             Debug.Assert(CanApplyChange(ApplyChangesKind.AddDocument));
             this.OnDocumentAdded(info.WithTextLoader(TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create()))));
@@ -1272,7 +1272,7 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// Override this method to implement the capability of removing documents.
         /// </summary>
-        protected virtual void RemoveDocument(DocumentId documentId)
+        protected virtual void ApplyDocumentRemoved(DocumentId documentId)
         {
             Debug.Assert(CanApplyChange(ApplyChangesKind.RemoveDocument));
             this.OnDocumentRemoved(documentId);
@@ -1283,7 +1283,7 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// Override this method to implement the capability of changing document text.
         /// </summary>
-        protected virtual void ChangedDocumentText(DocumentId id, SourceText text)
+        protected virtual void ApplyDocumentTextChanged(DocumentId id, SourceText text)
         {
             Debug.Assert(CanApplyChange(ApplyChangesKind.ChangeDocument));
             this.OnDocumentTextChanged(id, text, PreservationMode.PreserveValue);
@@ -1294,7 +1294,7 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// Override this method to implement the capability of adding additional documents.
         /// </summary>
-        protected virtual void AddAdditionalDocument(DocumentInfo info, SourceText text)
+        protected virtual void ApplyAdditionalDocumentAdded(DocumentInfo info, SourceText text)
         {
             Debug.Assert(CanApplyChange(ApplyChangesKind.AddAdditionalDocument));
             this.OnAdditionalDocumentAdded(info.WithTextLoader(TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create()))));
@@ -1305,7 +1305,7 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// Override this method to implement the capability of removing additional documents.
         /// </summary>
-        protected virtual void RemoveAdditionalDocument(DocumentId documentId)
+        protected virtual void ApplyAdditionalDocumentRemoved(DocumentId documentId)
         {
             Debug.Assert(CanApplyChange(ApplyChangesKind.RemoveAdditionalDocument));
             this.OnAdditionalDocumentRemoved(documentId);
@@ -1316,7 +1316,7 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// Override this method to implement the capability of changing additional document text.
         /// </summary>
-        protected virtual void ChangedAdditionalDocumentText(DocumentId id, SourceText text)
+        protected virtual void ApplyAdditionalDocumentTextChanged(DocumentId id, SourceText text)
         {
             Debug.Assert(CanApplyChange(ApplyChangesKind.ChangeAdditionalDocument));
             this.OnAdditionalDocumentTextChanged(id, text, PreservationMode.PreserveValue);

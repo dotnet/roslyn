@@ -936,7 +936,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        protected override void ChangedDocumentText(DocumentId documentId, SourceText text)
+        protected override void ApplyDocumentTextChanged(DocumentId documentId, SourceText text)
         {
             var document = this.CurrentSolution.GetDocument(documentId);
             if (document != null)
@@ -976,7 +976,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             return null;
         }
 
-        protected override void AddDocument(DocumentInfo info, SourceText text)
+        protected override void ApplyDocumentAdded(DocumentInfo info, SourceText text)
         {
             System.Diagnostics.Debug.Assert(this.applyChangesProjectFile != null);
 
@@ -1037,7 +1037,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        protected override void RemoveDocument(DocumentId documentId)
+        protected override void ApplyDocumentRemoved(DocumentId documentId)
         {
             System.Diagnostics.Debug.Assert(this.applyChangesProjectFile != null);
 
@@ -1050,7 +1050,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        protected override void RemoveAdditionalDocument(DocumentId documentId)
+        protected override void ApplyAdditionalDocumentRemoved(DocumentId documentId)
         {
             System.Diagnostics.Debug.Assert(this.applyChangesProjectFile != null);
 
