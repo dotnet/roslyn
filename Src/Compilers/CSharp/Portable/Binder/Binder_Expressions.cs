@@ -6311,7 +6311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((!accessType.IsReferenceType && !accessType.IsValueType) || accessType.IsPointerType())
             {
                 // Assume result type of the access is void when result value isn't used and cannot be made nullable.
-                // We are not doing this for types that can be made nullable to still allow expression evalualuator to 
+                // We are not doing this for types that can be made nullable to still allow expression evaluator to 
                 // to get the value.
                 if (node.Parent?.Kind() == SyntaxKind.ExpressionStatement)
                 {
