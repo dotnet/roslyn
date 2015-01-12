@@ -27,6 +27,16 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// An optional Id for the code action.
         /// If non-null, then this Id must be unique amongst all the code actions produced by the corresponding <see cref="CodeFixProvider"/> or <see cref="CodeRefactoringProvider"/>.
         /// </summary>
+        /// <remarks>
+        /// The Id of a code action is used to determine equivalence / uniqueness. For instance, if multiple code actions
+        /// with the same Id are returned from a code fix or code refactoring provider, Visual Studio's light bulb UI
+        /// will present only one of these 'equivalent' code actions to the end user.
+        /// 
+        /// Also, if a code fix provider supports 'fix all occurences', and if the end user selects to fix all occurences
+        /// (in a document, project or solution) of a particular issue addressed by this provider, then the Id of the code
+        /// action returned by this provider is used to compute the 'equivalent' code actions that should be applied at
+        /// other locations in the end user's document, project or solution in order to fix all occurences of the issue.
+        /// </remarks>
         public virtual string Id { get { return null; } }
 
         /// <summary>
