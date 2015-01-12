@@ -168,7 +168,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public static ImmutableArray<Symbol> GetMembers(this Compilation compilation, string qualifiedName)
         {
             NamespaceOrTypeSymbol lastContainer;
-            return GetMembers(((CSharpCompilation)compilation).GlobalNamespace, qualifiedName, out lastContainer);
+            var members = GetMembers(((CSharpCompilation)compilation).GlobalNamespace, qualifiedName, out lastContainer);
+            if (members.IsEmpty)
+            {
+                Assert.True(false, string.Format("Could not find member named '{0}'.  Available members:\r\n{1}",
+                    qualifiedName, string.Join("\r\n", lastContainer.GetMembers().Select(m => "\t\t" + m.Name))));
+            }
+            return members;
         }
 
         private static ImmutableArray<Symbol> GetMembers(NamespaceOrTypeSymbol container, string qualifiedName, out NamespaceOrTypeSymbol lastContainer)
@@ -178,7 +184,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             lastContainer = container;
             for (int i = 0; i < parts.Length - 1; i++)
             {
-                lastContainer = (NamespaceOrTypeSymbol)lastContainer.GetMember(parts[i]);
+                var nestedContainer = (NamespaceOrTypeSymbol)lastContainer.GetMember(parts[i]);
+                if (nestedContainer == null)
+                {
+                    // If there wasn't a nested namespace or type with that name, assume it's a
+                    // member name that includes dots (e.g. explicit interface implementation).
+                    return lastContainer.GetMembers(string.Join(".", parts.Skip(i)));
+                }
+                else
+                {
+                    lastContainer = nestedContainer;
+                }
             }
 
             return lastContainer.GetMembers(parts[parts.Length - 1]);
@@ -190,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var members = GetMembers(container, qualifiedName, out lastContainer);
             if (members.Length == 0)
             {
-                Assert.True(false, "Available members:\r\n" + string.Join("\r\n", lastContainer.GetMembers()));
+                return null;
             }
             else if (members.Length > 1)
             {
