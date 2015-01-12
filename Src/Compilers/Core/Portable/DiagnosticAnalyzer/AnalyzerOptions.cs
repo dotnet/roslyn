@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Globalization;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -11,33 +9,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// </summary>
     public class AnalyzerOptions
     {
-        internal static readonly AnalyzerOptions Empty = new AnalyzerOptions(ImmutableArray<AdditionalStream>.Empty);
+        internal static readonly AnalyzerOptions Empty = new AnalyzerOptions(ImmutableArray<AdditionalText>.Empty);
 
         /// <summary>
-        /// A set of additional non-code streams that can be used by analyzers.
+        /// A set of additional non-code text files that can be used by analyzers.
         /// </summary>
-        public ImmutableArray<AdditionalStream> AdditionalStreams { get; internal set; }
+        public ImmutableArray<AdditionalText> AdditionalFiles { get; internal set; }
 
         /// <summary>
         /// Creates analyzer options to be passed to <see cref="DiagnosticAnalyzer"/>.
         /// </summary>
-        /// <param name="additionalStreams">A set of additional non-code streams that can be used by analyzers.</param>
-        public AnalyzerOptions(ImmutableArray<AdditionalStream> additionalStreams)
+        /// <param name="additionalFiles">A set of additional non-code text files that can be used by analyzers.</param>
+        public AnalyzerOptions(ImmutableArray<AdditionalText> additionalFiles)
         {
-            this.AdditionalStreams = additionalStreams.IsDefault ? ImmutableArray<AdditionalStream>.Empty : additionalStreams;
+            this.AdditionalFiles = additionalFiles.IsDefault ? ImmutableArray<AdditionalText>.Empty : additionalFiles;
         }
 
         /// <summary>
-        /// Returns analyzer options with the given additionalStreams.
+        /// Returns analyzer options with the given <paramref name="additionalFiles"/>.
         /// </summary>
-        public AnalyzerOptions WithAdditionalStreams(ImmutableArray<AdditionalStream> additionalStreams)
+        public AnalyzerOptions WithAdditionalFiles(ImmutableArray<AdditionalText> additionalFiles)
         {
-            if (this.AdditionalStreams == additionalStreams)
+            if (this.AdditionalFiles == additionalFiles)
             {
                 return this;
             }
 
-            return new AnalyzerOptions(additionalStreams);
+            return new AnalyzerOptions(additionalFiles);
         }
     }
 }

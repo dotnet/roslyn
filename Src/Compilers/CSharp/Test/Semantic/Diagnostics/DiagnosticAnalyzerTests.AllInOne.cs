@@ -1,10 +1,13 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -89,15 +92,31 @@ public class C
         [Fact]
         public void AnalyzerOptionsArePassedToAllAnalyzers()
         {
+            var text = new StringText(string.Empty, encodingOpt: null);
             AnalyzerOptions options = new AnalyzerOptions
             (
-                new[] { new AdditionalFileStream("myfilepath") }.ToImmutableArray<AdditionalStream>()
+                new[] { new TestAdditionalText("myfilepath", text) }.ToImmutableArray<AdditionalText>()
             );
 
             var compilation = CreateCompilationWithMscorlib45(TestResource.AllInOneCSharpCode, parseOptions: TestOptions.Regular);
             var analyzer = new OptionsDiagnosticAnalyzer<SyntaxKind>(options);
             compilation.GetAnalyzerDiagnostics(new[] { analyzer }, options);
             analyzer.VerifyAnalyzerOptions();
+        }
+
+        private sealed class TestAdditionalText : AdditionalText
+        {
+            private readonly SourceText text;
+             
+            public TestAdditionalText(string path, SourceText text)
+            {
+                this.Path = path;
+                this.text = text;
+            }
+
+            public override string Path { get; }
+
+            public override SourceText GetText(CancellationToken cancellationToken = default(CancellationToken)) => this.text;
         }
     }
 }

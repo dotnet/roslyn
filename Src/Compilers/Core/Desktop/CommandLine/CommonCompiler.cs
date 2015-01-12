@@ -314,6 +314,7 @@ namespace Microsoft.CodeAnalysis
 
             var diagnostics = new List<DiagnosticInfo>();
             var analyzers = ResolveAnalyzersFromArguments(diagnostics, MessageProvider, touchedFilesLogger);
+            var additionalTextFiles = ResolveAdditionalFilesFromArguments(diagnostics, MessageProvider, touchedFilesLogger);
             if (PrintErrors(diagnostics, consoleOutput))
             {
                 return Failed;
@@ -321,7 +322,7 @@ namespace Microsoft.CodeAnalysis
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            var analyzerOptions = new AnalyzerOptions(Arguments.AdditionalStreams);
+            var analyzerOptions = new AnalyzerOptions(ImmutableArray.Create<AdditionalText, AdditionalTextFile>(additionalTextFiles));
 
             AnalyzerDriver analyzerDriver = null;
             if (!analyzers.IsDefaultOrEmpty)
@@ -455,6 +456,22 @@ namespace Microsoft.CodeAnalysis
                     cancellationToken.ThrowIfCancellationRequested();
                 }
 
+                bool errorsReadingAdditionalFiles = false;
+                foreach (var additionalFile in additionalTextFiles)
+                {
+                    if (PrintErrors(additionalFile.Diagnostics, consoleOutput))
+                    {
+                        errorsReadingAdditionalFiles = true;
+                    }
+                }
+
+                if (errorsReadingAdditionalFiles)
+                {
+                    return Failed;
+                }
+
+                cancellationToken.ThrowIfCancellationRequested();
+
                 if (!TryDeleteFile(finalOutputPath, consoleOutput) || !TryMoveFile(tempExeFilename, finalOutputPath, consoleOutput))
                 {
                     return Failed;
@@ -528,6 +545,19 @@ namespace Microsoft.CodeAnalysis
                 }
             }
         }
+
+        private ImmutableArray<AdditionalTextFile> ResolveAdditionalFilesFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFilesLogger)
+        {
+            var builder = ImmutableArray.CreateBuilder<AdditionalTextFile>();
+
+            foreach (var file in Arguments.AdditionalFiles)
+            {
+                builder.Add(new AdditionalTextFile(file, this));
+            }
+
+            return builder.ToImmutableArray();
+        }
+
         private void GenerateSqmData(CompilationOptions compilationOptions, ImmutableArray<Diagnostic> diagnostics)
         {
             // Generate SQM data file for Compilers

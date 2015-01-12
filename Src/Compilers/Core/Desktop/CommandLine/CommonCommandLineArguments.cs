@@ -107,9 +107,9 @@ namespace Microsoft.CodeAnalysis
         public ImmutableArray<CommandLineAnalyzerReference> AnalyzerReferences { get; internal set; }
 
         /// <summary>
-        /// A set of additional non-code stream that can be used by analyzers.
+        /// A set of additional non-code text files that can be used by analyzers.
         /// </summary>
-        public ImmutableArray<AdditionalStream> AdditionalStreams { get; internal set; }
+        public ImmutableArray<CommandLineSourceFile> AdditionalFiles { get; internal set; }
 
         /// <summary>
         /// If true, prepend the command line header logo during 

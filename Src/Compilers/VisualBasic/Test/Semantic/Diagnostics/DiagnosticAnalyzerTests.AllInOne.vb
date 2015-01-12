@@ -6,7 +6,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Test.Utilities
-
+Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -47,13 +47,36 @@ End Enum
 
         <Fact>
         Public Sub AnalyzerOptionsArePassedToAllAnalyzers()
-            Dim additionalStreams As AdditionalStream() = {New AdditionalFileStream("myfilepath")}
-            Dim options = New AnalyzerOptions(additionalStreams.ToImmutableArray())
+            Dim sourceText = New StringText(String.Empty, encodingOpt:=Nothing)
+            Dim additionalTexts As AdditionalText() = {New TestAdditionalText("myfilepath", sourceText)}
+            Dim options = New AnalyzerOptions(additionalTexts.ToImmutableArray())
 
             Dim compilation = CreateCompilationWithMscorlib({TestResource.AllInOneVisualBasicCode})
             Dim analyzer = New OptionsDiagnosticAnalyzer(Of SyntaxKind)(options)
             compilation.GetAnalyzerDiagnostics({analyzer}, options)
             analyzer.VerifyAnalyzerOptions()
         End Sub
+
+        Private NotInheritable Class TestAdditionalText
+            Inherits AdditionalText
+
+            Private _path As String
+            Private _text As SourceText
+
+            Public Sub New(path As String, text As SourceText)
+                _path = path
+                _text = text
+            End Sub
+
+            Public Overrides ReadOnly Property Path As String
+                Get
+                    Return _path
+                End Get
+            End Property
+
+            Public Overrides Function GetText(Optional cancellationToken As CancellationToken = Nothing) As SourceText
+                Return _text
+            End Function
+        End Class
     End Class
 End Namespace

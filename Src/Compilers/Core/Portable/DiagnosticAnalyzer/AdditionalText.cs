@@ -2,22 +2,23 @@
 
 using System.IO;
 using System.Threading;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// Represents a stream of non source code text.
+    /// Represents a non source code file.
     /// </summary>
-    public abstract class AdditionalStream
+    public abstract class AdditionalText
     {
         /// <summary>
-        /// Path to the stream.
+        /// Path to the text.
         /// </summary>
         public abstract string Path { get; }
 
         /// <summary>
-        /// Opens a <see cref="Stream"/> that allows reading the content.
+        /// Retrieves a <see cref="SourceText"/> with the contents of this file.
         /// </summary>
-        public abstract Stream OpenRead(CancellationToken cancellationToken = default(CancellationToken));
+        public abstract SourceText GetText(CancellationToken cancellationToken = default(CancellationToken));
     }
 }

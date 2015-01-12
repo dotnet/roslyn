@@ -6450,23 +6450,23 @@ using System.Diagnostics; // Unused.
         {
             var args = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:web.config", "a.cs" }, baseDirectory);
             args.Errors.Verify();
-            Assert.Equal(Path.Combine(baseDirectory, "web.config"), args.AdditionalStreams.Single().Path);
+            Assert.Equal(Path.Combine(baseDirectory, "web.config"), args.AdditionalFiles.Single().Path);
 
             args = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:web.config", "a.cs", "/additionalfile:app.manifest" }, baseDirectory);
             args.Errors.Verify();
-            Assert.Equal(2, args.AdditionalStreams.Length);
-            Assert.Equal(Path.Combine(baseDirectory, "web.config"), args.AdditionalStreams[0].Path);
-            Assert.Equal(Path.Combine(baseDirectory, "app.manifest"), args.AdditionalStreams[1].Path);
+            Assert.Equal(2, args.AdditionalFiles.Length);
+            Assert.Equal(Path.Combine(baseDirectory, "web.config"), args.AdditionalFiles[0].Path);
+            Assert.Equal(Path.Combine(baseDirectory, "app.manifest"), args.AdditionalFiles[1].Path);
 
             args = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:web.config", "a.cs", "/additionalfile:web.config" }, baseDirectory);
             args.Errors.Verify();
-            Assert.Equal(2, args.AdditionalStreams.Length);
-            Assert.Equal(Path.Combine(baseDirectory, "web.config"), args.AdditionalStreams[0].Path);
-            Assert.Equal(Path.Combine(baseDirectory, "web.config"), args.AdditionalStreams[1].Path);
+            Assert.Equal(2, args.AdditionalFiles.Length);
+            Assert.Equal(Path.Combine(baseDirectory, "web.config"), args.AdditionalFiles[0].Path);
+            Assert.Equal(Path.Combine(baseDirectory, "web.config"), args.AdditionalFiles[1].Path);
 
             args = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:..\\web.config", "a.cs" }, baseDirectory);
             args.Errors.Verify();
-            Assert.Equal(Path.Combine(baseDirectory, "..\\web.config"), args.AdditionalStreams.Single().Path);
+            Assert.Equal(Path.Combine(baseDirectory, "..\\web.config"), args.AdditionalFiles.Single().Path);
 
             var baseDir = Temp.CreateDirectory();
             baseDir.CreateFile("web1.config");
@@ -6475,35 +6475,35 @@ using System.Diagnostics; // Unused.
 
             args = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:web*.config", "a.cs" }, baseDir.Path);
             args.Errors.Verify();
-            Assert.Equal(3, args.AdditionalStreams.Length);
-            Assert.Equal(Path.Combine(baseDir.Path, "web1.config"), args.AdditionalStreams[0].Path);
-            Assert.Equal(Path.Combine(baseDir.Path, "web2.config"), args.AdditionalStreams[1].Path);
-            Assert.Equal(Path.Combine(baseDir.Path, "web3.config"), args.AdditionalStreams[2].Path);
+            Assert.Equal(3, args.AdditionalFiles.Length);
+            Assert.Equal(Path.Combine(baseDir.Path, "web1.config"), args.AdditionalFiles[0].Path);
+            Assert.Equal(Path.Combine(baseDir.Path, "web2.config"), args.AdditionalFiles[1].Path);
+            Assert.Equal(Path.Combine(baseDir.Path, "web3.config"), args.AdditionalFiles[2].Path);
 
             args = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:web.config;app.manifest", "a.cs" }, baseDirectory);
             args.Errors.Verify();
-            Assert.Equal(2, args.AdditionalStreams.Length);
-            Assert.Equal(Path.Combine(baseDirectory, "web.config"), args.AdditionalStreams[0].Path);
-            Assert.Equal(Path.Combine(baseDirectory, "app.manifest"), args.AdditionalStreams[1].Path);
+            Assert.Equal(2, args.AdditionalFiles.Length);
+            Assert.Equal(Path.Combine(baseDirectory, "web.config"), args.AdditionalFiles[0].Path);
+            Assert.Equal(Path.Combine(baseDirectory, "app.manifest"), args.AdditionalFiles[1].Path);
 
             args = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:web.config,app.manifest", "a.cs" }, baseDirectory);
             args.Errors.Verify();
-            Assert.Equal(2, args.AdditionalStreams.Length);
-            Assert.Equal(Path.Combine(baseDirectory, "web.config"), args.AdditionalStreams[0].Path);
-            Assert.Equal(Path.Combine(baseDirectory, "app.manifest"), args.AdditionalStreams[1].Path);
+            Assert.Equal(2, args.AdditionalFiles.Length);
+            Assert.Equal(Path.Combine(baseDirectory, "web.config"), args.AdditionalFiles[0].Path);
+            Assert.Equal(Path.Combine(baseDirectory, "app.manifest"), args.AdditionalFiles[1].Path);
 
             args = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:web.config:app.manifest", "a.cs" }, baseDirectory);
             args.Errors.Verify();
-            Assert.Equal(1, args.AdditionalStreams.Length);
-            Assert.Equal(Path.Combine(baseDirectory, "web.config:app.manifest"), args.AdditionalStreams[0].Path);
+            Assert.Equal(1, args.AdditionalFiles.Length);
+            Assert.Equal(Path.Combine(baseDirectory, "web.config:app.manifest"), args.AdditionalFiles[0].Path);
 
             args = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile", "a.cs" }, baseDirectory);
             args.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<file list>", "additionalfile"));
-            Assert.Equal(0, args.AdditionalStreams.Length);
+            Assert.Equal(0, args.AdditionalFiles.Length);
 
             args = CSharpCommandLineParser.Default.Parse(new[] { "/additionalfile:", "a.cs" }, baseDirectory);
             args.Errors.Verify(Diagnostic(ErrorCode.ERR_SwitchNeedsString).WithArguments("<file list>", "additionalfile"));
-            Assert.Equal(0, args.AdditionalStreams.Length);
+            Assert.Equal(0, args.AdditionalFiles.Length);
         }
 
         private static int OccurenceCount(string source, string word)

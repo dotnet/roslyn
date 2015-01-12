@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis
 
             // construct file infos for additional files.
             var additionalDocs = new List<DocumentInfo>();
-            foreach (var fileArg in commandLineArguments.AdditionalStreams)
+            foreach (var fileArg in commandLineArguments.AdditionalFiles)
             {
                 var absolutePath = Path.IsPathRooted(fileArg.Path) || string.IsNullOrEmpty(projectDirectory)
                         ? Path.GetFullPath(fileArg.Path)

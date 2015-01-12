@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim managedResources = New List(Of ResourceDescription)()
                 Dim sourceFiles = New List(Of CommandLineSourceFile)()
                 Dim hasSourceFiles = False
-                Dim additionalFiles = New List(Of AdditionalStream)()
+                Dim additionalFiles = New List(Of CommandLineSourceFile)()
                 Dim codepage As Encoding = Nothing
                 Dim checksumAlgorithm = SourceHashAlgorithm.Sha1
                 Dim defines As IReadOnlyDictionary(Of String, Object) = Nothing
@@ -975,7 +975,7 @@ lVbRuntimePlus:
                                     Continue For
                                 End If
 
-                                additionalFiles.AddRange(ParseAdditionalFiles(value, baseDirectory, diagnostics))
+                                additionalFiles.AddRange(ParseAdditionalFileArgument(value, baseDirectory, diagnostics))
                                 Continue For
                         End Select
                     End If
@@ -1132,7 +1132,7 @@ lVbRuntimePlus:
                     .ChecksumAlgorithm = checksumAlgorithm,
                     .MetadataReferences = metadataReferences.AsImmutable(),
                     .AnalyzerReferences = analyzers.AsImmutable(),
-                    .AdditionalStreams = additionalFiles.AsImmutable(),
+                    .AdditionalFiles = additionalFiles.AsImmutable(),
                     .ReferencePaths = searchPaths,
                     .KeyFileSearchPaths = keyFileSearchPaths.AsImmutable(),
                     .Win32ResourceFile = win32ResourceFile,

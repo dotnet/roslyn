@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 string keyContainerSetting = null;
                 List<ResourceDescription> managedResources = new List<ResourceDescription>();
                 List<CommandLineSourceFile> sourceFiles = new List<CommandLineSourceFile>();
-                List<AdditionalStream> additionalFiles = new List<AdditionalStream>();
+                List<CommandLineSourceFile> additionalFiles = new List<CommandLineSourceFile>();
                 bool sourceFilesSpecified = false;
                 bool resourcesOrModulesSpecified = false;
                 Encoding codepage = null;
@@ -914,7 +914,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     continue;
                                 }
 
-                                additionalFiles.AddRange(ParseAdditionalFiles(value, baseDirectory, diagnostics));
+                                additionalFiles.AddRange(ParseAdditionalFileArgument(value, baseDirectory, diagnostics));
                                 continue;
                         }
                     }
@@ -1046,7 +1046,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ChecksumAlgorithm = checksumAlgorithm,
                     MetadataReferences = metadataReferences.AsImmutable(),
                     AnalyzerReferences = analyzers.AsImmutable(),
-                    AdditionalStreams = additionalFiles.AsImmutable(),
+                    AdditionalFiles = additionalFiles.AsImmutable(),
                     ReferencePaths = referencePaths,
                     KeyFileSearchPaths = keyFileSearchPaths.AsImmutable(),
                     Win32ResourceFile = win32ResourceFile,
