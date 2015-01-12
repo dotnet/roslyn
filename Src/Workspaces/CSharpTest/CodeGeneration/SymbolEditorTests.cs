@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
 {
     public class SymbolEditorTests
     {
-        private readonly SyntaxGenerator g = SyntaxGenerator.GetGenerator(new CustomWorkspace(), LanguageNames.CSharp);
+        private readonly SyntaxGenerator g = SyntaxGenerator.GetGenerator(new AdhocWorkspace(), LanguageNames.CSharp);
 
         private Solution GetSolution(params string[] sources)
         {
-            var ws = new CustomWorkspace();
+            var ws = new AdhocWorkspace();
             var pid = ProjectId.CreateNewId();
 
             var docs = sources.Select((s, i) => 

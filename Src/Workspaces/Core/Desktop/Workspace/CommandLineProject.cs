@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
         public static ProjectInfo CreateProjectInfo(string projectName, string language, IEnumerable<string> commandLineArgs, string projectDirectory, Workspace workspace = null)
         {
             // TODO (tomat): the method may throw all sorts of exceptions.
-            var tmpWorkspace = workspace ?? new CustomWorkspace(DesktopMefHostServices.DefaultServices);
+            var tmpWorkspace = workspace ?? new AdhocWorkspace(DesktopMefHostServices.DefaultServices);
             var languageServices = tmpWorkspace.Services.GetLanguageServices(language);
             if (languageServices == null)
             {

@@ -4175,7 +4175,7 @@ class innerClass
 
             Assert.NotNull(property);
 
-            var newProperty = Formatter.Format(property, new CustomWorkspace());
+            var newProperty = Formatter.Format(property, new AdhocWorkspace());
 
             Assert.Equal(expected, newProperty.ToFullString());
         }

@@ -11,16 +11,17 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
-    /// A workspace that allows manual addition of projects and documents.
+    /// A workspace that allows full manipulation of projects and documents,
+    /// but does not persist changes.
     /// </summary>
-    public sealed class CustomWorkspace : Workspace
+    public sealed class AdhocWorkspace : Workspace
     {
-        public CustomWorkspace(HostServices host, string workspaceKind = "Custom")
+        public AdhocWorkspace(HostServices host, string workspaceKind = "Custom")
             : base(host, workspaceKind)
         {
         }
 
-        public CustomWorkspace()
+        public AdhocWorkspace()
             : this(Host.Mef.MefHostServices.DefaultHost)
         {
         }

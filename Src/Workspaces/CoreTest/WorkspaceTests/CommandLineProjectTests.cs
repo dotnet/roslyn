@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.Throws<InvalidOperationException>(delegate
             {
-                var ws = new CustomWorkspace(); // only includes portable services
+                var ws = new AdhocWorkspace(); // only includes portable services
                 var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory", ws);
             });
         }
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestCreateWithRequiredServices()
         {
             string commandLine = @"foo.cs";
-            var ws = new CustomWorkspace(DesktopMefHostServices.DefaultServices); // includes non-portable services too
+            var ws = new AdhocWorkspace(DesktopMefHostServices.DefaultServices); // includes non-portable services too
             var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory", ws);
         }
 

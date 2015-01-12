@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
         End Sub
 
         Protected Sub AssertFormatUsingAllEntryPoints(code As String, expected As String)
-            Using workspace = New CustomWorkspace()
+            Using workspace = New AdhocWorkspace()
 
                 Dim project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.VisualBasic)
                 Dim document = project.AddDocument("Document", SourceText.From(code))

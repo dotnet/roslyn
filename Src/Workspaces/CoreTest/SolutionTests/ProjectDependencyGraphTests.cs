@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
 
         private Solution CreateSolution()
         {
-            return new CustomWorkspace().CurrentSolution;
+            return new AdhocWorkspace().CurrentSolution;
         }
 
         #endregion

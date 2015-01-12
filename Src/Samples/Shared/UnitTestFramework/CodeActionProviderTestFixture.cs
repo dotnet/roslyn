@@ -27,7 +27,7 @@ namespace Roslyn.UnitTestFramework
                 .Where(a => simpleNames.Contains(a.GetName().Name, StringComparer.OrdinalIgnoreCase))
                 .Select(MetadataReference.CreateFromAssembly);
 
-            return new CustomWorkspace().CurrentSolution
+            return new AdhocWorkspace().CurrentSolution
                 .AddProject(projectId, "TestProject", "TestProject", LanguageName)
                 .AddMetadataReferences(projectId, references)
                 .AddDocument(documentId, "Test" + fileExtension, SourceText.From(code))

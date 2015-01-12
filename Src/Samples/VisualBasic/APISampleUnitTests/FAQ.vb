@@ -149,7 +149,7 @@ End Module
             Dim _projectId = ProjectId.CreateNewId()
             Dim _documentId = DocumentId.CreateNewId(_projectId)
 
-            Dim sln = New CustomWorkspace().CurrentSolution.
+            Dim sln = New AdhocWorkspace().CurrentSolution.
                           AddProject(_projectId, "MyProject", "MyProject", LanguageNames.VisualBasic).WithProjectCompilationOptions(_projectId, vbOptions).
                               AddMetadataReference(_projectId, Mscorlib).
                               AddDocument(_documentId, "MyFile.vb", source)
@@ -459,7 +459,7 @@ End Module</text>.Value
                 _document2Id = DocumentId.CreateNewId(_project2Id)
             Dim vbOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
 
-            Dim sln = New CustomWorkspace().CurrentSolution.
+            Dim sln = New AdhocWorkspace().CurrentSolution.
                         AddProject(_project1Id, "Project1", "Project1", LanguageNames.VisualBasic).
                             AddMetadataReference(_project1Id, Mscorlib).
                             AddDocument(_document1Id, "File1.vb", source1).
@@ -1177,7 +1177,7 @@ End Module
             Dim _documentId = DocumentId.CreateNewId(_projectId)
             Dim vbOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
 
-            Dim sln = New CustomWorkspace().CurrentSolution.
+            Dim sln = New AdhocWorkspace().CurrentSolution.
                           AddProject(_projectId, "MyProject", "MyProject", LanguageNames.VisualBasic).WithProjectCompilationOptions(_projectId, vbOptions).
                               AddMetadataReference(_projectId, Mscorlib).
                               AddDocument(_documentId, "MyFile.vb", source)
@@ -1408,7 +1408,7 @@ End Module
             Dim _documentId = DocumentId.CreateNewId(_projectId)
             Dim vbOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
 
-            Dim sln = New CustomWorkspace().CurrentSolution.
+            Dim sln = New AdhocWorkspace().CurrentSolution.
                           AddProject(_projectId, "MyProject", "MyProject", LanguageNames.VisualBasic).WithProjectCompilationOptions(_projectId, vbOptions).
                               AddMetadataReference(_projectId, Mscorlib).
                               AddDocument(_documentId, "MyFile.vb", source)
@@ -2381,7 +2381,7 @@ End Module
 
             Dim vbOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication).WithEmbedVbCoreRuntime(True)
 
-            Dim sln = New CustomWorkspace().CurrentSolution.
+            Dim sln = New AdhocWorkspace().CurrentSolution.
                           AddProject(_projectId, "MyProject", "MyProject", LanguageNames.VisualBasic).WithProjectCompilationOptions(_projectId, vbOptions).
                               AddMetadataReference(_projectId, Mscorlib).
                               AddMetadataReference(_projectId, systemReference).

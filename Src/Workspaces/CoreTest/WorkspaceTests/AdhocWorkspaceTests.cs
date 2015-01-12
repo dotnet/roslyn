@@ -9,7 +9,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public partial class CustomWorkspaceTests : WorkspaceTestBase
+    public partial class AdhocWorkspaceTests : WorkspaceTestBase
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestAddProject_ProjectInfo()
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 assemblyName: "TestProject.dll",
                 language: LanguageNames.CSharp);
 
-            using (var ws = new CustomWorkspace())
+            using (var ws = new AdhocWorkspace())
             {
                 var project = ws.AddProject(info);
                 Assert.Equal(project, ws.CurrentSolution.Projects.FirstOrDefault());
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestAddProject_NameAndLanguage()
         {
-            using (var ws = new CustomWorkspace())
+            using (var ws = new AdhocWorkspace())
             {
                 var project = ws.AddProject("TestProject", LanguageNames.CSharp);
                 Assert.Same(project, ws.CurrentSolution.Projects.FirstOrDefault());
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestAddDocument_DocumentInfo()
         {
-            using (var ws = new CustomWorkspace())
+            using (var ws = new AdhocWorkspace())
             {
                 var project = ws.AddProject("TestProject", LanguageNames.CSharp);
                 var info = DocumentInfo.Create(DocumentId.CreateNewId(project.Id), "code.cs");
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestAddDocument_NameAndText()
         {
-            using (var ws = new CustomWorkspace())
+            using (var ws = new AdhocWorkspace())
             {
                 var project = ws.AddProject("TestProject", LanguageNames.CSharp);
                 var name = "code.cs";
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestAddSolution_SolutionInfo()
         {
-            using (var ws = new CustomWorkspace())
+            using (var ws = new AdhocWorkspace())
             {
                 var pinfo = ProjectInfo.Create(
                         ProjectId.CreateNewId(),
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 language: LanguageNames.VisualBasic,
                 projectReferences: new[] { new ProjectReference(id1) });
 
-            using (var ws = new CustomWorkspace())
+            using (var ws = new AdhocWorkspace())
             {
                 ws.AddProjects(new[] { info1, info2 });
                 var solution = ws.CurrentSolution;
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             string commandLine = @"CSharpClass.cs /out:foo.dll /target:library";
             var baseDirectory = Path.Combine(this.SolutionDirectory.Path, "CSharpProject");
 
-            using (var ws = new CustomWorkspace())
+            using (var ws = new AdhocWorkspace())
             {
                 var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, baseDirectory);
                 ws.AddProject(info);
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestAddProject_TryApplyChanges()
         {
-            using (var ws = new CustomWorkspace())
+            using (var ws = new AdhocWorkspace())
             {
                 ProjectId pid = ProjectId.CreateNewId();
 
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 assemblyName: "TestProject.dll",
                 language: LanguageNames.CSharp);
 
-            using (var ws = new CustomWorkspace())
+            using (var ws = new AdhocWorkspace())
             {
                 ws.AddProject(info);
 

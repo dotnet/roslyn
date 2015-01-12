@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private readonly NonReentrantLock serializationLock = new NonReentrantLock();
 
         public TestWorkspace(HostServices hostServices = null)
-            : base(hostServices ?? new CustomWorkspace().Services.HostServices, "Test")
+            : base(hostServices ?? new AdhocWorkspace().Services.HostServices, "Test")
         {
         }
 

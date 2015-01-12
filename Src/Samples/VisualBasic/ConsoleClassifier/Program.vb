@@ -12,7 +12,7 @@ Module Program
     End Sub
 
     Async Function TestFormatterAndClassifierAsync() As Task
-        Dim workspace = New CustomWorkspace()
+        Dim workspace = New AdhocWorkspace()
         Dim solution = workspace.CurrentSolution
         Dim project = solution.AddProject("projectName", "assemblyName", LanguageNames.VisualBasic)
         Dim document = project.AddDocument("name.vb",

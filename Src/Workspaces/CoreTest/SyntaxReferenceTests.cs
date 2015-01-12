@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private static Solution CreateEmptySolutionUsingRecoverableSyntaxTrees()
         {
-            var workspace = new CustomWorkspace(TestHost.Services, workspaceKind: "NotKeptAlive");
+            var workspace = new AdhocWorkspace(TestHost.Services, workspaceKind: "NotKeptAlive");
             workspace.Options = workspace.Options.WithChangedOption(Host.CacheOptions.RecoverableTreeLengthThreshold, 0);
             return workspace.CurrentSolution;
         }

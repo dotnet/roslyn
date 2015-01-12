@@ -128,7 +128,7 @@ class Program
             ProjectId projectId = ProjectId.CreateNewId();
             DocumentId documentId = DocumentId.CreateNewId(projectId);
 
-            var solution = new CustomWorkspace().CurrentSolution
+            var solution = new AdhocWorkspace().CurrentSolution
                 .AddProject(projectId, "MyProject", "MyProject", LanguageNames.CSharp)
                 .AddMetadataReference(projectId, Mscorlib)
                 .AddDocument(documentId, "MyFile.cs", source);
@@ -416,7 +416,7 @@ class Program
             var document1Id = DocumentId.CreateNewId(project1Id);
             var document2Id = DocumentId.CreateNewId(project2Id);
 
-            var solution = new CustomWorkspace().CurrentSolution
+            var solution = new AdhocWorkspace().CurrentSolution
                 .AddProject(project1Id, "Project1", "Project1", LanguageNames.CSharp)
                 .AddMetadataReference(project1Id, Mscorlib)
                 .AddDocument(document1Id, "File1.cs", source1)
@@ -1130,7 +1130,7 @@ class Program
             var projectId = ProjectId.CreateNewId();
             var documentId = DocumentId.CreateNewId(projectId);
 
-            var solution = new CustomWorkspace().CurrentSolution
+            var solution = new AdhocWorkspace().CurrentSolution
                 .AddProject(projectId, "MyProject", "MyProject", LanguageNames.CSharp)
                 .AddMetadataReference(projectId, Mscorlib)
                 .AddDocument(documentId, "MyFile.cs", source);
@@ -1349,7 +1349,7 @@ class Program
             var projectId = ProjectId.CreateNewId();
             var documentId = DocumentId.CreateNewId(projectId);
 
-            var solution = new CustomWorkspace().CurrentSolution
+            var solution = new AdhocWorkspace().CurrentSolution
                 .AddProject(projectId, "MyProject", "MyProject", LanguageNames.CSharp)
                 .AddMetadataReference(projectId, Mscorlib)
                 .AddDocument(documentId, "MyFile.cs", source);
@@ -2323,7 +2323,7 @@ class Program
             var projectId = ProjectId.CreateNewId();
             var documentId = DocumentId.CreateNewId(projectId);
 
-            var solution = new CustomWorkspace().CurrentSolution
+            var solution = new AdhocWorkspace().CurrentSolution
                 .AddProject(projectId, "MyProject", "MyProject", LanguageNames.CSharp)
                 .AddMetadataReference(projectId, Mscorlib)
                 .AddMetadataReference(projectId, AppDomain.CurrentDomain.GetAssemblies()

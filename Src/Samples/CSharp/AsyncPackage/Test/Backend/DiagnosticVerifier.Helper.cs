@@ -159,7 +159,7 @@ namespace TestTemplate
 
             var projectId = ProjectId.CreateNewId(debugName: TestProjectName);
 
-            var solution = new CustomWorkspace()
+            var solution = new AdhocWorkspace()
                 .CurrentSolution
                 .AddProject(projectId, TestProjectName, TestProjectName, language)
                 .AddMetadataReference(projectId, CorlibReference)

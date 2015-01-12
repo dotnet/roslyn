@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private Solution CreateSolution()
         {
-            return new CustomWorkspace().CurrentSolution;
+            return new AdhocWorkspace().CurrentSolution;
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private Solution CreateNotKeptAliveSolution()
         {
-            var workspace = new CustomWorkspace(TestHost.Services, "NotKeptAlive");
+            var workspace = new AdhocWorkspace(TestHost.Services, "NotKeptAlive");
             workspace.Options = workspace.Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
             return workspace.CurrentSolution;
         }
@@ -1111,7 +1111,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             string commandLine = @"foo.cs subdir\bar.cs /out:foo.dll /target:library";
             var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory");
-            var ws = new CustomWorkspace();
+            var ws = new AdhocWorkspace();
             ws.AddProject(info);
             var project = ws.CurrentSolution.GetProject(info.Id);
 
@@ -1134,7 +1134,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestCommandLineProjectWithRelativePathOutsideProjectCone()
         {
             string commandLine = @"..\foo.cs";
-            var ws = new CustomWorkspace();
+            var ws = new AdhocWorkspace();
             var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory");
 
             var docInfo = info.Documents.First();
@@ -1145,11 +1145,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestWorkspaceLanguageServiceOverride()
         {
-            var ws = new CustomWorkspace(TestHost.Services, ServiceLayer.Host);
+            var ws = new AdhocWorkspace(TestHost.Services, ServiceLayer.Host);
             var service = ws.Services.GetLanguageServices(LanguageNames.CSharp).GetService<ITestLanguageService>();
             Assert.NotNull(service as TestLanguageServiceA);
 
-            var ws2 = new CustomWorkspace(TestHost.Services, "Quasimodo");
+            var ws2 = new AdhocWorkspace(TestHost.Services, "Quasimodo");
             var service2 = ws2.Services.GetLanguageServices(LanguageNames.CSharp).GetService<ITestLanguageService>();
             Assert.NotNull(service2 as TestLanguageServiceB);
         }
@@ -1198,7 +1198,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestDocumentFileAccessFailureMissingFile()
         {
-            var solution = new CustomWorkspace().CurrentSolution;
+            var solution = new AdhocWorkspace().CurrentSolution;
 
             WorkspaceDiagnostic diagnostic = null;
 
@@ -1229,7 +1229,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [WorkItem(666263, "DevDiv")]
         public void TestWorkspaceDiagnosticHasDebuggerText()
         {
-            var solution = new CustomWorkspace().CurrentSolution;
+            var solution = new AdhocWorkspace().CurrentSolution;
 
             WorkspaceDiagnostic diagnostic = null;
 
@@ -1296,7 +1296,7 @@ public class C : A {
 }
 ";
 
-            var solution = new CustomWorkspace().CurrentSolution
+            var solution = new AdhocWorkspace().CurrentSolution
                 .AddProject(pid1, "FooA", "Foo.dll", LanguageNames.VisualBasic)
                 .AddDocument(did1, "A.vb", text1)
                 .AddMetadataReference(pid1, mscorlib)

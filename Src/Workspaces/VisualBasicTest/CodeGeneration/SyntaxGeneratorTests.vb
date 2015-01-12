@@ -9,7 +9,7 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.CodeGeneration
     Public Class SyntaxGeneratorTests
-        Private ReadOnly g As SyntaxGenerator = SyntaxGenerator.GetGenerator(New CustomWorkspace(), LanguageNames.VisualBasic)
+        Private ReadOnly g As SyntaxGenerator = SyntaxGenerator.GetGenerator(New AdhocWorkspace(), LanguageNames.VisualBasic)
 
         Private ReadOnly emptyCompilation As VisualBasicCompilation = VisualBasicCompilation.Create("empty", references:={TestReferences.NetFx.v4_0_30319.mscorlib})
 

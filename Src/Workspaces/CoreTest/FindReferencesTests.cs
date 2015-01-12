@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     {
         private Solution CreateSolution()
         {
-            return new CustomWorkspace().CurrentSolution;
+            return new AdhocWorkspace().CurrentSolution;
         }
 
         private Solution GetSingleDocumentSolution(string sourceText)
@@ -112,7 +112,7 @@ Module Module1
             ProjectId prj1Id = ProjectId.CreateNewId();
             DocumentId docId = DocumentId.CreateNewId(prj1Id);
 
-            Microsoft.CodeAnalysis.Solution sln = new CustomWorkspace().CurrentSolution
+            Microsoft.CodeAnalysis.Solution sln = new AdhocWorkspace().CurrentSolution
                 .AddProject(prj1Id, "testDeclareReferences", "testAssembly", LanguageNames.VisualBasic)
                 .AddMetadataReference(prj1Id, MscorlibRef)                
                 .AddDocument(docId, "testFile", tree.GetText());
@@ -183,7 +183,7 @@ static class Module1
             ProjectId prj1Id = ProjectId.CreateNewId();
             DocumentId docId = DocumentId.CreateNewId(prj1Id);
 
-            var sln = new CustomWorkspace().CurrentSolution
+            var sln = new AdhocWorkspace().CurrentSolution
                 .AddProject(prj1Id, "testDeclareReferences", "testAssembly", LanguageNames.CSharp)
                 .AddMetadataReference(prj1Id, MscorlibRef)
                 .AddDocument(docId, "testFile", tree.GetText());

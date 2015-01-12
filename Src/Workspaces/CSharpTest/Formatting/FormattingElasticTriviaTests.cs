@@ -79,7 +79,7 @@ class B
 
             Assert.NotNull(compilation);
 
-            var newCompilation = Formatter.Format(compilation, new CustomWorkspace());
+            var newCompilation = Formatter.Format(compilation, new AdhocWorkspace());
             Assert.Equal(expected, newCompilation.ToFullString());
         }
     }

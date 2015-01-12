@@ -18,7 +18,7 @@ internal static class Program
 
     private static async Task TestFormatterAndClassifierAsync()
     {
-        CustomWorkspace workspace = new CustomWorkspace();
+        AdhocWorkspace workspace = new AdhocWorkspace();
         Solution solution = workspace.CurrentSolution;
         Project project = solution.AddProject("projectName", "assemblyName", LanguageNames.CSharp);
         Document document = project.AddDocument("name.cs", 

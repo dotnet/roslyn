@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private static Solution CreateSolution()
         {
-            return new CustomWorkspace().CurrentSolution;
+            return new AdhocWorkspace().CurrentSolution;
         }
 
         private static Solution GetSingleProjectSolution(params string[] sourceTexts)

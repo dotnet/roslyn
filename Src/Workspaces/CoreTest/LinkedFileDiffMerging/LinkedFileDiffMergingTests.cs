@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.LinkedFileDiffMerging
     {
         public void TestLinkedFileSet(string startText, List<string> updatedTexts, string expectedMergedText, string languageName)
         {
-            using (var workspace = new CustomWorkspace())
+            using (var workspace = new AdhocWorkspace())
             {
-                var solution = new CustomWorkspace().CurrentSolution;
+                var solution = workspace.CurrentSolution;
                 var startSourceText = SourceText.From(startText);
                 var documentIds = new List<DocumentId>();
 

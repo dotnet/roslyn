@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var projectName = "TestProject";
             var projectId = ProjectId.CreateNewId(projectName);
-            return new CustomWorkspace().CurrentSolution
+            return new AdhocWorkspace().CurrentSolution
                 .AddProject(projectId, projectName, projectName, LanguageNames.CSharp)
                 .GetProject(projectId);
         }

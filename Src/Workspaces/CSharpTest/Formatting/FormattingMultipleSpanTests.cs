@@ -156,7 +156,7 @@ class A { }";
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public void EmptySpan()
         {
-            using (var workspace = new CustomWorkspace())
+            using (var workspace = new AdhocWorkspace())
             {
                 var project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
                 var document = project.AddDocument("Document", SourceText.From(""));

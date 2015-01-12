@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             
             var projectId = ProjectId.CreateNewId(debugName: TestProjectName);
 
-            var solution = (addToSolution ?? new CustomWorkspace().CurrentSolution)
+            var solution = (addToSolution ?? new AdhocWorkspace().CurrentSolution)
                 .AddProject(projectId, TestProjectName, TestProjectName, language)
                 .AddMetadataReference(projectId, CorlibReference)
                 .AddMetadataReference(projectId, SystemCoreReference)

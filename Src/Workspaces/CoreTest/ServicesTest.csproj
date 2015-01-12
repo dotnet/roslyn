@@ -107,7 +107,7 @@
     <Compile Include="CodeCleanup\ReduceTokenTests.cs" />
     <Compile Include="CodeCleanup\RemoveUnnecessaryLineContinuationTests.cs" />
     <Compile Include="WorkspaceTests\CommandLineProjectTests.cs" />
-    <Compile Include="WorkspaceTests\CustomWorkspaceTests.cs" />
+    <Compile Include="WorkspaceTests\AdhocWorkspaceTests.cs" />
     <Compile Include="Differencing\MatchTests.cs" />
     <Compile Include="Differencing\TestNode.cs" />
     <Compile Include="Differencing\TestTreeComparer.cs" />

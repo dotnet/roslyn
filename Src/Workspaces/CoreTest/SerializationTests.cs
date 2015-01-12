@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var pid = ProjectId.CreateNewId();
             var did = DocumentId.CreateNewId(pid);
 
-            var solution = new CustomWorkspace().CurrentSolution
+            var solution = new AdhocWorkspace().CurrentSolution
                     .AddProject(pid, "test", "test", LanguageNames.CSharp)
                     .AddMetadataReference(pid, TestReferences.NetFx.v4_0_30319.mscorlib)
                     .AddDocument(did, "foo.cs", SourceText.From(sourceText));

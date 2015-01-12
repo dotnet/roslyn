@@ -2693,7 +2693,7 @@ End Class</Code>
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Formatting)>
         Public Sub XmlTest5442()
-            Using workspace = New CustomWorkspace()
+            Using workspace = New AdhocWorkspace()
 
                 Dim project = workspace.CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.VisualBasic)
                 Dim document = project.AddDocument("Document", SourceText.From(My.Resources.XmlLiterals.XmlTest4_Input_Output))
@@ -3412,7 +3412,7 @@ End Class</text>.Value.Replace(vbLf, vbCrLf)
             Dim method = DirectCast(root.Members(0), ClassBlockSyntax).Members(2)
             root = root.ReplaceNode(method, method.NormalizeWhitespace(elasticTrivia:=True).WithAdditionalAnnotations(foo))
 
-            Using workspace = New CustomWorkspace()
+            Using workspace = New AdhocWorkspace()
                 Dim result = Formatter.Format(root, foo, workspace).ToString()
                 Assert.Equal(expected, result)
             End Using
@@ -3837,7 +3837,7 @@ End Module
             Dim setPropertyStatement = SyntaxFactory.ParseExecutableStatement(String.Format("SetProperty({0}, value, ""{1}"")", "field", "Property")).WithLeadingTrivia(SyntaxFactory.ElasticMarker)
             setter = setter.WithStatements(SyntaxFactory.SingletonList(setPropertyStatement))
 
-            Dim solution = New CustomWorkspace().CurrentSolution
+            Dim solution = New AdhocWorkspace().CurrentSolution
             Dim project = solution.AddProject("proj", "proj", LanguageNames.VisualBasic)
             Dim document = project.AddDocument("foo.vb", <text>Class C
     WriteOnly Property Prop As Integer

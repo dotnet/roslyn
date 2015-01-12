@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
 {
     public class SyntaxGeneratorTests
     {
-        private readonly SyntaxGenerator g = SyntaxGenerator.GetGenerator(new CustomWorkspace(), LanguageNames.CSharp);
+        private readonly SyntaxGenerator g = SyntaxGenerator.GetGenerator(new AdhocWorkspace(), LanguageNames.CSharp);
 
         private readonly CSharpCompilation emptyCompilation = CSharpCompilation.Create("empty",
                 references: new[] { TestReferences.NetFx.v4_0_30319.mscorlib });

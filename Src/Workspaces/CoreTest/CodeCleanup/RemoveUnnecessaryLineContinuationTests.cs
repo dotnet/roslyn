@@ -1332,7 +1332,7 @@ End Class";
 
         private static Document CreateDocument(string code, string language)
         {
-            var solution = new CustomWorkspace().CurrentSolution;
+            var solution = new AdhocWorkspace().CurrentSolution;
             var projectId = ProjectId.CreateNewId();
             var project = solution.AddProject(projectId, "Project", "Project.dll", language).GetProject(projectId);
 
