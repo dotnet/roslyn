@@ -1149,7 +1149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
 
                 Case "$"c
-                    If CanGetCharAtOffset(1) AndAlso PeekAheadChar(1) = """"c Then
+                    If CanGetCharAtOffset(1) AndAlso IsDoubleQuote(PeekAheadChar(1)) Then
                         Return MakePunctuationToken(precedingTrivia, 2, SyntaxKind.DollarSignDoubleQuoteToken)
                     End If
 

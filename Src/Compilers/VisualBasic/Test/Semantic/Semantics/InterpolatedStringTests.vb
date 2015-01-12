@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.OverloadResolution
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -172,6 +173,34 @@ BC35000: Requested operation is not available because the runtime library functi
         Write($"{obj}.")
               ~~~~~~~~~
 </expected>)
+
+        End Sub
+
+        <Fact, WorkItem(1102783)>
+        Sub SmartQuotes()
+
+            CompileAndVerify(
+<compilation>
+    <file name="a.vb">
+Module Program
+    Sub Main()
+
+        Dim arr = {
+            $“1”,
+            $”2“,
+            $“3",
+            $"4“,
+            $"5”,
+            $”6",
+            $" ”“ ",
+            $” {1:x”“y} “
+        }
+
+        System.Console.WriteLine(String.Join("", arr))
+
+    End Sub
+End Module    </file>
+</compilation>, expectedOutput:="123456 ""  xy")
 
         End Sub
 

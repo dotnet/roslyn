@@ -1,8 +1,5 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Imports Roslyn.Test.Utilities
 
 Public Class InterpolatedStringParsingTests
@@ -717,28 +714,25 @@ End Module")
 End Module")
     End Sub
 
-    <Fact>
+    <Fact, WorkItem(1102783)>
     Sub SmartQuotes()
-        Parse(
-"Module Program
+        ParseAndVerify(<![CDATA[
+Module Program
     Sub Main()
 
         Dim arr = {
-            $““””,
-            $””““,
-            $““"",
-            $""““,
-            $""””,
-            $””"",
-            $"" ””““ "",
-            $”” {1:x””““y} ““
+            $“”,
+            $”“,
+            $“",
+            $"“,
+            $"”,
+            $”",
+            $" ”“ ",
+            $” {1:x”“y} “
         }
 
-““””). 
-
     End Sub
-End Module")
+End Module]]>)
     End Sub
-
 
 End Class
