@@ -219,4 +219,22 @@
   <data name="ConsumePreserveSigDescription" xml:space="preserve">
     <value>PreserveSigAttribute indicates that a method will return an HRESULT, rather than throwing an exception.  Therefore, it is important to consume the HRESULT returned by the method, so that errors can be detected.  Generally, this is done by calling Marshal.ThrowExceptionForHR.</value>
   </data>
+  <data name="DeclarePublicApiTitle" xml:space="preserve">
+    <value>Add public types and members to the declared API</value>
+  </data>
+  <data name="DeclarePublicApiMessage" xml:space="preserve">
+    <value>Symbol '{0}' is not part of the declared API.</value>
+  </data>
+  <data name="DeclarePublicApiDescription" xml:space="preserve">
+    <value>All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</value>
+  </data>
+  <data name="RemoveDeletedApiTitle" xml:space="preserve">
+    <value>Remove deleted types and members from the declared API</value>
+  </data>
+  <data name="RemoveDeletedApiMessage" xml:space="preserve">
+    <value>Symbol '{0}' is part of the declared API, but is either not public or could not be found</value>
+  </data>
+  <data name="RemoveDeletedApiDescription" xml:space="preserve">
+    <value>When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</value>
+  </data>
 </root>

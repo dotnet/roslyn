@@ -106,6 +106,33 @@ namespace Roslyn.Diagnostics.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes..
+        /// </summary>
+        internal static string DeclarePublicApiDescription {
+            get {
+                return ResourceManager.GetString("DeclarePublicApiDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Symbol &apos;{0}&apos; is not part of the declared API..
+        /// </summary>
+        internal static string DeclarePublicApiMessage {
+            get {
+                return ResourceManager.GetString("DeclarePublicApiMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add public types and members to the declared API.
+        /// </summary>
+        internal static string DeclarePublicApiTitle {
+            get {
+                return ResourceManager.GetString("DeclarePublicApiTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Accessing the Descriptor property of Diagnostic in compiler layer leads to unnecessary string allocations for fields of the descriptor that are not utilized in command line compilation. Hence, you should avoid accessing the Descriptor of the compiler diagnostics here. Instead you should directly access these properties off the Diagnostic type..
         /// </summary>
         internal static string DiagnosticDescriptorAccessDescription {
@@ -264,6 +291,33 @@ namespace Roslyn.Diagnostics.Analyzers {
         internal static string OverrideObjectEqualsMessage {
             get {
                 return ResourceManager.GetString("OverrideObjectEqualsMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes..
+        /// </summary>
+        internal static string RemoveDeletedApiDescription {
+            get {
+                return ResourceManager.GetString("RemoveDeletedApiDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Symbol &apos;{0}&apos; is part of the declared API, but is either not public or could not be found.
+        /// </summary>
+        internal static string RemoveDeletedApiMessage {
+            get {
+                return ResourceManager.GetString("RemoveDeletedApiMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove deleted types and members from the declared API.
+        /// </summary>
+        internal static string RemoveDeletedApiTitle {
+            get {
+                return ResourceManager.GetString("RemoveDeletedApiTitle", resourceCulture);
             }
         }
         

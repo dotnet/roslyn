@@ -3,10 +3,10 @@
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ImportGroup Label="Settings">
     <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
+    <Import Project="..\..\..\..\..\Closed\Tools\Source\Microsoft.CodeAnalysis.Toolset\Targets\VSL.Settings.Closed.targets" />
   </ImportGroup>
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <OutDir>..\..\..\..\Binaries\$(Configuration)\</OutDir>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProjectGuid>{DCC1F13B-F51C-445B-BDAE-92135BD58364}</ProjectGuid>
     <OutputType>Library</OutputType>
@@ -30,8 +30,10 @@
       <Name>Workspaces</Name>
     </ProjectReference>
   </ItemGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' "></PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' "></PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Composition.AttributedModel, Version=1.0.27.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
@@ -68,6 +70,12 @@
     <Compile Include="ApiDesign\CancellationTokenMustBeLastAnalyzer.cs">
       <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
     </Compile>
+    <Compile Include="ApiDesign\DeclarePublicAPIAnalyzer.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
+    <Compile Include="ApiDesign\DeclarePublicAPIFix.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
     <Compile Include="CodeFixProviderBase.cs" />
     <Compile Include="Documentation\DoNotUseVerbatimCrefsAnalyzer.cs" />
     <Compile Include="DocumentChangedAction.cs" />
@@ -84,23 +92,24 @@
     <Compile Include="Reliability\MissingSharedAttributeAnalyzer.cs" />
     <Compile Include="Reliability\MixedVersionsOfMefAttributesAnalyzer.cs" />
     <Compile Include="RoslynDiagnosticIds.cs" />
+    <Compile Include="AbstractSyntaxNodeAnalyzer.cs" />
+    <Compile Include="Performance\DiagnosticDescriptorAccessAnalyzer.cs" />
     <Compile Include="RoslynDiagnosticsResources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>RoslynDiagnosticsResources.resx</DependentUpon>
     </Compile>
-    <Compile Include="AbstractSyntaxNodeAnalyzer.cs" />
-    <Compile Include="Performance\DiagnosticDescriptorAccessAnalyzer.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="RoslynDiagnosticsResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>RoslynDiagnosticsResources.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
+      <LastGenOutput>RoslynDiagnosticsResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
+    <Import Project="..\..\..\..\..\Closed\Tools\Source\Microsoft.CodeAnalysis.Toolset\Targets\VSL.Imports.Closed.targets" />
     <Import Project="..\..\..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets" Condition="Exists('..\..\..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets')" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
