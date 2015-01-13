@@ -3,7 +3,7 @@
 using System;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CodeGeneration
+namespace Microsoft.CodeAnalysis.Editting
 {
     public enum DeclarationKind
     {

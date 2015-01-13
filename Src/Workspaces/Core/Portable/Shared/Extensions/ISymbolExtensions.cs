@@ -7,7 +7,7 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Editting;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 

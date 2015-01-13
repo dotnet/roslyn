@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Editting;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
@@ -100,17 +100,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // use some fancy document centric rewrites
             var comp = doc.Project.GetCompilationAsync().Result;
 
-            var cgenField = CodeGenerationSymbolFactory.CreateFieldSymbol(
-                attributes: null,
-                accessibility: Accessibility.Private,
-                modifiers: new DeclarationModifiers(),
-                type: comp.GetSpecialType(SpecialType.System_Int32),
-                name: "X");
+            var gen = SyntaxGenerator.GetGenerator(doc);
+            var cgenField = gen.FieldDeclaration("X", gen.TypeExpression(SpecialType.System_Int32), Accessibility.Private); 
 
             var currentClassDecl = trackedRoot.GetCurrentNodes(classDecl).First();
-            var classDeclWithField = Formatter.Format(
-                                        CodeGenerator.AddFieldDeclaration(currentClassDecl, cgenField, sol.Workspace),
-                                        sol.Workspace);
+            var classDeclWithField = gen.InsertMembers(currentClassDecl, 0, new[] { cgenField });
 
             // we can find related bits even from sub-tree fragments
             var latestMethod = classDeclWithField.GetCurrentNodes(methodDecl).First();
@@ -128,7 +122,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             // we can still find the tracked node in the new document
             var finalClassDecl = root2.GetCurrentNodes(classDecl).First();
-            Assert.Equal(@"public class C { private System.Int32 X; void M() { } }", finalClassDecl.ToString());
+            Assert.Equal("public class C\r\n{\r\n    private int X;\r\n    void M()\r\n    {\r\n    }\r\n}", finalClassDecl.NormalizeWhitespace().ToString());
 
             // and other tracked nodes too
             var finalMethodDecl = root2.GetCurrentNodes(methodDecl).First();

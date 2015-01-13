@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.CodeGeneration
+namespace Microsoft.CodeAnalysis.Editting
 {
     /// <summary>
     /// An editor for making changes to multiple documents in a solution.

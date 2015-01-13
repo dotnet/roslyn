@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Editting;
 
 namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.CodeFixes
 {

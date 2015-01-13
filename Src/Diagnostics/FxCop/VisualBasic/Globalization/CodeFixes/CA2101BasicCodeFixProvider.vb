@@ -4,7 +4,7 @@ Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.CodeGeneration
+Imports Microsoft.CodeAnalysis.Editting
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.FxCopAnalyzers.Globalization
 Imports Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability

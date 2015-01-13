@@ -1,5 +1,5 @@
 ﻿Imports System.Globalization
-Imports Microsoft.CodeAnalysis.CodeGeneration
+Imports Microsoft.CodeAnalysis.Editting
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.CodeGeneration
+Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
     Public Class SyntaxGeneratorTests
         Private ReadOnly g As SyntaxGenerator = SyntaxGenerator.GetGenerator(New AdhocWorkspace(), LanguageNames.VisualBasic)
 

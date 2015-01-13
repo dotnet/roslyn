@@ -2,7 +2,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.CodeGeneration
+namespace Microsoft.CodeAnalysis.Editting
 {
     [Flags]
     public enum SpecialTypeConstraintKind

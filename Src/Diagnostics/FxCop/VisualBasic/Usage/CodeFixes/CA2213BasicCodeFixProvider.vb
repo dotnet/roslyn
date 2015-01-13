@@ -3,7 +3,7 @@
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
-Imports Microsoft.CodeAnalysis.CodeGeneration
+Imports Microsoft.CodeAnalysis.Editting
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
