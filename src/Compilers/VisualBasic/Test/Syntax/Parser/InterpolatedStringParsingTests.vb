@@ -735,4 +735,32 @@ Module Program
 End Module]]>)
     End Sub
 
+    <Fact, WorkItem(1102800)>
+    Sub FullwidthDelimiters()
+
+        ' Any combination of fullwidth and ASCII curly braces of the same direction is an escaping sequence for the corresponding ASCII curly brace.
+        ' We insert that curly brace doubled and because this is the escaping sequence understood by String.Format, that will be replaced by a single brace.
+        ' This is deliberate design and it aligns with existing rules for double quote escaping in strings.
+        ParseAndVerify(<![CDATA[
+Imports System.Console
+Module Program
+    Sub Main()
+        WriteLine($"{0｝" = "0")
+        WriteLine($"｛10：X}" = "A")
+
+        WriteLine($"}}" = "}")
+        WriteLine($"}｝" = "}")
+        WriteLine($"｝}" = "}")
+        WriteLine($"｝｝" = "}")
+
+        WriteLine($"{{" = "{")
+        WriteLine($"{｛" = "{")
+        WriteLine($"｛{" = "{")
+        WriteLine($"｛｛" = "{")
+
+        WriteLine(＄＂““" = """")
+    End Sub
+End Module]]>)
+    End Sub
+
 End Class

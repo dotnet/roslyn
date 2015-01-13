@@ -30,16 +30,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim c = PeekAheadChar(offset)
 
             ' This should only ever happen for $" or }
-            Debug.Assert(leadingTriviaLength = 0 OrElse c = "$"c OrElse c = "}"c)
+            Debug.Assert(leadingTriviaLength = 0 OrElse c = "$"c OrElse c = FULLWIDTH_DOLLAR_SIGN OrElse c = "}"c OrElse c = FULLWIDTH_RIGHT_CURLY_BRACKET)
 
             ' Another } may follow the close brace of an interpolation if the interpolation lacked a format clause.
             ' This is because the normal escaping rules only apply when parsing the format string.
-            Debug.Assert(Not CanGetCharAtOffset(1) OrElse PeekAheadChar(offset + 1) <> c OrElse c = "}"c, "Escape sequence not detected.")
+            Debug.Assert(Not CanGetCharAtOffset(1) OrElse PeekAheadChar(offset + 1) <> c OrElse c = "}"c OrElse c = FULLWIDTH_RIGHT_CURLY_BRACKET, "Escape sequence not detected.")
 
             Dim scanTrailingTrivia As Boolean
 
             Select Case c
-                Case "$"c
+                Case "$"c, FULLWIDTH_DOLLAR_SIGN
 
                     If CanGetCharAtOffset(offset + 1) AndAlso IsDoubleQuote(PeekAheadChar(offset + 1)) Then
                         kind = SyntaxKind.DollarSignDoubleQuoteToken
@@ -50,25 +50,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Throw ExceptionUtilities.Unreachable
                     End If
 
-                Case "{"c
+                Case "{"c, FULLWIDTH_LEFT_CURLY_BRACKET
 
                     kind = SyntaxKind.OpenBraceToken
                     length = 1
                     scanTrailingTrivia = True
 
-                Case ","c
+                Case ","c, FULLWIDTH_COMMA
 
                     kind = SyntaxKind.CommaToken
                     length = 1
                     scanTrailingTrivia = True
 
-                Case ":"c
+                Case ":"c, FULLWIDTH_COLON
 
                     kind = SyntaxKind.ColonToken
                     length = 1
                     scanTrailingTrivia = False ' Trailing trivia should be scanned as part of the format string text.
 
-                Case "}"c
+                Case "}"c, FULLWIDTH_RIGHT_CURLY_BRACKET
 
                     kind = SyntaxKind.CloseBraceToken
                     length = 1
@@ -119,9 +119,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim c = PeekAheadChar(offset)
 
-            If c = "{"c OrElse c = "}"c Then
+            If c = "{"c OrElse c = FULLWIDTH_LEFT_CURLY_BRACKET Then
                 ' This is an escape sequence.
-                Return Not CanGetCharAtOffset(offset + 1) OrElse PeekAheadChar(offset + 1) <> c
+                Return Not CanGetCharAtOffset(offset + 1) OrElse
+                    (PeekAheadChar(offset + 1) <> "{"c AndAlso PeekAheadChar(offset + 1) <> FULLWIDTH_LEFT_CURLY_BRACKET)
+
+            ElseIf c = "}"c OrElse c = FULLWIDTH_RIGHT_CURLY_BRACKET Then
+                ' This is an escape sequence.
+                Return Not CanGetCharAtOffset(offset + 1) OrElse
+                    (PeekAheadChar(offset + 1) <> "}"c AndAlso PeekAheadChar(offset + 1) <> FULLWIDTH_RIGHT_CURLY_BRACKET)
 
             ElseIf IsDoubleQuote(c)
                 'A subtle difference between this case and the one above.
@@ -143,15 +149,34 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim valueBuilder = GetScratch()
 
             Do While CanGetCharAtOffset(offset)
+
                 Dim c = PeekAheadChar(offset)
 
-                If c = "{"c OrElse c = "}"c Then
+                ' Any combination of fullwidth and ASCII curly braces of the same direction is an escaping sequence for the corresponding ASCII curly brace.
+                ' We insert that curly brace doubled and because this is the escaping sequence understood by String.Format, that will be replaced by a single brace.
+                ' This is deliberate design and it aligns with existing rules for double quote escaping in strings.
+                If c = "{"c OrElse c = FULLWIDTH_LEFT_CURLY_BRACKET Then
 
-                    If CanGetCharAtOffset(offset + 1) AndAlso PeekAheadChar(offset + 1) = c Then
+                    If CanGetCharAtOffset(offset + 1) AndAlso
+                        (PeekAheadChar(offset + 1) = "{"c OrElse PeekAheadChar(offset + 1) = FULLWIDTH_LEFT_CURLY_BRACKET) Then
                         ' This is an escape sequence.
 
-                        valueBuilder.Append(c)
-                        valueBuilder.Append(c)
+                        valueBuilder.Append("{{")
+                        offset += 2
+                        pendingWhitespace = 0
+
+                        Continue Do
+                    End If
+
+                    Exit Do
+
+                ElseIf c = "}"c OrElse c = FULLWIDTH_RIGHT_CURLY_BRACKET Then
+
+                    If CanGetCharAtOffset(offset + 1) AndAlso
+                        (PeekAheadChar(offset + 1) = "}"c OrElse PeekAheadChar(offset + 1) = FULLWIDTH_RIGHT_CURLY_BRACKET) Then
+                        ' This is an escape sequence.
+
+                        valueBuilder.Append("}}")
                         offset += 2
                         pendingWhitespace = 0
 
