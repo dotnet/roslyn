@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Performance
-    <ExportCodeFixProvider(CA1813DiagnosticAnalyzer.RuleId, LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=CA1813DiagnosticAnalyzer.RuleId), [Shared]>
     Public Class CA1813BasicCodeFixProvider
         Inherits CA1813CodeFixProviderBase
 

@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslyn.Diagnostics.Analyzers.ApiDesign
 {
-    [DiagnosticAnalyzer]
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class CancellationTokenMustBeLastAnalyzer : DiagnosticAnalyzer
     {
         private static LocalizableString localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.CancellationTokenMustBeLastMessage), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));

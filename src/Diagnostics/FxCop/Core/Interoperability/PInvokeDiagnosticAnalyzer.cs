@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
 {
-    [DiagnosticAnalyzer]
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class PInvokeDiagnosticAnalyzer : DiagnosticAnalyzer
     {
         public const string CA1401 = "CA1401";

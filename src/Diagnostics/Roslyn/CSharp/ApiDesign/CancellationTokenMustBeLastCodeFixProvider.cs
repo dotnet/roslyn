@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Formatting;
 
 namespace Roslyn.Diagnostics.Analyzers.CSharp.ApiDesign
 {
-    [ExportCodeFixProvider("CancellationAnalyzerCodeFixProvider", LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = "CancellationAnalyzerCodeFixProvider"), Shared]
     public class CancellationTokenMustBeLastCodeFixProvider : CodeFixProvider
     {
         public sealed override ImmutableArray<string> GetFixableDiagnosticIds()

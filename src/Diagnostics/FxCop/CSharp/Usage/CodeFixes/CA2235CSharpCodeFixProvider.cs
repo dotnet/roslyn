@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.FxCopAnalyzers.Usage;
 
 namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage
 {
-    [ExportCodeFixProvider("CA2237 CodeFix provider", LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = "CA2237 CodeFix provider"), Shared]
     public class CA2235CSharpCodeFixProvider : CA2235CodeFixProviderBase
     {
         protected override SyntaxNode GetFieldDeclarationNode(SyntaxNode node)

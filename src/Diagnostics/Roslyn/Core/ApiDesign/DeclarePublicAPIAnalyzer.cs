@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Roslyn.Diagnostics.Analyzers.ApiDesign
 {
-    [DiagnosticAnalyzer]
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class DeclarePublicAPIAnalyzer : DiagnosticAnalyzer
     {
         internal const string PublicApiFileName = "PublicAPI.txt";

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     /// <summary>
     /// CA1018: Custom attributes should have AttributeUsage attribute defined.
     /// </summary>
-    [DiagnosticAnalyzer]
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class CA1018DiagnosticAnalyzer : AbstractNamedTypeAnalyzer
     {
         internal const string RuleId = "CA1018";

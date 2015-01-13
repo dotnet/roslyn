@@ -38,30 +38,6 @@ class MyAnalyzer : DiagnosticAnalyzer
             var expected = GetCSharpExpectedDiagnostic(7, 7);
             VerifyCSharp(source, expected);
 
-            var fixedCode_WithSingleAttribute = @"
-using System;
-using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-
-[DiagnosticAnalyzer]
-class MyAnalyzer : DiagnosticAnalyzer
-{
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public override void Initialize(AnalysisContext context)
-    {
-    }
-}";
-
-            VerifyCSharpFix(source, fixedCode_WithSingleAttribute);
-
             var fixedCode_WithCSharpAttribute = @"
 using System;
 using System.Collections.Immutable;
@@ -84,7 +60,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     }
 }";
 
-            VerifyCSharpFix(source, fixedCode_WithCSharpAttribute, codeFixIndex: 1);
+            VerifyCSharpFix(source, fixedCode_WithCSharpAttribute, codeFixIndex: 0);
 
             var fixedCode_WithCSharpAndVBAttributes = @"
 using System;
@@ -92,8 +68,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-[DiagnosticAnalyzer(LanguageNames.VisualBasic)]
+[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
 class MyAnalyzer : DiagnosticAnalyzer
 {
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -109,7 +84,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     }
 }";
 
-            VerifyCSharpFix(source, fixedCode_WithCSharpAndVBAttributes, codeFixIndex: 3);
+            VerifyCSharpFix(source, fixedCode_WithCSharpAndVBAttributes, codeFixIndex: 2);
         }
 
         [Fact]
@@ -136,28 +111,6 @@ End Class
             var expected = GetBasicExpectedDiagnostic(7, 7);
             VerifyBasic(source, expected);
 
-            var fixedCode_WithSingleAttribute = @"
-Imports System
-Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.Diagnostics
-
-<DiagnosticAnalyzer>
-Class MyAnalyzer
-	Inherits DiagnosticAnalyzer
-	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-		Get
-			Throw New NotImplementedException()
-		End Get
-	End Property
-
-	Public Overrides Sub Initialize(context As AnalysisContext)
-	End Sub
-End Class
-";
-
-            VerifyBasicFix(source, fixedCode_WithSingleAttribute);
-
             var fixedCode_WithVBAttribute = @"
 Imports System
 Imports System.Collections.Immutable
@@ -178,7 +131,7 @@ Class MyAnalyzer
 End Class
 ";
 
-            VerifyBasicFix(source, fixedCode_WithVBAttribute, codeFixIndex: 2);
+            VerifyBasicFix(source, fixedCode_WithVBAttribute, codeFixIndex: 1);
 
             var fixedCode_WithCSharpAndVBAttributes = @"
 Imports System
@@ -186,7 +139,7 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 
-<DiagnosticAnalyzer(LanguageNames.CSharp)> <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+<DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
 Class MyAnalyzer
 	Inherits DiagnosticAnalyzer
 	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
@@ -200,7 +153,7 @@ Class MyAnalyzer
 End Class
 ";
 
-            VerifyBasicFix(source, fixedCode_WithCSharpAndVBAttributes, codeFixIndex: 3);
+            VerifyBasicFix(source, fixedCode_WithCSharpAndVBAttributes, codeFixIndex: 2);
         }
 
         [Fact]

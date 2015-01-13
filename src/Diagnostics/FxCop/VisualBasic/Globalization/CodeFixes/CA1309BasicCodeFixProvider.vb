@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Globalization
-    <ExportCodeFixProvider(CA1309DiagnosticAnalyzer.RuleId, LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=CA1309DiagnosticAnalyzer.RuleId), [Shared]>
     Public Class CA1309BasicCodeFixProvider
         Inherits CA1309CodeFixProviderBase
 

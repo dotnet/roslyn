@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
     /// <summary>
     /// CA2231: Complain if the type implements Equals without overloading the equality operator.
     /// </summary>
-    [DiagnosticAnalyzer]
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class CA2231DiagnosticAnalyzer : AbstractNamedTypeAnalyzer
     {
         internal const string RuleId = "CA2231";

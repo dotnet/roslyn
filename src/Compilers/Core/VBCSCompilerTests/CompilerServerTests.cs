@@ -1549,7 +1549,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer]
+[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
 class MyAnalyzer : DiagnosticAnalyzer
 {
     internal static readonly long loadTime = DateTime.Now.Ticks;

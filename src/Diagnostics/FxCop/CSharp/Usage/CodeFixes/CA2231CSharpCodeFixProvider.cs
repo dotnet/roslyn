@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage
     /// <summary>
     /// CA2231: Overload operator equals on overriding ValueType.Equals
     /// </summary>
-    [ExportCodeFixProvider(CA2231DiagnosticAnalyzer.RuleId, LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = CA2231DiagnosticAnalyzer.RuleId), Shared]
     public class CA2231CSharpCodeFixProvider : CA2231CodeFixProviderBase
     {
         internal override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, Diagnostic diagnostic, CancellationToken cancellationToken)

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
     /// <summary>
     /// CA1008: Enums should have zero value
     /// </summary>
-    [ExportCodeFixProvider("CA1008", LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = "CA1008"), Shared]
     public class CA1008CSharpCodeFixProvider : CA1008CodeFixProviderBase
     {
     }

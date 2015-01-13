@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 {
-    [ExportCodeFixProvider("CA2237 CodeFix provider", LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = "CA2237 CodeFix provider"), Shared]
     public sealed class CA2237CodeFixProvider : CodeFixProviderBase
     {
         public sealed override ImmutableArray<string> GetFixableDiagnosticIds()

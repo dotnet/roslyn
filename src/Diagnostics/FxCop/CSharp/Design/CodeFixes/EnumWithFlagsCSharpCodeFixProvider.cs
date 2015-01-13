@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
     /// CA1027: Mark enums with FlagsAttribute
     /// CA2217: Do not mark enums with FlagsAttribute
     /// </summary>
-    [ExportCodeFixProvider(EnumWithFlagsDiagnosticAnalyzer.RuleNameForExportAttribute, LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = EnumWithFlagsDiagnosticAnalyzer.RuleNameForExportAttribute), Shared]
     public class EnumWithFlagsCSharpCodeFixProvider : EnumWithFlagsCodeFixProviderBase
     {
     }

@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslyn.Diagnostics.Analyzers.Reliability
 {
-    [DiagnosticAnalyzer]
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class MixedVersionsOfMefAttributesAnalyzer : DiagnosticAnalyzer
     {
         private static readonly string[] MefNamespaces = new[] { "System.ComponentModel.Composition", "System.Composition" };

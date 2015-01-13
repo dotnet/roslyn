@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Simplification
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers.CodeFixes
-    <ExportCodeFixProviderAttribute(NameOf(BasicApplyDiagnosticAnalyzerAttributeFix), LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProviderAttribute(LanguageNames.VisualBasic, Name:=NameOf(BasicApplyDiagnosticAnalyzerAttributeFix)), [Shared]>
     Public Class BasicApplyDiagnosticAnalyzerAttributeFix
         Inherits ApplyDiagnosticAnalyzerAttributeFix
 

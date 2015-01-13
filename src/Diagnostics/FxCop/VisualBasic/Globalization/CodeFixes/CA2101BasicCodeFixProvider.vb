@@ -14,7 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Globalization
-    <ExportCodeFixProvider(PInvokeDiagnosticAnalyzer.CA2101, LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PInvokeDiagnosticAnalyzer.CA2101), [Shared]>
     Public Class CA2101BasicCodeFixProvider
         Inherits CA2101CodeFixProviderBase
 

@@ -8,29 +8,39 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// <summary>
     /// Place this attribute onto a type to cause it to be considered a diagnostic analyzer.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+    [AttributeUsage(AttributeTargets.Class)]
     public sealed class DiagnosticAnalyzerAttribute : Attribute
     {
         /// <summary>
-        /// Analyzer attribute to be used for a diagnostic analyzer.
-        /// If the analyzer is langauge agnostic, then no parameters need to be specified.
-        /// Otherwise, if the analyzer is language specific, then specify a supported languages from <see cref="LanguageNames"/>.
+        /// The source languages to which this analyzer applies.  See <see cref="LanguageNames"/>.
         /// </summary>
-        public DiagnosticAnalyzerAttribute()
-        {
-            this.SupportedLanguage = null;
-        }
+        public string[] Languages { get; private set; }
 
         /// <summary>
-        /// Analyzer attribute to be used for a diagnostic analyzer.
-        /// If the analyzer is langauge agnostic, then <paramref name="supportedLanguage"/> can be empty.
-        /// Otherwise, if the analyzer is language specific, then specify a supported languages from <see cref="LanguageNames"/>.
+        /// Attribute constructor used to specify automatic application of a diagnostic analyzer.
         /// </summary>
-        public DiagnosticAnalyzerAttribute(string supportedLanguage)
+        /// <param name="firstLanguage">One language to which the analyzer applies.</param>
+        /// <param name="additionalLanguages">Additional languages to which the analyzer applies. See <see cref="LanguageNames"/>.</param>
+        public DiagnosticAnalyzerAttribute(string firstLanguage, params string[] additionalLanguages)
         {
-            this.SupportedLanguage = supportedLanguage;
-        }
+            if (firstLanguage == null)
+            {
+                throw new ArgumentNullException("firstLanguage");
+            }
 
-        public string SupportedLanguage { get; private set; }
+            if (additionalLanguages == null)
+            {
+                throw new ArgumentNullException("additionalLanguages");
+            }
+
+            string[] languages = new string[additionalLanguages.Length + 1];
+            languages[0] = firstLanguage;
+            for (int index = 0; index < additionalLanguages.Length; index++)
+            {
+                languages[index + 1] = additionalLanguages[index];
+            }
+
+            this.Languages = languages;
+        }
     }
 }

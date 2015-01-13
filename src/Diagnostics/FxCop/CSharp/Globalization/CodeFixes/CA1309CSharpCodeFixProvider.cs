@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Globalization
 {
-    [ExportCodeFixProvider(CA1309DiagnosticAnalyzer.RuleId, LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = CA1309DiagnosticAnalyzer.RuleId), Shared]
     public class CA1309CSharpCodeFixProvider : CA1309CodeFixProviderBase
     {
         internal override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, Diagnostic diagnostic, CancellationToken cancellationToken)

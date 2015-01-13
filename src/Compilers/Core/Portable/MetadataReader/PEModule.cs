@@ -1574,6 +1574,32 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        internal static bool CrackStringArrayInAttributeValue(out ImmutableArray<string> value, ref BlobReader sig)
+        {
+            if (sig.RemainingBytes >= 4)
+            {
+                uint arrayLen = sig.ReadUInt32();
+                if (arrayLen >= 0)
+                {
+                    var stringArray = new string[arrayLen];
+                    for (int i = 0; i < arrayLen; i++)
+                    {
+                        if (!CrackStringInAttributeValue(out stringArray[i], ref sig))
+                        {
+                            value = stringArray.AsImmutableOrNull();
+                            return false;
+                        }
+                    }
+
+                    value = stringArray.AsImmutableOrNull();
+                    return true;
+                }
+            }
+
+            value = default(ImmutableArray<string>);
+            return false;
+        }
+
         internal static bool CrackByteInAttributeValue(out byte value, ref BlobReader sig)
         {
             if (sig.RemainingBytes >= 1)

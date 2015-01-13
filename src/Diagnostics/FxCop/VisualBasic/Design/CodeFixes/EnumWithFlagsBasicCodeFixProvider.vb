@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
     ''' <summary>
     ''' CA2217: Do not mark enums with FlagsAttribute
     ''' </summary>
-    <ExportCodeFixProvider(EnumWithFlagsDiagnosticAnalyzer.RuleNameForExportAttribute, LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=EnumWithFlagsDiagnosticAnalyzer.RuleNameForExportAttribute), [Shared]>
     Public Class EnumWithFlagsBasicCodeFixProvider
         Inherits EnumWithFlagsCodeFixProviderBase
 

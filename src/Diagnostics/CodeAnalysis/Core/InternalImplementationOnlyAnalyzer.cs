@@ -6,7 +6,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Analyzers
 {
-    [DiagnosticAnalyzer]
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class InternalImplementationOnlyAnalyzer : DiagnosticAnalyzer
     {
         private const string InternalImplementationOnlyAttributeName = "InternalImplementationOnlyAttribute";

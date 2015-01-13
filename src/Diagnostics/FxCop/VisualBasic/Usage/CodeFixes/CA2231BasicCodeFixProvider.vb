@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
     ' <summary>
     ' CA2231: Overload Operator equals on overriding ValueType.Equals
     ' </summary>
-    <ExportCodeFixProvider(CA2231DiagnosticAnalyzer.RuleId, LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=CA2231DiagnosticAnalyzer.RuleId), [Shared]>
     Public Class CA2231BasicCodeFixProvider
         Inherits CA2231CodeFixProviderBase
 

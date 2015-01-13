@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Roslyn.Diagnostics.Analyzers.Reliability
 {
-    [DiagnosticAnalyzer]
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class MissingSharedAttributeAnalyzer : DiagnosticAnalyzer
     {
         private static LocalizableString localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsResources.MissingSharedAttributeDescription), RoslynDiagnosticsResources.ResourceManager, typeof(RoslynDiagnosticsResources));

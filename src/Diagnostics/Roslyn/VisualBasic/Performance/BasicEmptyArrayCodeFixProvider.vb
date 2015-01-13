@@ -13,7 +13,7 @@ Imports Roslyn.Diagnostics.Analyzers
 Namespace Microsoft.CodeAnalysis.Performance
 
     ''' <summary>Provides a code fix for the EmptyArrayDiagnosticAnalyzer.</summary>
-    <ExportCodeFixProvider("BasicEmptyArrayCodeFixProvider", LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:="BasicEmptyArrayCodeFixProvider"), [Shared]>
     Public NotInheritable Class BasicEmptyArrayCodeFixProvider
         Inherits CodeFixProviderBase
 

@@ -80,41 +80,25 @@ Delta: Gamma: Beta: Test B
         {
             AnalyzerFileReference reference = new AnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
             var analyzerTypeNameMap = reference.GetAnalyzerTypeNameMap();
-            Assert.Equal(3, analyzerTypeNameMap.Keys.Count());
-            Assert.Equal(6, analyzerTypeNameMap[string.Empty].Count);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestAnalyzer", analyzerTypeNameMap[string.Empty]);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.TestAnalyzerCSAll", analyzerTypeNameMap[string.Empty]);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.TestAnalyzerAllCS", analyzerTypeNameMap[string.Empty]);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+SomeType+NestedAnalyzer", analyzerTypeNameMap[string.Empty]);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AbstractAnalyzer", analyzerTypeNameMap[string.Empty]);
-            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.OpenGenericAnalyzer`1", analyzerTypeNameMap[string.Empty]);
-            Assert.DoesNotContain("Microsoft.CodeAnalysis.UnitTests.Test.NotAnAnalyzer", analyzerTypeNameMap[string.Empty]);
+            Assert.Equal(2, analyzerTypeNameMap.Keys.Count());
 
-            Assert.Equal(2, analyzerTypeNameMap[LanguageNames.CSharp].Count);
+            Assert.Equal(6, analyzerTypeNameMap[LanguageNames.CSharp].Count);
             Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestAnalyzerCS", analyzerTypeNameMap[LanguageNames.CSharp]);
             Assert.Contains("Microsoft.CodeAnalysis.UnitTests.TestAnalyzerCSVB", analyzerTypeNameMap[LanguageNames.CSharp]);
+            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestAnalyzer", analyzerTypeNameMap[LanguageNames.CSharp]);
+            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+SomeType+NestedAnalyzer", analyzerTypeNameMap[LanguageNames.CSharp]);
+            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AbstractAnalyzer", analyzerTypeNameMap[LanguageNames.CSharp]);
+            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.OpenGenericAnalyzer`1", analyzerTypeNameMap[LanguageNames.CSharp]);
+            Assert.DoesNotContain("Microsoft.CodeAnalysis.UnitTests.Test.NotAnAnalyzer", analyzerTypeNameMap[LanguageNames.CSharp]);
 
-            Assert.Equal(2, analyzerTypeNameMap[LanguageNames.VisualBasic].Count);
+            Assert.Equal(6, analyzerTypeNameMap[LanguageNames.VisualBasic].Count);
             Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestAnalyzerVB", analyzerTypeNameMap[LanguageNames.VisualBasic]);
             Assert.Contains("Microsoft.CodeAnalysis.UnitTests.TestAnalyzerCSVB", analyzerTypeNameMap[LanguageNames.VisualBasic]);
-        }
-
-        [Fact]
-        public void TestGetAnalyzers()
-        {
-            AnalyzerFileReference reference = new AnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
-            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
-            reference.AddAnalyzers(builder, null);
-            var analyzers = builder.ToImmutable();
-            Assert.Equal(7, analyzers.Length);
-            var analyzerNames = analyzers.Select(a => a.GetType().Name);
-            Assert.Contains("TestAnalyzer", analyzerNames);
-            Assert.Contains("TestAnalyzerCS", analyzerNames);
-            Assert.Contains("TestAnalyzerVB", analyzerNames);
-            Assert.Contains("TestAnalyzerCSVB", analyzerNames);
-            Assert.Contains("TestAnalyzerCSAll", analyzerNames);
-            Assert.Contains("TestAnalyzerAllCS", analyzerNames);
-            Assert.Contains("NestedAnalyzer", analyzerNames);
+            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+TestAnalyzer", analyzerTypeNameMap[LanguageNames.VisualBasic]);
+            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AnalyzerFileReferenceTests+SomeType+NestedAnalyzer", analyzerTypeNameMap[LanguageNames.VisualBasic]);
+            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AbstractAnalyzer", analyzerTypeNameMap[LanguageNames.VisualBasic]);
+            Assert.Contains("Microsoft.CodeAnalysis.UnitTests.OpenGenericAnalyzer`1", analyzerTypeNameMap[LanguageNames.VisualBasic]);
+            Assert.DoesNotContain("Microsoft.CodeAnalysis.UnitTests.Test.NotAnAnalyzer", analyzerTypeNameMap[LanguageNames.VisualBasic]);
         }
 
         [Fact]
@@ -122,23 +106,19 @@ Delta: Gamma: Beta: Test B
         {
             AnalyzerFileReference reference = new AnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
             var analyzers = reference.GetAnalyzers(LanguageNames.CSharp);
-            Assert.Equal(6, analyzers.Length);
+            Assert.Equal(4, analyzers.Length);
             var analyzerNames = analyzers.Select(a => a.GetType().Name);
             Assert.Contains("TestAnalyzer", analyzerNames);
             Assert.Contains("TestAnalyzerCS", analyzerNames);
             Assert.Contains("TestAnalyzerCSVB", analyzerNames);
-            Assert.Contains("TestAnalyzerCSAll", analyzerNames);
-            Assert.Contains("TestAnalyzerAllCS", analyzerNames);
             Assert.Contains("NestedAnalyzer", analyzerNames);
 
             analyzers = reference.GetAnalyzers(LanguageNames.VisualBasic);
             analyzerNames = analyzers.Select(a => a.GetType().Name);
-            Assert.Equal(6, analyzers.Length);
+            Assert.Equal(4, analyzers.Length);
             Assert.Contains("TestAnalyzerVB", analyzerNames);
             Assert.Contains("TestAnalyzerCSVB", analyzerNames);
             Assert.Contains("TestAnalyzer", analyzerNames);
-            Assert.Contains("TestAnalyzerCSAll", analyzerNames);
-            Assert.Contains("TestAnalyzerAllCS", analyzerNames);
             Assert.Contains("NestedAnalyzer", analyzerNames);
         }
 
@@ -222,7 +202,7 @@ Delta: Gamma: Beta: Test B
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) => errors.Add(e);
             reference.AnalyzerLoadFailed += errorHandler;
             var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
-            reference.AddAnalyzers(builder);
+            reference.AddAnalyzers(builder, LanguageNames.CSharp);
             var analyzers = builder.ToImmutable();
             reference.AnalyzerLoadFailed -= errorHandler;
 
@@ -230,7 +210,7 @@ Delta: Gamma: Beta: Test B
             Assert.Equal(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, errors.First().ErrorCode);
         }
 
-        [DiagnosticAnalyzer]
+        [DiagnosticAnalyzer(LanguageNames.CSharp, new string[] { LanguageNames.VisualBasic })]
         public class TestAnalyzer : DiagnosticAnalyzer
         {
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
@@ -244,7 +224,7 @@ Delta: Gamma: Beta: Test B
             public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
         }
 
-        [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
+        [DiagnosticAnalyzer(LanguageNames.VisualBasic, new string[] { })]
         public class TestAnalyzerVB : DiagnosticAnalyzer
         {
             public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
@@ -253,7 +233,7 @@ Delta: Gamma: Beta: Test B
 
         public class SomeType
         {
-            [DiagnosticAnalyzer]
+            [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
             public class NestedAnalyzer : DiagnosticAnalyzer
             {
                 public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
@@ -272,25 +252,8 @@ Delta: Gamma: Beta: Test B
         public class NotAnAnalyzer { }
     }
 
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    [DiagnosticAnalyzer(LanguageNames.VisualBasic)]
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class TestAnalyzerCSVB : DiagnosticAnalyzer
-    {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
-        public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
-    }
-
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    [DiagnosticAnalyzer]
-    public class TestAnalyzerCSAll : DiagnosticAnalyzer
-    {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
-        public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
-    }
-
-    [DiagnosticAnalyzer]
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class TestAnalyzerAllCS : DiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
         public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
@@ -299,14 +262,14 @@ Delta: Gamma: Beta: Test B
     public class TestAnalyzerNone
     { }
 
-    [DiagnosticAnalyzer]
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public abstract class AbstractAnalyzer : DiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }
         public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
     }
 
-    [DiagnosticAnalyzer]
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class OpenGenericAnalyzer<T> : DiagnosticAnalyzer
     {
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { throw new NotImplementedException(); } }

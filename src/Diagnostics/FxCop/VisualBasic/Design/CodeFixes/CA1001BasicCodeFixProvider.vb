@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
     ' <summary>
     ' CA1001: Types that own disposable fields should be disposable
     ' </summary>
-    <ExportCodeFixProvider(CA1001DiagnosticAnalyzer.RuleId, LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=CA1001DiagnosticAnalyzer.RuleId), [Shared]>
     Public Class CA1001BasicCodeFixProvider
         Inherits CA1001CodeFixProviderBase
 

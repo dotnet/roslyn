@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     /// or an enumeration that has an applied FlagsAttribute defines a member that has a value of zero but its name is not 'None',
     /// or the enumeration defines multiple zero-valued members.
     /// </summary>
-    [DiagnosticAnalyzer]
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class CA1008DiagnosticAnalyzer : AbstractNamedTypeAnalyzer
     {
         /*

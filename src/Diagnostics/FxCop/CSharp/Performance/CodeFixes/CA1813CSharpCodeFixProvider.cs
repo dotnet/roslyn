@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Performance
     /// <summary>
     /// CA1813: Seal attribute types for improved performance. Sealing attribute types speeds up performance during reflection on custom attributes.
     /// </summary>
-    [ExportCodeFixProvider(CA1813DiagnosticAnalyzer.RuleId, LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = CA1813DiagnosticAnalyzer.RuleId), Shared]
     public class CA1813CSharpCodeFixProvider : CA1813CodeFixProviderBase
     {
         internal override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, Diagnostic diagnostic, CancellationToken cancellationToken)

@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
-    <ExportCodeFixProvider("CA2229 CodeFix provider", LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:="CA2229 CodeFix provider"), [Shared]>
     Public Class CA2235BasicCodeFixProvider
         Inherits CA2235CodeFixProviderBase
 

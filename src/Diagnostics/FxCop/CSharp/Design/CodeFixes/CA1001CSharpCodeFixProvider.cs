@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
     /// <summary>
     /// CA1001: Types that own disposable fields should be disposable
     /// </summary>
-    [ExportCodeFixProvider(CA1001DiagnosticAnalyzer.RuleId, LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = CA1001DiagnosticAnalyzer.RuleId), Shared]
     public class CA1001CSharpCodeFixProvider : CA1001CodeFixProviderBase
     {
         internal override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, Diagnostic diagnostic, CancellationToken cancellationToken)

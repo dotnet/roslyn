@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Roslyn.Diagnostics.Analyzers.ApiDesign
 {
-    [ExportCodeFixProvider("PublicSurfaceAreaFix", LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = "PublicSurfaceAreaFix"), Shared]
     public class DeclarePublicAPIFix : CodeFixProvider
     {
         private static readonly SymbolDisplayFormat titleFormat =

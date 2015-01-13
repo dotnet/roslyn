@@ -15,7 +15,7 @@ using Roslyn.Diagnostics.Analyzers;
 namespace Microsoft.CodeAnalysis.Performance
 {
     /// <summary>Provides a code fix for the EmptyArrayDiagnosticAnalyzer.</summary>
-    [ExportCodeFixProvider("CSharpEmptyArrayCodeFixProvider", LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = "CSharpEmptyArrayCodeFixProvider"), Shared]
     public sealed class CSharpEmptyArrayCodeFixProvider : CodeFixProviderBase
     {
         public override ImmutableArray<string> GetFixableDiagnosticIds() { return ImmutableArray.Create(RoslynDiagnosticIds.UseArrayEmptyRuleId); }

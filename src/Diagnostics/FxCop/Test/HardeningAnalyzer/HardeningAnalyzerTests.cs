@@ -53,7 +53,7 @@ public class Class6<TTypeParameter>
 #region "Test_Class"
         private static readonly ImmutableArray<DiagnosticDescriptor> SupportedRules = ImmutableArray.Create(CA1715DiagnosticAnalyzer.InterfaceRule, CA1715DiagnosticAnalyzer.TypeParameterRule);
 
-        [DiagnosticAnalyzer]
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         internal class ExceptionThrowingSymbolAnalyzer_ThrowSymbolKindsOfInterest : DiagnosticAnalyzer
         {
             private SymbolKind[] SymbolKindsOfInterest

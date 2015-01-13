@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     /// <summary>
     /// CA1025: Static holder types should be sealed
     /// </summary>
-    [DiagnosticAnalyzer]
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class StaticTypeRulesDiagnosticAnalyzer : AbstractNamedTypeAnalyzer
     {
         internal const string RuleNameForExportAttribute = "StaticHolderTypeRules";

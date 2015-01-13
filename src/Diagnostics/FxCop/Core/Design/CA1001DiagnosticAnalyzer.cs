@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     /// <summary>
     /// CA1001: Types that own disposable fields should be disposable
     /// </summary>
-    [DiagnosticAnalyzer]
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public sealed class CA1001DiagnosticAnalyzer : AbstractNamedTypeAnalyzer
     {
         internal const string RuleId = "CA1001";

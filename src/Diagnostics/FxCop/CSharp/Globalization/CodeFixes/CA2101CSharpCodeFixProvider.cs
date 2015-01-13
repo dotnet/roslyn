@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Globalization
 {
-    [ExportCodeFixProvider(PInvokeDiagnosticAnalyzer.CA2101, LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PInvokeDiagnosticAnalyzer.CA2101), Shared]
     public class CA2101CSharpCodeFixProvider : CA2101CodeFixProviderBase
     {
         internal override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, Diagnostic diagnostic, CancellationToken cancellationToken)

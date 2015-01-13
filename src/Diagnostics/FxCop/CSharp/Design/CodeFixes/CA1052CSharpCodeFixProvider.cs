@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
 {
-    [ExportCodeFixProvider(StaticTypeRulesDiagnosticAnalyzer.RuleNameForExportAttribute, LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = StaticTypeRulesDiagnosticAnalyzer.RuleNameForExportAttribute), Shared]
     public class CA1052CSharpCodeFixProvider : CodeFixProvider
     {
         public sealed override ImmutableArray<string> GetFixableDiagnosticIds()

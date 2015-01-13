@@ -89,18 +89,9 @@ namespace Microsoft.CodeAnalysis.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Apply language-agnostic DiagnosticAnalyzer attribute..
-        /// </summary>
-        internal static string ApplyDiagnosticAnalyzerAttribute_1 {
-            get {
-                return ResourceManager.GetString("ApplyDiagnosticAnalyzerAttribute_1", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Apply &apos;{0}&apos; DiagnosticAnalyzer attribute..
         /// </summary>
-        internal static string ApplyDiagnosticAnalyzerAttribute_2 {
+        internal static string ApplyDiagnosticAnalyzerAttribute_1 {
             get {
                 return ResourceManager.GetString("ApplyDiagnosticAnalyzerAttribute_2", resourceCulture);
             }
@@ -109,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Analyzers {
         /// <summary>
         ///   Looks up a localized string similar to Apply DiagnosticAnalyzer attributes for both: &apos;{0}&apos; and &apos;{1}&apos;..
         /// </summary>
-        internal static string ApplyDiagnosticAnalyzerAttribute_3 {
+        internal static string ApplyDiagnosticAnalyzerAttribute_2 {
             get {
                 return ResourceManager.GetString("ApplyDiagnosticAnalyzerAttribute_3", resourceCulture);
             }

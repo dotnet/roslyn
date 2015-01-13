@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
     /// <summary>
     /// CA1821: Remove empty finalizers
     /// </summary>
-    [ExportCodeFixProvider(CA1821DiagnosticAnalyzerRule.RuleId, LanguageNames.CSharp, LanguageNames.VisualBasic), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = CA1821DiagnosticAnalyzerRule.RuleId), Shared]
     public sealed class CA1821CodeFixProvider : CodeFixProviderBase
     {
         public sealed override ImmutableArray<string> GetFixableDiagnosticIds()

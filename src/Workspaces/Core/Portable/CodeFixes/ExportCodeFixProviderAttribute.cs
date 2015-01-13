@@ -10,47 +10,47 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// </summary>
     [MetadataAttribute]
     [AttributeUsage(AttributeTargets.Class)]
-    public class ExportCodeFixProviderAttribute : ExportAttribute
+    public sealed class ExportCodeFixProviderAttribute : ExportAttribute
     {
         /// <summary>
         /// Optional name of the <see cref="CodeFixProvider"/>.  
         /// </summary>
-        public string Name { get; private set; }
+        public string Name { get; set; }
 
         /// <summary>
         /// The source languages this provider can provide fixes for.  See <see cref="LanguageNames"/>.
         /// </summary>
         public string[] Languages { get; private set; }
 
+        /// <summary>
+        /// Attribute constructor used to specify automatic application of a code fix provider.
+        /// </summary>
+        /// <param name="firstLanguage">One language to which the code fix provider applies.</param>
+        /// <param name="additionalLanguages">Additional languages to which the code fix provider applies. See <see cref="LanguageNames"/>.</param>
         public ExportCodeFixProviderAttribute(
-            string name,
-            params string[] languages)
+            string firstLanguage,
+            params string[] additionalLanguages)
             : base(typeof(CodeFixProvider))
         {
-            if (name == null)
+            if (firstLanguage == null)
             {
-                throw new ArgumentNullException("name");
+                throw new ArgumentNullException("firstLanguage");
             }
 
-            if (languages == null)
+            if (additionalLanguages == null)
             {
-                throw new ArgumentNullException("languages");
+                throw new ArgumentNullException("additionalLanguages");
             }
-
-            this.Name = name;
-            this.Languages = languages;
-        }
-
-        public ExportCodeFixProviderAttribute(
-            params string[] languages)
-            : base(typeof(CodeFixProvider))
-        {
-            if (languages == null)
-            {
-                throw new ArgumentNullException("languages");
-            }
-
+            
             this.Name = null;
+
+            string[] languages = new string[additionalLanguages.Length + 1];
+            languages[0] = firstLanguage;
+            for (int index = 0; index < additionalLanguages.Length; index++)
+            {
+                languages[index + 1] = additionalLanguages[index];
+            }
+
             this.Languages = languages;
         }
     }

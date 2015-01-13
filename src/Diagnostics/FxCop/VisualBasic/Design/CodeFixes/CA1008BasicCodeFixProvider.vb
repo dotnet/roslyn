@@ -9,7 +9,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
     ' <summary>
     ' CA1008: Enums should have zero value
     ' </summary>
-    <ExportCodeFixProvider("CA1008", LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:="CA1008"), [Shared]>
     Public Class CA1008BasicCodeFixProvider
         Inherits CA1008CodeFixProviderBase
 

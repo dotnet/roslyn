@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers.CodeFixes
 {
-    [ExportCodeFixProvider(nameof(CSharpApplyDiagnosticAnalyzerAttributeFix), LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(CSharpApplyDiagnosticAnalyzerAttributeFix)), Shared]
     public sealed class CSharpApplyDiagnosticAnalyzerAttributeFix : ApplyDiagnosticAnalyzerAttributeFix
     {
         protected override SyntaxNode ParseExpression(string expression)
