@@ -181,6 +181,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return c = """"c OrElse (c >= LEFT_DOUBLE_QUOTATION_MARK AndAlso (c = FULLWIDTH_QUOTATION_MARK Or c = LEFT_DOUBLE_QUOTATION_MARK Or c = RIGHT_DOUBLE_QUOTATION_MARK))
         End Function
 
+        Friend Shared Function IsLeftCurlyBracket(c As Char) As Boolean
+            Return c = "{"c OrElse c = FULLWIDTH_LEFT_CURLY_BRACKET
+        End Function
+
+        Friend Shared Function IsRightCurlyBracket(c As Char) As Boolean
+            Return c = "}"c OrElse c = FULLWIDTH_RIGHT_CURLY_BRACKET
+        End Function
+
         ''' <summary>
         ''' Determines if the unicode character is a colon character.
         ''' </summary>

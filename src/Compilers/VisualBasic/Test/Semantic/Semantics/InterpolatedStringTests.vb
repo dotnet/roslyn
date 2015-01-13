@@ -1,15 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.IO
-Imports Microsoft.CodeAnalysis
-Imports Microsoft.CodeAnalysis.SpecialType
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.OverloadResolution
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
+Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -186,14 +177,14 @@ Module Program
     Sub Main()
 
         Dim arr = {
-            $“1”,
-            $”2“,
-            $“3",
-            $"4“,
-            $"5”,
-            $”6",
-            $" ”“ ",
-            $” {1:x”“y} “
+            $<%= LEFT_DOUBLE_QUOTATION_MARK %>1<%= RIGHT_DOUBLE_QUOTATION_MARK %>,
+            $<%= RIGHT_DOUBLE_QUOTATION_MARK %>2<%= LEFT_DOUBLE_QUOTATION_MARK %>,
+            $<%= LEFT_DOUBLE_QUOTATION_MARK %>3",
+            $"4<%= LEFT_DOUBLE_QUOTATION_MARK %>,
+            $"5<%= RIGHT_DOUBLE_QUOTATION_MARK %>,
+            $<%= RIGHT_DOUBLE_QUOTATION_MARK %>6",
+            $" <%= RIGHT_DOUBLE_QUOTATION_MARK %><%= LEFT_DOUBLE_QUOTATION_MARK %> ",
+            $<%= RIGHT_DOUBLE_QUOTATION_MARK %> {1:x<%= RIGHT_DOUBLE_QUOTATION_MARK %><%= LEFT_DOUBLE_QUOTATION_MARK %>y} <%= LEFT_DOUBLE_QUOTATION_MARK %>
         }
 
         System.Console.WriteLine(String.Join("", arr))
@@ -216,20 +207,20 @@ End Module    </file>
 Imports System.Console
 Module Program
     Sub Main()
-        WriteLine($"{0｝" = "0")
-        WriteLine($"｛10：X}" = "A")
+        WriteLine($"{0<%= FULLWIDTH_RIGHT_CURLY_BRACKET %>" = "0")
+        WriteLine($"<%= FULLWIDTH_LEFT_CURLY_BRACKET %>10<%= FULLWIDTH_COLON %>X}" = "A")
 
         WriteLine($"}}" = "}")
-        WriteLine($"}｝" = "}")
-        WriteLine($"｝}" = "}")
-        WriteLine($"｝｝" = "}")
+        WriteLine($"}<%= FULLWIDTH_RIGHT_CURLY_BRACKET %>" = "}")
+        WriteLine($"<%= FULLWIDTH_RIGHT_CURLY_BRACKET %>}" = "}")
+        WriteLine($"<%= FULLWIDTH_RIGHT_CURLY_BRACKET %><%= FULLWIDTH_RIGHT_CURLY_BRACKET %>" = "}")
 
         WriteLine($"{{" = "{")
-        WriteLine($"{｛" = "{")
-        WriteLine($"｛{" = "{")
-        WriteLine($"｛｛" = "{")
+        WriteLine($"{<%= FULLWIDTH_LEFT_CURLY_BRACKET %>" = "{")
+        WriteLine($"<%= FULLWIDTH_LEFT_CURLY_BRACKET %>{" = "{")
+        WriteLine($"<%= FULLWIDTH_LEFT_CURLY_BRACKET %><%= FULLWIDTH_LEFT_CURLY_BRACKET %>" = "{")
 
-        WriteLine(＄＂““" = """")
+        WriteLine(<%= FULLWIDTH_DOLLAR_SIGN %><%= FULLWIDTH_QUOTATION_MARK %><%= LEFT_DOUBLE_QUOTATION_MARK %><%= LEFT_DOUBLE_QUOTATION_MARK %>" = """")
     End Sub
 End Module</file>
 </compilation>, expectedOutput:="True
