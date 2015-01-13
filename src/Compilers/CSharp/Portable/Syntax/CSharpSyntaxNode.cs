@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void ComputeSyntaxTree(CSharpSyntaxNode node)
         {
-            List<CSharpSyntaxNode> nodes = null;
+            ArrayBuilder<CSharpSyntaxNode> nodes = null;
             SyntaxTree tree = null;
 
             // Find the nearest parent with a non-null syntax tree
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    (nodes ?? (nodes = new List<CSharpSyntaxNode>())).Add(node);
+                    (nodes ?? (nodes = ArrayBuilder<CSharpSyntaxNode>.GetInstance())).Add(node);
                     node = parent;
                 }
             }
@@ -125,6 +125,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         tree = existingTree;
                     }
                 }
+
+                nodes.Free();
             }
         }
 
