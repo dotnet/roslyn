@@ -60,11 +60,6 @@
       <Project>{7FE6B002-89D8-4298-9B1B-0B5C247DD1FD}</Project>
       <Name>CompilerTestResources</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\..\..\..\..\Closed\Scripting\Test\CommonScriptingTest.csproj">
-      <Project>{2DAE4406-7A89-4B5F-95C3-BC5472CE47CE}</Project>
-      <Name>CommonScriptingTest</Name>
-      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup Label="File References">
     <Reference Include="Microsoft.CodeAnalysis.Test.Resources.Proprietary, Version=0.7.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">

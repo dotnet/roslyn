@@ -39,18 +39,36 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     if (emitSection != null)
                     {
                         var methodElements = emitSection.Elements("method");
-                        emitters = new Emitter[methodElements.Count()];
+                        var builder = ImmutableArray.CreateBuilder<Emitter>(methodElements.Count());
 
-                        int i = 0;
                         foreach (var method in methodElements)
                         {
-                            var asm = Assembly.Load(method.Attribute("assembly").Value);
-                            emitters[i] = (Emitter)Delegate.CreateDelegate(typeof(Emitter),
-                                asm.GetType(method.Attribute("type").Value),
-                                method.Attribute("name").Value);
+                            Emitter emitter;
+                            try
+                            {
+                                var asm = Assembly.Load(method.Attribute("assembly").Value);
+                                emitter = (Emitter)Delegate.CreateDelegate(typeof(Emitter),
+                                    asm.GetType(method.Attribute("type").Value),
+                                    method.Attribute("name").Value);
+                            }
+                            catch
+                            {
+                                // It is possible and OK for an emitter to fail to load.  This is in fact expected
+                                // when only the Open directory is built (as is the case in Github).  When this happens
+                                // the ReflectionEmitter won't be present.  In that case we use the single available
+                                // Emitter
+                                continue;
+                            }
 
-                            i++;
+                            builder.Add(emitter);
                         }
+
+                        if (builder.Count == 0)
+                        {
+                            throw new Exception("Unable to load any emitter");
+                        }
+
+                        emitters = builder.ToImmutableArray();
                     }
                 }
             }
@@ -80,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             bool collectEmittedAssembly,
             bool verify);
 
-        private static Emitter[] emitters;
+        private static readonly ImmutableArray<Emitter> emitters;
 
         internal CompilationVerifier CompileAndVerify(
             string source,
@@ -178,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 sourceSymbolValidator(module, emitOptions);
             }
 
-            if (emitters == null || emitters.Length == 0)
+            if (emitters.IsDefaultOrEmpty)
             {
                 throw new InvalidOperationException(
                     @"You must specify at least one Emitter.
