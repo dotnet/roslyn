@@ -19,7 +19,7 @@ namespace AsyncPackage
     /// <summary>
     /// Codefix changes the synchronous operations to it's asynchronous equivalent. 
     /// </summary>
-    [ExportCodeFixProvider(BlockingAsyncAnalyzer.BlockingAsyncId, LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = BlockingAsyncAnalyzer.BlockingAsyncId), Shared]
     public class BlockingAsyncCodeFix : CodeFixProvider
     {
         public sealed override ImmutableArray<string> GetFixableDiagnosticIds()

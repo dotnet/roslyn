@@ -11,7 +11,7 @@ namespace AsyncPackage
     /// <summary>
     /// This Analyzer determines if a method is Async and needs to be returning a Task instead of having a void return type.
     /// </summary>
-    [DiagnosticAnalyzer]
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class AsyncVoidAnalyzer : DiagnosticAnalyzer
     {
         internal const string AsyncVoidId = "Async001";

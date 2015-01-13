@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Simplification;
 
 namespace MakeConstCS
 {
-    [ExportCodeFixProvider("MakeConstCS", LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = "MakeConstCS"), Shared]
     internal class MakeConstCodeFixProvider : CodeFixProvider
     {
         public sealed override ImmutableArray<string> GetFixableDiagnosticIds()

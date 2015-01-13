@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-<ExportCodeFixProvider("MakeConstVB", LanguageNames.VisualBasic), [Shared]>
+<ExportCodeFixProvider(LanguageNames.VisualBasic, Name:="MakeConstVB"), [Shared]>
 Class MakeConstCodeFixProvider
     Inherits CodeFixProvider
 
