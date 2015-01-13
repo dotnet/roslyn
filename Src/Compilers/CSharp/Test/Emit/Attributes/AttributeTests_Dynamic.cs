@@ -844,16 +844,16 @@ class Attr: System.Attribute
         public void TestNoCS1980WhenNotInContextWhichNeedsDynamicAttribute()
         {
             // Regular mode
-            TestNoCS1980WhenNotInContextWhichNeedsDynamicAttribute(parseOptions: TestOptions.Regular);
+            TestNoCS1980WhenNotInContextWhichNeedsDynamicAttributeHelper(parseOptions: TestOptions.Regular);
 
             // Script
-            TestNoCS1980WhenNotInContextWhichNeedsDynamicAttribute(parseOptions: TestOptions.Script);
+            TestNoCS1980WhenNotInContextWhichNeedsDynamicAttributeHelper(parseOptions: TestOptions.Script);
 
             // Interactive
-            TestNoCS1980WhenNotInContextWhichNeedsDynamicAttribute(parseOptions: TestOptions.Interactive);
+            TestNoCS1980WhenNotInContextWhichNeedsDynamicAttributeHelper(parseOptions: TestOptions.Interactive);
         }
 
-        private void TestNoCS1980WhenNotInContextWhichNeedsDynamicAttribute(CSharpParseOptions parseOptions)
+        private void TestNoCS1980WhenNotInContextWhichNeedsDynamicAttributeHelper(CSharpParseOptions parseOptions)
         {
             var source = GetNoCS1980String(typeName: @"dynamic");
             var comp = CreateCompilationWithMscorlib(source, parseOptions: parseOptions);
@@ -878,16 +878,16 @@ class Attr: System.Attribute
         public void TestDynamicAttributeInAliasContext()
         {
             // Regular mode
-            TestDynamicAttributeInAliasContext(parseOptions: TestOptions.Regular);
+            TestDynamicAttributeInAliasContextHelper(parseOptions: TestOptions.Regular);
 
             // Script
-            TestDynamicAttributeInAliasContext(parseOptions: TestOptions.Script);
+            TestDynamicAttributeInAliasContextHelper(parseOptions: TestOptions.Script);
 
             // Interactive
-            TestDynamicAttributeInAliasContext(parseOptions: TestOptions.Interactive);
+            TestDynamicAttributeInAliasContextHelper(parseOptions: TestOptions.Interactive);
         }
 
-        private void TestDynamicAttributeInAliasContext(CSharpParseOptions parseOptions)
+        private void TestDynamicAttributeInAliasContextHelper(CSharpParseOptions parseOptions)
         {
             // Dynamic type in Alias target
             string aliasDecl = @"using X = Gen<dynamic>;     // No CS1980";
@@ -946,13 +946,13 @@ public class Gen2<T> : X    // CS1980
         public void TestDynamicAttributeForSubmissionField()
         {
             // Script
-            TestDynamicAttributeForSubmissionField(parseOptions: TestOptions.Script);
+            TestDynamicAttributeForSubmissionFieldHelper(parseOptions: TestOptions.Script);
 
             // Interactive
-            TestDynamicAttributeForSubmissionField(parseOptions: TestOptions.Interactive);
+            TestDynamicAttributeForSubmissionFieldHelper(parseOptions: TestOptions.Interactive);
         }
 
-        private void TestDynamicAttributeForSubmissionField(CSharpParseOptions parseOptions)
+        private void TestDynamicAttributeForSubmissionFieldHelper(CSharpParseOptions parseOptions)
         {
             string source = GetNoCS1980String(typeName: @"Gen<dynamic>");
             var comp = CreateCompilationWithMscorlib(source, parseOptions: parseOptions);
@@ -1012,13 +1012,13 @@ X x = null;";
         public void TestDynamicAttributeForSubmissionGlobalStatement()
         {
             // Script
-            TestDynamicAttributeForSubmissionGlobalStatement(parseOptions: TestOptions.Script);
+            TestDynamicAttributeForSubmissionGlobalStatementHelper(parseOptions: TestOptions.Script);
 
             // Interactive
-            TestDynamicAttributeForSubmissionGlobalStatement(parseOptions: TestOptions.Interactive);
+            TestDynamicAttributeForSubmissionGlobalStatementHelper(parseOptions: TestOptions.Interactive);
         }
 
-        private void TestDynamicAttributeForSubmissionGlobalStatement(CSharpParseOptions parseOptions)
+        private void TestDynamicAttributeForSubmissionGlobalStatementHelper(CSharpParseOptions parseOptions)
         {
             // Ensure no CS1980 for use of dynamic in global statement
             string aliasDecl = @"using X = Gen<dynamic>;     // No CS1980";
