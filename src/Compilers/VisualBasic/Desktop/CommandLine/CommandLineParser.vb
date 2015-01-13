@@ -1385,7 +1385,20 @@ lVbRuntimePlus:
                 Return Nothing
             End If
 
-            Dim dataProvider As Func(Of Stream) = Function() New FileStream(fullPath, FileMode.Open, FileAccess.Read)
+            Dim dataProvider As Func(Of Stream) = Function()
+                                                      ' Use FileShare.ReadWrite because the file could be opened by the current process.
+                                                      ' For example, it Is an XML doc file produced by the build.
+                                                      Dim stream = New FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite)
+
+                                                      ' Lock the entire content to prevent others from modifying it while we are reading.
+                                                      Try
+                                                          stream.Lock(0, Long.MaxValue)
+                                                          Return stream
+                                                      Catch
+                                                          stream.Dispose()
+                                                          Throw
+                                                      End Try
+                                                  End Function
             Return New ResourceDescription(resourceName, fileName, dataProvider, isPublic, embedded, checkArgs:=False)
         End Function
 

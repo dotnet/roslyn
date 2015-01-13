@@ -6756,6 +6756,56 @@ End Module"
 
             CleanupAllGeneratedFiles(file.Path)
         End Sub
+
+        <Fact, WorkItem(1091972, "DevDiv"), WorkItem(444, "CodePlex")>
+        Public Sub Bug1091972()
+            Dim dir = Temp.CreateDirectory()
+            Dim src = dir.CreateFile("a.vb")
+            src.WriteAllText(
+    <text>
+''' &lt;summary&gt;ABC...XYZ&lt;/summary&gt;
+Class C
+    Shared Sub Main()
+        Dim textStreamReader = New System.IO.StreamReader(GetType(C).Assembly.GetManifestResourceStream("doc.xml"))
+        System.Console.WriteLine(textStreamReader.ReadToEnd())
+    End Sub
+End Class
+</text>.Value.Replace(vbLf, vbCrLf))
+
+            Dim output = RunAndGetOutput(BasicCompilerExecutable, String.Format("/nologo /doc:doc.xml /out:out.exe /resource:doc.xml {0}", src.ToString()), startFolder:=dir.ToString())
+            AssertOutput(<text></text>, output)
+
+            Assert.True(File.Exists(Path.Combine(dir.ToString(), "doc.xml")))
+
+            Dim expected = <text>
+                               <![CDATA[
+<?xml version="1.0"?>
+<doc>
+<assembly>
+<name>
+out
+</name>
+</assembly>
+<members>
+<member name="T:C">
+ <summary>ABC...XYZ</summary>
+</member>
+</members>
+</doc>
+]]>
+                           </text>
+
+            Using reader As New StreamReader(Path.Combine(dir.ToString(), "doc.xml"))
+                Dim content = reader.ReadToEnd()
+                AssertOutput(expected, content)
+            End Using
+
+            output = RunAndGetOutput(Path.Combine(dir.ToString(), "out.exe"), startFolder:=dir.ToString())
+            AssertOutput(expected, output)
+
+            CleanupAllGeneratedFiles(src.Path)
+        End Sub
+
     End Class
 
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>

@@ -7230,6 +7230,54 @@ public class C
                     .WithLocation(4, 26)
                     .WithWarningAsError(false));
         }
+
+        [Fact, WorkItem(1091972, "DevDiv"), WorkItem(444, "CodePlex")]
+        public void Bug1091972()
+        {
+            var dir = Temp.CreateDirectory();
+
+            var src = dir.CreateFile("a.cs");
+            src.WriteAllText(
+@"
+/// <summary>ABC...XYZ</summary>
+class C {
+    static void Main()
+    {
+        var textStreamReader = new System.IO.StreamReader(typeof(C).Assembly.GetManifestResourceStream(""doc.xml""));
+        System.Console.WriteLine(textStreamReader.ReadToEnd());
+    }
+} ");
+
+            var output = RunAndGetOutput(CSharpCompilerExecutable, String.Format("/nologo /doc:doc.xml /out:out.exe /resource:doc.xml {0}", src.ToString()), startFolder: dir.ToString());
+            Assert.Equal("", output.Trim());
+
+            Assert.True(File.Exists(Path.Combine(dir.ToString(), "doc.xml")));
+
+            var expected =
+@"<?xml version=""1.0""?>
+<doc>
+    <assembly>
+        <name>out</name>
+    </assembly>
+    <members>
+        <member name=""T:C"">
+            <summary>ABC...XYZ</summary>
+        </member>
+    </members>
+</doc>".Trim();
+
+            using (var reader = new StreamReader(Path.Combine(dir.ToString(), "doc.xml")))
+            {
+                var content = reader.ReadToEnd();
+                Assert.Equal(expected, content.Trim());
+            }
+
+            output = RunAndGetOutput(Path.Combine(dir.ToString(), "out.exe"), startFolder: dir.ToString());
+            Assert.Equal(expected, output.Trim());
+
+            CleanupAllGeneratedFiles(src.Path);
+        }
+
     }
 
     [DiagnosticAnalyzer]

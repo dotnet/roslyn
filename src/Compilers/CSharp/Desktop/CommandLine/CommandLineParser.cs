@@ -1473,7 +1473,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            Func<Stream> dataProvider = () => new FileStream(fullPath, FileMode.Open, FileAccess.Read);
+            Func<Stream> dataProvider = () =>
+                                            {
+                                                // Use FileShare.ReadWrite because the file could be opened by the current process.
+                                                // For example, it is an XML doc file produced by the build.
+                                                var stream = new FileStream(fullPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+
+                                                // Lock the entire content to prevent others from modifying it while we are reading.
+                                                try
+                                                {
+                                                    stream.Lock(0, long.MaxValue);
+                                                    return stream;
+                                                }
+                                                catch
+                                                {
+                                                    stream.Dispose();
+                                                    throw;
+                                                }
+                                            };
             return new ResourceDescription(resourceName, fileName, dataProvider, isPublic, embedded, checkArgs: false);
         }
 
