@@ -420,4 +420,10 @@
   <data name="MissingListItem" xml:space="preserve">
     <value>The item specified is not the element of a list.</value>
   </data>
+  <data name="InvalidPublicKey" xml:space="preserve">
+    <value>Invalid public key.</value>
+  </data>
+  <data name="InvalidPublicKeyToken" xml:space="preserve">
+    <value>Invalid public key token.</value>
+  </data>
 </root>

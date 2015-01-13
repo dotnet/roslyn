@@ -969,5 +969,23 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("XmlReferencesNotSupported", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid public key..
+        /// </summary>
+        internal static string InvalidPublicKey {
+            get {
+                return ResourceManager.GetString("InvalidPublicKey", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid public key token..
+        /// </summary>
+        internal static string InvalidPublicKeyToken {
+            get {
+                return ResourceManager.GetString("InvalidPublicKeyToken", resourceCulture);
+            }
+        }
     }
 }

@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
@@ -611,152 +610,25 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static class PublicKeyDecoder
-        {
-            private enum AlgorithmClass
-            {
-                Signature = 1,
-                Hash = 4,
-            }
-
-            private enum AlgorithmSubId
-            {
-                Sha1Hash = 4,
-                MacHash = 5,
-                RipeMdHash = 6,
-                RipeMd160Hash = 7,
-                Ssl3ShaMD5Hash = 8,
-                HmacHash = 9,
-                Tls1PrfHash = 10,
-                HashReplacOwfHash = 11,
-                Sha256Hash = 12,
-                Sha384Hash = 13,
-                Sha512Hash = 14,
-            }
-
-            private struct AlgorithmId
-            {
-                // From wincrypt.h
-                private const int AlgorithmClassOffset = 13;
-                private const int AlgorithmClassMask = 0x7;
-                private const int AlgorithmSubIdOffset = 0;
-                private const int AlgorithmSubIdMask = 0x1ff;
-
-                private readonly uint flags;
-
-                public bool IsSet
-                {
-                    get { return flags != 0; }
-                }
-
-                public AlgorithmClass Class
-                {
-                    get { return (AlgorithmClass)((flags >> AlgorithmClassOffset) & AlgorithmClassMask); }
-                }
-
-                public AlgorithmSubId SubId
-                {
-                    get { return (AlgorithmSubId)((flags >> AlgorithmSubIdOffset) & AlgorithmSubIdMask); }
-                }
-
-                public AlgorithmId(uint flags)
-                {
-                    this.flags = flags;
-                }
-            }
-
-            // From ECMAKey.h
-            private static readonly ImmutableArray<byte> ecmaKey = ImmutableArray.Create(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0 });
-
-            // From strongname.h
-            [StructLayout(LayoutKind.Sequential, Pack = 0)]
-            private unsafe struct PublicKeyHeader
-            {
-                public const int SigAlgIdOffset = 0;
-                public const int HashAlgIdOffset = SigAlgIdOffset + sizeof(uint);
-                public const int PublicKeySizeOffset = HashAlgIdOffset + sizeof(uint);
-                public const int PublicKeyDataOffset = PublicKeySizeOffset + sizeof(uint);
-                public const int Size = PublicKeyDataOffset;
-
-                uint SigAlgId;
-                uint HashAlgId;
-                uint PublicKeySize;
-            }
-
-            // From wincrypt.h
-            private const byte PublicKeyBlob = 0x06;
-
-            // From StrongNameInternal.cpp
-            public static bool TryDecode(byte[] bytes, out ImmutableArray<byte> key)
-            {
-                // The number of public key bytes must be at least large enough for the header and one byte of data.
-                if (bytes.Length < PublicKeyHeader.Size + 1)
-                {
-                    key = default(ImmutableArray<byte>);
-                    return false;
-                }
-
-                // The number of public key bytes must be the same as the size of the header plus the size of the public key data.
-                var dataSize = (uint)BitConverter.ToInt32(bytes, PublicKeyHeader.PublicKeySizeOffset);
-                if (bytes.Length != PublicKeyHeader.Size + dataSize)
-                {
-                    key = default(ImmutableArray<byte>);
-                    return false;
-                }
-
-                // Check for ECMA key
-                if (bytes.Length == ecmaKey.Length)
-                {
-                    for (int i = 0; i < bytes.Length; i++)
-                    {
-                        if (bytes[i] != ecmaKey[i])
-                        {
-                            goto notEcmaKey;
-                        }
-                    }
-
-                    key = ecmaKey;
-                    return true;
-                }
-
-            notEcmaKey:
-                var signatureAlgorithmId = new AlgorithmId((uint)BitConverter.ToInt32(bytes, 0));
-                if (signatureAlgorithmId.IsSet && signatureAlgorithmId.Class != AlgorithmClass.Signature)
-                {
-                    key = default(ImmutableArray<byte>);
-                    return false;
-                }
-
-                var hashAlgorithmId = new AlgorithmId((uint)BitConverter.ToInt32(bytes, 4));
-                if (hashAlgorithmId.IsSet && (hashAlgorithmId.Class != AlgorithmClass.Hash || hashAlgorithmId.SubId < AlgorithmSubId.Sha1Hash))
-                {
-                    key = default(ImmutableArray<byte>);
-                    return false;
-                }
-
-                if (bytes[PublicKeyHeader.PublicKeyDataOffset] != PublicKeyBlob)
-                {
-                    key = default(ImmutableArray<byte>);
-                    return false;
-                }
-
-                key = bytes.AsImmutable();
-                return true;
-            }
-        }
-
         const int MaxPublicKeyBytes = 2048;
 
         private static bool TryParsePublicKey(string value, out ImmutableArray<byte> key)
         {
-            byte[] result;
+            ImmutableArray<byte> result;
             if (value.Length > (MaxPublicKeyBytes * 2) || !TryParseHexBytes(value, out result))
             {
                 key = default(ImmutableArray<byte>);
                 return false;
             }
 
-            return PublicKeyDecoder.TryDecode(result, out key);
+            if (!MetadataHelpers.IsValidPublicKey(result))
+            {
+                key = default(ImmutableArray<byte>);
+                return false;
+            }
+
+            key = result;
+            return true;
         }
 
         const int PublicKeyTokenBytes = 8;
@@ -770,41 +642,43 @@ namespace Microsoft.CodeAnalysis
                 return true;
             }
 
-            byte[] result;
+            ImmutableArray<byte> result;
             if (value.Length != (PublicKeyTokenBytes * 2) || !TryParseHexBytes(value, out result))
             {
                 token = default(ImmutableArray<byte>);
                 return false;
             }
 
-            token = result.AsImmutable();
+            token = result;
             return true;
         }
 
-        private static bool TryParseHexBytes(string value, out byte[] result)
+        private static bool TryParseHexBytes(string value, out ImmutableArray<byte> result)
         {
             if (value.Length == 0 || (value.Length % 2) != 0)
             {
-                result = null;
+                result = default(ImmutableArray<byte>);
                 return false;
             }
 
-            var bytes = new byte[value.Length / 2];
-            for (int i = 0; i < bytes.Length; i++)
+            var length = value.Length / 2;
+            var bytes = ArrayBuilder<byte>.GetInstance(length);
+            for (int i = 0; i < length; i++)
             {
                 int hi = HexValue(value[i * 2]);
                 int lo = HexValue(value[i * 2 + 1]);
 
                 if (hi < 0 || lo < 0)
                 {
-                    result = null;
+                    result = default(ImmutableArray<byte>);
+                    bytes.Free();
                     return false;
                 }
 
-                bytes[i] = (byte)((hi << 4) | lo);
+                bytes.Add((byte)((hi << 4) | lo));
             }
 
-            result = bytes;
+            result = bytes.ToImmutableAndFree();
             return true;
         }
 

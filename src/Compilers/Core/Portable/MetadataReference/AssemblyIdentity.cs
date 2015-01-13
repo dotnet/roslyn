@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis
         // cached hash code
         private int lazyHashCode;
 
-        private const int PublicKeyTokenSize = 8;
+        internal const int PublicKeyTokenSize = 8;
 
         /// <summary>
         /// Constructs an <see cref="AssemblyIdentity"/> from its constituent parts.
@@ -98,9 +98,9 @@ namespace Microsoft.CodeAnalysis
 
             if (hasPublicKey)
             {
-                if (publicKeyOrToken.IsDefaultOrEmpty)
+                if (!MetadataHelpers.IsValidPublicKey(publicKeyOrToken))
                 {
-                    throw new ArgumentException(CodeAnalysisResources.ExpectedNonEmptyPublicKey, "publicKeyOrToken");
+                    throw new ArgumentException(CodeAnalysisResources.InvalidPublicKey, "publicKeyOrToken");
                 }
             }
             else
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(IsValidName(name));
             Debug.Assert(IsValid(version));
             Debug.Assert(IsValidCultureName(cultureName));
-            Debug.Assert((hasPublicKey && !publicKeyOrToken.IsDefaultOrEmpty) || (publicKeyOrToken.IsDefaultOrEmpty || publicKeyOrToken.Length == PublicKeyTokenSize));
+            Debug.Assert((hasPublicKey && MetadataHelpers.IsValidPublicKey(publicKeyOrToken)) || (!hasPublicKey && (publicKeyOrToken.IsDefaultOrEmpty || publicKeyOrToken.Length == PublicKeyTokenSize)));
 
             this.name = name;
             this.version = version ?? NullVersion;
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis
             InitializeKey(publicKeyOrToken, hasPublicKey, out this.publicKey, out this.lazyPublicKeyToken);
         }
 
-        // error-tolerant constructor used by metadata reader:
+        // constructor used by metadata reader:
         internal AssemblyIdentity(
             string name,
             Version version,
@@ -157,32 +157,15 @@ namespace Microsoft.CodeAnalysis
             bool noThrow)
         {
             Debug.Assert(!string.IsNullOrEmpty(name));
+            Debug.Assert((hasPublicKey && MetadataHelpers.IsValidPublicKey(publicKeyOrToken)) || (!hasPublicKey && (publicKeyOrToken.IsDefaultOrEmpty || publicKeyOrToken.Length == PublicKeyTokenSize)));
             Debug.Assert(noThrow);
-
-            if (hasPublicKey)
-            {
-                if (publicKeyOrToken.IsDefaultOrEmpty)
-                {
-                    // PublicKey flag but no key specified => assume the flag is wrong:
-                    hasPublicKey = false;
-                }
-            }
-            else
-            {
-                if (!publicKeyOrToken.IsDefaultOrEmpty && publicKeyOrToken.Length != PublicKeyTokenSize)
-                {
-                    // token specified but its size isn't correct => assume it's the full key:
-                    hasPublicKey = true;
-                }
-            }
-
-            InitializeKey(publicKeyOrToken, hasPublicKey, out this.publicKey, out this.lazyPublicKeyToken);
 
             this.name = name;
             this.version = version ?? NullVersion;
             this.cultureName = cultureName ?? string.Empty;
             this.contentType = IsValid(contentType) ? contentType : AssemblyContentType.Default;
             this.isRetargetable = isRetargetable && this.contentType != AssemblyContentType.WindowsRuntime;
+            InitializeKey(publicKeyOrToken, hasPublicKey, out this.publicKey, out this.lazyPublicKeyToken);
         }
 
         static private void InitializeKey(ImmutableArray<byte> publicKeyOrToken, bool hasPublicKey,

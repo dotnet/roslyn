@@ -24,8 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var id4 = new AssemblyIdentity("Foo", new Version(1, 0, 1, 0), "", RoPublicKeyToken1, hasPublicKey: false, isRetargetable: false);
             var id5 = new AssemblyIdentity("Foo", new Version(1, 0, 0, 0), "en-US", RoPublicKeyToken1, hasPublicKey: false, isRetargetable: false);
             var id6 = new AssemblyIdentity("Foo", new Version(1, 0, 0, 0), "", default(ImmutableArray<byte>), hasPublicKey: false, isRetargetable: false);
-            var id7 = new AssemblyIdentity("Foo", new Version(1, 0, 0, 0), "", RoPublicKeyToken1, hasPublicKey: true, isRetargetable: false);
-            var id8 = new AssemblyIdentity("Foo", new Version(1, 0, 0, 0), "", RoPublicKey1, hasPublicKey: true, isRetargetable: true);
+            var id7 = new AssemblyIdentity("Foo", new Version(1, 0, 0, 0), "", RoPublicKey1, hasPublicKey: true, isRetargetable: true);
 
             var win1 = new AssemblyIdentity("Foo", new Version(1, 0, 0, 0), "", RoPublicKey1, hasPublicKey: true, isRetargetable: false, contentType: AssemblyContentType.WindowsRuntime);
             var win2 = new AssemblyIdentity("Bar", new Version(1, 0, 0, 0), "", RoPublicKey1, hasPublicKey: true, isRetargetable: false, contentType: AssemblyContentType.WindowsRuntime);
@@ -44,7 +43,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.False(id1.Equals(id5));
             Assert.False(id1.Equals(id6));
             Assert.False(id1.Equals(id7));
-            Assert.False(id1.Equals(id8));
 
             Assert.Equal((object)id1, id1);
             Assert.NotNull(id1);
@@ -233,24 +231,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             AssertEx.Equal(PublicKeyToken1, id.PublicKeyToken);
             Assert.Equal(AssemblyContentType.Default, id.ContentType);
 
-            // incorrect size of the key token:
-            id = new AssemblyIdentity("Foo", new Version(1, 2, 3, 4), null, RoPublicKey1, hasPublicKey: false, isRetargetable: false, contentType: AssemblyContentType.Default, noThrow: true);
-            Assert.Equal(AssemblyNameFlags.PublicKey, id.Flags);
-            Assert.Equal("", id.CultureName);
-            Assert.Equal(true, id.HasPublicKey);
-            AssertEx.Equal(PublicKey1, id.PublicKey);
-            AssertEx.Equal(PublicKeyToken1, id.PublicKeyToken);
-            Assert.Equal(AssemblyContentType.Default, id.ContentType);
-
-            // missing key:
-            id = new AssemblyIdentity("Foo", new Version(1, 2, 3, 4), null, ImmutableArray.Create<byte>(), hasPublicKey: true, isRetargetable: false, contentType: AssemblyContentType.Default, noThrow: true);
-            Assert.Equal(AssemblyNameFlags.None, id.Flags);
-            Assert.Equal("", id.CultureName);
-            Assert.Equal(false, id.HasPublicKey);
-            Assert.Equal(0, id.PublicKey.Length);
-            Assert.Equal(0, id.PublicKeyToken.Length);
-            Assert.Equal(AssemblyContentType.Default, id.ContentType);
-
             // invalid content type:
             id = new AssemblyIdentity("Foo", new Version(1, 2, 3, 4), null, ImmutableArray.Create<byte>(), hasPublicKey: false, isRetargetable: false, contentType: (AssemblyContentType)2, noThrow: true);
             Assert.Equal(AssemblyNameFlags.None, id.Flags);
@@ -277,15 +257,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal("blah,", id.CultureName);
             id = new AssemblyIdentity("Foo", new Version(1, 2, 3, 4), "*", ImmutableArray.Create<byte>(), hasPublicKey: false, isRetargetable: false, contentType: AssemblyContentType.Default, noThrow: true);
             Assert.Equal("*", id.CultureName);
-
-            // public key is default (mimics PEModule.CreateAssemblyIdentityOrThrow in case where "publicKey.IsNil")
-            id = new AssemblyIdentity("Foo", new Version(1, 2, 3, 4), null, default(ImmutableArray<byte>), hasPublicKey: true, isRetargetable: false, contentType: AssemblyContentType.Default, noThrow: true);
-            Assert.Equal(AssemblyNameFlags.None, id.Flags);
-            Assert.Equal("", id.CultureName);
-            Assert.Equal(false, id.HasPublicKey);
-            Assert.Equal(0, id.PublicKey.Length);
-            Assert.Equal(0, id.PublicKeyToken.Length);
-            Assert.Equal(AssemblyContentType.Default, id.ContentType);
         }
 
         [Fact]

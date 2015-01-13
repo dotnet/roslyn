@@ -389,7 +389,8 @@ namespace Microsoft.CodeAnalysis
                         reference.Flags,
                         reference.PublicKeyOrToken,
                         reference.Name,
-                        reference.Culture));
+                        reference.Culture,
+                        isReference: true));
                 }
 
                 return result.ToImmutable();
@@ -453,7 +454,8 @@ namespace Microsoft.CodeAnalysis
                 assemblyDef.Flags,
                 assemblyDef.PublicKey,
                 assemblyDef.Name,
-                assemblyDef.Culture);
+                assemblyDef.Culture,
+                isReference: false);
         }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
@@ -463,7 +465,8 @@ namespace Microsoft.CodeAnalysis
             AssemblyFlags flags,
             BlobHandle publicKey,
             StringHandle name,
-            StringHandle culture)
+            StringHandle culture,
+            bool isReference)
         {
             string nameStr = reader.GetString(name);
             if (!MetadataHelpers.IsValidMetadataIdentifier(nameStr))
@@ -477,12 +480,35 @@ namespace Microsoft.CodeAnalysis
                 throw new BadImageFormatException(string.Format(CodeAnalysisResources.InvalidCultureName, cultureName));
             }
 
+            var hasPublicKey = (flags & AssemblyFlags.PublicKey) != 0;
+            var publicKeyOrToken = !publicKey.IsNil ? reader.GetBlobBytes(publicKey).AsImmutableOrNull() : default(ImmutableArray<byte>);
+            if (hasPublicKey)
+            {
+                if (!MetadataHelpers.IsValidPublicKey(publicKeyOrToken))
+                {
+                    throw new BadImageFormatException(CodeAnalysisResources.InvalidPublicKey);
+                }
+            }
+            else if (isReference)
+            {
+                if (!publicKeyOrToken.IsDefaultOrEmpty && publicKeyOrToken.Length != AssemblyIdentity.PublicKeyTokenSize)
+                {
+                    throw new BadImageFormatException(CodeAnalysisResources.InvalidPublicKeyToken);
+                }
+            }
+            else
+            {
+                // Assembly definitions do not contain public key tokens, but they may contain public key
+                // data without being marked as strong name signed (e.g. delay-signed assemblies).
+                publicKeyOrToken = default(ImmutableArray<byte>);
+            }
+
             return new AssemblyIdentity(
                 name: nameStr,
                 version: version,
                 cultureName: cultureName,
-                publicKeyOrToken: (!publicKey.IsNil) ? reader.GetBlobBytes(publicKey).AsImmutableOrNull() : default(ImmutableArray<byte>),
-                hasPublicKey: (flags & AssemblyFlags.PublicKey) != 0,
+                publicKeyOrToken: publicKeyOrToken,
+                hasPublicKey: hasPublicKey,
                 isRetargetable: (flags & AssemblyFlags.Retargetable) != 0,
                 contentType: (AssemblyContentType)((int)(flags & AssemblyFlags.ContentTypeMask) >> 9),
                 noThrow: true);

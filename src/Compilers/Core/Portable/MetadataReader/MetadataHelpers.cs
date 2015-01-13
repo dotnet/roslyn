@@ -897,5 +897,139 @@ namespace Microsoft.CodeAnalysis
                    fullyQualified.StartsWith(namespaceName, StringComparison.Ordinal) &&
                    fullyQualified.EndsWith(typeName, StringComparison.Ordinal);
         }
+
+        internal static bool IsValidPublicKey(ImmutableArray<byte> bytes)
+        {
+            return PublicKeyDecoder.TryDecode(bytes);
+        }
+
+        private static class PublicKeyDecoder
+        {
+            private enum AlgorithmClass
+            {
+                Signature = 1,
+                Hash = 4,
+            }
+
+            private enum AlgorithmSubId
+            {
+                Sha1Hash = 4,
+                MacHash = 5,
+                RipeMdHash = 6,
+                RipeMd160Hash = 7,
+                Ssl3ShaMD5Hash = 8,
+                HmacHash = 9,
+                Tls1PrfHash = 10,
+                HashReplacOwfHash = 11,
+                Sha256Hash = 12,
+                Sha384Hash = 13,
+                Sha512Hash = 14,
+            }
+
+            private struct AlgorithmId
+            {
+                // From wincrypt.h
+                private const int AlgorithmClassOffset = 13;
+                private const int AlgorithmClassMask = 0x7;
+                private const int AlgorithmSubIdOffset = 0;
+                private const int AlgorithmSubIdMask = 0x1ff;
+
+                private readonly uint flags;
+
+                public bool IsSet
+                {
+                    get { return flags != 0; }
+                }
+
+                public AlgorithmClass Class
+                {
+                    get { return (AlgorithmClass)((flags >> AlgorithmClassOffset) & AlgorithmClassMask); }
+                }
+
+                public AlgorithmSubId SubId
+                {
+                    get { return (AlgorithmSubId)((flags >> AlgorithmSubIdOffset) & AlgorithmSubIdMask); }
+                }
+
+                public AlgorithmId(uint flags)
+                {
+                    this.flags = flags;
+                }
+            }
+
+            // From ECMAKey.h
+            private static readonly ImmutableArray<byte> ecmaKey = ImmutableArray.Create(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0 });
+
+            // From strongname.h
+            //
+            // The public key blob has the following format as a little-endian packed C struct:
+            //
+            // struct
+            // {
+            //     uint32_t SigAlgId;      // Signature algorithm ID
+            //     uint32_t HashAlgId;     // Hash algorithm ID
+            //     uint32_t PublicKeySize; // Size of public key data in bytes, not including the header
+            //     uint8_t  PublicKey[0];  // PublicKeySize bytes of publc key data
+            // }
+            //
+            // The offsets of each relevant field are recorded below.
+            private const int SigAlgIdOffset = 0;
+            private const int HashAlgIdOffset = SigAlgIdOffset + sizeof(uint);
+            private const int PublicKeySizeOffset = HashAlgIdOffset + sizeof(uint);
+            private const int PublicKeyDataOffset = PublicKeySizeOffset + sizeof(uint);
+            private const int HeaderSize = PublicKeyDataOffset;
+
+            // From wincrypt.h
+            private const byte PublicKeyBlob = 0x06;
+
+            private static uint ToUInt32(ImmutableArray<byte> bytes, int offset)
+            {
+                Debug.Assert((bytes.Length - offset) > sizeof(int));
+                return (uint)((int)bytes[offset] | ((int)bytes[offset + 1] << 8) | ((int)bytes[offset + 2] << 16) | ((int)bytes[offset + 3] << 24));
+            }
+
+            // From StrongNameInternal.cpp
+            public static bool TryDecode(ImmutableArray<byte> bytes)
+            {
+                // The number of public key bytes must be at least large enough for the header and one byte of data.
+                if (bytes.IsDefault || bytes.Length < HeaderSize + 1)
+                {
+                    return false;
+                }
+
+                // The number of public key bytes must be the same as the size of the header plus the size of the public key data.
+                var dataSize = ToUInt32(bytes, PublicKeySizeOffset);
+                if (bytes.Length != HeaderSize + dataSize)
+                {
+                    return false;
+                }
+
+                // Check for the ECMA key, which does not obey the invariants checked below.
+                if (ByteSequenceComparer.Equals(bytes, ecmaKey))
+                {
+                    return true;
+                }
+
+                var signatureAlgorithmId = new AlgorithmId(ToUInt32(bytes, 0));
+                if (signatureAlgorithmId.IsSet && signatureAlgorithmId.Class != AlgorithmClass.Signature)
+                {
+                    return false;
+                }
+
+                var hashAlgorithmId = new AlgorithmId(ToUInt32(bytes, 4));
+                if (hashAlgorithmId.IsSet && (hashAlgorithmId.Class != AlgorithmClass.Hash || hashAlgorithmId.SubId < AlgorithmSubId.Sha1Hash))
+                {
+                    return false;
+                }
+
+                if (bytes[PublicKeyDataOffset] != PublicKeyBlob)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+        }
+
     }
 }

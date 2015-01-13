@@ -471,5 +471,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var summary = list.GetDocumentationCommentXml();
             Assert.Equal("<member name='T:System.Collections.ArrayList'><summary>T:System.Collections.ArrayList</summary></member>", summary);
         }
+
+        [Fact]
+        public void InvalidPublicKey()
+        {
+            var r = MetadataReference.CreateFromStream(new MemoryStream(TestResources.SymbolsTests.Metadata.InvalidPublicKey, writable: false));
+            Assert.Equal(CodeAnalysisResources.InMemoryAssembly, r.Display);
+
+            Assert.Throws<BadImageFormatException>(((AssemblyMetadata)r.GetMetadata()).GetAssembly);
+        }
     }
 }
