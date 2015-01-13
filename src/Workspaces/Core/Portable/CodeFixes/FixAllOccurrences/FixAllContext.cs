@@ -14,7 +14,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     /// </summary>
     public class FixAllContext
     {
-        private readonly Func<Project, Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDiagnosticsAsync;
+        private readonly Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDocumentDiagnosticsAsync;
+        private readonly Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getProjectDiagnosticsAsync;
         
         /// <summary>
         /// Solution to fix all occurrences.
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         /// <summary>
         /// Diagnostic Ids to fix.
-        /// Note that <see cref="GetDiagnosticsAsync(Document)"/> and <see cref="GetDiagnosticsAsync(Project)"/> methods
+        /// Note that <see cref="GetDocumentDiagnosticsAsync(Document)"/>, <see cref="GetProjectDiagnosticsAsync(Project)"/> and <see cref="GetAllDiagnosticsAsync(Project)"/> methods
         /// return only diagnostics whose IDs are contained in this set of Ids.
         /// </summary>
         public ImmutableHashSet<string> DiagnosticIds { get; private set; }
@@ -64,9 +65,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             FixAllScope scope,
             string codeActionId,
             IEnumerable<string> diagnosticIds,
-            Func<Project, Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDiagnosticsAsync,
+            Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDocumentDiagnosticsAsync,
+            Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getProjectDiagnosticsAsync,
             CancellationToken cancellationToken)
-            : this(document, document.Project, codeFixProvider, scope, codeActionId, diagnosticIds, getDiagnosticsAsync, cancellationToken)
+            : this(document, document.Project, codeFixProvider, scope, codeActionId, diagnosticIds, getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync, cancellationToken)
         {
         }
 
@@ -76,9 +78,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             FixAllScope scope,
             string codeActionId,
             IEnumerable<string> diagnosticIds,
-            Func<Project, Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDiagnosticsAsync,
+            Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDocumentDiagnosticsAsync,
+            Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getProjectDiagnosticsAsync,
             CancellationToken cancellationToken)
-            : this(null, project, codeFixProvider, scope, codeActionId, diagnosticIds, getDiagnosticsAsync, cancellationToken)
+            : this(null, project, codeFixProvider, scope, codeActionId, diagnosticIds, getDocumentDiagnosticsAsync, getProjectDiagnosticsAsync, cancellationToken)
         {
         }
 
@@ -89,7 +92,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             FixAllScope scope,
             string codeActionId,
             IEnumerable<string> diagnosticIds,
-            Func<Project, Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDiagnosticsAsync,
+            Func<Document, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getDocumentDiagnosticsAsync,
+            Func<Project, bool, ImmutableHashSet<string>, CancellationToken, Task<IEnumerable<Diagnostic>>> getProjectDiagnosticsAsync,
             CancellationToken cancellationToken)
         {
             this.Document = document;
@@ -98,14 +102,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             this.Scope = scope;
             this.CodeActionId = codeActionId;
             this.DiagnosticIds = ImmutableHashSet.CreateRange(diagnosticIds);
-            this.getDiagnosticsAsync = getDiagnosticsAsync;
+            this.getDocumentDiagnosticsAsync = getDocumentDiagnosticsAsync;
+            this.getProjectDiagnosticsAsync = getProjectDiagnosticsAsync;
             this.CancellationToken = cancellationToken;
         }
 
         /// <summary>
         /// Gets all the diagnostics in the given document filtered by <see cref="DiagnosticIds"/>.
         /// </summary>
-        public async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(Document document)
+        public async Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document)
         {
             Contract.ThrowIfNull(document);
 
@@ -114,15 +119,34 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return ImmutableArray<Diagnostic>.Empty;
             }
 
-            var diagnostics = await this.getDiagnosticsAsync(document.Project, document, this.DiagnosticIds, this.CancellationToken).ConfigureAwait(false);
+            var diagnostics = await this.getDocumentDiagnosticsAsync(document, this.DiagnosticIds, this.CancellationToken).ConfigureAwait(false);
             Contract.ThrowIfFalse(diagnostics.All(d => this.DiagnosticIds.Contains(d.Id)));
             return diagnostics.ToImmutableArray();
         }
 
         /// <summary>
-        /// Gets all the diagnostics in the given project filtered by <see cref="DiagnosticIds"/>.
+        /// Gets all the project-level diagnostics, i.e. diagnostics with no source location, in the given project filtered by <see cref="DiagnosticIds"/>.
         /// </summary>
-        public async Task<ImmutableArray<Diagnostic>> GetDiagnosticsAsync(Project project)
+        public async Task<ImmutableArray<Diagnostic>> GetProjectDiagnosticsAsync(Project project)
+        {
+            return await GetProjectDiagnosticsAsync(project, includeAllDocumentDiagnostics: false).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Gets all the diagnostics in the given project filtered by <see cref="DiagnosticIds"/>.
+        /// This includes both document-level diagnostics for all documents in the given project and project-level diagnostics, i.e. diagnostics with no source location, in the given project. 
+        /// </summary>
+        public async Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync(Project project)
+        {
+            return await GetProjectDiagnosticsAsync(project, includeAllDocumentDiagnostics: true).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Gets all the project diagnostics in the given project filtered by <see cref="DiagnosticIds"/>.
+        /// If <paramref name="includeAllDocumentDiagnostics"/> is false, then returns only project-level diagnostics which have no source location.
+        /// Otherwise, returns all diagnostics in the project, including the document diagnostics for all documents in the given project.
+        /// </summary>
+        private async Task<ImmutableArray<Diagnostic>> GetProjectDiagnosticsAsync(Project project, bool includeAllDocumentDiagnostics)
         {
             Contract.ThrowIfNull(project);
 
@@ -131,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return ImmutableArray<Diagnostic>.Empty;
             }
 
-            var diagnostics = await this.getDiagnosticsAsync(project, null, this.DiagnosticIds, this.CancellationToken).ConfigureAwait(false);
+            var diagnostics = await this.getProjectDiagnosticsAsync(project, includeAllDocumentDiagnostics, this.DiagnosticIds, this.CancellationToken).ConfigureAwait(false);
             Contract.ThrowIfFalse(diagnostics.All(d => this.DiagnosticIds.Contains(d.Id)));
             return diagnostics.ToImmutableArray();
         }
@@ -151,9 +175,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 this.Project,
                 this.CodeFixProvider,
                 this.Scope,
-                this.CodeActionId, 
-                this.DiagnosticIds, 
-                this.getDiagnosticsAsync, 
+                this.CodeActionId,
+                this.DiagnosticIds,
+                this.getDocumentDiagnosticsAsync,
+                this.getProjectDiagnosticsAsync,
                 cancellationToken);
         }
     }

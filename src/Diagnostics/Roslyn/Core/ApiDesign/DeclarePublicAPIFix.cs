@@ -229,7 +229,7 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
                 {
                 case FixAllScope.Document:
                     {
-                        var diagnostics = await fixAllContext.GetDiagnosticsAsync(fixAllContext.Document).ConfigureAwait(false);
+                        var diagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(fixAllContext.Document).ConfigureAwait(false);
                         diagnosticsToFix.Add(new KeyValuePair<Project, ImmutableArray<Diagnostic>>(fixAllContext.Project, diagnostics));
                         title = string.Format(titleFormat, "document", fixAllContext.Document.Name);
                         break;
@@ -238,7 +238,7 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
                 case FixAllScope.Project:
                     {
                         var project = fixAllContext.Project;
-                        ImmutableArray<Diagnostic> diagnostics = await GetAllDocumentDiagnosticsAsync(fixAllContext, project).ConfigureAwait(false);
+                        ImmutableArray<Diagnostic> diagnostics = await fixAllContext.GetAllDiagnosticsAsync(project).ConfigureAwait(false);
                         diagnosticsToFix.Add(new KeyValuePair<Project, ImmutableArray<Diagnostic>>(fixAllContext.Project, diagnostics));
                         title = string.Format(titleFormat, "project", fixAllContext.Project.Name);
                         break;
@@ -248,7 +248,7 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
                     {
                         foreach (var project in fixAllContext.Solution.Projects)
                         {
-                            ImmutableArray<Diagnostic> diagnostics = await GetAllDocumentDiagnosticsAsync(fixAllContext, project).ConfigureAwait(false);
+                            ImmutableArray<Diagnostic> diagnostics = await fixAllContext.GetAllDiagnosticsAsync(project).ConfigureAwait(false);
                             diagnosticsToFix.Add(new KeyValuePair<Project, ImmutableArray<Diagnostic>>(project, diagnostics));
                         }
 
@@ -263,20 +263,6 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
                 }
 
                 return new FixAllAdditionalDocumentChangeAction(title, fixAllContext.Solution, diagnosticsToFix);
-            }
-
-            private static async Task<ImmutableArray<Diagnostic>> GetAllDocumentDiagnosticsAsync(FixAllContext fixAllContext, Project project)
-            {
-                var builder = ImmutableArray.CreateBuilder<Diagnostic>();
-
-                foreach (var document in project.Documents)
-                {
-                    var documentDiagnostics = await fixAllContext.GetDiagnosticsAsync(document).ConfigureAwait(false);
-                    builder.AddRange(documentDiagnostics);
-                }
-
-                var diagnostics = builder.ToImmutable();
-                return diagnostics;
             }
         }
     }

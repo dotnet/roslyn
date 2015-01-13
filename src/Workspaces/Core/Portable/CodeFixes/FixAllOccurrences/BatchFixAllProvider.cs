@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     case FixAllScope.Document:
                         if (document != null && !generatedCodeServices.IsGeneratedCode(document))
                         {
-                            var diagnostics = await fixAllContext.GetDiagnosticsAsync(document).ConfigureAwait(false);
+                            var diagnostics = await fixAllContext.GetDocumentDiagnosticsAsync(document).ConfigureAwait(false);
                             var kvp = SpecializedCollections.SingletonEnumerable(KeyValuePair.Create(document, diagnostics));
                             return ImmutableDictionary.CreateRange(kvp);
                         }
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                         if (!generatedCodeServices.IsGeneratedCode(doc))
                         {
-                            var documentDiagnostics = fixAllContext.GetDiagnosticsAsync(doc).WaitAndGetResult(fixAllContext.CancellationToken);
+                            var documentDiagnostics = fixAllContext.GetDocumentDiagnosticsAsync(doc).WaitAndGetResult(fixAllContext.CancellationToken);
                             if (documentDiagnostics.Any())
                             {
                                 documentAndDiagnostics.TryAdd(doc, documentDiagnostics);
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                     switch (fixAllContext.Scope)
                     {
                         case FixAllScope.Project:
-                            var diagnostics = await fixAllContext.GetDiagnosticsAsync(project).ConfigureAwait(false);
+                            var diagnostics = await fixAllContext.GetProjectDiagnosticsAsync(project).ConfigureAwait(false);
                             var kvp = SpecializedCollections.SingletonEnumerable(KeyValuePair.Create(project, diagnostics));
                             return ImmutableDictionary.CreateRange(kvp);
 
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                             Parallel.ForEach(project.Solution.Projects, options, proj =>
                             {
                                 fixAllContext.CancellationToken.ThrowIfCancellationRequested();
-                                var projectDiagnostics = fixAllContext.GetDiagnosticsAsync(proj).WaitAndGetResult(fixAllContext.CancellationToken);
+                                var projectDiagnostics = fixAllContext.GetProjectDiagnosticsAsync(proj).WaitAndGetResult(fixAllContext.CancellationToken);
                                 if (projectDiagnostics.Any())
                                 {
                                     projectsAndDiagnostics.TryAdd(proj, projectDiagnostics);
