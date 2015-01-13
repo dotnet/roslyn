@@ -16,15 +16,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ScanXmlTrivia(c As Char) As SyntaxList(Of VisualBasicSyntaxNode)
             Debug.Assert(Not IsScanningXmlDoc)
-            Debug.Assert(c = UCH_CR OrElse c = UCH_LF OrElse c = " "c OrElse c = UCH_TAB)
+            Debug.Assert(c = CARRIAGE_RETURN OrElse c = LINE_FEED OrElse c = " "c OrElse c = CHARACTER_TABULATION)
 
             Dim builder = triviaListPool.Allocate
 
             Dim len = 0
             Do
-                If c = " "c OrElse c = UCH_TAB Then
+                If c = " "c OrElse c = CHARACTER_TABULATION Then
                     len += 1
-                ElseIf c = UCH_CR OrElse c = UCH_LF Then
+                ElseIf c = CARRIAGE_RETURN OrElse c = LINE_FEED Then
                     If len > 0 Then
                         builder.Add(MakeWhiteSpaceTrivia(GetText(len)))
                         len = 0
@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Select Case (c)
                     ' // Whitespace
                     ' //  S    ::=    (#x20 | #x9 | #xD | #xA)+
-                    Case UCH_CR, UCH_LF
+                    Case CARRIAGE_RETURN, LINE_FEED
                         ' we should not visit this place twice
                         Debug.Assert(leadingTrivia.Node Is Nothing)
 
@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             Return SyntaxFactory.Token(Nothing, SyntaxKind.EndOfXmlToken, Nothing, String.Empty)
                         End If
 
-                    Case " "c, UCH_TAB
+                    Case " "c, CHARACTER_TABULATION
                         ' we should not visit this place twice
                         Debug.Assert(leadingTrivia.Node Is Nothing)
                         leadingTrivia = ScanXmlTrivia(c)
@@ -106,10 +106,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Case "="c
                         Return XmlMakeEqualsToken(leadingTrivia)
 
-                    Case "'"c, DWCH_LSMART_Q, DWCH_RSMART_Q
+                    Case "'"c, LEFT_SINGLE_QUOTATION_MARK, RIGHT_SINGLE_QUOTATION_MARK
                         Return XmlMakeSingleQuoteToken(leadingTrivia, c, isOpening:=True)
 
-                    Case """"c, DWCH_LSMART_DQ, DWCH_RSMART_DQ
+                    Case """"c, LEFT_DOUBLE_QUOTATION_MARK, RIGHT_DOUBLE_QUOTATION_MARK
                         Return XmlMakeDoubleQuoteToken(leadingTrivia, c, isOpening:=True)
 
                     Case "<"c
@@ -237,7 +237,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Select Case c
                 Case "#"c,
-                    FULLWIDTH_HASH
+                    FULLWIDTH_NUMBER_SIGN
 
                     ' Check for preprocessor statement, i.e. # if
                     AdvanceChar(1)
@@ -245,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     possibleStatement = token.IsKeyword
 
                 Case "<"c,
-                    FULLWIDTH_LT
+                    FULLWIDTH_LESS_THAN_SIGN
 
                     ' Check for code attribute, i.e < clscompliant (
                     AdvanceChar(1)
@@ -259,7 +259,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             leadingTrivia = ScanSingleLineTrivia()
                             c = PeekChar()
                             possibleStatement =
-                                c = "("c OrElse c = FULLWIDTH_LPAREN
+                                c = "("c OrElse c = FULLWIDTH_LEFT_PARENTHESIS
                         End If
                     End If
 
@@ -285,7 +285,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                             ' If there was leading trivia, it must be trivia recognized by VB but not XML.
                             Debug.Assert(Not leadingTrivia.Any() OrElse
-                                         (IsNewLine(c) AndAlso (c <> UCH_CR) AndAlso (c <> UCH_LF)) OrElse
+                                         (IsNewLine(c) AndAlso (c <> CARRIAGE_RETURN) AndAlso (c <> LINE_FEED)) OrElse
                                          (IsWhitespace(c) AndAlso Not IsXmlWhitespace(c)))
 
                             token = ScanNextToken(allowLeadingMultilineTrivia:=False)
@@ -332,11 +332,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Dim c As Char = PeekAheadChar(Here)
 
                 Select Case (c)
-                    Case UCH_CR, UCH_LF
+                    Case CARRIAGE_RETURN, LINE_FEED
                         Here = SkipLineBreak(c, Here)
-                        scratch.Append(UCH_LF)
+                        scratch.Append(LINE_FEED)
 
-                    Case " "c, UCH_TAB
+                    Case " "c, CHARACTER_TABULATION
                         scratch.Append(c)
                         Here += 1
 
@@ -437,7 +437,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         '    Dim sharp As Token = MakeToken(tokens.tkSharp, 1)
                         '    m_InputStreamPosition += 1
 
-                        '    While (m_InputStream(m_InputStreamPosition) = " "c OrElse m_InputStream(m_InputStreamPosition) = UCH_TAB)
+                        '    While (m_InputStream(m_InputStreamPosition) = " "c OrElse m_InputStream(m_InputStreamPosition) = CHARACTER_TABULATION)
                         '        m_InputStreamPosition += 1
                         '    End While
 
@@ -532,7 +532,7 @@ ScanChars:
                 Dim c As Char = PeekAheadChar(Here)
                 Select Case (c)
 
-                    Case UCH_CR, UCH_LF
+                    Case CARRIAGE_RETURN, LINE_FEED
                         Return XmlMakeCommentToken(precedingTrivia, Here + LengthOfLineBreak(c, Here))
 
                     Case "-"c
@@ -625,9 +625,9 @@ ScanChars:
                 Dim c As Char = PeekAheadChar(Here)
                 Select Case (c)
 
-                    Case UCH_CR, UCH_LF
+                    Case CARRIAGE_RETURN, LINE_FEED
                         Here = SkipLineBreak(c, Here)
-                        scratch.Append(UCH_LF)
+                        scratch.Append(LINE_FEED)
                         Return XmlMakeCDataToken(precedingTrivia, Here, scratch)
 
                     Case "]"c
@@ -692,7 +692,7 @@ ScanChars:
                 ' //  S    ::=    (#x20 | #x9 | #xD | #xA)+
                 Dim c = PeekChar()
                 Select Case c
-                    Case UCH_CR, UCH_LF, " "c, UCH_TAB
+                    Case CARRIAGE_RETURN, LINE_FEED, " "c, CHARACTER_TABULATION
                         Dim wsTrivia = ScanXmlTrivia(c)
                         precedingTrivia.AddRange(wsTrivia)
                 End Select
@@ -703,7 +703,7 @@ ScanChars:
                 Dim c As Char = PeekAheadChar(Here)
                 Select Case (c)
 
-                    Case UCH_CR, UCH_LF
+                    Case CARRIAGE_RETURN, LINE_FEED
                         result = XmlMakeProcessingInstructionToken(precedingTrivia.ToList, Here + LengthOfLineBreak(c, Here))
                         GoTo CleanUp
 
@@ -766,7 +766,7 @@ CleanUp:
                 Select Case (c)
                     ' // Whitespace
                     ' //  S    ::=    (#x20 | #x9 | #xD | #xA)+
-                    Case UCH_CR, UCH_LF, " "c, UCH_TAB
+                    Case CARRIAGE_RETURN, LINE_FEED, " "c, CHARACTER_TABULATION
                         ' we should not visit this place twice
                         Debug.Assert(Not precedingTrivia.Any)
                         precedingTrivia = ScanXmlTrivia(c)
@@ -853,7 +853,7 @@ CleanUp:
 
                 Select Case (c)
 
-                    Case UCH_CR, UCH_LF, " "c, UCH_TAB
+                    Case CARRIAGE_RETURN, LINE_FEED, " "c, CHARACTER_TABULATION
                         If Here > 0 Then
                             Return XmlMakeAttributeDataToken(Nothing, Here, scratch)
                         Else
@@ -917,11 +917,11 @@ ScanChars:
         End Function
 
         Friend Function ScanXmlStringSmartSingle() As SyntaxToken
-            Return ScanXmlString(DWCH_RSMART_Q, DWCH_LSMART_Q, True)
+            Return ScanXmlString(RIGHT_SINGLE_QUOTATION_MARK, LEFT_SINGLE_QUOTATION_MARK, True)
         End Function
 
         Friend Function ScanXmlStringSmartDouble() As SyntaxToken
-            Return ScanXmlString(DWCH_RSMART_DQ, DWCH_LSMART_DQ, False)
+            Return ScanXmlString(RIGHT_DOUBLE_QUOTATION_MARK, LEFT_DOUBLE_QUOTATION_MARK, False)
         End Function
 
         Friend Function ScanXmlString(terminatingChar As Char, altTerminatingChar As Char, isSingle As Boolean) As SyntaxToken
@@ -958,14 +958,14 @@ ScanChars:
                 End If
 
                 Select Case (c)
-                    Case UCH_CR, UCH_LF
+                    Case CARRIAGE_RETURN, LINE_FEED
                         Here = SkipLineBreak(c, Here)
-                        scratch.Append(UCH_SPACE)
+                        scratch.Append(SPACE)
                         result = XmlMakeAttributeDataToken(precedingTrivia, Here, scratch)
                         GoTo CleanUp
 
-                    Case UCH_TAB
-                        scratch.Append(UCH_SPACE)
+                    Case CHARACTER_TABULATION
+                        scratch.Append(SPACE)
                         Here += 1
 
                     Case "<"c
@@ -1128,9 +1128,9 @@ CleanUp:
 
                     Case ":"c, _
                         " "c, _
-                        UCH_TAB, _
-                        UCH_LF, _
-                        UCH_CR, _
+                        CHARACTER_TABULATION, _
+                        LINE_FEED, _
+                        CARRIAGE_RETURN, _
                         "="c, _
                         "'"c, _
                         """"c, _

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+ï»¿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.IO
 Imports Microsoft.CodeAnalysis
@@ -123,11 +123,11 @@ Imports System.Console
 Module Program
     Sub Main()
         Dim arr As Object() = {}
-        Write($"Solution: {{ { If(arr.Length > 0, String.Join("", "", arr), "Ø") } }}")
+        Write($"Solution: {{ { If(arr.Length > 0, String.Join("", "", arr), "Ã˜") } }}")
     End Sub
 End Module
     </file>
-</compilation>, expectedOutput:="Solution: { Ø }")
+</compilation>, expectedOutput:="Solution: { Ã˜ }")
 
         End Sub
 
@@ -186,14 +186,14 @@ Module Program
     Sub Main()
 
         Dim arr = {
-            $“1”,
-            $”2“,
-            $“3",
-            $"4“,
-            $"5”,
-            $”6",
-            $" ”“ ",
-            $” {1:x”“y} “
+            $â€œ1â€,
+            $â€2â€œ,
+            $â€œ3",
+            $"4â€œ,
+            $"5â€,
+            $â€6",
+            $" â€â€œ ",
+            $â€ {1:xâ€â€œy} â€œ
         }
 
         System.Console.WriteLine(String.Join("", arr))

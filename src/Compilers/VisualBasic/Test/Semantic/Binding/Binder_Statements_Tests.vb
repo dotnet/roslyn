@@ -4827,7 +4827,7 @@ Module M
     Sub [REM]
         Console.WriteLine("REM")
     End Sub
-End Module]]>.Value.Replace("~"c, SyntaxFacts.FULLWIDTH_COL)
+End Module]]>.Value.Replace("~"c, SyntaxFacts.FULLWIDTH_COLON)
 
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 <compilation name="FullWidthColonInXmlNames">

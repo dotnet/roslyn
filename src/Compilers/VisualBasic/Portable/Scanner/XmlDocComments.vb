@@ -182,11 +182,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' </summary>
         Private Function ScanXmlTriviaInXmlDoc(c As Char, triviaList As SyntaxListBuilder(Of VisualBasicSyntaxNode)) As Boolean
             Debug.Assert(IsScanningXmlDoc)
-            Debug.Assert(c = UCH_CR OrElse c = UCH_LF OrElse c = " "c OrElse c = UCH_TAB)
+            Debug.Assert(c = CARRIAGE_RETURN OrElse c = LINE_FEED OrElse c = " "c OrElse c = CHARACTER_TABULATION)
 
             Dim len = 0
             Do
-                If c = " "c OrElse c = UCH_TAB Then
+                If c = " "c OrElse c = CHARACTER_TABULATION Then
                     len += 1
 
                 ElseIf IsNewLine(c) Then
@@ -245,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Dim c As Char = PeekAheadChar(Here)
 
                 Select Case (c)
-                    Case UCH_CR, UCH_LF
+                    Case CARRIAGE_RETURN, LINE_FEED
                         If Here <> 0 Then
                             Return XmlMakeTextLiteralToken(precedingTrivia, Here, scratch)
                         End If
@@ -265,7 +265,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         ' line breaks in Doc comments are separate tokens.
                         Return MakeDocCommentLineBreakToken(precedingTrivia, Here)
 
-                    Case " "c, UCH_TAB
+                    Case " "c, CHARACTER_TABULATION
                         scratch.Append(c)
                         Here += 1
 
@@ -390,7 +390,7 @@ ScanChars:
                 ' //  S    ::=    (#x20 | #x9 | #xD | #xA)+
                 Dim c = PeekChar()
                 Select Case c
-                    Case UCH_CR, UCH_LF, " "c, UCH_TAB
+                    Case CARRIAGE_RETURN, LINE_FEED, " "c, CHARACTER_TABULATION
                         Dim offsets = CreateOffsetRestorePoint()
                         Dim continueLine = ScanXmlTriviaInXmlDoc(c, precedingTrivia)
                         If Not continueLine Then
@@ -406,7 +406,7 @@ ScanChars:
                 Dim c As Char = PeekAheadChar(Here)
                 Select Case (c)
 
-                    Case UCH_CR, UCH_LF
+                    Case CARRIAGE_RETURN, LINE_FEED
                         result = XmlMakeProcessingInstructionToken(precedingTrivia.ToList, Here + LengthOfLineBreak(c, Here))
                         GoTo CleanUp
 
@@ -490,7 +490,7 @@ CleanUp:
                 Select Case (c)
                     ' // Whitespace
                     ' //  S    ::=    (#x20 | #x9 | #xD | #xA)+
-                    Case UCH_CR, UCH_LF, " "c, UCH_TAB
+                    Case CARRIAGE_RETURN, LINE_FEED, " "c, CHARACTER_TABULATION
                         ' we should not visit this place twice
                         Debug.Assert(Not precedingTrivia.Any)
                         Dim offsets = CreateOffsetRestorePoint()
@@ -515,10 +515,10 @@ CleanUp:
                     Case "="c
                         Return XmlMakeEqualsToken(precedingTrivia)
 
-                    Case "'"c, DWCH_LSMART_Q, DWCH_RSMART_Q
+                    Case "'"c, LEFT_SINGLE_QUOTATION_MARK, RIGHT_SINGLE_QUOTATION_MARK
                         Return XmlMakeSingleQuoteToken(precedingTrivia, c, isOpening:=True)
 
-                    Case """"c, DWCH_LSMART_DQ, DWCH_RSMART_DQ
+                    Case """"c, LEFT_DOUBLE_QUOTATION_MARK, RIGHT_DOUBLE_QUOTATION_MARK
                         Return XmlMakeDoubleQuoteToken(precedingTrivia, c, isOpening:=True)
 
                     Case "<"c

@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         SingleQuotedString
 
         ''' <summary>
-        ''' Scan a single quoted string DWCH_RSMART_Q
+        ''' Scan a single quoted string RIGHT_SINGLE_QUOTATION_MARK
         ''' </summary>
         SmartSingleQuotedString
 
@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         QuotedString
 
         ''' <summary>
-        ''' Scan a quoted string DWCH_RSMART_DQ
+        ''' Scan a quoted string RIGHT_DOUBLE_QUOTATION_MARK
         ''' </summary>
         SmartQuotedString
 

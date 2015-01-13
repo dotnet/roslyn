@@ -103,8 +103,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim lastIdentifierCharacterIndex As Integer = [end] - 1
 
-            If allowEscaping AndAlso SyntaxFacts.ReturnFullWidthOrSelf(name(start)) = SyntaxFacts.FULLWIDTH_LBR Then
-                If SyntaxFacts.ReturnFullWidthOrSelf(name(lastIdentifierCharacterIndex)) <> SyntaxFacts.FULLWIDTH_RBR Then
+            If allowEscaping AndAlso SyntaxFacts.ReturnFullWidthOrSelf(name(start)) = SyntaxFacts.FULLWIDTH_LEFT_SQUARE_BRACKET Then
+                If SyntaxFacts.ReturnFullWidthOrSelf(name(lastIdentifierCharacterIndex)) <> SyntaxFacts.FULLWIDTH_RIGHT_SQUARE_BRACKET Then
                     Return False
                 End If
 
@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' an identifier starting with an underscore must at least consist of two characters
-            If ([end] - start) = 1 AndAlso SyntaxFacts.ReturnFullWidthOrSelf(name(start)) = SyntaxFacts.FULLWIDTH_LC Then
+            If ([end] - start) = 1 AndAlso SyntaxFacts.ReturnFullWidthOrSelf(name(start)) = SyntaxFacts.FULLWIDTH_LOW_LINE Then
                 Return False
             End If
 

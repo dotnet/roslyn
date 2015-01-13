@@ -261,12 +261,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Select Case (c)
 
-                    Case UCH_CR, UCH_LF
+                    Case CARRIAGE_RETURN, LINE_FEED
                         EatThroughLineBreak(c)
                         condLineStart = _lineBufferOffset
                         Continue While
 
-                    Case UCH_SPACE, UCH_TAB
+                    Case SPACE, CHARACTER_TABULATION
                         Debug.Assert(IsWhitespace(PeekChar()))
                         EatWhitespace()
                         Continue While
@@ -282,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         condLineStart = _lineBufferOffset
                         Continue While
 
-                    Case "#"c, FULLWIDTH_HASH
+                    Case "#"c, FULLWIDTH_NUMBER_SIGN
                         Exit While
 
                     Case Else
@@ -457,9 +457,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Debug.Assert(StartCharacter = PeekAheadChar(here))
 
-            If StartCharacter = UCH_CR AndAlso
+            If StartCharacter = CARRIAGE_RETURN AndAlso
                 CanGetCharAtOffset(here + 1) AndAlso
-                PeekAheadChar(here + 1) = UCH_LF Then
+                PeekAheadChar(here + 1) = LINE_FEED Then
 
                 Return 2
             End If
@@ -703,7 +703,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Select Case (c)
                     ' // Whitespace
                     ' //  S    ::=    (#x20 | #x9 | #xD | #xA)+
-                    Case UCH_CR, UCH_LF, " "c, UCH_TAB
+                    Case CARRIAGE_RETURN, LINE_FEED, " "c, CHARACTER_TABULATION
                         Dim offsets = CreateOffsetRestorePoint()
                         Dim triviaList = triviaListPool.Allocate(Of VisualBasicSyntaxNode)()
                         Dim continueLine = ScanXmlTriviaInXmlDoc(c, triviaList)
@@ -940,10 +940,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim ch As Char = PeekChar()
             Select Case ch
-                Case UCH_CR, UCH_LF, UCH_NEL, UCH_LS, UCH_PS
+                Case CARRIAGE_RETURN, LINE_FEED, NEXT_LINE, LINE_SEPARATOR, PARAGRAPH_SEPARATOR
                     Return ScanNewlineAsStatementTerminator(ch, precedingTrivia)
 
-                Case " "c, UCH_TAB, "'"c
+                Case " "c, CHARACTER_TABULATION, "'"c
                     Debug.Assert(False, String.Format("Unexpected char: &H{0:x}", AscW(ch)))
                     Return Nothing ' trivia cannot start a token
 
@@ -1176,10 +1176,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' REVIEW: Is there a better way to reuse this logic? 
         Private Function ScanTokenFullWidth(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), ch As Char) As SyntaxToken
             Select Case ch
-                Case UCH_CR, UCH_LF
+                Case CARRIAGE_RETURN, LINE_FEED
                     Return ScanNewlineAsStatementTerminator(ch, precedingTrivia)
 
-                Case " "c, UCH_TAB, "'"c
+                Case " "c, CHARACTER_TABULATION, "'"c
                     Debug.Assert(False, String.Format("Unexpected char: &H{0:x}", AscW(ch)))
                     Return Nothing ' trivia cannot start a token
 
@@ -1403,7 +1403,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 eq = PeekAheadChar(Here)
                 Here += 1
                 If Not IsWhitespace(eq) Then
-                    If eq = "="c OrElse eq = FULLWIDTH_EQ Then
+                    If eq = "="c OrElse eq = FULLWIDTH_EQUALS_SIGN Then
                         Index = Here
                         Return True
                     Else
@@ -1416,7 +1416,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ScanRightAngleBracket(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As SyntaxToken
             Debug.Assert(CanGetChar)  ' > 
-            Debug.Assert(PeekChar() = ">"c OrElse PeekChar() = FULLWIDTH_GT)
+            Debug.Assert(PeekChar() = ">"c OrElse PeekChar() = FULLWIDTH_GREATER_THAN_SIGN)
 
             Dim length As Integer = 1
 
@@ -1426,10 +1426,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If CanGetCharAtOffset(length) Then
                 Dim c As Char = PeekAheadChar(length)
 
-                If c = "="c OrElse c = FULLWIDTH_EQ Then
+                If c = "="c OrElse c = FULLWIDTH_EQUALS_SIGN Then
                     length += 1
                     Return MakeGreaterThanEqualsToken(precedingTrivia, length)
-                ElseIf c = ">"c OrElse c = FULLWIDTH_GT Then
+                ElseIf c = ">"c OrElse c = FULLWIDTH_GREATER_THAN_SIGN Then
                     length += 1
                     If TrySkipFollowingEquals(length) Then
                         Return MakeGreaterThanGreaterThanEqualsToken(precedingTrivia, length)
@@ -1443,7 +1443,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ScanLeftAngleBracket(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean, scanTrailingTrivia As ScanTriviaFunc) As SyntaxToken
             Debug.Assert(CanGetChar)  ' < 
-            Debug.Assert(PeekChar() = "<"c OrElse PeekChar() = FULLWIDTH_LT)
+            Debug.Assert(PeekChar() = "<"c OrElse PeekChar() = FULLWIDTH_LESS_THAN_SIGN)
 
             Dim length As Integer = 1
 
@@ -1485,20 +1485,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If CanGetCharAtOffset(length) Then
                 Dim c As Char = PeekAheadChar(length)
 
-                If c = "="c OrElse c = FULLWIDTH_EQ Then
+                If c = "="c OrElse c = FULLWIDTH_EQUALS_SIGN Then
                     length += 1
                     Return MakeLessThanEqualsToken(precedingTrivia, length)
-                ElseIf c = ">"c OrElse c = FULLWIDTH_GT Then
+                ElseIf c = ">"c OrElse c = FULLWIDTH_GREATER_THAN_SIGN Then
                     length += 1
                     Return MakeLessThanGreaterThanToken(precedingTrivia, length)
-                ElseIf c = "<"c OrElse c = FULLWIDTH_LT Then
+                ElseIf c = "<"c OrElse c = FULLWIDTH_LESS_THAN_SIGN Then
                     length += 1
 
                     If CanGetCharAtOffset(length) Then
                         c = PeekAheadChar(length)
 
                         'if the second "<" is a part of "<%" - like in "<<%" , we do not want to use it.
-                        If c <> "%"c AndAlso c <> FULLWIDTH_PERCENT Then
+                        If c <> "%"c AndAlso c <> FULLWIDTH_PERCENT_SIGN Then
                             If TrySkipFollowingEquals(length) Then
                                 Return MakeLessThanLessThanEqualsToken(precedingTrivia, length)
                             Else
@@ -1661,7 +1661,7 @@ FullWidthRepeat:
 
         Private Function ScanBracketedIdentifier(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode)) As SyntaxToken
             Debug.Assert(CanGetChar)  ' [
-            Debug.Assert(PeekChar() = "["c OrElse PeekChar() = FULLWIDTH_LBR)
+            Debug.Assert(PeekChar() = "["c OrElse PeekChar() = FULLWIDTH_LEFT_SQUARE_BRACKET)
 
             Dim IdStart As Integer = 1
             Dim Here As Integer = IdStart
@@ -1687,7 +1687,7 @@ FullWidthRepeat:
             While CanGetCharAtOffset(Here)
                 Dim [Next] As Char = PeekAheadChar(Here)
 
-                If [Next] = "]"c OrElse [Next] = FULLWIDTH_RBR Then
+                If [Next] = "]"c OrElse [Next] = FULLWIDTH_RIGHT_SQUARE_BRACKET Then
                     Dim IdStringLength As Integer = Here - IdStart
 
                     If IdStringLength > 0 AndAlso Not InvalidIdentifier Then
@@ -1748,7 +1748,7 @@ FullWidthRepeat:
             ' // First read a leading base specifier, if present, followed by a sequence of zero
             ' // or more digits.
             Dim ch = PeekChar()
-            If ch = "&"c OrElse ch = FULLWIDTH_AMP Then
+            If ch = "&"c OrElse ch = FULLWIDTH_AMPERSAND Then
                 Here += 1
                 ch = If(CanGetCharAtOffset(Here), PeekAheadChar(Here), ChrW(0))
 
@@ -1808,7 +1808,7 @@ FullWidthRepeat:
             If Base = LiteralBase.Decimal AndAlso CanGetCharAtOffset(Here) Then
                 ' // First read a '.' followed by a sequence of one or more digits.
                 ch = PeekAheadChar(Here)
-                If (ch = "."c Or ch = FULLWIDTH_DOT) AndAlso
+                If (ch = "."c Or ch = FULLWIDTH_FULL_STOP) AndAlso
                         CanGetCharAtOffset(Here + 1) AndAlso
                         IsDecimalDigit(PeekAheadChar(Here + 1)) Then
 
@@ -2317,14 +2317,14 @@ FullWidthRepeat2:
                 ' // Check AM/PM
 
                 If CanGetCharAtOffset(Here) Then
-                    If PeekAheadChar(Here) = "A"c OrElse PeekAheadChar(Here) = FULLWIDTH_Ah OrElse
-                        PeekAheadChar(Here) = "a"c OrElse PeekAheadChar(Here) = FULLWIDTH_Al Then
+                    If PeekAheadChar(Here) = "A"c OrElse PeekAheadChar(Here) = FULLWIDTH_LATIN_CAPITAL_LETTER_A OrElse
+                        PeekAheadChar(Here) = "a"c OrElse PeekAheadChar(Here) = FULLWIDTH_LATIN_SMALL_LETTER_A Then
 
                         HaveAM = True
                         Here += 1
 
-                    ElseIf PeekAheadChar(Here) = "P"c OrElse PeekAheadChar(Here) = FULLWIDTH_Ph OrElse
-                           PeekAheadChar(Here) = "p"c OrElse PeekAheadChar(Here) = FULLWIDTH_pl Then
+                    ElseIf PeekAheadChar(Here) = "P"c OrElse PeekAheadChar(Here) = FULLWIDTH_LATIN_CAPITAL_LETTER_P OrElse
+                           PeekAheadChar(Here) = "p"c OrElse PeekAheadChar(Here) = FULLWIDTH_LATIN_SMALL_LETTER_P Then
 
                         HavePM = True
                         Here += 1
@@ -2332,8 +2332,8 @@ FullWidthRepeat2:
                     End If
 
                     If CanGetCharAtOffset(Here) AndAlso (HaveAM OrElse HavePM) Then
-                        If PeekAheadChar(Here) = "M"c OrElse PeekAheadChar(Here) = FULLWIDTH_Mh OrElse
-                           PeekAheadChar(Here) = "m"c OrElse PeekAheadChar(Here) = FULLWIDTH_ml Then
+                        If PeekAheadChar(Here) = "M"c OrElse PeekAheadChar(Here) = FULLWIDTH_LATIN_CAPITAL_LETTER_M OrElse
+                           PeekAheadChar(Here) = "m"c OrElse PeekAheadChar(Here) = FULLWIDTH_LATIN_SMALL_LETTER_M Then
 
                             Here = GetWhitespaceLength(Here + 1)
 

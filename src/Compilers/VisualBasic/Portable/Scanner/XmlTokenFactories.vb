@@ -324,7 +324,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function XmlMakeEndEmbeddedToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), scanTrailingTrivia As ScanTriviaFunc) As PunctuationSyntax
-            Debug.Assert(PeekChar() = "%"c OrElse PeekChar() = FULLWIDTH_PERCENT)
+            Debug.Assert(PeekChar() = "%"c OrElse PeekChar() = FULLWIDTH_PERCENT_SIGN)
             Debug.Assert(PeekAheadChar(1) = ">"c)
 
             Dim spelling As String

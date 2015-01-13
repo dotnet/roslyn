@@ -2353,7 +2353,7 @@ End Module
 Module M
     Dim x = {0}x/>
 End Module
-</source>.Value, FULLWIDTH_LT),
+</source>.Value, FULLWIDTH_LESS_THAN_SIGN),
             Diagnostic(ERRID.ERR_FullWidthAsXmlDelimiter, "＜"))
     End Sub
 
@@ -3862,7 +3862,7 @@ Module M
     Dim x = <x/
 $>
 End Module
-]]>.Value.Replace("$"c, UCH_NEL),
+]]>.Value.Replace("$"c, NEXT_LINE),
             <errors>
                 <error id="30625"/>
                 <error id="31151"/>
@@ -3876,7 +3876,7 @@ Module M
     Dim x = <x/
 $>
 End Module
-]]>.Value.Replace("$"c, UCH_LS),
+]]>.Value.Replace("$"c, LINE_SEPARATOR),
             <errors>
                 <error id="30625"/>
                 <error id="31151"/>
@@ -3890,7 +3890,7 @@ Module M
     Dim x = <x/
 $>
 End Module
-]]>.Value.Replace("$"c, UCH_PS),
+]]>.Value.Replace("$"c, PARAGRAPH_SEPARATOR),
             <errors>
                 <error id="30625"/>
                 <error id="31151"/>
@@ -3904,7 +3904,7 @@ Module M
     Dim x = <x
 $/>
 End Module
-]]>.Value.Replace("$"c, UCH_NEL),
+]]>.Value.Replace("$"c, NEXT_LINE),
             <errors>
                 <error id="31169"/>
                 <error id="30249"/>
@@ -3914,7 +3914,7 @@ Module M
     Dim x = <x
 $=""/>
 End Module
-]]>.Value.Replace("$"c, UCH_NEL),
+]]>.Value.Replace("$"c, NEXT_LINE),
             <errors>
                 <error id="31169"/>
             </errors>)
@@ -3928,7 +3928,7 @@ Module M
     Dim x = <x
 $!/>
 End Module
-]]>.Value.Replace("$"c, UCH_NBSP),
+]]>.Value.Replace("$"c, NO_BREAK_SPACE),
             <errors>
                 <error id="31169"/>
                 <error id="30249"/>
@@ -3938,7 +3938,7 @@ Module M
     Dim x = <x
 $!/>
 End Module
-]]>.Value.Replace("$"c, UCH_IDEOSP),
+]]>.Value.Replace("$"c, IDEOGRAPHIC_SPACE),
             <errors>
                 <error id="31169"/>
                 <error id="30249"/>
@@ -4448,14 +4448,14 @@ Module M
     Sub Main()
         Dim x = <a/>.@foo~rem
     End Sub
-End Module]]>.Value.Replace("~"c, FULLWIDTH_COL))
+End Module]]>.Value.Replace("~"c, FULLWIDTH_COLON))
 
         ParseAndVerify(<![CDATA[
 Module M
     Sub Main()
         Dim x = <a/>.@foo~rem$
     End Sub
-End Module]]>.Value.Replace("~"c, FULLWIDTH_COL))
+End Module]]>.Value.Replace("~"c, FULLWIDTH_COLON))
 
     End Sub
 

@@ -5956,7 +5956,7 @@ End Module
 Module M
     Private F {0}!--
 End Module
-]]>.Value, FULLWIDTH_LT),
+]]>.Value, FULLWIDTH_LESS_THAN_SIGN),
             <errors>
                 <error id="30205" message="End of statement expected."/>
             </errors>)
@@ -5980,7 +5980,7 @@ End Module
 Module M
     Private F {0}?
 End Module
-]]>.Value, FULLWIDTH_LT),
+]]>.Value, FULLWIDTH_LESS_THAN_SIGN),
             <errors>
                 <error id="30205" message="End of statement expected."/>
             </errors>)
@@ -5996,7 +5996,7 @@ End Module
 Module M
     Private F {0}>
 End Module
-]]>.Value, FULLWIDTH_Q),
+]]>.Value, FULLWIDTH_QUESTION_MARK),
             <errors>
                 <error id="30205" message="End of statement expected."/>
             </errors>)
@@ -6012,7 +6012,7 @@ End Module
 Module M
     Private F {0}/
 End Module
-]]>.Value, FULLWIDTH_LT),
+]]>.Value, FULLWIDTH_LESS_THAN_SIGN),
             <errors>
                 <error id="30205" message="End of statement expected."/>
             </errors>)
@@ -6028,7 +6028,7 @@ End Module
 Module M
     Private F {0}>
 End Module
-]]>.Value, FULLWIDTH_PERCENT),
+]]>.Value, FULLWIDTH_PERCENT_SIGN),
             <errors>
                 <error id="30205" message="End of statement expected."/>
             </errors>)
@@ -6044,7 +6044,7 @@ End Module
 Module M
     Private F {0}!DOCTYPE
 End Module
-]]>.Value, FULLWIDTH_LT),
+]]>.Value, FULLWIDTH_LESS_THAN_SIGN),
             <errors>
                 <error id="30205" message="End of statement expected."/>
             </errors>)
@@ -6060,7 +6060,7 @@ Module M
 Module M
     Private F {0}![CDATA[
     End Module
-</source>.Value, FULLWIDTH_LT),
+</source>.Value, FULLWIDTH_LESS_THAN_SIGN),
             <errors>
                 <error id="30034"/>
                 <error id="30203" message="Identifier expected."/>
@@ -6118,7 +6118,7 @@ Module M
     Private F = <% Function()
                 End Function() {0}>
 End Module
-]]>.Value, FULLWIDTH_PERCENT),
+]]>.Value, FULLWIDTH_PERCENT_SIGN),
             <errors>
                 <error id="31151"/>
                 <error id="31169"/>
@@ -6502,7 +6502,7 @@ End Module
         ' Source containing underscores and tabs.
         LineContinuationTrivia(source.Replace(" "c, vbTab), "_")
         ' Source containing full-width underscores and spaces.
-        LineContinuationTriviaErr(source.Replace("_"c, FULLWIDTH_LC), "" + FULLWIDTH_LC)
+        LineContinuationTriviaErr(source.Replace("_"c, FULLWIDTH_LOW_LINE), "" + FULLWIDTH_LOW_LINE)
     End Sub
 
     Private Sub LineContinuationTrivia(source As String, charAsString As String)
@@ -6554,7 +6554,7 @@ Label:::
 End Module
 ]]>.Value
         ConsecutiveColonsTrivia(source, ":")
-        ConsecutiveColonsTrivia(source.Replace(":"c, FULLWIDTH_COL), FULLWIDTH_COL_STR)
+        ConsecutiveColonsTrivia(source.Replace(":"c, FULLWIDTH_COLON), FULLWIDTH_COLON_STRING)
     End Sub
 
     Private Sub ConsecutiveColonsTrivia(source As String, singleColon As String)
@@ -7670,7 +7670,7 @@ Imports <xmlns:=''>, Imports <xmlns::=''>, Imports <xmlns==''>
             </errors>)
         ParseAndVerify(<![CDATA[
 Imports <xmlns:=''>, Imports <xmlns::=''>, Imports <xmlns==''>
-]]>.Value.Replace(":"c, FULLWIDTH_COL).Replace("="c, FULLWIDTH_EQ),
+]]>.Value.Replace(":"c, FULLWIDTH_COLON).Replace("="c, FULLWIDTH_EQUALS_SIGN),
             <errors>
                 <error id="31187"/>
                 <error id="30636"/>
@@ -7709,7 +7709,7 @@ Module M
         x : : = Nothing
     End Sub
 End Module
-]]>.Value.Replace(":"c, FULLWIDTH_COL).Replace("="c, FULLWIDTH_EQ),
+]]>.Value.Replace(":"c, FULLWIDTH_COLON).Replace("="c, FULLWIDTH_EQUALS_SIGN),
             <errors>
                 <error id="30035"/>
             </errors>)
@@ -7729,7 +7729,7 @@ Module M
         ::= Nothing
     End Sub
 End Module
-]]>.Value.Replace(":"c, FULLWIDTH_COL).Replace("="c, FULLWIDTH_EQ),
+]]>.Value.Replace(":"c, FULLWIDTH_COLON).Replace("="c, FULLWIDTH_EQUALS_SIGN),
             <errors>
                 <error id="30035"/>
             </errors>)
@@ -7739,11 +7739,11 @@ End Module
     <Fact()>
     Public Sub IsNewLine()
         Dim sourceFormat = "Module M{0}    Dim x = 1 'Comment{0}End Module{0}"
-        ParseAndVerify(String.Format(sourceFormat, UCH_CR))
-        ParseAndVerify(String.Format(sourceFormat, UCH_LF))
-        ParseAndVerify(String.Format(sourceFormat, UCH_NEL))
-        ParseAndVerify(String.Format(sourceFormat, UCH_LS))
-        ParseAndVerify(String.Format(sourceFormat, UCH_PS))
+        ParseAndVerify(String.Format(sourceFormat, CARRIAGE_RETURN))
+        ParseAndVerify(String.Format(sourceFormat, LINE_FEED))
+        ParseAndVerify(String.Format(sourceFormat, NEXT_LINE))
+        ParseAndVerify(String.Format(sourceFormat, LINE_SEPARATOR))
+        ParseAndVerify(String.Format(sourceFormat, PARAGRAPH_SEPARATOR))
     End Sub
 
     <WorkItem(674590, "DevDiv")>

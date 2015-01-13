@@ -473,7 +473,7 @@ End Module
 Region
 #End If
 #End If
-        ]]>.Value.Replace("_"c, SyntaxFacts.FULLWIDTH_LC),
+        ]]>.Value.Replace("_"c, SyntaxFacts.FULLWIDTH_LOW_LINE),
     Diagnostic(ERRID.ERR_ExpectedEndIf, "If "),
     Diagnostic(ERRID.ERR_ExpectedExpression, ""),
     Diagnostic(ERRID.ERR_ExpectedIdentifier, "＿"),
@@ -1466,7 +1466,7 @@ Namespace CHDIR48
 #If True Then
 #05/01/13#
 #End If
-]]>.Value.Replace("#"c, SyntaxFacts.FULLWIDTH_HASH),
+]]>.Value.Replace("#"c, SyntaxFacts.FULLWIDTH_NUMBER_SIGN),
             <errors>
                 <error id="31085"/>
             </errors>)
@@ -1474,7 +1474,7 @@ Namespace CHDIR48
 #If False Then
 #05/01/13#
 #End If
-]]>.Value.Replace("#"c, SyntaxFacts.FULLWIDTH_HASH))
+]]>.Value.Replace("#"c, SyntaxFacts.FULLWIDTH_NUMBER_SIGN))
     End Sub
 
     <Fact()>

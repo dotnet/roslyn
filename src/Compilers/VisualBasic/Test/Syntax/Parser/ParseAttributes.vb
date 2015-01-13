@@ -43,7 +43,7 @@ Public Class Attributes
         Dim attrList = attrStmt.AttributeLists(0)
         Dim attr = attrList.Attributes(0)
         Dim target = attr.Target
-        Assert.Equal(If(isFullWidth, FULLWIDTH_COL_STR, ":"), target.ColonToken.ValueText)
+        Assert.Equal(If(isFullWidth, FULLWIDTH_COLON_STRING, ":"), target.ColonToken.ValueText)
     End Sub
 
     <Fact>
@@ -58,7 +58,7 @@ A>
 ]]>)
         ParseAndVerify(<![CDATA[
 <Assembly : A>
-]]>.Value.Replace(":"c, FULLWIDTH_COL))
+]]>.Value.Replace(":"c, FULLWIDTH_COLON))
     End Sub
 
     <Fact>
@@ -329,7 +329,7 @@ End Module
             </errors>)
         ParseAndVerify(<![CDATA[
 <Module : : A>
-]]>.Value.Replace(":"c, FULLWIDTH_COL),
+]]>.Value.Replace(":"c, FULLWIDTH_COLON),
             <errors>
                 <error id="30203" message="Identifier expected."/>
                 <error id="30636" message="'>' expected."/>
@@ -396,7 +396,7 @@ End Class
 < >
 Class C
 End Class
-]]>.Value.Replace("<"c, FULLWIDTH_LT).Replace(">"c, FULLWIDTH_GT),
+]]>.Value.Replace("<"c, FULLWIDTH_LESS_THAN_SIGN).Replace(">"c, FULLWIDTH_GREATER_THAN_SIGN),
             <errors>
                 <error id="30203" message="Identifier expected."/>
             </errors>)
@@ -407,7 +407,7 @@ Class C
     Sub M()
     End Sub
 End Class
-]]>.Value, " "c, vbTab, UCH_NBSP),
+]]>.Value, " "c, vbTab, NO_BREAK_SPACE),
             <errors>
                 <error id="30203" message="Identifier expected."/>
             </errors>)

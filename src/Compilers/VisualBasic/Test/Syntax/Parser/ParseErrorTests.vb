@@ -2728,7 +2728,7 @@ Module M
  _
 
 End Module
-]]>.Value.Replace("_", SyntaxFacts.FULLWIDTH_LC),
+]]>.Value.Replace("_", SyntaxFacts.FULLWIDTH_LOW_LINE),
     Diagnostic(ERRID.ERR_ExpectedIdentifier, "＿"),
     Diagnostic(ERRID.ERR_ExpectedIdentifier, "＿"),
     Diagnostic(ERRID.ERR_ExpectedIdentifier, "＿"))
@@ -2785,7 +2785,7 @@ Module M
     Dim x = From c in "" _ _
 
 End Module
-]]>.Value.Replace("_", SyntaxFacts.FULLWIDTH_LC),
+]]>.Value.Replace("_", SyntaxFacts.FULLWIDTH_LOW_LINE),
     Diagnostic(ERRID.ERR_ExpectedIdentifier, "＿"),
     Diagnostic(ERRID.ERR_ExpectedIdentifier, "＿"))
     End Sub
@@ -2808,7 +2808,7 @@ Module M
 _
 
 End Module
-]]>.Value.Replace("_", SyntaxFacts.FULLWIDTH_LC),
+]]>.Value.Replace("_", SyntaxFacts.FULLWIDTH_LOW_LINE),
             <errors>
                 <error id="30203" message="Identifier expected."/>
             </errors>)
@@ -2829,7 +2829,7 @@ Module M
 _
 
 End Module
-]]>.Value.Replace("_", SyntaxFacts.FULLWIDTH_LC),
+]]>.Value.Replace("_", SyntaxFacts.FULLWIDTH_LOW_LINE),
             <errors>
                 <error id="30203" message="Identifier expected."/>
                 <error id="30203" message="Identifier expected."/>
@@ -2852,7 +2852,7 @@ Module M
 _
 
 End Module
-]]>.Value.Replace("_", SyntaxFacts.FULLWIDTH_LC),
+]]>.Value.Replace("_", SyntaxFacts.FULLWIDTH_LOW_LINE),
             <errors>
                 <error id="30201"/>
                 <error id="30203" message="Identifier expected."/>

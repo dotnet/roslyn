@@ -385,70 +385,70 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function MakeOpenParenToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
-            Dim spelling = If(charIsFullWidth, FULLWIDTH_LPAREN_STR, "(")
+            Dim spelling = If(charIsFullWidth, FULLWIDTH_LEFT_PARENTHESIS_STRING, "(")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.OpenParenToken)
         End Function
 
         Private Function MakeCloseParenToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
-            Dim spelling = If(charIsFullWidth, FULLWIDTH_RPAREN_STR, ")")
+            Dim spelling = If(charIsFullWidth, FULLWIDTH_RIGHT_PARENTHESIS_STRING, ")")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.CloseParenToken)
         End Function
 
         Private Function MakeDotToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
-            Dim spelling = If(charIsFullWidth, FULLWIDTH_DOT_STR, ".")
+            Dim spelling = If(charIsFullWidth, FULLWIDTH_FULL_STOP_STRING, ".")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.DotToken)
         End Function
 
         Private Function MakeCommaToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
-            Dim spelling = If(charIsFullWidth, FULLWIDTH_COMMA_STR, ",")
+            Dim spelling = If(charIsFullWidth, FULLWIDTH_COMMA_STRING, ",")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.CommaToken)
         End Function
 
         Private Function MakeEqualsToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
-            Dim spelling = If(charIsFullWidth, FULLWIDTH_EQ_STR, "=")
+            Dim spelling = If(charIsFullWidth, FULLWIDTH_EQUALS_SIGN_STRING, "=")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.EqualsToken)
         End Function
 
         Private Function MakeHashToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
-            Dim spelling = If(charIsFullWidth, FULLWIDTH_HASH_STR, "#")
+            Dim spelling = If(charIsFullWidth, FULLWIDTH_NUMBER_SIGN_STRING, "#")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.HashToken)
         End Function
 
         Private Function MakeAmpersandToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
-            Dim spelling = If(charIsFullWidth, FULLWIDTH_AMP_STR, "&")
+            Dim spelling = If(charIsFullWidth, FULLWIDTH_AMPERSAND_STRING, "&")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.AmpersandToken)
         End Function
 
         Private Function MakeOpenBraceToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
-            Dim spelling = If(charIsFullWidth, FULLWIDTH_LBRC_STR, "{")
+            Dim spelling = If(charIsFullWidth, FULLWIDTH_LEFT_CURLY_BRACKET_STRING, "{")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.OpenBraceToken)
         End Function
 
         Private Function MakeCloseBraceToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
-            Dim spelling = If(charIsFullWidth, FULLWIDTH_RBRC_STR, "}")
+            Dim spelling = If(charIsFullWidth, FULLWIDTH_RIGHT_CURLY_BRACKET_STRING, "}")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.CloseBraceToken)
         End Function
 
         Private Function MakeColonToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
-            Debug.Assert(PeekChar() = If(charIsFullWidth, FULLWIDTH_COL, ":"c))
+            Debug.Assert(PeekChar() = If(charIsFullWidth, FULLWIDTH_COLON, ":"c))
             Debug.Assert(Not precedingTrivia.Any())
 
             Dim width = _endOfTerminatorTrivia - _lineBufferOffset
@@ -465,70 +465,70 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function MakePlusToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
-            Dim spelling = If(charIsFullWidth, FULLWIDTH_PLUS_STR, "+")
+            Dim spelling = If(charIsFullWidth, FULLWIDTH_PLUS_SIGN_STRING, "+")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.PlusToken)
         End Function
 
         Private Function MakeMinusToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
-            Dim spelling = If(charIsFullWidth, FULLWIDTH_MINUS_STR, "-")
+            Dim spelling = If(charIsFullWidth, FULLWIDTH_HYPHEN_MINUS_STRING, "-")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.MinusToken)
         End Function
 
         Private Function MakeAsteriskToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
-            Dim spelling = If(charIsFullWidth, FULLWIDTH_MUL_STR, "*")
+            Dim spelling = If(charIsFullWidth, FULLWIDTH_ASTERISK_STRING, "*")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.AsteriskToken)
         End Function
 
         Private Function MakeSlashToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
-            Dim spelling = If(charIsFullWidth, FULLWIDTH_DIV_STR, "/")
+            Dim spelling = If(charIsFullWidth, FULLWIDTH_SOLIDUS_STRING, "/")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.SlashToken)
         End Function
 
         Private Function MakeBackslashToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
-            Dim spelling = If(charIsFullWidth, FULLWIDTH_IDIV_STR, "\")
+            Dim spelling = If(charIsFullWidth, FULLWIDTH_REVERSE_SOLIDUS_STRING, "\")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.BackslashToken)
         End Function
 
         Private Function MakeCaretToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
-            Dim spelling = If(charIsFullWidth, FULLWIDTH_PWR_STR, "^")
+            Dim spelling = If(charIsFullWidth, FULLWIDTH_CIRCUMFLEX_ACCENT_STRING, "^")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.CaretToken)
         End Function
 
         Private Function MakeExclamationToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
-            Dim spelling = If(charIsFullWidth, FULLWIDTH_EXCL_STR, "!")
+            Dim spelling = If(charIsFullWidth, FULLWIDTH_EXCLAMATION_MARK_STRING, "!")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.ExclamationToken)
         End Function
 
         Private Function MakeQuestionToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
-            Dim spelling = If(charIsFullWidth, FULLWIDTH_Q_STR, "?")
+            Dim spelling = If(charIsFullWidth, FULLWIDTH_QUESTION_MARK_STRING, "?")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.QuestionToken)
         End Function
 
         Private Function MakeGreaterThanToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
-            Dim spelling = If(charIsFullWidth, FULLWIDTH_GT_STR, ">")
+            Dim spelling = If(charIsFullWidth, FULLWIDTH_GREATER_THAN_SIGN_STRING, ">")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.GreaterThanToken)
         End Function
 
         Private Function MakeLessThanToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
-            Dim spelling = If(charIsFullWidth, FULLWIDTH_LT_STR, "<")
+            Dim spelling = If(charIsFullWidth, FULLWIDTH_LESS_THAN_SIGN_STRING, "<")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.LessThanToken)
@@ -608,7 +608,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function MakeAtToken(precedingTrivia As SyntaxList(Of VisualBasicSyntaxNode), charIsFullWidth As Boolean) As PunctuationSyntax
-            Dim spelling = If(charIsFullWidth, FULLWIDTH_AT_STR, "@")
+            Dim spelling = If(charIsFullWidth, FULLWIDTH_COMMERCIAL_AT_STRING, "@")
             AdvanceChar()
 
             Return MakePunctuationToken(precedingTrivia, spelling, SyntaxKind.AtToken)
