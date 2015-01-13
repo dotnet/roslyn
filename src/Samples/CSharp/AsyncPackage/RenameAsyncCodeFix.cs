@@ -18,7 +18,7 @@ namespace AsyncPackage
     /// <summary>
     /// This codefix adds "Async" to the end of the Method Identifier and does a basic spellcheck in case the user had already tried to type Async
     /// </summary>
-    [ExportCodeFixProvider(RenameAsyncAnalyzer.RenameAsyncId, LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = RenameAsyncAnalyzer.RenameAsyncId), Shared]
     public class RenameAsyncCodeFix : CodeFixProvider
     {
         public sealed override ImmutableArray<string> GetFixableDiagnosticIds()

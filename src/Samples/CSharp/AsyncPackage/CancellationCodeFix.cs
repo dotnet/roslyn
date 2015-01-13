@@ -17,7 +17,7 @@ namespace AsyncPackage
     /// <summary>
     /// Codefix that changes the type of a variable to be Func of Task instead of a void-returning delegate type.
     /// </summary>
-    [ExportCodeFixProvider(CancellationAnalyzer.CancellationId, LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = CancellationAnalyzer.CancellationId), Shared]
     public class CancellationCodeFix : CodeFixProvider
     {
         public sealed override ImmutableArray<string> GetFixableDiagnosticIds()

@@ -11,7 +11,7 @@ namespace AsyncPackage
     /// <summary>
     /// This analyzer will run a codefix on any method that qualifies as async that renames it to follow naming conventions
     /// </summary>
-    [DiagnosticAnalyzer]
+    [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
     public class RenameAsyncAnalyzer : DiagnosticAnalyzer
     {
         internal const string RenameAsyncId = "Async002";

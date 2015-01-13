@@ -18,7 +18,7 @@ namespace AsyncPackage
     /// <summary>
     /// This codefix replaces the void return type with Task in any method declaration the AsyncVoidAnalyzer catches
     /// </summary>
-    [ExportCodeFixProvider(AsyncVoidAnalyzer.AsyncVoidId, LanguageNames.CSharp), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, Name = AsyncVoidAnalyzer.AsyncVoidId), Shared]
     public class AsyncVoidCodeFix : CodeFixProvider
     {
         public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
