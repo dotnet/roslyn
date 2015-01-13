@@ -72,15 +72,59 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (this._syntaxTree == null)
-                {
-                    var tree = (Parent != null) ? Parent.SyntaxTree : CSharpSyntaxTree.CreateWithoutClone(this);
+                ComputeSyntaxTree(this);
+                Debug.Assert(this._syntaxTree != null);
+                return this._syntaxTree;
+            }
+        }
 
-                    Debug.Assert(tree != null);
-                    Interlocked.CompareExchange(ref this._syntaxTree, tree, null);
+        private static void ComputeSyntaxTree(CSharpSyntaxNode node)
+        {
+            List<CSharpSyntaxNode> nodes = null;
+            SyntaxTree tree = null;
+
+            // Find the nearest parent with a non-null syntax tree
+            while (true)
+            {
+                tree = node._syntaxTree;
+                if (tree != null)
+                {
+                    break;
                 }
 
-                return this._syntaxTree;
+                var parent = node.Parent;
+                if (parent == null)
+                {
+                    Interlocked.CompareExchange(ref node._syntaxTree, CSharpSyntaxTree.CreateWithoutClone(node), null);
+                    tree = node._syntaxTree;
+                    break;
+                }
+                else if (parent._syntaxTree != null)
+                {
+                    Interlocked.CompareExchange(ref node._syntaxTree, parent._syntaxTree, null);
+                    tree = node._syntaxTree;
+                    break;
+                }
+                else
+                {
+                    (nodes ?? (nodes = new List<CSharpSyntaxNode>())).Add(node);
+                    node = parent;
+                }
+            }
+
+            // Propagate the syntax tree downwards if necessary
+            if (nodes != null)
+            {
+                Debug.Assert(tree != null);
+
+                foreach (var n in nodes)
+                {
+                    var existingTree = Interlocked.CompareExchange(ref n._syntaxTree, tree, null);
+                    if (existingTree != null)
+                    {
+                        tree = existingTree;
+                    }
+                }
             }
         }
 

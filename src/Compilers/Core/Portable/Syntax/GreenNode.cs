@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            for (var i = 0; i < n; i++)
+            for (var i = 0; i <= lastIndex; i++)
             {
                 var child = this.GetSlot(i);
                 if (child != null)
