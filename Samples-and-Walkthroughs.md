@@ -16,13 +16,13 @@ You can also explore the [source repository](https://github.com/dotnet/roslyn/tr
 Before working through the walkthroughs below, you should first familiarize yourself with the [Roslyn Overview](https://github.com/dotnet/roslyn/wiki/Roslyn-Overview), which sets up some of the key concepts.
 
 ## Getting Started
-* [Getting Started - Semantic Analysis (CSharp).pdf](http://www.codeplex.com/Download?ProjectName=roslyn&DownloadId=822179) or [Word docx](http://www.codeplex.com/Download?ProjectName=roslyn&DownloadId=822178)
-* [Getting Started - Semantic Analysis (VB).pdf](http://www.codeplex.com/Download?ProjectName=roslyn&DownloadId=822181) or [Word docx](http://www.codeplex.com/Download?ProjectName=roslyn&DownloadId=822180)
-* [Getting Started - Syntax Analysis (CSharp).pdf](http://www.codeplex.com/Download?ProjectName=roslyn&DownloadId=822183) or [Word docx](http://www.codeplex.com/Download?ProjectName=roslyn&DownloadId=822182)
-* [Getting Started - Syntax Analysis (VB).pdf](http://www.codeplex.com/Download?ProjectName=roslyn&DownloadId=822185) or [Word docx](http://www.codeplex.com/Download?ProjectName=roslyn&DownloadId=822184)
-* [Getting Started - Syntax Transformation (CSharp).pdf](http://www.codeplex.com/Download?ProjectName=roslyn&DownloadId=822187) or [Word docx](http://www.codeplex.com/Download?ProjectName=roslyn&DownloadId=822186)
-* [Getting Started - Syntax Transformation (VB).pdf](http://www.codeplex.com/Download?ProjectName=roslyn&DownloadId=822189) or [Word docx](http://www.codeplex.com/Download?ProjectName=roslyn&DownloadId=822188)
+* [Getting Started - Semantic Analysis (CSharp).pdf](docs/csharp-semantic.pdf) or [Word docx](docs/csharp-semantic.docx)
+* [Getting Started - Semantic Analysis (VB).pdf](docs/vb-semantic.pdf) or [Word docx](docs/vb-semantic.docx)
+* [Getting Started - Syntax Analysis (CSharp).pdf](docs/csharp-syntax.pdf) or [Word docx](docs/csharp-syntax.docx)
+* [Getting Started - Syntax Analysis (VB).pdf](docs/vb-syntax.pdf) or [Word docx](docs/vb-syntax.docx)
+* [Getting Started - Syntax Transformation (CSharp).pdf](docs/csharp-transform.pdf) or [Word docx](docs/csharp-transform.docx)
+* [Getting Started - Syntax Transformation (VB).pdf](docs/vb-transform.pdf) or [Word docx](docs/vb-transform.docx)
 
 ## Diagnostics and Code Fixes
-* [How To Write a Diagnostic and Code Fix (CSharp).pdf](http://www.codeplex.com/Download?ProjectName=roslyn&DownloadId=822458) or [Word docx](http://www.codeplex.com/Download?ProjectName=roslyn&DownloadId=822457)
-* [How To Write a Diagnostic and Code Fix (VB).pdf](http://www.codeplex.com/Download?ProjectName=roslyn&DownloadId=822460) or [Word docx](http://www.codeplex.com/Download?ProjectName=roslyn&DownloadId=822459)
+* [How To Write a Diagnostic and Code Fix (CSharp).pdf](docs/csharp-diag.pdf) or [Word docx](docs/csharp-diag.docx)
+* [How To Write a Diagnostic and Code Fix (VB).pdf](docs/vb-diag.pdf) or [Word docx](docs/vb-diag.docx)
