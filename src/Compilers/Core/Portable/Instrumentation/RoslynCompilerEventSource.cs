@@ -81,18 +81,14 @@ namespace Microsoft.CodeAnalysis.Instrumentation
                 command.Command != EventCommand.Disable ||
                 FunctionDefinitionRequested(command))
             {
-                // Use helper functions rather than lambdas since the auto-generated manifest
-                // doesn't know what to do with compiler generated methods.
-                // Here, we use Task to make things run in a background thread.
-                if (initialized)
-                {
-                    SendFunctionDefinitionsAsync();
-                }
-                else
+                if (!initialized)
                 {
                     // We're still in the constructor - need to defer sending until we've finished initializing.
                     Task.Yield().GetAwaiter().OnCompleted(SendFunctionDefinitionsAsync);
+                    return;
                 }
+
+                SendFunctionDefinitions();
             }
         }
 
