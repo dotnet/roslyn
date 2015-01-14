@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+ï»¿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -3385,8 +3385,8 @@ class Program
         public void TestAsOperatorWithTypeParameter()
         {
             // SPEC:    Furthermore, at least one of the following must be true, or otherwise a compile-time error occurs:
-            // SPEC:    - An identity (§6.1.1), implicit nullable (§6.1.4), implicit reference (§6.1.6), boxing (§6.1.7), 
-            // SPEC:        explicit nullable (§6.2.3), explicit reference (§6.2.4), or unboxing (§6.2.5) conversion exists
+            // SPEC:    - An identity (ï¿½6.1.1), implicit nullable (ï¿½6.1.4), implicit reference (ï¿½6.1.6), boxing (ï¿½6.1.7), 
+            // SPEC:        explicit nullable (ï¿½6.2.3), explicit reference (ï¿½6.2.4), or unboxing (ï¿½6.2.5) conversion exists
             // SPEC:        from E to T.
             // SPEC:    - The type of E or T is an open type.
             // SPEC:    - E is the null literal.
@@ -3649,8 +3649,8 @@ class Outer<T>
         public void TestAsOperator_SpecErrorCase()
         {
             // SPEC:    Furthermore, at least one of the following must be true, or otherwise a compile-time error occurs:
-            // SPEC:    - An identity (§6.1.1), implicit nullable (§6.1.4), implicit reference (§6.1.6), boxing (§6.1.7), 
-            // SPEC:        explicit nullable (§6.2.3), explicit reference (§6.2.4), or unboxing (§6.2.5) conversion exists
+            // SPEC:    - An identity (ï¿½6.1.1), implicit nullable (ï¿½6.1.4), implicit reference (ï¿½6.1.6), boxing (ï¿½6.1.7), 
+            // SPEC:        explicit nullable (ï¿½6.2.3), explicit reference (ï¿½6.2.4), or unboxing (ï¿½6.2.5) conversion exists
             // SPEC:        from E to T.
             // SPEC:    - The type of E or T is an open type.
             // SPEC:    - E is the null literal.
