@@ -56,7 +56,7 @@ There are a couple of different ways in which you can navigate the tree:
 
 Next, let’s see what happens when we modify the code in the active code file. In the above example, lets type a call to Console.WriteLine() inside Main(). As you type, notice that the visualizer refreshes the tree to match the new code.
 
-Pause typing once you have typed “Console.“. Notice that the tree has some items colored in pink. This is because at this point, there are errors (also referred to as ‘Diagnostics’) in the typed code. These errors are attached to nodes, tokens and trivia in the syntax tree and the visualizer shows you which items have errors attached to them by coloring them specially. You can inspect the errors that are present on any item colored pink by hovering over the item with your mouse. Note that the visualizer will only display syntactic errors (i.e. errors related to the syntax of the typed code) – it will not display any semantic errors.
+Pause typing once you have typed `Console.`. Notice that the tree has some items colored in pink. This is because at this point, there are errors (also referred to as ‘Diagnostics’) in the typed code. These errors are attached to nodes, tokens and trivia in the syntax tree and the visualizer shows you which items have errors attached to them by coloring them specially. You can inspect the errors that are present on any item colored pink by hovering over the item with your mouse. Note that the visualizer will only display syntactic errors (i.e. errors related to the syntax of the typed code) – it will not display any semantic errors.
  
 # Syntax Graphs
 
@@ -119,7 +119,7 @@ Next let’s try View **Converted TypeSymbol (if any)** for the same AddExpressi
 
 ![fig14.png](http://download-codeplex.sec.s-msft.com/Download?ProjectName=roslyn&DownloadId=823141)
 
-Finally, let’s try **View Constant Value (if any)** for the same AddExpression node above. The property grid tells us that the value of the expression is a compile time constant with value ‘2’.
+Finally, let’s try **View Constant Value (if any)** for the same AddExpression node above. The property grid tells us that the value of the expression is a compile time constant with value `2`.
 
 *Figure 15 A constant value*
 
@@ -145,7 +145,7 @@ Now let’s try **View AliasSymbol (if any)** for the same IdentifierName node. 
 
 ![fig18.png](http://download-codeplex.sec.s-msft.com/Download?ProjectName=roslyn&DownloadId=823145)
 
-Note that you can also inspect the symbol corresponding to any declared type, method, property etc. by selecting the corresponding node in the visualizer and clicking on View Symbol (if any). For example, select the method "Sub Main()" in the above example and click on View Symbol (if any) for the corresponding SubBlock node in the visualizer, the property grid will tell us that the MethodSymbol for this SubBlock has name Main with return type Void.
+Note that you can also inspect the symbol corresponding to any declared type, method, property etc. by selecting the corresponding node in the visualizer and clicking on View Symbol (if any). For example, select the method `Sub Main()` in the above example and click on View Symbol (if any) for the corresponding SubBlock node in the visualizer, the property grid will tell us that the MethodSymbol for this SubBlock has name Main with return type Void.
 
 *Figure 19 Viewing symbol for a method declaration*
 
@@ -161,8 +161,3 @@ Note that the above VB examples can be easily replicated in C# (for the alias, t
 
 ## Closing / Disabling Syntax Visualizer
 The visualizer tool window can be closed at any time and once closed it should cease to have any impact. You can also disable / uninstall the visualizer extension completely using Tools –> Extensions and Updates in Visual Studio.
-
-## Feedback
-I hope you had a fun time learning about the Syntax Visualizer tool. Do try it out and use it as you explore and build rich code apps and extensions atop the .NET Compiler Platform (“Roslyn”) APIs.
-
-We are very excited to get a preview of this technology in your hands and would love to hear your feedback, ideas and suggestions about the preview in general and also about the Syntax Visualizer tool. You can provide general feedback about the Visualizer here and report any issues you find over here. A list of all the different ways in which you can provide feedback for the preview is available here.
