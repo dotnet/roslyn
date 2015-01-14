@@ -1,4 +1,4 @@
-# .NET Compiler Platform (“Roslyn”) FAQ
+# .NET Compiler Platform ("Roslyn") FAQ
 
 This FAQ has good learning or getting-started questions in addition to frequent questions, all inspired by the great questions and answers from previous Roslyn CTPs.  In several cases, the community was helping each other without the team chiming in, so great job everyone!  You will find many good pointers by searching for keywords or phrases on this page.
 
@@ -15,7 +15,7 @@ Where there is code available, the answer to the question has one or more tags s
     * [What docs are available on Roslyn](#what-docs-are-available-on-roslyn)
     * [How do SxS Installations Work?](#how-do-sxs-installations-work)
     * [Can I rewrite source code within the compiler pipeline](#can-i-rewrite-source-code-within-the-compiler-pipeline)
-    * [Can I redistribute the Roslyn DLLs with my samples or code on my blog]((#can-i-redistribute-the-roslyn-dlls-with-my-samples-or-code-on-my-blog)
+    * [Can I redistribute the Roslyn DLLs with my samples or code on my blog](#can-i-redistribute-the-roslyn-dlls-with-my-samples-or-code-on-my-blog)
     * [Can I use the End User Preview or SDK for my production code?  Does it have a "go-live" EULA](#can-i-use-the-end-user-preview-or-sdk-for-my-production-code--does-it-have-a-go-live-eula)
     * [Where can I see the Roslyn EULA after installation or without committing to install Roslyn](#where-can-i-see-the-roslyn-eula-after-installation-or-without-committing-to-install-roslyn)
     * [How do the Roslyn APIs relate to the VS Code Model and CodeDom](#how-do-the-roslyn-apis-relate-to-the-vs-code-model-and-codedom)
@@ -86,8 +86,7 @@ There are a few specs for features, design notes for language feature discussion
 ### How do SxS installations work?
 The Roslyn previews target Visual Studio 2013 RTM, and they do not install for older versions of VS; including Visual Studio 2012.
 
-{anchor:Can I rewrite source code within the compiler pipeline}
-!!!! Can I rewrite source code within the compiler pipeline?
+### Can I rewrite source code within the compiler pipeline?
 Roslyn does not provide a plug-in architecture throughout the compiler pipeline so that at each stage you can affect syntax parsed, semantic analysis, optimization algorithms, code emission, etc.  However, you can use a pre-build rule to analyze and generate different code that MSBuild then feeds to csc.exe or vbc.exe.  You can use Roslyn to parse code and semantically analyze it, and then rewrite the trees, change references, etc.  Then compile the result as a new compilation.
 
 ### Can I redistribute the Roslyn DLLs? 
@@ -101,7 +100,7 @@ The Tooling SDK zip file contains its own EULA.  The various Roslyn NuGet packag
 You can go to roslyn.codeplex.com, take the source code, and do what the Apache 2.0 license there allows.
 
 ### Where can I see the Roslyn EULA after installation or without committing to install Roslyn?
-See [#Can I use the End User Preview or SDK for my production code  Does it have a "go-live" EULA] for details, but you can only see the EULAs by starting to install or re-install, then cancelling installation after reading the EULA.
+See [this section](#can-i-use-the-end-user-preview-or-sdk-for-my-production-code--does-it-have-a-go-live-eula) for details, but you can only see the EULAs by starting to install or re-install, then cancelling installation after reading the EULA.
 
 ### How do the Roslyn APIs relate to the VS Code Model and CodeDom?
 The CodeDom targets programmatic code generation and compilation scenarios in ASP.NET on the server.  It was later co-opted for some tooling uses, adding modeling of existing code to the code generation functionality.
@@ -372,3 +371,4 @@ Roslyn VS extensions need to access the Roslyn Language Services, so in order to
 
 ### Is there an object model chart or type inheritance diagram of Roslyn types?
 You can create a type inheritance diagram that you can zoom and search within.  You need Visual Studio 2010 Ultimate, and the instructions for creating the diagram are in this [post](http://social.msdn.microsoft.com/Forums/en-US/roslyn/thread/705b090b-58ac-4a94-b7b5-d1408205bc90).
+
