@@ -264,7 +264,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.My.Resources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to &apos; Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+        '''  Looks up a localized string similar to &apos; Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
         '''
         '''Option Strict Off
         '''
@@ -291,7 +291,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.My.Resources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to &apos; Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+        '''  Looks up a localized string similar to &apos; Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
         '''
         '''Option Strict Off
         '''
@@ -318,7 +318,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.My.Resources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to &apos; Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+        '''  Looks up a localized string similar to &apos; Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
         '''
         '''Option Strict On
         '''
@@ -348,7 +348,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.My.Resources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to &apos; Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+        '''  Looks up a localized string similar to &apos; Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
         '''
         '''Imports System
         '''
@@ -377,7 +377,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.My.Resources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to &apos; Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+        '''  Looks up a localized string similar to &apos; Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
         '''
         '''Option Strict Off
         '''
@@ -476,7 +476,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.My.Resources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to &apos; Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+        '''  Looks up a localized string similar to &apos; Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
         '''
         '''
         '''Imports System.Runtime.CompilerServices
@@ -503,7 +503,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.My.Resources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to &apos; Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+        '''  Looks up a localized string similar to &apos; Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
         '''
         '''Imports System
         '''Imports System.Globalization
@@ -526,7 +526,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.My.Resources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+        '''  Looks up a localized string similar to // Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
         '''
         '''namespace ClassNameSpace
         '''{
@@ -573,7 +573,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.My.Resources
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to &apos; Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+        '''  Looks up a localized string similar to &apos; Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
         '''
         '''Imports Microsoft.VisualBasic
         '''

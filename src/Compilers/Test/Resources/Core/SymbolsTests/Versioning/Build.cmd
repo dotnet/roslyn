@@ -1,4 +1,4 @@
-REM Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿REM Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 vbc /t:library /out:V1\C.dll /keyfile:Key.snk /vbruntime- Version1.vb
 vbc /t:library /out:V2\C.dll /keyfile:Key.snk /vbruntime- Version2.vb
