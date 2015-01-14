@@ -2,6 +2,8 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -258,7 +260,7 @@ namespace Roslyn.Utilities
             // This is the only place in the code where we're allowed to call ContinueWith.
             var nextTask = task.ContinueWith(continuationFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler).Unwrap();
 
-            nextTask.ContinueWith(t => FatalError.Report(t.Exception),
+            nextTask.ContinueWith(ReportFatalError, continuationFunction,
                CancellationToken.None,
                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
                TaskScheduler.Default);
@@ -302,7 +304,7 @@ namespace Roslyn.Utilities
             // This is the only place in the code where we're allowed to call ContinueWith.
             var nextTask = task.ContinueWith(continuationFunction, cancellationToken, continuationOptions | TaskContinuationOptions.LazyCancellation, scheduler).Unwrap();
 
-            nextTask.ContinueWith(t => FatalError.Report(t.Exception),
+            nextTask.ContinueWith(ReportFatalError, continuationFunction,
                CancellationToken.None,
                TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
                TaskScheduler.Default);
@@ -336,6 +338,23 @@ namespace Roslyn.Utilities
                 Task.Delay(millisecondsDelay, cancellationToken).SafeContinueWithFromAsync(
                     _ => continuationFunction(t), cancellationToken, TaskContinuationOptions.None, scheduler),
                 cancellationToken, taskContinuationOptions, scheduler).Unwrap();
+        }
+
+        [MethodImpl(MethodImplOptions.NoOptimization | MethodImplOptions.NoInlining)]
+        private static void ReportFatalError(Task task, object continuationFunction)
+        {
+            var exception = task.Exception;
+            var methodInfo = ((Delegate)continuationFunction).GetMethodInfo();
+            exception.Data["ContinuationFunction"] = methodInfo.DeclaringType.FullName + "::" + methodInfo.Name;
+
+            // In case of a crash with ExecutionEngineException w/o call stack it might be possible to get the stack trace using WinDbg:
+            // > !threads // find thread with System.ExecutionEngineException
+            //   ...
+            //   67   65 4760 692b5d60   1029220 Preemptive  CD9AE70C:FFFFFFFF 012ad0f8 0     MTA (Threadpool Worker) System.ExecutionEngineException 03c51108 
+            //   ...
+            // > ~67s     // switch to thread 67
+            // > !dso     // dump stack objects
+            FatalError.Report(exception);
         }
     }
 }
