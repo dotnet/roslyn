@@ -1555,13 +1555,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' Adds a field initializer for the field to list of field initializers
         ''' </summary>
         ''' <param name="initializers">All initializers.</param>
-        ''' <param name="fieldInitializer">The field initializer to add to the list of initializers.</param>
-        Friend Shared Sub AddInitializer(ByRef initializers As ArrayBuilder(Of FieldOrPropertyInitializer), fieldInitializer As FieldOrPropertyInitializer)
+        ''' <param name="initializer">The field initializer to add to the list of initializers.</param>
+        Friend Shared Sub AddInitializer(ByRef initializers As ArrayBuilder(Of FieldOrPropertyInitializer), initializer As FieldOrPropertyInitializer)
             If initializers Is Nothing Then
                 initializers = ArrayBuilder(Of FieldOrPropertyInitializer).GetInstance()
+            Else
+                ' initializers should be added in syntax order
+                Debug.Assert(initializer.Syntax.SyntaxTree Is initializers.Last().Syntax.SyntaxTree)
+                Debug.Assert(initializer.Syntax.Span.Start > initializers.Last().Syntax.Span.Start)
             End If
 
-            initializers.Add(fieldInitializer)
+            initializers.Add(initializer)
         End Sub
 
         ''' <summary>

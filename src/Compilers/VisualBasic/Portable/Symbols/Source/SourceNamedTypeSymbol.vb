@@ -256,7 +256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ElseIf TypeKind = TypeKind.Enum Then
                 Dim enumBlock = DirectCast(node, EnumBlockSyntax)
-                AddEnumMembers(enumBlock, binder, diagBag, members, staticInitializers)
+                AddEnumMembers(enumBlock, binder, diagBag, members)
             Else
                 Dim typeBlock = DirectCast(node, TypeBlockSyntax)
                 For Each memberSyntax In typeBlock.Members
@@ -682,10 +682,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         Private Sub AddEnumMembers(syntax As EnumBlockSyntax,
-                           bodyBinder As Binder,
-                           diagnostics As DiagnosticBag,
-                           members As MembersAndInitializersBuilder,
-                           ByRef staticInitializers As ArrayBuilder(Of FieldOrPropertyInitializer))
+                                   bodyBinder As Binder,
+                                   diagnostics As DiagnosticBag,
+                                   members As MembersAndInitializersBuilder)
 
             Dim valField = New SynthesizedFieldSymbol(
                         Me,
@@ -705,43 +704,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Offset from "otherSymbol".
             Dim otherSymbolOffset As Integer = 0
 
-            Dim memberList = syntax.Members
-
-            If memberList.Count = 0 Then
+            If syntax.Members.Count = 0 Then
                 Binder.ReportDiagnostic(diagnostics, syntax.EnumStatement.Identifier, ERRID.ERR_BadEmptyEnum1, syntax.EnumStatement.Identifier.ValueText)
-            Else
-                For Each member In syntax.Members
-                    If member.Kind <> SyntaxKind.EnumMemberDeclaration Then
-                        ' skip invalid syntax 
-                        Continue For
-                    End If
-
-                    Dim declaration = DirectCast(member, EnumMemberDeclarationSyntax)
-                    Dim symbol As SourceEnumConstantSymbol
-                    Dim valueOpt = declaration.Initializer
-                    If valueOpt IsNot Nothing Then
-                        symbol = SourceEnumConstantSymbol.CreateExplicitValuedConstant(Me, bodyBinder, declaration, diagnostics)
-                    Else
-                        symbol = SourceEnumConstantSymbol.CreateImplicitValuedConstant(Me, bodyBinder, declaration, otherSymbol, otherSymbolOffset, diagnostics)
-                    End If
-
-                    If (valueOpt IsNot Nothing) OrElse (otherSymbol Is Nothing) Then
-                        otherSymbol = symbol
-                        otherSymbolOffset = 1
-                    Else
-                        otherSymbolOffset = otherSymbolOffset + 1
-                    End If
-
-                    AddMember(symbol, bodyBinder, members, omitDiagnostics:=False)
-
-                    Dim initializer = New FieldOrPropertyInitializer(symbol, If(valueOpt IsNot Nothing, bodyBinder.GetSyntaxReference(valueOpt), Nothing))
-
-                    ' The symbol is added to the set of initializers, even for
-                    ' implicit values since it's necessary to generate constants
-                    ' for each member to catch errors such as overflow.
-                    SourceNamedTypeSymbol.AddInitializer(staticInitializers, initializer)
-                Next
+                Return
             End If
+
+            For Each member In syntax.Members
+                If member.Kind <> SyntaxKind.EnumMemberDeclaration Then
+                    ' skip invalid syntax 
+                    Continue For
+                End If
+
+                Dim declaration = DirectCast(member, EnumMemberDeclarationSyntax)
+                Dim symbol As SourceEnumConstantSymbol
+                Dim valueOpt = declaration.Initializer
+                If valueOpt IsNot Nothing Then
+                    symbol = SourceEnumConstantSymbol.CreateExplicitValuedConstant(Me, bodyBinder, declaration, diagnostics)
+                Else
+                    symbol = SourceEnumConstantSymbol.CreateImplicitValuedConstant(Me, bodyBinder, declaration, otherSymbol, otherSymbolOffset, diagnostics)
+                End If
+
+                If (valueOpt IsNot Nothing) OrElse (otherSymbol Is Nothing) Then
+                    otherSymbol = symbol
+                    otherSymbolOffset = 1
+                Else
+                    otherSymbolOffset = otherSymbolOffset + 1
+                End If
+
+                AddMember(symbol, bodyBinder, members, omitDiagnostics:=False)
+            Next
         End Sub
 
 #End Region

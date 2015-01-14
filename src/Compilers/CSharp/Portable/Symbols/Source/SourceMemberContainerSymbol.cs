@@ -2110,10 +2110,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private class MembersAndInitializersBuilder
         {
-            public ArrayBuilder<Symbol> NonTypeNonIndexerMembers = ArrayBuilder<Symbol>.GetInstance();
-            public ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>> StaticInitializers = ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>>.GetInstance();
-            public ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>> InstanceInitializers = ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>>.GetInstance();
-            public ArrayBuilder<SyntaxReference> IndexerDeclarations = ArrayBuilder<SyntaxReference>.GetInstance();
+            public readonly ArrayBuilder<Symbol> NonTypeNonIndexerMembers = ArrayBuilder<Symbol>.GetInstance();
+            public readonly ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>> StaticInitializers = ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>>.GetInstance();
+            public readonly ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>> InstanceInitializers = ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>>.GetInstance();
+            public readonly ArrayBuilder<SyntaxReference> IndexerDeclarations = ArrayBuilder<SyntaxReference>.GetInstance();
 
             public MembersAndInitializers ToReadOnlyAndFree()
             {
@@ -2477,8 +2477,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void AddEnumMembers(MembersAndInitializersBuilder result, EnumDeclarationSyntax syntax, DiagnosticBag diagnostics)
         {
-            ArrayBuilder<FieldOrPropertyInitializer> initializers = null;
-
             // The previous enum constant used to calculate subsequent
             // implicit enum constants. (This is the most recent explicit
             // enum constant or the first implicit constant if no explicit values.)
@@ -2487,71 +2485,55 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Offset from "otherSymbol".
             int otherSymbolOffset = 0;
 
-            foreach (var m in syntax.Members)
+            foreach (var member in syntax.Members)
             {
-                switch (m.Kind())
+                SourceEnumConstantSymbol symbol;
+                var valueOpt = member.EqualsValue;
+
+                if (valueOpt != null)
                 {
-                    case SyntaxKind.EnumMemberDeclaration:
-                        {
-                            SourceEnumConstantSymbol symbol;
-                            var valueOpt = m.EqualsValue;
+                    symbol = SourceEnumConstantSymbol.CreateExplicitValuedConstant(this, member, diagnostics);
+                }
+                else
+                {
+                    symbol = SourceEnumConstantSymbol.CreateImplicitValuedConstant(this, member, otherSymbol, otherSymbolOffset, diagnostics);
+                }
 
-                            if (valueOpt != null)
-                            {
-                                symbol = SourceEnumConstantSymbol.CreateExplicitValuedConstant(this, m, diagnostics);
-                            }
-                            else
-                            {
-                                symbol = SourceEnumConstantSymbol.CreateImplicitValuedConstant(this, m, otherSymbol, otherSymbolOffset, diagnostics);
-                            }
+                result.NonTypeNonIndexerMembers.Add(symbol);
 
-                            result.NonTypeNonIndexerMembers.Add(symbol);
-
-                            if ((valueOpt != null) || ((object)otherSymbol == null))
-                            {
-                                otherSymbol = symbol;
-                                otherSymbolOffset = 1;
-                            }
-                            else
-                            {
-                                otherSymbolOffset++;
-                            }
-
-                            // The symbol is added to the set of initializers, even for
-                            // implicit values since it's necessary to generate constants
-                            // for each member to catch errors such as overflow.
-                            AddInitializer(ref initializers, symbol, valueOpt);
-                        }
-                        break;
-
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(m.Kind());
+                if (valueOpt != null || (object)otherSymbol == null)
+                {
+                    otherSymbol = symbol;
+                    otherSymbolOffset = 1;
+                }
+                else
+                {
+                    otherSymbolOffset++;
                 }
             }
-
-            AddInitializers(ref result.StaticInitializers, initializers);
         }
 
-        private static void AddInitializer(ref ArrayBuilder<FieldOrPropertyInitializer> initializers, FieldSymbol field, CSharpSyntaxNode node)
+        private static void AddInitializer(ref ArrayBuilder<FieldOrPropertyInitializer> initializers, FieldSymbol fieldOpt, CSharpSyntaxNode node)
         {
             if (initializers == null)
             {
                 initializers = new ArrayBuilder<FieldOrPropertyInitializer>();
             }
+            else
+            {
+                // initializers should be added in syntax order:
+                Debug.Assert(node.SyntaxTree == initializers.Last().Syntax.SyntaxTree);
+                Debug.Assert(node.SpanStart > initializers.Last().Syntax.GetSyntax().SpanStart);
+            }
 
-            initializers.Add(new FieldOrPropertyInitializer(field, node.GetReferenceOrNull()));
+            initializers.Add(new FieldOrPropertyInitializer(fieldOpt, node));
         }
 
-        private static void AddInitializers(ref ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>> allInitializers, ArrayBuilder<FieldOrPropertyInitializer> siblings)
+        private static void AddInitializers(ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>> allInitializers, ArrayBuilder<FieldOrPropertyInitializer> siblingsOpt)
         {
-            if (siblings != null)
+            if (siblingsOpt != null)
             {
-                if (allInitializers == null)
-                {
-                    allInitializers = new ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>>();
-                }
-
-                allInitializers.Add(siblings.ToImmutableAndFree());
+                allInitializers.Add(siblingsOpt.ToImmutableAndFree());
             }
         }
 
@@ -2647,11 +2629,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(TypeKind == TypeKind.Struct);
 
             foreach (var initializers in builder.InstanceInitializers)
-                {
+            {
                 foreach (FieldOrPropertyInitializer initializer in initializers)
-                        {
-                            // '{0}': cannot have instance field initializers in structs
-                    diagnostics.Add(ErrorCode.ERR_FieldInitializerInStruct, (initializer.Field.AssociatedSymbol ?? initializer.Field).Locations[0], this);
+                {
+                    // '{0}': cannot have instance field initializers in structs
+                    diagnostics.Add(ErrorCode.ERR_FieldInitializerInStruct, (initializer.FieldOpt.AssociatedSymbol ?? initializer.FieldOpt).Locations[0], this);
                 }
             }
         }
@@ -2677,6 +2659,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             hasInstanceConstructor = true;
                             hasParameterlessInstanceConstructor = hasParameterlessInstanceConstructor || method.ParameterCount == 0;
                             break;
+
                         case MethodKind.StaticConstructor:
                             hasStaticConstructor = true;
                             break;
@@ -2690,27 +2673,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            var hasStaticInitializer = false;
-            if (staticInitializers != null)
-            {
-                foreach (var siblings in staticInitializers)
-                {
-                    foreach (var initializer in siblings)
-                    {
-                        // constants don't count, since they do not exist as fields at runtime
-                        // NOTE: even for decimal constants (which require field initializers), 
-                        // we do not create .cctor here since a static constructor implicitly created for a decimal 
-                        // should not appear in the list returned by public API like GetMembers().
-                        if (!initializer.Field.IsConst)
-                        {
-                            hasStaticInitializer = true;
-                            goto OUTER;
-                        }
-                    }
-                }
-            }
-
-        OUTER:
+            // constants don't count, since they do not exist as fields at runtime
+            // NOTE: even for decimal constants (which require field initializers), 
+            // we do not create .cctor here since a static constructor implicitly created for a decimal 
+            // should not appear in the list returned by public API like GetMembers().
+            var hasStaticInitializer = HasNonConstantInitializer(staticInitializers);
 
             // NOTE: Per section 11.3.8 of the spec, "every struct implicitly has a parameterless instance constructor".
             // We won't insert a parameterless constructor for a struct if there already is one.
@@ -2733,6 +2700,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // do that when processing field initializers.
                 members.Add(new SynthesizedStaticConstructor(this));
             }
+        }
+
+        private static bool HasNonConstantInitializer(ArrayBuilder<ImmutableArray<FieldOrPropertyInitializer>> initializers)
+        {
+            if (initializers != null)
+            {
+                foreach (var siblings in initializers)
+                {
+                    foreach (var initializer in siblings)
+                    {
+                        if (!initializer.FieldOpt.IsConst)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
 
         private void AddNonTypeMembers(
@@ -3014,8 +3000,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            AddInitializers(ref result.InstanceInitializers, instanceInitializers);
-            AddInitializers(ref result.StaticInitializers, staticInitializers);
+            AddInitializers(result.InstanceInitializers, instanceInitializers);
+            AddInitializers(result.StaticInitializers, staticInitializers);
         }
 
         private static bool IsGlobalCodeAllowed(CSharpSyntaxNode parent)

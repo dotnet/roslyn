@@ -11,20 +11,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal struct FieldOrPropertyInitializer
     {
         /// <summary>
-        /// The field being initialized (possibly a backing field of a property), or null if this is a global statement.
+        /// The field being initialized (possibly a backing field of a property), or null if this is a top-level statement in script code.
         /// </summary>
-        internal readonly FieldSymbol Field;
+        internal readonly FieldSymbol FieldOpt;
 
         /// <summary>
-        /// A reference to <see cref="EqualsValueClauseSyntax"/> or <see cref="GlobalStatementSyntax"/>.
+        /// A reference to <see cref="EqualsValueClauseSyntax"/> or top-level <see cref="StatementSyntax"/> in script code.
         /// </summary>
         internal readonly SyntaxReference Syntax;
 
-        public FieldOrPropertyInitializer(FieldSymbol field, SyntaxReference syntax)
+        public FieldOrPropertyInitializer(FieldSymbol fieldOpt, SyntaxNode syntax)
         {
-            Debug.Assert(((object)field != null) || (syntax != null));
-            Field = field;
-            Syntax = syntax;
+            Debug.Assert(syntax.IsKind(SyntaxKind.EqualsValueClause) && fieldOpt != null || syntax is StatementSyntax);
+
+            FieldOpt = fieldOpt;
+            Syntax = syntax.GetReference();
         }
     }
 }

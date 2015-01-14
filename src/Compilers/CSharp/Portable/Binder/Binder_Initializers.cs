@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (FieldOrPropertyInitializer initializer in siblingInitializers)
                 {
-                    FieldSymbol fieldSymbol = initializer.Field;
+                    FieldSymbol fieldSymbol = initializer.FieldOpt;
                     Debug.Assert((object)fieldSymbol != null);
 
                     // A constant field of type decimal needs a field initializer, so
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int j = 0; j < siblingInitializers.Length; j++)
                 {
                     var initializer = siblingInitializers[j];
-                    var fieldSymbol = initializer.Field;
+                    var fieldSymbol = initializer.FieldOpt;
 
                     if ((object)fieldSymbol != null && fieldSymbol.IsConst)
                     {

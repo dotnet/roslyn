@@ -19,8 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <see cref="EqualsValueSyntax"/>, 
         ''' <see cref="AsNewClauseSyntax"/>, 
         ''' <see cref="ModifiedIdentifierSyntax"/>,
-        ''' <see cref="StatementSyntax"/> (top-level statement), or
-        ''' Nothing (enums field with an implicit value).
+        ''' <see cref="StatementSyntax"/> (top-level statement).
         ''' </summary>
         Public ReadOnly Syntax As SyntaxReference
 
@@ -29,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         ''' <param name="syntax">The initializer syntax for the statement.</param>
         Public Sub New(syntax As SyntaxReference)
-            Debug.Assert(syntax IsNot Nothing)
+            Debug.Assert(TypeOf syntax.GetSyntax() Is StatementSyntax)
             Me.Syntax = syntax
         End Sub
 
@@ -40,10 +39,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <param name="syntax">The initializer syntax for the field.</param>
         Public Sub New(field As FieldSymbol, syntax As SyntaxReference)
             Debug.Assert(field IsNot Nothing)
-            Debug.Assert(syntax Is Nothing OrElse
-                         syntax.GetVisualBasicSyntax.Kind = SyntaxKind.AsNewClause OrElse
-                         syntax.GetVisualBasicSyntax.Kind = SyntaxKind.EqualsValue OrElse
-                         syntax.GetVisualBasicSyntax.Kind = SyntaxKind.ModifiedIdentifier)
+            Debug.Assert(syntax.GetSyntax().IsKind(SyntaxKind.AsNewClause) OrElse
+                         syntax.GetSyntax().IsKind(SyntaxKind.EqualsValue) OrElse
+                         syntax.GetSyntax().IsKind(SyntaxKind.ModifiedIdentifier))
 
             Me.FieldsOrProperty = ImmutableArray.Create(Of Symbol)(field)
             Me.Syntax = syntax
@@ -54,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Sub New(fieldsOrProperties As ImmutableArray(Of Symbol), syntax As SyntaxReference)
             Debug.Assert(Not fieldsOrProperties.IsEmpty)
-            Debug.Assert(syntax.GetSyntax.Kind = SyntaxKind.AsNewClause OrElse syntax.GetSyntax.Kind = SyntaxKind.EqualsValue)
+            Debug.Assert(syntax.GetSyntax().IsKind(SyntaxKind.AsNewClause) OrElse syntax.GetSyntax().IsKind(SyntaxKind.EqualsValue))
 
             Me.FieldsOrProperty = fieldsOrProperties
             Me.Syntax = syntax
@@ -68,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Sub New([property] As PropertySymbol, syntax As SyntaxReference)
             Debug.Assert([property] IsNot Nothing)
             Debug.Assert(syntax IsNot Nothing)
-            Debug.Assert(syntax.GetSyntax.Kind = SyntaxKind.AsNewClause OrElse syntax.GetSyntax.Kind = SyntaxKind.EqualsValue)
+            Debug.Assert(syntax.GetSyntax().IsKind(SyntaxKind.AsNewClause) OrElse syntax.GetSyntax().IsKind(SyntaxKind.EqualsValue))
 
             Me.FieldsOrProperty = ImmutableArray.Create(Of Symbol)([property])
             Me.Syntax = syntax
