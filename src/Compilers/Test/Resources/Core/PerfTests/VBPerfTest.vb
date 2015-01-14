@@ -2150,7 +2150,7 @@ L1:                 Console.WriteLine("    iii = " & iii)
                             GoTo L1
                     End If
 L2:                 Console.WriteLine("    iii = " & iii)
-                    'TODO: Replace some occurances of 'Is' with '=' once user defined operators work.
+                    'TODO: Replace some occurrences of 'Is' with '=' once user defined operators work.
                     'This currently reports error that operator = is not defined between types
                     'System.Type and System.Type.
                     If ooo.GetType() Is String.Empty.GetType Then

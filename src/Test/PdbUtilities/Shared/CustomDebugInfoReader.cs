@@ -5,10 +5,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
-using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.VisualStudio.SymReaderInterop;
 using CDI = Microsoft.Cci.CustomDebugInfoConstants;
 
 namespace Microsoft.VisualStudio.SymReaderInterop
@@ -198,7 +196,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
 
         /// <summary>
         /// Does for locals what <see cref="System.Runtime.CompilerServices.DynamicAttribute"/> does for parameters, return types, and fields.
-        /// In particular, indicates which occurences of <see cref="object"/> in the signature are really dynamic.
+        /// In particular, indicates which occurrences of <see cref="object"/> in the signature are really dynamic.
         /// </summary>
         /// <remarks>
         /// Appears when there are dynamic locals.

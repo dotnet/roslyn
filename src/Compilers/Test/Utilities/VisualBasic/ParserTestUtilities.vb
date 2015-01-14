@@ -296,9 +296,9 @@ Public Module VerificationHelpers
     End Function
 
     <Extension()>
-    Public Function VerifyOccuranceCount(tree As SyntaxTree, kind As SyntaxKind, expectedCount As Integer) As SyntaxTree
+    Public Function VerifyOccurrenceCount(tree As SyntaxTree, kind As SyntaxKind, expectedCount As Integer) As SyntaxTree
         Dim actualCount = 0
-        GetOccuranceCount(kind, tree.GetRoot(), actualCount)
+        GetOccurrenceCount(kind, tree.GetRoot(), actualCount)
         Assert.Equal(expectedCount, actualCount)
         Return tree
     End Function
@@ -627,7 +627,7 @@ Public Module VerificationHelpers
         End If
     End Sub
 
-    Private Sub GetOccuranceCount(kind As SyntaxKind, node As SyntaxNodeOrToken,
+    Private Sub GetOccurrenceCount(kind As SyntaxKind, node As SyntaxNodeOrToken,
                                       ByRef actualCount As Integer)
         If node.IsKind(kind) Then
             actualCount += 1
@@ -640,7 +640,7 @@ Public Module VerificationHelpers
                 End If
                 If leadingTrivia.HasStructure Then
                     Dim leadingTriviaStructure = leadingTrivia.GetStructure
-                    GetOccuranceCount(kind, leadingTriviaStructure, actualCount)
+                    GetOccurrenceCount(kind, leadingTriviaStructure, actualCount)
                 End If
             Next
             For Each trailingTrivia In tk.GetTrailingTrivia()
@@ -649,12 +649,12 @@ Public Module VerificationHelpers
                 End If
                 If trailingTrivia.HasStructure Then
                     Dim trailingTriviaStructure = trailingTrivia.GetStructure
-                    GetOccuranceCount(kind, trailingTriviaStructure, actualCount)
+                    GetOccurrenceCount(kind, trailingTriviaStructure, actualCount)
                 End If
             Next
         End If
         For Each child In node.ChildNodesAndTokens()
-            GetOccuranceCount(kind, child, actualCount)
+            GetOccurrenceCount(kind, child, actualCount)
         Next
     End Sub
 

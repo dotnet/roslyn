@@ -420,7 +420,7 @@ module m1
   </ns:e>
 end module
         ]]>).
-        VerifyOccuranceCount(SyntaxKind.XmlTextLiteralToken, 3)
+        VerifyOccurrenceCount(SyntaxKind.XmlTextLiteralToken, 3)
     End Sub
 
     <Fact>

@@ -5,7 +5,7 @@ using System.Diagnostics;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// Substitutes all occurances of dynamic type with Object type.
+    /// Substitutes all occurrences of dynamic type with Object type.
     /// </summary>
     internal sealed class DynamicTypeEraser : AbstractTypeMap
     {

@@ -1,7 +1,6 @@
 ﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Threading
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Text
@@ -1248,7 +1247,7 @@ End Module]]>,
 #If Not ULTRAVIOLET Then
 #End If 'UV
 #end if
-            ]]>).VerifyNoZeroWidthNodes().VerifyOccuranceCount(SyntaxKind.DisabledTextTrivia, 1)
+            ]]>).VerifyNoZeroWidthNodes().VerifyOccurrenceCount(SyntaxKind.DisabledTextTrivia, 1)
     End Sub
 
 
@@ -1261,7 +1260,7 @@ End Module]]>,
             ]]>,
             <error>
                 <error id="30205" message="End of statement expected." start="10" end="11"/>
-            </error>).VerifyNoZeroWidthNodes().VerifyOccuranceCount(SyntaxKind.DisabledTextTrivia, 0)
+            </error>).VerifyNoZeroWidthNodes().VerifyOccurrenceCount(SyntaxKind.DisabledTextTrivia, 0)
     End Sub
 
     <WorkItem(538750, "DevDiv")>
@@ -1274,7 +1273,7 @@ End Module]]>,
 Class X
 #End If
 End Class
-            ]]>).VerifyNoZeroWidthNodes().VerifyOccuranceCount(SyntaxKind.DisabledTextTrivia, 1)
+            ]]>).VerifyNoZeroWidthNodes().VerifyOccurrenceCount(SyntaxKind.DisabledTextTrivia, 1)
 
         ParseAndVerify(<![CDATA[
 #If False Then
@@ -1283,7 +1282,7 @@ End Class
 Class X
 #End If
 End Class
-            ]]>).VerifyNoZeroWidthNodes().VerifyOccuranceCount(SyntaxKind.DisabledTextTrivia, 1)
+            ]]>).VerifyNoZeroWidthNodes().VerifyOccurrenceCount(SyntaxKind.DisabledTextTrivia, 1)
 
         ParseAndVerify(<![CDATA[
 #If False Then
@@ -1292,7 +1291,7 @@ End Class
 Class X
 #End If
 End Class
-            ]]>).VerifyNoZeroWidthNodes().VerifyOccuranceCount(SyntaxKind.DisabledTextTrivia, 1)
+            ]]>).VerifyNoZeroWidthNodes().VerifyOccurrenceCount(SyntaxKind.DisabledTextTrivia, 1)
 
         ParseAndVerify(<![CDATA[
 Class c1
@@ -1303,7 +1302,7 @@ Class X
 #End If
 End Class
 End Class
-            ]]>).VerifyNoZeroWidthNodes().VerifyOccuranceCount(SyntaxKind.DisabledTextTrivia, 1)
+            ]]>).VerifyNoZeroWidthNodes().VerifyOccurrenceCount(SyntaxKind.DisabledTextTrivia, 1)
 
         ParseAndVerify(<![CDATA[
 Class c1
@@ -1314,7 +1313,7 @@ Class X
 #End If
 End Class
 End Class
-            ]]>).VerifyNoZeroWidthNodes().VerifyOccuranceCount(SyntaxKind.DisabledTextTrivia, 1)
+            ]]>).VerifyNoZeroWidthNodes().VerifyOccurrenceCount(SyntaxKind.DisabledTextTrivia, 1)
     End Sub
 
     <WorkItem(528675, "DevDiv")>
@@ -1392,7 +1391,7 @@ Module Program
     Dim MaxLimit As Integer = 33000
 #End If
 
-End Module]]>).VerifyOccuranceCount(SyntaxKind.FieldDeclaration, 1)
+End Module]]>).VerifyOccurrenceCount(SyntaxKind.FieldDeclaration, 1)
     End Sub
 
     <WorkItem(2914, "DevDiv_Projects/Roslyn")>
@@ -1583,8 +1582,8 @@ enable _
 warning 'comment]]>)
         tree.VerifyNoMissingChildren()
         tree.VerifyNoZeroWidthNodes()
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
@@ -1613,8 +1612,8 @@ disable , BC41008   rem comment
 End Module]]>)
         tree.VerifyNoMissingChildren()
         tree.VerifyNoZeroWidthNodes()
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
@@ -1652,8 +1651,8 @@ Module Module1
 End Module]]>)
         tree.VerifyNoMissingChildren()
         tree.VerifyNoZeroWidthNodes()
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
@@ -1677,7 +1676,7 @@ End Module]]>)
             <errors>
                 <error id="30248" message="'If', 'ElseIf', 'Else', 'Const', 'Region', 'ExternalSource', 'ExternalChecksum', 'Enable', 'Disable', or 'End' expected." start="0" end="1"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.BadDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.BadDirectiveTrivia, 2)
     End Sub
 
     <Fact>
@@ -1686,7 +1685,7 @@ End Module]]>)
             <errors>
                 <error id="30248" message="'If', 'ElseIf', 'Else', 'Const', 'Region', 'ExternalSource', 'ExternalChecksum', 'Enable', 'Disable', or 'End' expected." start="0" end="1"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.BadDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.BadDirectiveTrivia, 2)
     End Sub
 
     <Fact>
@@ -1698,7 +1697,7 @@ End Class]]>,
             <errors>
                 <error id="31218" message="'Warning' expected." start="20" end="20"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
@@ -1717,7 +1716,7 @@ End Class]]>,
             <errors>
                 <error id="31218" message="'Warning' expected." start="9" end="9"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
@@ -1737,7 +1736,7 @@ End Class]]>,
             <errors>
                 <error id="31218" message="'Warning' expected." start="9" end="9"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
@@ -1763,7 +1762,7 @@ End Enum]]>,
             <errors>
                 <error id="31218" message="'Warning' expected." start="26" end="26"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
@@ -1783,7 +1782,7 @@ End Enum]]>,
             <errors>
                 <error id="31218" message="'Warning' expected." start="8" end="8"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
@@ -1809,7 +1808,7 @@ End Enum]]>,
             <errors>
                 <error id="31218" message="'Warning' expected." start="26" end="26"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
@@ -1834,7 +1833,7 @@ End Enum]]>,
             <errors>
                 <error id="31218" message="'Warning' expected." start="9" end="9"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
@@ -1854,7 +1853,7 @@ End Enum]]>,
             <errors>
                 <error id="31218" message="'Warning' expected." start="9" end="9"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
@@ -1876,7 +1875,7 @@ End Enum]]>,
             <errors>
                 <error id="30203" message="Identifier expected." start="26" end="26"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
@@ -1901,7 +1900,7 @@ End Enum]]>,
             <errors>
                 <error id="30203" message="Identifier expected." start="24" end="24"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
@@ -1924,7 +1923,7 @@ End Enum]]>,
             <errors>
                 <error id="30203" message="Identifier expected." start="16" End="16"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
@@ -1950,7 +1949,7 @@ End Enum]]>,
             <errors>
                 <error id="30183" message="Keyword is not valid as an identifier." start="16" end="19"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
@@ -1972,7 +1971,7 @@ End Enum]]>,
                 <error id="30196" message="Comma expected." start="24" end="24"/>
                 <error id="30203" message="Identifier expected." start="31" end="31"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
@@ -1998,7 +1997,7 @@ End Enum]]>,
                 <error id="30196" message="Comma expected." start="47" end="47"/>
                 <error id="30203" message="Identifier expected." start="66" end="66"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
@@ -2027,7 +2026,7 @@ End Enum]]>,
             <errors>
                 <error id="30203" message="Identifier expected." start="15" end="15"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
@@ -2054,7 +2053,7 @@ End Enum]]>,
                 <error id="30037" message="Character is not valid." start="23" end="24"/>
                 <error id="30203" message="Identifier expected." start="31" end="31"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
@@ -2079,7 +2078,7 @@ End Enum]]>,
         Dim tree = ParseAndVerify(<![CDATA[#Enable Warning [Dim], [Rem]]]>)
         tree.VerifyNoMissingChildren()
         tree.VerifyNoZeroWidthNodes()
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
@@ -2105,7 +2104,7 @@ End Enum]]>,
             </errors>)
         tree.VerifyNoMissingChildren()
         tree.VerifyNoZeroWidthNodes()
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
@@ -2127,7 +2126,7 @@ End Enum]]>,
         Dim tree = ParseAndVerify(<![CDATA[#Enable Warning __123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789023456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678902345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890, bc42025]]>)
         tree.VerifyNoMissingChildren()
         tree.VerifyNoZeroWidthNodes()
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
@@ -2159,7 +2158,7 @@ End Module]]>,
                 <error id="30196" message="Comma expected." start="80" end="80"/>
                 <error id="30203" message="Identifier expected." start="88" end="88"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax)
@@ -2198,7 +2197,7 @@ End Module]]>,
                 <error id="30203" message="Identifier expected." start="17" end="17"/>
                 <error id="30203" message="Identifier expected." start="23" end="23"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax)
@@ -2226,7 +2225,7 @@ End Module]]>,
                 <error id="30203" message="Identifier expected." start="30" end="30"/>
                 <error id="30183" message="Keyword is not valid as an identifier." start="42" end="49"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
@@ -2261,7 +2260,7 @@ End Module]]>,
                 <error id="30196" message="Comma expected." start="41" end="41"/>
                 <error id="30203" message="Identifier expected." start="48" end="48"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
@@ -2289,7 +2288,7 @@ End Module]]>,
                 <error id="30196" message="Comma expected." start="39" end="39"/>
                 <error id="30203" message="Identifier expected." start="58" end="58"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
@@ -2312,7 +2311,7 @@ End Module]]>,
     <Fact()>
     Public Sub ParseWarningDirective_LineContinuation1()
         Dim tree = ParseAndVerify(<![CDATA[#Enable Warning _]]>)
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
         tree.VerifyNoMissingChildren()
         tree.VerifyNoZeroWidthNodes()
 
@@ -2333,7 +2332,7 @@ End Module]]>,
             <errors>
                 <error id="30203" message="Identifier expected." start="16" end="17"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
@@ -2351,7 +2350,7 @@ End Module]]>,
     <Fact()>
     Public Sub ParseWarningDirective_LineContinuation3()
         Dim tree = ParseAndVerify(<![CDATA[#Enable Warning bc42025 _]]>)
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
         tree.VerifyNoMissingChildren()
         tree.VerifyNoZeroWidthNodes()
 
@@ -2375,7 +2374,7 @@ End Module]]>,
                 <error id="30999" message="Line continuation character '_' must be preceded by at least one white space and must be the last character on the line." start="24" end="25"/>
                 <error id="30203" message="Identifier expected." start="34" end="34"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
@@ -2400,7 +2399,7 @@ End Module]]>,
             <errors>
                 <error id="31218" message="'Warning' expected." start="11" end="11"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
@@ -2422,7 +2421,7 @@ bc42025]]>,
                 <error id="30203" message="Identifier expected." start="16" end="16"/>
                 <error id="30203" message="Identifier expected." start="16" end="17"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Dim skippedTokens = root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Single
@@ -2451,7 +2450,7 @@ End Module]]>,
             <errors>
                 <error id="30203" message="Identifier expected." start="63" end="63"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
@@ -2472,7 +2471,7 @@ End Module]]>,
             <errors>
                 <error id="30205" message="End of statement expected." start="17" end="17"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
@@ -2489,7 +2488,7 @@ End Module]]>,
             <errors>
                 <error id="30205" message="End of statement expected." start="23" end="23"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Dim enableNode = DirectCast(root.GetFirstDirective(), EnableWarningDirectiveTriviaSyntax)
@@ -2509,7 +2508,7 @@ End Module]]>,
                 <error id="31218" message="'Warning' expected." start="10" end="10"/>
                 <error id="30205" message="End of statement expected." start="10" end="10"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Dim disableNode = DirectCast(root.GetFirstDirective(), DisableWarningDirectiveTriviaSyntax)
@@ -2544,8 +2543,8 @@ End Module
 #End If]]>)
         tree.VerifyNoMissingChildren()
         tree.VerifyNoZeroWidthNodes()
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
 
         Dim root = tree.GetRoot()
         Assert.False(root.DescendantNodes(descendIntoTrivia:=True).OfType(Of SkippedTokensTriviaSyntax).Any)
@@ -2608,8 +2607,8 @@ End Class]]>,
                 <error id="30800" message="Method arguments must be enclosed in parentheses." start="123" end="137"/>
                 <error id="30095" message="'Select Case' must end with a matching 'End Select'." start="170" end="178"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.DisableWarningDirectiveTrivia, 2)
+        tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 2)
     End Sub
 
     <Fact>
@@ -2637,8 +2636,8 @@ End Class]]>,
                 <error id="31146" message="XML name expected." start="183" end="183"/>
                 <error id="30636" message="'>' expected." start="183" end="183"/>
             </errors>)
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 0)
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 0)
+        tree.VerifyOccurrenceCount(SyntaxKind.DisableWarningDirectiveTrivia, 0)
+        tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 0)
     End Sub
 #End Region
 
@@ -3473,8 +3472,8 @@ Module Module1
     End Sub
 End Module]]>
         Dim tree = ParseAndVerify(code)
-        tree.VerifyOccuranceCount(SyntaxKind.DisableWarningDirectiveTrivia, 0)
-        tree.VerifyOccuranceCount(SyntaxKind.EnableWarningDirectiveTrivia, 0)
+        tree.VerifyOccurrenceCount(SyntaxKind.DisableWarningDirectiveTrivia, 0)
+        tree.VerifyOccurrenceCount(SyntaxKind.EnableWarningDirectiveTrivia, 0)
 
         Dim comp = CreateCompilationWithMscorlib({tree}).
             AddReferences({MsvbRef}).
@@ -3506,7 +3505,7 @@ End Module
                     Return CodeAnalysis.Diagnostic.Create(d, varDecl.AsClause.GetLocation)
                 End Function)
 
-        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyAnalyzerOccuranceCount({analyzer}, 0)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyAnalyzerOccurrenceCount({analyzer}, 0)
     End Sub
 
     <Fact>
@@ -3533,7 +3532,7 @@ End Module
                     Return CodeAnalysis.Diagnostic.Create(d, varDecl.AsClause.GetLocation)
                 End Function)
 
-        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyAnalyzerOccuranceCount({analyzer}, 0)
+        CreateCompilationWithMscorlibAndVBRuntime(compXml).VerifyAnalyzerOccurrenceCount({analyzer}, 0)
     End Sub
 #End Region
 

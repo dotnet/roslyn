@@ -489,7 +489,7 @@ a.vb
 
         <Fact>
         Public Sub Win32ResourceOptions_Combinations()
-            ' last occurence wins
+            ' last occurrence wins
             CheckWin32ResourceOptions({"/win32resource:r", "/win32resource:s"}, "s", Nothing, Nothing, False)
             ' illegal
             CheckWin32ResourceOptions({"/win32resource:r", "/win32icon:i"}, "r", "i", Nothing, False,
@@ -504,7 +504,7 @@ a.vb
             ' illegal
             CheckWin32ResourceOptions({"/win32icon:i", "/win32resource:r"}, "r", "i", Nothing, False,
                                       Diagnostic(ERRID.ERR_IconFileAndWin32ResFile))
-            ' last occurence wins
+            ' last occurrence wins
             CheckWin32ResourceOptions({"/win32icon:i", "/win32icon:j"}, Nothing, "j", Nothing, False)
             ' fine
             CheckWin32ResourceOptions({"/win32icon:i", "/win32manifest:m"}, Nothing, "i", "m", False)
@@ -517,7 +517,7 @@ a.vb
                                       Diagnostic(ERRID.ERR_CantHaveWin32ResAndManifest))
             ' fine
             CheckWin32ResourceOptions({"/win32manifest:m", "/win32icon:i"}, Nothing, "i", "m", False)
-            ' last occurence wins
+            ' last occurrence wins
             CheckWin32ResourceOptions({"/win32manifest:m", "/win32manifest:n"}, Nothing, Nothing, "n", False)
             ' illegal
             CheckWin32ResourceOptions({"/win32manifest:m", "/nowin32manifest"}, Nothing, Nothing, "m", True,
@@ -6049,7 +6049,7 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
         Const LogoLine1 As String = "Microsoft (R) Visual Basic Compiler version"
         Const LogoLine2 As String = "Copyright (C) Microsoft Corporation. All rights reserved."
 
-        Private Shared Function OccurenceCount(source As String, word As String) As Integer
+        Private Shared Function OccurrenceCount(source As String, word As String) As Integer
             Dim n = 0
             Dim index = source.IndexOf(word)
             While (index >= 0)
@@ -6090,19 +6090,19 @@ C:\*.vb(100) : error BC30451: 'Foo' is not declared. It may be inaccessible due 
             If expectedInfoCount = 0 Then
                 Assert.DoesNotContain(" : info", output)
             Else
-                Assert.Equal(expectedInfoCount, OccurenceCount(output, " : info"))
+                Assert.Equal(expectedInfoCount, OccurrenceCount(output, " : info"))
             End If
 
             If expectedWarningCount = 0 Then
                 Assert.DoesNotContain(" : warning", output)
             Else
-                Assert.Equal(expectedWarningCount, OccurenceCount(output, " : warning"))
+                Assert.Equal(expectedWarningCount, OccurrenceCount(output, " : warning"))
             End If
 
             If expectedErrorCount = 0 Then
                 Assert.DoesNotContain(" : error", output)
             Else
-                Assert.Equal(expectedErrorCount, OccurenceCount(output, " : error"))
+                Assert.Equal(expectedErrorCount, OccurrenceCount(output, " : error"))
             End If
 
             Return output

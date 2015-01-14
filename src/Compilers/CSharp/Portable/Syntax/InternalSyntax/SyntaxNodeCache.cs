@@ -2,14 +2,13 @@
 
 // #define STATS
 
-using Roslyn.Utilities;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
+using Roslyn.Utilities;
+
+#if STATS
 using System.Threading;
-using System.Threading.Tasks;
+#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -33,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
     ///     a relatively simple expression. We do not want the cache to be completely unbounded 
     ///     on the item size. 
     ///     While it still may be possible to store a gigantic nested binary expression, 
-    ///     it should be a rare occurance.
+    ///     it should be a rare occurrence.
     ///     
     ///     We only consider "normal" nodes to be cacheable. 
     ///     Nodes with diagnostics/annotations/directives/skipped, etc... have more complicated identity 

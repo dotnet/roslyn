@@ -2476,8 +2476,8 @@ Module Module1
         k.i = 2
         Dim c2 As New S2?(k)
         Dim d2 As T2?
-        d2 = c2 'UD conversion on nullable prefered over lifting
-        Console.WriteLine(" UD nullable conversion, prefered over lifted value passsed: {0}" &amp; vbCrLf, d2.Value.i) 'expect 2
+        d2 = c2 'UD conversion on nullable preferred over lifting
+        Console.WriteLine(" UD nullable conversion, preferred over lifted value passsed: {0}" &amp; vbCrLf, d2.Value.i) 'expect 2
 
 
         av.i = 5
@@ -2603,7 +2603,7 @@ UD regular conversion S1->T1 (possible by lifting) invoked
 lifted UD conversion, value passsed:3
 
 UD S2?->T2? conversion on nullable invoked
- UD nullable conversion, prefered over lifted value passsed: 2
+ UD nullable conversion, preferred over lifted value passsed: 2
 
 UD regular conversion S1->T1 (possible by lifting) invoked
 lifted UD conversion, value passsed:5

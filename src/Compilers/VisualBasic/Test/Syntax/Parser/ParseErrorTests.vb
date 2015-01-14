@@ -4583,8 +4583,8 @@ End Structure]]>
                                  <error id="32065"/>
                                  <error id="32065"/>
                                  <error id="32065"/>
-                             </errors>).VerifyOccuranceCount(SyntaxKind.TypeParameterList, 0).
-                                        VerifyOccuranceCount(SyntaxKind.TypeParameter, 0).
+                             </errors>).VerifyOccurrenceCount(SyntaxKind.TypeParameterList, 0).
+                                        VerifyOccurrenceCount(SyntaxKind.TypeParameter, 0).
                                         VerifyNoAdjacentTriviaHaveSameKind()
     End Sub
 

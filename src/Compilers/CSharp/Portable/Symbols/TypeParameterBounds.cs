@@ -2,9 +2,6 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -65,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         ///  * For each constraint of T that is a delegate type, R contains System.Delegate.
         ///  * For each constraint of T that is an array type, R contains System.Array.
         ///  * For each constraint of T that is a class-type C, R contains type C' which is constructed 
-        ///    from C by replacing all occurances of dynamic with object.
+        ///    from C by replacing all occurrences of dynamic with object.
         /// The reason is that the CLR doesn't support operations on generic parameters that would be needed 
         /// to work with these types. For example, ldelem instruction requires the receiver to be a specific array, 
         /// not a type parameter constrained to be an array.

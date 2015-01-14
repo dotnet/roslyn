@@ -6506,7 +6506,7 @@ using System.Diagnostics; // Unused.
             Assert.Equal(0, args.AdditionalFiles.Length);
         }
 
-        private static int OccurenceCount(string source, string word)
+        private static int OccurrenceCount(string source, string word)
         {
             var n = 0;
             var index = source.IndexOf(word);
@@ -6557,7 +6557,7 @@ using System.Diagnostics; // Unused.
             }
             else
             {
-                Assert.Equal(expectedInfoCount, OccurenceCount(output, "info"));
+                Assert.Equal(expectedInfoCount, OccurrenceCount(output, "info"));
             }
 
             if (expectedWarningCount == 0)
@@ -6566,7 +6566,7 @@ using System.Diagnostics; // Unused.
             }
             else
             {
-                Assert.Equal(expectedWarningCount, OccurenceCount(output, "warning"));
+                Assert.Equal(expectedWarningCount, OccurrenceCount(output, "warning"));
             }
 
             if (expectedErrorCount == 0)
@@ -6575,7 +6575,7 @@ using System.Diagnostics; // Unused.
             }
             else
             {
-                Assert.Equal(expectedErrorCount, OccurenceCount(output, "error"));
+                Assert.Equal(expectedErrorCount, OccurrenceCount(output, "error"));
             }
 
             return output;

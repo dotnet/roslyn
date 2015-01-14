@@ -2043,7 +2043,7 @@ public class C
             {
                 var pe = (PEModuleSymbol)module;
 
-                // all occurences of List<dynamic> and List<object> should be unified to a single TypeSpec:
+                // all occurrences of List<dynamic> and List<object> should be unified to a single TypeSpec:
                 Assert.Equal(1, pe.Module.GetMetadataReader().GetTableRowCount(TableIndex.TypeSpec));
             });
 

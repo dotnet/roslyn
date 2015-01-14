@@ -1641,7 +1641,7 @@ Skip 2
         <errors>
             <error id="30201"/>
         </errors>).
-        VerifyOccuranceCount(SyntaxKind.EndSubStatement, 2)
+        VerifyOccurrenceCount(SyntaxKind.EndSubStatement, 2)
     End Sub
 
     <WorkItem(929944, "DevDiv/Personal")>
