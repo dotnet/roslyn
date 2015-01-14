@@ -2358,12 +2358,13 @@ class C1
         [Fact, WorkItem(1088127)]
         public void MSBuildWorkspacePreservesEncoding()
         {
+            var encoding = Encoding.BigEndianUnicode;
             var fileContent = @"//“
 class C { }";
             var files = new FileSet(new Dictionary<string, object>
             {
                 { "Encoding.csproj", GetResourceText("Encoding.csproj").Replace("<CodePage>ReplaceMe</CodePage>", string.Empty) },
-                { "class1.cs", Encoding.BigEndianUnicode.GetBytesWithPreamble(fileContent) }
+                { "class1.cs", encoding.GetBytesWithPreamble(fileContent) }
             });
 
             CreateFiles(files);
@@ -2373,7 +2374,7 @@ class C { }";
 
             var document = project.Documents.First(d => d.Name == "class1.cs");
             var text = document.GetTextAsync().Result;
-            Assert.Equal(Encoding.BigEndianUnicode, text.Encoding);
+            Assert.Equal(encoding, text.Encoding);
             Assert.Equal(fileContent, text.ToString());
 
             var root = document.GetSyntaxRootAsync().Result;
@@ -2389,7 +2390,7 @@ class C { }";
             using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
                 var reloadedText = EncodedStringText.Create(stream);
-                Assert.Equal(Encoding.BigEndianUnicode, reloadedText.Encoding);
+                Assert.Equal(encoding, reloadedText.Encoding);
             }
         }
     }
