@@ -16,7 +16,7 @@ You can also explore the [source repository](https://github.com/dotnet/roslyn/tr
 Before working through the walkthroughs below, you should first familiarize yourself with the [Roslyn Overview](https://github.com/dotnet/roslyn/wiki/Roslyn-Overview), which sets up some of the key concepts.
 
 ## Getting Started
-* [Getting Started - Semantic Analysis (CSharp).pdf](/docs/csharp-semantic.pdf) or [Word docx](docs/csharp-semantic.docx)
+* [[Getting Started - Semantic Analysis (CSharp).pdf]](docs/csharp-semantic.pdf) or [Word docx](docs/csharp-semantic.docx)
 * [Getting Started - Semantic Analysis (VB).pdf](docs/vb-semantic.pdf) or [Word docx](docs/vb-semantic.docx)
 * [Getting Started - Syntax Analysis (CSharp).pdf](docs/csharp-syntax.pdf) or [Word docx](docs/csharp-syntax.docx)
 * [Getting Started - Syntax Analysis (VB).pdf](docs/vb-syntax.pdf) or [Word docx](docs/vb-syntax.docx)
