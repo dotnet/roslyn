@@ -43,17 +43,17 @@ From the NuGet package manager console:
 
 * Clone the sources: `git clone https://github.com/dotnet/roslyn.git`
 * [Enhanced source view](http://source.roslyn.codeplex.com/), powered by Roslyn 
-* [Building, testing and debugging the sources](https://roslyn.codeplex.com/wikipage?title=Building%2c%20Testing%20and%20Debugging&referringTitle=Home)
+* [Building, testing and debugging the sources](https://github.com/dotnet/roslyn/wiki/Building%20Testing%20and%20Debugging)
 
 ### Get started
 
-* [Roslyn Overview](https://roslyn.codeplex.com/wikipage?title=Overview&referringTitle=Home) 
+* [Roslyn Overview](https://github.com/dotnet/roslyn/wiki/Roslyn%20Overview) 
 * [Samples and Walkthroughs](https://roslyn.codeplex.com/wikipage?title=Samples%20and%20Walkthroughs&referringTitle=Home)
 * [Syntax Visualizer Tool](https://roslyn.codeplex.com/wikipage?title=Syntax%20Visualizer&referringTitle=Home)
-* [Roadmap](https://roslyn.codeplex.com/wikipage?title=Roadmap&referringTitle=Home) 
+* [Roadmap](https://github.com/dotnet/roslyn/wiki/Roadmap) 
 * [Language Feature Status](https://roslyn.codeplex.com/wikipage?title=Language%20Feature%20Status&referringTitle=Home)
 * [Language Design Notes](https://roslyn.codeplex.com/documentation?referringTitle=Home&ANCHOR#langdesignlinks)
-* [FAQ](https://roslyn.codeplex.com/wikipage?title=FAQ&referringTitle=Home)
+* [FAQ](https://github.com/dotnet/roslyn/wiki/FAQ)
 
 ### Contribute!
 
@@ -64,7 +64,7 @@ Some of the best ways to contribute are to try things out, file bugs, and join i
 Looking for something to work on? The list of [up-for-grabs issues](https://roslyn.codeplex.com/workitem/list/advanced?keyword=grabs&status=Open%2b%28not%2bclosed%29&type=All&priority=All&release=All&assignedTo=All&component=All&reasonClosed=All&sortField=LastUpdatedDate&sortDirection=Descending&page=0) is a great place to start.
 
 * [How to Contribute](https://roslyn.codeplex.com/wikipage?title=How%20to%20Contribute&referringTitle=Home) 
-* [Pull requests](https://github.com/dotnet/roslyn/pulls)
+* [Pull requests](https://github.com/dotnet/roslyn/pulls): [Open](https://github.com/dotnet/roslyn/pulls?q=is%3Aopen+is%3Apr)/[Closed](https://github.com/dotnet/roslyn/pulls?q=is%3Apr+is%3Aclosed)
 
 ### .NET Foundation
 
