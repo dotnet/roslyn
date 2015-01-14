@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Host
         public void AddRefUnsafe()
         {
             Contract.Requires(refCounter >= 0);
-            refCounter++;
+            Interlocked.Increment(ref refCounter);
         }
 
         /// <summary>
@@ -56,10 +56,10 @@ namespace Microsoft.CodeAnalysis.Host
         /// </summary>
         public bool ReleaseRefUnsafe()
         {
-            refCounter--;
+            var changedValue = Interlocked.Decrement(ref refCounter);
 
-            Contract.Requires(refCounter >= 0);
-            return refCounter == 0;
+            Contract.Requires(changedValue >= 0);
+            return changedValue == 0;
         }
 
         public virtual void Close()
