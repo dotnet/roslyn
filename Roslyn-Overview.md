@@ -2,7 +2,7 @@
 
 [Download in PDF](file:roslyn-overview.pdf])
 
- Contents
+Contents
 
 * [Introduction](#introduction)
 * [Exposing the Compiler APIs](#exposing-the-compiler-apis)
@@ -26,7 +26,7 @@
     * [Workspace](#workspace)
     * [Solutions, Projects and Documents](#solutions-projects-documents)
 
-# [#SUMMARY]
+# Summary
 
 ## Introduction
 
@@ -42,7 +42,7 @@ The .NET Compiler Platform (“Roslyn”) SDK Preview includes the latest drafts
 
 The .NET Compiler Platform (“Roslyn”) exposes the C# and Visual Basic compiler’s code analysis to you as a consumer by providing an API layer that mirrors a traditional compiler pipeline.
 
-[image:compiler-pipeline.png]
+![compiler pipeline](/images/compiler-pipeline.png)
 
 Each phase of this pipeline is now a separate component. First the parse phase, where source is tokenized and parsed into syntax that follows the language grammar. Second the declaration phase, where declarations from source and imported metadata are analyzed to form named symbols. Next the bind phase, where identifiers in the code are matched to symbols. Finally, the emit phase, where all the information built up by the compiler is emitted as an assembly.
 
