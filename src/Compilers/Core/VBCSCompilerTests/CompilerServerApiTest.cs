@@ -137,7 +137,7 @@ class Hello
             using (var namedPipe = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut))
             {
                 var buildRequest = await CreateBuildRequest(sourceText, keepAlive).ConfigureAwait(false);
-                namedPipe.Connect((int)TimeSpan.FromSeconds(5).TotalMilliseconds);
+                namedPipe.Connect(Timeout.Infinite);
                 await buildRequest.WriteAsync(namedPipe, default(CancellationToken)).ConfigureAwait(false);
                 return await BuildResponse.ReadAsync(namedPipe, default(CancellationToken)).ConfigureAwait(false);
             }
