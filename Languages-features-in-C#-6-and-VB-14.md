@@ -27,10 +27,10 @@ The [VS2015 Preview](http://www.visualstudio.com/en-us/downloads/visual-studio-2
 | Line continuation comments | `Dim addrs = From c in Customers ' comment` | N/A | Added |
 | TypeOf IsNot | `If TypeOf x IsNot Customer Then …` | N/A | Added |
 | Expression-bodied members | `public double Dist => Sqrt(X * X + Y * Y);` | Added | No |
-| Null propagation | `customer?.Orders?[5]?.$price` | Added | Added |
-| String interpolation | `$"{p.First} {p.Last} is {p.Age} years old."` | Added* | Planned |
-| nameof operator | `string s = nameof(Console.Write);` | Added* | Planned |
-| #pragma | `#Disable Warning BC40008` | Added | Added |
+| [Null propagation](http://roslyn.codeplex.com/discussions/540883) | `customer?.Orders?[5]?.$price` | Added | Added |
+| [String interpolation](http://roslyn.codeplex.com/discussions/570292) | `$"{p.First} {p.Last} is {p.Age} years old."` | Added* | Planned |
+| [nameof operator](http://roslyn.codeplex.com/discussions/570551) | `string s = nameof(Console.Write);` | Added* | Planned |
+| [#pragma](http://roslyn.codeplex.com/discussions/543476) | `#Disable Warning BC40008` | Added | Added |
 | Smart name resolution |    | N/A | Added | 
 | ReadWrite props can implement ReadOnly |   | Exists | Added |
 | #region inside methods |    | Exists | Added |
