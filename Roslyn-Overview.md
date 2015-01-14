@@ -35,6 +35,7 @@ Traditionally, compilers are black boxes -- source code goes in one end, magic h
 For decades, this world view has served us well, but it is no longer sufficient. Increasingly we rely on integrated development environment (IDE) features such as IntelliSense, refactoring, intelligent rename, “Find all references,” and “Go to definition” to increase our productivity. We rely on code analysis tools to improve our code quality and code generators to aid in application construction. As these tools get smarter, they need access to more and more of the deep code knowledge that only compilers possess. This is the core mission of the .NET Compiler Platform (“Roslyn”): opening up the black boxes and allowing tools and end users to share in the wealth of information compilers have about our code. Instead of being opaque source-code-in and object-code-out translators, through the .NET Compiler Platform (“Roslyn”), compilers become platforms—APIs that you can use for code related tasks in your tools and applications.
 
 The transition to compilers as platforms dramatically lowers the barrier to entry for creating code focused tools and applications. It creates many opportunities for innovation in areas such as meta-programming, code generation and transformation, interactive use of the C# and VB languages, and embedding of C# and VB in domain specific languages.
+
 The .NET Compiler Platform (“Roslyn”) SDK Preview includes the latest drafts of new language object models for code generation, analysis, and refactoring. We hope to include drafts of API support for scripting and interactive use of C# and Visual Basic in a future preview. This document provides a conceptual overview of the .NET Compiler Platform (“Roslyn”). Further details can be found in the walkthroughs and samples included in the SDK Preview.
 
 ## Exposing the Compiler APIs
@@ -46,11 +47,11 @@ The .NET Compiler Platform (“Roslyn”) exposes the C# and Visual Basic compil
 
 Each phase of this pipeline is now a separate component. First the parse phase, where source is tokenized and parsed into syntax that follows the language grammar. Second the declaration phase, where declarations from source and imported metadata are analyzed to form named symbols. Next the bind phase, where identifiers in the code are matched to symbols. Finally, the emit phase, where all the information built up by the compiler is emitted as an assembly.
 
-[image:compiler-pipeline-api.png]
+![compiler pipeline api](images/compiler-pipeline-api.png)
  
 Corresponding to each of those phases, an object model is surfaced that allows access to the information at that phase. The parsing phase is exposed as a syntax tree, the declaration phase as a hierarchical symbol table, the binding phase as a model that exposes the result of the compiler’s semantic analysis and the emit phase as an API that produces IL byte codes.
 
-[image:compiler-api-lang-svc.png]
+![compiler api lang service](images/compiler-api-lang-svc.png)
 
 Each compiler combines these components together as a single end-to-end whole.
 
@@ -60,7 +61,7 @@ To ensure that the public Compiler APIs are sufficient for building world-class 
 
 The .NET Compiler Platform (“Roslyn”) consists of two main layers of APIs – the Compiler APIs and Workspaces APIs.
 
-[image:alex-api-layers.png]
+![api layers](images/alex-api-layers.png)
 
 #### Compiler APIs
 
@@ -88,7 +89,7 @@ The most fundamental data structure exposed by the Compiler APIs is the syntax t
 
 1. To allow tools - such as an IDE, add-ins, code analysis tools, and refactorings - to see and process the syntactic structure of source code in a user’s project.
 2. To enable tools - such as refactorings and an IDE - to create, modify, and rearrange source code in a natural manner without having use direct text edits. By creating and manipulating trees, tools can easily create and rearrange source code.
-{anchor:Syntax Trees}
+
 ### Syntax Trees
 
 Syntax trees are the primary structure used for compilation, code analysis, binding, refactoring, IDE features, and code generation. No part of the source code is understood without it first being identified and categorized into one of many well-known structural language elements. 
@@ -116,6 +117,7 @@ Some syntax nodes have optional children. For example, an IfStatementSyntax has 
 ### Syntax Tokens
 
 Syntax tokens are the terminals of the language grammar, representing the smallest syntactic fragments of the code. They are never parents of other nodes or tokens. Syntax tokens consist of keywords, identifiers, literals, and punctuation. 
+
 For efficiency purposes, the SyntaxToken type is a CLR value type. Therefore, unlike syntax nodes, there is only one structure for all kinds of tokens with a mix of properties that have meaning depending on the kind of token that is being represented.
 
 For example, an integer literal token represents a numeric value. In addition to the raw source text the token spans, the literal token has a Value property that tells you the exact decoded integer value. This property is typed as Object because it may be one of many primitive types.
@@ -204,6 +206,7 @@ Symbols are similar in concept to the CLR type system as represented by the Syst
 ### Semantic Model
 
 A semantic model represents all the semantic information for a single source file. You can use it to discover the following: 
+
 * The symbols referenced at a specific location in source.
 * The resultant type of any expression.
 * All diagnostics, which are errors and warnings.
@@ -236,7 +239,7 @@ A document is also a part of the overall immutable solution model. A document re
 
 The following diagram is a representation of how the Workspace relates to the host environment, tools, and how edits are made.
 
-[image:workspace-obj-relations.png]
+![workspace relations](images/workspace-obj-relations.png)
 
 ## Summary
 
