@@ -16,13 +16,13 @@ You can also explore the [source repository](https://github.com/dotnet/roslyn/tr
 Before working through the walkthroughs below, you should first familiarize yourself with the [Roslyn Overview](https://github.com/dotnet/roslyn/wiki/Roslyn-Overview), which sets up some of the key concepts.
 
 ## Getting Started
-* [Getting Started - Semantic Analysis (CSharp).pdf](../docs/csharp-semantic.pdf) or [Word docx](docs/csharp-semantic.docx)
-* [Getting Started - Semantic Analysis (VB).pdf](docs/vb-semantic.pdf) or [Word docx](docs/vb-semantic.docx)
-* [Getting Started - Syntax Analysis (CSharp).pdf](docs/csharp-syntax.pdf) or [Word docx](docs/csharp-syntax.docx)
-* [Getting Started - Syntax Analysis (VB).pdf](docs/vb-syntax.pdf) or [Word docx](docs/vb-syntax.docx)
-* [Getting Started - Syntax Transformation (CSharp).pdf](docs/csharp-transform.pdf) or [Word docx](docs/csharp-transform.docx)
-* [Getting Started - Syntax Transformation (VB).pdf](docs/vb-transform.pdf) or [Word docx](docs/vb-transform.docx)
+* [Getting Started - Semantic Analysis (CSharp).pdf](../blob/master/docs/csharp-semantic.pdf) or [Word docx](../blob/master/docs/csharp-semantic.docx)
+* [Getting Started - Semantic Analysis (VB).pdf](../blob/master/docs/vb-semantic.pdf) or [Word docx](../blob/master/docs/vb-semantic.docx)
+* [Getting Started - Syntax Analysis (CSharp).pdf](../blob/master/docs/csharp-syntax.pdf) or [Word docx](../blob/master/docs/csharp-syntax.docx)
+* [Getting Started - Syntax Analysis (VB).pdf](../blob/master/docs/vb-syntax.pdf) or [Word docx](../blob/master/docs/vb-syntax.docx)
+* [Getting Started - Syntax Transformation (CSharp).pdf](../blob/master/docs/csharp-transform.pdf) or [Word docx](../blob/master/docs/csharp-transform.docx)
+* [Getting Started - Syntax Transformation (VB).pdf](../blob/master/docs/vb-transform.pdf) or [Word docx](../blob/master/docs/vb-transform.docx)
 
 ## Diagnostics and Code Fixes
-* [How To Write a Diagnostic and Code Fix (CSharp).pdf](docs/csharp-diag.pdf) or [Word docx](docs/csharp-diag.docx)
-* [How To Write a Diagnostic and Code Fix (VB).pdf](docs/vb-diag.pdf) or [Word docx](docs/vb-diag.docx)
+* [How To Write a Diagnostic and Code Fix (CSharp).pdf](../blob/master/docs/csharp-diag.pdf) or [Word docx](../blob/master/docs/csharp-diag.docx)
+* [How To Write a Diagnostic and Code Fix (VB).pdf](../blob/master/docs/vb-diag.pdf) or [Word docx](../blob/master/docs/vb-diag.docx)
