@@ -1,16 +1,9 @@
 # Getting Started
 
 * [Roslyn Overview](Roslyn Overview)
-* [Samples and Walkthroughs](Samples and Walkthroughs)
 * [Roadmap](Roadmap)
 * [Building, Testing, and Debugging](Building Testing and Debugging)
 * [FAQ](FAQ)
-
-# Language Design
-
-* [C# Language Design Notes](CSharp Language Design Notes)
-* [Visual Basic Language Design Notes](Visual Basic Design Notes)
-* [Language Feature Overview for C# 6 and Visual Basic 14](Language Feature Status)
 
 # Tools
 
