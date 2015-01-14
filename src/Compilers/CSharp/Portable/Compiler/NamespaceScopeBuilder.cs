@@ -7,9 +7,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
-using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -31,13 +31,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly CSharpCompilation compilation;
 
+        private readonly EmitContext context;
+
         // Cached delegates.
         private Func<ConsList<Imports>, ImmutableArray<Cci.NamespaceScope>> buildNamespaceScopes;
         private Func<NamespaceOrTypeSymbol, string> buildNamespaceOrTypeString;
 
-        public NamespaceScopeBuilder(CSharpCompilation compilation)
+        public NamespaceScopeBuilder(CSharpCompilation compilation, EmitContext context)
         {
             this.compilation = compilation;
+            this.context = context;
 
             buildNamespaceScopes = BuildNamespaceScopes;
             buildNamespaceOrTypeString = BuildNamespaceOrTypeString;
@@ -192,7 +195,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                return BuildTypeStringWithAssemblyName((TypeSymbol)symbol);
+                bool isAssemblyQualified = true;
+                var context = this.context;
+                return Microsoft.Cci.MetadataWriter.GetSerializedTypeName(
+                    context.ModuleBuilder.Translate((ITypeSymbol)symbol, context.SyntaxNodeOpt, context.Diagnostics),
+                    ref isAssemblyQualified,
+                    context);
             }
         }
 
@@ -237,162 +245,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             parts.Free();
             return pooled.ToStringAndFree();
-        }
-
-        /// <summary>
-        /// Returns qualified name of type followed by full assembly name, with square brackets in place of
-        /// angle brackets and around type arguments.
-        /// e.g. "A.B.C`2[[D.E,assembly], [F.G,assembly]],assembly"
-        /// </summary>
-        private string BuildTypeStringWithAssemblyName(TypeSymbol symbol)
-        {
-            string typeArgumentsOpt;
-            string assemblyNameSuffix;
-            string typeName = BuildTypeString(symbol, out typeArgumentsOpt, out assemblyNameSuffix);
-            PooledStringBuilder pooled = PooledStringBuilder.GetInstance();
-            StringBuilder builder = pooled.Builder;
-            builder.Append(typeName);
-            AppendTypeArguments(builder, typeArgumentsOpt);
-            builder.Append(assemblyNameSuffix);
-            return pooled.ToStringAndFree();
-        }
-
-        private static void AppendTypeArguments(StringBuilder builder, string typeArgumentsOpt)
-        {
-            if (typeArgumentsOpt != null)
-            {
-                builder.Append("[");
-                builder.Append(typeArgumentsOpt);
-                builder.Append("]");
-            }
-        }
-
-        /// <summary>
-        /// Returns qualified name of type (without the full assembly name), with square brackets in place of
-        /// angle brackets and around type arguments.
-        /// Full assembly name of the type is stored in <paramref name="assemblyNameSuffix"/>.
-        /// </summary>
-        private string BuildTypeString(TypeSymbol symbol, out string typeArgumentsOpt, out string assemblyNameSuffix)
-        {
-            Debug.Assert((object)symbol != null);
-            Debug.Assert(!symbol.IsArray());
-
-            if (symbol.TypeKind == TypeKind.Dynamic)
-            {
-                return BuildTypeString(this.compilation.GetSpecialType(SpecialType.System_Object), out typeArgumentsOpt, out assemblyNameSuffix);
-            }
-
-            Symbol containing = symbol.ContainingSymbol;
-            Debug.Assert((object)containing != null);
-            if (containing.Kind == SymbolKind.Namespace)
-            {
-                return BuildNamespaceString((NamespaceSymbol)containing, isContainer: true) + BuildTypeStringHelper(symbol, out typeArgumentsOpt, out assemblyNameSuffix);
-            }
-            else
-            {
-                Debug.Assert(containing is TypeSymbol);
-                string outerTypeArgumentsOpt;
-                string outerAssemblyNameSuffix;
-                string outer = BuildTypeString((TypeSymbol)containing, out outerTypeArgumentsOpt, out outerAssemblyNameSuffix);
-                string inner = BuildTypeStringHelper(symbol, out typeArgumentsOpt, out assemblyNameSuffix);
-                Debug.Assert(outerAssemblyNameSuffix == assemblyNameSuffix);
-
-                if (typeArgumentsOpt == null)
-                {
-                    typeArgumentsOpt = outerTypeArgumentsOpt;
-                }
-                else if (outerTypeArgumentsOpt != null)
-                {
-                    typeArgumentsOpt = outerTypeArgumentsOpt + "," + typeArgumentsOpt;
-                }
-
-                return outer + "+" + inner;
-            }
-        }
-
-        /// <summary>
-        /// Same as GetTypeString, but without containing type/namespace.
-        /// </summary>
-        private string BuildTypeStringHelper(TypeSymbol symbol, out string typeArgumentsOpt, out string assemblyNameSuffix)
-        {
-            if (symbol.GetMemberArity() > 0)
-            {
-                PooledStringBuilder pool = PooledStringBuilder.GetInstance();
-                StringBuilder builder = pool.Builder;
-                bool first = true;
-                foreach (TypeSymbol typeArg in symbol.GetMemberTypeArgumentsNoUseSiteDiagnostics())
-                {
-                    if (!first)
-                    {
-                        builder.Append(",");
-                    }
-                    first = false;
-
-                    builder.Append(BuildTypeArgumentString(typeArg));
-                }
-                typeArgumentsOpt = pool.ToStringAndFree();
-            }
-            else
-            {
-                typeArgumentsOpt = null;
-            }
-
-            assemblyNameSuffix = ", " + symbol.ContainingAssembly.Identity.GetDisplayName();
-            return symbol.MetadataName; //should include backtick+arity if required
-        }
-
-        private string BuildTypeArgumentString(TypeSymbol typeArg)
-        {
-            Debug.Assert(typeArg.Kind != SymbolKind.TypeParameter); //must be a closed type
-
-            string typeArgumentsOpt = null;
-            string assemblyNameSuffix;
-            string typeArgString = typeArg.IsArray() ?
-                BuildArrayTypeString((ArrayTypeSymbol)typeArg, out assemblyNameSuffix) :
-                BuildTypeString(typeArg, out typeArgumentsOpt, out assemblyNameSuffix);
-
-            PooledStringBuilder pool = PooledStringBuilder.GetInstance();
-            StringBuilder builder = pool.Builder;
-            builder.Append("[");
-            builder.Append(typeArgString);
-            AppendTypeArguments(builder, typeArgumentsOpt);
-            builder.Append(assemblyNameSuffix);
-            builder.Append("]");
-            return pool.ToStringAndFree();
-        }
-
-        private string BuildArrayTypeString(ArrayTypeSymbol arrayType, out string assemblyNameSuffix)
-        {
-            TypeSymbol elementType = arrayType.ElementType;
-
-            string typeArgumentsOpt = null;
-            string elementTypeString = elementType.IsArray() ?
-                BuildArrayTypeString((ArrayTypeSymbol)elementType, out assemblyNameSuffix) :
-                BuildTypeString(elementType, out typeArgumentsOpt, out assemblyNameSuffix);
-
-            PooledStringBuilder pool = PooledStringBuilder.GetInstance();
-            StringBuilder builder = pool.Builder;
-            builder.Append(elementTypeString);
-            AppendTypeArguments(builder, typeArgumentsOpt);
-            builder.Append(BuildArrayShapeString(arrayType));
-            return pool.ToStringAndFree();
-        }
-
-        private static string BuildArrayShapeString(ArrayTypeSymbol arrayType)
-        {
-            PooledStringBuilder pool = PooledStringBuilder.GetInstance();
-            StringBuilder builder = pool.Builder;
-
-            builder.Append("[");
-
-            if (arrayType.Rank > 1)
-            {
-                builder.Append(',', arrayType.Rank - 1);
-            }
-
-            builder.Append("]");
-
-            return pool.ToStringAndFree();
         }
     }
 }

@@ -578,7 +578,7 @@ namespace N
         <namespace name=""N"" />
         <alias name=""Q"" target=""N.A, Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" kind=""type"" />
         <alias name=""R"" qualifier=""P"" target=""N"" kind=""namespace"" />
-        <alias name=""S"" target=""N.B, Test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" kind=""type"" />
+        <alias name=""S"" target=""N.B"" kind=""type"" />
         <alias name=""T"" target=""N"" kind=""namespace"" />
         <externinfo alias=""P"" assembly=""Lib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" />
       </scope>
@@ -1727,7 +1727,7 @@ class Test { static void Main() { } }
       <scope startOffset=""0x0"" endOffset=""0x1"">
         <namespace name=""namespace"" />
         <alias name=""object"" target=""namespace"" kind=""namespace"" />
-        <alias name=""string"" target=""namespace.class`1+struct[[namespace.interface, Test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]], Test, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"" kind=""type"" />
+        <alias name=""string"" target=""namespace.class`1+struct[namespace.interface]"" kind=""type"" />
       </scope>
     </method>
   </methods>
