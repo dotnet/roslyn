@@ -6,7 +6,7 @@ that are used by Visual Studio.
 
 ### Try new language and IDE features
 
-Just want to provide feedback on new [language features](https://roslyn.codeplex.com/wikipage?title=Language%20feature%20status&referringTitle=Home) 
+Just want to provide feedback on new [language features](https://github.com/dotnet/roslyn/wiki/Languages-features-in-C%23-6-and-VB-14) 
 and [IDE features](http://blogs.msdn.com/b/visualstudio/archive/2014/11/12/the-c-and-visual-basic-code-focused-ide-experience.aspx)? 
 
 * Try out [Visual Studio 2015 Preview](http://www.visualstudio.com/en-us/downloads/visual-studio-2015-downloads-vs), 
@@ -31,7 +31,7 @@ You'll need to do this even if you're using the Azure VM image.
 3. Install the [SDK Templates VSIX package](http://visualstudiogallery.msdn.microsoft.com/849f3ab1-05cf-4682-b4af-ef995e2aa1a5) 
 to get the Visual Studio project templates. 
 4. Install the [Syntax Visualizer VSIX package](http://visualstudiogallery.msdn.microsoft.com/70e184da-9b3a-402f-b210-d62a898e2887) 
-to get a [Syntax Visualizer tool window](https://roslyn.codeplex.com/wikipage?title=Syntax%20Visualizer&referringTitle=Home) 
+to get a [Syntax Visualizer tool window](https://github.com/dotnet/roslyn/wiki/Syntax%20Visualizer) 
 to help explore the syntax trees you'll be analyzing.
 
 Or, you can grab the latest [NuGet Roslyn compiler package](http://www.nuget.org/packages/Microsoft.CodeAnalysis). 
@@ -48,10 +48,10 @@ From the NuGet package manager console:
 ### Get started
 
 * [Roslyn Overview](https://github.com/dotnet/roslyn/wiki/Roslyn%20Overview) 
-* [Samples and Walkthroughs](https://roslyn.codeplex.com/wikipage?title=Samples%20and%20Walkthroughs&referringTitle=Home)
-* [Syntax Visualizer Tool](https://roslyn.codeplex.com/wikipage?title=Syntax%20Visualizer&referringTitle=Home)
+* [Samples and Walkthroughs](https://github.com/dotnet/roslyn/wiki/Samples-and-Walkthroughs)
+* [Syntax Visualizer Tool](https://github.com/dotnet/roslyn/wiki/Syntax%20Visualizer)
 * [Roadmap](https://github.com/dotnet/roslyn/wiki/Roadmap) 
-* [Language Feature Status](https://roslyn.codeplex.com/wikipage?title=Language%20Feature%20Status&referringTitle=Home)
+* [Language Feature Status](https://github.com/dotnet/roslyn/wiki/Languages-features-in-C%23-6-and-VB-14)
 * [Language Design Notes](https://roslyn.codeplex.com/documentation?referringTitle=Home&ANCHOR#langdesignlinks)
 * [FAQ](https://github.com/dotnet/roslyn/wiki/FAQ)
 
