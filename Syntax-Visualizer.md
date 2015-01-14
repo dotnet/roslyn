@@ -80,92 +80,89 @@ Let’s try the same for the SubBlock node corresponding to the Main() method in
 
 ![fig9.png](http://download-codeplex.sec.s-msft.com/Download?ProjectName=roslyn&DownloadId=823136)
 
- As you can see in the above screenshots, the syntax graph viewer has an option to display a legend for the coloring scheme it uses. You can also hover over individual items in the syntax graph with the mouse to view the properties corresponding to that item.
+As you can see in the above screenshots, the syntax graph viewer has an option to display a legend for the coloring scheme it uses. You can also hover over individual items in the syntax graph with the mouse to view the properties corresponding to that item.
 
- You can view syntax graphs for different items in the tree repeatedly and the graphs will always be displayed in the same window inside Visual Studio. Dock this window at a convenient location inside Visual Studio so that you don’t have to switch between tabs to view a new syntax graph. I usually dock this window at the bottom (below my code editor windows).
+You can view syntax graphs for different items in the tree repeatedly and the graphs will always be displayed in the same window inside Visual Studio. Dock this window at a convenient location inside Visual Studio so that you don’t have to switch between tabs to view a new syntax graph. I usually dock this window at the bottom (below my code editor windows).
 
- Here is the docking layout that I normally use for the visualizer tool window and the syntax graph window:
+Here is the docking layout that I normally use for the visualizer tool window and the syntax graph window:
 
- Figure 10 My preferred docking layout
+*Figure 10 My preferred docking layout*
 
-fig10.png
+![fig10.png](http://download-codeplex.sec.s-msft.com/Download?ProjectName=roslyn&DownloadId=823137)
 
- 
-Inspecting Semantics
-The Syntax Visualizer also allows you to do some rudimentary inspection of symbols and semantic information. Let’s look at some examples. You can read more about APIs for performing semantic analysis in the  .NET Compiler Platform (“Roslyn”) Overview document.
+# Inspecting Semantics
+The Syntax Visualizer also allows you to do some rudimentary inspection of symbols and semantic information. Let’s look at some examples. You can read more about APIs for performing semantic analysis in the [.NET Compiler Platform (“Roslyn”) Overview document](https://github.com/dotnet/roslyn/wiki/Roslyn%20Overvi).
 
- In the C# file above, type "double x = 1 + 1;" inside Main().
+In the C# file above, type `double x = 1 + 1;` inside Main().
 
- Now select the expression "1 + 1" in the code editor window. This should highlight the corresponding AddExpression node in the visualizer. Right click on this AddExpression and click on View Symbol (if any).
+Now select the expression `1 + 1` in the code editor window. This should highlight the corresponding AddExpression node in the visualizer. Right click on this AddExpression and click on View Symbol (if any).
 
- Figure 11 Viewing symbol for an expression
+*Figure 11 Viewing symbol for an expression*
 
-fig11.png
+![fig11.png](http://download-codeplex.sec.s-msft.com/Download?ProjectName=roslyn&DownloadId=823138)
 
- The property grid in the visualizer should now be updated as follows indicating that the symbol for the expression is a SynthesizedIntrinsicOperatorSymbol with Kind = Method.
+The property grid in the visualizer should now be updated as follows indicating that the symbol for the expression is a SynthesizedIntrinsicOperatorSymbol with Kind = Method.
 
- Figure 12 Symbol properties
+*Figure 12 Symbol properties*
 
-fig12.png
+![fig12.png](http://download-codeplex.sec.s-msft.com/Download?ProjectName=roslyn&DownloadId=823139)
 
- Next let’s try View TypeSymbol (if any) for the same AddExpression node. This time the property grid in the visualizer is updated as follows indicating that the type of the selected expression is Int32.
+Next let’s try View **TypeSymbol (if any)** for the same AddExpression node. This time the property grid in the visualizer is updated as follows indicating that the type of the selected expression is Int32.
 
- Figure 13 TypeSymbol properties
+*Figure 13 TypeSymbol properties*
 
-fig13.png
+![fig13.png](http://download-codeplex.sec.s-msft.com/Download?ProjectName=roslyn&DownloadId=823140)
 
- Next let’s try View Converted TypeSymbol (if any) for the same AddExpression node. This time, the property grid is updated as follows indicating that although the type of the expression is Int32, the converted type of the expression is Double (because the Int32 expression is used in a context where it has to be converted to a Double in order to satisfy the type specified for the variable x on the left hand side of the assignment operator).
+Next let’s try View **Converted TypeSymbol (if any)** for the same AddExpression node. This time, the property grid is updated as follows indicating that although the type of the expression is Int32, the converted type of the expression is Double (because the Int32 expression is used in a context where it has to be converted to a Double in order to satisfy the type specified for the variable x on the left hand side of the assignment operator).
 
- Figure 14 Converted TypeSymbol properties
+*Figure 14 Converted TypeSymbol properties*
 
-fig14.png
+![fig14.png](http://download-codeplex.sec.s-msft.com/Download?ProjectName=roslyn&DownloadId=823141)
 
- Finally, let’s try View Constant Value (if any) for the same AddExpression node above. The property grid tells us that the value of the expression is a compile time constant with value ‘2’.
+Finally, let’s try **View Constant Value (if any)** for the same AddExpression node above. The property grid tells us that the value of the expression is a compile time constant with value ‘2’.
 
-Figure 15 A constant value
+*Figure 15 A constant value*
 
-fig15.png
+![fig15.png](http://download-codeplex.sec.s-msft.com/Download?ProjectName=roslyn&DownloadId=823142)
 
- The above inspection example can also be replicated in VB. Type "Dim x As Double = 1 + 1" in a VB file. Now select the expression "1 + 1" in the code editor window. This should highlight the corresponding AddExpression node in the visualizer. Repeat the above steps for this AddExpression and you should see identical results.
+The above inspection example can also be replicated in VB. Type `Dim x As Double = 1 + 1` in a VB file. Now select the expression `1 + 1` in the code editor window. This should highlight the corresponding AddExpression node in the visualizer. Repeat the above steps for this AddExpression and you should see identical results.
 
- Let’s try another example, this time in VB. Update the code in the VB file to match what’s in the below image. This code introduces an alias named C (that maps to the type System.Console) at the top of the file and uses this alias inside Main(). Let’s select the use of this alias inside the method (see below screenshot). This should select the corresponding IdentifierName node in the visualizer. Right click this node and click on View Symbol (if any).
+Let’s try another example, this time in VB. Update the code in the VB file to match what’s in the below image. This code introduces an alias named C (that maps to the type System.Console) at the top of the file and uses this alias inside Main(). Let’s select the use of this alias inside the method (see below screenshot). This should select the corresponding IdentifierName node in the visualizer. Right click this node and click on **View Symbol (if any)**.
 
- Figure 16 Viewing symbol for an identifier
+*Figure 16 Viewing symbol for an identifier*
 
-fig16.png
+![fig16.png](http://download-codeplex.sec.s-msft.com/Download?ProjectName=roslyn&DownloadId=823143)
 
- The property grid tells us that this identifier is bound to the type System.Console.
+The property grid tells us that this identifier is bound to the type `System.Console`.
 
- Figure 17 Symbol properties
+*Figure 17 Symbol properties*
 
-fig17.png
+![fig17.png](http://download-codeplex.sec.s-msft.com/Download?ProjectName=roslyn&DownloadId=823144)
 
- Now let’s try View AliasSymbol (if any) for the same IdentifierName node. This time, the property grid tells us that the identifier is an alias with name C that is bound to the System.Console target. In other words, the property grid gives us information regarding the AliasSymbol corresponding to the identifier C.
+Now let’s try **View AliasSymbol (if any)** for the same IdentifierName node. This time, the property grid tells us that the identifier is an alias with name C that is bound to the System.Console target. In other words, the property grid gives us information regarding the AliasSymbol corresponding to the identifier C.
 
- Figure 18 AliasSymbol properties
+*Figure 18 AliasSymbol properties*
 
-fig18.png
+![fig18.png](http://download-codeplex.sec.s-msft.com/Download?ProjectName=roslyn&DownloadId=823145)
 
- Note that you can also inspect the symbol corresponding to any declared type, method, property etc. by selecting the corresponding node in the visualizer and clicking on View Symbol (if any). For example, select the method "Sub Main()" in the above example and click on View Symbol (if any) for the corresponding SubBlock node in the visualizer, the property grid will tell us that the MethodSymbol for this SubBlock has name Main with return type Void.
+Note that you can also inspect the symbol corresponding to any declared type, method, property etc. by selecting the corresponding node in the visualizer and clicking on View Symbol (if any). For example, select the method "Sub Main()" in the above example and click on View Symbol (if any) for the corresponding SubBlock node in the visualizer, the property grid will tell us that the MethodSymbol for this SubBlock has name Main with return type Void.
 
- Figure 19 Viewing symbol for a method declaration
+*Figure 19 Viewing symbol for a method declaration*
 
-fig19.png
+![fig19.png](http://download-codeplex.sec.s-msft.com/Download?ProjectName=roslyn&DownloadId=823146)
 
- Note that the above VB examples can be easily replicated in C# (for the alias, type "using C = System.Console;" in place of "Imports C = System.Console"). Repeating the above steps in C# should yield identical results.
+Note that the above VB examples can be easily replicated in C# (for the alias, type `using C = System.Console;` in place of `Imports C = System.Console`). Repeating the above steps in C# should yield identical results.
 
- Note that the semantic inspection operations described above are only available on nodes and not on tokens or trivia. Also note that not all nodes will have interesting semantic information to inspect. For nodes that don’t have interesting semantic information, clicking on View * Symbol (if any) will be a no-op (i.e., will return no useful information). In such cases, the visualizer property grid will be empty indicating that there is no useful semantic information to display.
+ Note that the semantic inspection operations described above are only available on nodes and not on tokens or trivia. Also note that not all nodes will have interesting semantic information to inspect. For nodes that don’t have interesting semantic information, clicking on **View * Symbol (if any)** will be a no-op (i.e., will return no useful information). In such cases, the visualizer property grid will be empty indicating that there is no useful semantic information to display.
 
- Figure 20 An empty property grid is displayed when no semantic information is available for the selected node
+*Figure 20 An empty property grid is displayed when no semantic information is available for the selected node*
 
-fig20.png
+![fig20.png](http://download-codeplex.sec.s-msft.com/Download?ProjectName=roslyn&DownloadId=823150)
 
- 
-Closing / Disabling Syntax Visualizer
+## Closing / Disabling Syntax Visualizer
 The visualizer tool window can be closed at any time and once closed it should cease to have any impact. You can also disable / uninstall the visualizer extension completely using Tools –> Extensions and Updates in Visual Studio.
 
- 
-Feedback
+## Feedback
 I hope you had a fun time learning about the Syntax Visualizer tool. Do try it out and use it as you explore and build rich code apps and extensions atop the .NET Compiler Platform (“Roslyn”) APIs.
 
- We are very excited to get a preview of this technology in your hands and would love to hear your feedback, ideas and suggestions about the preview in general and also about the Syntax Visualizer tool. You can provide general feedback about the Visualizer here and report any issues you find over here. A list of all the different ways in which you can provide feedback for the preview is available  here.
+We are very excited to get a preview of this technology in your hands and would love to hear your feedback, ideas and suggestions about the preview in general and also about the Syntax Visualizer tool. You can provide general feedback about the Visualizer here and report any issues you find over here. A list of all the different ways in which you can provide feedback for the preview is available here.
