@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 'vbc /t:library /out:MTTestLib1.Dll MTTestLib1_V1.vb 
 'vbc /t:module /out:MTTestModule1.netmodule MTTestLib1_V1.vb
