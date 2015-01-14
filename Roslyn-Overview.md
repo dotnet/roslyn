@@ -51,7 +51,7 @@ Each phase of this pipeline is now a separate component. First the parse phase, 
  
 Corresponding to each of those phases, an object model is surfaced that allows access to the information at that phase. The parsing phase is exposed as a syntax tree, the declaration phase as a hierarchical symbol table, the binding phase as a model that exposes the result of the compiler’s semantic analysis and the emit phase as an API that produces IL byte codes.
 
-![compiler api lang service](images/compiler-api-lang-svc.png)
+![compiler api lang service](images/compiler-pipeline-lang-svc.png)
 
 Each compiler combines these components together as a single end-to-end whole.
 
