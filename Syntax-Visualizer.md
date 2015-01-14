@@ -1,11 +1,11 @@
 # Syntax Visualizer Overview
 
 ## Contents
-* [Getting Started](#Getting-Started)
-* [Syntax Visualizer](#Syntax-Visualizers)
-* [Syntax Graphs](#Syntax-Graphs)
-* [Inspecting Semantics](#Inspecting-Semantics)
-* [Closing and Disabling Syntax Visualizer](#Closing-and-Disabling-Syntax-Visualizer)
+* [Getting Started](#getting-started)
+* [Syntax Visualizer](#syntax-visualizers)
+* [Syntax Graphs](#syntax-graphs)
+* [Inspecting Semantics](#inspecting-semantics)
+* [Closing and Disabling Syntax Visualizer](#closing-and-disabling-syntax-visualizer)
 
 This document is an overview of the Syntax Visualizer tool that ships as part of the .NET Compiler Platform (“Roslyn”) SDK Preview. The Syntax Visualizer is a Visual Studio Extension that facilitates inspection and exploration of Roslyn syntax trees and can be used as a debugging aid when you develop your own applications atop the .NET Compiler Platform (“Roslyn”) APIs.
 
