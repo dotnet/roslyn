@@ -1,30 +1,30 @@
 # .NET Compiler Platform ("Roslyn") Overview
 
-[Download in PDB](file:roslyn-overview.pdf])
+[Download in PDF](file:roslyn-overview.pdf])
 
  Contents
 
-* [Introduction](#INTRODUCTION)
-* [Exposing the Compiler APIs](#EXPOSING THE COMPILER APIS)
-    * [Compiler Pipeline Functional Areas](#COMPILER PIPELINE FUNCTIONAL AREAS)
-    * [API Layers](#API LAYERS)
-        * [Compiler APIs](#Compiler APIs)
-        * [Workspaces APIs](#Workspaces APIs)
-* [Working with Syntax](#WORKING WITH SYNTAX)
-    * [Syntax Trees](#SYNTAX TREES)
-    * [Syntax Nodes](#SYNTAX NODES)
-    * [Syntax Tokens](#SYNTAX TOKENS)
-    * [Syntax Trivia](#SYNTAX TRIVIA)
-    * [Spans](#SPANS)
-    * [Kinds](#KINDS)
-    * [Errors](#ERRORS)
-* [Working with Semantics](#WORKING WITH SEMANTICS)
-    * [Compilation](#COMPILATION)
-    * [Symbols](#SYMBOLS)
-    * [Semantic Model](#SEMANTIC MODEL)
-* [Working with a Workspace](#WORKING WITH A WORKSPACE)
-    * [Workspace](#WORKSPACE)
-    * [Solutions, Projects and Documents](#SOLUTIONS, PROJECTS, DOCUMENTS)
+* [Introduction](#introduction)
+* [Exposing the Compiler APIs](#exposing-the-compiler-apis)
+    * [Compiler Pipeline Functional Areas](#compiler-pipeline-functional-areas)
+    * [API Layers](#api-layers)
+        * [Compiler APIs](#compiler-apis)
+        * [Workspaces APIs](#workspaces-apis)
+* [Working with Syntax](#working-with-syntax)
+    * [Syntax Trees](#syntax-trees)
+    * [Syntax Nodes](#syntax-nodes)
+    * [Syntax Tokens](#syntax-tokens)
+    * [Syntax Trivia](#syntax-trivia)
+    * [Spans](#spans)
+    * [Kinds](#kinds)
+    * [Errors](#errors)
+* [Working with Semantics](#working-with-semantics)
+    * [Compilation](#compilation)
+    * [Symbols](#symbols)
+    * [Semantic Model](#semantic-model)
+* [Working with a Workspace](#working-with-a-workspace)
+    * [Workspace](#workspace)
+    * [Solutions, Projects and Documents](#solutions-projects-documents)
 
 # [#SUMMARY]
 
@@ -241,3 +241,4 @@ The following diagram is a representation of how the Workspace relates to the ho
 ## Summary
 
 The .NET Compiler Platform (“Roslyn”) exposes a set of Compiler APIs and Workspaces APIs that provides rich information about your source code and that has full fidelity with the C# and Visual Basic languages.  The transition to compilers as a platform dramatically lowers the barrier to entry for creating code focused tools and applications. It creates many opportunities for innovation in areas such as meta-programming, code generation and transformation, interactive use of the C# and VB languages, and embedding of C# and VB in domain specific languages.  
+
