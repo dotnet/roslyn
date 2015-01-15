@@ -138,7 +138,7 @@ namespace Roslyn.Utilities
         /// <remarks>
         /// The calling thread must currently hold the lock.
         /// </remarks>
-        /// <exception cref="Contract.ContractFailureException">The lock is not currently held by the calling thread.</exception>
+        /// <exception cref="InvalidOperationException">The lock is not currently held by the calling thread.</exception>
         public void Release()
         {
             AssertHasLock();
@@ -164,7 +164,7 @@ namespace Roslyn.Utilities
         /// <summary>
         /// Throw an exception if the lock is not held by the calling thread.
         /// </summary>
-        /// <exception cref="Contract.ContractFailureException">The lock is not currently held by the calling thread.</exception>
+        /// <exception cref="InvalidOperationException">The lock is not currently held by the calling thread.</exception>
         public void AssertHasLock()
         {
             Contract.ThrowIfFalse(LockHeldByMe());
