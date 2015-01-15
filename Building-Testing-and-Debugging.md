@@ -152,7 +152,7 @@ You are welcome to continue to use the End User Preview to provide feedback on t
 
 1. Install the latest Visual Studio 14 preview from (http://www.visualstudio.com/en-us/downloads/visual-studio-14-ctp-vs.aspx)
 2. Install the corresponding  VSSDK from the same page 
-3. Clone the repo using: git clone  https://git01.codeplex.com/roslyn
+3. Clone the repo using: git clone https://github.com/dotnet/roslyn.git
 4. Checkout the branch that matches the downloaded preview E.g: Git checkout releases/Dev14Preview
 5. Start VS, Load the Roslyn Solution 
 6. Set the Tools\OpenSourceDebug project to the default project 
