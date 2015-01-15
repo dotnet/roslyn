@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public Action<CodeBlockStartAnalysisContext<TLanguageKindEnum>> Action { get { return this.action; } }
     }
 
-    internal sealed class CodeBlockEndAnalyzerAction<TLanguageKindEnum> : AnalyzerAction where TLanguageKindEnum : struct
+    internal sealed class CodeBlockEndAnalyzerAction : AnalyzerAction
     {
         private readonly Action<CodeBlockEndAnalysisContext> action;
 

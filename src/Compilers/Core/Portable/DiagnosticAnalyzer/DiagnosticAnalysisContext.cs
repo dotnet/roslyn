@@ -93,9 +93,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Register an action to be executed at the end of semantic analysis of a method body or an expression appearing outside a method body.
         /// A code block end action reports <see cref="Diagnostic"/>s about code blocks.
         /// </summary>
-        /// <typeparam name="TLanguageKindEnum">Enum type giving the syntax node kinds of the source language for which the action applies.</typeparam>
         /// <param name="action">Action to be executed at the end of semantic analysis of a code block.</param>
-        public abstract void RegisterCodeBlockEndAction<TLanguageKindEnum>(Action<CodeBlockEndAnalysisContext> action) where TLanguageKindEnum : struct;
+        public abstract void RegisterCodeBlockEndAction(Action<CodeBlockEndAnalysisContext> action);
 
         /// <summary>
         /// Register an action to be executed at completion of parsing of a code document.
@@ -230,9 +229,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// Register an action to be executed at the end of semantic analysis of a method body or an expression appearing outside a method body.
         /// A code block end action reports <see cref="Diagnostic"/>s about code blocks.
         /// </summary>
-        /// <typeparam name="TLanguageKindEnum">Enum type giving the syntax node kinds of the source language for which the action applies.</typeparam>
         /// <param name="action">Action to be executed at the end of semantic analysis of a code block.</param>
-        public abstract void RegisterCodeBlockEndAction<TLanguageKindEnum>(Action<CodeBlockEndAnalysisContext> action) where TLanguageKindEnum : struct;
+        public abstract void RegisterCodeBlockEndAction(Action<CodeBlockEndAnalysisContext> action);
 
         /// <summary>
         /// Register an action to be executed at completion of parsing of a code document.

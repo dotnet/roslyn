@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             VerifyArguments(declarationsInNode, getKind, semanticModel, actions, analyzerOptions, addDiagnostic, continueOnAnalyzerException);
 
             var codeBlockStartActions = actions.GetCodeBlockStartActions<TLanguageKindEnum>();
-            var codeBlockEndActions = actions.GetCodeBlockEndActions<TLanguageKindEnum>();
+            var codeBlockEndActions = actions.CodeBlockEndActions;
 
             if (!codeBlockStartActions.Any() && !codeBlockEndActions.Any())
             {
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal static void ExecuteCodeBlockActions<TLanguageKindEnum>(
             IEnumerable<CodeBlockStartAnalyzerAction<TLanguageKindEnum>> codeBlockStartActions,
-            IEnumerable<CodeBlockEndAnalyzerAction<TLanguageKindEnum>> codeBlockEndActions,
+            IEnumerable<CodeBlockEndAnalyzerAction> codeBlockEndActions,
             SyntaxNode declaredNode,
             ISymbol declaredSymbol,
             ImmutableArray<SyntaxNode> executableCodeBlocks,
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Debug.Assert(executableCodeBlocks.Any());
 
             // Compute the sets of code block end and stateful syntax node actions.
-            var endedActions = PooledHashSet<CodeBlockEndAnalyzerAction<TLanguageKindEnum>>.GetInstance();
+            var endedActions = PooledHashSet<CodeBlockEndAnalyzerAction>.GetInstance();
             var executableNodeActions = ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>.GetInstance();
 
             // Include the stateless code block actions.
