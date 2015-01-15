@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
     class MockCSharpCompiler : CSharpCompiler
     {
         public MockCSharpCompiler(string responseFile, string baseDirectory, string[] args)
-            : base(CSharpCommandLineParser.Default, responseFile, args, baseDirectory, Environment.GetEnvironmentVariable("LIB"))
+            : base(CSharpCommandLineParser.Default, responseFile, args, baseDirectory, Environment.GetEnvironmentVariable("LIB"), System.IO.Path.GetTempPath())
         {
 
         }

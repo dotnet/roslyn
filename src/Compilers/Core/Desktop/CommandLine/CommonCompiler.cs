@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis
         public CommandLineArguments Arguments { get; private set; }
         public abstract DiagnosticFormatter DiagnosticFormatter { get; }
         private readonly HashSet<Diagnostic> reportedDiagnostics = new HashSet<Diagnostic>();
+        private readonly string tempPath;
 
         protected abstract Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger);
         protected abstract void PrintLogo(TextWriter consoleOutput);
@@ -67,11 +68,14 @@ namespace Microsoft.CodeAnalysis
         protected abstract void CompilerSpecificSqm(IVsSqmMulti sqm, uint sqmSession);
         protected abstract ImmutableArray<DiagnosticAnalyzer> ResolveAnalyzersFromArguments(List<DiagnosticInfo> diagnostics, CommonMessageProvider messageProvider, TouchedFileLogger touchedFiles);
 
-        public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, string baseDirectory, string additionalReferencePaths)
+        public CommonCompiler(CommandLineParser parser, string responseFile, string[] args, string baseDirectory, string additionalReferencePaths, string tempPath)
         {
             IEnumerable<string> allArgs = args;
 
             Debug.Assert(null == responseFile || PathUtilities.IsAbsolute(responseFile));
+            Debug.Assert(tempPath != null);
+
+            this.tempPath = FileUtilities.ResolveRelativePath(tempPath, baseDirectory);
 
             if (!SuppressDefaultResponseFile(args) && File.Exists(responseFile))
             {
@@ -353,15 +357,9 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
-                tempExeFilename = CreateTempFile(consoleOutput);
+                FileStream output = CreateTempFile(consoleOutput, out tempExeFilename);
 
                 // Can happen when temp directory is "full"
-                if (tempExeFilename == null)
-                {
-                    return Failed;
-                }
-
-                FileStream output = OpenFile(tempExeFilename, consoleOutput);
                 if (output == null)
                 {
                     return Failed;
@@ -380,14 +378,7 @@ namespace Microsoft.CodeAnalysis
 
                     if (Arguments.EmitPdb)
                     {
-                        tempPdbFilename = CreateTempFile(consoleOutput);
-
-                        if (tempPdbFilename == null)
-                        {
-                            return Failed;
-                        }
-
-                        pdb = OpenFile(tempPdbFilename, consoleOutput);
+                        pdb = CreateTempFile(consoleOutput, out tempPdbFilename);
                         if (pdb == null)
                         {
                             return Failed;
@@ -684,24 +675,29 @@ namespace Microsoft.CodeAnalysis
         }
         private Action<string, string> fileMove;
 
-        /// <summary>
-        /// Test hook for intercepting Path.GetTempFileName.
-        /// </summary>
-        internal Func<string> PathGetTempFileName
+        private string GetTempFileName()
         {
-            get { return pathGetTempFileName ?? Path.GetTempFileName; }
-            set { pathGetTempFileName = value; }
+            return Path.Combine(tempPath, Guid.NewGuid().ToString("N") + ".tmp");
         }
-        private Func<string> pathGetTempFileName;
 
-        private string CreateTempFile(TextWriter consoleOutput)
+        /// <summary>
+        /// Test hook for intercepting creation of temporary files.
+        /// </summary>
+        internal event Action<string, FileStream> OnCreateTempFile;
+
+        private FileStream CreateTempFile(TextWriter consoleOutput, out string fileName)
         {
-            string result = null;
-
             // now catching in response to watson bucket 148019219
             try
             {
-                result = PathGetTempFileName();
+                fileName = GetTempFileName();
+                var result = FileOpen(fileName, FileMode.CreateNew, FileAccess.ReadWrite, FileShare.None);
+                if (OnCreateTempFile != null)
+                {
+                    OnCreateTempFile(fileName, result);
+                }
+
+                return result;
             }
             catch (IOException ex)
             {
@@ -712,7 +708,8 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return result;
+            fileName = null;
+            return null;
         }
 
         private FileStream OpenFile(string filePath, TextWriter consoleOutput, FileMode mode = FileMode.Open, FileAccess access = FileAccess.ReadWrite, FileShare share = FileShare.None)

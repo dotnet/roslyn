@@ -216,7 +216,8 @@ public class C { }").Path;
                 var cmd = new CSharpCompilerServer(null,
                     new[] { "/nologo", "/touchedfiles:" + touchedBase, source1 },
                     baseDirectory,
-                    libDirectory);
+                    libDirectory,
+                    Path.GetTempPath());
 
                 List<string> expectedReads;
                 List<string> expectedWrites;
@@ -264,13 +265,10 @@ public class C { }").Path;
             writes.Add(outputPath);
 
             // Hook temporary file creation
-            cmd.PathGetTempFileName = () =>
-            {
-                // Named 'GetFileName', but actually a path
-                string tempPath = Path.GetTempFileName();
-                writes.Add(tempPath);
-                return tempPath;
-            };
+            cmd.OnCreateTempFile += (tempPath, stream) =>
+                                    {
+                                        writes.Add(tempPath);
+                                    };
             expectedWrites = writes;
         }
 

@@ -22,8 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly string responseFile;
         private CommandLineDiagnosticFormatter diagnosticFormatter;
 
-        protected CSharpCompiler(CSharpCommandLineParser parser, string responseFile, string[] args, string baseDirectory, string additionalReferencePaths)
-            : base(parser, responseFile, args, baseDirectory, additionalReferencePaths)
+        protected CSharpCompiler(CSharpCommandLineParser parser, string responseFile, string[] args, string baseDirectory, string additionalReferencePaths, string tempPath)
+            : base(parser, responseFile, args, baseDirectory, additionalReferencePaths, tempPath)
         {
             Debug.Assert(responseFile == null || Path.IsPathRooted(responseFile));
             this.responseFile = responseFile;

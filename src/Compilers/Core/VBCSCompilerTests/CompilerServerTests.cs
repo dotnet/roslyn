@@ -1801,5 +1801,57 @@ class Hello
             Assert.Equal("Argument to '/keepalive' is out of 32-bit integer range", result.Output.Trim());
             Assert.Equal("", result.Errors);
         }
+
+        [Fact, WorkItem(1024619, "DevDiv")]
+        public void Bug1024619_01()
+        {
+            var srcFile = tempDirectory.CreateFile("test.cs").WriteAllText("").Path;
+
+            tempDirectory.CreateDirectory("Temp");
+            var tmp = Path.Combine(tempDirectory.Path, "Temp");
+
+            var result = ProcessLauncher.Run("cmd",
+                string.Format("/C \"SET TMP={2} && {0} /nologo /t:library {1}\"",
+                CSharpCompilerClientExecutable,
+                srcFile, tmp));
+
+            Assert.Equal(0, result.ExitCode);
+
+            Directory.Delete(tmp);
+
+            result = ProcessLauncher.Run("cmd",
+                string.Format("/C {0} /nologo /t:library {1}",
+                CSharpCompilerClientExecutable,
+                srcFile));
+
+            Assert.Equal("", result.Output.Trim());
+            Assert.Equal(0, result.ExitCode);
+        }
+
+        [Fact, WorkItem(1024619, "DevDiv")]
+        public void Bug1024619_02()
+        {
+            var srcFile = tempDirectory.CreateFile("test.vb").WriteAllText("").Path;
+
+            tempDirectory.CreateDirectory("Temp");
+            var tmp = Path.Combine(tempDirectory.Path, "Temp");
+
+            var result = ProcessLauncher.Run("cmd",
+                string.Format("/C \"SET TMP={2} && {0} /nologo /t:library {1}\"",
+                BasicCompilerClientExecutable,
+                srcFile, tmp));
+
+            Assert.Equal(0, result.ExitCode);
+
+            Directory.Delete(tmp);
+
+            result = ProcessLauncher.Run("cmd",
+                string.Format("/C {0} /nologo /t:library {1}",
+                BasicCompilerClientExecutable,
+                srcFile));
+
+            Assert.Equal("", result.Output.Trim());
+            Assert.Equal(0, result.ExitCode);
+        }
     }
 }
