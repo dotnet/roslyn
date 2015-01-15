@@ -946,7 +946,7 @@ Module Module1
         Try
             Foo()
         Catch ex As OutOfMemoryException
-            Console.WriteLine("Expected Exception Occured")
+            Console.WriteLine("Expected Exception Occurred")
         End Try
     End Sub
 End Module
@@ -957,7 +957,7 @@ End Module
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[1
 2
-Expected Exception Occured
+Expected Exception Occurred
 ]]>)
         End Sub
 

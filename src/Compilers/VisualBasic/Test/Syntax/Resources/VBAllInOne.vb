@@ -1080,12 +1080,12 @@ Partial Public Class ClsPPMTest003
 
         If x1 Is y1 Then
         Else
-            Console.WriteLine("Expected Result Occured")
+            Console.WriteLine("Expected Result Occurred")
         End If
 
         If x1 IsNot y1 Then
         Else
-            Console.WriteLine("Expected Result Occured")
+            Console.WriteLine("Expected Result Occurred")
         End If
 
     End Sub

@@ -32,10 +32,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// with the same Id are returned from a code fix or code refactoring provider, Visual Studio's light bulb UI
         /// will present only one of these 'equivalent' code actions to the end user.
         /// 
-        /// Also, if a code fix provider supports 'fix all occurences', and if the end user selects to fix all occurences
+        /// Also, if a code fix provider supports 'fix all occurrences', and if the end user selects to fix all occurrences
         /// (in a document, project or solution) of a particular issue addressed by this provider, then the Id of the code
         /// action returned by this provider is used to compute the 'equivalent' code actions that should be applied at
-        /// other locations in the end user's document, project or solution in order to fix all occurences of the issue.
+        /// other locations in the end user's document, project or solution in order to fix all occurrences of the issue.
         /// </remarks>
         public virtual string Id { get { return null; } }
 

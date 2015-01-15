@@ -118,7 +118,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="ErrorWhileReadingSpecifiedConfigFile" xml:space="preserve">
-    <value>An error occured while reading the specified configuration file: {0}</value>
+    <value>An error occurred while reading the specified configuration file: {0}</value>
   </data>
   <data name="RenameSymbolIsNotFromSource" xml:space="preserve">
     <value>Symbol "{0}" is not from source.</value>

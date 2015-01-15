@@ -413,7 +413,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An error occured while reading the specified configuration file: {0}.
+        ///   Looks up a localized string similar to An error occurred while reading the specified configuration file: {0}.
         /// </summary>
         internal static string ErrorWhileReadingSpecifiedConfigFile {
             get {
