@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// The absolute span of the list elements in characters, not including the leading and trailing trivia of the first and last elements.
+        /// The absolute span of the list elements in characters, including the leading and trailing trivia of the first and last elements.
         /// </summary>
         public TextSpan FullSpan
         {
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// The absolute span of the list elements in characters, including the leading and trailing trivia of the first and last elements.
+        /// The absolute span of the list elements in characters, not including the leading and trailing trivia of the first and last elements.
         /// </summary>
         public TextSpan Span
         {
