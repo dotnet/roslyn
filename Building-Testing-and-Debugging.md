@@ -1,3 +1,4 @@
+
 # Building, Testing, and Debugging
 
 ## Required Software
@@ -39,18 +40,8 @@ There are API differences between "master" and "releases/build-preview". If you 
 ```
 git branch --list --all
   master
-  remotes/origin/DeclarationExpressions
   remotes/origin/HEAD -> origin/master
-  remotes/origin/PrimaryConstructors
-  remotes/origin/autoprop-initializers
-  remotes/origin/master
-  remotes/origin/pattern-matching
-  remotes/origin/releases/Dev14CTP1
-  remotes/origin/releases/Dev14CTP2
-  remotes/origin/releases/Dev14CTP3
-  remotes/origin/releases/Dev14CTP4
   remotes/origin/releases/Dev14Preview
-  remotes/origin/releases/build-preview 
 ```
 
 > Select the branch that matches your CTP, E.g:
@@ -69,12 +60,12 @@ In order to test changes in Visual Studio without affecting the normal developme
 ```
 
 ## Download NuGet Packages
-From the command prompt, change directory to `{{<clone dir>}}` and run `{{Src\.nuget\nuget restore Src\Roslyn.sln}}`
+From the command prompt, change directory to `<clone dir>` and run `Src\.nuget\nuget restore Src\Roslyn.sln`
 
 This ensures that all of the references and tools needed to build Roslyn are present on the computer.  Because we use toolset packages, it's important to do this before opening the solution.
 
 ## Building the command line compilers
-In order to build the command line compilers, you can simply open "Src\Roslyn.sln" from the directory where you created your git clone.  Alternatively, you can build from the command line using `{{msbuild Src\Roslyn.sln}}`.  If you want to debug the C# compiler, you should set the “Compilers\CSharp\csc” project as the startup project.  For the Visual Basic compiler, it’s the "Compilers\VisualBasic\vbc" project.
+In order to build the command line compilers, you can simply open "Src\Roslyn.sln" from the directory where you created your git clone.  Alternatively, you can build from the command line using `msbuild Src\Roslyn.sln`.  If you want to debug the C# compiler, you should set the “Compilers\CSharp\csc” project as the startup project.  For the Visual Basic compiler, it’s the "Compilers\VisualBasic\vbc" project.
 
 Note that in most situations the compilers will NOT be invoked through csc and vbc for performance reasons, but they are the simplest way to debug.  Other entry points include:
 
@@ -114,12 +105,12 @@ To run the unit tests:
 * Close the solution in Visual Studio (to ensure files are not locked)
 * Open a Developer Command Prompt (administrator rights are not required)
 * Navigate to the root of your clone
-* Run `{{msbuild /m BuildAndTest.proj /p:DeployExtensions=false}}`
+* Run `msbuild /m BuildAndTest.proj /p:DeployExtensions=false`
 
 This will first build all sources, and then run all unit tests using the msbuild runner from the [xUnit 2.0 runners NuGet Package](https://www.nuget.org/packages/xunit.runners/2.0.0-alpha-build2576).  Results will be placed in a file named <clone dir>\UnitTestResults.html.  Several warnings are expected as we have a policy of adding skipped unit tests to represent bugs that are not yet fixed.
 
 **Debugging unit test failures**
-You can debug a unit test project using *{{xunit.console.x86.exe}}* which is part of the package above:
+You can debug a unit test project using *xunit.console.clr4.x86.exe* which is part of the package above:
 
 * Open project properties for the unit test project containing the test you want to debug
 * Select the Debug tab
