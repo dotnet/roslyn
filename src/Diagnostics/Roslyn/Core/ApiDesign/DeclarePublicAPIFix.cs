@@ -14,22 +14,9 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Roslyn.Diagnostics.Analyzers.ApiDesign
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = "PublicSurfaceAreaFix"), Shared]
+    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = "DeclarePublicAPIFix"), Shared]
     public class DeclarePublicAPIFix : CodeFixProvider
     {
-        private static readonly SymbolDisplayFormat titleFormat =
-            new SymbolDisplayFormat(
-                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
-                propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
-                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-                memberOptions:
-                    SymbolDisplayMemberOptions.None,
-                parameterOptions:
-                    SymbolDisplayParameterOptions.None,
-                miscellaneousOptions:
-                    SymbolDisplayMiscellaneousOptions.None);
-
         public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
         {
             return ImmutableArray.Create(RoslynDiagnosticIds.DeclarePublicApiRuleId);
@@ -53,21 +40,20 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
             var semanticModel = await context.Document.GetSemanticModelAsync(context.CancellationToken).ConfigureAwait(false);
             foreach (var diagnostic in context.Diagnostics)
             {
-                var node = root.FindNode(diagnostic.Location.SourceSpan);
-                if (node != null)
+                var location = diagnostic.Location;
+
+                var symbol = FindDeclaration(root, location, semanticModel, context.CancellationToken);
+
+                if (symbol != null)
                 {
-                    var symbol = semanticModel.GetDeclaredSymbol(node, context.CancellationToken);
-                    var minimalSymbolName = symbol.ToMinimalDisplayString(semanticModel, node.SpanStart, titleFormat);
+                    var minimalSymbolName = symbol.ToMinimalDisplayString(semanticModel, location.SourceSpan.Start, DeclarePublicAPIAnalyzer.ShortSymbolNameFormat);
                     var publicSurfaceAreaSymbolName = symbol.ToDisplayString(DeclarePublicAPIAnalyzer.PublicApiFormat);
 
-                    if (symbol != null)
-                    {
-                        context.RegisterFix(
-                            new AdditionalDocumentChangeAction(
-                                $"Add {minimalSymbolName} to public API",
-                                c => GetFix(publicSurfaceAreaDocument, publicSurfaceAreaSymbolName, c)),
-                            diagnostic);
-                    }
+                    context.RegisterFix(
+                        new AdditionalDocumentChangeAction(
+                            $"Add {minimalSymbolName} to public API",
+                            c => GetFix(publicSurfaceAreaDocument, publicSurfaceAreaSymbolName, c)),
+                        diagnostic);
                 }
             }
         }
@@ -114,6 +100,24 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
             }
 
             return lines;
+        }
+
+        private static ISymbol FindDeclaration(SyntaxNode root, Location location, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            var node = root.FindNode(location.SourceSpan);
+            ISymbol symbol = null;
+            while (node != null)
+            {
+                symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
+                if (symbol != null)
+                {
+                    break;
+                }
+
+                node = node.Parent;
+            }
+
+            return symbol;
         }
 
         private class AdditionalDocumentChangeAction : CodeAction
@@ -187,10 +191,11 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
 
                         foreach (var diagnostic in grouping)
                         {
-                            var node = root.FindNode(diagnostic.Location.SourceSpan);
-                            if (node != null)
+                            var location = diagnostic.Location;
+                            var symbol = FindDeclaration(root, location, semanticModel, cancellationToken);
+
+                            if (symbol != null)
                             {
-                                var symbol = semanticModel.GetDeclaredSymbol(node, cancellationToken);
                                 var publicSurfaceAreaSymbolName = symbol.ToDisplayString(DeclarePublicAPIAnalyzer.PublicApiFormat);
 
                                 if (symbol != null)

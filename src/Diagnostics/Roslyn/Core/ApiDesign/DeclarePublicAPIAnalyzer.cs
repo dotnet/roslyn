@@ -36,6 +36,19 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
             description: RoslynDiagnosticsResources.RemoveDeletedApiDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
+        internal static readonly SymbolDisplayFormat ShortSymbolNameFormat =
+            new SymbolDisplayFormat(
+                globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameOnly,
+                propertyStyle: SymbolDisplayPropertyStyle.NameOnly,
+                genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                memberOptions:
+                    SymbolDisplayMemberOptions.None,
+                parameterOptions:
+                    SymbolDisplayParameterOptions.None,
+                miscellaneousOptions:
+                    SymbolDisplayMiscellaneousOptions.None);
+
         internal static readonly SymbolDisplayFormat PublicApiFormat =
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
@@ -96,15 +109,20 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
                         return;
                     }
 
-                    var fullyQualifiedName = symbol.ToDisplayString(PublicApiFormat);
+                    var publicApiName = symbol.ToDisplayString(PublicApiFormat);
 
                     lock (lockObj)
                     {
-                        examinedPublicTypes.Add(fullyQualifiedName);
+                        examinedPublicTypes.Add(publicApiName);
 
-                        if (!declaredPublicSymbols.Contains(fullyQualifiedName))
+                        if (!declaredPublicSymbols.Contains(publicApiName))
                         {
-                            symbolContext.ReportDiagnostic(Diagnostic.Create(DeclareNewApiRule, symbol.Locations.First(loc => loc.IsInSource), fullyQualifiedName));
+                            var errorMessageName = symbol.ToDisplayString(ShortSymbolNameFormat);
+
+                            foreach (var sourceLocation in symbol.Locations.Where(loc => loc.IsInSource))
+                            {
+                                symbolContext.ReportDiagnostic(Diagnostic.Create(DeclareNewApiRule, sourceLocation, errorMessageName));
+                            }
                         }
                     }
                 },
@@ -136,7 +154,12 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
 
             foreach (var line in additionalFile.GetText().Lines)
             {
-                publicSymbols.Add(line.ToString());
+                var text = line.ToString();
+
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    publicSymbols.Add(text);
+                }
             }
 
             return publicSymbols;
