@@ -372,6 +372,9 @@
     <Compile Include="CodeRefactorings\CodeRefactoringContext.cs" />
     <Compile Include="Differencing\LongestCommonImmutableArraySubsequence.cs" />
     <Compile Include="Differencing\SequenceEdit.cs" />
+    <Compile Include="FindSymbols\DeclaredSymbolInfo.cs" />
+    <Compile Include="FindSymbols\SyntaxTree\AbstractSyntaxTreeInfo.cs" />
+    <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeDeclarationInfo.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileMergeSessionResult.cs" />
     <Compile Include="LinkedFileDiffMerging\DefaultDocumentTextDifferencingService.cs" />
     <Compile Include="Log\AggregateLogger.cs" />

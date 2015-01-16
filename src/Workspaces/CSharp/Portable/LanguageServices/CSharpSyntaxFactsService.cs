@@ -1,14 +1,15 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -737,6 +738,276 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node is NamespaceDeclarationSyntax ||
                    node is TypeDeclarationSyntax ||
                    node is EnumDeclarationSyntax;
+        }
+
+        public bool TryGetDeclaredSymbolInfo(SyntaxNode node, out DeclaredSymbolInfo declaredSymbolInfo)
+        {
+            switch (node.Kind())
+            {
+                case SyntaxKind.ClassDeclaration:
+                    var classDecl = (ClassDeclarationSyntax)node;
+                    declaredSymbolInfo = new DeclaredSymbolInfo(classDecl.Identifier.ValueText, GetNodeName(node.Parent), DeclaredSymbolInfoKind.Class, classDecl.Identifier.Span);
+                    return true;
+                case SyntaxKind.ConstructorDeclaration:
+                    var ctorDecl = (ConstructorDeclarationSyntax)node;
+                    declaredSymbolInfo = new DeclaredSymbolInfo(
+                        ctorDecl.Identifier.ValueText,
+                        GetNodeName(node.Parent),
+                        DeclaredSymbolInfoKind.Constructor,
+                        ctorDecl.Identifier.Span,
+                        parameterCount: (ushort)(ctorDecl.ParameterList?.Parameters.Count ?? 0));
+                    return true;
+                case SyntaxKind.DelegateDeclaration:
+                    var delegateDecl = (DelegateDeclarationSyntax)node;
+                    declaredSymbolInfo = new DeclaredSymbolInfo(delegateDecl.Identifier.ValueText, GetNodeName(node.Parent), DeclaredSymbolInfoKind.Delegate, delegateDecl.Identifier.Span);
+                    return true;
+                case SyntaxKind.EnumDeclaration:
+                    var enumDecl = (EnumDeclarationSyntax)node;
+                    declaredSymbolInfo = new DeclaredSymbolInfo(enumDecl.Identifier.ValueText, GetNodeName(node.Parent), DeclaredSymbolInfoKind.Enum, enumDecl.Identifier.Span);
+                    return true;
+                case SyntaxKind.EnumMemberDeclaration:
+                    var enumMember = (EnumMemberDeclarationSyntax)node;
+                    declaredSymbolInfo = new DeclaredSymbolInfo(enumMember.Identifier.ValueText, GetNodeName(node.Parent), DeclaredSymbolInfoKind.EnumMember, enumMember.Identifier.Span);
+                    return true;
+                case SyntaxKind.EventDeclaration:
+                    var eventDecl = (EventDeclarationSyntax)node;
+                    declaredSymbolInfo = new DeclaredSymbolInfo(ExpandExplicitInterfaceName(eventDecl.Identifier.ValueText, eventDecl.ExplicitInterfaceSpecifier), GetNodeName(node.Parent), DeclaredSymbolInfoKind.Event, eventDecl.Identifier.Span);
+                    return true;
+                case SyntaxKind.IndexerDeclaration:
+                    var indexerDecl = (IndexerDeclarationSyntax)node;
+                    declaredSymbolInfo = new DeclaredSymbolInfo(WellKnownMemberNames.Indexer, GetNodeName(node.Parent), DeclaredSymbolInfoKind.Indexer, indexerDecl.ThisKeyword.Span);
+                    return true;
+                case SyntaxKind.InterfaceDeclaration:
+                    var interfaceDecl = (InterfaceDeclarationSyntax)node;
+                    declaredSymbolInfo = new DeclaredSymbolInfo(interfaceDecl.Identifier.ValueText, GetNodeName(node.Parent), DeclaredSymbolInfoKind.Interface, interfaceDecl.Identifier.Span);
+                    return true;
+                case SyntaxKind.MethodDeclaration:
+                    var method = (MethodDeclarationSyntax)node;
+                    declaredSymbolInfo = new DeclaredSymbolInfo(
+                        ExpandExplicitInterfaceName(method.Identifier.ValueText, method.ExplicitInterfaceSpecifier),
+                        GetNodeName(node.Parent),
+                        DeclaredSymbolInfoKind.Method,
+                        method.Identifier.Span,
+                        parameterCount: (ushort)(method.ParameterList?.Parameters.Count ?? 0),
+                        typeParameterCount: (ushort)(method.TypeParameterList?.Parameters.Count ?? 0));
+                    return true;
+                case SyntaxKind.PropertyDeclaration:
+                    var property = (PropertyDeclarationSyntax)node;
+                    declaredSymbolInfo = new DeclaredSymbolInfo(ExpandExplicitInterfaceName(property.Identifier.ValueText, property.ExplicitInterfaceSpecifier), GetNodeName(node.Parent), DeclaredSymbolInfoKind.Property, property.Identifier.Span);
+                    return true;
+                case SyntaxKind.StructDeclaration:
+                    var structDecl = (StructDeclarationSyntax)node;
+                    declaredSymbolInfo = new DeclaredSymbolInfo(structDecl.Identifier.ValueText, GetNodeName(node.Parent), DeclaredSymbolInfoKind.Struct, structDecl.Identifier.Span);
+                    return true;
+                case SyntaxKind.VariableDeclarator:
+                    // could either be part of a field declaration or an event field declaration
+                    var variableDeclarator = (VariableDeclaratorSyntax)node;
+                    var variableDeclaration = variableDeclarator.Parent as VariableDeclarationSyntax;
+                    var fieldDeclaration = variableDeclaration?.Parent as BaseFieldDeclarationSyntax;
+                    if (fieldDeclaration != null)
+                    {
+                        var kind = fieldDeclaration is EventFieldDeclarationSyntax
+                            ? DeclaredSymbolInfoKind.Event
+                            : fieldDeclaration.Modifiers.Any(m => m.Kind() == SyntaxKind.ConstKeyword)
+                                ? DeclaredSymbolInfoKind.Constant
+                                : DeclaredSymbolInfoKind.Field;
+
+                        declaredSymbolInfo = new DeclaredSymbolInfo(variableDeclarator.Identifier.ValueText, GetNodeName(fieldDeclaration.Parent), kind, variableDeclarator.Identifier.Span);
+                        return true;
+                    }
+
+                    break;
+            }
+
+            declaredSymbolInfo = default(DeclaredSymbolInfo);
+            return false;
+        }
+
+        private static string ExpandExplicitInterfaceName(string identifier, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier)
+        {
+            if (explicitInterfaceSpecifier == null)
+            {
+                return identifier;
+            }
+            else
+            {
+                var builder = new StringBuilder();
+                ExpandTypeName(explicitInterfaceSpecifier.Name, builder);
+                builder.Append('.');
+                builder.Append(identifier);
+                return builder.ToString();
+            }
+        }
+
+        private static void ExpandTypeName(TypeSyntax type, StringBuilder builder)
+        {
+            switch (type.Kind())
+            {
+                case SyntaxKind.AliasQualifiedName:
+                    var alias = (AliasQualifiedNameSyntax)type;
+                    builder.Append(alias.Alias.Identifier.ValueText);
+                    break;
+                case SyntaxKind.ArrayType:
+                    var array = (ArrayTypeSyntax)type;
+                    ExpandTypeName(array.ElementType, builder);
+                    for (int i = 0; i < array.RankSpecifiers.Count; i++)
+                    {
+                        var rankSpecifier = array.RankSpecifiers[i];
+                        builder.Append(rankSpecifier.OpenBracketToken.Text);
+                        for (int j = 1; j < rankSpecifier.Sizes.Count; j++)
+                        {
+                            builder.Append(',');
+                        }
+
+                        builder.Append(rankSpecifier.CloseBracketToken.Text);
+                    }
+
+                    break;
+                case SyntaxKind.GenericName:
+                    var generic = (GenericNameSyntax)type;
+                    builder.Append(generic.Identifier.ValueText);
+                    if (generic.TypeArgumentList != null)
+                    {
+                        var arguments = generic.TypeArgumentList.Arguments;
+                        builder.Append(generic.TypeArgumentList.LessThanToken.Text);
+                        for (int i = 0; i < arguments.Count; i++)
+                        {
+                            if (i != 0)
+                            {
+                                builder.Append(',');
+                            }
+
+                            ExpandTypeName(arguments[i], builder);
+                        }
+
+                        builder.Append(generic.TypeArgumentList.GreaterThanToken.Text);
+                    }
+
+                    break;
+                case SyntaxKind.IdentifierName:
+                    var identifierName = (IdentifierNameSyntax)type;
+                    builder.Append(identifierName.Identifier.ValueText);
+                    break;
+                case SyntaxKind.NullableType:
+                    var nullable = (NullableTypeSyntax)type;
+                    ExpandTypeName(nullable.ElementType, builder);
+                    builder.Append(nullable.QuestionToken.Text);
+                    break;
+                case SyntaxKind.OmittedTypeArgument:
+                    // do nothing since it was omitted, but don't reach the default block
+                    break;
+                case SyntaxKind.PointerType:
+                    var pointer = (PointerTypeSyntax)type;
+                    ExpandTypeName(pointer.ElementType, builder);
+                    builder.Append(pointer.AsteriskToken.Text);
+                    break;
+                case SyntaxKind.PredefinedType:
+                    var predefined = (PredefinedTypeSyntax)type;
+                    builder.Append(predefined.Keyword.Text);
+                    break;
+                case SyntaxKind.QualifiedName:
+                    var qualified = (QualifiedNameSyntax)type;
+                    ExpandTypeName(qualified.Left, builder);
+                    builder.Append(qualified.DotToken.Text);
+                    ExpandTypeName(qualified.Right, builder);
+                    break;
+                default:
+                    Debug.Assert(false, "Unexpected type syntax " + type.Kind());
+                    break;
+            }
+        }
+
+        private static string GetNodeName(SyntaxNode node)
+        {
+            string name;
+            TypeParameterListSyntax typeParameterList;
+            switch (node.Kind())
+            {
+                case SyntaxKind.ClassDeclaration:
+                    var classDecl = (ClassDeclarationSyntax)node;
+                    name = classDecl.Identifier.ValueText;
+                    typeParameterList = classDecl.TypeParameterList;
+                    break;
+                case SyntaxKind.CompilationUnit:
+                    name = string.Empty;
+                    typeParameterList = null;
+                    break;
+                case SyntaxKind.DelegateDeclaration:
+                    var delegateDecl = (DelegateDeclarationSyntax)node;
+                    name = delegateDecl.Identifier.ValueText;
+                    typeParameterList = delegateDecl.TypeParameterList;
+                    break;
+                case SyntaxKind.EnumDeclaration:
+                    name = ((EnumDeclarationSyntax)node).Identifier.ValueText;
+                    typeParameterList = null;
+                    break;
+                case SyntaxKind.IdentifierName:
+                    name = ((IdentifierNameSyntax)node).Identifier.ValueText;
+                    typeParameterList = null;
+                    break;
+                case SyntaxKind.InterfaceDeclaration:
+                    var interfaceDecl = (InterfaceDeclarationSyntax)node;
+                    name = interfaceDecl.Identifier.ValueText;
+                    typeParameterList = interfaceDecl.TypeParameterList;
+                    break;
+                case SyntaxKind.MethodDeclaration:
+                    var methodDecl = (MethodDeclarationSyntax)node;
+                    name = methodDecl.Identifier.ValueText;
+                    typeParameterList = methodDecl.TypeParameterList;
+                    break;
+                case SyntaxKind.NamespaceDeclaration:
+                    name = GetNodeName(((NamespaceDeclarationSyntax)node).Name);
+                    typeParameterList = null;
+                    break;
+                case SyntaxKind.QualifiedName:
+                    var qualified = (QualifiedNameSyntax)node;
+                    name = GetNodeName(qualified.Left) + "." + GetNodeName(qualified.Right);
+                    typeParameterList = null;
+                    break;
+                case SyntaxKind.StructDeclaration:
+                    var structDecl = (StructDeclarationSyntax)node;
+                    name = structDecl.Identifier.ValueText;
+                    typeParameterList = structDecl.TypeParameterList;
+                    break;
+                default:
+                    Debug.Assert(false, "Unexpected node type " + node.Kind());
+                    return null;
+            }
+
+            // check for nested classes
+            var names = new List<string>() { name + ExpandTypeParameterList(typeParameterList) };
+            var parent = node.Parent;
+            while (parent is TypeDeclarationSyntax)
+            {
+                var currentParent = (TypeDeclarationSyntax)parent;
+                names.Add(currentParent.Identifier.ValueText + ExpandTypeParameterList(currentParent.TypeParameterList));
+                parent = currentParent.Parent;
+            }
+
+            names.Reverse();
+            return string.Join(".", names);
+        }
+
+        private static string ExpandTypeParameterList(TypeParameterListSyntax typeParameterList)
+        {
+            if (typeParameterList != null && typeParameterList.Parameters.Count > 0)
+            {
+                var builder = new StringBuilder();
+                builder.Append('<');
+                builder.Append(typeParameterList.Parameters[0].Identifier.ValueText);
+                for (int i = 1; i < typeParameterList.Parameters.Count; i++)
+                {
+                    builder.Append(',');
+                    builder.Append(typeParameterList.Parameters[i].Identifier.ValueText);
+                }
+
+                builder.Append('>');
+                return builder.ToString();
+            }
+            else
+            {
+                return null;
+            }
         }
 
         public List<SyntaxNode> GetMethodLevelMembers(SyntaxNode root)

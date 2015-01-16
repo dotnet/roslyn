@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.SemanticModelWorkspaceService;
@@ -134,6 +134,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var documentVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
             var currentDocumentVersion = await currentDocument.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
             return !documentVersion.Equals(currentDocumentVersion);
+        }
+
+        public static async Task<IEnumerable<DeclaredSymbolInfo>> GetDeclaredSymbolInfosAsync(this Document document, CancellationToken cancellationToken)
+        {
+            var declarationInfo = await SyntaxTreeInfo.GetDeclarationInfoAsync(document, cancellationToken).ConfigureAwait(false);
+            return declarationInfo.DeclaredSymbolInfos;
         }
     }
 }
