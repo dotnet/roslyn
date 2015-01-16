@@ -13,7 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace ConvertToAutoPropertyCS
 {
-    [ExportCodeRefactoringProvider("ConvertToAutoPropertyCS", LanguageNames.CSharp), Shared]
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = "ConvertToAutoPropertyCS"), Shared]
     internal class ConvertToAutoPropertyCodeRefactoringProvider : CodeRefactoringProvider
     {
         public sealed override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)

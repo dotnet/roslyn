@@ -544,7 +544,7 @@
     <Compile Include="Utilities\ObjectPools\PooledObject.cs" />
     <Compile Include="Workspace\Host\Caching\IWorkspaceCacheService.cs" />
     <Compile Include="Workspace\Host\Mef\ILanguagesMetadata.cs" />
-    <Compile Include="Workspace\Host\Mef\CodeFixProviderMetadata.cs" />
+    <Compile Include="Workspace\Host\Mef\CodeChangeProviderMetadata.cs" />
     <Compile Include="Workspace\Host\Mef\IMefHostExportProvider.cs" />
     <Compile Include="Workspace\Host\Mef\MefHostServices.cs" />
     <Compile Include="Workspace\Host\Mef\MefLanguageServices.cs" />

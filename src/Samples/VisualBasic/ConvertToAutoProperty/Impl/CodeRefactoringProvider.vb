@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-<ExportCodeRefactoringProvider("ConvertToAutoPropertyVB", LanguageNames.VisualBasic), [Shared]>
+<ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:="ConvertToAutoPropertyVB"), [Shared]>
 Class ConvertToAutoPropertyCodeRefactoringProvider
     Inherits CodeRefactoringProvider
 
