@@ -971,6 +971,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The node is not part of the tree..
+        /// </summary>
+        internal static string TheNodeIsNotPartOfTheTree {
+            get {
+                return ResourceManager.GetString("TheNodeIsNotPartOfTheTree", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The position is not within the symbol&apos;s declaration.
         /// </summary>
         internal static string ThePositionIsNotWithinTheSymbolsDeclaration {

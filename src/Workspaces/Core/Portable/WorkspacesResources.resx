@@ -447,4 +447,7 @@
   <data name="ChangingParseOptionsNotSupported" xml:space="preserve">
     <value>Changing parse options is not supported.</value>
   </data>
+  <data name="TheNodeIsNotPartOfTheTree" xml:space="preserve">
+    <value>The node is not part of the tree.</value>
+  </data>
 </root>

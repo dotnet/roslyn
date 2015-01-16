@@ -38,16 +38,7 @@ namespace Roslyn.Utilities
 
             return string.Join(separator, source);
         }
-
-        /// <summary>
-        /// Used to indicate places where we are hard-coding strings that will later need to be
-        /// localized.  This way, we can use a "Find All References" to find and fix these.
-        /// </summary>
-        public static string NeedsLocalization(this string value)
-        {
-            return value;
-        }
-
+       
         public static bool LooksLikeInterfaceName(this string name)
         {
             return name.Length >= 3 && name[0] == 'I' && char.IsUpper(name[1]) && char.IsLower(name[2]);

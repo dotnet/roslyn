@@ -56,7 +56,7 @@ namespace Microsoft.OpenSourceDebug
 
 {1}
 
-To reload the Roslyn compiler package, close Visual Studio and any MSBuild processes, then restart Visual Studio."/*.NeedsLocalization()*/;
+To reload the Roslyn compiler package, close Visual Studio and any MSBuild processes, then restart Visual Studio.";
         protected override void Initialize()
         {
             // Generate targets file

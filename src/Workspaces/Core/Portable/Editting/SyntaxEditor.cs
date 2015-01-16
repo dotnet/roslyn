@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editting
         {
             if (!this.root.Contains(node))
             {
-                throw new ArgumentException("The node is not part of the tree.".NeedsLocalization(), nameof(node));
+                throw new ArgumentException(Microsoft.CodeAnalysis.WorkspacesResources.TheNodeIsNotPartOfTheTree, nameof(node));
             }
         }
 

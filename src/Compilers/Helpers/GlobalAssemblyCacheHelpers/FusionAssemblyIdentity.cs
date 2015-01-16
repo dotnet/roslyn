@@ -471,7 +471,19 @@ namespace Microsoft.CodeAnalysis
             {
                 if (assemblyName.IndexOf('\0') >= 0)
                 {
-                    throw new ArgumentException("Invalid characters in assemblyName".NeedsLocalization(), "name");
+#if SCRIPTING
+                    
+                    throw new ArgumentException(Roslyn.Scripting.CommonScriptingResources.InvalidCharactersInAssemblyName, "name");
+
+#elif WORKSPACE_DESKTOP
+
+                    throw new ArgumentException(Microsoft.CodeAnalysis.WorkspaceDesktopResources.InvalidCharactersInAssemblyName, "name");
+
+#else
+
+                    throw new ArgumentException(Microsoft.CodeAnalysis.CodeAnalysisResources.InvalidCharactersInAssemblyName, "name");
+
+#endif
                 }
 
                 SetProperty(result, PropertyId.NAME, assemblyName);
@@ -491,7 +503,19 @@ namespace Microsoft.CodeAnalysis
                 string cultureName = info.Name;
                 if (cultureName.IndexOf('\0') >= 0)
                 {
-                    throw new ArgumentException("Invalid characters in assembly name".NeedsLocalization(), "name");
+#if SCRIPTING
+                    
+                    throw new ArgumentException(Roslyn.Scripting.CommonScriptingResources.InvalidCharactersInAssemblyName, "name");
+
+#elif WORKSPACE_DESKTOP
+
+                    throw new ArgumentException(Microsoft.CodeAnalysis.WorkspaceDesktopResources.InvalidCharactersInAssemblyName, "name");
+
+#else
+
+                    throw new ArgumentException(Microsoft.CodeAnalysis.CodeAnalysisResources.InvalidCharactersInAssemblyName, "name");
+
+#endif
                 }
 
                 SetProperty(result, PropertyId.CULTURE, cultureName);
