@@ -2,17 +2,13 @@
 # Building, Testing, and Debugging
 
 ## Required Software
-**Visual Studio "14" Professional**
+**Microsoft Visual Studio Ultimate 2015 Preview**
 
-The Roslyn source code currently targets prerelease builds of Visual Studio "14".  Because parts of the source code extend Visual Studio using the VS SDK, a Professional or higher version of Visual Studio is required.
+The Roslyn source code currently targets prerelease builds of Visual Studio 2015", the latest preview release can be downloaded free from [http://www.visualstudio.com/en-us/downloads/visual-studio-2015-downloads-vs](http://www.visualstudio.com/en-us/downloads/visual-studio-2015-downloads-vs).
 
-**Visual Studio "14" SDK**
+**Microsoft Visual Studio 2015 Preview SDK**
 
-The Visual Studio SDK is used to extend Visual Studio "14".  The SDK is a [url:free download|http://www.visualstudio.com/en-us/downloads/visual-studio-14-ctp-vs] and a quick install that works with Visual Studio "14" Professional (or higher).
-
-**.NET Compiler Platform ("Roslyn") End User Preview**
-
-In order to test your changes inside Visual Studio, you’ll need the End User Preview installed to configure an experimental instance of Visual Studio (see below).  Also, the Roslyn source code makes use of several new language features.  The [url:End User Preview|http://go.microsoft.com/fwlink/?LinkId=394641] must be installed for the Visual Studio IDE experience to understand the new language features. Without the End User Preview, spurious errors will appear in the Error List.
+The Visual Studio SDK is used to extend Visual Studio 2015".  This can be downloaded free from a [url:http://www.visualstudio.com/en-us/downloads/visual-studio-14-ctp-vs].
 
 **NuGet package manager**
 
@@ -20,11 +16,7 @@ We use [NuGet](http://nuget.org) with package restore for our dependencies.  We 
 
 **Latest Visual Studio 2015 Preview is recommended**
 
-We are not aware of any issues using earlier builds of Visual Studio 2015 Preview, but we have done the majority of our testing using the current CTPs and Preview builds and recommend its use.  When using a CTP other than the latest ensure that you checkout the git branch that matches your preview, E.g:
-
-```
-git checkout remotes/origin/releases/Dev14Preview 
-```
+When using a Preview build you should ensure you select the repo branch that matches your installed Visual Studio preview, E.g releases/Dev14Preview. Roslyn is being developed at the same time as other core Visual Studio Components, APIs Roslyn is using may change during this preview phase, if you select the matching branch, then the source code you build will match the installed core Visual Studio components. 
 
 ## Getting the code
 
@@ -44,10 +36,10 @@ git branch --list --all
   remotes/origin/releases/Dev14Preview
 ```
 
-> Select the branch that matches your CTP, E.g:
+> Select the branch that matches your Visual Studio preview release, E.g:
 
 ```
-git checkout remotes/origin/releases/Dev14Preview 
+git checkout releases/Dev14Preview 
 ```
 
 ## Strong Name Verification
@@ -105,7 +97,7 @@ To run the unit tests:
 * Close the solution in Visual Studio (to ensure files are not locked)
 * Open a Developer Command Prompt (administrator rights are not required)
 * Navigate to the root of your clone
-* Run `msbuild /m BuildAndTest.proj /p:DeployExtensions=false`
+* Run `msbuild /m BuildAndTest.proj /p:DeployExtension=false`
 
 This will first build all sources, and then run all unit tests using the msbuild runner from the [xUnit 2.0 runners NuGet Package](https://www.nuget.org/packages/xunit.runners/2.0.0-alpha-build2576).  Results will be placed in a file named <clone dir>\UnitTestResults.html.  Several warnings are expected as we have a policy of adding skipped unit tests to represent bugs that are not yet fixed.
 
@@ -166,11 +158,11 @@ You are welcome to continue to use the End User Preview to provide feedback on t
 3. Create a new C# or VB project
 4. Use Tools/Options/Projects and Solutions/Build and Run to set the 'Build Project Verbosity' to 'Normal' so that we can ensure the correct compiler was used
 5. Build the solution you built above.
-6. Look in the build 0utput window and observe the compiler used is similar to: `%USERPROFILE%\APPDATA\LOCAL\MICROSOFT\VISUALSTUDIO\14.0ROSLYN\EXTENSIONS\MSOPENTECH\OPENSOURCEDEBUG\0.7\csc.exe`
+6. Look in the build 0utput window and observe the compiler used is similar to: `%USERPROFILE%\APPDATA\LOCAL\MICROSOFT\VISUALSTUDIO\14.0ROSLYN\EXTENSIONS\MSOPENTECH\OPENSOURCEDEBUG\1.0\csc.exe`
 
 ## Build with OSS Roslyn compilers using MSBUILD
 
 1.  In a Visual Studio Command Shell, type the following command:
 2.  MSBUILD ConsoleApplication01.csproj /t:Rebuild /p:RoslynHive=VisualStudio\14.0Roslyn
-3.  In the build output from this command observe a compiler command line similar to: `%USERPROFILE%\APPDATA\LOCAL\MICROSOFT\VISUALSTUDIO\14.0ROSLYN\EXTENSIONS\MSOPENTECH\OPENSOURCEDEBUG\0.7\csc.exe`
+3.  In the build output from this command observe a compiler command line similar to: `%USERPROFILE%\APPDATA\LOCAL\MICROSOFT\VISUALSTUDIO\14.0ROSLYN\EXTENSIONS\MSOPENTECH\OPENSOURCEDEBUG\1.0\csc.exe`
 
