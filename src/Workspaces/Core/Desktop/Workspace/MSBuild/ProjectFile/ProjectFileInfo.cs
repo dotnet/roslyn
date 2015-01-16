@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -12,11 +12,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
     /// </summary>
     internal sealed class ProjectFileInfo
     {
-        /// <summary>
-        /// The project's individual GUID
-        /// </summary>
-        public Guid Guid { get; private set; }
-
         /// <summary>
         /// The path to the output file this project generates.
         /// </summary>
@@ -68,7 +63,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public IReadOnlyList<AnalyzerReference> AnalyzerReferences { get; private set; }
 
         public ProjectFileInfo(
-            Guid guid,
             string outputPath,
             string assemblyName,
             CompilationOptions compilationOptions,
@@ -80,7 +74,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             IEnumerable<MetadataReference> metadataReferences,
             IEnumerable<AnalyzerReference> analyzerReferences)
         {
-            this.Guid = guid;
             this.OutputFilePath = outputPath;
             this.AssemblyName = assemblyName;
             this.CompilationOptions = compilationOptions;

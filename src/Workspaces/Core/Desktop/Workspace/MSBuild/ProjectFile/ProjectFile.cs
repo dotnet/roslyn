@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Execution;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
@@ -40,17 +41,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public virtual string FilePath
         {
             get { return this.loadedProject.FullPath; }
-        }
-
-        public Guid Guid
-        {
-            get
-            {
-                var propertyValue = this.loadedProject.GetPropertyValue("ProjectGuid");
-                Guid result;
-                Guid.TryParse(propertyValue, out result);
-                return result;
-            }
         }
 
         public string GetPropertyValue(string name)
@@ -472,9 +462,168 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public void RemoveDocument(string filePath)
         {
             var relativePath = FilePathUtilities.GetRelativePath(this.loadedProject.DirectoryPath, filePath);
-            foreach (var item in this.loadedProject.GetItems("Compile").Where(i => i.EvaluatedInclude == relativePath).ToList())
+
+            var items = this.loadedProject.GetItems("Compile");
+            var item = items.FirstOrDefault(it => FilePathUtilities.PathsEqual(it.EvaluatedInclude, relativePath)
+                                               || FilePathUtilities.PathsEqual(it.EvaluatedInclude, filePath));
+            if (item != null)
             {
                 this.loadedProject.RemoveItem(item);
+            }
+        }
+
+        public void AddMetadataReference(MetadataReference reference, AssemblyIdentity identity)
+        {
+            var peRef = reference as PortableExecutableReference;
+            if (peRef != null && peRef.FilePath != null)
+            {
+                var metadata = new Dictionary<string, string>();
+                if (!peRef.Properties.Aliases.IsDefault && peRef.Properties.Aliases.Length > 0)
+                {
+                    metadata.Add("Aliases", string.Join(",", peRef.Properties.Aliases));
+                }
+
+                if (IsInGAC(peRef.FilePath) && identity != null)
+                {
+                    this.loadedProject.AddItem("Reference", identity.ToAssemblyName().FullName, metadata);
+                }
+                else
+                {
+                    string relativePath = FilePathUtilities.GetRelativePath(this.loadedProject.DirectoryPath, peRef.FilePath);
+                    this.loadedProject.AddItem("Reference", relativePath, metadata);
+                }
+            }
+        }
+
+        private bool IsInGAC(string filePath)
+        {
+            return filePath.Contains(@"\GAC_MSIL\");
+        }
+
+        public void RemoveMetadataReference(MetadataReference reference, AssemblyIdentity identity)
+        {
+            var peRef = reference as PortableExecutableReference;
+            if (peRef != null && peRef.FilePath != null)
+            {
+                var item = FindReferenceItem(identity, peRef.FilePath);
+                if (item != null)
+                {
+                    this.loadedProject.RemoveItem(item);
+                }
+            }         
+        }
+
+        private MSB.Evaluation.ProjectItem FindReferenceItem(AssemblyIdentity identity, string filePath)
+        {
+            var references = this.loadedProject.GetItems("Reference");
+            MSB.Evaluation.ProjectItem item = null;
+
+            if (identity != null)
+            {
+                var shortAssemblyName = identity.Name;
+                var fullAssemblyName = identity.ToAssemblyName().FullName;
+
+                // check for short name match
+                item = references.FirstOrDefault(it => string.Compare(it.EvaluatedInclude, shortAssemblyName, StringComparison.OrdinalIgnoreCase) == 0);
+
+                // check for full name match
+                if (item == null)
+                {
+                    item = references.FirstOrDefault(it => string.Compare(it.EvaluatedInclude, fullAssemblyName, StringComparison.OrdinalIgnoreCase) == 0);
+                }
+            }
+
+            // check for file path match
+            if (item == null)
+            {
+                string relativePath = FilePathUtilities.GetRelativePath(this.loadedProject.DirectoryPath, filePath);
+
+                item = references.FirstOrDefault(it => FilePathUtilities.PathsEqual(it.EvaluatedInclude, filePath)
+                                                    || FilePathUtilities.PathsEqual(it.EvaluatedInclude, relativePath));
+            }
+
+            // check for partial name match
+            if (item == null && identity != null)
+            {
+                var partialName = identity.Name + ",";
+                var items = references.Where(it => it.EvaluatedInclude.StartsWith(partialName, StringComparison.OrdinalIgnoreCase)).ToList();
+                if (items.Count == 1)
+                {
+                    item = items[0];
+                }
+            }
+
+            return item;
+        }
+
+        public void AddProjectReference(string projectName, ProjectFileReference reference)
+        {
+            var metadata = new Dictionary<string, string>();
+            metadata.Add("Name", projectName);
+
+            if (!reference.Aliases.IsDefault && reference.Aliases.Length > 0)
+            {
+                metadata.Add("Aliases", string.Join(",", reference.Aliases));
+            }
+
+            string relativePath = FilePathUtilities.GetRelativePath(this.loadedProject.DirectoryPath, reference.Path);
+            this.loadedProject.AddItem("ProjectReference", relativePath, metadata);
+        }
+
+        public void RemoveProjectReference(string projectName, string projectFilePath)
+        {
+            string relativePath = FilePathUtilities.GetRelativePath(this.loadedProject.DirectoryPath, projectFilePath);
+            var item = FindProjectReferenceItem(projectName, projectFilePath);
+            if (item != null)
+            {
+                this.loadedProject.RemoveItem(item);
+            }
+        }
+
+        private MSB.Evaluation.ProjectItem FindProjectReferenceItem(string projectName, string projectFilePath)
+        {
+            var references = this.loadedProject.GetItems("ProjectReference");
+            string relativePath = FilePathUtilities.GetRelativePath(this.loadedProject.DirectoryPath, projectFilePath);
+
+            MSB.Evaluation.ProjectItem item = null;
+
+            // find by project file path
+            item = references.First(it => FilePathUtilities.PathsEqual(it.EvaluatedInclude, relativePath)
+                                       || FilePathUtilities.PathsEqual(it.EvaluatedInclude, projectFilePath));
+
+            // try to find by project name
+            if (item == null)
+            {
+                item = references.First(it => string.Compare(projectName, it.GetMetadataValue("Name"), StringComparison.OrdinalIgnoreCase) == 0);
+            }
+
+            return item;
+        }
+
+        public void AddAnalyzerReference(AnalyzerReference reference)
+        {
+            var fileRef = reference as AnalyzerFileReference;
+            if (fileRef != null)
+            {
+                string relativePath = FilePathUtilities.GetRelativePath(this.loadedProject.DirectoryPath, fileRef.FullPath);
+                this.loadedProject.AddItem("Analyzer", relativePath);
+            }
+        }
+
+        public void RemoveAnalyzerReference(AnalyzerReference reference)
+        {
+            var fileRef = reference as AnalyzerFileReference;
+            if (fileRef != null)
+            {
+                string relativePath = FilePathUtilities.GetRelativePath(this.loadedProject.DirectoryPath, fileRef.FullPath);
+
+                var analyzers = this.loadedProject.GetItems("Analyzer");
+                var item = analyzers.FirstOrDefault(it => FilePathUtilities.PathsEqual(it.EvaluatedInclude, relativePath)
+                                                       || FilePathUtilities.PathsEqual(it.EvaluatedInclude, fileRef.FullPath));
+                if (item != null)
+                {
+                    this.loadedProject.RemoveItem(item);
+                }
             }
         }
 
