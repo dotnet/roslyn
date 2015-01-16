@@ -532,7 +532,7 @@ End Namespace
             End Property
 
             Public Overrides Sub Initialize(context As AnalysisContext)
-                context.RegisterCodeBlockEndAction(Of SyntaxKind)(AddressOf OnCodeBlock)
+                context.RegisterCodeBlockEndAction(AddressOf OnCodeBlock)
             End Sub
 
             Private Shared Sub OnCodeBlock(context As CodeBlockEndAnalysisContext)

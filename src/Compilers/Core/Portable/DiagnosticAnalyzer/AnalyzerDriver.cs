@@ -772,7 +772,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var statelessNodeActionsByKind = this.NodeActionsByKind;
             var executeSyntaxNodeActions = statelessNodeActionsByKind.Any();
-            var executeCodeBlockActions = AnalyzerDriverHelper.CanHaveExecutableCodeBlock(symbol) && (this.compilationAnalysisScope.HasCodeBlockStartActions<TLanguageKindEnum>() || this.compilationAnalysisScope.HasCodeBlockEndActions<TLanguageKindEnum>());
+            var executeCodeBlockActions = AnalyzerDriverHelper.CanHaveExecutableCodeBlock(symbol) && (this.compilationAnalysisScope.HasCodeBlockStartActions<TLanguageKindEnum>() || this.compilationAnalysisScope.HasCodeBlockEndActions);
 
             if (executeSyntaxNodeActions || executeCodeBlockActions)
             {
@@ -936,7 +936,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             AnalyzerDriverHelper.ExecuteCodeBlockActions(
                 compilationScope.GetCodeBlockStartActions<TLanguageKindEnum>(),
-                compilationScope.GetCodeBlockEndActions<TLanguageKindEnum>(),
+                compilationScope.CodeBlockEndActions,
                 declaredNode,
                 declaredSymbol,
                 executableCodeBlocks,

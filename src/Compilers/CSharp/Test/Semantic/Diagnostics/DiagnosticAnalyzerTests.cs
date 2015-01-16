@@ -658,7 +658,7 @@ public class C { }").WithArguments("ClassDeclaration").WithWarningAsError(true))
             public override void Initialize(AnalysisContext context)
             {
                 context.RegisterCodeBlockStartAction<SyntaxKind>(new NodeAnalyzer().Initialize);
-                context.RegisterCodeBlockEndAction<SyntaxKind>(OnCodeBlockEnded);
+                context.RegisterCodeBlockEndAction(OnCodeBlockEnded);
             }
 
             public static void OnCodeBlockEnded(CodeBlockEndAnalysisContext context)
