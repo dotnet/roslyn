@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = StaticTypeRulesDiagnosticAnalyzer.RuleNameForExportAttribute), Shared]
     public class CA1052CSharpCodeFixProvider : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            return ImmutableArray.Create(StaticTypeRulesDiagnosticAnalyzer.CA1052RuleId);
+            get { return ImmutableArray.Create(StaticTypeRulesDiagnosticAnalyzer.CA1052RuleId); }
         }
 
         public sealed override FixAllProvider GetFixAllProvider()
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
             return WellKnownFixAllProviders.BatchFixer;
         }
 
-        public sealed override async Task ComputeFixesAsync(CodeFixContext context)
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var document = context.Document;
             var span = context.Span;
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Design
                 var staticKeyword = SyntaxFactory.Token(SyntaxKind.StaticKeyword).WithAdditionalAnnotations(Formatter.Annotation);
                 var newDeclaration = classDeclaration.AddModifiers(staticKeyword);
                 var newRoot = root.ReplaceNode(classDeclaration, newDeclaration);
-                context.RegisterFix(
+                context.RegisterCodeFix(
                     new MyCodeAction(string.Format(FxCopRulesResources.StaticHolderTypeIsNotStatic, classDeclaration.Identifier.Text), document.WithSyntaxRoot(newRoot)),
                     context.Diagnostics);
             }

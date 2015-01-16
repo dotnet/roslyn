@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
@@ -41,10 +42,10 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return operations;
         }
 
-        internal override async Task<IEnumerable<CodeActionOperation>> GetOperationsCoreAsync(CancellationToken cancellationToken)
+        internal override async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(CancellationToken cancellationToken)
         {
             var options = this.GetOptions(cancellationToken);
-            return await this.GetOperationsAsync(options, cancellationToken).ConfigureAwait(false);
+            return (await this.GetOperationsAsync(options, cancellationToken).ConfigureAwait(false)).ToImmutableArray();
         }
 
         /// <summary>

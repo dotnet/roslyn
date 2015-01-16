@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// 
         /// Implementation-wise the <see cref="PrimaryDiagnostic"/> is always the first diagnostic that
         /// the <see cref="CodeFixProvider"/> supplied when registering the fix (<see 
-        /// cref="CodeFixContext.RegisterFix(CodeAction, IEnumerable{Diagnostic})"/>). This could change
+        /// cref="CodeFixContext.RegisterCodeFix(CodeAction, IEnumerable{Diagnostic})"/>). This could change
         /// in the future, if we decide to change the UI to depict the true mapping between fixes and diagnostics
         /// or if we decide to use some other heuristic to determine the <see cref="PrimaryDiagnostic"/>.
         /// </remarks>

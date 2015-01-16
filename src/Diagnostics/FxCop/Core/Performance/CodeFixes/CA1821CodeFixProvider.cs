@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = CA1821DiagnosticAnalyzerRule.RuleId), Shared]
     public sealed class CA1821CodeFixProvider : CodeFixProviderBase
     {
-        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            return ImmutableArray.Create(CA1821DiagnosticAnalyzerRule.RuleId);
+            get { return ImmutableArray.Create(CA1821DiagnosticAnalyzerRule.RuleId); }
         }
 
         protected sealed override string GetCodeFixDescription(Diagnostic diagnostic)

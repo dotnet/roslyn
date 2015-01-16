@@ -11,12 +11,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.CodeFixes
 {
     public abstract class ApplyDiagnosticAnalyzerAttributeFix : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            return ImmutableArray.Create(DiagnosticIds.MissingDiagnosticAnalyzerAttributeRuleId);
+            get { return ImmutableArray.Create(DiagnosticIds.MissingDiagnosticAnalyzerAttributeRuleId); }
         }
 
-        public sealed override async Task ComputeFixesAsync(CodeFixContext context)
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var token = root.FindToken(context.Span.Start);
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.CodeFixes
             var fix = new MyCodeAction(
                 codeFixTitle,
                 c => GetFix(context.Document, root, classDecl, generator, languages));
-            context.RegisterFix(fix, context.Diagnostics);
+            context.RegisterCodeFix(fix, context.Diagnostics);
         }
 
         private Task<Document> GetFix(Document document, SyntaxNode root, SyntaxNode classDecl, SyntaxGenerator generator, params string[] languages)

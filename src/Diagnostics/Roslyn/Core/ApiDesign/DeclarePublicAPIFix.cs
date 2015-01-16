@@ -30,9 +30,9 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.None);
 
-        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            return ImmutableArray.Create(RoslynDiagnosticIds.DeclarePublicApiRuleId);
+            get { return ImmutableArray.Create(RoslynDiagnosticIds.DeclarePublicApiRuleId); }
         }
 
         public sealed override FixAllProvider GetFixAllProvider()
@@ -40,7 +40,7 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
             return new PublicSurfaceAreaFixAllProvider();
         }
 
-        public sealed override async Task ComputeFixesAsync(CodeFixContext context)
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var project = context.Document.Project;
             TextDocument publicSurfaceAreaDocument = GetPublicSurfaceAreaDocument(project);
@@ -62,7 +62,7 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
 
                     if (symbol != null)
                     {
-                        context.RegisterFix(
+                        context.RegisterCodeFix(
                             new AdditionalDocumentChangeAction(
                                 $"Add {minimalSymbolName} to public API",
                                 c => GetFix(publicSurfaceAreaDocument, publicSurfaceAreaSymbolName, c)),

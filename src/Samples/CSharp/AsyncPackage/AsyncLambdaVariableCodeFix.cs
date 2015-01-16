@@ -23,9 +23,9 @@ namespace AsyncPackage
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = AsyncLambdaAnalyzer.AsyncLambdaId1), Shared]
     public class AsyncLambdaVariableCodeFix : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            return ImmutableArray.Create(AsyncLambdaAnalyzer.AsyncLambdaId1);
+            get { return ImmutableArray.Create(AsyncLambdaAnalyzer.AsyncLambdaId1); }
         }
 
         public sealed override FixAllProvider GetFixAllProvider()
@@ -33,7 +33,7 @@ namespace AsyncPackage
             return null;
         }
 
-        public sealed override async Task ComputeFixesAsync(CodeFixContext context)
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -48,7 +48,7 @@ namespace AsyncPackage
                 var variableDeclaration = parent.FirstAncestorOrSelf<VariableDeclarationSyntax>();
 
                 // Register a code action that will invoke the fix.
-                context.RegisterFix(
+                context.RegisterCodeFix(
                     new AsyncLambdaVariableCodeAction("Async lambdas should not be stored in void-returning delegates",
                                                       c => ChangeToFunc(context.Document, variableDeclaration, c)),
                     diagnostic);

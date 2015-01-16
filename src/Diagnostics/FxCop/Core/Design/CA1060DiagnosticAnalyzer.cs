@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                          FxCopDiagnosticCategory.Design,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: false,
-                                                                         helpLink: "http://msdn.microsoft.com/library/ms182161.aspx",
+                                                                         helpLinkUri: "http://msdn.microsoft.com/library/ms182161.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 
         private const string NativeMethodsText = "NativeMethods";

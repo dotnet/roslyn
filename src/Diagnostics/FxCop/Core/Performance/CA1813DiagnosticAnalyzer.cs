@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Performance
                                                                          FxCopDiagnosticCategory.Performance,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: false,
-                                                                         helpLink: "http://msdn.microsoft.com/library/ms182267.aspx",
+                                                                         helpLinkUri: "http://msdn.microsoft.com/library/ms182267.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics

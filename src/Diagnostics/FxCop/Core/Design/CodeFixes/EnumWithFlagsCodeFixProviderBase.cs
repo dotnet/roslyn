@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
         private readonly ImmutableArray<string> diagnosticIds = ImmutableArray.Create(EnumWithFlagsDiagnosticAnalyzer.RuleIdMarkEnumsWithFlags,
                                                                                    EnumWithFlagsDiagnosticAnalyzer.RuleIdDoNotMarkEnumsWithFlags);
 
-        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            return diagnosticIds;
+            get { return diagnosticIds; }
         }
 
         protected sealed override string GetCodeFixDescription(Diagnostic diagnostic)

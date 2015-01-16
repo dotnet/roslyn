@@ -8,9 +8,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Globalization
 {
     public abstract class CA2101CodeFixProviderBase : CodeFixProviderBase
     {
-        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            return ImmutableArray.Create(Interoperability.PInvokeDiagnosticAnalyzer.CA2101);
+            get { return ImmutableArray.Create(Interoperability.PInvokeDiagnosticAnalyzer.CA2101); }
         }
 
         protected sealed override string GetCodeFixDescription(Diagnostic diagnostic)

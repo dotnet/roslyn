@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Performance
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = "CSharpEmptyArrayCodeFixProvider"), Shared]
     public sealed class CSharpEmptyArrayCodeFixProvider : CodeFixProviderBase
     {
-        public override ImmutableArray<string> GetFixableDiagnosticIds() { return ImmutableArray.Create(RoslynDiagnosticIds.UseArrayEmptyRuleId); }
+        public override ImmutableArray<string> FixableDiagnosticIds { get { return ImmutableArray.Create(RoslynDiagnosticIds.UseArrayEmptyRuleId); } }
 
         public override FixAllProvider GetFixAllProvider() { return WellKnownFixAllProviders.BatchFixer; }
 

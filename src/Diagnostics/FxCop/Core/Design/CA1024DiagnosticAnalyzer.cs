@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: false,
                                                                          description: localizableDescription,
-                                                                         helpLink: "http://msdn.microsoft.com/library/ms182181.aspx",
+                                                                         helpLinkUri: "http://msdn.microsoft.com/library/ms182181.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
         private const string GetHashCodeName = "GetHashCode";
         private const string GetEnumeratorName = "GetEnumerator";

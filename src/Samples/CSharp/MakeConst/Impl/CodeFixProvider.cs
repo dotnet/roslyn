@@ -18,9 +18,9 @@ namespace MakeConstCS
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = "MakeConstCS"), Shared]
     internal class MakeConstCodeFixProvider : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            return ImmutableArray.Create(DiagnosticAnalyzer.MakeConstDiagnosticId);
+            get { return ImmutableArray.Create(DiagnosticAnalyzer.MakeConstDiagnosticId); }
         }
 
         public sealed override FixAllProvider GetFixAllProvider()
@@ -28,7 +28,7 @@ namespace MakeConstCS
             return null;
         }
 
-        public sealed override async Task ComputeFixesAsync(CodeFixContext context)
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken);
 
@@ -39,7 +39,7 @@ namespace MakeConstCS
             var declaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<LocalDeclarationStatementSyntax>().First();
 
             // Register a code action that will invoke the fix.
-            context.RegisterFix(CodeAction.Create("Make constant", c => MakeConstAsync(context.Document, declaration, c)), diagnostic);
+            context.RegisterCodeFix(CodeAction.Create("Make constant", c => MakeConstAsync(context.Document, declaration, c)), diagnostic);
         }
 
         private async Task<Document> MakeConstAsync(Document document, LocalDeclarationStatementSyntax localDeclaration, CancellationToken cancellationToken)
