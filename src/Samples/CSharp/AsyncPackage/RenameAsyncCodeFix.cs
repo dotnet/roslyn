@@ -21,12 +21,12 @@ namespace AsyncPackage
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = RenameAsyncAnalyzer.RenameAsyncId), Shared]
     public class RenameAsyncCodeFix : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            return ImmutableArray.Create(RenameAsyncAnalyzer.RenameAsyncId);
+            get { return ImmutableArray.Create(RenameAsyncAnalyzer.RenameAsyncId); }
         }
 
-        public sealed override async Task ComputeFixesAsync(CodeFixContext context)
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -37,7 +37,7 @@ namespace AsyncPackage
             var methodDeclaration = root.FindToken(diagnosticSpan.Start).Parent.FirstAncestorOrSelf<MethodDeclarationSyntax>();
 
             // Register a code action that will invoke the fix.
-            context.RegisterFix(
+            context.RegisterCodeFix(
                 new RenameAsyncCodeAction("Add Async to the end of the method name",
                                           c => RenameMethodAsync(context.Document, methodDeclaration, c)),
                 diagnostic);

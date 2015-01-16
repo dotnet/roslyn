@@ -22,12 +22,12 @@ namespace AsyncPackage
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = BlockingAsyncAnalyzer.BlockingAsyncId), Shared]
     public class BlockingAsyncCodeFix : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            return ImmutableArray.Create(BlockingAsyncAnalyzer.BlockingAsyncId);
+            get { return ImmutableArray.Create(BlockingAsyncAnalyzer.BlockingAsyncId); }
         }
 
-        public sealed override async Task ComputeFixesAsync(CodeFixContext context)
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
@@ -49,7 +49,7 @@ namespace AsyncPackage
                     var name = invokemethod.Name.Identifier.Text;
 
                     // Register a code action that will invoke the fix.
-                    context.RegisterFix(
+                    context.RegisterCodeFix(
                         new CodeActionChangetoAwaitAsync("Change synchronous operation to asynchronous counterpart",
                                                          c => ChangetoAwaitAsync(context.Document, invocation, name, c)),
                         diagnostic);
@@ -59,7 +59,7 @@ namespace AsyncPackage
                 if (invokemethod != null && invokemethod.Name.Identifier.Text.Equals("GetAwaiter"))
                 {
                     // Register a code action that will invoke the fix.
-                    context.RegisterFix(
+                    context.RegisterCodeFix(
                         new CodeActionChangetoAwaitGetAwaiterAsync("Change synchronous operation to asynchronous counterpart",
                                                                    c => ChangetoAwaitGetAwaiterAsync(context.Document, invocation, c)),
                         diagnostic);
@@ -71,7 +71,7 @@ namespace AsyncPackage
                     var name = invokemethod.Name.Identifier.Text;
 
                     // Register a code action that will invoke the fix.
-                    context.RegisterFix(
+                    context.RegisterCodeFix(
                         new CodeActionChangetoAwaitAsync("Change synchronous operation to asynchronous counterpart",
                                                          c => ChangetoAwaitAsync(context.Document, invocation, name, c)),
                         diagnostic);
@@ -83,7 +83,7 @@ namespace AsyncPackage
                     var name = invokemethod.Name.Identifier.Text;
 
                     // Register a code action that will invoke the fix.
-                    context.RegisterFix(
+                    context.RegisterCodeFix(
                         new CodeActionToDelayWhenAnyWhenAllAsync("Change synchronous operation to asynchronous counterpart",
                                                                  c => ToDelayWhenAnyWhenAllAsync(context.Document, invocation, name, c)),
                         diagnostic);
@@ -95,7 +95,7 @@ namespace AsyncPackage
                     var name = invokemethod.Name.Identifier.Text;
 
                     // Register a code action that will invoke the fix.
-                    context.RegisterFix(
+                    context.RegisterCodeFix(
                         new CodeActionToDelayWhenAnyWhenAllAsync("Change synchronous operation to asynchronous counterpart",
                                                                  c => ToDelayWhenAnyWhenAllAsync(context.Document, invocation, name, c)),
                         diagnostic);
@@ -107,7 +107,7 @@ namespace AsyncPackage
                     var name = invokemethod.Name.Identifier.Text;
 
                     // Register a code action that will invoke the fix.
-                    context.RegisterFix(
+                    context.RegisterCodeFix(
                         new CodeActionToDelayWhenAnyWhenAllAsync("Change synchronous operation to asynchronous counterpart",
                                                                  c => ToDelayWhenAnyWhenAllAsync(context.Document, invocation, name, c)),
                         diagnostic);

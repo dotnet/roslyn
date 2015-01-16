@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                           FxCopDiagnosticCategory.Usage,
                                                                           DiagnosticSeverity.Warning,
                                                                           isEnabledByDefault: false,
-                                                                          helpLink: "http://msdn.microsoft.com/library/ms182168.aspx",
+                                                                          helpLinkUri: "http://msdn.microsoft.com/library/ms182168.aspx",
                                                                           customTags: DiagnosticCustomTags.Microsoft);
 
         private static LocalizableString localizableTitleCA1053 = new LocalizableResourceString(nameof(FxCopRulesResources.StaticHolderTypesShouldNotHaveConstructors), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                           FxCopDiagnosticCategory.Usage,
                                                                           DiagnosticSeverity.Warning,
                                                                           isEnabledByDefault: false,
-                                                                          helpLink: "http://msdn.microsoft.com/library/ms182169.aspx",
+                                                                          helpLinkUri: "http://msdn.microsoft.com/library/ms182169.aspx",
                                                                           customTags: DiagnosticCustomTags.Microsoft);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics

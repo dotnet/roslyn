@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                          FxCopDiagnosticCategory.Design,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
-                                                                         helpLink: "http://msdn.microsoft.com/library/ms182155.aspx",
+                                                                         helpLinkUri: "http://msdn.microsoft.com/library/ms182155.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 
         private static LocalizableString localizableMessageCA1014 = new LocalizableResourceString(nameof(FxCopRulesResources.MarkAssembliesWithCLSCompliantAttribute), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: false,
                                                                          description: localizableDescriptionCA1014,
-                                                                         helpLink: "http://msdn.microsoft.com/library/ms182156.aspx",
+                                                                         helpLinkUri: "http://msdn.microsoft.com/library/ms182156.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 
         private static readonly ImmutableArray<DiagnosticDescriptor> supportedDiagnostics = ImmutableArray.Create(CA1016Rule, CA1014Rule);

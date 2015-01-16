@@ -17,15 +17,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
     Public Class CA1052BasicCodeFixProvider
         Inherits CodeFixProvider
 
-        Public NotOverridable Overrides Function GetFixableDiagnosticIds() As ImmutableArray(Of String)
-            Return ImmutableArray.Create(StaticTypeRulesDiagnosticAnalyzer.CA1052RuleId)
-        End Function
+        Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
+            Get
+                Return ImmutableArray.Create(StaticTypeRulesDiagnosticAnalyzer.CA1052RuleId)
+            End Get
+        End Property
 
         Public NotOverridable Overrides Function GetFixAllProvider() As FixAllProvider
             Return WellKnownFixAllProviders.BatchFixer
         End Function
 
-        Public NotOverridable Overrides Async Function ComputeFixesAsync(context As CodeFixContext) As Task
+        Public NotOverridable Overrides Async Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
             Dim document = context.Document
             Dim span = context.Span
             Dim cancellationToken = context.CancellationToken
@@ -37,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
                 Dim notInheritableKeyword = SyntaxFactory.Token(SyntaxKind.NotInheritableKeyword).WithAdditionalAnnotations(Formatter.Annotation)
                 Dim newClassStatement = classStatement.AddModifiers(notInheritableKeyword)
                 Dim newRoot = root.ReplaceNode(classStatement, newClassStatement)
-                context.RegisterFix(
+                context.RegisterCodeFix(
                     New MyCodeAction(String.Format(FxCopRulesResources.StaticHolderTypeIsNotStatic, classStatement.Identifier.Text), document.WithSyntaxRoot(newRoot)),
                     context.Diagnostics)
             End If

@@ -17,9 +17,9 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = "DeclarePublicAPIFix"), Shared]
     public class DeclarePublicAPIFix : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            return ImmutableArray.Create(RoslynDiagnosticIds.DeclarePublicApiRuleId);
+            get { return ImmutableArray.Create(RoslynDiagnosticIds.DeclarePublicApiRuleId); }
         }
 
         public sealed override FixAllProvider GetFixAllProvider()
@@ -27,7 +27,7 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
             return new PublicSurfaceAreaFixAllProvider();
         }
 
-        public sealed override async Task ComputeFixesAsync(CodeFixContext context)
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var project = context.Document.Project;
             TextDocument publicSurfaceAreaDocument = GetPublicSurfaceAreaDocument(project);
@@ -44,19 +44,19 @@ namespace Roslyn.Diagnostics.Analyzers.ApiDesign
 
                 var symbol = FindDeclaration(root, location, semanticModel, context.CancellationToken);
 
-                if (symbol != null)
-                {
+                    if (symbol != null)
+                    {
                     var minimalSymbolName = symbol.ToMinimalDisplayString(semanticModel, location.SourceSpan.Start, DeclarePublicAPIAnalyzer.ShortSymbolNameFormat);
                     var publicSurfaceAreaSymbolName = symbol.ToDisplayString(DeclarePublicAPIAnalyzer.PublicApiFormat);
 
-                    context.RegisterFix(
-                        new AdditionalDocumentChangeAction(
-                            $"Add {minimalSymbolName} to public API",
-                            c => GetFix(publicSurfaceAreaDocument, publicSurfaceAreaSymbolName, c)),
-                        diagnostic);
+                    context.RegisterCodeFix(
+                            new AdditionalDocumentChangeAction(
+                                $"Add {minimalSymbolName} to public API",
+                                c => GetFix(publicSurfaceAreaDocument, publicSurfaceAreaSymbolName, c)),
+                            diagnostic);
+                    }
                 }
             }
-        }
 
         private static TextDocument GetPublicSurfaceAreaDocument(Project project)
         {

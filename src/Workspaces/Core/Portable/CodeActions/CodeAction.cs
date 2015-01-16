@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <summary>
         /// The sequence of operations that define the code action.
         /// </summary>
-        public async Task<IEnumerable<CodeActionOperation>> GetOperationsAsync(CancellationToken cancellationToken)
+        public async Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(CancellationToken cancellationToken)
         {
             return await GetOperationsCoreAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -50,31 +51,31 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <summary>
         /// The sequence of operations that define the code action.
         /// </summary>
-        internal virtual async Task<IEnumerable<CodeActionOperation>> GetOperationsCoreAsync(CancellationToken cancellationToken)
+        internal virtual async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(CancellationToken cancellationToken)
         {
             var operations = await this.ComputeOperationsAsync(cancellationToken).ConfigureAwait(false);
 
             if (operations != null)
             {
-                operations = await this.PostProcessAsync(operations, cancellationToken).ConfigureAwait(false);
+                return await this.PostProcessAsync(operations, cancellationToken).ConfigureAwait(false);
             }
 
-            return operations;
+            return ImmutableArray<CodeActionOperation>.Empty;
         }
 
         /// <summary>
         /// The sequence of operations used to construct a preview. 
         /// </summary>
-        public async Task<IEnumerable<CodeActionOperation>> GetPreviewOperationsAsync(CancellationToken cancellationToken)
+        public async Task<ImmutableArray<CodeActionOperation>> GetPreviewOperationsAsync(CancellationToken cancellationToken)
         {
             var operations = await this.ComputePreviewOperationsAsync(cancellationToken).ConfigureAwait(false);
 
             if (operations != null)
             {
-                operations = await this.PostProcessAsync(operations, cancellationToken).ConfigureAwait(false);
+                return await this.PostProcessAsync(operations, cancellationToken).ConfigureAwait(false);
             }
 
-            return operations;
+            return ImmutableArray<CodeActionOperation>.Empty;
         }
 
         /// <summary>
@@ -134,24 +135,24 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// <param name="operations">A list of operations.</param>
         /// <param name="cancellationToken">A cancellation token.</param>
         /// <returns>A new list of operations with post processing steps applied to any <see cref="ApplyChangesOperation"/>'s.</returns>
-        protected async Task<IEnumerable<CodeActionOperation>> PostProcessAsync(IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken)
+        protected async Task<ImmutableArray<CodeActionOperation>> PostProcessAsync(IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken)
         {
-            var list = new List<CodeActionOperation>();
+            var arrayBuilder = new ArrayBuilder<CodeActionOperation>();
 
             foreach (var op in operations)
             {
                 var ac = op as ApplyChangesOperation;
                 if (ac != null)
                 {
-                    list.Add(new ApplyChangesOperation(await this.PostProcessChangesAsync(ac.ChangedSolution, cancellationToken).ConfigureAwait(false)));
+                    arrayBuilder.Add(new ApplyChangesOperation(await this.PostProcessChangesAsync(ac.ChangedSolution, cancellationToken).ConfigureAwait(false)));
                 }
                 else
                 {
-                    list.Add(op);
+                    arrayBuilder.Add(op);
                 }
             }
 
-            return list;
+            return arrayBuilder.ToImmutableAndFree();
         }
 
         /// <summary>

@@ -26,12 +26,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         /// <summary>
         /// Gets the diagnostic IDs for which fix all occurrences is supported.
-        /// By default, it returns <see cref="CodeFixProvider.GetFixableDiagnosticIds"/> for the given <paramref name="originalCodeFixProvider"/>.
+        /// By default, it returns <see cref="CodeFixProvider.FixableDiagnosticIds"/> for the given <paramref name="originalCodeFixProvider"/>.
         /// </summary>
         /// <param name="originalCodeFixProvider">Original code fix provider that returned this fix all provider from <see cref="CodeFixProvider.GetFixAllProvider"/> method.</param>
         public virtual IEnumerable<string> GetSupportedFixAllDiagnosticIds(CodeFixProvider originalCodeFixProvider)
         {
-            return originalCodeFixProvider.GetFixableDiagnosticIds();
+            return originalCodeFixProvider.FixableDiagnosticIds;
         }
 
         /// <summary>

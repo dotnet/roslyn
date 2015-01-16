@@ -14,9 +14,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
         protected const string RightName = "right";
         protected const string NotImplementedExceptionName = "System.NotImplementedException";
 
-        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            return ImmutableArray.Create(CA2231DiagnosticAnalyzer.RuleId);
+            get { return ImmutableArray.Create(CA2231DiagnosticAnalyzer.RuleId); }
         }
 
         protected sealed override string GetCodeFixDescription(Diagnostic diagnostic)

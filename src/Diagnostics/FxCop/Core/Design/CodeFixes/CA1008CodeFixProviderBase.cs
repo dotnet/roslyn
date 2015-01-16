@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     /// </summary>
     public abstract class CA1008CodeFixProviderBase : CodeFixProviderBase
     {
-        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            return ImmutableArray.Create(CA1008DiagnosticAnalyzer.RuleId);
+            get { return ImmutableArray.Create(CA1008DiagnosticAnalyzer.RuleId); }
         }
 
         protected sealed override string GetCodeFixDescription(Diagnostic diagnostic)

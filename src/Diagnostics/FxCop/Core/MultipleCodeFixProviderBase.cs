@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers
     {
         internal abstract Task<IEnumerable<CodeAction>> GetFixesAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, CancellationToken cancellationToken);
 
-        public sealed override async Task ComputeFixesAsync(CodeFixContext context)
+        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             var document = context.Document;
             var cancellationToken = context.CancellationToken;
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers
                 {
                     foreach (var a in newActions)
                     {
-                        context.RegisterFix(a, diagnostic);
+                        context.RegisterCodeFix(a, diagnostic);
                     }
                 }
             }

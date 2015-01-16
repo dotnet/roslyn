@@ -13,12 +13,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// A list of diagnostic IDs that this provider can provider fixes for.
         /// </summary>
-        public abstract ImmutableArray<string> GetFixableDiagnosticIds();
+        public abstract ImmutableArray<string> FixableDiagnosticIds { get; }
 
         /// <summary>
         /// Computes one or more fixes for the specified <see cref="CodeFixContext"/>.
         /// </summary>
-        public abstract Task ComputeFixesAsync(CodeFixContext context);
+        public abstract Task RegisterCodeFixesAsync(CodeFixContext context);
 
         /// <summary>
         /// Gets an optional <see cref="FixAllProvider"/> that can fix all/multiple occurrences of diagnostics fixed by this code fix provider.

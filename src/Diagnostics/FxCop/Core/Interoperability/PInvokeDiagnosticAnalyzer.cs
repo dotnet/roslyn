@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
                                                                          FxCopDiagnosticCategory.Interoperability,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
-                                                                         helpLink: "http://msdn.microsoft.com/library/ms182209.aspx",
+                                                                         helpLinkUri: "http://msdn.microsoft.com/library/ms182209.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 
         private static LocalizableString localizableMessageAndTitleCA2101 = new LocalizableResourceString(nameof(FxCopRulesResources.SpecifyMarshalingForPInvokeStringArguments), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources));
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Interoperability
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: true,
                                                                          description: localizableDescriptionCA2101,
-                                                                         helpLink: "http://msdn.microsoft.com/library/ms182319.aspx",
+                                                                         helpLinkUri: "http://msdn.microsoft.com/library/ms182319.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 
         private static readonly ImmutableArray<DiagnosticDescriptor> supportedDiagnostics = ImmutableArray.Create(RuleCA1401, RuleCA2101);

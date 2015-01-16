@@ -20,9 +20,9 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = CA1012DiagnosticAnalyzer.RuleId), Shared]
     public sealed class CA1012CodeFixProvider : CodeFixProviderBase
     {
-        public sealed override ImmutableArray<string> GetFixableDiagnosticIds()
+        public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
-            return ImmutableArray.Create(CA1012DiagnosticAnalyzer.RuleId);
+            get { return ImmutableArray.Create(CA1012DiagnosticAnalyzer.RuleId); }
         }
 
         protected sealed override string GetCodeFixDescription(Diagnostic diagnostic)

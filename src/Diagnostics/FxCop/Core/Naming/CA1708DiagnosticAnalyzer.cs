@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
                                                                                       DiagnosticSeverity.Warning,
                                                                                       isEnabledByDefault: false,
                                                                                       description: new LocalizableResourceString(nameof(FxCopRulesResources.IdentifiersShouldDifferByMoreThanCaseDescription), FxCopRulesResources.ResourceManager, typeof(FxCopRulesResources)),
-                                                                                      helpLink: "http://msdn.microsoft.com/library/ms182242.aspx",
+                                                                                      helpLinkUri: "http://msdn.microsoft.com/library/ms182242.aspx",
                                                                                       customTags: DiagnosticCustomTags.Microsoft);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics

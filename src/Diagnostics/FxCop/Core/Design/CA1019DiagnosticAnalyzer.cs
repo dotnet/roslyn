@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                                                                          FxCopDiagnosticCategory.Design,
                                                                          DiagnosticSeverity.Warning,
                                                                          isEnabledByDefault: false,
-                                                                         helpLink: "http://msdn.microsoft.com/library/ms182136.aspx",
+                                                                         helpLinkUri: "http://msdn.microsoft.com/library/ms182136.aspx",
                                                                          customTags: DiagnosticCustomTags.Microsoft);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
