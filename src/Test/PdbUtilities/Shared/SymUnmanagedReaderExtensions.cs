@@ -47,6 +47,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
         internal const int S_OK = 0x0;
         internal const int S_FALSE = 0x1;
         internal const int E_FAIL = unchecked((int)0x80004005);
+        internal const int E_NOTIMPL = unchecked((int)0x80004001);
 
         private static readonly IntPtr IgnoreIErrorInfo = new IntPtr(-1);
 
@@ -233,15 +234,13 @@ namespace Microsoft.VisualStudio.SymReaderInterop
         {
             ISymUnmanagedMethod method = null;
             int hr = reader.GetMethodByVersion(new SymbolToken(methodToken), methodVersion, out method);
-            if (hr == E_FAIL)
+            ThrowExceptionForHR(hr);
+
+            if (hr < 0)
             {
                 // method has no symbol info
+                Debug.WriteLine(string.Format("Invalid method token '0x{0:x8}' or version '{1}' (hresult = 0x{2:x8})", methodToken, methodVersion, hr));
                 return null;
-            }
-
-            if (hr != 0)
-            {
-                throw new ArgumentException(string.Format("Invalid method token '0x{0:x8}' or version '{1}' (hresult = 0x{2:x8})", methodToken, methodVersion, hr), "methodToken");
             }
 
             Debug.Assert(method != null);
@@ -482,7 +481,8 @@ namespace Microsoft.VisualStudio.SymReaderInterop
         internal static void ThrowExceptionForHR(int hr)
         {
             // E_FAIL indicates "no info".
-            if (hr != E_FAIL)
+            // E_NOTIMPL indicates a lack of ISymUnmanagedReader support (in a particular implementation).
+            if (hr < 0 && hr != E_FAIL && hr != E_NOTIMPL)
             {
                 Marshal.ThrowExceptionForHR(hr, IgnoreIErrorInfo);
             }
