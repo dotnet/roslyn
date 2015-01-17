@@ -18,7 +18,6 @@
     <Prefer32Bit>false</Prefer32Bit>
     <LargeAddressAware>true</LargeAddressAware>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
-    <NeedsFakeSign>true</NeedsFakeSign>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <ItemGroup Label="Project References">

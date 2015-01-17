@@ -15,7 +15,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <StyleCopEnabled>false</StyleCopEnabled>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
-    <NeedsFakeSign>true</NeedsFakeSign>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <ItemGroup Label="File References">

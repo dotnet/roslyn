@@ -76,7 +76,19 @@
   <PropertyGroup>
     <RunningInMicroBuild Condition="Exists('$(TF_BUILD_BUILDDIRECTORY)\MicroBuild\MicroBuild.Signing.dll')">true</RunningInMicroBuild>
     <ShouldSignBuild Condition="'$(RealSignBuild)' == 'true' OR ('$(RunningInMicroBuild)' == 'true' AND '$(SignType)' == 'real')">true</ShouldSignBuild>
+    <CompileDependsOn>$(CompileDependsOn);FakeSignAssembly</CompileDependsOn>
+    <FakeSignSentinelFile>$(IntermediateOutputPath)$(TargetFileName).fakesign</FakeSignSentinelFile>
+    <FakeSignToolPath>$(OutputPath)FakeSign.exe</FakeSignToolPath>
   </PropertyGroup>
+
+  <Target Name="FakeSignAssembly"
+          Condition="'$(DelaySign)' == 'true' AND '$(ShouldSignBuild)' != 'true' AND ('$(Language)' == 'C#' OR '$(Language)' == 'VB')"
+          DependsOnTargets="CoreCompile"
+          Inputs="$(IntermediateOutputPath)$(TargetFileName)"
+          Outputs="$(FakeSignSentinelFile)">
+    <Exec Command="$(FakeSignToolPath) &quot;$(IntermediateOutputPath)$(TargetFileName)&quot;" />
+    <Touch Files="$(FakeSignSentinelFile)" AlwaysCreate="true" />
+  </Target>
   
   <UsingTask TaskName="SignFiles" AssemblyFile="$(TF_BUILD_BUILDDIRECTORY)\MicroBuild\MicroBuild.Signing.dll" Condition="'$(RunningInMicroBuild)' == 'true'" />
   

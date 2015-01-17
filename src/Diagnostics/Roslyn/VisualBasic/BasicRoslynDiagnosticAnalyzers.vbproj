@@ -14,7 +14,6 @@
     <AssemblyName>Roslyn.Diagnostics.Analyzers.VisualBasic</AssemblyName>
     <DocumentationFile>Roslyn.Diagnostics.Analyzers.VisualBasic.xml</DocumentationFile>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
-    <NeedsFakeSign>true</NeedsFakeSign>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <ItemGroup Label="File References">
