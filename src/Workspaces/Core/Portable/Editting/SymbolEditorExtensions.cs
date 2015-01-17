@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editting
+namespace Microsoft.CodeAnalysis.Editing
 {
     public static class SymbolEditorExtensions
     {

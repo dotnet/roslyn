@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.Editting
+namespace Microsoft.CodeAnalysis.Editing
 {
     /// <summary>
     /// An editor for making changes to a document's syntax tree. 

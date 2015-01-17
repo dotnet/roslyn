@@ -3,7 +3,7 @@
 using System;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editting
+namespace Microsoft.CodeAnalysis.Editing
 {
     public struct DeclarationModifiers : IEquatable<DeclarationModifiers>
     {

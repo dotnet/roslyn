@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Editting;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FxCopAnalyzers;
 using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;

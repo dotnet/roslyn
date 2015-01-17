@@ -5,7 +5,7 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Editting;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 using Roslyn.Utilities;
 
