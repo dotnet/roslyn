@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editting
+namespace Microsoft.CodeAnalysis.Editing
 {
     /// <summary>
     /// An editor for making changes to a syntax tree. 

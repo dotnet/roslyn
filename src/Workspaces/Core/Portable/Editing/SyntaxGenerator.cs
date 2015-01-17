@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editting
+namespace Microsoft.CodeAnalysis.Editing
 {
     /// <summary>
     /// A language agnostic factory for creating syntax nodes.
