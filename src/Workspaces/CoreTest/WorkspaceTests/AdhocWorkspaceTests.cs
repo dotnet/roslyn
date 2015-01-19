@@ -249,11 +249,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestOpenDocumentTryGetTextSucceeds()
+        public void TestOpenCloseDocument()
         {
             var pid = ProjectId.CreateNewId();
             var text = SourceText.From("public class C { }");
-            var docInfo = DocumentInfo.Create(DocumentId.CreateNewId(pid), "c.cs", loader: TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create())));
+            var version = VersionStamp.Create();
+            var docInfo = DocumentInfo.Create(DocumentId.CreateNewId(pid), "c.cs", loader: TextLoader.From(TextAndVersion.Create(text, version)));
             var projInfo = ProjectInfo.Create(
                 pid,
                 version: VersionStamp.Default,
@@ -267,6 +268,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 ws.AddProject(projInfo);
 
                 SourceText currentText;
+                VersionStamp currentVersion;
+
                 var doc = ws.CurrentSolution.GetDocument(docInfo.Id);
                 Assert.Equal(false, doc.TryGetText(out currentText));
 
@@ -274,7 +277,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
                 doc = ws.CurrentSolution.GetDocument(docInfo.Id);
                 Assert.Equal(true, doc.TryGetText(out currentText));
+                Assert.Equal(true, doc.TryGetTextVersion(out currentVersion));
                 Assert.Same(text, currentText);
+                Assert.Equal(version, currentVersion);
 
                 ws.CloseDocument(docInfo.Id);
 
@@ -284,11 +289,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
-        public void TestOpenAdditionalDocumentTryGetTextSucceeds()
+        public void TestOpenCloseAdditionalDocument()
         {
             var pid = ProjectId.CreateNewId();
             var text = SourceText.From("public class C { }");
-            var docInfo = DocumentInfo.Create(DocumentId.CreateNewId(pid), "c.cs", loader: TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create())));
+            var version = VersionStamp.Create();
+            var docInfo = DocumentInfo.Create(DocumentId.CreateNewId(pid), "c.cs", loader: TextLoader.From(TextAndVersion.Create(text, version)));
             var projInfo = ProjectInfo.Create(
                 pid,
                 version: VersionStamp.Default,
@@ -302,6 +308,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 ws.AddProject(projInfo);
 
                 SourceText currentText;
+                VersionStamp currentVersion;
+
                 var doc = ws.CurrentSolution.GetAdditionalDocument(docInfo.Id);
                 Assert.Equal(false, doc.TryGetText(out currentText));
 
@@ -309,7 +317,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
                 doc = ws.CurrentSolution.GetAdditionalDocument(docInfo.Id);
                 Assert.Equal(true, doc.TryGetText(out currentText));
+                Assert.Equal(true, doc.TryGetTextVersion(out currentVersion));
                 Assert.Same(text, currentText);
+                Assert.Equal(version, currentVersion);
 
                 ws.CloseAdditionalDocument(docInfo.Id);
 

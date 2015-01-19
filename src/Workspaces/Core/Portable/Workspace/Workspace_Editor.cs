@@ -408,16 +408,15 @@ namespace Microsoft.CodeAnalysis
                 var newText = textContainer.CurrentText;
                 var currentSolution = oldSolution;
 
-                if (oldText != newText && oldText.ContentEquals(newText))
+                if (oldText == newText || oldText.ContentEquals(newText))
                 {
-                    // if the supplied text is the same as the previous text, then add with same version
+                    // if the supplied text is the same as the previous text, then also use same version
                     var version = oldDocument.GetTextVersionAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
                     var newTextAndVersion = TextAndVersion.Create(newText, version, oldDocument.FilePath);
                     currentSolution = oldSolution.WithDocumentText(documentId, newTextAndVersion, PreservationMode.PreserveIdentity);
                 }
                 else
                 {
-                    // always call this even if oldText == newText, so we get PreserveIdentity.
                     currentSolution = oldSolution.WithDocumentText(documentId, newText, PreservationMode.PreserveIdentity);
                 }
 
@@ -474,9 +473,9 @@ namespace Microsoft.CodeAnalysis
                 var newText = textContainer.CurrentText;
                 var currentSolution = oldSolution;
 
-                if (oldText != newText && oldText.ContentEquals(newText))
+                if (oldText == newText || oldText.ContentEquals(newText))
                 {
-                    // if the supplied text is the same as the previous text, then add with same version
+                    // if the supplied text is the same as the previous text, then also use same version
                     var version = oldDocument.GetTextVersionAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
                     var newTextAndVersion = TextAndVersion.Create(newText, version, oldDocument.FilePath);
                     currentSolution = oldSolution.WithAdditionalDocumentText(documentId, newTextAndVersion, PreservationMode.PreserveIdentity);
