@@ -28,6 +28,7 @@
     <TargetVsixContainerName>CompilerPackage.vsix</TargetVsixContainerName>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <NonShipping>true</NonShipping>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\Core\Portable\CodeAnalysis.csproj">

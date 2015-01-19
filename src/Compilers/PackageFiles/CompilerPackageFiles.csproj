@@ -22,6 +22,7 @@
     <CreateVsixContainer>False</CreateVsixContainer>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
+    <NonShipping>true</NonShipping>
   </PropertyGroup>
   <ItemGroup Label="Build Items">
     <EmbeddedResource Include="..\..\..\..\Closed\Setup\CompilerPackageResources\VSPackage.resx">
