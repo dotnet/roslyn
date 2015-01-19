@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 language: LanguageNames.CSharp,
                 documents: new[] { docInfo });
 
-            using (var ws = new OpenDocumentWorkspace())
+            using (var ws = new AdhocWorkspace())
             {
                 ws.AddProject(projInfo);
 
@@ -272,37 +272,49 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
                 ws.OpenDocument(docInfo.Id);
 
+                doc = ws.CurrentSolution.GetDocument(docInfo.Id);
                 Assert.Equal(true, doc.TryGetText(out currentText));
                 Assert.Same(text, currentText);
+
+                ws.CloseDocument(docInfo.Id);
+
+                doc = ws.CurrentSolution.GetDocument(docInfo.Id);
+                Assert.Equal(false, doc.TryGetText(out currentText));
             }
         }
 
-        private class OpenDocumentWorkspace : Workspace
+        [Fact]
+        public void TestOpenAdditionalDocumentTryGetTextSucceeds()
         {
-            public OpenDocumentWorkspace()
-                : base(Host.Mef.MefHostServices.DefaultHost, nameof(OpenDocumentWorkspace))
-            {
-            }
+            var pid = ProjectId.CreateNewId();
+            var text = SourceText.From("public class C { }");
+            var docInfo = DocumentInfo.Create(DocumentId.CreateNewId(pid), "c.cs", loader: TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create())));
+            var projInfo = ProjectInfo.Create(
+                pid,
+                version: VersionStamp.Default,
+                name: "TestProject",
+                assemblyName: "TestProject.dll",
+                language: LanguageNames.CSharp,
+                additionalDocuments: new[] { docInfo });
 
-            public void AddProject(ProjectInfo info)
+            using (var ws = new AdhocWorkspace())
             {
-                this.OnProjectAdded(info);
-            }
+                ws.AddProject(projInfo);
 
-            public override bool CanApplyChange(ApplyChangesKind feature)
-            {
-                return true;
-            }
+                SourceText currentText;
+                var doc = ws.CurrentSolution.GetAdditionalDocument(docInfo.Id);
+                Assert.Equal(false, doc.TryGetText(out currentText));
 
-            public override bool CanOpenDocuments
-            {
-                get { return true; }
-            }
+                ws.OpenAdditionalDocument(docInfo.Id);
 
-            public override void OpenDocument(DocumentId documentId, bool activate = true)
-            {
-                var text = this.CurrentSolution.GetDocument(documentId).GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
-                base.OnDocumentOpened(documentId, text.Container, activate);
+                doc = ws.CurrentSolution.GetAdditionalDocument(docInfo.Id);
+                Assert.Equal(true, doc.TryGetText(out currentText));
+                Assert.Same(text, currentText);
+
+                ws.CloseAdditionalDocument(docInfo.Id);
+
+                doc = ws.CurrentSolution.GetAdditionalDocument(docInfo.Id);
+                Assert.Equal(false, doc.TryGetText(out currentText));
             }
         }
     }

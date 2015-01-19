@@ -755,6 +755,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to This workspace does not support opening and closing documents..
+        /// </summary>
+        internal static string OpenDocumentNotSupported {
+            get {
+                return ResourceManager.GetString("OpenDocumentNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Specified path must be absolute..
         /// </summary>
         internal static string PathMustBeAbsolute {
