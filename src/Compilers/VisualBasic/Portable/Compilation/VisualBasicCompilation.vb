@@ -246,7 +246,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Else
                             ' we need to make one.
                             Dim text As String = EmbeddedResources.VbMyTemplateText
-                            tree = VisualBasicSyntaxTree.ParseText(text, options:=parseOptions, isMyTemplate:=True)
+
+                            ' The My template regularly makes use of more recent language features.  Care is
+                            ' taken to ensure these are compatible with 2.0 runtimes so there is no danger
+                            ' with allowing the newer syntax here.
+                            Dim options = parseOptions.WithLanguageVersion(LanguageVersion.VisualBasic14)
+                            tree = VisualBasicSyntaxTree.ParseText(text, options:=options, isMyTemplate:=True)
 
                             ' set global cache
                             s_myTemplateCache(parseOptions) = tree

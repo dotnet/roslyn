@@ -570,6 +570,7 @@
     <Compile Include="Parser\Parser.vb" />
     <Compile Include="Parser\ParseReportError.vb" />
     <Compile Include="Parser\ParserExtensions.vb" />
+    <Compile Include="Parser\ParserFeature.vb" />
     <Compile Include="Parser\ParseScan.vb" />
     <Compile Include="Parser\ParseStatement.vb" />
     <Compile Include="Parser\ParseTerminal.vb" />

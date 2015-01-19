@@ -6451,6 +6451,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Visual Basic {0} does not support {1}..
+        '''</summary>
+        Friend ReadOnly Property ERR_LanguageVersion() As String
+            Get
+                Return ResourceManager.GetString("ERR_LanguageVersion", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Late bound overload resolution cannot be applied to &apos;{0}&apos; because the accessing instance is an interface type..
         '''</summary>
         Friend ReadOnly Property ERR_LateBoundOverloadInterfaceCall1() As String
@@ -11538,6 +11547,96 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_ZeroDivide() As String
             Get
                 Return ResourceManager.GetString("ERR_ZeroDivide", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to this kind of initialization.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_ArrayLiterals() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_ArrayLiterals", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to async methods or lambdas.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_AsyncExpressions() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_AsyncExpressions", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to auto-implemented properties.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_AutoProperties() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_AutoProperties", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to variance.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_CoContraVariance() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_CoContraVariance", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to collection initializers.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_CollectionInitializers() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_CollectionInitializers", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to declaring a Global namespace.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_GlobalNamespace() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_GlobalNamespace", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to iterators.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_Iterators() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_Iterators", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to implicit line continuation.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_LineContinuation() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_LineContinuation", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to this kind of lambda expression.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_StatementLambdas() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_StatementLambdas", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to &apos;Sub&apos; lambda expressions.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_SubLambdas() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_SubLambdas", resourceCulture)
             End Get
         End Property
         

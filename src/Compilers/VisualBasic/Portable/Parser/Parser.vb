@@ -26,6 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Const _maxUncheckedRecursionDepth As Integer = 30
 
         Private _allowLeadingMultilineTrivia As Boolean = True
+        Private _hadImplicitLineContinuation As Boolean = False
         Private _possibleFirstStatementOnLine As PossibleFirstStatementKind = PossibleFirstStatementKind.Yes
         Private _recursionDepth As Integer
         Private m_EvaluatingConditionCompilationExpression As Boolean
@@ -186,6 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If CurrentToken.Kind = SyntaxKind.GlobalKeyword Then
 
                 result = SyntaxFactory.GlobalName(DirectCast(CurrentToken, KeywordSyntax))
+                result = CheckFeatureAvailability(Feature.GlobalNamespace, result)
 
                 GetNextToken()
 
@@ -722,8 +724,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case SyntaxKind.DelegateKeyword
                     Return ParseDelegateStatement(Nothing, Nothing)
 
-                    ' These end the module level declarations and begin
-                    ' the procedure definitions.
+                ' These end the module level declarations and begin
+                ' the procedure definitions.
 
                 Case SyntaxKind.SubKeyword
                     Return ParseSubStatement(Nothing, Nothing)
@@ -853,15 +855,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Lines: 2606 - 2606
         ' .Parser::ParseStatementInMethodBody( [ _Inout_ bool& ErrorInConstruct ] )
         Friend Function ParseStatementInMethodBody() As StatementSyntax
+            Dim oldHadImplicitLineContinuation = _hadImplicitLineContinuation
+
             Try
                 _recursionDepth += 1
                 If _recursionDepth >= _maxUncheckedRecursionDepth Then
                     _ensureSufficientExecutionStack()
                 End If
 
-                Return ParseStatementInMethodBodyCore()
+                _hadImplicitLineContinuation = False
+                Dim statementSyntax = ParseStatementInMethodBodyCore()
+                If _hadImplicitLineContinuation Then
+                    statementSyntax = CheckFeatureAvailability(Feature.LineContinuation, statementSyntax)
+                End If
+
+                Return statementSyntax
             Finally
                 _recursionDepth -= 1
+                _hadImplicitLineContinuation = oldHadImplicitLineContinuation
             End Try
         End Function
 
@@ -1316,9 +1327,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case SyntaxKind.SetKeyword
                     statement = ParsePropertyOrEventAccessor(SyntaxKind.SetAccessorStatement, attributes, modifiers)
 
-                    ' InheritsKeyword, ImplementsKeyword, ImportsKeyword, NamespaceKeyword, OptionKeyword are all
-                    ' error cases.  Parse the statement anyway. The statement will report that the attributes or modifiers
-                    ' are not allowed.
+                ' InheritsKeyword, ImplementsKeyword, ImportsKeyword, NamespaceKeyword, OptionKeyword are all
+                ' error cases.  Parse the statement anyway. The statement will report that the attributes or modifiers
+                ' are not allowed.
                 Case SyntaxKind.InheritsKeyword,
                     SyntaxKind.ImplementsKeyword
                     statement = ParseInheritsImplementsStatement(attributes, modifiers)
@@ -1723,8 +1734,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case SyntaxKind.EndKeyword
                     Return GetEndStatementKindFromKeyword(PeekToken(i + 1).Kind)
 
-                    ' wend and endif are anachronistic and should not be used, however they can still appear in 
-                    ' the lookahead
+                ' wend and endif are anachronistic and should not be used, however they can still appear in 
+                ' the lookahead
                 Case SyntaxKind.EndIfKeyword
                     Return SyntaxKind.EndIfStatement
 
@@ -1919,25 +1930,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                          SyntaxKind.ProtectedKeyword,
                          SyntaxKind.FriendKeyword
 
-                        ' Storage category
+                    ' Storage category
                     Case SyntaxKind.SharedKeyword,
                          SyntaxKind.ShadowsKeyword
 
-                        ' Inheritance category
+                    ' Inheritance category
                     Case SyntaxKind.MustInheritKeyword,
                          SyntaxKind.OverloadsKeyword,
                          SyntaxKind.NotInheritableKeyword,
                          SyntaxKind.OverridesKeyword
 
-                        ' Partial types category
+                    ' Partial types category
                     Case SyntaxKind.PartialKeyword
 
-                        ' Modifier category
+                    ' Modifier category
                     Case SyntaxKind.NotOverridableKeyword,
                          SyntaxKind.OverridableKeyword,
                          SyntaxKind.MustOverrideKeyword
 
-                        ' Writeability category
+                    ' Writeability category
                     Case SyntaxKind.ReadOnlyKeyword,
                          SyntaxKind.WriteOnlyKeyword
 
@@ -1947,7 +1958,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                          SyntaxKind.DefaultKeyword,
                          SyntaxKind.WithEventsKeyword
 
-                        ' Conversion category
+                    ' Conversion category
                     Case SyntaxKind.WideningKeyword,
                          SyntaxKind.NarrowingKeyword
 
@@ -1979,6 +1990,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                    SyntaxFacts.CanStartSpecifierDeclaration(nextToken.Kind) Then
 
                                     t = possibleKeyword
+                                    t = CheckFeatureAvailability(If(possibleKeyword.Kind = SyntaxKind.AsyncKeyword, Feature.AsyncExpressions, Feature.Iterators), t)
                                     Exit Select
                                 End If
 
@@ -2498,7 +2510,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function ParseObjectCollectionInitializer(fromKeyword As KeywordSyntax) As ObjectCollectionInitializerSyntax
             Debug.Assert(fromKeyword IsNot Nothing)
 
-            fromKeyword = AssertLanguageFeature(ERRID.FEATUREID_CollectionInitializers, fromKeyword)
+            fromKeyword = CheckFeatureAvailability(Feature.CollectionInitializers, fromKeyword)
 
             ' Allow implicit line continuation after FROM (dev10_508839) but only if followed by "{". 
             ' This is to avoid reporting an error at the beginning of then next line and then skipping the next statement.
@@ -4050,6 +4062,15 @@ checkNullable:
             ' Build the tree for the property and do some simple semantics like making sure a regular property doesn't have an initializer, etc.
             Dim propertyStatement As PropertyStatementSyntax = SyntaxFactory.PropertyStatement(attributes, modifiers, propertyKeyword, ident, optionalParameters, asClause, initializer, implementsClause)
 
+            ' Need to look ahead to the next token, after the statement terminator, to see if this is an
+            ' auto property or not.
+            If CurrentToken.Kind <> SyntaxKind.EndOfFileToken Then
+                Dim peek = PeekToken(1)
+                If peek.Kind <> SyntaxKind.GetKeyword AndAlso peek.Kind <> SyntaxKind.SetKeyword Then
+                    propertyStatement = CheckFeatureAvailability(Feature.AutoProperties, propertyStatement)
+                End If
+            End If
+
             Return propertyStatement
         End Function
 
@@ -4164,7 +4185,7 @@ checkNullable:
 
                 If CurrentToken.Kind = SyntaxKind.InKeyword Then
                     optionalVarianceModifier = DirectCast(CurrentToken, KeywordSyntax)
-                    optionalVarianceModifier = AssertLanguageFeature(ERRID.FEATUREID_CoContraVariance, optionalVarianceModifier)
+                    optionalVarianceModifier = CheckFeatureAvailability(Feature.CoContraVariance, optionalVarianceModifier)
                     GetNextToken()
 
                 Else
@@ -4182,7 +4203,7 @@ checkNullable:
                             name = id
                             optionalVarianceModifier = Nothing
                         Else
-                            outKeyword = AssertLanguageFeature(ERRID.FEATUREID_CoContraVariance, outKeyword)
+                            outKeyword = CheckFeatureAvailability(Feature.CoContraVariance, outKeyword)
                             optionalVarianceModifier = outKeyword
                         End If
                     End If
@@ -5903,40 +5924,6 @@ checkNullable:
             Return True
         End Function
 
-        ''' <summary>
-        ''' Attaches an error to the node if feature is not available
-        ''' </summary>
-        Private Function AssertLanguageFeature(Of T As VisualBasicSyntaxNode)(
-            feature As ERRID,
-            node As T
-        ) As T
-
-            ' If we are targeting the latest version of the compiler, all features are fair game
-
-            Return node
-
-#If MUSTCONVERT Then
-     If m_CompilingLanguageVersion = LANGUAGE_CURRENT Then
-                Return True
-            End If
-
-            ' If a feature was introduced after the version of the compiler we are targeting
-
-            If m_CompilingLanguageVersion < g_LanguageFeatureMap(FEATUREID_TO_INDEX(feature)).m_Introduced Then
-                Dim wszVersion As String = Nothing
-
-                If m_CompilingLanguageVersion < g_CountOfPreviousLanguageVersions Then
-                    wszVersion = g_LanguageVersionStrings(m_CompilingLanguageVersion)
-                Else
-                    wszVersion = "???"
-                End If
-
-                AssertIfNull(wszVersion)
-                ReportSyntaxErrorForLanguageFeature(ERRID.ERR_LanguageVersion, ErrorLocationToken, feature, wszVersion)
-            End If
-#End If
-        End Function
-
         '============ Methods to test properties of NodeKind. ====================
         '
 
@@ -6000,6 +5987,36 @@ checkNullable:
 
             Return node.AddTrailingSyntax(b.ToList(), ERRID.ERR_Syntax)
         End Function
+
+        ''' <summary>
+        ''' Check to see if the given <paramref name="feature"/> is available with the <see cref="LanguageVersion"/>
+        ''' of the parser.  If it is not available a diagnostic will be added to the returned value.
+        ''' </summary>
+        Private Function CheckFeatureAvailability(Of TNode As VisualBasicSyntaxNode)(feature As Feature, node As TNode) As TNode
+            Dim languageVersion = _scanner.Options.LanguageVersion
+            If CheckFeatureAvailability(languageVersion, feature) Then
+                Return node
+            End If
+
+            Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
+            Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, languageVersion.GetErrorName(), featureName)
+        End Function
+
+        Private Function CheckFeatureAvailability(feature As Feature) As Boolean
+            Return CheckFeatureAvailability(_scanner.Options.LanguageVersion, feature)
+        End Function
+
+        Private Shared Function CheckFeatureAvailability(languageVersion As LanguageVersion, feature As Feature) As Boolean
+            Dim required = feature.GetLanguageVersion()
+            Return CInt(required) <= CInt(languageVersion)
+        End Function
+
+        Friend Shared Sub CheckFeatureAvailability(diagnostics As DiagnosticBag, location As Location, languageVersion As LanguageVersion, feature As Feature)
+            If Not CheckFeatureAvailability(languageVersion, feature) Then
+                Dim featureName = ErrorFactory.ErrorInfo(feature.GetResourceId())
+                diagnostics.Add(ERRID.ERR_LanguageVersion, location, languageVersion.GetErrorName(), featureName)
+            End If
+        End Sub
 
     End Class
 

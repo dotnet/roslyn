@@ -1896,7 +1896,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         WRN_UnableToLoadAnalyzer = 42378
 
         ' // AVAILABLE                             42379 - 49998
-
+        ERRWRN_Last = WRN_UnableToLoadAnalyzer + 1
 
         '// HIDDENS AND INFOS BEGIN HERE
         HDN_UnusedImportClause = 50000
@@ -1904,22 +1904,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         INF_UnableToLoadSomeTypesInAnalyzer = 50002
 
         ' // AVAILABLE                             50003 - 54999   
-
-        '// Feature classification for the /LangVersion switch errors starts at 55000, must be ordered, and indexed starting at 55000.
-        '// Don't start with a capital letter or put a '.' at the end of these messages as they are all intended to be in-place text
-        '// substitutions for error #36716 (ERR_LanguageVersion) defined above.
-
-        FEATUREID_First = 55000
-        FEATUREID_AutoProperties = 55000
-        FEATUREID_LineContinuation = 55001
-        FEATUREID_StatementLambdas = 55002
-        FEATUREID_CoContraVariance = 55003
-        FEATUREID_CollectionInitializers = 55004
-        FEATUREID_SubLambdas = 55005
-        FEATUREID_ArrayLiterals = 55006
-        FEATUREID_NullPropagatingOperator = 55007
-        FEATUREID_NameOfOperator = 55008
-        FEATUREID_Last = 55008
 
         ' Adding diagnostic arguments from resx file
         IDS_ProjectSettingsLocationName = 56000
@@ -1934,5 +1918,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         IDS_VBCHelp = 56009
         IDS_InvalidPreprocessorConstantType = 56010
 
+        ' Feature codes
+        FEATURE_AutoProperties
+        FEATURE_LineContinuation
+        FEATURE_StatementLambdas
+        FEATURE_CoContraVariance
+        FEATURE_CollectionInitializers
+        FEATURE_SubLambdas
+        FEATURE_ArrayLiterals
+        FEATURE_AsyncExpressions
+        FEATURE_Iterators
+        FEATURE_GlobalNamespace
+        FEATURE_NullPropagatingOperator
+        FEATURE_NameOfExpressions
     End Enum
 End Namespace

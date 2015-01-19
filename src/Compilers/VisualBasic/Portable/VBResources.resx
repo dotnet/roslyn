@@ -5241,4 +5241,43 @@
   <data name="ERR_ContantStringTooLong" xml:space="preserve">
     <value>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</value>
   </data>
+    <data name="ERR_LanguageVersion" xml:space="preserve">
+    <value>Visual Basic {0} does not support {1}.</value>
+  </data>
+  <data name="FEATURE_ArrayLiterals" xml:space="preserve">
+    <value>array literal expressions</value>
+  </data>
+  <data name="FEATURE_AsyncExpressions" xml:space="preserve">
+    <value>async methods or lambdas</value>
+  </data>
+  <data name="FEATURE_AutoProperties" xml:space="preserve">
+    <value>auto-implemented properties</value>
+  </data>
+  <data name="FEATURE_CoContraVariance" xml:space="preserve">
+    <value>variance</value>
+  </data>
+  <data name="FEATURE_CollectionInitializers" xml:space="preserve">
+    <value>collection initializers</value>
+  </data>
+  <data name="FEATURE_GlobalNamespace" xml:space="preserve">
+    <value>declaring a Global namespace</value>
+  </data>
+  <data name="FEATURE_Iterators" xml:space="preserve">
+    <value>iterators</value>
+  </data>
+  <data name="FEATURE_LineContinuation" xml:space="preserve">
+    <value>implicit line continuation</value>
+  </data>
+  <data name="FEATURE_StatementLambdas" xml:space="preserve">
+    <value>multi-line lambda expressions</value>
+  </data>
+  <data name="FEATURE_SubLambdas" xml:space="preserve">
+    <value>'Sub' lambda expressions</value>
+  </data>
+  <data name="FEATURE_NullPropagatingOperator" xml:space="preserve">
+    <value>null conditional operations</value>
+  </data>
+  <data name="FEATURE_NameOfExpressions" xml:space="preserve">
+    <value>'nameof' expressions</value>
+  </data>
 </root>
