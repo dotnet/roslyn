@@ -958,6 +958,7 @@
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
+    <PublicAPI Include="PublicAPI.txt" />
   </ItemGroup>
   <Import Project="..\..\..\Compilers\Core\SharedCollections\SharedCollections.projitems" Label="Shared" />
   <ImportGroup Label="Targets">

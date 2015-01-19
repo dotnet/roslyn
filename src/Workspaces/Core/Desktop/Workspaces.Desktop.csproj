@@ -169,6 +169,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <PublicAPI Include="PublicAPI.txt" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="WorkspaceDesktopResources.resx">
