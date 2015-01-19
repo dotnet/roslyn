@@ -450,4 +450,7 @@
   <data name="TheNodeIsNotPartOfTheTree" xml:space="preserve">
     <value>The node is not part of the tree.</value>
   </data>
+  <data name="OpenDocumentNotSupported" xml:space="preserve">
+    <value>This workspace does not support opening and closing documents.</value>
+  </data>
 </root>
