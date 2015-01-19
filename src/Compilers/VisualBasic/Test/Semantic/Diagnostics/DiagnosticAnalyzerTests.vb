@@ -617,5 +617,48 @@ End Class
                 End If
             Next
         End Sub
+
+        Class FieldSymbolAnalyzer
+            Inherits DiagnosticAnalyzer
+
+            Public Shared desc1 As New DiagnosticDescriptor("FieldSymbolDiagnostic", "DummyDescription", "DummyMessage", "DummyCategory", DiagnosticSeverity.Warning, isEnabledByDefault:=True)
+
+            Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
+                Get
+                    Return ImmutableArray.Create(desc1)
+                End Get
+            End Property
+
+            Public Overrides Sub Initialize(context As AnalysisContext)
+                context.RegisterSymbolAction(AddressOf AnalyzeSymbol, SymbolKind.Field)
+            End Sub
+
+            Public Sub AnalyzeSymbol(context As SymbolAnalysisContext)
+                Dim sourceLoc = context.Symbol.Locations.First(Function(l) l.IsInSource)
+                context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(desc1, sourceLoc))
+            End Sub
+
+            <Fact, WorkItem(1109126)>
+            Sub TestFieldSymbolAnalyzer_EnumField()
+                Dim analyzer = New FieldSymbolAnalyzer()
+                Dim sources = <compilation>
+                                  <file name="c.vb">
+                                      <![CDATA[
+Public Enum E
+    X = 0
+End Enum
+]]>
+                                  </file>
+                              </compilation>
+
+                Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+                    references:={SystemCoreRef, MsvbRef},
+                    options:=TestOptions.ReleaseDll)
+
+                compilation.VerifyDiagnostics()
+                compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing,
+                    AnalyzerDiagnostic("FieldSymbolDiagnostic", <![CDATA[X]]>))
+            End Sub
+        End Class
     End Class
 End Namespace
