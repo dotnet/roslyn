@@ -5,6 +5,8 @@ using System.Linq;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Threading;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -243,6 +245,64 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Equal(true, result);
 
                 Assert.Equal(0, ws.CurrentSolution.Projects.Count());
+            }
+        }
+
+        [Fact]
+        public void TestOpenDocumentTryGetTextSucceeds()
+        {
+            var pid = ProjectId.CreateNewId();
+            var text = SourceText.From("public class C { }");
+            var docInfo = DocumentInfo.Create(DocumentId.CreateNewId(pid), "c.cs", loader: TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create())));
+            var projInfo = ProjectInfo.Create(
+                pid,
+                version: VersionStamp.Default,
+                name: "TestProject",
+                assemblyName: "TestProject.dll",
+                language: LanguageNames.CSharp,
+                documents: new[] { docInfo });
+
+            using (var ws = new OpenDocumentWorkspace())
+            {
+                ws.AddProject(projInfo);
+
+                SourceText currentText;
+                var doc = ws.CurrentSolution.GetDocument(docInfo.Id);
+                Assert.Equal(false, doc.TryGetText(out currentText));
+
+                ws.OpenDocument(docInfo.Id);
+
+                Assert.Equal(true, doc.TryGetText(out currentText));
+                Assert.Same(text, currentText);
+            }
+        }
+
+        private class OpenDocumentWorkspace : Workspace
+        {
+            public OpenDocumentWorkspace()
+                : base(Host.Mef.MefHostServices.DefaultHost, nameof(OpenDocumentWorkspace))
+            {
+            }
+
+            public void AddProject(ProjectInfo info)
+            {
+                this.OnProjectAdded(info);
+            }
+
+            public override bool CanApplyChange(ApplyChangesKind feature)
+            {
+                return true;
+            }
+
+            public override bool CanOpenDocuments
+            {
+                get { return true; }
+            }
+
+            public override void OpenDocument(DocumentId documentId, bool activate = true)
+            {
+                var text = this.CurrentSolution.GetDocument(documentId).GetTextAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                base.OnDocumentOpened(documentId, text.Container, activate);
             }
         }
     }
