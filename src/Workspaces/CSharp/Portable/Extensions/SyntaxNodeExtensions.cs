@@ -1178,5 +1178,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
         }
+
+        public static ConditionalAccessExpressionSyntax GetParentConditionalAccessExpression(this SyntaxNode node)
+        {
+            var parent = node.Parent;
+            while (parent != null)
+            {
+                // Because the syntax for conditional access is right associate, we cannot
+                // simply take the first ancestor ConditionalAccessExpression. Instead, we 
+                // must walk upward until we find the ConditionalAccessExpression whose
+                // OperatorToken appears left of the MemberBinding.
+                if (parent.IsKind(SyntaxKind.ConditionalAccessExpression) && 
+                    ((ConditionalAccessExpressionSyntax)parent).OperatorToken.Span.End <= node.SpanStart)
+                {
+                    return (ConditionalAccessExpressionSyntax)parent;
+                }
+
+                parent = parent.Parent;
+            }
+
+            return null;
+        }
     }
 }
