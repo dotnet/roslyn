@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Collections;
-using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -10,6 +8,8 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal abstract class AnalyzerDriver : IDisposable
     {
         internal static readonly ConditionalWeakTable<Compilation, SuppressMessageAttributeState> SuppressMessageStateByCompilation = new ConditionalWeakTable<Compilation, SuppressMessageAttributeState>();
-        private static readonly Task EmptyTask = Task.FromResult(false);
 
         // Protect against vicious analyzers that provide large values for SymbolKind.
         private const int MaxSymbolKind = 100;
@@ -34,8 +33,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         // Lazy fields initialized in Initialize() API
         private Compilation compilation;
         internal HostCompilationStartAnalysisScope compilationAnalysisScope;
-        private ImmutableArray<ImmutableArray<SymbolAnalyzerAction>> declarationAnalyzerActionsByKind;
-        
+        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<ImmutableArray<SymbolAnalyzerAction>>> symbolActionsByKind;
+        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<SemanticModelAnalyzerAction>> semanticModelActionsMap;
+        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CompilationEndAnalyzerAction>> compilationEndActionsMap;
+
         /// <summary>
         /// Primary driver task which processes all <see cref="CompilationEventQueue"/> events, runs analyzer actions and signals completion of <see cref="DiagnosticQueue"/> at the end.
         /// </summary>
@@ -59,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         /// <summary>
         /// Initializes the compilation for the analyzer driver.
-        /// It also computes and initializes <see cref="compilationAnalysisScope"/> and <see cref="declarationAnalyzerActionsByKind"/>.
+        /// It also computes and initializes <see cref="compilationAnalysisScope"/> and <see cref="symbolActionsByKind"/>.
         /// Finally, it initializes and starts the <see cref="primaryTask"/> for the driver.
         /// </summary>
         /// <remarks>
@@ -77,16 +78,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Compute the set of effective actions based on suppression, and running the initial analyzers
                 var sessionAnalysisScope = GetSessionAnalysisScope(this.analyzers, comp.Options, addDiagnostic, continueOnAnalyzerException, cancellationToken);
                 this.compilationAnalysisScope = GetCompilationAnalysisScope(sessionAnalysisScope, comp, analyzerOptions, addDiagnostic, continueOnAnalyzerException, cancellationToken);
-                this.declarationAnalyzerActionsByKind = MakeDeclarationAnalyzersByKind();
-
-                var syntaxTreeAnalyzersTask = ExecuteSyntaxTreeAnalyzers(cancellationToken);
+                this.symbolActionsByKind = MakeSymbolActionsByKind();
+                this.semanticModelActionsMap = MakeSemanticModelActionsByAnalyzer();
+                this.compilationEndActionsMap = MakeCompilationEndActionsByAnalyzer();
 
                 // create the primary driver task.
                 cancellationToken.ThrowIfCancellationRequested();
                 this.primaryTask = Task.Run(async () =>
                     {
                         await ProcessCompilationEventsAsync(cancellationToken).ConfigureAwait(false);
-                        await syntaxTreeAnalyzersTask.ConfigureAwait(false);
+                        await ExecuteSyntaxTreeActions(cancellationToken).ConfigureAwait(false);
                     }, cancellationToken)
                     .ContinueWith(c => DiagnosticQueue.TryComplete(), cancellationToken, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
             }
@@ -105,29 +106,34 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private Task ExecuteSyntaxTreeAnalyzers(CancellationToken cancellationToken)
+        private Task ExecuteSyntaxTreeActions(CancellationToken cancellationToken)
         {
-            // Invoke the syntax tree analyzers
-            var syntaxTreeAnalyzersBuilder = ArrayBuilder<Task>.GetInstance();
+            // Execute syntax tree analyzers in parallel.
+            var tasks = ArrayBuilder<Task>.GetInstance();
             foreach (var tree in this.compilation.SyntaxTrees)
             {
-                foreach (var syntaxTreeAction in this.compilationAnalysisScope.SyntaxTreeActions)
+                var actionsByAnalyzers = this.compilationAnalysisScope.SyntaxTreeActions.GroupBy(action => action.Analyzer);
+                foreach (var analyzerAndActions in actionsByAnalyzers)
                 {
-                    var runningAsynchronously = Task.Run(() =>
+                    var task = Task.Run(() =>
                     {
-                        // Catch Exception from executing the action
-                        AnalyzerDriverHelper.ExecuteAndCatchIfThrows(syntaxTreeAction.Analyzer, addDiagnostic, continueOnAnalyzerException, () =>
+                        // Execute actions for a given analyzer sequentially.
+                        foreach (var syntaxTreeAction in analyzerAndActions)
                         {
-                            var context = new SyntaxTreeAnalysisContext(tree, analyzerOptions, addDiagnostic, cancellationToken);
-                            syntaxTreeAction.Action(context);
-                        }, cancellationToken);
+                            // Catch Exception from executing the action
+                            AnalyzerDriverHelper.ExecuteAndCatchIfThrows(syntaxTreeAction.Analyzer, addDiagnostic, continueOnAnalyzerException, () =>
+                            {
+                                var context = new SyntaxTreeAnalysisContext(tree, analyzerOptions, addDiagnostic, cancellationToken);
+                                syntaxTreeAction.Action(context);
+                            }, cancellationToken);
+                        }
                     }, cancellationToken);
 
-                    syntaxTreeAnalyzersBuilder.Add(runningAsynchronously);
+                    tasks.Add(task);
                 }
             }
 
-            return Task.WhenAll(syntaxTreeAnalyzersBuilder.ToArrayAndFree());
+            return Task.WhenAll(tasks.ToArrayAndFree());
         }
 
         /// <summary>
@@ -224,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var diagnostics = allDiagnostics.ToReadOnlyAndFree();
 
             // Verify that the diagnostics are already filtered.
-            Debug.Assert(this.compilation == null || 
+            Debug.Assert(this.compilation == null ||
                 diagnostics.All(diag => this.compilation.FilterDiagnostic(diag)?.Severity == diag.Severity));
 
             return diagnostics;
@@ -235,25 +241,57 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         public Task WhenCompletedTask => this.primaryTask;
 
-        private ImmutableArray<ImmutableArray<SymbolAnalyzerAction>> MakeDeclarationAnalyzersByKind()
+        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<ImmutableArray<SymbolAnalyzerAction>>> MakeSymbolActionsByKind()
         {
-            var analyzersByKind = new List<ArrayBuilder<SymbolAnalyzerAction>>();
-            foreach (var symbolAction in this.compilationAnalysisScope.SymbolActions)
+            var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, ImmutableArray<ImmutableArray<SymbolAnalyzerAction>>>();
+            var actionsByAnalyzers = this.compilationAnalysisScope.SymbolActions.GroupBy(action => action.Analyzer);
+            foreach (var analyzerAndActions in actionsByAnalyzers)
             {
-                var kinds = symbolAction.Kinds;
-                foreach (int kind in kinds.Distinct())
+                var actionsByKindBuilder = new List<ArrayBuilder<SymbolAnalyzerAction>>();
+                foreach (var symbolAction in analyzerAndActions)
                 {
-                    if (kind > MaxSymbolKind) continue; // protect against vicious analyzers
-                    while (kind >= analyzersByKind.Count)
+                    var kinds = symbolAction.Kinds;
+                    foreach (int kind in kinds.Distinct())
                     {
-                        analyzersByKind.Add(ArrayBuilder<SymbolAnalyzerAction>.GetInstance());
-                    }
+                        if (kind > MaxSymbolKind) continue; // protect against vicious analyzers
+                        while (kind >= actionsByKindBuilder.Count)
+                        {
+                            actionsByKindBuilder.Add(ArrayBuilder<SymbolAnalyzerAction>.GetInstance());
+                        }
 
-                    analyzersByKind[kind].Add(symbolAction);
+                        actionsByKindBuilder[kind].Add(symbolAction);
+                    }
                 }
+
+                var actionsByKind = actionsByKindBuilder.Select(a => a.ToImmutableAndFree()).ToImmutableArray();
+                builder.Add(analyzerAndActions.Key, actionsByKind);
             }
 
-            return analyzersByKind.Select(a => a.ToImmutableAndFree()).ToImmutableArray();
+            return builder.ToImmutable();
+        }
+
+        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<SemanticModelAnalyzerAction>> MakeSemanticModelActionsByAnalyzer()
+        {
+            var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, ImmutableArray<SemanticModelAnalyzerAction>>();
+            var actionsByAnalyzers = this.compilationAnalysisScope.SemanticModelActions.GroupBy(action => action.Analyzer);
+            foreach (var analyzerAndActions in actionsByAnalyzers)
+            {
+                builder.Add(analyzerAndActions.Key, analyzerAndActions.ToImmutableArray());
+            }
+
+            return builder.ToImmutable();
+        }
+
+        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CompilationEndAnalyzerAction>> MakeCompilationEndActionsByAnalyzer()
+        {
+            var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, ImmutableArray<CompilationEndAnalyzerAction>>();
+            var actionsByAnalyzers = this.compilationAnalysisScope.CompilationEndActions.GroupBy(action => action.Analyzer);
+            foreach (var analyzerAndActions in actionsByAnalyzers)
+            {
+                builder.Add(analyzerAndActions.Key, analyzerAndActions.ToImmutableArray());
+            }
+
+            return builder.ToImmutable();
         }
 
         private async Task ProcessCompilationEventsAsync(CancellationToken cancellationToken)
@@ -297,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var symbolEvent = e as SymbolDeclaredCompilationEvent;
             if (symbolEvent != null)
             {
-                await ProcessSymbolDeclared(symbolEvent, cancellationToken).ConfigureAwait(false);
+                await ProcessSymbolDeclaredAsync(symbolEvent, cancellationToken).ConfigureAwait(false);
                 return;
             }
 
@@ -324,62 +362,96 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             throw new InvalidOperationException("Unexpected compilation event of type " + e.GetType().Name);
         }
 
-        private Task ProcessSymbolDeclared(SymbolDeclaredCompilationEvent symbolEvent, CancellationToken cancellationToken)
+        private async Task ProcessSymbolDeclaredAsync(SymbolDeclaredCompilationEvent symbolEvent, CancellationToken cancellationToken)
         {
+            // Create a task per-analyzer to execute analyzer actions.
+            // We execute analyzers in parallel, but for a given analyzer we execute actions sequentially.
+            var tasksMap = PooledDictionary<DiagnosticAnalyzer, Task>.GetInstance();
+
             try
             {
-                return AnalyzeSymbol(symbolEvent, cancellationToken);
+                var symbol = symbolEvent.Symbol;
+
+                // Skip symbol actions for implicitly declared symbols.
+                if (!symbol.IsImplicitlyDeclared)
+                {
+                    AddTasksForExecutingSymbolActions(symbolEvent, tasksMap, cancellationToken);
+                }
+
+                // Skip syntax actions for implicitly declared symbols, except for implicitly declared global namespace symbols.
+                if (!symbol.IsImplicitlyDeclared ||
+                    (symbol.Kind == SymbolKind.Namespace && ((INamespaceSymbol)symbol).IsGlobalNamespace))
+                {
+                    AddTasksForExecutingDeclaringReferenceActions(symbolEvent, tasksMap, addDiagnostic, cancellationToken);
+                }
+
+                // Execute all analyzer actions.
+                await Task.WhenAll(tasksMap.Values).ConfigureAwait(false);
             }
             finally
             {
+                tasksMap.Free();
                 symbolEvent.FlushCache();
             }
         }
 
-        private Task AnalyzeSymbol(SymbolDeclaredCompilationEvent symbolEvent, CancellationToken cancellationToken)
+        private void AddTasksForExecutingSymbolActions(SymbolDeclaredCompilationEvent symbolEvent, IDictionary<DiagnosticAnalyzer, Task> taskMap, CancellationToken cancellationToken)
         {
             var symbol = symbolEvent.Symbol;
-            var isGlobalNamespace = symbol.Kind == SymbolKind.Namespace && ((INamespaceSymbol)symbol).IsGlobalNamespace;
-
-            // Skip implicitly declared symbols.
-            // For global namespace, we don't want to execute symbol actions, but do want to execute syntax actions for global syntax nodes.
-            if (symbol.IsImplicitlyDeclared && !isGlobalNamespace)
-            {
-                return EmptyTask;
-            }
-
             Action<Diagnostic> addDiagnosticForSymbol = GetDiagnosticSinkWithSuppression(symbol);
-            var tasks = ArrayBuilder<Task>.GetInstance();
 
-            // Invoke symbol analyzers only for source symbols.
-            var declaringSyntaxRefs = symbol.DeclaringSyntaxReferences;
-            if (!isGlobalNamespace && (int)symbol.Kind < declarationAnalyzerActionsByKind.Length && declaringSyntaxRefs.Any(s => s.SyntaxTree != null))
+            foreach (var analyzerAndActions in this.symbolActionsByKind)
             {
-                foreach (var da in declarationAnalyzerActionsByKind[(int)symbol.Kind])
-                {
-                    // TODO: is the overhead of creating tasks here too high compared to the cost of running them sequentially?
-                    tasks.Add(Task.Run(() =>
-                    {
-                        // Catch Exception from analyzing the symbol
-                        AnalyzerDriverHelper.ExecuteAndCatchIfThrows(da.Analyzer, addDiagnostic, continueOnAnalyzerException, () =>
-                        {
-                            cancellationToken.ThrowIfCancellationRequested();
-                            var symbolContext = new SymbolAnalysisContext(symbol, compilation, this.analyzerOptions, addDiagnosticForSymbol, cancellationToken);
-                            da.Action(symbolContext);
-                        }, cancellationToken);
-                    }, cancellationToken));
-                }
-            }
+                var analyzer = analyzerAndActions.Key;
+                var actionsByKind = analyzerAndActions.Value;
 
-            foreach (var decl in declaringSyntaxRefs)
-            {
-                tasks.Add(AnalyzeDeclaringReferenceAsync(symbolEvent, decl, addDiagnostic, cancellationToken));
-            }
+                Action executeSymbolActionsForAnalyzer = () =>
+                        ExecuteSymbolActionsForAnalyzer(symbol, analyzer, actionsByKind, addDiagnosticForSymbol, cancellationToken);
 
-            return Task.WhenAll(tasks.ToArrayAndFree());
+                AddAnalyzerActionsExecutor(taskMap, analyzer, executeSymbolActionsForAnalyzer, cancellationToken);
+            }
         }
 
-        protected abstract Task AnalyzeDeclaringReferenceAsync(SymbolDeclaredCompilationEvent symbolEvent, SyntaxReference decl, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken);
+        private void ExecuteSymbolActionsForAnalyzer(
+            ISymbol symbol,
+            DiagnosticAnalyzer analyzer,
+            ImmutableArray<ImmutableArray<SymbolAnalyzerAction>> actionsByKind,
+            Action<Diagnostic> addDiagnosticForSymbol,
+            CancellationToken cancellationToken)
+        {
+            // Invoke symbol analyzers only for source symbols.
+            var declaringSyntaxRefs = symbol.DeclaringSyntaxReferences;
+            if ((int)symbol.Kind < actionsByKind.Length && declaringSyntaxRefs.Any(s => s.SyntaxTree != null))
+            {
+                foreach (var da in actionsByKind[(int)symbol.Kind])
+                {
+                    Debug.Assert(da.Analyzer == analyzer);
+
+                    // Catch Exception from analyzing the symbol
+                    AnalyzerDriverHelper.ExecuteAndCatchIfThrows(da.Analyzer, addDiagnostic, continueOnAnalyzerException, () =>
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        var symbolContext = new SymbolAnalysisContext(symbol, compilation, this.analyzerOptions, addDiagnosticForSymbol, cancellationToken);
+                        da.Action(symbolContext);
+                    }, cancellationToken);
+                }
+            }
+        }
+
+        protected static void AddAnalyzerActionsExecutor(IDictionary<DiagnosticAnalyzer, Task> map, DiagnosticAnalyzer analyzer, Action executeAnalyzerActions, CancellationToken cancellationToken)
+        {
+            Task currentTask;
+            if (!map.TryGetValue(analyzer, out currentTask))
+            {
+                map[analyzer] = Task.Run(executeAnalyzerActions, cancellationToken);
+            }
+            else
+            {
+                map[analyzer] = currentTask.ContinueWith(_ => executeAnalyzerActions(), cancellationToken);
+            }
+        }
+
+        protected abstract void AddTasksForExecutingDeclaringReferenceActions(SymbolDeclaredCompilationEvent symbolEvent, IDictionary<DiagnosticAnalyzer, Task> taskMap, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken);
 
         private Task ProcessCompilationUnitCompleted(CompilationUnitCompletedEvent completedEvent, CancellationToken cancellationToken)
         {
@@ -389,21 +461,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             try
             {
+                // Execute analyzers in parallel.
                 var tasks = ArrayBuilder<Task>.GetInstance();
+
                 var semanticModel = completedEvent.SemanticModel;
-                foreach (var da in this.compilationAnalysisScope.SemanticModelActions)
+                foreach (var analyzerAndActions in this.semanticModelActionsMap)
                 {
-                    // TODO: is the overhead of creating tasks here too high compared to the cost of running them sequentially?
-                    tasks.Add(Task.Run(() =>
+                    var task = Task.Run(() =>
                     {
-                        // Catch Exception from da.Action
-                        AnalyzerDriverHelper.ExecuteAndCatchIfThrows(da.Analyzer, addDiagnostic, continueOnAnalyzerException, () =>
+                        // Execute actions for a given analyzer sequentially.
+                        foreach (var semanticModelAction in analyzerAndActions.Value)
                         {
-                            cancellationToken.ThrowIfCancellationRequested();
-                            var semanticModelContext = new SemanticModelAnalysisContext(semanticModel, this.analyzerOptions, addDiagnostic, cancellationToken);
-                            da.Action(semanticModelContext);
-                        }, cancellationToken);
-                    }, cancellationToken));
+                            Debug.Assert(semanticModelAction.Analyzer == analyzerAndActions.Key);
+
+                            // Catch Exception from semanticModelAction
+                            AnalyzerDriverHelper.ExecuteAndCatchIfThrows(semanticModelAction.Analyzer, addDiagnostic, continueOnAnalyzerException, () =>
+                                {
+                                    cancellationToken.ThrowIfCancellationRequested();
+                                    var semanticModelContext = new SemanticModelAnalysisContext(semanticModel, this.analyzerOptions, addDiagnostic, cancellationToken);
+                                    semanticModelAction.Action(semanticModelContext);
+                                }, cancellationToken);
+                        }
+                    }, cancellationToken);
+
+                    tasks.Add(task);
                 }
 
                 return Task.WhenAll(tasks.ToArrayAndFree());
@@ -418,20 +499,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             try
             {
+                // Execute analyzers in parallel.
                 var tasks = ArrayBuilder<Task>.GetInstance();
-                foreach (var da in this.compilationAnalysisScope.CompilationEndActions)
+                foreach (var analyzerAndActions in this.compilationEndActionsMap)
                 {
-                    // TODO: is the overhead of creating tasks here too high compared to the cost of running them sequentially?
-                    tasks.Add(Task.Run(() =>
+                    var task = Task.Run(() =>
                     {
-                        // Catch Exception from da.Action
-                        AnalyzerDriverHelper.ExecuteAndCatchIfThrows(da.Analyzer, addDiagnostic, continueOnAnalyzerException, () =>
-                            {
-                                cancellationToken.ThrowIfCancellationRequested();
-                                var compilationContext = new CompilationEndAnalysisContext(compilation, this.analyzerOptions, addDiagnostic, cancellationToken);
-                                da.Action(compilationContext);
-                            }, cancellationToken);
-                    }, cancellationToken));
+                        // Execute actions for a given analyzer sequentially.
+                        foreach (var endAction in analyzerAndActions.Value)
+                        {
+                            Debug.Assert(endAction.Analyzer == analyzerAndActions.Key);
+
+                            // Catch Exception from endAction
+                            AnalyzerDriverHelper.ExecuteAndCatchIfThrows(endAction.Analyzer, addDiagnostic, continueOnAnalyzerException, () =>
+                                {
+                                    cancellationToken.ThrowIfCancellationRequested();
+                                    var compilationContext = new CompilationEndAnalysisContext(compilation, this.analyzerOptions, addDiagnostic, cancellationToken);
+                                    endAction.Action(compilationContext);
+                                }, cancellationToken);
+                        }
+                    }, cancellationToken);
+
+                    tasks.Add(task);
                 }
 
                 await Task.WhenAll(tasks.ToArrayAndFree()).ConfigureAwait(false);
@@ -716,7 +805,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     internal class AnalyzerDriver<TLanguageKindEnum> : AnalyzerDriver where TLanguageKindEnum : struct
     {
         private Func<SyntaxNode, TLanguageKindEnum> GetKind;
-        private ImmutableDictionary<TLanguageKindEnum, ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> lazyNodeActionsByKind = null;
+        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>> lazyNodeActionsByKind = null;
+        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>> lazyCodeBlockStartActionsByAnalyzer = null;
+        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockEndAnalyzerAction>> lazyCodeBlockEndActionsByAnalyzer = null;
 
         /// <summary>
         /// Create an analyzer driver.
@@ -735,85 +826,222 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             GetKind = getKind;
         }
 
-        private ImmutableDictionary<TLanguageKindEnum, ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> NodeActionsByKind
+        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>> NodeActionsByKind
         {
             get
             {
                 if (lazyNodeActionsByKind == null)
                 {
                     var nodeActions = this.compilationAnalysisScope.GetSyntaxNodeActions<TLanguageKindEnum>();
-                    ImmutableDictionary<TLanguageKindEnum, ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> analyzersByKind;
+                    ImmutableDictionary<DiagnosticAnalyzer, ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>> analyzerActionsByKind;
                     if (nodeActions.Any())
                     {
                         var addDiagnostic = GetDiagnosticSinkWithSuppression();
-                        var pooledAnalyzerActionsByKind = PooledDictionary<TLanguageKindEnum, ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>.GetInstance();
-                        AnalyzerDriverHelper.GetNodeActionsByKind(nodeActions, pooledAnalyzerActionsByKind, addDiagnostic);
-                        analyzersByKind = pooledAnalyzerActionsByKind.ToImmutableDictionary();
-                        pooledAnalyzerActionsByKind.Free();
+                        var nodeActionsByAnalyzers = nodeActions.GroupBy(a => a.Analyzer);
+                        var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>>();
+                        foreach (var analzerAndActions in nodeActionsByAnalyzers)
+                        {
+                            ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> actionsByKind;
+                            if (analzerAndActions.Any())
+                            {
+                                actionsByKind = AnalyzerDriverHelper.GetNodeActionsByKind(analzerAndActions, addDiagnostic);
+                            }
+                            else
+                            {
+                                actionsByKind = ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>.Empty;
+                            }
+
+                            builder.Add(analzerAndActions.Key, actionsByKind);
+                        }
+
+                        analyzerActionsByKind = builder.ToImmutable();
                     }
                     else
                     {
-                        analyzersByKind = ImmutableDictionary<TLanguageKindEnum, ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>.Empty;
+                        analyzerActionsByKind = ImmutableDictionary<DiagnosticAnalyzer, ImmutableDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>>>.Empty;
                     }
 
-                    lazyNodeActionsByKind = analyzersByKind;
+                    Interlocked.CompareExchange(ref lazyNodeActionsByKind, analyzerActionsByKind, null);
                 }
 
                 return lazyNodeActionsByKind;
             }
         }
 
-        protected override async Task AnalyzeDeclaringReferenceAsync(SymbolDeclaredCompilationEvent symbolEvent, SyntaxReference decl, Action<Diagnostic> reportDiagnostic, CancellationToken cancellationToken)
+        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>> CodeBlockStartActionsByAnalyer
+        {
+            get
+            {
+                if (lazyCodeBlockStartActionsByAnalyzer == null)
+                {
+                    ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>> codeBlockStartActionsByAnalyzer;
+                    var codeBlockStartActions = this.compilationAnalysisScope.GetCodeBlockStartActions<TLanguageKindEnum>();
+                    if (codeBlockStartActions.Any())
+                    {
+                        var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>>();
+                        var actionsByAnalyzer = codeBlockStartActions.GroupBy(action => action.Analyzer);
+                        foreach (var analyzerAndActions in actionsByAnalyzer)
+                        {
+                            builder.Add(analyzerAndActions.Key, analyzerAndActions.ToImmutableArrayOrEmpty());
+                        }
+
+                        codeBlockStartActionsByAnalyzer = builder.ToImmutable();
+                    }
+                    else
+                    {
+                        codeBlockStartActionsByAnalyzer = ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>>.Empty;
+                    }
+
+                    Interlocked.CompareExchange(ref lazyCodeBlockStartActionsByAnalyzer, codeBlockStartActionsByAnalyzer, null);
+                }
+
+                return lazyCodeBlockStartActionsByAnalyzer;
+            }
+        }
+
+        private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockEndAnalyzerAction>> CodeBlockEndActionsByAnalyer
+        {
+            get
+            {
+                if (lazyCodeBlockEndActionsByAnalyzer == null)
+                {
+                    ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockEndAnalyzerAction>> codeBlockEndActionsByAnalyzer;
+                    var codeBlockEndActions = this.compilationAnalysisScope.CodeBlockEndActions;
+                    if (codeBlockEndActions.Any())
+                    {
+                        var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, ImmutableArray<CodeBlockEndAnalyzerAction>>();
+                        var actionsByAnalyzer = codeBlockEndActions.GroupBy(action => action.Analyzer);
+                        foreach (var analyzerAndActions in actionsByAnalyzer)
+                        {
+                            builder.Add(analyzerAndActions.Key, analyzerAndActions.ToImmutableArrayOrEmpty());
+                        }
+
+                        codeBlockEndActionsByAnalyzer = builder.ToImmutable();
+                    }
+                    else
+                    {
+                        codeBlockEndActionsByAnalyzer = ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<CodeBlockEndAnalyzerAction>>.Empty;
+                    }
+
+                    Interlocked.CompareExchange(ref lazyCodeBlockEndActionsByAnalyzer, codeBlockEndActionsByAnalyzer, null);
+                }
+
+                return lazyCodeBlockEndActionsByAnalyzer;
+            }
+        }
+
+        protected override void AddTasksForExecutingDeclaringReferenceActions(
+            SymbolDeclaredCompilationEvent symbolEvent,
+            IDictionary<DiagnosticAnalyzer, Task> taskMap,
+            Action<Diagnostic> reportDiagnostic,
+            CancellationToken cancellationToken)
         {
             var symbol = symbolEvent.Symbol;
-            SemanticModel semanticModel = symbolEvent.SemanticModel(decl);
-            var declaringReferenceSyntax = await decl.GetSyntaxAsync().ConfigureAwait(false);
-            var syntax = semanticModel.GetTopmostNodeForDiagnosticAnalysis(symbol, declaringReferenceSyntax);
-
-            var statelessNodeActionsByKind = this.NodeActionsByKind;
-            var executeSyntaxNodeActions = statelessNodeActionsByKind.Any();
-            var executeCodeBlockActions = AnalyzerDriverHelper.CanHaveExecutableCodeBlock(symbol) && (this.compilationAnalysisScope.HasCodeBlockStartActions<TLanguageKindEnum>() || this.compilationAnalysisScope.HasCodeBlockEndActions);
+            var executeSyntaxNodeActions = this.NodeActionsByKind.Any();
+            var executeCodeBlockActions = AnalyzerDriverHelper.CanHaveExecutableCodeBlock(symbol) && (this.CodeBlockStartActionsByAnalyer.Any() || this.CodeBlockEndActionsByAnalyer.Any());
 
             if (executeSyntaxNodeActions || executeCodeBlockActions)
             {
-                // We only care about the top level symbol declaration and its immediate member declarations.
-                int? levelsToCompute = 2;
-
-                var declarationsInNode = semanticModel.GetDeclarationsInNode(syntax, getSymbol: syntax != declaringReferenceSyntax, cancellationToken: cancellationToken, levelsToCompute: levelsToCompute);
-
-                // Execute stateless syntax node actions.
-                if (executeSyntaxNodeActions)
+                foreach (var decl in symbol.DeclaringSyntaxReferences)
                 {
-                    ExecuteStatelessNodeActions(statelessNodeActionsByKind, syntax, symbol, declarationsInNode, semanticModel,
+                    AddTasksForExecutingDeclaringReferenceActions(decl, symbolEvent, taskMap, reportDiagnostic,
+                        executeSyntaxNodeActions, executeCodeBlockActions, cancellationToken);
+                }
+            }
+        }
+
+        private void AddTasksForExecutingDeclaringReferenceActions(
+            SyntaxReference decl,
+            SymbolDeclaredCompilationEvent symbolEvent,
+            IDictionary<DiagnosticAnalyzer, Task> taskMap,
+            Action<Diagnostic> reportDiagnostic,
+            bool shouldExecuteSyntaxNodeActions,
+            bool shouldExecuteCodeBlockActions,
+            CancellationToken cancellationToken)
+        {
+            Debug.Assert(shouldExecuteSyntaxNodeActions || shouldExecuteCodeBlockActions);
+
+            var symbol = symbolEvent.Symbol;
+            SemanticModel semanticModel = symbolEvent.SemanticModel(decl);
+            var declaringReferenceSyntax = decl.GetSyntax(cancellationToken);
+            var syntax = semanticModel.GetTopmostNodeForDiagnosticAnalysis(symbol, declaringReferenceSyntax);
+
+            // We only care about the top level symbol declaration and its immediate member declarations.
+            int? levelsToCompute = 2;
+
+            var declarationsInNode = semanticModel.GetDeclarationsInNode(syntax, getSymbol: syntax != declaringReferenceSyntax, cancellationToken: cancellationToken, levelsToCompute: levelsToCompute);
+
+            // Execute stateless syntax node actions.
+            if (shouldExecuteSyntaxNodeActions)
+            {
+                foreach (var analyzerAndActions in this.NodeActionsByKind)
+                {
+                    Action executeStatelessNodeActions = () =>
+                        ExecuteStatelessNodeActions(analyzerAndActions.Value, syntax, symbol, declarationsInNode, semanticModel,
                         reportDiagnostic, this.continueOnAnalyzerException, this.analyzerOptions, this.GetKind, cancellationToken);
+
+                    AddAnalyzerActionsExecutor(taskMap, analyzerAndActions.Key, executeStatelessNodeActions, cancellationToken);
+                }
+            }
+
+            // Execute code block actions.
+            if (shouldExecuteCodeBlockActions)
+            {
+                // Compute the executable code blocks of interest.
+                var executableCodeBlocks = ImmutableArray<SyntaxNode>.Empty;
+                foreach (var declInNode in declarationsInNode)
+                {
+                    if (declInNode.DeclaredNode == syntax || declInNode.DeclaredNode == declaringReferenceSyntax)
+                    {
+                        executableCodeBlocks = declInNode.ExecutableCodeBlocks;
+                        break;
+                    }
                 }
 
-                // Execute code block actions.
-                if (executeCodeBlockActions)
+                if (executableCodeBlocks.Any())
                 {
-                    // Compute the executable code blocks of interest.
-                    var executableCodeBlocks = ImmutableArray<SyntaxNode>.Empty;
-                    foreach (var declInNode in declarationsInNode)
+                    foreach (var analyzerAndActions in this.CodeBlockStartActionsByAnalyer)
                     {
-                        if (declInNode.DeclaredNode == syntax || declInNode.DeclaredNode == declaringReferenceSyntax)
+                        Action executeCodeBlockActions = () =>
                         {
-                            executableCodeBlocks = declInNode.ExecutableCodeBlocks;
-                            break;
-                        }
+                            var codeBlockStartActions = analyzerAndActions.Value;
+                            var codeBlockEndActions = this.CodeBlockEndActionsByAnalyer.ContainsKey(analyzerAndActions.Key) ?
+                                this.CodeBlockEndActionsByAnalyer[analyzerAndActions.Key] :
+                                ImmutableArray<CodeBlockEndAnalyzerAction>.Empty;
+
+                            AnalyzerDriverHelper.ExecuteCodeBlockActions(codeBlockStartActions, codeBlockEndActions,
+                                syntax, symbol, executableCodeBlocks, analyzerOptions,
+                                semanticModel, reportDiagnostic, this.continueOnAnalyzerException, this.GetKind, cancellationToken);
+                        };
+
+                        AddAnalyzerActionsExecutor(taskMap, analyzerAndActions.Key, executeCodeBlockActions, cancellationToken);
                     }
 
-                    if (executableCodeBlocks.Any())
+                    // Execute code block end actions for analyzers which don't have corresponding code block start actions.
+                    foreach (var analyzerAndActions in this.CodeBlockEndActionsByAnalyer)
                     {
-                        ExecuteCodeBlockActions(this.compilationAnalysisScope,
-                            syntax, symbol, executableCodeBlocks, this.analyzerOptions,
+                        // skip analyzers executed above.
+                        if (!CodeBlockStartActionsByAnalyer.ContainsKey(analyzerAndActions.Key))
+                        {
+                            Action executeCodeBlockActions = () =>
+                            {
+                                var codeBlockStartActions = ImmutableArray<CodeBlockStartAnalyzerAction<TLanguageKindEnum>>.Empty;
+                                var codeBlockEndActions = analyzerAndActions.Value;
+
+                                AnalyzerDriverHelper.ExecuteCodeBlockActions(codeBlockStartActions, codeBlockEndActions,
+                                    syntax, symbol, executableCodeBlocks, analyzerOptions,
                             semanticModel, reportDiagnostic, this.continueOnAnalyzerException, this.GetKind, cancellationToken);
+                            };
+
+                            AddAnalyzerActionsExecutor(taskMap, analyzerAndActions.Key, executeCodeBlockActions, cancellationToken);
+                        }
                     }
                 }
             }
         }
 
         private static void ExecuteStatelessNodeActions(
-            IDictionary<TLanguageKindEnum, ArrayBuilder<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> actionsByKind,
+            IDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> actionsByKind,
             SyntaxNode declaredNode,
             ISymbol declaredSymbol,
             IEnumerable<DeclarationInfo> declarationsInNode,
@@ -920,41 +1148,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             VerifyArguments(semanticModel, actions, analyzerOptions, addDiagnostic, continueOnAnalyzerException);
-        }
-
-        private static void ExecuteCodeBlockActions(
-            HostCompilationStartAnalysisScope compilationScope,
-            SyntaxNode declaredNode,
-            ISymbol declaredSymbol,
-            ImmutableArray<SyntaxNode> executableCodeBlocks,
-            AnalyzerOptions analyzerOptions,
-            SemanticModel semanticModel,
-            Action<Diagnostic> addDiagnostic,
-            Func<Exception, DiagnosticAnalyzer, bool> continueOnAnalyzerException,
-            Func<SyntaxNode, TLanguageKindEnum> getKind,
-            CancellationToken cancellationToken)
-        {
-            AnalyzerDriverHelper.ExecuteCodeBlockActions(
-                compilationScope.GetCodeBlockStartActions<TLanguageKindEnum>(),
-                compilationScope.CodeBlockEndActions,
-                declaredNode,
-                declaredSymbol,
-                executableCodeBlocks,
-                analyzerOptions,
-                semanticModel,
-                addDiagnostic,
-                continueOnAnalyzerException,
-                getKind,
-                cancellationToken);
-        }
-
-        public new void Dispose()
-        {
-            base.Dispose();
-            foreach (var kvp in this.NodeActionsByKind)
-            {
-                kvp.Value.Free();
-            }
         }
     }
 
