@@ -15,3 +15,6 @@
 * [Syntax Visualizer](Syntax Visualizer)
 * [Syntax Quoter](http://roslynquoter.azurewebsites.net), [Source](https://github.com/KirillOsenkov/RoslynQuoter)
 * [Enhanced source view](http://source.roslyn.codeplex.com), powered by Roslyn
+
+# API Changelist
+* [VS 2015 CTP5 Changelist](https://github.com/dotnet/roslyn/wiki/VS-2015-CTP-5-API-Changes)
