@@ -1270,5 +1270,180 @@ End Class
 ]]>)
         End Sub
 
+        <Fact(), WorkItem(1106943, "DevDiv")>
+        Sub Bug1106943_01()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+
+Class C1
+    Public Shared Sub Main()
+        SyncLock GetType(C1)
+            Console.WriteLine("Inside SyncLock.")
+        End SyncLock
+    End Sub
+End Class        
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter)
+
+            CompileAndVerify(compilation, expectedOutput:="Inside SyncLock.")
+        End Sub
+
+        <Fact(), WorkItem(1106943, "DevDiv")>
+        Sub Bug1106943_02()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+
+Class C1
+    Public Shared Sub Main()
+        SyncLock GetType(C1)
+            Console.WriteLine("Inside SyncLock.")
+        End SyncLock
+    End Sub
+End Class        
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2)
+
+            CompileAndVerify(compilation, expectedOutput:="Inside SyncLock.")
+        End Sub
+
+        <Fact(), WorkItem(1106943, "DevDiv")>
+        Sub Bug1106943_03()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+
+Class C1
+    Public Shared Sub Main()
+        SyncLock GetType(C1)
+            Console.WriteLine("Inside SyncLock.")
+        End SyncLock
+    End Sub
+End Class        
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter)
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2)
+
+            AssertTheseEmitDiagnostics(compilation, <expected>
+BC35000: Requested operation is not available because the runtime library function 'System.Threading.Monitor.Enter' is not defined.
+        SyncLock GetType(C1)
+                 ~~~~~~~~~~~
+                                                    </expected>)
+        End Sub
+
+        <Fact(), WorkItem(1106943, "DevDiv")>
+        Sub Bug1106943_04()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+
+Class C1
+    Public Shared Sub Main()
+        SyncLock GetType(C1)
+            Console.WriteLine("Inside SyncLock.")
+        End SyncLock
+    End Sub
+End Class        
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Exit)
+
+            AssertTheseEmitDiagnostics(compilation, <expected>
+BC35000: Requested operation is not available because the runtime library function 'System.Threading.Monitor.Exit' is not defined.
+        SyncLock GetType(C1)
+        ~~~~~~~~~~~~~~~~~~~~~
+                                                    </expected>)
+        End Sub
+
+        <Fact(), WorkItem(1106943, "DevDiv")>
+        Sub Bug1106943_05()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+
+Class C1
+    Public Shared Sub Main()
+        SyncLock GetType(C1)
+            Console.WriteLine("Inside SyncLock.")
+        End SyncLock
+    End Sub
+End Class        
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter)
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2)
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Exit)
+
+            AssertTheseEmitDiagnostics(compilation, <expected>
+BC35000: Requested operation is not available because the runtime library function 'System.Threading.Monitor.Exit' is not defined.
+        SyncLock GetType(C1)
+        ~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Threading.Monitor.Enter' is not defined.
+        SyncLock GetType(C1)
+                 ~~~~~~~~~~~
+                                                    </expected>)
+        End Sub
+
+        <Fact(), WorkItem(1106943, "DevDiv")>
+        Sub Bug1106943_06()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+Option Strict On
+
+Imports System
+
+Class C1
+    Public Shared Sub Main()
+        SyncLock GetType(C1)
+            Console.WriteLine("Inside SyncLock.")
+        End SyncLock
+    End Sub
+End Class        
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
+            compilation.MakeTypeMissing(WellKnownType.System_Threading_Monitor)
+
+            AssertTheseEmitDiagnostics(compilation, <expected>
+BC35000: Requested operation is not available because the runtime library function 'System.Threading.Monitor.Exit' is not defined.
+        SyncLock GetType(C1)
+        ~~~~~~~~~~~~~~~~~~~~~
+BC35000: Requested operation is not available because the runtime library function 'System.Threading.Monitor.Enter' is not defined.
+        SyncLock GetType(C1)
+                 ~~~~~~~~~~~
+                                                    </expected>)
+        End Sub
+
     End Class
 End Namespace

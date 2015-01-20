@@ -129,8 +129,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                            ImmutableArray(Of LocalSymbol).Empty,
                                                            ImmutableArray.Create(Of BoundStatement)(statementInFinally))
 
-            ' rewrite the finally body
-            finallyBody = DirectCast(Visit(finallyBody), BoundBlock)
             If GenerateDebugInfo Then
                 ' Add a sequence point to highlight the "End SyncLock" syntax in case the body has thrown an exception
                 finallyBody = DirectCast(InsertEndBlockSequencePoint(finallyBody,

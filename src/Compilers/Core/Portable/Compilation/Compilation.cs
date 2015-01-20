@@ -43,6 +43,16 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract bool IsCaseSensitive { get; }
 
+        /// <summary>
+        /// Used for test purposes only to emulate missing members.
+        /// </summary>
+        private SmallDictionary<int, bool> lazyMakeWellKnownTypeMissingMap;
+
+        /// <summary>
+        /// Used for test purposes only to emulate missing members.
+        /// </summary>
+        private SmallDictionary<int, bool> lazyMakeMemberMissingMap;
+
         internal Compilation(
             string name,
             ImmutableArray<MetadataReference> references,
@@ -1835,5 +1845,55 @@ namespace Microsoft.CodeAnalysis
         public abstract IEnumerable<ISymbol> GetSymbolsWithName(Func<string, bool> predicate, SymbolFilter filter = SymbolFilter.TypeAndMember, CancellationToken cancellationToken = default(CancellationToken));
 
         #endregion
+
+        internal void MakeMemberMissing(WellKnownMember member)
+        {
+            MakeMemberMissing((int)member);
+        }
+
+        internal void MakeMemberMissing(SpecialMember member)
+        {
+            MakeMemberMissing(-(int)member - 1);
+        }
+
+        internal bool IsMemberMissing(WellKnownMember member)
+        {
+            return IsMemberMissing((int)member);
+        }
+
+        internal bool IsMemberMissing(SpecialMember member)
+        {
+            return IsMemberMissing(-(int)member - 1);
+        }
+
+        private void MakeMemberMissing(int member)
+        {
+            if (lazyMakeMemberMissingMap == null)
+            {
+                lazyMakeMemberMissingMap = new SmallDictionary<int, bool>();
+            }
+
+            lazyMakeMemberMissingMap[member] = true;
+        }
+
+        private bool IsMemberMissing(int member)
+        {
+            return lazyMakeMemberMissingMap != null && lazyMakeMemberMissingMap.ContainsKey(member);
+        }
+
+        internal void MakeTypeMissing(WellKnownType type)
+        {
+            if (lazyMakeWellKnownTypeMissingMap == null)
+            {
+                lazyMakeWellKnownTypeMissingMap = new SmallDictionary<int, bool>();
+            }
+
+            lazyMakeWellKnownTypeMissingMap[(int)type] = true;
+        }
+
+        internal bool IsTypeMissing(WellKnownType type)
+        {
+            return lazyMakeWellKnownTypeMissingMap != null && lazyMakeWellKnownTypeMissingMap.ContainsKey((int)type);
+        }
     }
 }

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -1892,5 +1893,174 @@ class D
         }
 
         #endregion Execution
+
+        [Fact(), WorkItem(1106943, "DevDiv")]
+        public void Bug1106943_01()
+        {
+            var source = @"
+class C1
+{
+    public static void Main()
+    {
+        lock (typeof(C1))
+        {
+            System.Console.WriteLine(""Inside lock."");
+        }
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter);
+
+            CompileAndVerify(compilation, expectedOutput: "Inside lock.");
+        }
+
+        [Fact(), WorkItem(1106943, "DevDiv")]
+        public void Bug1106943_02()
+        {
+            var source = @"
+class C1
+{
+    public static void Main()
+    {
+        lock (typeof(C1))
+        {
+            System.Console.WriteLine(""Inside lock."");
+        }
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2);
+
+            CompileAndVerify(compilation, expectedOutput: "Inside lock.");
+        }
+
+        [Fact(), WorkItem(1106943, "DevDiv")]
+        public void Bug1106943_03()
+        {
+            var source = @"
+class C1
+{
+    public static void Main()
+    {
+        lock (typeof(C1))
+        {
+            System.Console.WriteLine(""Inside lock."");
+        }
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter);
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2);
+
+            compilation.VerifyEmitDiagnostics(
+    // (6,9): error CS0656: Missing compiler required member 'System.Threading.Monitor.Enter'
+    //         lock (typeof(C1))
+    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"lock (typeof(C1))
+        {
+            System.Console.WriteLine(""Inside lock."");
+        }").WithArguments("System.Threading.Monitor", "Enter").WithLocation(6, 9)
+                );
+        }
+
+        [Fact(), WorkItem(1106943, "DevDiv")]
+        public void Bug1106943_04()
+        {
+            var source = @"
+class C1
+{
+    public static void Main()
+    {
+        lock (typeof(C1))
+        {
+            System.Console.WriteLine(""Inside lock."");
+        }
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Exit);
+
+            compilation.VerifyEmitDiagnostics(
+    // (6,9): error CS0656: Missing compiler required member 'System.Threading.Monitor.Exit'
+    //         lock (typeof(C1))
+    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"lock (typeof(C1))
+        {
+            System.Console.WriteLine(""Inside lock."");
+        }").WithArguments("System.Threading.Monitor", "Exit").WithLocation(6, 9)
+                );
+        }
+
+        [Fact(), WorkItem(1106943, "DevDiv")]
+        public void Bug1106943_05()
+        {
+            var source = @"
+class C1
+{
+    public static void Main()
+    {
+        lock (typeof(C1))
+        {
+            System.Console.WriteLine(""Inside lock."");
+        }
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter);
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2);
+            compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Exit);
+
+            compilation.VerifyEmitDiagnostics(
+    // (6,9): error CS0656: Missing compiler required member 'System.Threading.Monitor.Exit'
+    //         lock (typeof(C1))
+    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"lock (typeof(C1))
+        {
+            System.Console.WriteLine(""Inside lock."");
+        }").WithArguments("System.Threading.Monitor", "Exit").WithLocation(6, 9),
+    // (6,9): error CS0656: Missing compiler required member 'System.Threading.Monitor.Enter'
+    //         lock (typeof(C1))
+    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"lock (typeof(C1))
+        {
+            System.Console.WriteLine(""Inside lock."");
+        }").WithArguments("System.Threading.Monitor", "Enter").WithLocation(6, 9)
+                );
+        }
+
+        [Fact(), WorkItem(1106943, "DevDiv")]
+        public void Bug1106943_06()
+        {
+            var source = @"
+class C1
+{
+    public static void Main()
+    {
+        lock (typeof(C1))
+        {
+            System.Console.WriteLine(""Inside lock."");
+        }
+    }
+}";
+
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            compilation.MakeTypeMissing(WellKnownType.System_Threading_Monitor);
+
+            compilation.VerifyEmitDiagnostics(
+    // (6,9): error CS0656: Missing compiler required member 'System.Threading.Monitor.Exit'
+    //         lock (typeof(C1))
+    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"lock (typeof(C1))
+        {
+            System.Console.WriteLine(""Inside lock."");
+        }").WithArguments("System.Threading.Monitor", "Exit").WithLocation(6, 9),
+    // (6,9): error CS0656: Missing compiler required member 'System.Threading.Monitor.Enter'
+    //         lock (typeof(C1))
+    Diagnostic(ErrorCode.ERR_MissingPredefinedMember, @"lock (typeof(C1))
+        {
+            System.Console.WriteLine(""Inside lock."");
+        }").WithArguments("System.Threading.Monitor", "Enter").WithLocation(6, 9)
+                );
+        }
     }
 }
