@@ -237,10 +237,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.SingleLineSubLambdaExpression
 
                     Dim singleLineLambda = DirectCast(possibleLambda, SingleLineLambdaExpressionSyntax)
-                    Dim parameterList As ParameterListSyntax = singleLineLambda.Begin.ParameterList
+                    Dim parameterList As ParameterListSyntax = singleLineLambda.SubOrFunctionHeader.ParameterList
 
                     If parameterList Is Nothing OrElse parameterList.CloseParenToken.IsMissing Then
-                        afterBegin = (position >= singleLineLambda.Begin.Span.End)
+                        afterBegin = (position >= singleLineLambda.SubOrFunctionHeader.Span.End)
                     Else
                         afterBegin = (position >= parameterList.CloseParenToken.SpanStart)
                     End If
@@ -251,15 +251,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.MultiLineSubLambdaExpression
 
                     Dim multiLineLambda = DirectCast(possibleLambda, MultiLineLambdaExpressionSyntax)
-                    Dim parameterList As ParameterListSyntax = multiLineLambda.Begin.ParameterList
+                    Dim parameterList As ParameterListSyntax = multiLineLambda.SubOrFunctionHeader.ParameterList
 
                     If parameterList Is Nothing OrElse parameterList.CloseParenToken.IsMissing Then
-                        afterBegin = (position >= multiLineLambda.Begin.Span.End)
+                        afterBegin = (position >= multiLineLambda.SubOrFunctionHeader.Span.End)
                     Else
                         afterBegin = (position >= parameterList.CloseParenToken.SpanStart)
                     End If
 
-                    beforeEnd = (position < multiLineLambda.End.SpanStart)
+                    beforeEnd = (position < multiLineLambda.EndSubOrFunctionStatement.SpanStart)
 
                 Case Else
                     Return False
@@ -338,9 +338,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case SyntaxKind.ModuleBlock, SyntaxKind.StructureBlock, SyntaxKind.InterfaceBlock, SyntaxKind.ClassBlock
                     Dim typeBlock = DirectCast(possibleBlock, TypeBlockSyntax)
-                    beginStatement = typeBlock.Begin
+                    beginStatement = typeBlock.BlockStatement
                     body = typeBlock.Members
-                    endStatement = typeBlock.End
+                    endStatement = typeBlock.EndBlockStatement
                     Return True
 
                 Case SyntaxKind.EnumBlock
@@ -354,9 +354,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      SyntaxKind.OperatorBlock, SyntaxKind.GetAccessorBlock, SyntaxKind.SetAccessorBlock,
                      SyntaxKind.AddHandlerAccessorBlock, SyntaxKind.RemoveHandlerAccessorBlock, SyntaxKind.RaiseEventAccessorBlock
                     Dim methodBlock = DirectCast(possibleBlock, MethodBlockBaseSyntax)
-                    beginStatement = methodBlock.Begin
+                    beginStatement = methodBlock.BlockStatement
                     body = methodBlock.Statements
-                    endStatement = methodBlock.End
+                    endStatement = methodBlock.EndBlockStatement
                     Return True
 
                 Case SyntaxKind.PropertyBlock
@@ -429,7 +429,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Case SyntaxKind.CaseBlock, SyntaxKind.CaseElseBlock
                     Dim caseBlock = DirectCast(possibleBlock, CaseBlockSyntax)
-                    beginStatement = caseBlock.Begin
+                    beginStatement = caseBlock.CaseStatement
                     body = caseBlock.Statements
                     endStatement = Nothing ' doesn't fit
                     Return True

@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim binder As Binder = BinderBuilder.CreateBinderForType(sourceModule, Me.SyntaxTree, type)
             binder = New LocationSpecificBinder(BindingLocation.EventAccessorSignature, Me, binder)
 
-            Return BindParameters(Me.Locations.FirstOrDefault, binder, BlockSyntax.Begin.ParameterList, diagBag)
+            Return BindParameters(Me.Locations.FirstOrDefault, binder, BlockSyntax.BlockStatement.ParameterList, diagBag)
         End Function
 
         Public Overrides ReadOnly Property AssociatedSymbol As Symbol

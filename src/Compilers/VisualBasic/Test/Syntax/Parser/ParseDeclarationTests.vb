@@ -993,13 +993,13 @@ p1 as vb$anonymous1
         Dim root = t.GetCompilationUnitRoot()
 
         Assert.Equal("(Of T1, T2)" + vbLf, DirectCast(root.Members(0), EnumBlockSyntax).EnumStatement.Identifier.TrailingTrivia.Node.ToFullString)
-        Assert.Equal("(Of T1, T2)" + vbLf, DirectCast(root.Members(1), TypeBlockSyntax).Begin.Identifier.TrailingTrivia.Node.ToFullString)
+        Assert.Equal("(Of T1, T2)" + vbLf, DirectCast(root.Members(1), TypeBlockSyntax).BlockStatement.Identifier.TrailingTrivia.Node.ToFullString)
 
         Dim c = DirectCast(root.Members(2), TypeBlockSyntax)
-        Assert.Equal("(Of T)", DirectCast(c.Members(0), ConstructorBlockSyntax).Begin.NewKeyword.TrailingTrivia.Node.ToFullString)
+        Assert.Equal("(Of T)", DirectCast(c.Members(0), ConstructorBlockSyntax).SubNewStatement.NewKeyword.TrailingTrivia.Node.ToFullString)
         Assert.Equal("(Of T)" + vbLf, DirectCast(c.Members(1), PropertyStatementSyntax).Identifier.TrailingTrivia.Node.ToFullString)
         Assert.Equal("(Of T)" + vbLf, DirectCast(c.Members(2), EventStatementSyntax).Identifier.TrailingTrivia.Node.ToFullString)
-        Assert.Equal("(Of T)", DirectCast(c.Members(3), OperatorBlockSyntax).Begin.OperatorToken.TrailingTrivia.Node.ToFullString)
+        Assert.Equal("(Of T)", DirectCast(c.Members(3), OperatorBlockSyntax).OperatorStatement.OperatorToken.TrailingTrivia.Node.ToFullString)
     End Sub
 
 #End Region

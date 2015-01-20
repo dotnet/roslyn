@@ -490,7 +490,7 @@ End Class
                     Case SyntaxKind.NamespaceBlock
                         location = DirectCast(context.Node, NamespaceBlockSyntax).NamespaceStatement.Name.GetLocation
                     Case SyntaxKind.ClassBlock
-                        location = DirectCast(context.Node, ClassBlockSyntax).Begin.Identifier.GetLocation
+                        location = DirectCast(context.Node, ClassBlockSyntax).BlockStatement.Identifier.GetLocation
                 End Select
                 context.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(desc1, location))
             End Sub

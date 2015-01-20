@@ -637,11 +637,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' TODO: currently we only support method for now
             Dim method = TryCast(member, MethodBlockBaseSyntax)
             If method IsNot Nothing Then
-                If method.Begin Is Nothing OrElse method.End Is Nothing Then
+                If method.BlockStatement Is Nothing OrElse method.EndBlockStatement Is Nothing Then
                     Return Nothing
                 End If
 
-                Return TextSpan.FromBounds(method.Begin.Span.End, method.End.SpanStart)
+                Return TextSpan.FromBounds(method.BlockStatement.Span.End, method.EndBlockStatement.SpanStart)
             End If
 
             Return Nothing
@@ -715,17 +715,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Select Case node.Kind()
                 Case SyntaxKind.ClassBlock
                     Dim classDecl = CType(node, ClassBlockSyntax)
-                    declaredSymbolInfo = New DeclaredSymbolInfo(classDecl.Begin.Identifier.ValueText, GetNodeName(node.Parent), DeclaredSymbolInfoKind.Class, classDecl.Begin.Identifier.Span)
+                    declaredSymbolInfo = New DeclaredSymbolInfo(classDecl.ClassStatement.Identifier.ValueText, GetNodeName(node.Parent), DeclaredSymbolInfoKind.Class, classDecl.ClassStatement.Identifier.Span)
                     Return True
                 Case SyntaxKind.ConstructorBlock
                     Dim constructor = CType(node, ConstructorBlockSyntax)
                     Dim typeBlock = CType(constructor.Parent, TypeBlockSyntax)
                     declaredSymbolInfo = New DeclaredSymbolInfo(
-                        typeBlock.Begin.Identifier.ValueText,
+                        typeBlock.BlockStatement.Identifier.ValueText,
                         GetNodeName(node.Parent),
                         DeclaredSymbolInfoKind.Constructor,
-                        constructor.Begin.NewKeyword.Span,
-                        parameterCount:=CType(If(constructor.Begin.ParameterList?.Parameters.Count, 0), UShort))
+                        constructor.SubNewStatement.NewKeyword.Span,
+                        parameterCount:=CType(If(constructor.SubNewStatement.ParameterList?.Parameters.Count, 0), UShort))
                     Return True
                 Case SyntaxKind.DelegateFunctionStatement, SyntaxKind.DelegateSubStatement
                     Dim delegateDecl = CType(node, DelegateStatementSyntax)
@@ -747,16 +747,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case SyntaxKind.FunctionBlock, SyntaxKind.SubBlock
                     Dim funcDecl = CType(node, MethodBlockSyntax)
                     declaredSymbolInfo = New DeclaredSymbolInfo(
-                        funcDecl.Begin.Identifier.ValueText,
+                        funcDecl.SubOrFunctionStatement.Identifier.ValueText,
                         GetNodeName(node.Parent),
                         DeclaredSymbolInfoKind.Method,
-                        funcDecl.Begin.Identifier.Span,
-                        parameterCount:=CType(If(funcDecl.Begin.ParameterList?.Parameters.Count, 0), UShort),
-                        typeParameterCount:=CType(If(funcDecl.Begin.TypeParameterList?.Parameters.Count, 0), UShort))
+                        funcDecl.SubOrFunctionStatement.Identifier.Span,
+                        parameterCount:=CType(If(funcDecl.SubOrFunctionStatement.ParameterList?.Parameters.Count, 0), UShort),
+                        typeParameterCount:=CType(If(funcDecl.SubOrFunctionStatement.TypeParameterList?.Parameters.Count, 0), UShort))
                     Return True
                 Case SyntaxKind.InterfaceBlock
                     Dim interfaceDecl = CType(node, InterfaceBlockSyntax)
-                    declaredSymbolInfo = New DeclaredSymbolInfo(interfaceDecl.Begin.Identifier.ValueText, GetNodeName(node.Parent), DeclaredSymbolInfoKind.Interface, interfaceDecl.Begin.Identifier.Span)
+                    declaredSymbolInfo = New DeclaredSymbolInfo(interfaceDecl.InterfaceStatement.Identifier.ValueText, GetNodeName(node.Parent), DeclaredSymbolInfoKind.Interface, interfaceDecl.InterfaceStatement.Identifier.Span)
                     Return True
                 Case SyntaxKind.ModifiedIdentifier
                     Dim modifiedIdentifier = CType(node, ModifiedIdentifierSyntax)
@@ -771,7 +771,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 Case SyntaxKind.ModuleBlock
                     Dim moduleDecl = CType(node, ModuleBlockSyntax)
-                    declaredSymbolInfo = New DeclaredSymbolInfo(moduleDecl.Begin.Identifier.ValueText, GetNodeName(node.Parent), DeclaredSymbolInfoKind.Module, moduleDecl.Begin.Identifier.Span)
+                    declaredSymbolInfo = New DeclaredSymbolInfo(moduleDecl.ModuleStatement.Identifier.ValueText, GetNodeName(node.Parent), DeclaredSymbolInfoKind.Module, moduleDecl.ModuleStatement.Identifier.Span)
                     Return True
                 Case SyntaxKind.PropertyStatement
                     Dim propertyDecl = CType(node, PropertyStatementSyntax)
@@ -780,7 +780,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return True
                 Case SyntaxKind.StructureBlock
                     Dim structDecl = CType(node, StructureBlockSyntax)
-                    declaredSymbolInfo = New DeclaredSymbolInfo(structDecl.Begin.Identifier.ValueText, GetNodeName(node.Parent), DeclaredSymbolInfoKind.Struct, structDecl.Begin.Identifier.Span)
+                    declaredSymbolInfo = New DeclaredSymbolInfo(structDecl.StructureStatement.Identifier.ValueText, GetNodeName(node.Parent), DeclaredSymbolInfoKind.Struct, structDecl.StructureStatement.Identifier.Span)
                     Return True
             End Select
 
@@ -794,8 +794,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Select Case node.Kind()
                 Case SyntaxKind.ClassBlock
                     Dim classDecl = CType(node, ClassBlockSyntax)
-                    name = classDecl.Begin.Identifier.ValueText
-                    typeParameterList = classDecl.Begin.TypeParameterList
+                    name = classDecl.ClassStatement.Identifier.ValueText
+                    typeParameterList = classDecl.ClassStatement.TypeParameterList
                 Case SyntaxKind.CompilationUnit
                     name = String.Empty
                     typeParameterList = Nothing
@@ -807,16 +807,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     typeParameterList = Nothing
                 Case SyntaxKind.InterfaceBlock
                     Dim interfaceDecl = CType(node, InterfaceBlockSyntax)
-                    name = interfaceDecl.Begin.Identifier.ValueText
-                    typeParameterList = interfaceDecl.Begin.TypeParameterList
+                    name = interfaceDecl.InterfaceStatement.Identifier.ValueText
+                    typeParameterList = interfaceDecl.InterfaceStatement.TypeParameterList
                 Case SyntaxKind.FunctionBlock, SyntaxKind.SubBlock
                     Dim methodDecl = CType(node, MethodBlockSyntax)
-                    name = methodDecl.Begin.Identifier.ValueText
-                    typeParameterList = methodDecl.Begin.TypeParameterList
+                    name = methodDecl.SubOrFunctionStatement.Identifier.ValueText
+                    typeParameterList = methodDecl.SubOrFunctionStatement.TypeParameterList
                 Case SyntaxKind.ModuleBlock
                     Dim moduleDecl = CType(node, ModuleBlockSyntax)
-                    name = moduleDecl.Begin.Identifier.ValueText
-                    typeParameterList = moduleDecl.Begin.TypeParameterList
+                    name = moduleDecl.ModuleStatement.Identifier.ValueText
+                    typeParameterList = moduleDecl.ModuleStatement.TypeParameterList
                 Case SyntaxKind.NamespaceBlock
                     name = GetNodeName(CType(node, NamespaceBlockSyntax).NamespaceStatement.Name)
                     typeParameterList = Nothing
@@ -826,8 +826,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     typeParameterList = Nothing
                 Case SyntaxKind.StructureBlock
                     Dim structDecl = CType(node, StructureBlockSyntax)
-                    name = structDecl.Begin.Identifier.ValueText
-                    typeParameterList = structDecl.Begin.TypeParameterList
+                    name = structDecl.StructureStatement.Identifier.ValueText
+                    typeParameterList = structDecl.StructureStatement.TypeParameterList
                 Case Else
                     Debug.Assert(False, "Unexpected node type " + node.Kind().ToString())
                     Return Nothing
@@ -839,7 +839,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim parent = node.Parent
             While TypeOf parent Is TypeBlockSyntax
                 Dim currentParent = CType(parent, TypeBlockSyntax)
-                names.Add(currentParent.Begin.Identifier.ValueText + ExpandTypeParameterList(currentParent.Begin.TypeParameterList))
+                names.Add(currentParent.BlockStatement.Identifier.ValueText + ExpandTypeParameterList(currentParent.BlockStatement.TypeParameterList))
                 parent = currentParent.Parent
             End While
 

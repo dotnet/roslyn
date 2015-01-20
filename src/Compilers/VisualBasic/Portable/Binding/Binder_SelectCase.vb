@@ -120,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             diagnostics As DiagnosticBag
         ) As BoundCaseBlock
 
-            Dim caseStatement As BoundCaseStatement = BindCaseStatement(node.Begin, selectExpression, convertCaseElements, diagnostics)
+            Dim caseStatement As BoundCaseStatement = BindCaseStatement(node.CaseStatement, selectExpression, convertCaseElements, diagnostics)
 
             Dim statementsSyntax As SyntaxList(Of StatementSyntax) = node.Statements
             Dim bodyBinder = GetBinder(statementsSyntax)

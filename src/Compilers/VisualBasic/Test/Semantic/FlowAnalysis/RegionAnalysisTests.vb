@@ -4904,7 +4904,7 @@ End Class
             Dim tree = compilation.SyntaxTrees.First()
             Dim model = compilation.GetSemanticModel(tree)
             Dim selectSyntaxNode = DirectCast(tree.GetCompilationUnitRoot().FindToken(tree.GetRoot.ToFullString().IndexOf("Select Case 1 + 2 + 3")).Parent, SelectStatementSyntax)
-            Dim stmtSyntaxNode = DirectCast(selectSyntaxNode.Parent, SelectBlockSyntax).CaseBlocks(0).Begin
+            Dim stmtSyntaxNode = DirectCast(selectSyntaxNode.Parent, SelectBlockSyntax).CaseBlocks(0).CaseStatement
             Dim analysis = model.AnalyzeControlFlow(stmtSyntaxNode, stmtSyntaxNode)
 
             Assert.False(analysis.Succeeded)

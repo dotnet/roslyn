@@ -323,7 +323,7 @@ DoneWithBindingAttributes:
 
                     Select Case memberSyntax.Kind
                         Case SyntaxKind.ConstructorBlock
-                            constructorSyntax = DirectCast(memberSyntax, ConstructorBlockSyntax).Begin
+                            constructorSyntax = DirectCast(memberSyntax, ConstructorBlockSyntax).SubNewStatement
                         Case SyntaxKind.SubNewStatement
                             constructorSyntax = DirectCast(memberSyntax, SubNewStatementSyntax)
                         Case Else

@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
             Protected Overrides Function GetDiagnosticLocation(node As SyntaxNode) As Location
                 Dim methodBlock = TryCast(node, MethodBlockSyntax)
                 If methodBlock IsNot Nothing Then
-                    Return methodBlock.Begin.Identifier.GetLocation()
+                    Return methodBlock.SubOrFunctionStatement.Identifier.GetLocation()
                 End If
 
                 Dim methodStatement = TryCast(node, MethodStatementSyntax)

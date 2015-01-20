@@ -193,7 +193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If (block Is Nothing) Then
                     bodyBuilder.Add(stateDone)
                 Else
-                    bodyBuilder.Add(Me.F.SequencePointWithSpan(block, block.End.Span, stateDone))
+                    bodyBuilder.Add(Me.F.SequencePointWithSpan(block, block.EndBlockStatement.Span, stateDone))
                     bodyBuilder.Add(Me.F.HiddenSequencePoint())
                 End If
 

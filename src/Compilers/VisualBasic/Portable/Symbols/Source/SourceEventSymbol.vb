@@ -326,7 +326,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function BindEventAccessor(blockSyntax As AccessorBlockSyntax,
                                            binder As Binder) As CustomEventAccessorSymbol
 
-            Dim syntax = blockSyntax.Begin
+            Dim syntax = blockSyntax.BlockStatement
             Debug.Assert(syntax.Modifiers.IsEmpty, "event accessors cannot have modifiers")
 
             ' Include modifiers from the containing event.

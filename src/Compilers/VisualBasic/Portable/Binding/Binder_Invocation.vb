@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
@@ -864,7 +864,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim lambdaNode = TryCast(errorLocation, LambdaExpressionSyntax)
 
                     If lambdaNode IsNot Nothing Then
-                        errorLocation = lambdaNode.Begin
+                        errorLocation = lambdaNode.SubOrFunctionHeader
                     End If
 
                     ReportDiagnostic(diagnostics, errorLocation, ERRID.WRN_AsyncSubCouldBeFunction)

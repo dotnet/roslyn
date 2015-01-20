@@ -131,8 +131,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim methodBlock = TryCast(node, MethodBlockBaseSyntax)
                     If methodBlock IsNot Nothing Then
-                        Dim paramInitializers = GetParameterInitializers(methodBlock.Begin.ParameterList)
-                        Dim codeBlocks = paramInitializers.Concat(methodBlock.Statements).Concat(methodBlock.End)
+                        Dim paramInitializers = GetParameterInitializers(methodBlock.BlockStatement.ParameterList)
+                        Dim codeBlocks = paramInitializers.Concat(methodBlock.Statements).Concat(methodBlock.EndBlockStatement)
                         builder.Add(GetDeclarationInfo(model, node, getSymbol, codeBlocks, cancellationToken))
                         Return
                     End If

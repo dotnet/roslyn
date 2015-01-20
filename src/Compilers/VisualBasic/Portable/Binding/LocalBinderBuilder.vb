@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Text
@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub VisitMethodBlockBase(methodBlock As MethodBlockBaseSyntax)
             ' Get the right kind of exit kind for this method.
             Dim exitKind As SyntaxKind
-            Select Case methodBlock.Begin.Kind
+            Select Case methodBlock.BlockStatement.Kind
                 Case SyntaxKind.SubStatement, SyntaxKind.SubNewStatement
                     exitKind = SyntaxKind.ExitSubStatement
 
@@ -131,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     exitKind = SyntaxKind.OperatorStatement
 
                 Case Else
-                    Throw ExceptionUtilities.UnexpectedValue(methodBlock.Begin.Kind)
+                    Throw ExceptionUtilities.UnexpectedValue(methodBlock.BlockStatement.Kind)
             End Select
 
             containingBinder = New ExitableStatementBinder(containingBinder,

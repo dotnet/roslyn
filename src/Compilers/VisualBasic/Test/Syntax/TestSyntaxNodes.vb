@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Globalization
 Imports Microsoft.CodeAnalysis
@@ -1079,7 +1079,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                     Return SyntaxFactory.MethodStatement(node.Kind,
                                                          node.AttributeLists,
                                                          node.Modifiers,
-                                                         node.Keyword,
+                                                         node.DeclarationKeyword,
                                                          node.Identifier,
                                                          node.TypeParameterList,
                                                          SyntaxFactory.ParameterList(
@@ -1415,7 +1415,7 @@ End If</x>.Value, newBlock.ToFullString())
 <x>Private Class C
 End Class</x>.Value)
 
-            Dim privateToken = DirectCast(cu.Members(0), ClassBlockSyntax).Begin.Modifiers(0)
+            Dim privateToken = DirectCast(cu.Members(0), ClassBlockSyntax).BlockStatement.Modifiers(0)
             Dim publicToken = SyntaxFactory.ParseToken("Public ")
             Dim partialToken = SyntaxFactory.ParseToken("Partial ")
 
@@ -1458,7 +1458,7 @@ End Class</x>.Value)
             Dim cu = SyntaxFactory.ParseCompilationUnit(
 <x>Public Class C
 End Class</x>.Value)
-            Dim publicToken = DirectCast(cu.Members(0), ClassBlockSyntax).Begin.Modifiers(0)
+            Dim publicToken = DirectCast(cu.Members(0), ClassBlockSyntax).BlockStatement.Modifiers(0)
             Dim partialToken = SyntaxFactory.ParseToken("Partial ")
             Dim sharedToken = SyntaxFactory.ParseToken("Shared ")
 
@@ -2071,7 +2071,7 @@ End Class]]>
             Assert.Equal(root, root.FindNode(root.Span, findInsideTrivia:=True))
 
             Dim classDecl = DirectCast(root.ChildNodes().First(), TypeBlockSyntax)
-            Dim classStatement = classDecl.Begin
+            Dim classStatement = classDecl.BlockStatement
 
             ' IdentifierNameSyntax in trivia.
             Dim identifier = root.DescendantNodes(descendIntoTrivia:=True).Single(Function(n) TypeOf n Is IdentifierNameSyntax)
@@ -2089,7 +2089,7 @@ End Class]]>
 
             ' EOF Invalid span for childnode
             Dim classDecl2 = DirectCast(root.ChildNodes().Last(), TypeBlockSyntax)
-            Dim classStatement2 = classDecl2.Begin
+            Dim classStatement2 = classDecl2.BlockStatement
             Assert.Throws(Of ArgumentOutOfRangeException)(Sub() classDecl2.FindNode(EOFSpan))
 
             ' Check end position included in node span

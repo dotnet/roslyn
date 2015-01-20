@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                       blockSyntax As AccessorBlockSyntax,
                                                       diagnostics As DiagnosticBag) As SourcePropertyAccessorSymbol
 
-            Dim syntax = blockSyntax.Begin
+            Dim syntax = blockSyntax.BlockStatement
             Dim modifiers = binder.DecodeModifiers(syntax.Modifiers,
                                                    SourceMemberFlags.AllAccessibilityModifiers,
                                                    ERRID.ERR_BadPropertyAccessorFlags,
@@ -104,7 +104,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Binder.GetAccessorName(propertySymbol.Name, methodKind, propertySymbol.IsCompilationOutputWinMdObj()),
                 flags,
                 binder.GetSyntaxReference(syntax),
-                ImmutableArray.Create(syntax.Keyword.GetLocation()))
+                ImmutableArray.Create(syntax.DeclarationKeyword.GetLocation()))
 
             Return method
         End Function
@@ -278,7 +278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim binder As Binder = BinderBuilder.CreateBinderForType(sourceModule, Me.SyntaxTree, Me.m_property.ContainingSourceType)
                 binder = New LocationSpecificBinder(BindingLocation.PropertyAccessorSignature, Me, binder)
 
-                Return BindParameters(Me.m_property, Me, Me.Locations.FirstOrDefault, binder, BlockSyntax.Begin.ParameterList, diagBag)
+                Return BindParameters(Me.m_property, Me, Me.Locations.FirstOrDefault, binder, BlockSyntax.BlockStatement.ParameterList, diagBag)
             Else
                 ' synthesize parameters for auto-properties and abstract properties
                 Return If(MethodKind = MethodKind.PropertyGet,

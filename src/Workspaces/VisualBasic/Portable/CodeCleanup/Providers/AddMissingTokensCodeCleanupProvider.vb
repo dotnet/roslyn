@@ -213,13 +213,13 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
 
             Public Overrides Function VisitAccessorStatement(node As AccessorStatementSyntax) As SyntaxNode
                 Dim newNode = MyBase.VisitAccessorStatement(node)
-                If node.Keyword.Kind <> SyntaxKind.AddHandlerKeyword AndAlso
-                   node.Keyword.Kind <> SyntaxKind.RemoveHandlerKeyword AndAlso
-                   node.Keyword.Kind <> SyntaxKind.RaiseEventKeyword Then
+                If node.DeclarationKeyword.Kind <> SyntaxKind.AddHandlerKeyword AndAlso
+                   node.DeclarationKeyword.Kind <> SyntaxKind.RemoveHandlerKeyword AndAlso
+                   node.DeclarationKeyword.Kind <> SyntaxKind.RaiseEventKeyword Then
                     Return newNode
                 End If
 
-                Return AddParameterListTransform(node, newNode, Function(n) Not n.Keyword.IsMissing)
+                Return AddParameterListTransform(node, newNode, Function(n) Not n.DeclarationKeyword.IsMissing)
             End Function
 
             Public Overrides Function VisitAttribute(node As AttributeSyntax) As SyntaxNode

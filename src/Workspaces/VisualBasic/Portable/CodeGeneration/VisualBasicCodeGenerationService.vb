@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 cancellationToken As CancellationToken) As TDeclarationNode
             Dim methodBlock = TryCast(destinationMember, MethodBlockBaseSyntax)
             Dim methodStatement = If(methodBlock IsNot Nothing,
-                                     methodBlock.Begin,
+                                     methodBlock.BlockStatement,
                                      TryCast(destinationMember, MethodBaseSyntax))
 
             If methodStatement IsNot Nothing Then
@@ -234,20 +234,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Select Case methodBlock.Kind
                     Case SyntaxKind.SubBlock,
                         SyntaxKind.FunctionBlock
-                        result = DirectCast(methodBlock, MethodBlockSyntax).WithBegin(DirectCast(finalStatement, MethodStatementSyntax))
+                        result = DirectCast(methodBlock, MethodBlockSyntax).WithBlockStatement(DirectCast(finalStatement, MethodStatementSyntax))
 
                     Case SyntaxKind.ConstructorBlock
-                        result = DirectCast(methodBlock, ConstructorBlockSyntax).WithBegin(DirectCast(finalStatement, SubNewStatementSyntax))
+                        result = DirectCast(methodBlock, ConstructorBlockSyntax).WithBlockStatement(DirectCast(finalStatement, SubNewStatementSyntax))
 
                     Case SyntaxKind.GetAccessorBlock,
                         SyntaxKind.SetAccessorBlock,
                         SyntaxKind.AddHandlerAccessorBlock,
                         SyntaxKind.RemoveHandlerAccessorBlock,
                         SyntaxKind.RaiseEventAccessorBlock
-                        result = DirectCast(methodBlock, AccessorBlockSyntax).WithBegin(DirectCast(finalStatement, AccessorStatementSyntax))
+                        result = DirectCast(methodBlock, AccessorBlockSyntax).WithBlockStatement(DirectCast(finalStatement, AccessorStatementSyntax))
 
                     Case Else
-                        result = DirectCast(methodBlock, OperatorBlockSyntax).WithBegin(DirectCast(finalStatement, OperatorStatementSyntax))
+                        result = DirectCast(methodBlock, OperatorBlockSyntax).WithBlockStatement(DirectCast(finalStatement, OperatorStatementSyntax))
                 End Select
             Else
                 result = finalStatement

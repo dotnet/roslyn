@@ -2540,7 +2540,7 @@ _Default:
         ''' <param name="declarationSyntax">The syntax node that declares a type block.</param>
         ''' <returns>The type symbol that was declared.</returns>
         Public Overloads Function GetDeclaredSymbol(declarationSyntax As TypeBlockSyntax, Optional cancellationToken As CancellationToken = Nothing) As INamedTypeSymbol
-            Return GetDeclaredSymbol(declarationSyntax.Begin, cancellationToken)
+            Return GetDeclaredSymbol(declarationSyntax.BlockStatement, cancellationToken)
         End Function
 
         ''' <summary>
@@ -2647,7 +2647,7 @@ _Default:
         ''' <param name="declarationSyntax">The syntax node that declares method, property or event.</param>
         ''' <returns>The method, property or event symbol that was declared.</returns>
         Public Overloads Function GetDeclaredSymbol(declarationSyntax As MethodBlockBaseSyntax, Optional cancellationToken As CancellationToken = Nothing) As IMethodSymbol
-            Return DirectCast(GetDeclaredSymbol(declarationSyntax.Begin, cancellationToken), MethodSymbol)
+            Return DirectCast(GetDeclaredSymbol(declarationSyntax.BlockStatement, cancellationToken), MethodSymbol)
         End Function
 
         ''' <summary>

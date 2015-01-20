@@ -661,7 +661,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)
                 End If
 
-                Dim memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(_semanticModel, returnStatement.GetAncestor(Of MethodBlockBaseSyntax).Begin)
+                Dim memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(_semanticModel, returnStatement.GetAncestor(Of MethodBlockBaseSyntax).BlockStatement)
 
                 Dim memberMethod = TryCast(memberSymbol, IMethodSymbol)
                 If memberMethod IsNot Nothing Then
@@ -692,7 +692,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)
                 End If
 
-                Dim memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(_semanticModel, yieldStatement.GetAncestor(Of MethodBlockBaseSyntax).Begin)
+                Dim memberSymbol = GetDeclaredMemberSymbolFromOriginalSemanticModel(_semanticModel, yieldStatement.GetAncestor(Of MethodBlockBaseSyntax).BlockStatement)
 
                 Dim memberType = memberSymbol.TypeSwitch(
                     Function(method As IMethodSymbol) method.ReturnType,
@@ -726,7 +726,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Function InferTypeInSelectStatement(switchStatementSyntax As SelectStatementSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of ITypeSymbol)
                 ' Use the first case label to determine the return type.
                 If TypeOf switchStatementSyntax.Parent Is SelectBlockSyntax Then
-                    Dim firstCase = DirectCast(switchStatementSyntax.Parent, SelectBlockSyntax).CaseBlocks.SelectMany(Function(c) c.Begin.Cases).OfType(Of SimpleCaseClauseSyntax).FirstOrDefault()
+                    Dim firstCase = DirectCast(switchStatementSyntax.Parent, SelectBlockSyntax).CaseBlocks.SelectMany(Function(c) c.CaseStatement.Cases).OfType(Of SimpleCaseClauseSyntax).FirstOrDefault()
                     If firstCase IsNot Nothing Then
                         Return GetTypes(firstCase.Value)
                     End If

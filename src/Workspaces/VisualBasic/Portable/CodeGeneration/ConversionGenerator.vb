@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.OperatorBlock(
                 begin,
                 statements:=StatementGenerator.GenerateStatements(method),
-                end:=SyntaxFactory.EndOperatorStatement())
+                endOperatorStatement:=SyntaxFactory.EndOperatorStatement())
         End Function
     End Module
 End Namespace

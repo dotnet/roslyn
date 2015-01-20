@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
@@ -28,8 +28,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
         Private Sub VisitMethodBlockBase(node As MethodBlockBaseSyntax)
             Dim tokens As New List(Of SyntaxToken)
 
-            If node.Begin.ParameterList IsNot Nothing Then
-                tokens.AddRange(From parameter In node.Begin.ParameterList.Parameters
+            If node.BlockStatement.ParameterList IsNot Nothing Then
+                tokens.AddRange(From parameter In node.BlockStatement.ParameterList.Parameters
                                 Select parameter.Identifier.Identifier)
             End If
 
@@ -99,8 +99,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
         Public Overrides Sub VisitSingleLineLambdaExpression(node As SingleLineLambdaExpressionSyntax)
             Dim tokens As New List(Of SyntaxToken)
 
-            If node.Begin.ParameterList IsNot Nothing Then
-                tokens.AddRange(From parameter In node.Begin.ParameterList.Parameters
+            If node.SubOrFunctionHeader.ParameterList IsNot Nothing Then
+                tokens.AddRange(From parameter In node.SubOrFunctionHeader.ParameterList.Parameters
                                 Select parameter.Identifier.Identifier)
             End If
 
@@ -112,8 +112,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
         Public Overrides Sub VisitMultiLineLambdaExpression(node As MultiLineLambdaExpressionSyntax)
             Dim tokens As New List(Of SyntaxToken)
 
-            If node.Begin.ParameterList IsNot Nothing Then
-                tokens.AddRange(From parameter In node.Begin.ParameterList.Parameters
+            If node.SubOrFunctionHeader.ParameterList IsNot Nothing Then
+                tokens.AddRange(From parameter In node.SubOrFunctionHeader.ParameterList.Parameters
                                 Select parameter.Identifier.Identifier)
             End If
 
