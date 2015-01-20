@@ -6313,7 +6313,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Assume result type of the access is void when result value isn't used and cannot be made nullable.
                 // We are not doing this for types that can be made nullable to still allow expression evaluator to 
                 // to get the value.
-                if (node.Parent?.Kind() == SyntaxKind.ExpressionStatement)
+                bool resultIsNotUsed = false;
+                CSharpSyntaxNode child = node;
+                CSharpSyntaxNode parent = child.Parent;
+
+                // Skip through parenthesis
+                while (parent != null && parent.Kind() == SyntaxKind.ParenthesizedExpression)
+                {
+                    child = parent;
+                    parent = child.Parent;
+                }
+
+                if (parent != null)
+                {
+                    switch (parent.Kind())
+                    {
+                        case SyntaxKind.ExpressionStatement:
+                            resultIsNotUsed = ((ExpressionStatementSyntax)parent).Expression == child;
+                            break;
+
+                        case SyntaxKind.SimpleLambdaExpression:
+                            resultIsNotUsed = (((SimpleLambdaExpressionSyntax)parent).Body == child) && ContainingMethodOrLambdaReturnsVoid();
+                            break;
+
+                        case SyntaxKind.ParenthesizedLambdaExpression:
+                            resultIsNotUsed = (((ParenthesizedLambdaExpressionSyntax)parent).Body == child) && ContainingMethodOrLambdaReturnsVoid();
+                            break;
+
+                        case SyntaxKind.ArrowExpressionClause:
+                            resultIsNotUsed = (((ArrowExpressionClauseSyntax)parent).Expression == child) && ContainingMethodOrLambdaReturnsVoid();
+                            break;
+
+                        case SyntaxKind.ForStatement:
+                            // Incrementors and Initializers doesn't have to produce a value
+                            var loop = (ForStatementSyntax)parent;
+                            resultIsNotUsed = loop.Incrementors.Contains(child) || loop.Initializers.Contains(child);
+                            break;
+                    }
+                }
+
+                if (resultIsNotUsed)
                 {
                     accessType = GetSpecialType(SpecialType.System_Void, diagnostics, node);
                 }
@@ -6330,6 +6369,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundConditionalAccess(node, receiver, access, accessType);
+        }
+
+        private bool ContainingMethodOrLambdaReturnsVoid()
+        {
+            Symbol containingMember = ContainingMemberOrLambda;
+            return (object)containingMember != null && containingMember.Kind == SymbolKind.Method && ((MethodSymbol)containingMember).ReturnsVoid;
         }
 
         private BoundConditionalAccess GenerateBadConditionalAccessNodeError(ConditionalAccessExpressionSyntax node, BoundExpression receiver, BoundExpression access, DiagnosticBag diagnostics)
