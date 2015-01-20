@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using Roslyn.Test.Utilities;
 using Xunit;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -74,6 +75,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ObjectDisposedException>(() => m2.Module);
             Assert.Throws<ObjectDisposedException>(() => m3.Module);
             md.Dispose();
+        }
+
+        [Fact]
+        public void DisposalAndIndirectUseOfMetadataReader()
+        {
+            var md = AssemblyMetadata.CreateFromFile(typeof(object).Assembly.Location);
+            var compilation = CSharpCompilation.Create("test", references: new[] { md.GetReference() });
+
+            // Use the Compilation once to force lazy initialization of the underlying MetadataReader
+            compilation.GetTypeByMetadataName("System.Version").GetMembers();
+
+            md.Dispose();
+
+            Assert.Throws<ObjectDisposedException>(() =>
+                compilation.GetTypeByMetadataName("System.Exception").GetMembers());
         }
 
         [Fact]
