@@ -408,11 +408,11 @@ End Module
             compilation.AssertNoErrors()
             Dim tree = compilation.SyntaxTrees(0)
             Dim model = compilation.GetSemanticModel(tree)
-            ValueExtensionProperty(model, FindNodeOfTypeFromText(Of MemberAccessExpressionSyntax)(tree, "x.<y>.Value"))
-            ValueExtensionProperty(model, FindNodeOfTypeFromText(Of MemberAccessExpressionSyntax)(tree, "x.<z>.Value"))
+            ValueExtensionPropertyCore(model, FindNodeOfTypeFromText(Of MemberAccessExpressionSyntax)(tree, "x.<y>.Value"))
+            ValueExtensionPropertyCore(model, FindNodeOfTypeFromText(Of MemberAccessExpressionSyntax)(tree, "x.<z>.Value"))
         End Sub
 
-        Private Sub ValueExtensionProperty(model As SemanticModel, expr As MemberAccessExpressionSyntax)
+        Private Sub ValueExtensionPropertyCore(model As SemanticModel, expr As MemberAccessExpressionSyntax)
             Dim info = model.GetSymbolInfo(expr)
             Dim symbol = TryCast(info.Symbol, PropertySymbol)
             Assert.NotNull(symbol)

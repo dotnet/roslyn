@@ -373,12 +373,12 @@ MustOverride Sub M()
         <Fact()>
         Public Sub MustOverrideMember()
             ' MustOverride method in script class.
-            MustOverrideMember(CompilationUtils.CreateCompilationWithMscorlib({VisualBasicSyntaxTree.ParseText(<![CDATA[
+            MustOverrideMemberCore(CompilationUtils.CreateCompilationWithMscorlib({VisualBasicSyntaxTree.ParseText(<![CDATA[
 MustOverride Sub M()
 ]]>.Value,
                 options:=TestOptions.Script)}))
             ' MustOverride method in invalid class.
-            MustOverrideMember(CompilationUtils.CreateCompilationWithMscorlib(
+            MustOverrideMemberCore(CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
 MClass C
@@ -387,7 +387,7 @@ End Class
 ]]></file>
 </compilation>))
             ' MustOverride property in script class.
-            MustOverrideMember(CompilationUtils.CreateCompilationWithMscorlib(
+            MustOverrideMemberCore(CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
 MClass C
@@ -396,7 +396,7 @@ End Class
 ]]></file>
 </compilation>))
             ' MustOverride constructor.
-            MustOverrideMember(CompilationUtils.CreateCompilationWithMscorlib(
+            MustOverrideMemberCore(CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
 MustInherit Class C
@@ -405,7 +405,7 @@ End Class
 ]]></file>
 </compilation>))
             ' MustOverride method in class not MustInherit
-            MustOverrideMember(CompilationUtils.CreateCompilationWithMscorlib(
+            MustOverrideMemberCore(CompilationUtils.CreateCompilationWithMscorlib(
 <compilation>
     <file name="a.vb"><![CDATA[
 Class C
@@ -415,7 +415,7 @@ End Class
 </compilation>))
         End Sub
 
-        Private Sub MustOverrideMember(compilation As VisualBasicCompilation)
+        Private Sub MustOverrideMemberCore(compilation As VisualBasicCompilation)
             Dim tree = compilation.SyntaxTrees(0)
             Dim model = compilation.GetSemanticModel(tree)
             Dim diagnostics = model.GetDiagnostics().ToArray()

@@ -1383,7 +1383,7 @@ class C
             return s + ">";
         }
 
-        private void TestDynamicMemberAccess(string source)
+        private void TestDynamicMemberAccessCore(string source)
         {
             TestBoundTree(source, edges =>
                 from edge in edges

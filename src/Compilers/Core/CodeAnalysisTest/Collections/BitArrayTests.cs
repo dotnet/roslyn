@@ -38,17 +38,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var r2 = new Random(seed);
 
             for (int capacity = 0; capacity < maxBits; capacity++)
-                CheckRandomData(r1, r2, capacity);
+                CheckRandomDataCore(r1, r2, capacity);
 
             for (int i = 0; i < rounds; i++)
             {
                 int capacity = r1.Next(maxBits);
                 Assert.Equal(r2.Next(maxBits), capacity);
-                CheckRandomData(r1, r2, capacity);
+                CheckRandomDataCore(r1, r2, capacity);
             }
         }
 
-        private void CheckRandomData(Random r1, Random r2, int capacity)
+        private void CheckRandomDataCore(Random r1, Random r2, int capacity)
         {
             BitArray d = BitArray.Create(capacity);
             Assert.Equal(capacity, d.Capacity);
@@ -65,14 +65,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             var r = new Random(seed);
             for (int capacity = 0; capacity < maxBits; capacity++)
-                CheckIntersection(capacity, r);
+                CheckIntersectionCore(capacity, r);
             for (int i = 0; i < rounds; i++)
             {
-                CheckIntersection(r.Next(maxBits), r);
+                CheckIntersectionCore(r.Next(maxBits), r);
             }
         }
 
-        private void CheckIntersection(int capacity, Random r)
+        private void CheckIntersectionCore(int capacity, Random r)
         {
             BitArray b1 = BitArray.Empty, b2 = BitArray.Empty;
             b1.EnsureCapacity(capacity);
@@ -103,14 +103,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             var r = new Random(seed);
             for (int capacity = 0; capacity < maxBits; capacity++)
-                CheckUnion(capacity, r);
+                CheckUnionCore(capacity, r);
             for (int i = 0; i < rounds; i++)
             {
-                CheckUnion(r.Next(maxBits), r);
+                CheckUnionCore(r.Next(maxBits), r);
             }
         }
 
-        private void CheckUnion(int capacity, Random r)
+        private void CheckUnionCore(int capacity, Random r)
         {
             BitArray b1 = BitArray.Empty, b2 = BitArray.Empty;
             b1.EnsureCapacity(capacity);
@@ -139,17 +139,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             var r2 = new Random(seed);
             for (int capacity = 0; capacity < maxBits; capacity++)
             {
-                CheckTrueBits(capacity, r1, r2);
+                CheckTrueBitsCore(capacity, r1, r2);
             }
             for (int i = 0; i < rounds; i++)
             {
                 var capacity = r1.Next(maxBits);
                 Assert.Equal(capacity, r2.Next(maxBits));
-                CheckTrueBits(capacity, r1, r2);
+                CheckTrueBitsCore(capacity, r1, r2);
             }
         }
 
-        private void CheckTrueBits(int capacity, Random r1, Random r2)
+        private void CheckTrueBitsCore(int capacity, Random r1, Random r2)
         {
             BitArray b = BitArray.Create(capacity);
             for (int i = 0; i < capacity; i++)

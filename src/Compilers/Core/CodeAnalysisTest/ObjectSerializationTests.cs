@@ -547,10 +547,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestRoundTripGraph()
         {
             var oneNode = new Node("one");
-            TestRoundTripGraph(oneNode);
+            TestRoundTripGraphCore(oneNode);
 
-            TestRoundTripGraph(new Node("a", new Node("b"), new Node("c")));
-            TestRoundTripGraph(new Node("x", oneNode, oneNode, oneNode, oneNode));
+            TestRoundTripGraphCore(new Node("a", new Node("b"), new Node("c")));
+            TestRoundTripGraphCore(new Node("x", oneNode, oneNode, oneNode, oneNode));
 
 #if false  // cycles not supported
             var cylicNode = new Node("cyclic", oneNode);
@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 #endif
         }
 
-        private void TestRoundTripGraph(Node graph)
+        private void TestRoundTripGraphCore(Node graph)
         {
             var stream = new MemoryStream();
             var writer = new ObjectWriter(stream);

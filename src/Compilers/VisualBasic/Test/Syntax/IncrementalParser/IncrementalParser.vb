@@ -1564,7 +1564,7 @@ End Module
     <Fact()>
     Public Sub LabelAfterColon()
         ' Label following another label on separate lines.
-        LabelAfterColon(True, <![CDATA[Module M
+        LabelAfterColonCore(True, <![CDATA[Module M
             Sub M()
         10:
         20:
@@ -1577,7 +1577,7 @@ End Module
         End Module
         ]]>.Value)
         ' Label following another label on separate lines.
-        LabelAfterColon(True, <![CDATA[Module M
+        LabelAfterColonCore(True, <![CDATA[Module M
             Sub M()
         10: : 
         20:
@@ -1590,7 +1590,7 @@ End Module
         End Module
         ]]>.Value)
         ' Label following on the same line as another label.
-        LabelAfterColon(False, <![CDATA[Module M
+        LabelAfterColonCore(False, <![CDATA[Module M
     Sub M()
 10: 20:
 30:
@@ -1602,7 +1602,7 @@ End Module
 End Module
 ]]>.Value)
         ' Label following on the same line as another label.
-        LabelAfterColon(False, <![CDATA[Module M
+        LabelAfterColonCore(False, <![CDATA[Module M
     Sub M()
 10: : 20:
 30:
@@ -1614,7 +1614,7 @@ End Module
 End Module
 ]]>.Value)
         ' Label following on the same line as another statement.
-        LabelAfterColon(False, <![CDATA[Module M
+        LabelAfterColonCore(False, <![CDATA[Module M
     Sub M()
 M() : 20:
 30:
@@ -1626,7 +1626,7 @@ M() : 20:
 End Module
 ]]>.Value)
         ' Label following a colon within a single-line statement.
-        LabelAfterColon(False, <![CDATA[Module M
+        LabelAfterColonCore(False, <![CDATA[Module M
     Sub M()
 If True Then M() : 20:
 30:
@@ -1639,7 +1639,7 @@ End Module
 ]]>.Value)
     End Sub
 
-    Private Sub LabelAfterColon(valid As Boolean, code As String)
+    Private Sub LabelAfterColonCore(valid As Boolean, code As String)
         Dim oldText = SourceText.From(code)
         Dim oldTree = VisualBasicSyntaxTree.ParseText(oldText)
         Dim diagnostics = oldTree.GetDiagnostics()

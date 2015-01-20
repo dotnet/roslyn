@@ -10680,9 +10680,9 @@ AssemblyName
         <Fact>
         Public Sub ExtendedCref_BinaryOperator()
 
-            ExtendedCref_BinaryOperator(" &", "op_Concatenate", <errors></errors>)
+            ExtendedCref_BinaryOperatorCore(" &", "op_Concatenate", <errors></errors>)
 
-            ExtendedCref_BinaryOperator("+", "op_Addition",
+            ExtendedCref_BinaryOperatorCore("+", "op_Addition",
 <errors>
     <![CDATA[
 BC42309: XML comment has a tag with a 'cref' attribute 'Operator+(Clazz, String)' that could not be resolved.
@@ -10693,7 +10693,7 @@ BC42309: XML comment has a tag with a 'cref' attribute 'Operator+(Clazz)' that c
              ~~~~~~~~~~~~~~~~~~~~~~~
 ]]>
 </errors>)
-            ExtendedCref_BinaryOperator("-", "op_Subtraction",
+            ExtendedCref_BinaryOperatorCore("-", "op_Subtraction",
 <errors>
     <![CDATA[
 BC42309: XML comment has a tag with a 'cref' attribute 'Operator-(Clazz, String)' that could not be resolved.
@@ -10704,7 +10704,7 @@ BC42309: XML comment has a tag with a 'cref' attribute 'Operator-(Clazz)' that c
              ~~~~~~~~~~~~~~~~~~~~~~~
 ]]>
 </errors>)
-            ExtendedCref_BinaryOperator("*", "op_Multiply",
+            ExtendedCref_BinaryOperatorCore("*", "op_Multiply",
 <errors>
     <![CDATA[
 BC42309: XML comment has a tag with a 'cref' attribute 'Operator*(Clazz, String)' that could not be resolved.
@@ -10715,7 +10715,7 @@ BC42309: XML comment has a tag with a 'cref' attribute 'Operator*(Clazz)' that c
              ~~~~~~~~~~~~~~~~~~~~~~~
 ]]>
 </errors>)
-            ExtendedCref_BinaryOperator("/", "op_Division",
+            ExtendedCref_BinaryOperatorCore("/", "op_Division",
 <errors>
     <![CDATA[
 BC42309: XML comment has a tag with a 'cref' attribute 'Operator/(Clazz, String)' that could not be resolved.
@@ -10726,7 +10726,7 @@ BC42309: XML comment has a tag with a 'cref' attribute 'Operator/(Clazz)' that c
              ~~~~~~~~~~~~~~~~~~~~~~~
 ]]>
 </errors>)
-            ExtendedCref_BinaryOperator("\", "op_IntegerDivision",
+            ExtendedCref_BinaryOperatorCore("\", "op_IntegerDivision",
 <errors>
     <![CDATA[
 BC42309: XML comment has a tag with a 'cref' attribute 'Operator\(Clazz, String)' that could not be resolved.
@@ -10737,7 +10737,7 @@ BC42309: XML comment has a tag with a 'cref' attribute 'Operator\(Clazz)' that c
              ~~~~~~~~~~~~~~~~~~~~~~~
 ]]>
 </errors>)
-            ExtendedCref_BinaryOperator("^", "op_Exponent",
+            ExtendedCref_BinaryOperatorCore("^", "op_Exponent",
 <errors>
     <![CDATA[
 BC42309: XML comment has a tag with a 'cref' attribute 'Operator^(Clazz, String)' that could not be resolved.
@@ -10748,9 +10748,9 @@ BC42309: XML comment has a tag with a 'cref' attribute 'Operator^(Clazz)' that c
              ~~~~~~~~~~~~~~~~~~~~~~~
 ]]>
 </errors>)
-            ExtendedCref_BinaryOperator("<<", "op_LeftShift", <errors></errors>)
-            ExtendedCref_BinaryOperator(">>", "op_RightShift", <errors></errors>)
-            ExtendedCref_BinaryOperator("=", "op_Equality",
+            ExtendedCref_BinaryOperatorCore("<<", "op_LeftShift", <errors></errors>)
+            ExtendedCref_BinaryOperatorCore(">>", "op_RightShift", <errors></errors>)
+            ExtendedCref_BinaryOperatorCore("=", "op_Equality",
 <errors>
     <![CDATA[
 BC33033: Matching '<>' operator is required for 'Public Shared Operator =(a As Clazz, b As Integer) As Clazz'.
@@ -10767,7 +10767,7 @@ BC42309: XML comment has a tag with a 'cref' attribute 'Operator=(Clazz)' that c
              ~~~~~~~~~~~~~~~~~~~~~~~
 ]]>
 </errors>)
-            ExtendedCref_BinaryOperator("<>", "op_Inequality",
+            ExtendedCref_BinaryOperatorCore("<>", "op_Inequality",
 <errors>
     <![CDATA[
 BC33033: Matching '=' operator is required for 'Public Shared Operator <>(a As Clazz, b As Integer) As Clazz'.
@@ -10778,7 +10778,7 @@ BC33033: Matching '=' operator is required for 'Public Shared Operator <>(a As C
                            ~~
 ]]>
 </errors>)
-            ExtendedCref_BinaryOperator("<", "op_LessThan",
+            ExtendedCref_BinaryOperatorCore("<", "op_LessThan",
 <errors>
     <![CDATA[
 BC33033: Matching '>' operator is required for 'Public Shared Operator <(a As Clazz, b As Integer) As Clazz'.
@@ -10789,7 +10789,7 @@ BC33033: Matching '>' operator is required for 'Public Shared Operator <(a As Cl
                            ~
 ]]>
 </errors>)
-            ExtendedCref_BinaryOperator(">", "op_GreaterThan",
+            ExtendedCref_BinaryOperatorCore(">", "op_GreaterThan",
 <errors>
     <![CDATA[
 BC33033: Matching '<' operator is required for 'Public Shared Operator >(a As Clazz, b As Integer) As Clazz'.
@@ -10800,7 +10800,7 @@ BC33033: Matching '<' operator is required for 'Public Shared Operator >(a As Cl
                            ~
 ]]>
 </errors>)
-            ExtendedCref_BinaryOperator("<=", "op_LessThanOrEqual",
+            ExtendedCref_BinaryOperatorCore("<=", "op_LessThanOrEqual",
 <errors>
     <![CDATA[
 BC33033: Matching '>=' operator is required for 'Public Shared Operator <=(a As Clazz, b As Integer) As Clazz'.
@@ -10811,7 +10811,7 @@ BC33033: Matching '>=' operator is required for 'Public Shared Operator <=(a As 
                            ~~
 ]]>
 </errors>)
-            ExtendedCref_BinaryOperator(">=", "op_GreaterThanOrEqual",
+            ExtendedCref_BinaryOperatorCore(">=", "op_GreaterThanOrEqual",
 <errors>
     <![CDATA[
 BC33033: Matching '<=' operator is required for 'Public Shared Operator >=(a As Clazz, b As Integer) As Clazz'.
@@ -10825,7 +10825,7 @@ BC33033: Matching '<=' operator is required for 'Public Shared Operator >=(a As 
 
         End Sub
 
-        Private Sub ExtendedCref_BinaryOperator(op As String, opName As String, errors As XElement)
+        Private Sub ExtendedCref_BinaryOperatorCore(op As String, opName As String, errors As XElement)
             Dim invalidChars = op.Contains("<") OrElse op.Contains(">") OrElse op.Contains("&")
             Dim xmlSource =
                 If(Not invalidChars,
