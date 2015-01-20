@@ -822,7 +822,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     typeParameterList = Nothing
                 Case SyntaxKind.QualifiedName
                     Dim qualified = CType(node, QualifiedNameSyntax)
-                    name = GetNodeName(qualified.Left) + "." + GetNodeName(qualified.Right)
+                    If qualified.Left.Kind() = SyntaxKind.GlobalName Then
+                        name = GetNodeName(qualified.Right) ' don't use the Global prefix if specified
+                    Else
+                        name = GetNodeName(qualified.Left) + "." + GetNodeName(qualified.Right)
+                    End If
                     typeParameterList = Nothing
                 Case SyntaxKind.StructureBlock
                     Dim structDecl = CType(node, StructureBlockSyntax)
