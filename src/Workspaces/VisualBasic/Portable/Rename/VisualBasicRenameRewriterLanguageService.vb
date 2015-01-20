@@ -211,7 +211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 If node.IsParentKind(SyntaxKind.MultiLineSubLambdaExpression) OrElse
                 node.IsParentKind(SyntaxKind.MultiLineFunctionLambdaExpression) Then
                     Dim parent = DirectCast(node.Parent, MultiLineLambdaExpressionSyntax)
-                    If ReferenceEquals(parent.Begin, node) Then
+                    If ReferenceEquals(parent.SubOrFunctionHeader, node) Then
                         Return True
                     Else
                         Return False

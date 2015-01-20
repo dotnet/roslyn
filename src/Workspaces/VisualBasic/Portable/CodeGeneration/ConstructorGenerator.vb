@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                    SyntaxFactory.ConstructorBlock(
                       constructorStatement,
                       statements:=GenerateStatements(constructor),
-                      end:=SyntaxFactory.EndSubStatement()))
+                      endSubStatement:=SyntaxFactory.EndSubStatement()))
 
             Return AddAnnotationsTo(constructor, AddCleanupAnnotationsTo(
                 ConditionallyAddDocumentationCommentTo(declaration, constructor, options)))

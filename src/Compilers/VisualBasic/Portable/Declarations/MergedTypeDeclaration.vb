@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                          SyntaxKind.ModuleBlock,
                          SyntaxKind.StructureBlock,
                          SyntaxKind.InterfaceBlock
-                        attributeSyntaxList = DirectCast(node, TypeBlockSyntax).Begin.AttributeLists
+                        attributeSyntaxList = DirectCast(node, TypeBlockSyntax).BlockStatement.AttributeLists
 
                     Case SyntaxKind.DelegateFunctionStatement,
                          SyntaxKind.DelegateSubStatement

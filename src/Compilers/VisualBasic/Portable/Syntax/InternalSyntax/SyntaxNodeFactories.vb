@@ -525,16 +525,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Public Shared Function TypeBlock(ByVal blockKind As SyntaxKind, ByVal begin As TypeStatementSyntax, ByVal [inherits] As SyntaxList(Of InheritsStatementSyntax), ByVal [implements] As SyntaxList(Of ImplementsStatementSyntax), ByVal members As SyntaxList(Of StatementSyntax), ByVal [end] As EndBlockStatementSyntax) As TypeBlockSyntax
             Select Case blockKind
                 Case SyntaxKind.ModuleBlock
-                    Return SyntaxFactory.ModuleBlock(begin, [inherits], [implements], members, [end])
+                    Return SyntaxFactory.ModuleBlock(DirectCast(begin, ModuleStatementSyntax), [inherits], [implements], members, [end])
 
                 Case SyntaxKind.ClassBlock
-                    Return SyntaxFactory.ClassBlock(begin, [inherits], [implements], members, [end])
+                    Return SyntaxFactory.ClassBlock(DirectCast(begin, ClassStatementSyntax), [inherits], [implements], members, [end])
 
                 Case SyntaxKind.StructureBlock
-                    Return SyntaxFactory.StructureBlock(begin, [inherits], [implements], members, [end])
+                    Return SyntaxFactory.StructureBlock(DirectCast(begin, StructureStatementSyntax), [inherits], [implements], members, [end])
 
                 Case SyntaxKind.InterfaceBlock
-                    Return SyntaxFactory.InterfaceBlock(begin, [inherits], [implements], members, [end])
+                    Return SyntaxFactory.InterfaceBlock(DirectCast(begin, InterfaceStatementSyntax), [inherits], [implements], members, [end])
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(blockKind)

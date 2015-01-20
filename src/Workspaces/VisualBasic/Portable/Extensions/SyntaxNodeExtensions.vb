@@ -795,7 +795,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 #End If
 
                     Return SyntaxFactory.MultiLineSubLambdaExpression(
-                        singleLineLambda.Begin,
+                        singleLineLambda.SubOrFunctionHeader,
                         statements,
                         SyntaxFactory.EndSubStatement()).WithAdditionalAnnotations(annotations)
                 End If
@@ -906,7 +906,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 ElseIf current.Kind = SyntaxKind.SingleLineSubLambdaExpression Then
                     Dim singleLineLambda = DirectCast(current, SingleLineLambdaExpressionSyntax)
                     Dim multiLineLambda = SyntaxFactory.MultiLineSubLambdaExpression(
-                        singleLineLambda.Begin,
+                        singleLineLambda.SubOrFunctionHeader,
                         statements,
                         SyntaxFactory.EndSubStatement()).WithAdditionalAnnotations(annotations)
 
@@ -1016,7 +1016,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return False
             End If
 
-            Dim blockSpan = TextSpan.FromBounds(block.Begin.Span.End, block.End.SpanStart)
+            Dim blockSpan = TextSpan.FromBounds(block.BlockStatement.Span.End, block.EndBlockStatement.SpanStart)
             Return blockSpan.Contains(textSpan)
         End Function
 

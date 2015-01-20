@@ -131,22 +131,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                      SyntaxKind.SubBlock,
                      SyntaxKind.FunctionBlock,
                      SyntaxKind.OperatorBlock
-                    Return DirectCast(node, MethodBlockBaseSyntax).Begin
+                    Return DirectCast(node, MethodBlockBaseSyntax).BlockStatement
 
                 Case SyntaxKind.EnumBlock
                     Return DirectCast(node, EnumBlockSyntax).EnumStatement
 
                 Case SyntaxKind.InterfaceBlock
-                    Return DirectCast(node, InterfaceBlockSyntax).Begin
+                    Return DirectCast(node, InterfaceBlockSyntax).BlockStatement
 
                 Case SyntaxKind.StructureBlock
-                    Return DirectCast(node, StructureBlockSyntax).Begin
+                    Return DirectCast(node, StructureBlockSyntax).BlockStatement
 
                 Case SyntaxKind.ClassBlock
-                    Return DirectCast(node, ClassBlockSyntax).Begin
+                    Return DirectCast(node, ClassBlockSyntax).BlockStatement
 
                 Case SyntaxKind.ModuleBlock
-                    Return DirectCast(node, ModuleBlockSyntax).Begin
+                    Return DirectCast(node, ModuleBlockSyntax).BlockStatement
             End Select
 
             Return node

@@ -417,7 +417,7 @@ End Function]]>.Value,
     End Sub
 
     Private Shared Function IsIteratorMethod(methodSyntax As MethodBlockBaseSyntax) As Boolean
-        Return methodSyntax.Begin.Modifiers.Contains(Function(t As SyntaxToken) t.Kind = SyntaxKind.IteratorKeyword)
+        Return methodSyntax.BlockStatement.Modifiers.Contains(Function(t As SyntaxToken) t.Kind = SyntaxKind.IteratorKeyword)
     End Function
 
     Private Shared Function IsInIteratorMethod(yieldStatement As YieldStatementSyntax) As Boolean

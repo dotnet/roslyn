@@ -1191,7 +1191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             If current.Kind = SyntaxKind.MultiLineFunctionLambdaExpression OrElse current.Kind = SyntaxKind.MultiLineSubLambdaExpression Then
                                 Dim multiLineLambda = DirectCast(current, MultiLineLambdaExpressionSyntax)
 
-                                If multiLineLambda.Begin.FullSpan.Contains(position) Then
+                                If multiLineLambda.SubOrFunctionHeader.FullSpan.Contains(position) Then
                                     Return lambdaBinder
                                 End If
                             End If

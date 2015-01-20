@@ -133,7 +133,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     '    C|
                     ancestors = ancestors.Skip(1)
                 ElseIf TypeOf openBlock Is TypeBlockSyntax Then
-                    ancestors = FilterAncestors(ancestors, DirectCast(openBlock, TypeBlockSyntax).End, closeTypeBlock)
+                    ancestors = FilterAncestors(ancestors, DirectCast(openBlock, TypeBlockSyntax).EndBlockStatement, closeTypeBlock)
                 ElseIf TypeOf openBlock Is NamespaceBlockSyntax Then
                     ancestors = FilterAncestors(ancestors, DirectCast(openBlock, NamespaceBlockSyntax).EndNamespaceStatement, closeTypeBlock)
                 ElseIf TypeOf openBlock Is EnumBlockSyntax Then

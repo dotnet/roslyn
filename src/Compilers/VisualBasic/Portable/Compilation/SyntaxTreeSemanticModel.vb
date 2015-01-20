@@ -1027,7 +1027,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End Select
 
                     If parentTypeBlock IsNot Nothing Then
-                        Dim containingType = DirectCast(GetDeclaredSymbol(parentTypeBlock.Begin, cancellationToken), NamedTypeSymbol)
+                        Dim containingType = DirectCast(GetDeclaredSymbol(parentTypeBlock.BlockStatement, cancellationToken), NamedTypeSymbol)
                         If containingType IsNot Nothing Then
                             Return SourceMethodSymbol.FindSymbolFromSyntax(declarationSyntax, _syntaxTree, containingType)
                         End If
@@ -1193,7 +1193,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Else : End If
 
                 If parentTypeBlock IsNot Nothing Then
-                    Dim containingType = DirectCast(GetDeclaredSymbol(parentTypeBlock.Begin, cancellationToken), NamedTypeSymbol)
+                    Dim containingType = DirectCast(GetDeclaredSymbol(parentTypeBlock.BlockStatement, cancellationToken), NamedTypeSymbol)
                     If containingType IsNot Nothing Then
                         Return SourceFieldSymbol.FindFieldOrWithEventsSymbolFromSyntax(declarationSyntax.Identifier, _syntaxTree, containingType)
                     End If

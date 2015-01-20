@@ -166,8 +166,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Dim savedSimplifyAllDescendants = Me._simplifyAllDescendants
                 Me._simplifyAllDescendants = Me._simplifyAllDescendants OrElse node.HasAnnotation(Simplifier.Annotation)
 
-                Dim begin = DirectCast(Visit(node.Begin), MethodBaseSyntax)
-                Dim endStatement = DirectCast(Visit(node.End), EndBlockStatementSyntax)
+                Dim begin = DirectCast(Visit(node.BlockStatement), MethodBaseSyntax)
+                Dim endStatement = DirectCast(Visit(node.EndBlockStatement), EndBlockStatementSyntax)
 
                 ' Certain reducers for VB (escaping, parentheses) require to operate on the entire method body, rather than individual statements.
                 ' Hence, we need to reduce the entire method body as a single unit.
@@ -177,7 +177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                    node.Statements.Any(Function(s) s.DescendantNodesAndTokensAndSelf(ContainsAnnotations, descendIntoTrivia:=True).Any(HasSimplifierAnnotation)) Then
                     Me._insideSpeculatedNode = True
                     Dim statements = VisitList(node.Statements)
-                    Dim rewrittenNode = updateFunc(node, node.Begin, statements, node.End)
+                    Dim rewrittenNode = updateFunc(node, node.BlockStatement, statements, node.EndBlockStatement)
                     Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(rewrittenNode, Me._simplifyAllDescendants, node))
                     Me._insideSpeculatedNode = False
                 End If

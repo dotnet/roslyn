@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup
         End Function
 
         Public Function RewriteMethodStatement(func As MethodStatementSyntax, semanticModel As SemanticModel, oldFunc As MethodStatementSyntax, cancellationToken As CancellationToken) As MethodStatementSyntax
-            If func.Keyword.Kind = SyntaxKind.FunctionKeyword Then
+            If func.DeclarationKeyword.Kind = SyntaxKind.FunctionKeyword Then
 
                 Dim modifiers = func.Modifiers
                 Dim parameterListOpt = func.ParameterList
@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup
                 Dim position = If(oldFunc.ParameterList IsNot Nothing, oldFunc.ParameterList.SpanStart, oldFunc.Identifier.SpanStart)
 
                 If RewriteFunctionStatement(modifiers, oldAsClauseOpt, parameterListOpt, asClauseOpt, semanticModel, position, cancellationToken) Then
-                    Return func.Update(func.Kind, func.AttributeLists, func.Modifiers, func.Keyword, func.Identifier,
+                    Return func.Update(func.Kind, func.AttributeLists, func.Modifiers, func.DeclarationKeyword, func.Identifier,
                                    func.TypeParameterList, parameterListOpt, asClauseOpt, func.HandlesClause, func.ImplementsClause)
                 End If
             End If
@@ -37,14 +37,14 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup
         End Function
 
         Public Function RewriteLambdaHeader(lambdaHeader As LambdaHeaderSyntax, semanticModel As SemanticModel, oldLambdaHeader As LambdaHeaderSyntax, cancellationToken As CancellationToken) As LambdaHeaderSyntax
-            If lambdaHeader.Keyword.Kind = SyntaxKind.FunctionKeyword AndAlso
+            If lambdaHeader.DeclarationKeyword.Kind = SyntaxKind.FunctionKeyword AndAlso
                lambdaHeader.AsClause IsNot Nothing AndAlso
                lambdaHeader.ParameterList IsNot Nothing Then
 
                 Dim parameterList = lambdaHeader.ParameterList
                 Dim asClause = lambdaHeader.AsClause
                 If RewriteFunctionStatement(lambdaHeader.Modifiers, oldLambdaHeader.AsClause, parameterList, asClause, semanticModel, oldLambdaHeader.AsClause.SpanStart, cancellationToken) Then
-                    Return lambdaHeader.Update(lambdaHeader.Kind, lambdaHeader.AttributeLists, lambdaHeader.Modifiers, lambdaHeader.Keyword, parameterList, asClause)
+                    Return lambdaHeader.Update(lambdaHeader.Kind, lambdaHeader.AttributeLists, lambdaHeader.Modifiers, lambdaHeader.DeclarationKeyword, parameterList, asClause)
                 End If
             End If
 

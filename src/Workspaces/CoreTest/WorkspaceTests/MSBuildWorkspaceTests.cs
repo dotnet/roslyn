@@ -1809,7 +1809,7 @@ class C1
             var vbdoc2 = AssertSemanticVersionChanged(vbdoc1, vbdoc1.GetTextAsync().Result.Replace(new TextSpan(startOfClassInterior, 0), "\r\nPublic Sub M()\r\n\r\nEnd Sub\r\n"));
 
             // change interior of method
-            var startOfMethodInterior = vbdoc2.GetSyntaxRootAsync().Result.DescendantNodes().OfType<VB.Syntax.MethodBlockBaseSyntax>().First().Begin.FullSpan.End;
+            var startOfMethodInterior = vbdoc2.GetSyntaxRootAsync().Result.DescendantNodes().OfType<VB.Syntax.MethodBlockBaseSyntax>().First().BlockStatement.FullSpan.End;
             var vbdoc3 = AssertSemanticVersionUnchanged(vbdoc2, vbdoc2.GetTextAsync().Result.Replace(new TextSpan(startOfMethodInterior, 0), "\r\nDim x As Integer = 10\r\n"));
 
             // add whitespace outside of method

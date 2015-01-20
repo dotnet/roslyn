@@ -4637,7 +4637,7 @@ class Outer
 
                     Dim member = token.Parent.FirstAncestorOrSelf(Of MethodBlockBaseSyntax)()
                     Dim speculativeModel As SemanticModel = Nothing
-                    semanticModel.TryGetSpeculativeSemanticModelForMethodBody(member.Begin.Span.End, member, speculativeModel)
+                    semanticModel.TryGetSpeculativeSemanticModelForMethodBody(member.BlockStatement.Span.End, member, speculativeModel)
                     semanticModel = speculativeModel
                 End If
 

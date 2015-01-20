@@ -876,7 +876,7 @@ lReportErrorOnTwoTokens:
                      SyntaxKind.MultiLineSubLambdaExpression,
                      SyntaxKind.SingleLineFunctionLambdaExpression,
                      SyntaxKind.SingleLineSubLambdaExpression
-                    Return DirectCast(node, LambdaExpressionSyntax).Begin.Span
+                    Return DirectCast(node, LambdaExpressionSyntax).SubOrFunctionHeader.Span
 
                 Case SyntaxKind.SubStatement, SyntaxKind.FunctionStatement
                     Return DirectCast(node, MethodStatementSyntax).Identifier.Span
@@ -1220,7 +1220,7 @@ lReportErrorOnTwoTokens:
                 ' Assign all variables that are associated with the header -1.
                 ' We can't assign >=0 since user-defined variables defined in the first statement of the body have 0
                 ' and user-defined variables need to have a unique syntax offset.
-                If localPosition = block.Begin.SpanStart Then
+                If localPosition = block.BlockStatement.SpanStart Then
                     Return -1
                 End If
 
@@ -2255,7 +2255,7 @@ lReportErrorOnTwoTokens:
                             Debug.Assert(Me.IsSub)
                             binder.DisallowTypeCharacter(GetNameToken(methodStatement), diagBag, ERRID.ERR_TypeCharOnSub)
                             retType = binder.GetSpecialType(SpecialType.System_Void, Syntax, diagBag)
-                            errorLocation = methodStatement.Keyword
+                            errorLocation = methodStatement.DeclarationKeyword
 
                         Case Else
                             Dim getErrorInfo As Func(Of DiagnosticInfo) = Nothing
@@ -2277,7 +2277,7 @@ lReportErrorOnTwoTokens:
                             If asClause IsNot Nothing Then
                                 errorLocation = asClause.Type
                             Else
-                                errorLocation = methodStatement.Keyword
+                                errorLocation = methodStatement.DeclarationKeyword
                             End If
 
                     End Select

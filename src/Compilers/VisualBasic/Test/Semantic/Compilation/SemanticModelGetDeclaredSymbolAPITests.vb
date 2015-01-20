@@ -406,7 +406,7 @@ End Namespace
             Dim typeBlocks = n1Syntax.DescendantNodes().OfType(Of TypeBlockSyntax)()
             For Each tb In typeBlocks
                 sym1 = model1.GetDeclaredSymbol(DirectCast(tb, VisualBasicSyntaxNode))
-                sym2 = model1.GetDeclaredSymbol(DirectCast(tb.Begin, VisualBasicSyntaxNode))
+                sym2 = model1.GetDeclaredSymbol(DirectCast(tb.BlockStatement, VisualBasicSyntaxNode))
                 Assert.Equal(sym1.ToDisplayString(SymbolDisplayFormat.TestFormat), sym2.ToDisplayString(SymbolDisplayFormat.TestFormat))
                 Assert.Equal(sym1, sym2)
             Next
@@ -424,14 +424,14 @@ End Namespace
             sym1 = model1.GetDeclaredSymbol(DirectCast(c1Syntax, VisualBasicSyntaxNode))
             Assert.Equal("N1.C1", sym1.ToDisplayString(SymbolDisplayFormat.TestFormat))
 
-            sym2 = model1.GetDeclaredSymbol(DirectCast(c1Syntax.Begin, VisualBasicSyntaxNode))
+            sym2 = model1.GetDeclaredSymbol(DirectCast(c1Syntax.BlockStatement, VisualBasicSyntaxNode))
             Assert.Equal(sym1, sym2)
 
             ' Test MethodBlock Members of C1
             Dim methodBlocks = c1Syntax.DescendantNodes().OfType(Of MethodBlockSyntax)()
             For Each mb In methodBlocks
                 sym1 = model1.GetDeclaredSymbol(DirectCast(mb, VisualBasicSyntaxNode))
-                sym2 = model1.GetDeclaredSymbol(DirectCast(mb.Begin, VisualBasicSyntaxNode))
+                sym2 = model1.GetDeclaredSymbol(DirectCast(mb.BlockStatement, VisualBasicSyntaxNode))
                 Assert.Equal(sym1.ToDisplayString(SymbolDisplayFormat.TestFormat), sym2.ToDisplayString(SymbolDisplayFormat.TestFormat))
                 Assert.Equal(sym1, sym2)
             Next

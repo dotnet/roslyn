@@ -2524,7 +2524,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     SyntaxKind.ConstructorBlock,
                     SyntaxKind.OperatorBlock
 
-                    Dim methodDecl = DirectCast(memberSyntax, MethodBlockBaseSyntax).Begin
+                    Dim methodDecl = DirectCast(memberSyntax, MethodBlockBaseSyntax).BlockStatement
 
                     If reportAsInvalid Then
                         diagBag.Add(ERRID.ERR_InvalidInNamespace, methodDecl.GetLocation())

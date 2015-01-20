@@ -172,7 +172,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' No method body?
-            If oldMethod.Statements.IsEmpty AndAlso oldMethod.End.IsMissing Then
+            If oldMethod.Statements.IsEmpty AndAlso oldMethod.EndBlockStatement.IsMissing Then
                 speculativeModel = Nothing
                 Return False
             End If
@@ -185,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Contract.ThrowIfNull(model)
                 Contract.ThrowIfTrue(model.IsSpeculativeSemanticModel)
             Else
-                position = oldMethod.Begin.FullSpan.End
+                position = oldMethod.BlockStatement.FullSpan.End
             End If
 
             Dim vbSpeculativeModel As SemanticModel = Nothing

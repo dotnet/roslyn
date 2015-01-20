@@ -864,7 +864,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim lambdaNode = TryCast(errorLocation, LambdaExpressionSyntax)
 
                     If lambdaNode IsNot Nothing Then
-                        errorLocation = lambdaNode.Begin
+                        errorLocation = lambdaNode.SubOrFunctionHeader
                     End If
 
                     ReportDiagnostic(diagnostics, errorLocation, ERRID.WRN_AsyncSubCouldBeFunction)

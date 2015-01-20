@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' Visit block start statement
                     Me._isInsideMethodOrLambda = False
-                    Me.Visit(node.Begin)
+                    Me.Visit(node.BlockStatement)
 
                     ' Visit the rest 
                     Me._isInsideMethodOrLambda = True

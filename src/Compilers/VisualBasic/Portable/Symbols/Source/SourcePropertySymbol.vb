@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If blockSyntaxOpt IsNot Nothing Then
                 For Each accessor In blockSyntaxOpt.Accessors
-                    Dim accessorKind = accessor.Begin.Kind
+                    Dim accessorKind = accessor.BlockStatement.Kind
                     If accessorKind = SyntaxKind.GetAccessorStatement Then
                         Dim accessorMethod = CreateAccessor(prop, SourceMemberFlags.MethodKindPropertyGet, accessorFlags, bodyBinder, accessor, diagnostics)
                         If getMethod Is Nothing Then
@@ -1108,8 +1108,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim block = DirectCast(accessor.BlockSyntax, AccessorBlockSyntax)
             Debug.Assert(syntaxTree IsNot Nothing)
             Debug.Assert(block IsNot Nothing)
-            Debug.Assert(block.Begin IsNot Nothing)
-            Return syntaxTree.GetLocation(block.Begin.Span)
+            Debug.Assert(block.BlockStatement IsNot Nothing)
+            Return syntaxTree.GetLocation(block.BlockStatement.Span)
         End Function
 
         Private Shared OverridableModifierKinds() As SyntaxKind =
@@ -1132,7 +1132,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                             syntax As AccessorBlockSyntax,
                                                             errorId As ERRID,
                                                             diagnostics As DiagnosticBag)
-            binder.ReportModifierError(syntax.Begin.Modifiers, errorId, diagnostics, AccessibilityModifierKinds)
+            binder.ReportModifierError(syntax.BlockStatement.Modifiers, errorId, diagnostics, AccessibilityModifierKinds)
         End Sub
 
         Private Shared Function HasRequiredParameters(parameters As ImmutableArray(Of ParameterSymbol)) As Boolean

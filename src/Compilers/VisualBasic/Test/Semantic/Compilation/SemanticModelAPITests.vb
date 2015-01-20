@@ -959,7 +959,7 @@ End Class
             Dim root = tree.GetCompilationUnitRoot()
             Dim typeBlock = DirectCast(root.Members(0), TypeBlockSyntax)
             Dim methodBlock = DirectCast(typeBlock.Members(0), MethodBlockSyntax)
-            Dim endStatement = methodBlock.End
+            Dim endStatement = methodBlock.EndBlockStatement
 
             Dim semanticModel = compilation.GetSemanticModel(tree)
             Dim position1 = endStatement.SpanStart
@@ -1076,7 +1076,7 @@ End Class]]>
             Dim model = compilation.GetSemanticModel(tree)
             Dim statement = DirectCast(methodBlock.Statements(0), LocalDeclarationStatementSyntax)
             Dim initializer = statement.Declarators(0).Initializer
-            Dim attribute = methodBlock.Begin.AttributeLists(0).Attributes(0)
+            Dim attribute = methodBlock.BlockStatement.AttributeLists(0).Attributes(0)
 
             Dim speculativeModel As SemanticModel = Nothing
             Assert.Throws(Of ArgumentNullException)(Function() model.TryGetSpeculativeSemanticModel(statement.SpanStart, initializer:=Nothing, speculativeModel:=speculativeModel))
@@ -1119,7 +1119,7 @@ End Class]]>
             Dim model = compilation.GetSemanticModel(tree)
             Dim statement = DirectCast(methodBlock.Statements(0), LocalDeclarationStatementSyntax)
             Dim expression = statement.Declarators(0).Initializer.Value
-            Dim attribute = methodBlock.Begin.AttributeLists(0).Attributes(0)
+            Dim attribute = methodBlock.BlockStatement.AttributeLists(0).Attributes(0)
 
             Dim speculatedStatement = DirectCast(statement.ReplaceNode(expression, SyntaxFactory.ParseExpression("0")), LocalDeclarationStatementSyntax)
 
@@ -1141,7 +1141,7 @@ End Class]]>
 
         ' Helper to parse an attribute.
         Private Function ParseAttributeSyntax(source As String) As AttributeSyntax
-            Return DirectCast(SyntaxFactory.ParseCompilationUnit(source + " Class X" + vbCrLf + "End Class").Members.First(), TypeBlockSyntax).Begin.AttributeLists.First().Attributes.First()
+            Return DirectCast(SyntaxFactory.ParseCompilationUnit(source + " Class X" + vbCrLf + "End Class").Members.First(), TypeBlockSyntax).BlockStatement.AttributeLists.First().Attributes.First()
         End Function
 
         <Fact>
@@ -1802,7 +1802,7 @@ End Class
             Dim typeBlock = DirectCast(root.Members(0), TypeBlockSyntax)
             Dim field = DirectCast(typeBlock.Members(0), FieldDeclarationSyntax)
             Dim methodBlock = DirectCast(typeBlock.Members(1), MethodBlockBaseSyntax)
-            Dim methodDecl = DirectCast(methodBlock.Begin, MethodStatementSyntax)
+            Dim methodDecl = DirectCast(methodBlock.BlockStatement, MethodStatementSyntax)
             Dim model = compilation.GetSemanticModel(tree)
 
             Dim speculatedTypeExpression = SyntaxFactory.ParseName("System.ArgumentException")
@@ -1843,7 +1843,7 @@ End Interface
             Dim root = tree.GetCompilationUnitRoot()
             Dim typeBlock = DirectCast(root.Members(0), TypeBlockSyntax)
             Dim methodBlock = DirectCast(typeBlock.Members(1), MethodBlockBaseSyntax)
-            Dim methodDecl = DirectCast(methodBlock.Begin, MethodStatementSyntax)
+            Dim methodDecl = DirectCast(methodBlock.BlockStatement, MethodStatementSyntax)
             Dim model = compilation.GetSemanticModel(tree)
 
             Dim speculatedMemberName = SyntaxFactory.ParseName("I.Method2")

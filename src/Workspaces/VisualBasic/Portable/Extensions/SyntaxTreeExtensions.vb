@@ -66,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             End If
 
             Dim block = token.GetAncestor(Of MethodBlockSyntax)
-            If block IsNot Nothing AndAlso block.Begin.Modifiers.Any(SyntaxKind.PartialKeyword) Then
+            If block IsNot Nothing AndAlso block.BlockStatement.Modifiers.Any(SyntaxKind.PartialKeyword) Then
                 Return True
             End If
 
@@ -230,8 +230,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             If firstMember IsNot Nothing Then
                 Dim containingType = DirectCast(firstMember.Parent, TypeBlockSyntax)
                 If containingType IsNot Nothing AndAlso
-                   firstMember IsNot containingType.Begin AndAlso
-                   firstMember IsNot containingType.End Then
+                   firstMember IsNot containingType.BlockStatement AndAlso
+                   firstMember IsNot containingType.EndBlockStatement Then
                     Dim members = GetMembersInSpan(textSpan, containingType, firstMember)
                     If members IsNot Nothing Then
                         Return members
@@ -363,7 +363,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             Return node.AncestorsAndSelf.
                 Where(Function(n) TypeOf n Is MultiLineLambdaExpressionSyntax).
                 OfType(Of MultiLineLambdaExpressionSyntax).
-                Any(Function(n) n.End Is node)
+                Any(Function(n) n.EndSubOrFunctionStatement Is node)
         End Function
 
         <Extension()>

@@ -64,7 +64,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsInInactiveRegion(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.IsInInactiveRegion
-            Dim vbTree = TryCast(syntaxTree, SyntaxTree)
+            Dim vbTree = TryCast(syntaxTree, syntaxTree)
             If vbTree Is Nothing Then
                 Return False
             End If
@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsInNonUserCode(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.IsInNonUserCode
-            Dim vbTree = TryCast(syntaxTree, SyntaxTree)
+            Dim vbTree = TryCast(syntaxTree, syntaxTree)
             If vbTree Is Nothing Then
                 Return False
             End If
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function IsEntirelyWithinStringOrCharLiteral(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISyntaxFactsService.IsEntirelyWithinStringOrCharLiteral
-            Dim vbTree = TryCast(syntaxTree, SyntaxTree)
+            Dim vbTree = TryCast(syntaxTree, syntaxTree)
             If vbTree Is Nothing Then
                 Return False
             End If
@@ -636,11 +636,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' TODO: currently we only support method for now
             Dim method = TryCast(member, MethodBlockBaseSyntax)
             If method IsNot Nothing Then
-                If method.Begin Is Nothing OrElse method.End Is Nothing Then
+                If method.BlockStatement Is Nothing OrElse method.EndBlockStatement Is Nothing Then
                     Return Nothing
                 End If
 
-                Return TextSpan.FromBounds(method.Begin.Span.End, method.End.SpanStart)
+                Return TextSpan.FromBounds(method.BlockStatement.Span.End, method.EndBlockStatement.SpanStart)
             End If
 
             Return Nothing
@@ -699,7 +699,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function GetMethodLevelMembers(root As SyntaxNode) As List(Of SyntaxNode) Implements ISyntaxFactsService.GetMethodLevelMembers
-            Dim list = New List(Of SyntaxNode)()
+            Dim list = New list(Of SyntaxNode)()
             AppendMethodLevelMembers(root, list)
             Return list
         End Function

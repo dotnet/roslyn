@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
             Protected Overrides Function GetDiagnosticLocation(node As SyntaxNode) As Location
                 Dim methodBlock = TryCast(node, MethodBlockSyntax)
                 If methodBlock IsNot Nothing Then
-                    Return methodBlock.Begin.Identifier.GetLocation()
+                    Return methodBlock.SubOrFunctionStatement.Identifier.GetLocation()
                 End If
 
                 Dim methodStatement = TryCast(node, MethodStatementSyntax)

@@ -146,8 +146,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
             Dim originalMethod = TryCast(originalNode, MethodBlockBaseSyntax)
             If originalMethod IsNot Nothing Then
                 Dim reducedMethod = DirectCast(reducedNode, MethodBlockBaseSyntax)
-                reducedMethod = reducedMethod.ReplaceNode(reducedMethod.Begin, originalMethod.Begin)
-                Return reducedMethod.ReplaceNode(reducedMethod.End, originalMethod.End)
+                reducedMethod = reducedMethod.ReplaceNode(reducedMethod.BlockStatement, originalMethod.BlockStatement)
+                Return reducedMethod.ReplaceNode(reducedMethod.EndBlockStatement, originalMethod.EndBlockStatement)
             End If
 
             Return reducedNode

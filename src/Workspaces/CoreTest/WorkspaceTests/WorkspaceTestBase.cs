@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
             else
             {
-                return cb.Begin.FullSpan.End;
+                return cb.BlockStatement.FullSpan.End;
             }
         }
 

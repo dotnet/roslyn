@@ -405,9 +405,9 @@ End Module
             ' Get MethodBlockSyntax corresponding to method C1.M2() above.
             Dim methodDeclaration As MethodBlockSyntax =
                     Aggregate c In tree.GetRoot().DescendantNodes.OfType(Of ClassBlockSyntax)()
-                    Where c.Begin.Identifier.ValueText = "C1"
+                    Where c.ClassStatement.Identifier.ValueText = "C1"
                     From m In c.Members.OfType(Of MethodBlockSyntax)()
-                    Where CType(m.Begin, MethodStatementSyntax).Identifier.ValueText = "M2"
+                    Where CType(m.SubOrFunctionStatement, MethodStatementSyntax).Identifier.ValueText = "M2"
                     Select m
                     Into [Single]()
 
@@ -478,7 +478,7 @@ End Module</text>.Value
             ' Get MethodBlockSyntax corresponding to the 'MethodThatWeAreTryingToFind'.
             Dim methodBlock As MethodBlockSyntax = document1.GetSyntaxRootAsync().Result.DescendantNodes.
                                                                              OfType(Of MethodBlockSyntax).
-                                                                             Single(Function(m) m.Begin.Identifier.ValueText = "MethodThatWeAreTryingToFind")
+                                                                             Single(Function(m) m.SubOrFunctionStatement.Identifier.ValueText = "MethodThatWeAreTryingToFind")
 
             ' Get MethodSymbol corresponding to the 'MethodThatWeAreTryingToFind'.
             Dim method = document1.GetSemanticModelAsync().Result.GetDeclaredSymbol(methodBlock)
@@ -1894,7 +1894,7 @@ End Class
             ' Get the ClassBlockSyntax corresponding to 'Class C' above.
             Dim classDeclaration As ClassBlockSyntax = tree.GetRoot().DescendantNodes.
                                                                       OfType(Of ClassBlockSyntax).
-                                                                      Single(Function(c) c.Begin.Identifier.ToString() = "C")
+                                                                      Single(Function(c) c.ClassStatement.Identifier.ToString() = "C")
 
             ' Get Symbol corresponding to class C above.
             Dim searchSymbol = model.GetDeclaredSymbol(classDeclaration)
