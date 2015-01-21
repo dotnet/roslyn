@@ -388,13 +388,7 @@ namespace Roslyn.Utilities
             Debug.Assert(PathUtilities.IsAbsolute(fullPath));
             try
             {
-                // In the case where a file is copied from one directory to the other, the last write time will stay
-                // the same but the creation time will get updated.  Return the most recent of the two times so that
-                // our caches don't run into a scenario where and older file was copied over an existing one and the
-                // cache thinks everything is up-to-date, when in fact we need to reparse the file.
-                var lastWriteTime = File.GetLastWriteTimeUtc(fullPath);
-                var creationTime = File.GetCreationTimeUtc(fullPath);
-                return creationTime > lastWriteTime ? creationTime : lastWriteTime;
+                return File.GetLastWriteTimeUtc(fullPath);
             }
             catch (Exception e)
             {
