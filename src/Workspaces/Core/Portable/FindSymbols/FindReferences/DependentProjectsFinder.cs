@@ -391,6 +391,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return project.ProjectReferences.Any(p => p.ProjectId == sourceProject.Id);
             }
 
+            // If the project we're looking at doesn't even support compilations, then there's no 
+            // way for it to have an IAssemblySymbo.  And without that, there is no way for it
+            // to have any sort of 'ReferenceTo' the provided 'containingAssembly' symbol.
+            if (!project.SupportsCompilation)
+            {
+                return false;
+            }
+
             // WORKAROUND:
             // perf  check metadata reference using newly created empty compilation with only metadata references.
             var compilation = project.LanguageServices.CompilationFactory.CreateCompilation(
