@@ -2699,5 +2699,87 @@ End Class
 
             CompileAndVerify(compilation, expectedOutput:="42")
         End Sub
+
+        <WorkItem(1108036, "DevDiv")>
+        <Fact()>
+        Public Sub Bug1108036()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Class Color
+    Public Shared Sub Cat()
+    End Sub
+End Class
+
+Class Program
+    Shared Sub Main()
+        Color.Cat()
+    End Sub
+ 
+    ReadOnly Property Color(Optional x As Integer = 0) As Color
+        Get
+            Return Nothing
+        End Get
+    End Property
+ 
+    ReadOnly Property Color(Optional x As String = "") As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+End Class
+    </file>
+</compilation>)
+
+            AssertTheseDiagnostics(compilation,
+<expected>
+BC30521: Overload resolution failed because no accessible 'Color' is most specific for these arguments:
+    'Public ReadOnly Property Color([x As Integer = 0]) As Color': Not most specific.
+    'Public ReadOnly Property Color([x As String = ""]) As Integer': Not most specific.
+        Color.Cat()
+        ~~~~~
+</expected>)
+        End Sub
+
+        <WorkItem(1108036, "DevDiv")>
+        <Fact()>
+        Public Sub Bug1108036_2()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Class Color
+    Public Shared Sub Cat()
+    End Sub
+End Class
+
+Class Program
+    Shared Sub Main()
+        Color.Cat()
+    End Sub
+ 
+    ReadOnly Property Color(Optional x As Integer = 0) As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+ 
+    ReadOnly Property Color(Optional x As String = "") As Color
+        Get
+            Return Nothing
+        End Get
+    End Property
+End Class
+    </file>
+</compilation>)
+
+            AssertTheseDiagnostics(compilation,
+<expected>
+BC30521: Overload resolution failed because no accessible 'Color' is most specific for these arguments:
+    'Public ReadOnly Property Color([x As Integer = 0]) As Integer': Not most specific.
+    'Public ReadOnly Property Color([x As String = ""]) As Color': Not most specific.
+        Color.Cat()
+        ~~~~~
+</expected>)
+        End Sub
     End Class
 End Namespace

@@ -4336,7 +4336,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if ((object)leftSymbol != null)
                 {
-                    TypeSymbol leftType;
                     switch (leftSymbol.Kind)
                     {
                         case SymbolKind.Field:
@@ -4344,32 +4343,30 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case SymbolKind.Parameter:
                         case SymbolKind.Property:
                         case SymbolKind.RangeVariable:
-                            leftType = boundValue.Type;
+                            var leftType = boundValue.Type;
+                            Debug.Assert((object)leftType != null);
+                            
+                            var leftName = node.Identifier.ValueText;
+                            if (leftType.Name == leftName || IsUsingAliasInScope(leftName))
+                            {
+                                var typeDiagnostics = new DiagnosticBag();
+                                var boundType = BindNamespaceOrType(node, typeDiagnostics);
+                                if (boundType.Type == leftType)
+                                {
+                                    // NOTE: ReplaceTypeOrValueReceiver will call CheckValue explicitly.
+                                    var newValueDiagnostics = new DiagnosticBag();
+                                    newValueDiagnostics.AddRangeAndFree(valueDiagnostics);
+
+                                    return new BoundTypeOrValueExpression(left, new BoundTypeOrValueData(leftSymbol, boundValue, newValueDiagnostics, boundType, typeDiagnostics), leftType);
+                                }
+                            }
                             break;
 
                         // case SymbolKind.Event: //SPEC: 7.6.4.1 (a.k.a. Color Color) doesn't cover events
-
-                        default:
-                            // Not a Color Color case. Return the bound member.
-                            goto notColorColor;
-                    }
-
-                    Debug.Assert((object)leftType != null);
-
-                    var leftName = node.Identifier.ValueText;
-                    if (leftType.Name == leftName || IsUsingAliasInScope(leftName))
-                    {
-                        var typeDiagnostics = DiagnosticBag.GetInstance();
-                        var boundType = BindNamespaceOrType(node, typeDiagnostics);
-                        if (boundType.Type == leftType)
-                        {
-                            // NOTE: ReplaceTypeOrValueReceiver will call CheckValue explicitly.
-                            return new BoundTypeOrValueExpression(left, leftSymbol, boundValue, valueDiagnostics.ToReadOnlyAndFree(), boundType, typeDiagnostics.ToReadOnlyAndFree(), leftType);
-                        }
                     }
                 }
 
-                notColorColor:
+                // Not a Color Color case; return the bound member.
                 // NOTE: it is up to the caller to call CheckValue on the result.
                 diagnostics.AddRangeAndFree(valueDiagnostics);
                 return boundValue;
@@ -5933,7 +5930,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Ideally the runtime binder would choose between type and value based on the result of the overload resolution.
                     // We need to pick one or the other here. Dev11 compiler passes the type only if the value can't be accessed.
                     bool inStaticContext;
-                    bool useType = IsInstance(typeOrValue.ValueSymbol) && !HasThis(isExplicit: false, inStaticContext: out inStaticContext);
+                    bool useType = IsInstance(typeOrValue.Data.ValueSymbol) && !HasThis(isExplicit: false, inStaticContext: out inStaticContext);
 
                     receiverOpt = ReplaceTypeOrValueReceiver(typeOrValue, useType, diagnostics);
                 }

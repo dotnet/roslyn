@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Ideally the runtime binder would choose between type and value based on the result of the overload resolution.
                             // We need to pick one or the other here. Dev11 compiler passes the type only if the value can't be accessed.
                             bool inStaticContext;
-                            bool useType = IsInstance(typeOrValue.ValueSymbol) && !HasThis(isExplicit: false, inStaticContext: out inStaticContext);
+                            bool useType = IsInstance(typeOrValue.Data.ValueSymbol) && !HasThis(isExplicit: false, inStaticContext: out inStaticContext);
 
                             BoundExpression finalReceiver = ReplaceTypeOrValueReceiver(typeOrValue, useType, diagnostics);
 
@@ -897,13 +897,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var typeOrValue = (BoundTypeOrValueExpression)receiver;
                     if (useType)
                     {
-                        diagnostics.AddRange(typeOrValue.TypeDiagnostics);
-                        return typeOrValue.TypeExpression;
+                        diagnostics.AddRange(typeOrValue.Data.TypeDiagnostics);
+                        return typeOrValue.Data.TypeExpression;
                     }
                     else
                     {
-                        diagnostics.AddRange(typeOrValue.ValueDiagnostics);
-                        return CheckValue(typeOrValue.ValueExpression, BindValueKind.RValue, diagnostics);
+                        diagnostics.AddRange(typeOrValue.Data.ValueDiagnostics);
+                        return CheckValue(typeOrValue.Data.ValueExpression, BindValueKind.RValue, diagnostics);
                     }
 
                 case BoundKind.QueryClause:
