@@ -34,7 +34,7 @@ namespace Roslyn.Utilities
         /// <exception cref="IOException"/>
         public static FileKey Create(string fullPath)
         {
-            return new FileKey(fullPath, FileUtilities.GetFileTimeStamp(fullPath));
+            return new FileKey(fullPath, FileUtilities.GetLastWriteTimeStamp(fullPath));
         }
 
         public override int GetHashCode()
