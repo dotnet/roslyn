@@ -11551,7 +11551,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to this kind of initialization.
+        '''  Looks up a localized string similar to array literal expressions.
         '''</summary>
         Friend ReadOnly Property FEATURE_ArrayLiterals() As String
             Get
@@ -11623,7 +11623,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to this kind of lambda expression.
+        '''  Looks up a localized string similar to &apos;nameof&apos; expressions.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_NameOfExpressions() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_NameOfExpressions", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to null conditional operations.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_NullPropagatingOperator() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_NullPropagatingOperator", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to multi-line lambda expressions.
         '''</summary>
         Friend ReadOnly Property FEATURE_StatementLambdas() As String
             Get
@@ -12145,7 +12163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Method is not CLS-compliant because it overloads method which differs from it only by array of array parameter types or by the rank of the array parameter types..
+        '''  Looks up a localized string similar to Method is not CLS-compliant because it overloads method which differs from it only by array of array parameter types or by the rank of the array parameter types.
         '''</summary>
         Friend ReadOnly Property WRN_ArrayOverloadsNonCLS2_Title() As String
             Get
@@ -12199,7 +12217,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Possible problem detected while building assembly.
+        '''  Looks up a localized string similar to Possible problem detected while building assembly..
         '''</summary>
         Friend ReadOnly Property WRN_AssemblyGeneration1_Title() As String
             Get
@@ -12307,7 +12325,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to The language name for /preferreduilang is invalid..
+        '''  Looks up a localized string similar to The language name for /preferreduilang is invalid.
         '''</summary>
         Friend ReadOnly Property WRN_BadUILang_Title() As String
             Get
@@ -12325,7 +12343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Type is not CLS-compliant because it derives from base type that is not CLS-compliant..
+        '''  Looks up a localized string similar to Type is not CLS-compliant because it derives from base type that is not CLS-compliant.
         '''</summary>
         Friend ReadOnly Property WRN_BaseClassNotCLSCompliant2_Title() As String
             Get
@@ -12361,7 +12379,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to System.CLSCompliantAttribute cannot be applied to property &apos;Get&apos; or &apos;Set&apos;..
+        '''  Looks up a localized string similar to System.CLSCompliantAttribute cannot be applied to property &apos;Get&apos; or &apos;Set&apos;.
         '''</summary>
         Friend ReadOnly Property WRN_CLSAttrInvalidOnGetSet_Title() As String
             Get
@@ -12397,7 +12415,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Member cannot be marked CLS-compliant because its containing type is not CLS-compliant..
+        '''  Looks up a localized string similar to Member cannot be marked CLS-compliant because its containing type is not CLS-compliant.
         '''</summary>
         Friend ReadOnly Property WRN_CLSMemberInNonCLSType3_Title() As String
             Get
@@ -12433,7 +12451,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to &apos;Microsoft.VisualBasic.ComClassAttribute&apos; is specified for class but class has no public members that can be exposed to COM..
+        '''  Looks up a localized string similar to &apos;Microsoft.VisualBasic.ComClassAttribute&apos; is specified for class but class has no public members that can be exposed to COM.
         '''</summary>
         Friend ReadOnly Property WRN_ComClassNoMembers1_Title() As String
             Get
@@ -12811,7 +12829,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Underlying type of Enum is not CLS-compliant..
+        '''  Looks up a localized string similar to Underlying type of Enum is not CLS-compliant.
         '''</summary>
         Friend ReadOnly Property WRN_EnumUnderlyingTypeNotCLS1_Title() As String
             Get
@@ -12883,7 +12901,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Type of member is not CLS-compliant..
+        '''  Looks up a localized string similar to Type of member is not CLS-compliant.
         '''</summary>
         Friend ReadOnly Property WRN_FieldNotCLSCompliant1_Title() As String
             Get
@@ -12919,7 +12937,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Generic parameter constraint type is not CLS-compliant..
+        '''  Looks up a localized string similar to Generic parameter constraint type is not CLS-compliant.
         '''</summary>
         Friend ReadOnly Property WRN_GenericConstraintNotCLSCompliant1_Title() As String
             Get
@@ -13063,7 +13081,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Type is not CLS-compliant because the interface it inherits from is not CLS-compliant..
+        '''  Looks up a localized string similar to Type is not CLS-compliant because the interface it inherits from is not CLS-compliant.
         '''</summary>
         Friend ReadOnly Property WRN_InheritedInterfaceNotCLSCompliant2_Title() As String
             Get
@@ -13279,7 +13297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Member conflicts with a member implicitly declared for property or event in the base type..
+        '''  Looks up a localized string similar to Member conflicts with a member implicitly declared for property or event in the base type.
         '''</summary>
         Friend ReadOnly Property WRN_MemberShadowsSynthMember6_Title() As String
             Get
@@ -13387,7 +13405,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Member shadows an overloadable member declared in the base type..
+        '''  Looks up a localized string similar to Member shadows an overloadable member declared in the base type.
         '''</summary>
         Friend ReadOnly Property WRN_MustOverloadBase4_Title() As String
             Get
@@ -13405,7 +13423,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Member shadows an overridable method in the base type..
+        '''  Looks up a localized string similar to Member shadows an overridable method in the base type.
         '''</summary>
         Friend ReadOnly Property WRN_MustOverride2_Title() As String
             Get
@@ -13477,7 +13495,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Name is not CLS-compliant..
+        '''  Looks up a localized string similar to Name is not CLS-compliant.
         '''</summary>
         Friend ReadOnly Property WRN_NameNotCLSCompliant1_Title() As String
             Get
@@ -13549,7 +13567,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Non CLS-compliant member is not allowed in a CLS-compliant interface..
+        '''  Looks up a localized string similar to Non CLS-compliant member is not allowed in a CLS-compliant interface.
         '''</summary>
         Friend ReadOnly Property WRN_NonCLSMemberInCLSInterface1_Title() As String
             Get
@@ -13567,7 +13585,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Non CLS-compliant &apos;MustOverride&apos; member is not allowed in CLS-compliant type..
+        '''  Looks up a localized string similar to Non CLS-compliant &apos;MustOverride&apos; member is not allowed in CLS-compliant type.
         '''</summary>
         Friend ReadOnly Property WRN_NonCLSMustOverrideInCLSType1_Title() As String
             Get
@@ -13783,7 +13801,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Type of optional value for optional parameter is not CLS-compliant..
+        '''  Looks up a localized string similar to Type of optional value for optional parameter is not CLS-compliant.
         '''</summary>
         Friend ReadOnly Property WRN_OptionalValueNotCLSCompliant1_Title() As String
             Get
@@ -13819,7 +13837,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Member conflicts with member in the base type and should be declared &apos;Shadows&apos;..
+        '''  Looks up a localized string similar to Member conflicts with member in the base type and should be declared &apos;Shadows&apos;.
         '''</summary>
         Friend ReadOnly Property WRN_OverrideType5_Title() As String
             Get
@@ -13837,7 +13855,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Type of parameter is not CLS-compliant..
+        '''  Looks up a localized string similar to Type of parameter is not CLS-compliant.
         '''</summary>
         Friend ReadOnly Property WRN_ParamNotCLSCompliant1_Title() As String
             Get
@@ -13909,7 +13927,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Return type of function is not CLS-compliant..
+        '''  Looks up a localized string similar to Return type of function is not CLS-compliant.
         '''</summary>
         Friend ReadOnly Property WRN_ProcTypeNotCLSCompliant1_Title() As String
             Get
@@ -14107,7 +14125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Root namespace is not CLS-compliant..
+        '''  Looks up a localized string similar to Root namespace is not CLS-compliant.
         '''</summary>
         Friend ReadOnly Property WRN_RootNamespaceNotCLSCompliant1_Title() As String
             Get
@@ -14125,7 +14143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Part of the root namespace is not CLS-compliant..
+        '''  Looks up a localized string similar to Part of the root namespace is not CLS-compliant.
         '''</summary>
         Friend ReadOnly Property WRN_RootNamespaceNotCLSCompliant2_Title() As String
             Get
@@ -14287,7 +14305,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Type is not CLS-compliant..
+        '''  Looks up a localized string similar to Type is not CLS-compliant.
         '''</summary>
         Friend ReadOnly Property WRN_TypeNotCLSCompliant1_Title() As String
             Get
@@ -14467,7 +14485,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Property accessor is obsolete..
+        '''  Looks up a localized string similar to Property accessor is obsolete.
         '''</summary>
         Friend ReadOnly Property WRN_UseOfObsoletePropertyAccessor2_Title() As String
             Get
@@ -14485,7 +14503,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Property accessor is obsolete..
+        '''  Looks up a localized string similar to Property accessor is obsolete.
         '''</summary>
         Friend ReadOnly Property WRN_UseOfObsoletePropertyAccessor3_Title() As String
             Get
@@ -14503,7 +14521,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Type or member is obsolete..
+        '''  Looks up a localized string similar to Type or member is obsolete.
         '''</summary>
         Friend ReadOnly Property WRN_UseOfObsoleteSymbol2_Title() As String
             Get
@@ -14521,7 +14539,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Type or member is obsolete..
+        '''  Looks up a localized string similar to Type or member is obsolete.
         '''</summary>
         Friend ReadOnly Property WRN_UseOfObsoleteSymbolNoMessage1_Title() As String
             Get
