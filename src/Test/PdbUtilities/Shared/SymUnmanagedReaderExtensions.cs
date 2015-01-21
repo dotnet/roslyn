@@ -11,7 +11,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.SymReaderInterop
 {
-    public struct AsyncStepInfo : IEquatable<AsyncStepInfo>
+    internal struct AsyncStepInfo : IEquatable<AsyncStepInfo>
     {
         public readonly int YieldOffset;
         public readonly int ResumeOffset;
