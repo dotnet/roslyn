@@ -11524,7 +11524,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core..
+        '''  Looks up a localized string similar to XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types..
         '''</summary>
         Friend ReadOnly Property ERR_XmlFeaturesNotAvailable() As String
             Get

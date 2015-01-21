@@ -248,6 +248,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim options = parseOptions.WithLanguageVersion(LanguageVersion.VisualBasic14)
                             tree = VisualBasicSyntaxTree.ParseText(text, options:=options, isMyTemplate:=True)
 
+                            If tree.GetDiagnostics().Any() Then
+                                Throw ExceptionUtilities.Unreachable
+                            End If
+
                             ' set global cache
                             s_myTemplateCache(parseOptions) = tree
 
@@ -264,6 +268,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(m_lazyMyTemplate Is VisualBasicSyntaxTree.Dummy)
                 Debug.Assert(value IsNot VisualBasicSyntaxTree.Dummy)
                 Debug.Assert(value Is Nothing OrElse value.IsMyTemplate)
+
+                If value?.GetDiagnostics().Any() Then
+                    Throw ExceptionUtilities.Unreachable
+                End If
 
                 m_lazyMyTemplate = value
             End Set
@@ -1026,7 +1034,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function()
                         Dim compilation = compReference.Value
                         Return If(compilation.Options.EmbedVbCoreRuntime Or compilation.IncludeInternalXmlHelper,
-                                  ForTree(EmbeddedSymbolManager.EmbeddedSyntax, compilation.Options, compilation.IsSubmission),
+                                  ForTree(EmbeddedSymbolManager.EmbeddedSyntax, compilation.Options, isSubmission:=False),
                                   Nothing)
                     End Function),
                 New EmbeddedTreeAndDeclaration(
@@ -1039,7 +1047,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function()
                         Dim compilation = compReference.Value
                         Return If(compilation.Options.EmbedVbCoreRuntime,
-                                  ForTree(EmbeddedSymbolManager.VbCoreSyntaxTree, compilation.Options, compilation.IsSubmission),
+                                  ForTree(EmbeddedSymbolManager.VbCoreSyntaxTree, compilation.Options, isSubmission:=False),
                                   Nothing)
                     End Function),
                 New EmbeddedTreeAndDeclaration(
@@ -1052,7 +1060,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function()
                         Dim compilation = compReference.Value
                         Return If(compilation.IncludeInternalXmlHelper(),
-                                  ForTree(EmbeddedSymbolManager.InternalXmlHelperSyntax, compilation.Options, compilation.IsSubmission),
+                                  ForTree(EmbeddedSymbolManager.InternalXmlHelperSyntax, compilation.Options, isSubmission:=False),
                                   Nothing)
                     End Function),
                 New EmbeddedTreeAndDeclaration(
@@ -1063,7 +1071,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function()
                         Dim compilation = compReference.Value
                         Return If(compilation.MyTemplate IsNot Nothing,
-                                  ForTree(compilation.MyTemplate, compilation.Options, compilation.IsSubmission),
+                                  ForTree(compilation.MyTemplate, compilation.Options, isSubmission:=False),
                                   Nothing)
                     End Function))
         End Function
@@ -1092,31 +1100,38 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Returns True if the set of references contains those assemblies needed for XML
-        ''' literals (specifically System.Core.dll, System.Xml.dll, and System.Xml.Linq.dll).
+        ''' literals.
         ''' If those assemblies are included, we should include the InternalXmlHelper
         ''' SyntaxTree in the Compilation so the helper methods are available for binding XML.
         ''' </summary>
         Private Function IncludeInternalXmlHelper() As Boolean
-            Dim includesSystemCore = False
-            Dim includesSystemXml = False
-            Dim includesSystemXmlLinq = False
+            ' In new flavors of the framework, types, that XML helpers depend upon, are
+            ' defined in assemblies with different names. Let's not hardcode these names, 
+            ' let's check for presence of types instead.
+            Return InternalXmlHelperDependencyIsSatisfied(WellKnownType.System_Linq_Enumerable) AndAlso
+                   InternalXmlHelperDependencyIsSatisfied(WellKnownType.System_Xml_Linq_XElement) AndAlso
+                   InternalXmlHelperDependencyIsSatisfied(WellKnownType.System_Xml_Linq_XName) AndAlso
+                   InternalXmlHelperDependencyIsSatisfied(WellKnownType.System_Xml_Linq_XAttribute) AndAlso
+                   InternalXmlHelperDependencyIsSatisfied(WellKnownType.System_Xml_Linq_XNamespace)
+        End Function
 
-            For Each referencedAssembly In GetBoundReferenceManager().ReferencedAssembliesMap.Values
-                ' Use AssemblySymbol.Name rather than AssemblyIdentity.Name
-                ' since the latter involves binding of the assembly attributes (in case of source assembly).
-                ' The name comparison is case-sensitive which should be sufficient
-                ' since we're comparing against the name in the assembly.
-                Select Case referencedAssembly.Symbol.Name
-                    Case "System.Core"
-                        includesSystemCore = True
-                    Case "System.Xml"
-                        includesSystemXml = True
-                    Case "System.Xml.Linq"
-                        includesSystemXmlLinq = True
-                End Select
+        Private Function InternalXmlHelperDependencyIsSatisfied(type As WellKnownType) As Boolean
+
+            Dim metadataName = MetadataTypeName.FromFullName(WellKnownTypes.GetMetadataName(type), useCLSCompliantNameArityEncoding:=True)
+            Dim sourceAssembly = Me.SourceAssembly
+
+            ' Lookup only in references. An attempt to lookup in assembly being built will get us in a cycle.
+            ' We are explicitly ignoring scenario where the type might be defined in an added module.
+            For Each reference As AssemblySymbol In sourceAssembly.SourceModule.GetReferencedAssemblySymbols()
+                Debug.Assert(Not reference.IsMissing)
+                Dim candidate As NamedTypeSymbol = reference.LookupTopLevelMetadataType(metadataName, digThroughForwardedTypes:=False)
+
+                If sourceAssembly.IsValidWellKnownType(candidate) AndAlso AssemblySymbol.IsAcceptableMatchForGetTypeByNameAndArity(candidate) Then
+                    Return True
+                End If
             Next
 
-            Return includesSystemCore AndAlso includesSystemXml AndAlso includesSystemXmlLinq
+            Return False
         End Function
 
         ' TODO: This comparison probably will change to compiler command line order, or at least needs 
@@ -1884,12 +1899,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Add all parsing errors.
                 If (stage = CompilationStage.Parse OrElse stage > CompilationStage.Parse AndAlso includeEarlierStages) Then
+
+                    ' Embedded trees shouldn't have any errors, let's avoid making decision if they should be added too early.
+                    ' Otherwise IDE performance might be affect.
                     If Options.ConcurrentBuild Then
                         Dim options = New ParallelOptions() With {.CancellationToken = cancellationToken}
-                        Parallel.For(0, AllSyntaxTrees.Length, options,
-                            Sub(i As Integer) builder.AddRange(AllSyntaxTrees(i).GetDiagnostics(cancellationToken)))
+                        Parallel.For(0, SyntaxTrees.Length, options,
+                            Sub(i As Integer) builder.AddRange(SyntaxTrees(i).GetDiagnostics(cancellationToken)))
                     Else
-                        For Each tree In AllSyntaxTrees
+                        For Each tree In SyntaxTrees
                             cancellationToken.ThrowIfCancellationRequested()
                             builder.AddRange(tree.GetDiagnostics(cancellationToken))
                         Next
@@ -2616,11 +2634,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Overrides Function ContainsSymbolsWithName(predicate As Func(Of String, Boolean), Optional filter As SymbolFilter = SymbolFilter.TypeAndMember, Optional cancellationToken As CancellationToken = Nothing) As Boolean
             If predicate Is Nothing Then
-                Throw New ArgumentNullException(NameOf (predicate))
+                Throw New ArgumentNullException(NameOf(predicate))
             End If
 
             If filter = SymbolFilter.None Then
-                Throw New ArgumentException(VBResources.NoNoneSearchCriteria, NameOf (filter))
+                Throw New ArgumentException(VBResources.NoNoneSearchCriteria, NameOf(filter))
             End If
 
             Return Me.Declarations.ContainsName(predicate, filter, cancellationToken)
@@ -2631,11 +2649,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Public Overrides Function GetSymbolsWithName(predicate As Func(Of String, Boolean), Optional filter As SymbolFilter = SymbolFilter.TypeAndMember, Optional cancellationToken As CancellationToken = Nothing) As IEnumerable(Of ISymbol)
             If predicate Is Nothing Then
-                Throw New ArgumentNullException(NameOf (predicate))
+                Throw New ArgumentNullException(NameOf(predicate))
             End If
 
             If filter = SymbolFilter.None Then
-                Throw New ArgumentException(VBResources.NoNoneSearchCriteria, NameOf (filter))
+                Throw New ArgumentException(VBResources.NoNoneSearchCriteria, NameOf(filter))
             End If
 
             Return New SymbolSearcher(Me).GetSymbolsWithName(predicate, filter, cancellationToken)

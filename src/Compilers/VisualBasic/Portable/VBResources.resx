@@ -2245,7 +2245,7 @@
     <value>Element names cannot use the 'xmlns' prefix.</value>
   </data>
   <data name="ERR_XmlFeaturesNotAvailable" xml:space="preserve">
-    <value>XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.</value>
+    <value>XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.</value>
   </data>
   <data name="ERR_UnableToReadUacManifest2" xml:space="preserve">
     <value>Unable to open Win32 manifest file '{0}' : {1}</value>

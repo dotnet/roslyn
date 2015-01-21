@@ -778,7 +778,7 @@ End Class
     ]]></file>
 </compilation>, references:={New VisualBasicCompilationReference(compilation1)})
             compilation2.AssertTheseDiagnostics(<errors><![CDATA[
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
         Return x.Value
                ~~~~~~~
 ]]></errors>)
@@ -823,7 +823,7 @@ End Class
     ]]></file>
 </compilation>, references:={New VisualBasicCompilationReference(compilation1)})
             compilation2.AssertTheseDiagnostics(<errors><![CDATA[
-BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core.
+BC31190: XML literals and XML axis properties are not available. Add references to System.Xml, System.Xml.Linq, and System.Core or other assemblies declaring System.Linq.Enumerable, System.Xml.Linq.XElement, System.Xml.Linq.XName, System.Xml.Linq.XAttribute and System.Xml.Linq.XNamespace types.
         Return x.VALUE
                ~~~~~~~
 ]]></errors>)

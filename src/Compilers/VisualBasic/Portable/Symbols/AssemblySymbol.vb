@@ -515,7 +515,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return result
         End Function
 
-        Private Shared Function IsAcceptableMatchForGetTypeByNameAndArity(candidate As NamedTypeSymbol) As Boolean
+        Friend Shared Function IsAcceptableMatchForGetTypeByNameAndArity(candidate As NamedTypeSymbol) As Boolean
             Return candidate IsNot Nothing AndAlso (candidate.Kind <> SymbolKind.ErrorType OrElse Not (TypeOf candidate Is MissingMetadataTypeSymbol))
         End Function
 
@@ -574,7 +574,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return result
         End Function
 
-        Private Function IsValidWellKnownType(result As NamedTypeSymbol) As Boolean
+        Friend Function IsValidWellKnownType(result As NamedTypeSymbol) As Boolean
             If result Is Nothing OrElse result.TypeKind = TypeKind.Error Then
                 Return False
             End If

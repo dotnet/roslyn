@@ -50,6 +50,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Interlocked.CompareExchange(_embeddedSyntax,
                                                 VisualBasicSyntaxTree.ParseText(EmbeddedResources.Embedded),
                                                 Nothing)
+                    If _embeddedSyntax.GetDiagnostics().Any() Then
+                        Throw ExceptionUtilities.Unreachable
+                    End If
                 End If
                 Return _embeddedSyntax
             End Get
@@ -64,6 +67,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Interlocked.CompareExchange(_vbCoreSyntax,
                                                 VisualBasicSyntaxTree.ParseText(EmbeddedResources.VbCoreSourceText),
                                                 Nothing)
+                    If _vbCoreSyntax.GetDiagnostics().Any() Then
+                        Throw ExceptionUtilities.Unreachable
+                    End If
                 End If
                 Return _vbCoreSyntax
             End Get
@@ -75,6 +81,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Interlocked.CompareExchange(_internalXmlHelperSyntax,
                                                 VisualBasicSyntaxTree.ParseText(EmbeddedResources.InternalXmlHelper),
                                                 Nothing)
+                    If _internalXmlHelperSyntax.GetDiagnostics().Any() Then
+                        Throw ExceptionUtilities.Unreachable
+                    End If
                 End If
                 Return _internalXmlHelperSyntax
             End Get
