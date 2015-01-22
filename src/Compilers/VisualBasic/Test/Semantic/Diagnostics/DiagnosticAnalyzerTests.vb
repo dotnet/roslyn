@@ -660,7 +660,7 @@ End Enum
                     AnalyzerDiagnostic("FieldSymbolDiagnostic", <![CDATA[X]]>))
             End Sub
 
-            <Fact(Skip:="1111667"), WorkItem(1111667)>
+            <Fact, WorkItem(1111667)>
             Sub TestFieldSymbolAnalyzer_FieldWithoutInitializer()
                 Dim analyzer = New FieldSymbolAnalyzer()
                 Dim sources = <compilation>
