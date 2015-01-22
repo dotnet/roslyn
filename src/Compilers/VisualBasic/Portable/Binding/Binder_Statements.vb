@@ -1185,7 +1185,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         errSyntax = If(asClauseOpt IsNot Nothing AndAlso Not type.IsArrayType, DirectCast(asClauseOpt.Type, VisualBasicSyntaxNode), name)
                         ReportDiagnostic(diagnostics, errSyntax, ERRID.ERR_ConstAsNonConstant)
                     Else
-                        diagnostics.AddRange(symbol.GetConstantValueDiagnostics(Me))
+                        Dim bag = symbol.GetConstantValueDiagnostics(Me)
+                        If bag IsNot Nothing Then
+                            diagnostics.AddRange(bag)
+                        End If
                     End If
                 End If
             End If

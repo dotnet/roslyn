@@ -2781,5 +2781,200 @@ BC30521: Overload resolution failed because no accessible 'Color' is most specif
         ~~~~~
 </expected>)
         End Sub
+
+        <WorkItem(969006, "DevDiv")>
+        <Fact()>
+        Public Sub Bug969006_1()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Enum E
+    A
+End Enum
+Class C
+    Sub M()
+        Const e As E = E.A
+        Dim z = e
+    End Sub
+End Class
+    </file>
+</compilation>)
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model1 = compilation.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes.OfType(Of MemberAccessExpressionSyntax)().Single()
+            Assert.Equal("E.A", node1.ToString())
+            Assert.Equal("E", node1.Expression.ToString())
+
+            Dim symbolInfo = model1.GetSymbolInfo(node1.Expression)
+
+            Assert.Equal("E", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(SymbolKind.NamedType, symbolInfo.Symbol.Kind)
+
+            Dim model2 = compilation.GetSemanticModel(tree)
+            Dim node2 = tree.GetRoot().DescendantNodes.OfType(Of IdentifierNameSyntax)().Where(Function(n) n.Identifier.ValueText = "e").Single()
+
+            Assert.Equal("= e", node2.Parent.ToString())
+
+            symbolInfo = model2.GetSymbolInfo(node2)
+
+            Assert.Equal("e As E", symbolInfo.Symbol.ToTestDisplayString())
+
+            symbolInfo = model2.GetSymbolInfo(node1.Expression)
+
+            Assert.Equal("E", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(SymbolKind.NamedType, symbolInfo.Symbol.Kind)
+
+            AssertTheseDiagnostics(compilation)
+        End Sub
+
+        <WorkItem(969006, "DevDiv")>
+        <Fact()>
+        Public Sub Bug969006_2()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Enum E
+    A
+End Enum
+Class C
+    Sub M()
+        Dim e As E = E.A
+        Dim z = e
+    End Sub
+End Class
+    </file>
+</compilation>)
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model1 = compilation.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes.OfType(Of MemberAccessExpressionSyntax)().Single()
+            Assert.Equal("E.A", node1.ToString())
+            Assert.Equal("E", node1.Expression.ToString())
+
+            Dim symbolInfo = model1.GetSymbolInfo(node1.Expression)
+
+            Assert.Equal("E", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(SymbolKind.NamedType, symbolInfo.Symbol.Kind)
+
+            Dim model2 = compilation.GetSemanticModel(tree)
+            Dim node2 = tree.GetRoot().DescendantNodes.OfType(Of IdentifierNameSyntax)().Where(Function(n) n.Identifier.ValueText = "e").Single()
+
+            Assert.Equal("= e", node2.Parent.ToString())
+
+            symbolInfo = model2.GetSymbolInfo(node2)
+
+            Assert.Equal("e As E", symbolInfo.Symbol.ToTestDisplayString())
+
+            symbolInfo = model2.GetSymbolInfo(node1.Expression)
+
+            Assert.Equal("E", symbolInfo.Symbol.ToTestDisplayString())
+            Assert.Equal(SymbolKind.NamedType, symbolInfo.Symbol.Kind)
+
+            AssertTheseDiagnostics(compilation)
+        End Sub
+
+        <WorkItem(969006, "DevDiv")>
+        <Fact()>
+        Public Sub Bug969006_3()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Enum E
+    A
+End Enum
+Class C
+    Sub M()
+        Const e = E.A
+        Dim z = e
+    End Sub
+End Class
+    </file>
+</compilation>)
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model1 = compilation.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes.OfType(Of MemberAccessExpressionSyntax)().Single()
+            Assert.Equal("E.A", node1.ToString())
+            Assert.Equal("E", node1.Expression.ToString())
+
+            Dim symbolInfo = model1.GetSymbolInfo(node1.Expression)
+
+            Assert.Equal("e As System.Object", symbolInfo.Symbol.ToTestDisplayString())
+
+            Dim model2 = compilation.GetSemanticModel(tree)
+            Dim node2 = tree.GetRoot().DescendantNodes.OfType(Of IdentifierNameSyntax)().Where(Function(n) n.Identifier.ValueText = "e").Single()
+
+            Assert.Equal("= e", node2.Parent.ToString())
+
+            symbolInfo = model2.GetSymbolInfo(node2)
+
+            Assert.Equal("e As System.Object", symbolInfo.Symbol.ToTestDisplayString())
+
+            symbolInfo = model2.GetSymbolInfo(node1.Expression)
+
+            Assert.Equal("e As System.Object", symbolInfo.Symbol.ToTestDisplayString())
+
+            AssertTheseDiagnostics(compilation, <expected>
+BC30500: Constant 'e' cannot depend on its own value.
+        Const e = E.A
+                  ~
+BC42104: Variable 'e' is used before it has been assigned a value. A null reference exception could result at runtime.
+        Const e = E.A
+                  ~
+                                                </expected>)
+        End Sub
+
+        <WorkItem(969006, "DevDiv")>
+        <Fact()>
+        Public Sub Bug969006_4()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Enum E
+    A
+End Enum
+Class C
+    Sub M()
+        Dim e = E.A
+        Dim z = e
+    End Sub
+End Class
+    </file>
+</compilation>)
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model1 = compilation.GetSemanticModel(tree)
+            Dim node1 = tree.GetRoot().DescendantNodes.OfType(Of MemberAccessExpressionSyntax)().Single()
+            Assert.Equal("E.A", node1.ToString())
+            Assert.Equal("E", node1.Expression.ToString())
+
+            Dim symbolInfo = model1.GetSymbolInfo(node1.Expression)
+
+            Assert.Equal("e As ?", symbolInfo.Symbol.ToTestDisplayString())
+
+            Dim model2 = compilation.GetSemanticModel(tree)
+            Dim node2 = tree.GetRoot().DescendantNodes.OfType(Of IdentifierNameSyntax)().Where(Function(n) n.Identifier.ValueText = "e").Single()
+
+            Assert.Equal("= e", node2.Parent.ToString())
+
+            symbolInfo = model2.GetSymbolInfo(node2)
+
+            Assert.Equal("e As ?", symbolInfo.Symbol.ToTestDisplayString())
+
+            symbolInfo = model2.GetSymbolInfo(node1.Expression)
+
+            Assert.Equal("e As ?", symbolInfo.Symbol.ToTestDisplayString())
+
+            AssertTheseDiagnostics(compilation, <expected>
+BC30980: Type of 'e' cannot be inferred from an expression containing 'e'.
+        Dim e = E.A
+                ~
+BC42104: Variable 'e' is used before it has been assigned a value. A null reference exception could result at runtime.
+        Dim e = E.A
+                ~
+                                                </expected>)
+        End Sub
+
     End Class
 End Namespace
