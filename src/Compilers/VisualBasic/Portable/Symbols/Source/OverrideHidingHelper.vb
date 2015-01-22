@@ -212,15 +212,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                             If member.IsMustOverride AndAlso currType IsNot container Then
                                 If Not overriddenMembers.Contains(member) Then
-                                    If member.Kind = SymbolKind.Event Then
-                                        diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_MustInheritEventNotOverridden,
-                                                                   member,
-                                                                   CustomSymbolDisplayFormatter.QualifiedName(currType),
-                                                                   CustomSymbolDisplayFormatter.ShortErrorName(container)),
-                                                       container.Locations(0)))
-                                    Else
-                                        unimplementedMembers.Add(member)
-                                    End If
+                                    unimplementedMembers.Add(member)
                                 End If
                             End If
 
@@ -252,17 +244,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                         For Each member In unimplementedMembers
                             If Not member.IsAccessor Then
-                                diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_UnimplementedMustOverride, member.ContainingType, member))
+                                If member.Kind = SymbolKind.Event Then
+                                    diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_MustInheritEventNotOverridden,
+                                                                                            member,
+                                                                                            CustomSymbolDisplayFormatter.QualifiedName(member.ContainingType),
+                                                                                            CustomSymbolDisplayFormatter.ShortErrorName(container)),
+                                                    container.Locations(0)))
+                                Else
+                                    diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_UnimplementedMustOverride, member.ContainingType, member))
+                                End If
                             Else
                                 ' accessor is reported on the containing property.
                                 Debug.Assert(unimplementedMembers.Contains(DirectCast(member, MethodSymbol).AssociatedSymbol))
                             End If
                         Next
 
-                        diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_BaseOnlyClassesMustBeExplicit2,
+                        If diagnosticInfos.Count > 0 Then
+                            diagnostics.Add(New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_BaseOnlyClassesMustBeExplicit2,
                                                                    CustomSymbolDisplayFormatter.ShortErrorName(container),
                                                                    New CompoundDiagnosticInfo(diagnosticInfos.ToArrayAndFree())),
                                                        container.Locations(0)))
+                        Else
+                            diagnosticInfos.Free()
+                        End If
                     End If
                 End If
 

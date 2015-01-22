@@ -1007,7 +1007,7 @@ BC40004: event 'E' conflicts with event 'E' in the base class 'AbsEvent' and sho
         End Sub
 
         <WorkItem(529772, "DevDiv")>
-        <Fact(Skip:="Bug 529772")>
+        <Fact>
         Public Sub Bug529772_ReproSteps()
             Dim csCompilation = CreateCSharpCompilation("
 using System;
@@ -1092,6 +1092,10 @@ Module Module1
         Inherits GenBase(Of Integer)
     End Class
 
+    MustInherit Class Foo6
+        Inherits base2
+        Shadows Public AnEvent As Integer
+    End Class
 End Module
                     </file>
                 </compilation>,
@@ -1117,12 +1121,15 @@ BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride e
 BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.GenBase(Of Integer)'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'GenFoo2' MustInherit.
     Class GenFoo2
           ~~~~~~~
+BC31404: 'Public AnEvent As Integer' cannot shadow a method declared 'MustOverride'.
+        Shadows Public AnEvent As Integer
+                       ~~~~~~~
 </errors>)
 
         End Sub
 
         <WorkItem(529772, "DevDiv")>
-        <Fact(Skip:="Bug 529772")>
+        <Fact>
         Public Sub Bug529772_ReproStepsWithILSource()
 
             Dim ilSource = "
@@ -1296,6 +1303,10 @@ Module Module1
         Inherits GenBase(Of Integer)
     End Class
 
+    MustInherit Class Foo6
+        Inherits base2
+        Shadows Public AnEvent As Integer
+    End Class
 End Module
                     </file>
 </compilation>
@@ -1322,6 +1333,9 @@ BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride e
 BC31499: 'Public MustOverride Event AnEvent As EventHandler' is a MustOverride event in the base class 'AbstEvent.GenBase(Of Integer)'. Visual Basic does not support event overriding. You must either provide an implementation for the event in the base class, or make class 'GenFoo2' MustInherit.
     Class GenFoo2
           ~~~~~~~
+BC31404: 'Public AnEvent As Integer' cannot shadow a method declared 'MustOverride'.
+        Shadows Public AnEvent As Integer
+                       ~~~~~~~
 </errors>)
 
         End Sub
