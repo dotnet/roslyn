@@ -32,9 +32,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Get node on which to add simplifier and formatter annotation for fixing the given diagnostic.
         /// </summary>
-        protected virtual SyntaxNode GetNodeToSimplify(SyntaxNode root, SemanticModel model, Diagnostic diagnostic, Workspace workspace, out string codeActionId, CancellationToken cancellationToken)
+        protected virtual SyntaxNode GetNodeToSimplify(SyntaxNode root, SemanticModel model, Diagnostic diagnostic, Workspace workspace, out string codeActionEquivalenceKey, CancellationToken cancellationToken)
         {
-            codeActionId = null;
+            codeActionEquivalenceKey = null;
             var span = diagnostic.Location.SourceSpan;
             return root.FindNode(diagnostic.Location.SourceSpan, findInsideTrivia: true);
         }
@@ -49,9 +49,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var nodesToSimplify = new List<SyntaxNode>();
             foreach (var diagnostic in diagnostics)
             {
-                string codeActionId;
-                var node = GetNodeToSimplify(root, model, diagnostic, fixAllContext.Solution.Workspace, out codeActionId, cancellationToken);
-                if (node != null && fixAllContext.CodeActionId == codeActionId)
+                string codeActionEquivalenceKey;
+                var node = GetNodeToSimplify(root, model, diagnostic, fixAllContext.Solution.Workspace, out codeActionEquivalenceKey, cancellationToken);
+                if (node != null && fixAllContext.CodeActionEquivalenceKey == codeActionEquivalenceKey)
                 {
                     nodesToSimplify.Add(node);
                 }

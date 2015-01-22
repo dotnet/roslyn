@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                     foreach (var fix in fixes)
                     {
-                        if (fix != null && fix.Id == fixAllContext.CodeActionId)
+                        if (fix != null && fix.EquivalenceKey == fixAllContext.CodeActionEquivalenceKey)
                         {
                             addFix(fix);
                         }
