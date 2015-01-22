@@ -116,6 +116,7 @@ namespace Microsoft.CodeAnalysis.Text
             using (var reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true))
             {
                 text = reader.ReadToEnd();
+                encoding = reader.CurrentEncoding;
             }
 
             return new StringText(text, encoding, CalculateChecksum(stream, checksumAlgorithm), checksumAlgorithm);
