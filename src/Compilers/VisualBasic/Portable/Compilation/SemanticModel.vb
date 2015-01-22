@@ -1141,6 +1141,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim meParam As ParameterSymbol = GetMeParameter(meReference.Type, containingType, containingMember, resultKind)
                         symbolsBuilder.Add(meParam)
 
+                    Case BoundKind.TypeOrValueExpression
+                        ' If we're seeing a node of this kind, then we failed to resolve the member access
+                        ' as either a type or a property/field/event/local/parameter.  In such cases,
+                        ' the second interpretation applies so just visit the node for that.
+                        Dim boundTypeOrValue = DirectCast(boundNodes.LowestBoundNode, BoundTypeOrValueExpression)
+                        Dim valueBoundNodes = New BoundNodeSummary(boundTypeOrValue.Data.ValueExpression, boundNodes.HighestBoundNode, boundNodes.LowestBoundNodeOfSyntacticParent)
+                        Return GetSemanticSymbols(valueBoundNodes, binderOpt, options, resultKind, memberGroup)
+
                     Case Else
 _Default:
                         ' Currently, only nodes deriving from BoundExpression have symbols or

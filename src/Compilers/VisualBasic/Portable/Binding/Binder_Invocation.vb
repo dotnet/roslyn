@@ -842,8 +842,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 VerifyTypeCharacterConsistency(node, returnType, typeChar, diagnostics)
             End If
 
+            Dim resolvedTypeOrValueReceiver As BoundExpression = Nothing
             If receiver IsNot Nothing AndAlso Not hasErrors Then
-                receiver = AdjustReceiverTypeOrValue(receiver, receiver.Syntax, methodOrProperty.IsShared, clearIfShared:=True, diagnostics:=diagnostics)
+                receiver = AdjustReceiverTypeOrValue(receiver, receiver.Syntax, methodOrProperty.IsShared, diagnostics, resolvedTypeOrValueReceiver)
             End If
 
             If Not suppressAbstractCallDiagnostics AndAlso receiver IsNot Nothing AndAlso (receiver.IsMyBaseReference OrElse receiver.IsMyClassReference) Then
@@ -904,14 +905,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' NOTE: we only remove it if we pass it to a new BoundCall node, 
                 '       otherwise we keep it in the group to support semantic queries
                 Dim methodGroup = DirectCast(group, BoundMethodGroup)
-                If receiver IsNot Nothing Then
-                    methodGroup = methodGroup.Update(methodGroup.TypeArgumentsOpt,
-                                                     methodGroup.Methods,
-                                                     methodGroup.PendingExtensionMethodsOpt,
-                                                     methodGroup.ResultKind,
-                                                     Nothing,
-                                                     methodGroup.QualificationKind)
-                End If
+                Dim newReceiver As BoundExpression = If(receiver IsNot Nothing, Nothing, If(resolvedTypeOrValueReceiver, methodGroup.ReceiverOpt))
+                methodGroup = methodGroup.Update(methodGroup.TypeArgumentsOpt,
+                                                 methodGroup.Methods,
+                                                 methodGroup.PendingExtensionMethodsOpt,
+                                                 methodGroup.ResultKind,
+                                                 newReceiver,
+                                                 methodGroup.QualificationKind)
 
                 Return New BoundCall(
                     node,
@@ -942,12 +942,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' NOTE: we only remove it if we pass it to a new BoundPropertyAccess node, 
                 '       otherwise we keep it in the group to support semantic queries
                 Dim propertyGroup = DirectCast(group, BoundPropertyGroup)
-                If receiver IsNot Nothing Then
-                    propertyGroup = propertyGroup.Update(propertyGroup.Properties,
-                                                         propertyGroup.ResultKind,
-                                                         Nothing,
-                                                         propertyGroup.QualificationKind)
-                End If
+                Dim newReceiver As BoundExpression = If(receiver IsNot Nothing, Nothing, If(resolvedTypeOrValueReceiver, propertyGroup.ReceiverOpt))
+                propertyGroup = propertyGroup.Update(propertyGroup.Properties,
+                                                     propertyGroup.ResultKind,
+                                                     newReceiver,
+                                                     propertyGroup.QualificationKind)
 
                 Return New BoundPropertyAccess(
                     node,

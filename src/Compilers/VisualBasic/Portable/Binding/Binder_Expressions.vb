@@ -534,6 +534,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return MakeValue(expr, diagnostics)
         End Function
 
+        Private Function AdjustReceiverTypeOrValue(receiver As BoundExpression,
+                              node As VisualBasicSyntaxNode,
+                              isShared As Boolean,
+                              diagnostics As DiagnosticBag,
+                              ByRef resolvedTypeOrValueExpression As BoundExpression) As BoundExpression
+            Dim unused As QualificationKind
+            Return AdjustReceiverTypeOrValue(receiver, node, isShared, True, diagnostics, unused, resolvedTypeOrValueExpression)
+        End Function
+
+        Private Function AdjustReceiverTypeOrValue(receiver As BoundExpression,
+                              node As VisualBasicSyntaxNode,
+                              isShared As Boolean,
+                              diagnostics As DiagnosticBag,
+                              ByRef qualKind As QualificationKind) As BoundExpression
+            Dim unused As BoundExpression = Nothing
+            Return AdjustReceiverTypeOrValue(receiver, node, isShared, False, diagnostics, qualKind, unused)
+        End Function
 
         ''' <summary>
         ''' Adjusts receiver of a call or a member access.
@@ -544,17 +561,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                               node As VisualBasicSyntaxNode,
                               isShared As Boolean,
                               clearIfShared As Boolean,
-                              diagnostics As DiagnosticBag) As BoundExpression
-
+                              diagnostics As DiagnosticBag,
+                              ByRef qualKind As QualificationKind,
+                              ByRef resolvedTypeOrValueExpression As BoundExpression) As BoundExpression
             If receiver Is Nothing Then
                 Return receiver
             End If
 
             If isShared Then
                 If receiver.Kind = BoundKind.TypeOrValueExpression Then
-                    ' NOTE: we are only doing this for sideeffects of BindNamespaceOrTypeExpression
-                    ' the actual TypeExpression is not necessary as shared members do not need receivers.
-                    BindNamespaceOrTypeExpression(DirectCast(receiver.Syntax, SimpleNameSyntax), diagnostics)
+                    Dim typeOrValue = DirectCast(receiver, BoundTypeOrValueExpression)
+                    diagnostics.AddRange(typeOrValue.Data.TypeDiagnostics)
+                    receiver = typeOrValue.Data.TypeExpression
+                    qualKind = QualificationKind.QualifiedViaTypeName
+                    resolvedTypeOrValueExpression = receiver
                 End If
 
                 If clearIfShared Then
@@ -562,7 +582,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             Else
                 If receiver.Kind = BoundKind.TypeOrValueExpression Then
-                    receiver = BindValue(DirectCast(receiver.Syntax, SimpleNameSyntax), diagnostics)
+                    Dim typeOrValue = DirectCast(receiver, BoundTypeOrValueExpression)
+                    diagnostics.AddRange(typeOrValue.Data.ValueDiagnostics)
+                    receiver = MakeValue(typeOrValue.Data.ValueExpression, diagnostics)
+                    qualKind = QualificationKind.QualifiedViaValue
+                    resolvedTypeOrValueExpression = receiver
                 End If
 
                 receiver = AdjustReceiverValue(receiver, node, diagnostics)
@@ -2224,156 +2248,97 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
             Else
-
-                ' handle for Color Color case:  
-                '
-                ' =======  11.6.1 Identical Type and Member Names
-                ' It is not uncommon to name members using the same name as their type. In that situation, however, 
-                ' inconvenient name hiding can occur:
-
-                '        Enum Color
-                '            Red
-                '            Green
-                '            Yellow
-                '        End Enum
-
-                '        Class Test
-                '            ReadOnly Property Color() As Color
-                '                Get
-                '                    Return Color.Red
-                '                End Get
-                '            End Property
-
-                '            Shared Function DefaultColor() As Color
-                '                Return Color.Green    ' Binds to the instance property!
-                '            End Function
-                '        End Class
-
-                '  In the previous example, the simple name Color in DefaultColor binds to the instance property 
-                '  instead of the type. Because an instance member cannot be referenced in a shared member, 
-                '  this would normally be an error.
-                '  However, a special rule allows access to the type in this case. If the base expression 
-                '  of a member access expression is a simple name and binds to a constant, field, property, 
-                '  local variable or parameter whose type has the same name, then the base expression can refer 
-                '  either to the member or the type. This can never result in ambiguity because the members 
-                '  that can be accessed off of either one are the same.
-
-                If leftOpt.Kind = SyntaxKind.IdentifierName AndAlso
-                    (rightName.Kind = SyntaxKind.IdentifierName OrElse rightName.Kind = SyntaxKind.GenericName) Then
-
-                    Dim result = LookupResult.GetInstance
-                    Dim leftName = DirectCast(leftOpt, SimpleNameSyntax).Identifier.ValueText
-                    Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                    Me.Lookup(result, leftName, 0, LookupOptions.AllMethodsOfAnyArity, useSiteDiagnostics)
-
-                    If result.IsGood Then
-                        Dim leftType As TypeSymbol = Nothing
-
-                        ' If we have overloaded or overriding properties, we could have multiple symbols. In this case, use the type
-                        ' from the first parameterless property (or one with all optional parameters) we find.
-                        For Each leftSymbol In result.Symbols
-                            Select Case leftSymbol.Kind
-                                Case SymbolKind.Local
-                                    Dim local = DirectCast(leftSymbol, LocalSymbol)
-                                    ' Get the symbol's type but don't report errors yet.  They will be reported
-                                    ' below when leftOpt is bound.
-                                    leftType = GetLocalSymbolType(local, node)
-                                    If leftType.IsErrorType Then
-                                        leftType = Nothing
-                                    End If
-
-                                Case SymbolKind.RangeVariable
-                                    leftType = DirectCast(leftSymbol, RangeVariableSymbol).Type
-
-                                Case SymbolKind.Field
-                                    leftType = DirectCast(leftSymbol, FieldSymbol).Type
-
-                                Case SymbolKind.Property
-                                    Dim propertySymbol = DirectCast(leftSymbol, PropertySymbol)
-
-                                    If propertySymbol.GetCanBeCalledWithNoParameters Then
-                                        leftType = propertySymbol.Type
-                                    End If
-
-                                Case SymbolKind.Parameter
-                                    leftType = DirectCast(leftSymbol, ParameterSymbol).Type
-                            End Select
-
-                            If leftType IsNot Nothing Then
-                                Exit For
-                            End If
-                        Next
-
-                        If leftType IsNot Nothing AndAlso CaseInsensitiveComparison.Equals(leftType.Name, leftName) AndAlso leftType.TypeKind <> TypeKind.TypeParameter Then
-
-                            result.Clear()
-                            Me.Lookup(result, leftName, 0, LookupOptions.NamespacesOrTypesOnly, useSiteDiagnostics)
-
-                            If result.IsGood AndAlso result.HasSingleSymbol Then
-                                ' Determine if looking up the name as a type also binds to "leftType".
-                                Dim lookedUpAsType As TypeSymbol
-                                If result.SingleSymbol.Kind = SymbolKind.Alias Then
-                                    lookedUpAsType = TryCast(DirectCast(result.SingleSymbol, AliasSymbol).Target, TypeSymbol)
-                                Else
-                                    lookedUpAsType = TryCast(result.SingleSymbol, TypeSymbol)
-                                End If
-
-                                If lookedUpAsType IsNot Nothing AndAlso lookedUpAsType = leftType Then
-
-                                    Dim arity = 0
-                                    If rightName.Kind = SyntaxKind.GenericName Then
-                                        arity = DirectCast(rightName, GenericNameSyntax).TypeArgumentList.Arguments.Count
-                                    End If
-
-                                    result.Clear()
-
-                                    LookupMember(result, leftType, DirectCast(rightName, SimpleNameSyntax).Identifier.ValueText, arity, LookupOptions.AllMethodsOfAnyArity, useSiteDiagnostics)
-
-                                    If result.IsGood Then
-                                        ' single result is easy - we can now know if it is shared or not and bind left appropriately
-                                        ' NOTE: for the case if we get a single method, we cannot be sure if it is really the only one
-                                        '       as there could be extension methods. We will leave such cases to overload resolution to sort out.
-                                        If result.HasSingleSymbol AndAlso result.SingleSymbol.Kind <> SymbolKind.Method Then
-                                            ' this is the Color Color case (favor binding left as type instead)
-                                            If Not result.SingleSymbol.IsInstanceMember Then
-                                                boundLeft = BindNamespaceOrTypeExpression(DirectCast(leftOpt, IdentifierNameSyntax), diagnostics)
-                                            End If
-                                        Else
-                                            ' right is overloaded. To know whether left is a type or a value we need to know if right is shared.
-                                            ' Since we have multiple right candidates, we need to defer the decision until overload resolution picks one
-                                            ' To record this indecision we create a special expression node that only has the type and syntax (that much we know).
-                                            ' * When we know that right is not shared, we will finish binding left as a value expression.
-                                            ' * When we know that right is shared, we will finish binding left as a type expression.
-                                            boundLeft = New BoundTypeOrValueExpression(leftOpt, leftType)
-                                        End If
-                                    End If
-                                End If
-                            End If
-                        End If
-                    End If
-
-                    diagnostics.Add(node, useSiteDiagnostics)
-                    result.Free()
-                End If
-
-                ' it was not a Color Color case or we could not find the name at all.
-                ' just bind left as an expression.
-                ' NOTE that we will be performing lookup for the leftOpt one more time.
-                ' Unfortunately we have to call BindExpression once we determined that leftOpt is not a type.
-                ' BindExpression is virtual and has an override that in addition to actual binding the expression
-                ' also records the mapping from the syntax to the bound node in something called guarded map.
-                ' Creating a bound expression without involving BindExpression seems to break some invariants
-                ' and results in various asserts from services tests. 
-                If boundLeft Is Nothing Then
-                    If leftOpt.Kind = SyntaxKind.SimpleMemberAccessExpression Then
-                        boundLeft = BindMemberAccess(DirectCast(leftOpt, MemberAccessExpressionSyntax), eventContext:=False, allowIntrinsicAliases:=True, diagnostics:=diagnostics)
-                    Else
-                        boundLeft = Me.BindExpression(leftOpt, diagnostics)
-                    End If
-                End If
+                boundLeft = BindLeftOfPotentialColorColorMemberAccess(node, leftOpt, diagnostics)
             End If
 
             Return Me.BindMemberAccess(node, boundLeft, rightName, eventContext, allowIntrinsicAliases, diagnostics)
+        End Function
+
+        Private Function BindLeftOfPotentialColorColorMemberAccess(parentNode As MemberAccessExpressionSyntax, leftOpt As ExpressionSyntax, diagnostics As DiagnosticBag) As BoundExpression
+            ' handle for Color Color case:  
+            '
+            ' =======  11.6.1 Identical Type and Member Names
+            ' It is not uncommon to name members using the same name as their type. In that situation, however, 
+            ' inconvenient name hiding can occur:
+
+            '        Enum Color
+            '            Red
+            '            Green
+            '            Yellow
+            '        End Enum
+
+            '        Class Test
+            '            ReadOnly Property Color() As Color
+            '                Get
+            '                    Return Color.Red
+            '                End Get
+            '            End Property
+
+            '            Shared Function DefaultColor() As Color
+            '                Return Color.Green    ' Binds to the instance property!
+            '            End Function
+            '        End Class
+
+            '  In the previous example, the simple name Color in DefaultColor binds to the instance property 
+            '  instead of the type. Because an instance member cannot be referenced in a shared member, 
+            '  this would normally be an error.
+            '  However, a special rule allows access to the type in this case. If the base expression 
+            '  of a member access expression is a simple name and binds to a constant, field, property, 
+            '  local variable or parameter whose type has the same name, then the base expression can refer 
+            '  either to the member or the type. This can never result in ambiguity because the members 
+            '  that can be accessed off of either one are the same.
+
+            If leftOpt.Kind = SyntaxKind.IdentifierName Then
+                Dim node = DirectCast(leftOpt, SimpleNameSyntax)
+                Dim leftDiagnostics = DiagnosticBag.GetInstance()
+                Dim boundLeft = Me.BindSimpleName(node, False, leftDiagnostics)
+
+                Dim boundValue = boundLeft
+                Dim propertyDiagnostics As DiagnosticBag = Nothing
+                If boundLeft.Kind = BoundKind.PropertyGroup Then
+                    propertyDiagnostics = DiagnosticBag.GetInstance()
+                    boundValue = Me.AdjustReceiverValue(boundLeft, node, propertyDiagnostics)
+                End If
+
+                Dim leftSymbol = boundValue.ExpressionSymbol
+                If leftSymbol IsNot Nothing Then
+                    Dim leftType As TypeSymbol
+                    Select Case leftSymbol.Kind
+                        Case SymbolKind.Field, SymbolKind.Local, SymbolKind.Parameter, SymbolKind.Property, SymbolKind.RangeVariable
+                            leftType = boundValue.Type
+                            Debug.Assert(leftType IsNot Nothing)
+
+                            Dim leftName = node.Identifier.ValueText
+                            If CaseInsensitiveComparison.Equals(leftType.Name, leftName) AndAlso leftType.TypeKind <> TypeKind.TypeParameter Then
+                                Dim typeDiagnostics = New DiagnosticBag()
+                                Dim boundType = Me.BindNamespaceOrTypeExpression(node, typeDiagnostics)
+                                If boundType.Type = leftType Then
+                                    Dim valueDiagnostics = New DiagnosticBag()
+                                    valueDiagnostics.AddRangeAndFree(leftDiagnostics)
+                                    If propertyDiagnostics IsNot Nothing Then
+                                        valueDiagnostics.AddRangeAndFree(propertyDiagnostics)
+                                    End If
+
+                                    Return New BoundTypeOrValueExpression(leftOpt, New BoundTypeOrValueData(boundValue, valueDiagnostics, boundType, typeDiagnostics), leftType)
+                                End If
+                            End If
+                    End Select
+                End If
+
+                If propertyDiagnostics IsNot Nothing Then
+                    propertyDiagnostics.Free()
+                End If
+
+                diagnostics.AddRangeAndFree(leftDiagnostics)
+                Return boundLeft
+            End If
+
+            ' Not a Color Color case; just bind the LHS as an expression.
+            If leftOpt.Kind = SyntaxKind.SimpleMemberAccessExpression Then
+                Return BindMemberAccess(DirectCast(leftOpt, MemberAccessExpressionSyntax), eventContext:=False, allowIntrinsicAliases:=True, diagnostics:=diagnostics)
+            Else
+                Return Me.BindExpression(leftOpt, diagnostics)
+            End If
         End Function
 
         ''' <summary> 
@@ -2796,7 +2761,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     If Not hasError Then
-                        Debug.Assert(receiver Is Nothing OrElse receiver.Kind <> BoundKind.TypeOrValueExpression)
+                        If receiver IsNot Nothing AndAlso receiver.Kind = BoundKind.TypeOrValueExpression Then
+                            receiver = AdjustReceiverTypeOrValue(receiver, node, isShared:=eventSymbol.IsShared, diagnostics:=diagnostics, qualKind:=qualKind)
+                        End If
+
                         hasError = CheckSharedSymbolAccess(node, eventSymbol.IsShared, receiver, qualKind, diagnostics)
                     End If
 
@@ -2823,7 +2791,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' TODO: Check if this is a constant field with missing or bad value and report an error.
 
                     If Not hasError Then
-                        Debug.Assert(receiver Is Nothing OrElse receiver.Kind <> BoundKind.TypeOrValueExpression)
+                        If receiver IsNot Nothing AndAlso receiver.Kind = BoundKind.TypeOrValueExpression Then
+                            receiver = AdjustReceiverTypeOrValue(receiver, node, isShared:=fieldSymbol.IsShared, diagnostics:=diagnostics, qualKind:=qualKind)
+                        End If
+
                         hasError = CheckSharedSymbolAccess(node, fieldSymbol.IsShared, receiver, qualKind, diagnostics)
                     End If
 
@@ -2932,15 +2903,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         lookupResult.ReplaceSymbol(constructedType)
                     End If
 
-                    If Not hasError Then
-                        Debug.Assert(receiver Is Nothing OrElse receiver.Kind <> BoundKind.TypeOrValueExpression)
-                        hasError = CheckSharedSymbolAccess(node, True, receiver, qualKind, diagnostics)
-                    End If
-
                     ReportDiagnosticsIfObsolete(diagnostics, typeSymbol, node)
 
                     If Not hasError Then
-                        receiver = AdjustReceiverTypeOrValue(receiver, node, isShared:=True, clearIfShared:=False, diagnostics:=diagnostics)
+                        receiver = AdjustReceiverTypeOrValue(receiver, node, isShared:=True, diagnostics:=diagnostics, qualKind:=qualKind)
+                        hasError = CheckSharedSymbolAccess(node, True, receiver, qualKind, diagnostics)
                     End If
 
                     If Not reportedLookupError Then

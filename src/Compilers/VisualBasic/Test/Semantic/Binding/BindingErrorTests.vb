@@ -21919,9 +21919,6 @@ BC30002: Type 'System.Object' is not defined.
 BC30652: Reference required to assembly '<Missing Core Assembly>, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'Object'. Add one to your project.
         Dim a = DnT.DateString
                 ~~~
-BC30652: Reference required to assembly '<Missing Core Assembly>, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'Object'. Add one to your project.
-        Dim a = DnT.DateString
-                ~~~~~~~~~~~~~~
 BC30652: Reference required to assembly '<Missing Core Assembly>, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' containing the type 'String'. Add one to your project.
         Dim a = DnT.DateString
                 ~~~~~~~~~~~~~~

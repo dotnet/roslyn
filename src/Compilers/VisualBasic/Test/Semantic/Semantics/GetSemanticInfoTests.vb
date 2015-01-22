@@ -5941,5 +5941,62 @@ End Module
             Assert.Null(symbolInfo.Symbol)
             Assert.Equal(CandidateReason.NotReferencable, symbolInfo.CandidateReason)
         End Sub
+
+        <WorkItem(1108036, "DevDiv")>
+        <Fact()>
+        Public Sub Bug1108036()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Class Color
+    Public Shared Sub Cat()
+    End Sub
+End Class
+
+Class Program
+    Shared Sub Main()
+        Color.Cat()
+    End Sub
+ 
+    ReadOnly Property Color(Optional x As Integer = 0) As Integer
+        Get
+            Return 0
+        End Get
+    End Property
+ 
+    ReadOnly Property Color(Optional x As String = "") As Color
+        Get
+            Return Nothing
+        End Get
+    End Property
+End Class
+    </file>
+</compilation>)
+
+            AssertTheseDiagnostics(compilation,
+<expected>
+BC30521: Overload resolution failed because no accessible 'Color' is most specific for these arguments:
+    'Public ReadOnly Property Color([x As Integer = 0]) As Integer': Not most specific.
+    'Public ReadOnly Property Color([x As String = ""]) As Color': Not most specific.
+        Color.Cat()
+        ~~~~~
+</expected>)
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim node = tree.GetRoot().DescendantNodes.OfType(Of MemberAccessExpressionSyntax)().Single().Expression
+            Assert.Equal(node.ToString(), "Color")
+
+            Dim symbolInfo = model.GetSymbolInfo(node)
+
+            Assert.Null(symbolInfo.Symbol)
+            Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason)
+
+            Dim sortedCandidates = symbolInfo.CandidateSymbols.AsEnumerable().OrderBy(Function(s) s.ToTestDisplayString()).ToArray()
+            Assert.Equal("ReadOnly Property Program.Color([x As System.Int32 = 0]) As System.Int32", sortedCandidates(0).ToTestDisplayString())
+            Assert.Equal(SymbolKind.Property, sortedCandidates(0).Kind)
+            Assert.Equal("ReadOnly Property Program.Color([x As System.String = """"]) As Color", sortedCandidates(1).ToTestDisplayString())
+            Assert.Equal(SymbolKind.Property, sortedCandidates(1).Kind)
+        End Sub
     End Class
 End Namespace

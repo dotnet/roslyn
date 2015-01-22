@@ -1663,7 +1663,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var typeOrValue = (BoundTypeOrValueExpression)receiver;
                         receiver = otherSymbol.IsStatic
                             ? null // no receiver required
-                            : typeOrValue.ValueExpression;
+                            : typeOrValue.Data.ValueExpression;
                     }
                     return new BoundBadExpression(
                         expr.Syntax,
