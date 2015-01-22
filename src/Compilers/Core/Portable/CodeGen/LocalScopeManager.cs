@@ -894,6 +894,27 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     scope.FreeBasicBlocks();
                 }
             }
+
+            internal bool FinallyOnly()
+            {
+                var curScope = this;
+                do
+                {
+                    var handlers = curScope.handlers;
+                    // handler[0] is always the try
+                    // if we have a finally, then we do not have any catches and 
+                    // the finally is as handlers[1]
+                    if (handlers.Count != 2 || handlers[1].Type != ScopeType.Finally)
+                    {
+                        return false;
+                    }
+
+                    curScope = curScope.containingHandler?.ContainingExceptionScope;
+                }
+                while (curScope != null);
+
+                return true;
+            }
         }
 
         internal struct ScopeBounds

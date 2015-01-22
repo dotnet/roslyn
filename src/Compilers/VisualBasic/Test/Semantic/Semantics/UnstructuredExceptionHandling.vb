@@ -601,86 +601,86 @@ End Module
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
 {
-  // Code size      165 (0xa5)
+  // Code size      162 (0xa2)
   .maxstack  3
   .locals init (Integer V_0,
                 Integer V_1,
                 Integer V_2)
   .try
-{
-  IL_0000:  ldc.i4.1
-  IL_0001:  stloc.2
-  IL_0002:  ldc.i4.1
-  IL_0003:  call       "Sub System.Console.WriteLine(Integer)"
-  IL_0008:  leave      IL_009c
-  IL_000d:  ldc.i4.3
-  IL_000e:  stloc.2
-  IL_000f:  ldc.i4.2
-  IL_0010:  call       "Sub System.Console.WriteLine(Integer)"
-  IL_0015:  ldc.i4.4
-  IL_0016:  stloc.2
-  IL_0017:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_001c:  ldloc.1
-  IL_001d:  brtrue.s   IL_0034
-  IL_001f:  ldc.i4     0x800a0014
-  IL_0024:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_0029:  throw
-  IL_002a:  ldc.i4.5
-  IL_002b:  stloc.2
-  IL_002c:  ldc.i4.3
-  IL_002d:  call       "Sub System.Console.WriteLine(Integer)"
-  IL_0032:  leave.s    IL_009c
-  IL_0034:  ldloc.1
-  IL_0035:  br.s       IL_003a
-  IL_0037:  ldloc.1
-  IL_0038:  ldc.i4.1
-  IL_0039:  add
-  IL_003a:  ldc.i4.0
-  IL_003b:  stloc.1
-  IL_003c:  switch    (
-  IL_005d,
-  IL_0000,
-  IL_0032,
-  IL_000d,
-  IL_0015,
-  IL_002a,
-  IL_0032)
-  IL_005d:  leave.s    IL_0091
-  IL_005f:  ldloc.2
-  IL_0060:  stloc.1
-  IL_0061:  ldloc.0
-  IL_0062:  switch    (
-  IL_006f,
-  IL_0037)
-  IL_006f:  leave.s    IL_0091
-}
+  {
+    IL_0000:  ldc.i4.1
+    IL_0001:  stloc.2
+    IL_0002:  ldc.i4.1
+    IL_0003:  call       "Sub System.Console.WriteLine(Integer)"
+    IL_0008:  br.s       IL_002f
+    IL_000a:  ldc.i4.3
+    IL_000b:  stloc.2
+    IL_000c:  ldc.i4.2
+    IL_000d:  call       "Sub System.Console.WriteLine(Integer)"
+    IL_0012:  ldc.i4.4
+    IL_0013:  stloc.2
+    IL_0014:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0019:  ldloc.1
+    IL_001a:  brtrue.s   IL_0031
+    IL_001c:  ldc.i4     0x800a0014
+    IL_0021:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+    IL_0026:  throw
+    IL_0027:  ldc.i4.5
+    IL_0028:  stloc.2
+    IL_0029:  ldc.i4.3
+    IL_002a:  call       "Sub System.Console.WriteLine(Integer)"
+    IL_002f:  leave.s    IL_0099
+    IL_0031:  ldloc.1
+    IL_0032:  br.s       IL_0037
+    IL_0034:  ldloc.1
+    IL_0035:  ldc.i4.1
+    IL_0036:  add
+    IL_0037:  ldc.i4.0
+    IL_0038:  stloc.1
+    IL_0039:  switch    (
+        IL_005a,
+        IL_0000,
+        IL_002f,
+        IL_000a,
+        IL_0012,
+        IL_0027,
+        IL_002f)
+    IL_005a:  leave.s    IL_008e
+    IL_005c:  ldloc.2
+    IL_005d:  stloc.1
+    IL_005e:  ldloc.0
+    IL_005f:  switch    (
+        IL_006c,
+        IL_0034)
+    IL_006c:  leave.s    IL_008e
+  }
   filter
-{
-  IL_0071:  isinst     "System.Exception"
-  IL_0076:  ldnull
-  IL_0077:  cgt.un
-  IL_0079:  ldloc.0
-  IL_007a:  ldc.i4.0
-  IL_007b:  cgt.un
-  IL_007d:  and
-  IL_007e:  ldloc.1
-  IL_007f:  ldc.i4.0
-  IL_0080:  ceq
-  IL_0082:  and
-  IL_0083:  endfilter
-}  // end filter
-{  // handler
-  IL_0085:  castclass  "System.Exception"
-  IL_008a:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_008f:  leave.s    IL_005f
-}
-  IL_0091:  ldc.i4     0x800a0033
-  IL_0096:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_009b:  throw
-  IL_009c:  ldloc.1
-  IL_009d:  brfalse.s  IL_00a4
-  IL_009f:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_00a4:  ret
+  {
+    IL_006e:  isinst     "System.Exception"
+    IL_0073:  ldnull
+    IL_0074:  cgt.un
+    IL_0076:  ldloc.0
+    IL_0077:  ldc.i4.0
+    IL_0078:  cgt.un
+    IL_007a:  and
+    IL_007b:  ldloc.1
+    IL_007c:  ldc.i4.0
+    IL_007d:  ceq
+    IL_007f:  and
+    IL_0080:  endfilter
+  }  // end filter
+  {  // handler
+    IL_0082:  castclass  "System.Exception"
+    IL_0087:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_008c:  leave.s    IL_005c
+  }
+  IL_008e:  ldc.i4     0x800a0033
+  IL_0093:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+  IL_0098:  throw
+  IL_0099:  ldloc.1
+  IL_009a:  brfalse.s  IL_00a1
+  IL_009c:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_00a1:  ret
 }
 ]]>)
         End Sub
@@ -715,84 +715,84 @@ End Module
             compilationVerifier.VerifyIL("Program.Main",
             <![CDATA[
 {
-  // Code size      162 (0xa2)
+  // Code size      159 (0x9f)
   .maxstack  3
   .locals init (Integer V_0,
                 Integer V_1,
                 Integer V_2)
   .try
-{
-  IL_0000:  ldc.i4.1
-  IL_0001:  stloc.2
-  IL_0002:  ldc.i4.1
-  IL_0003:  call       "Sub System.Console.WriteLine(Integer)"
-  IL_0008:  leave      IL_0099
-  IL_000d:  ldc.i4.3
-  IL_000e:  stloc.2
-  IL_000f:  ldc.i4.2
-  IL_0010:  call       "Sub System.Console.WriteLine(Integer)"
-  IL_0015:  ldc.i4.4
-  IL_0016:  stloc.2
-  IL_0017:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_001c:  ldloc.1
-  IL_001d:  brtrue.s   IL_0034
-  IL_001f:  ldc.i4     0x800a0014
-  IL_0024:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_0029:  throw
-  IL_002a:  ldc.i4.5
-  IL_002b:  stloc.2
-  IL_002c:  ldc.i4.3
-  IL_002d:  call       "Sub System.Console.WriteLine(Integer)"
-  IL_0032:  leave.s    IL_0099
-  IL_0034:  ldloc.1
-  IL_0035:  ldc.i4.1
-  IL_0036:  add
-  IL_0037:  ldc.i4.0
-  IL_0038:  stloc.1
-  IL_0039:  switch    (
-  IL_005a,
-  IL_0000,
-  IL_0032,
-  IL_000d,
-  IL_0015,
-  IL_002a,
-  IL_0032)
-  IL_005a:  leave.s    IL_008e
-  IL_005c:  ldloc.2
-  IL_005d:  stloc.1
-  IL_005e:  ldloc.0
-  IL_005f:  switch    (
-  IL_006c,
-  IL_0034)
-  IL_006c:  leave.s    IL_008e
-}
+  {
+    IL_0000:  ldc.i4.1
+    IL_0001:  stloc.2
+    IL_0002:  ldc.i4.1
+    IL_0003:  call       "Sub System.Console.WriteLine(Integer)"
+    IL_0008:  br.s       IL_002f
+    IL_000a:  ldc.i4.3
+    IL_000b:  stloc.2
+    IL_000c:  ldc.i4.2
+    IL_000d:  call       "Sub System.Console.WriteLine(Integer)"
+    IL_0012:  ldc.i4.4
+    IL_0013:  stloc.2
+    IL_0014:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0019:  ldloc.1
+    IL_001a:  brtrue.s   IL_0031
+    IL_001c:  ldc.i4     0x800a0014
+    IL_0021:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+    IL_0026:  throw
+    IL_0027:  ldc.i4.5
+    IL_0028:  stloc.2
+    IL_0029:  ldc.i4.3
+    IL_002a:  call       "Sub System.Console.WriteLine(Integer)"
+    IL_002f:  leave.s    IL_0096
+    IL_0031:  ldloc.1
+    IL_0032:  ldc.i4.1
+    IL_0033:  add
+    IL_0034:  ldc.i4.0
+    IL_0035:  stloc.1
+    IL_0036:  switch    (
+        IL_0057,
+        IL_0000,
+        IL_002f,
+        IL_000a,
+        IL_0012,
+        IL_0027,
+        IL_002f)
+    IL_0057:  leave.s    IL_008b
+    IL_0059:  ldloc.2
+    IL_005a:  stloc.1
+    IL_005b:  ldloc.0
+    IL_005c:  switch    (
+        IL_0069,
+        IL_0031)
+    IL_0069:  leave.s    IL_008b
+  }
   filter
-{
-  IL_006e:  isinst     "System.Exception"
-  IL_0073:  ldnull
-  IL_0074:  cgt.un
-  IL_0076:  ldloc.0
-  IL_0077:  ldc.i4.0
-  IL_0078:  cgt.un
-  IL_007a:  and
-  IL_007b:  ldloc.1
-  IL_007c:  ldc.i4.0
-  IL_007d:  ceq
-  IL_007f:  and
-  IL_0080:  endfilter
-}  // end filter
-{  // handler
-  IL_0082:  castclass  "System.Exception"
-  IL_0087:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_008c:  leave.s    IL_005c
-}
-  IL_008e:  ldc.i4     0x800a0033
-  IL_0093:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_0098:  throw
-  IL_0099:  ldloc.1
-  IL_009a:  brfalse.s  IL_00a1
-  IL_009c:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_00a1:  ret
+  {
+    IL_006b:  isinst     "System.Exception"
+    IL_0070:  ldnull
+    IL_0071:  cgt.un
+    IL_0073:  ldloc.0
+    IL_0074:  ldc.i4.0
+    IL_0075:  cgt.un
+    IL_0077:  and
+    IL_0078:  ldloc.1
+    IL_0079:  ldc.i4.0
+    IL_007a:  ceq
+    IL_007c:  and
+    IL_007d:  endfilter
+  }  // end filter
+  {  // handler
+    IL_007f:  castclass  "System.Exception"
+    IL_0084:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_0089:  leave.s    IL_0059
+  }
+  IL_008b:  ldc.i4     0x800a0033
+  IL_0090:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+  IL_0095:  throw
+  IL_0096:  ldloc.1
+  IL_0097:  brfalse.s  IL_009e
+  IL_0099:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_009e:  ret
 }
 ]]>)
         End Sub
@@ -4657,101 +4657,102 @@ End Module
             compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
-            <![CDATA[{
-  // Code size      208 (0xd0)
+            <![CDATA[
+{
+  // Code size      205 (0xcd)
   .maxstack  3
   .locals init (Integer V_0,
                 Integer V_1,
                 Integer V_2)
   .try
-{
-  IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0005:  ldc.i4.2
-  IL_0006:  stloc.0
-  IL_0007:  br.s       IL_0012
-  IL_0009:  ldc.i4.4
-  IL_000a:  stloc.2
-  IL_000b:  ldc.i4.1
-  IL_000c:  call       "Function Program.M(Integer) As Integer"
-  IL_0011:  pop
-  IL_0012:  ldc.i4.3
-  IL_0013:  stloc.2
-  IL_0014:  ldc.i4.0
-  IL_0015:  call       "Function Program.M(Integer) As Integer"
-  IL_001a:  brtrue.s   IL_0009
-  IL_001c:  ldc.i4.6
-  IL_001d:  stloc.2
-  IL_001e:  ldc.i4.2
-  IL_001f:  call       "Function Program.M(Integer) As Integer"
-  IL_0024:  pop
-    IL_0025:  leave      IL_00c7
-  IL_002a:  ldc.i4.8
-  IL_002b:  stloc.2
-  IL_002c:  ldstr      "OnError"
-  IL_0031:  call       "Sub System.Console.WriteLine(String)"
-  IL_0036:  ldc.i4.s   9
-  IL_0038:  stloc.2
-  IL_0039:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_003e:  ldloc.1
-    IL_003f:  brtrue.s   IL_004e
-  IL_0041:  ldc.i4     0x800a0014
-  IL_0046:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_004b:  throw
-    IL_004c:  leave.s    IL_00c7
-    IL_004e:  ldloc.1
-    IL_004f:  ldc.i4.1
-    IL_0050:  add
-    IL_0051:  ldc.i4.0
-    IL_0052:  stloc.1
-    IL_0053:  switch    (
-        IL_0084,
-  IL_0000,
-  IL_0012,
-  IL_0012,
-  IL_0009,
-  IL_0012,
-  IL_001c,
-  IL_004c,
-  IL_002a,
-  IL_0036,
-  IL_004c)
-    IL_0084:  leave.s    IL_00bc
-    IL_0086:  ldloc.2
-    IL_0087:  stloc.1
-    IL_0088:  ldloc.0
-    IL_0089:  switch    (
-        IL_009a,
-        IL_004e,
-  IL_002a)
-    IL_009a:  leave.s    IL_00bc
-}
+  {
+    IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0005:  ldc.i4.2
+    IL_0006:  stloc.0
+    IL_0007:  br.s       IL_0012
+    IL_0009:  ldc.i4.4
+    IL_000a:  stloc.2
+    IL_000b:  ldc.i4.1
+    IL_000c:  call       "Function Program.M(Integer) As Integer"
+    IL_0011:  pop
+    IL_0012:  ldc.i4.3
+    IL_0013:  stloc.2
+    IL_0014:  ldc.i4.0
+    IL_0015:  call       "Function Program.M(Integer) As Integer"
+    IL_001a:  brtrue.s   IL_0009
+    IL_001c:  ldc.i4.6
+    IL_001d:  stloc.2
+    IL_001e:  ldc.i4.2
+    IL_001f:  call       "Function Program.M(Integer) As Integer"
+    IL_0024:  pop
+    IL_0025:  br.s       IL_0049
+    IL_0027:  ldc.i4.8
+    IL_0028:  stloc.2
+    IL_0029:  ldstr      "OnError"
+    IL_002e:  call       "Sub System.Console.WriteLine(String)"
+    IL_0033:  ldc.i4.s   9
+    IL_0035:  stloc.2
+    IL_0036:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_003b:  ldloc.1
+    IL_003c:  brtrue.s   IL_004b
+    IL_003e:  ldc.i4     0x800a0014
+    IL_0043:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+    IL_0048:  throw
+    IL_0049:  leave.s    IL_00c4
+    IL_004b:  ldloc.1
+    IL_004c:  ldc.i4.1
+    IL_004d:  add
+    IL_004e:  ldc.i4.0
+    IL_004f:  stloc.1
+    IL_0050:  switch    (
+        IL_0081,
+        IL_0000,
+        IL_0012,
+        IL_0012,
+        IL_0009,
+        IL_0012,
+        IL_001c,
+        IL_0049,
+        IL_0027,
+        IL_0033,
+        IL_0049)
+    IL_0081:  leave.s    IL_00b9
+    IL_0083:  ldloc.2
+    IL_0084:  stloc.1
+    IL_0085:  ldloc.0
+    IL_0086:  switch    (
+        IL_0097,
+        IL_004b,
+        IL_0027)
+    IL_0097:  leave.s    IL_00b9
+  }
   filter
-{
-    IL_009c:  isinst     "System.Exception"
-    IL_00a1:  ldnull
-    IL_00a2:  cgt.un
-    IL_00a4:  ldloc.0
-    IL_00a5:  ldc.i4.0
-    IL_00a6:  cgt.un
-    IL_00a8:  and
-    IL_00a9:  ldloc.1
-    IL_00aa:  ldc.i4.0
-    IL_00ab:  ceq
-    IL_00ad:  and
-    IL_00ae:  endfilter
-}  // end filter
-{  // handler
-    IL_00b0:  castclass  "System.Exception"
-    IL_00b5:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-    IL_00ba:  leave.s    IL_0086
-}
-  IL_00bc:  ldc.i4     0x800a0033
-  IL_00c1:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_00c6:  throw
-  IL_00c7:  ldloc.1
-  IL_00c8:  brfalse.s  IL_00cf
-  IL_00ca:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_00cf:  ret
+  {
+    IL_0099:  isinst     "System.Exception"
+    IL_009e:  ldnull
+    IL_009f:  cgt.un
+    IL_00a1:  ldloc.0
+    IL_00a2:  ldc.i4.0
+    IL_00a3:  cgt.un
+    IL_00a5:  and
+    IL_00a6:  ldloc.1
+    IL_00a7:  ldc.i4.0
+    IL_00a8:  ceq
+    IL_00aa:  and
+    IL_00ab:  endfilter
+  }  // end filter
+  {  // handler
+    IL_00ad:  castclass  "System.Exception"
+    IL_00b2:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00b7:  leave.s    IL_0083
+  }
+  IL_00b9:  ldc.i4     0x800a0033
+  IL_00be:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+  IL_00c3:  throw
+  IL_00c4:  ldloc.1
+  IL_00c5:  brfalse.s  IL_00cc
+  IL_00c7:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_00cc:  ret
 }]]>)
 
 
@@ -5739,99 +5740,100 @@ End Module
             compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
-            <![CDATA[{
-  // Code size      201 (0xc9)
+            <![CDATA[
+{
+  // Code size      198 (0xc6)
   .maxstack  3
   .locals init (Integer V_0,
                 Integer V_1,
                 Integer V_2)
   .try
-{
-  IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0005:  ldc.i4.2
-  IL_0006:  stloc.0
-  IL_0007:  ldc.i4.3
-  IL_0008:  stloc.2
-  IL_0009:  ldc.i4.0
-  IL_000a:  call       "Function Program.M(Integer) As Integer"
-  IL_000f:  pop
-  IL_0010:  ldc.i4.4
-  IL_0011:  stloc.2
-  IL_0012:  ldc.i4.1
-  IL_0013:  call       "Function Program.M(Integer) As Integer"
-  IL_0018:  brtrue.s   IL_0007
-  IL_001a:  ldc.i4.5
-  IL_001b:  stloc.2
-  IL_001c:  ldc.i4.2
-  IL_001d:  call       "Function Program.M(Integer) As Integer"
-  IL_0022:  pop
-    IL_0023:  leave      IL_00c0
-  IL_0028:  ldc.i4.7
-  IL_0029:  stloc.2
-  IL_002a:  ldstr      "OnError"
-  IL_002f:  call       "Sub System.Console.WriteLine(String)"
-  IL_0034:  ldc.i4.8
-  IL_0035:  stloc.2
-  IL_0036:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_003b:  ldloc.1
-  IL_003c:  brtrue.s   IL_004b
-  IL_003e:  ldc.i4     0x800a0014
-  IL_0043:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_0048:  throw
-    IL_0049:  leave.s    IL_00c0
-  IL_004b:  ldloc.1
-  IL_004c:  ldc.i4.1
-  IL_004d:  add
-  IL_004e:  ldc.i4.0
-  IL_004f:  stloc.1
-  IL_0050:  switch    (
-  IL_007d,
-  IL_0000,
-  IL_0007,
-  IL_0007,
-  IL_0010,
-  IL_001a,
-  IL_0049,
-  IL_0028,
-  IL_0034,
-  IL_0049)
-    IL_007d:  leave.s    IL_00b5
-  IL_007f:  ldloc.2
-  IL_0080:  stloc.1
-  IL_0081:  ldloc.0
-    IL_0082:  switch    (
-        IL_0093,
-  IL_004b,
-  IL_0028)
-    IL_0093:  leave.s    IL_00b5
-}
+  {
+    IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0005:  ldc.i4.2
+    IL_0006:  stloc.0
+    IL_0007:  ldc.i4.3
+    IL_0008:  stloc.2
+    IL_0009:  ldc.i4.0
+    IL_000a:  call       "Function Program.M(Integer) As Integer"
+    IL_000f:  pop
+    IL_0010:  ldc.i4.4
+    IL_0011:  stloc.2
+    IL_0012:  ldc.i4.1
+    IL_0013:  call       "Function Program.M(Integer) As Integer"
+    IL_0018:  brtrue.s   IL_0007
+    IL_001a:  ldc.i4.5
+    IL_001b:  stloc.2
+    IL_001c:  ldc.i4.2
+    IL_001d:  call       "Function Program.M(Integer) As Integer"
+    IL_0022:  pop
+    IL_0023:  br.s       IL_0046
+    IL_0025:  ldc.i4.7
+    IL_0026:  stloc.2
+    IL_0027:  ldstr      "OnError"
+    IL_002c:  call       "Sub System.Console.WriteLine(String)"
+    IL_0031:  ldc.i4.8
+    IL_0032:  stloc.2
+    IL_0033:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0038:  ldloc.1
+    IL_0039:  brtrue.s   IL_0048
+    IL_003b:  ldc.i4     0x800a0014
+    IL_0040:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+    IL_0045:  throw
+    IL_0046:  leave.s    IL_00bd
+    IL_0048:  ldloc.1
+    IL_0049:  ldc.i4.1
+    IL_004a:  add
+    IL_004b:  ldc.i4.0
+    IL_004c:  stloc.1
+    IL_004d:  switch    (
+        IL_007a,
+        IL_0000,
+        IL_0007,
+        IL_0007,
+        IL_0010,
+        IL_001a,
+        IL_0046,
+        IL_0025,
+        IL_0031,
+        IL_0046)
+    IL_007a:  leave.s    IL_00b2
+    IL_007c:  ldloc.2
+    IL_007d:  stloc.1
+    IL_007e:  ldloc.0
+    IL_007f:  switch    (
+        IL_0090,
+        IL_0048,
+        IL_0025)
+    IL_0090:  leave.s    IL_00b2
+  }
   filter
-{
-    IL_0095:  isinst     "System.Exception"
-    IL_009a:  ldnull
-    IL_009b:  cgt.un
-    IL_009d:  ldloc.0
-    IL_009e:  ldc.i4.0
-    IL_009f:  cgt.un
-    IL_00a1:  and
-    IL_00a2:  ldloc.1
-    IL_00a3:  ldc.i4.0
-    IL_00a4:  ceq
-    IL_00a6:  and
-    IL_00a7:  endfilter
-}  // end filter
-{  // handler
-    IL_00a9:  castclass  "System.Exception"
-    IL_00ae:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-    IL_00b3:  leave.s    IL_007f
-}
-  IL_00b5:  ldc.i4     0x800a0033
-  IL_00ba:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_00bf:  throw
-  IL_00c0:  ldloc.1
-  IL_00c1:  brfalse.s  IL_00c8
-  IL_00c3:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_00c8:  ret
+  {
+    IL_0092:  isinst     "System.Exception"
+    IL_0097:  ldnull
+    IL_0098:  cgt.un
+    IL_009a:  ldloc.0
+    IL_009b:  ldc.i4.0
+    IL_009c:  cgt.un
+    IL_009e:  and
+    IL_009f:  ldloc.1
+    IL_00a0:  ldc.i4.0
+    IL_00a1:  ceq
+    IL_00a3:  and
+    IL_00a4:  endfilter
+  }  // end filter
+  {  // handler
+    IL_00a6:  castclass  "System.Exception"
+    IL_00ab:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00b0:  leave.s    IL_007c
+  }
+  IL_00b2:  ldc.i4     0x800a0033
+  IL_00b7:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+  IL_00bc:  throw
+  IL_00bd:  ldloc.1
+  IL_00be:  brfalse.s  IL_00c5
+  IL_00c0:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_00c5:  ret
 }]]>)
         End Sub
 
@@ -6584,8 +6586,9 @@ End Module
             compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
-            <![CDATA[{
-  // Code size      199 (0xc7)
+            <![CDATA[
+{
+  // Code size      194 (0xc2)
   .maxstack  3
   .locals init (Integer V_0,
                 Integer V_1,
@@ -6599,81 +6602,80 @@ End Module
     IL_0008:  stloc.2
     IL_0009:  ldc.i4.0
     IL_000a:  call       "Function Program.M(Integer) As Integer"
-    IL_000f:  brtrue.s   IL_0016
-    IL_0011:  leave      IL_00be
-    IL_0016:  ldc.i4.5
-    IL_0017:  stloc.2
-    IL_0018:  ldc.i4.1
-    IL_0019:  call       "Function Program.M(Integer) As Integer"
-    IL_001e:  pop
-    IL_001f:  br.s       IL_0007
-    IL_0021:  ldc.i4.8
-    IL_0022:  stloc.2
-    IL_0023:  ldstr      "OnError"
-    IL_0028:  call       "Sub System.Console.WriteLine(String)"
-    IL_002d:  ldc.i4.s   9
-    IL_002f:  stloc.2
-    IL_0030:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-    IL_0035:  ldloc.1
-    IL_0036:  brtrue.s   IL_0045
-    IL_0038:  ldc.i4     0x800a0014
-    IL_003d:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-    IL_0042:  throw
-    IL_0043:  leave.s    IL_00be
-    IL_0045:  ldloc.1
-    IL_0046:  ldc.i4.1
-    IL_0047:  add
-    IL_0048:  ldc.i4.0
-    IL_0049:  stloc.1
-    IL_004a:  switch    (
-        IL_007b,
+    IL_000f:  brfalse.s  IL_003e
+    IL_0011:  ldc.i4.5
+    IL_0012:  stloc.2
+    IL_0013:  ldc.i4.1
+    IL_0014:  call       "Function Program.M(Integer) As Integer"
+    IL_0019:  pop
+    IL_001a:  br.s       IL_0007
+    IL_001c:  ldc.i4.8
+    IL_001d:  stloc.2
+    IL_001e:  ldstr      "OnError"
+    IL_0023:  call       "Sub System.Console.WriteLine(String)"
+    IL_0028:  ldc.i4.s   9
+    IL_002a:  stloc.2
+    IL_002b:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0030:  ldloc.1
+    IL_0031:  brtrue.s   IL_0040
+    IL_0033:  ldc.i4     0x800a0014
+    IL_0038:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+    IL_003d:  throw
+    IL_003e:  leave.s    IL_00b9
+    IL_0040:  ldloc.1
+    IL_0041:  ldc.i4.1
+    IL_0042:  add
+    IL_0043:  ldc.i4.0
+    IL_0044:  stloc.1
+    IL_0045:  switch    (
+        IL_0076,
         IL_0000,
         IL_0007,
         IL_0007,
-        IL_0043,
-        IL_0016,
+        IL_003e,
+        IL_0011,
         IL_0007,
-        IL_0043,
-        IL_0021,
-        IL_002d,
-        IL_0043)
-    IL_007b:  leave.s    IL_00b3
-    IL_007d:  ldloc.2
-    IL_007e:  stloc.1
-    IL_007f:  ldloc.0
-    IL_0080:  switch    (
-        IL_0091,
-        IL_0045,
-        IL_0021)
-    IL_0091:  leave.s    IL_00b3
+        IL_003e,
+        IL_001c,
+        IL_0028,
+        IL_003e)
+    IL_0076:  leave.s    IL_00ae
+    IL_0078:  ldloc.2
+    IL_0079:  stloc.1
+    IL_007a:  ldloc.0
+    IL_007b:  switch    (
+        IL_008c,
+        IL_0040,
+        IL_001c)
+    IL_008c:  leave.s    IL_00ae
   }
   filter
   {
-    IL_0093:  isinst     "System.Exception"
-    IL_0098:  ldnull
-    IL_0099:  cgt.un
-    IL_009b:  ldloc.0
+    IL_008e:  isinst     "System.Exception"
+    IL_0093:  ldnull
+    IL_0094:  cgt.un
+    IL_0096:  ldloc.0
+    IL_0097:  ldc.i4.0
+    IL_0098:  cgt.un
+    IL_009a:  and
+    IL_009b:  ldloc.1
     IL_009c:  ldc.i4.0
-    IL_009d:  cgt.un
+    IL_009d:  ceq
     IL_009f:  and
-    IL_00a0:  ldloc.1
-    IL_00a1:  ldc.i4.0
-    IL_00a2:  ceq
-    IL_00a4:  and
-    IL_00a5:  endfilter
+    IL_00a0:  endfilter
   }  // end filter
   {  // handler
-    IL_00a7:  castclass  "System.Exception"
-    IL_00ac:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-    IL_00b1:  leave.s    IL_007d
+    IL_00a2:  castclass  "System.Exception"
+    IL_00a7:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00ac:  leave.s    IL_0078
   }
-  IL_00b3:  ldc.i4     0x800a0033
-  IL_00b8:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_00bd:  throw
-  IL_00be:  ldloc.1
-  IL_00bf:  brfalse.s  IL_00c6
-  IL_00c1:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_00c6:  ret
+  IL_00ae:  ldc.i4     0x800a0033
+  IL_00b3:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+  IL_00b8:  throw
+  IL_00b9:  ldloc.1
+  IL_00ba:  brfalse.s  IL_00c1
+  IL_00bc:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_00c1:  ret
 }]]>)
         End Sub
 
@@ -7031,133 +7033,133 @@ End Module
             CompileAndVerify(compilation).
                 VerifyIL("Program.Test", <![CDATA[
 {
-  // Code size      315 (0x13b)
+  // Code size      312 (0x138)
   .maxstack  3
   .locals init (Integer V_0,
                 Integer V_1,
                 Integer V_2,
                 System.Collections.IEnumerator V_3)
   .try
-{
-  IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0005:  ldc.i4.2
-  IL_0006:  stloc.0
-  IL_0007:  ldc.i4.2
-  IL_0008:  stloc.2
-  IL_0009:  ldstr      "3"
-  IL_000e:  call       "Function Program.M(String) As Integer"
-  IL_0013:  pop
-  IL_0014:  ldc.i4.3
-  IL_0015:  stloc.2
-  IL_0016:  call       "Function Program.GetEnumerable() As System.Collections.IEnumerable"
-  IL_001b:  callvirt   "Function System.Collections.IEnumerable.GetEnumerator() As System.Collections.IEnumerator"
-  IL_0020:  stloc.3
-  IL_0021:  br.s       IL_004b
-  IL_0023:  ldloc.3
-  IL_0024:  callvirt   "Function System.Collections.IEnumerator.get_Current() As Object"
-  IL_0029:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
-  IL_002e:  pop
-  IL_002f:  ldc.i4.4
-  IL_0030:  stloc.2
-  IL_0031:  ldstr      "0"
-  IL_0036:  call       "Function Program.M(String) As Integer"
-  IL_003b:  pop
-  IL_003c:  ldc.i4.5
-  IL_003d:  stloc.2
-  IL_003e:  ldstr      "1"
-  IL_0043:  call       "Function Program.M(String) As Integer"
-  IL_0048:  pop
-  IL_0049:  ldc.i4.6
-  IL_004a:  stloc.2
-  IL_004b:  ldloc.3
-  IL_004c:  callvirt   "Function System.Collections.IEnumerator.MoveNext() As Boolean"
-  IL_0051:  brtrue.s   IL_0023
-  IL_0053:  ldc.i4.7
-  IL_0054:  stloc.2
-  IL_0055:  ldloc.3
-  IL_0056:  isinst     "System.IDisposable"
-  IL_005b:  brfalse.s  IL_0068
-  IL_005d:  ldloc.3
-  IL_005e:  isinst     "System.IDisposable"
-  IL_0063:  callvirt   "Sub System.IDisposable.Dispose()"
-  IL_0068:  ldc.i4.8
-  IL_0069:  stloc.2
-  IL_006a:  ldstr      "2"
-  IL_006f:  call       "Function Program.M(String) As Integer"
-  IL_0074:  pop
-  IL_0075:  leave      IL_0132
-  IL_007a:  ldc.i4.s   10
-  IL_007c:  stloc.2
-  IL_007d:  ldstr      "OnError - {0}"
-  IL_0082:  call       "Function Microsoft.VisualBasic.Information.Err() As Microsoft.VisualBasic.ErrObject"
-  IL_0087:  callvirt   "Function Microsoft.VisualBasic.ErrObject.GetException() As System.Exception"
-  IL_008c:  callvirt   "Function System.Exception.GetType() As System.Type"
-  IL_0091:  call       "Sub System.Console.WriteLine(String, Object)"
-  IL_0096:  ldc.i4.s   11
-  IL_0098:  stloc.2
-  IL_0099:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_009e:  ldloc.1
-  IL_009f:  brtrue.s   IL_00b1
-  IL_00a1:  ldc.i4     0x800a0014
-  IL_00a6:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_00ab:  throw
-  IL_00ac:  leave      IL_0132
-  IL_00b1:  ldloc.1
-  IL_00b2:  ldc.i4.1
-  IL_00b3:  add
-  IL_00b4:  ldc.i4.0
-  IL_00b5:  stloc.1
-  IL_00b6:  switch    (
-  IL_00ef,
-  IL_0000,
-  IL_0007,
-  IL_0014,
-  IL_002f,
-  IL_003c,
-  IL_0049,
-  IL_0053,
-  IL_0068,
-  IL_00ac,
-  IL_007a,
-  IL_0096,
-  IL_00ac)
-  IL_00ef:  leave.s    IL_0127
-  IL_00f1:  ldloc.2
-  IL_00f2:  stloc.1
-  IL_00f3:  ldloc.0
-  IL_00f4:  switch    (
-  IL_0105,
-  IL_00b1,
-  IL_007a)
-  IL_0105:  leave.s    IL_0127
-}
+  {
+    IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0005:  ldc.i4.2
+    IL_0006:  stloc.0
+    IL_0007:  ldc.i4.2
+    IL_0008:  stloc.2
+    IL_0009:  ldstr      "3"
+    IL_000e:  call       "Function Program.M(String) As Integer"
+    IL_0013:  pop
+    IL_0014:  ldc.i4.3
+    IL_0015:  stloc.2
+    IL_0016:  call       "Function Program.GetEnumerable() As System.Collections.IEnumerable"
+    IL_001b:  callvirt   "Function System.Collections.IEnumerable.GetEnumerator() As System.Collections.IEnumerator"
+    IL_0020:  stloc.3
+    IL_0021:  br.s       IL_004b
+    IL_0023:  ldloc.3
+    IL_0024:  callvirt   "Function System.Collections.IEnumerator.get_Current() As Object"
+    IL_0029:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
+    IL_002e:  pop
+    IL_002f:  ldc.i4.4
+    IL_0030:  stloc.2
+    IL_0031:  ldstr      "0"
+    IL_0036:  call       "Function Program.M(String) As Integer"
+    IL_003b:  pop
+    IL_003c:  ldc.i4.5
+    IL_003d:  stloc.2
+    IL_003e:  ldstr      "1"
+    IL_0043:  call       "Function Program.M(String) As Integer"
+    IL_0048:  pop
+    IL_0049:  ldc.i4.6
+    IL_004a:  stloc.2
+    IL_004b:  ldloc.3
+    IL_004c:  callvirt   "Function System.Collections.IEnumerator.MoveNext() As Boolean"
+    IL_0051:  brtrue.s   IL_0023
+    IL_0053:  ldc.i4.7
+    IL_0054:  stloc.2
+    IL_0055:  ldloc.3
+    IL_0056:  isinst     "System.IDisposable"
+    IL_005b:  brfalse.s  IL_0068
+    IL_005d:  ldloc.3
+    IL_005e:  isinst     "System.IDisposable"
+    IL_0063:  callvirt   "Sub System.IDisposable.Dispose()"
+    IL_0068:  ldc.i4.8
+    IL_0069:  stloc.2
+    IL_006a:  ldstr      "2"
+    IL_006f:  call       "Function Program.M(String) As Integer"
+    IL_0074:  pop
+    IL_0075:  br.s       IL_00a9
+    IL_0077:  ldc.i4.s   10
+    IL_0079:  stloc.2
+    IL_007a:  ldstr      "OnError - {0}"
+    IL_007f:  call       "Function Microsoft.VisualBasic.Information.Err() As Microsoft.VisualBasic.ErrObject"
+    IL_0084:  callvirt   "Function Microsoft.VisualBasic.ErrObject.GetException() As System.Exception"
+    IL_0089:  callvirt   "Function System.Exception.GetType() As System.Type"
+    IL_008e:  call       "Sub System.Console.WriteLine(String, Object)"
+    IL_0093:  ldc.i4.s   11
+    IL_0095:  stloc.2
+    IL_0096:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_009b:  ldloc.1
+    IL_009c:  brtrue.s   IL_00ae
+    IL_009e:  ldc.i4     0x800a0014
+    IL_00a3:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+    IL_00a8:  throw
+    IL_00a9:  leave      IL_012f
+    IL_00ae:  ldloc.1
+    IL_00af:  ldc.i4.1
+    IL_00b0:  add
+    IL_00b1:  ldc.i4.0
+    IL_00b2:  stloc.1
+    IL_00b3:  switch    (
+        IL_00ec,
+        IL_0000,
+        IL_0007,
+        IL_0014,
+        IL_002f,
+        IL_003c,
+        IL_0049,
+        IL_0053,
+        IL_0068,
+        IL_00a9,
+        IL_0077,
+        IL_0093,
+        IL_00a9)
+    IL_00ec:  leave.s    IL_0124
+    IL_00ee:  ldloc.2
+    IL_00ef:  stloc.1
+    IL_00f0:  ldloc.0
+    IL_00f1:  switch    (
+        IL_0102,
+        IL_00ae,
+        IL_0077)
+    IL_0102:  leave.s    IL_0124
+  }
   filter
-{
-  IL_0107:  isinst     "System.Exception"
-  IL_010c:  ldnull
-  IL_010d:  cgt.un
-  IL_010f:  ldloc.0
-  IL_0110:  ldc.i4.0
-  IL_0111:  cgt.un
-  IL_0113:  and
-  IL_0114:  ldloc.1
-  IL_0115:  ldc.i4.0
-  IL_0116:  ceq
-  IL_0118:  and
-  IL_0119:  endfilter
-}  // end filter
-{  // handler
-  IL_011b:  castclass  "System.Exception"
-  IL_0120:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_0125:  leave.s    IL_00f1
-}
-  IL_0127:  ldc.i4     0x800a0033
-  IL_012c:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_0131:  throw
-  IL_0132:  ldloc.1
-  IL_0133:  brfalse.s  IL_013a
-  IL_0135:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_013a:  ret
+  {
+    IL_0104:  isinst     "System.Exception"
+    IL_0109:  ldnull
+    IL_010a:  cgt.un
+    IL_010c:  ldloc.0
+    IL_010d:  ldc.i4.0
+    IL_010e:  cgt.un
+    IL_0110:  and
+    IL_0111:  ldloc.1
+    IL_0112:  ldc.i4.0
+    IL_0113:  ceq
+    IL_0115:  and
+    IL_0116:  endfilter
+  }  // end filter
+  {  // handler
+    IL_0118:  castclass  "System.Exception"
+    IL_011d:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_0122:  leave.s    IL_00ee
+  }
+  IL_0124:  ldc.i4     0x800a0033
+  IL_0129:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+  IL_012e:  throw
+  IL_012f:  ldloc.1
+  IL_0130:  brfalse.s  IL_0137
+  IL_0132:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_0137:  ret
 }
 ]]>)
 
@@ -7948,122 +7950,123 @@ End Module
             compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
-            <![CDATA[{
-  // Code size      268 (0x10c)
+            <![CDATA[
+{
+  // Code size      265 (0x109)
   .maxstack  3
   .locals init (Integer V_0,
                 Integer V_1,
                 Integer V_2,
                 System.Collections.IEnumerator V_3)
   .try
-{
-  IL_0000:  ldc.i4.1
-  IL_0001:  stloc.2
-  IL_0002:  ldstr      "3"
-  IL_0007:  call       "Function Program.M(String) As Integer"
-  IL_000c:  pop
-  .try
-{
-  IL_000d:  call       "Function Program.GetEnumerable() As System.Collections.IEnumerable"
-  IL_0012:  callvirt   "Function System.Collections.IEnumerable.GetEnumerator() As System.Collections.IEnumerator"
-  IL_0017:  stloc.3
-  IL_0018:  br.s       IL_003c
-  IL_001a:  ldloc.3
-  IL_001b:  callvirt   "Function System.Collections.IEnumerator.get_Current() As Object"
-  IL_0020:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
-  IL_0025:  pop
-  IL_0026:  ldstr      "0"
-  IL_002b:  call       "Function Program.M(String) As Integer"
-  IL_0030:  pop
-  IL_0031:  ldstr      "1"
-  IL_0036:  call       "Function Program.M(String) As Integer"
-  IL_003b:  pop
-  IL_003c:  ldloc.3
-  IL_003d:  callvirt   "Function System.Collections.IEnumerator.MoveNext() As Boolean"
-  IL_0042:  brtrue.s   IL_001a
-  IL_0044:  leave.s    IL_005a
-}
-  finally
-{
-  IL_0046:  ldloc.3
-  IL_0047:  isinst     "System.IDisposable"
-  IL_004c:  brfalse.s  IL_0059
-  IL_004e:  ldloc.3
-  IL_004f:  isinst     "System.IDisposable"
-  IL_0054:  callvirt   "Sub System.IDisposable.Dispose()"
-  IL_0059:  endfinally
-}
-  IL_005a:  ldc.i4.2
-  IL_005b:  stloc.2
-  IL_005c:  ldstr      "2"
-  IL_0061:  call       "Function Program.M(String) As Integer"
-  IL_0066:  pop
-    IL_0067:  leave      IL_0103
-  IL_006c:  ldc.i4.4
-  IL_006d:  stloc.2
-  IL_006e:  ldstr      "OnError - {0}"
-  IL_0073:  call       "Function Microsoft.VisualBasic.Information.Err() As Microsoft.VisualBasic.ErrObject"
-  IL_0078:  callvirt   "Function Microsoft.VisualBasic.ErrObject.GetException() As System.Exception"
-  IL_007d:  callvirt   "Function System.Exception.GetType() As System.Type"
-  IL_0082:  call       "Sub System.Console.WriteLine(String, Object)"
-  IL_0087:  ldc.i4.5
-  IL_0088:  stloc.2
-  IL_0089:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_008e:  ldloc.1
-  IL_008f:  brtrue.s   IL_009e
-  IL_0091:  ldc.i4     0x800a0014
-  IL_0096:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_009b:  throw
-    IL_009c:  leave.s    IL_0103
-  IL_009e:  ldloc.1
-  IL_009f:  ldc.i4.1
-  IL_00a0:  add
-  IL_00a1:  ldc.i4.0
-  IL_00a2:  stloc.1
-  IL_00a3:  switch    (
-  IL_00c4,
-  IL_0000,
-  IL_005a,
-  IL_009c,
-  IL_006c,
-  IL_0087,
-  IL_009c)
-    IL_00c4:  leave.s    IL_00f8
-  IL_00c6:  ldloc.2
-  IL_00c7:  stloc.1
-  IL_00c8:  ldloc.0
-    IL_00c9:  switch    (
-        IL_00d6,
-  IL_009e)
-    IL_00d6:  leave.s    IL_00f8
-}
+  {
+    IL_0000:  ldc.i4.1
+    IL_0001:  stloc.2
+    IL_0002:  ldstr      "3"
+    IL_0007:  call       "Function Program.M(String) As Integer"
+    IL_000c:  pop
+    .try
+    {
+      IL_000d:  call       "Function Program.GetEnumerable() As System.Collections.IEnumerable"
+      IL_0012:  callvirt   "Function System.Collections.IEnumerable.GetEnumerator() As System.Collections.IEnumerator"
+      IL_0017:  stloc.3
+      IL_0018:  br.s       IL_003c
+      IL_001a:  ldloc.3
+      IL_001b:  callvirt   "Function System.Collections.IEnumerator.get_Current() As Object"
+      IL_0020:  call       "Function System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue(Object) As Object"
+      IL_0025:  pop
+      IL_0026:  ldstr      "0"
+      IL_002b:  call       "Function Program.M(String) As Integer"
+      IL_0030:  pop
+      IL_0031:  ldstr      "1"
+      IL_0036:  call       "Function Program.M(String) As Integer"
+      IL_003b:  pop
+      IL_003c:  ldloc.3
+      IL_003d:  callvirt   "Function System.Collections.IEnumerator.MoveNext() As Boolean"
+      IL_0042:  brtrue.s   IL_001a
+      IL_0044:  leave.s    IL_005a
+    }
+    finally
+    {
+      IL_0046:  ldloc.3
+      IL_0047:  isinst     "System.IDisposable"
+      IL_004c:  brfalse.s  IL_0059
+      IL_004e:  ldloc.3
+      IL_004f:  isinst     "System.IDisposable"
+      IL_0054:  callvirt   "Sub System.IDisposable.Dispose()"
+      IL_0059:  endfinally
+    }
+    IL_005a:  ldc.i4.2
+    IL_005b:  stloc.2
+    IL_005c:  ldstr      "2"
+    IL_0061:  call       "Function Program.M(String) As Integer"
+    IL_0066:  pop
+    IL_0067:  br.s       IL_0099
+    IL_0069:  ldc.i4.4
+    IL_006a:  stloc.2
+    IL_006b:  ldstr      "OnError - {0}"
+    IL_0070:  call       "Function Microsoft.VisualBasic.Information.Err() As Microsoft.VisualBasic.ErrObject"
+    IL_0075:  callvirt   "Function Microsoft.VisualBasic.ErrObject.GetException() As System.Exception"
+    IL_007a:  callvirt   "Function System.Exception.GetType() As System.Type"
+    IL_007f:  call       "Sub System.Console.WriteLine(String, Object)"
+    IL_0084:  ldc.i4.5
+    IL_0085:  stloc.2
+    IL_0086:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_008b:  ldloc.1
+    IL_008c:  brtrue.s   IL_009b
+    IL_008e:  ldc.i4     0x800a0014
+    IL_0093:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+    IL_0098:  throw
+    IL_0099:  leave.s    IL_0100
+    IL_009b:  ldloc.1
+    IL_009c:  ldc.i4.1
+    IL_009d:  add
+    IL_009e:  ldc.i4.0
+    IL_009f:  stloc.1
+    IL_00a0:  switch    (
+        IL_00c1,
+        IL_0000,
+        IL_005a,
+        IL_0099,
+        IL_0069,
+        IL_0084,
+        IL_0099)
+    IL_00c1:  leave.s    IL_00f5
+    IL_00c3:  ldloc.2
+    IL_00c4:  stloc.1
+    IL_00c5:  ldloc.0
+    IL_00c6:  switch    (
+        IL_00d3,
+        IL_009b)
+    IL_00d3:  leave.s    IL_00f5
+  }
   filter
-{
-    IL_00d8:  isinst     "System.Exception"
-    IL_00dd:  ldnull
-    IL_00de:  cgt.un
-    IL_00e0:  ldloc.0
-    IL_00e1:  ldc.i4.0
-    IL_00e2:  cgt.un
-    IL_00e4:  and
-    IL_00e5:  ldloc.1
-    IL_00e6:  ldc.i4.0
-    IL_00e7:  ceq
-    IL_00e9:  and
-    IL_00ea:  endfilter
-}  // end filter
-{  // handler
-    IL_00ec:  castclass  "System.Exception"
-    IL_00f1:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-    IL_00f6:  leave.s    IL_00c6
-}
-  IL_00f8:  ldc.i4     0x800a0033
-  IL_00fd:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_0102:  throw
-  IL_0103:  ldloc.1
-  IL_0104:  brfalse.s  IL_010b
-  IL_0106:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_010b:  ret
+  {
+    IL_00d5:  isinst     "System.Exception"
+    IL_00da:  ldnull
+    IL_00db:  cgt.un
+    IL_00dd:  ldloc.0
+    IL_00de:  ldc.i4.0
+    IL_00df:  cgt.un
+    IL_00e1:  and
+    IL_00e2:  ldloc.1
+    IL_00e3:  ldc.i4.0
+    IL_00e4:  ceq
+    IL_00e6:  and
+    IL_00e7:  endfilter
+  }  // end filter
+  {  // handler
+    IL_00e9:  castclass  "System.Exception"
+    IL_00ee:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00f3:  leave.s    IL_00c3
+  }
+  IL_00f5:  ldc.i4     0x800a0033
+  IL_00fa:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+  IL_00ff:  throw
+  IL_0100:  ldloc.1
+  IL_0101:  brfalse.s  IL_0108
+  IL_0103:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_0108:  ret
 }]]>)
         End Sub
 
@@ -9734,8 +9737,9 @@ End Module
             compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
-            <![CDATA[{
-  // Code size      302 (0x12e)
+            <![CDATA[
+{
+  // Code size      299 (0x12b)
   .maxstack  6
   .locals init (Integer V_0,
                 Integer V_1,
@@ -9743,123 +9747,123 @@ End Module
                 Object V_3,
                 Object V_4) //i
   .try
-{
-  IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0005:  ldc.i4.2
-  IL_0006:  stloc.0
-  IL_0007:  ldc.i4.2
-  IL_0008:  stloc.2
-  IL_0009:  ldstr      "0"
-  IL_000e:  call       "Function Program.M(String) As Integer"
-  IL_0013:  pop
-  IL_0014:  ldc.i4.3
-  IL_0015:  stloc.2
-  IL_0016:  ldloc.s    V_4
-  IL_0018:  ldc.i4.0
-  IL_0019:  call       "Function Program.LoopType.op_Implicit(Integer) As Program.LoopType"
-  IL_001e:  box        "Program.LoopType"
-  IL_0023:  ldc.i4.1
-  IL_0024:  box        "Integer"
-  IL_0029:  ldc.i4.1
-  IL_002a:  box        "Integer"
-  IL_002f:  ldloca.s   V_3
-  IL_0031:  ldloca.s   V_4
-  IL_0033:  call       "Function Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.ForLoopControl.ForLoopInitObj(Object, Object, Object, Object, ByRef Object, ByRef Object) As Boolean"
-  IL_0038:  brfalse.s  IL_0062
-  IL_003a:  ldc.i4.4
-  IL_003b:  stloc.2
-  IL_003c:  ldstr      "1"
-  IL_0041:  call       "Function Program.M(String) As Integer"
-  IL_0046:  pop
-  IL_0047:  ldc.i4.5
-  IL_0048:  stloc.2
-  IL_0049:  ldstr      "2"
-  IL_004e:  call       "Function Program.M(String) As Integer"
-  IL_0053:  pop
-  IL_0054:  ldc.i4.6
-  IL_0055:  stloc.2
-  IL_0056:  ldloc.s    V_4
-  IL_0058:  ldloc.3
-  IL_0059:  ldloca.s   V_4
-  IL_005b:  call       "Function Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.ForLoopControl.ForNextCheckObj(Object, Object, ByRef Object) As Boolean"
-  IL_0060:  brtrue.s   IL_003a
-  IL_0062:  ldc.i4.7
-  IL_0063:  stloc.2
-  IL_0064:  ldstr      "3"
-  IL_0069:  call       "Function Program.M(String) As Integer"
-  IL_006e:  pop
-    IL_006f:  leave      IL_0125
-  IL_0074:  ldc.i4.s   9
-  IL_0076:  stloc.2
-  IL_0077:  ldstr      "OnError - {0}"
-  IL_007c:  call       "Function Microsoft.VisualBasic.Information.Err() As Microsoft.VisualBasic.ErrObject"
-  IL_0081:  callvirt   "Function Microsoft.VisualBasic.ErrObject.GetException() As System.Exception"
-  IL_0086:  callvirt   "Function System.Exception.GetType() As System.Type"
-  IL_008b:  call       "Sub System.Console.WriteLine(String, Object)"
-  IL_0090:  ldc.i4.s   10
-  IL_0092:  stloc.2
-  IL_0093:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0098:  ldloc.1
-    IL_0099:  brtrue.s   IL_00a8
-  IL_009b:  ldc.i4     0x800a0014
-  IL_00a0:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_00a5:  throw
-    IL_00a6:  leave.s    IL_0125
-    IL_00a8:  ldloc.1
-    IL_00a9:  ldc.i4.1
-    IL_00aa:  add
-    IL_00ab:  ldc.i4.0
-    IL_00ac:  stloc.1
-    IL_00ad:  switch    (
-        IL_00e2,
-  IL_0000,
-  IL_0007,
-  IL_0014,
-  IL_003a,
-  IL_0047,
-  IL_0054,
-  IL_0062,
-  IL_00a6,
-  IL_0074,
-  IL_0090,
-  IL_00a6)
-    IL_00e2:  leave.s    IL_011a
-    IL_00e4:  ldloc.2
-    IL_00e5:  stloc.1
-    IL_00e6:  ldloc.0
-    IL_00e7:  switch    (
-        IL_00f8,
-        IL_00a8,
-  IL_0074)
-    IL_00f8:  leave.s    IL_011a
-}
+  {
+    IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0005:  ldc.i4.2
+    IL_0006:  stloc.0
+    IL_0007:  ldc.i4.2
+    IL_0008:  stloc.2
+    IL_0009:  ldstr      "0"
+    IL_000e:  call       "Function Program.M(String) As Integer"
+    IL_0013:  pop
+    IL_0014:  ldc.i4.3
+    IL_0015:  stloc.2
+    IL_0016:  ldloc.s    V_4
+    IL_0018:  ldc.i4.0
+    IL_0019:  call       "Function Program.LoopType.op_Implicit(Integer) As Program.LoopType"
+    IL_001e:  box        "Program.LoopType"
+    IL_0023:  ldc.i4.1
+    IL_0024:  box        "Integer"
+    IL_0029:  ldc.i4.1
+    IL_002a:  box        "Integer"
+    IL_002f:  ldloca.s   V_3
+    IL_0031:  ldloca.s   V_4
+    IL_0033:  call       "Function Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.ForLoopControl.ForLoopInitObj(Object, Object, Object, Object, ByRef Object, ByRef Object) As Boolean"
+    IL_0038:  brfalse.s  IL_0062
+    IL_003a:  ldc.i4.4
+    IL_003b:  stloc.2
+    IL_003c:  ldstr      "1"
+    IL_0041:  call       "Function Program.M(String) As Integer"
+    IL_0046:  pop
+    IL_0047:  ldc.i4.5
+    IL_0048:  stloc.2
+    IL_0049:  ldstr      "2"
+    IL_004e:  call       "Function Program.M(String) As Integer"
+    IL_0053:  pop
+    IL_0054:  ldc.i4.6
+    IL_0055:  stloc.2
+    IL_0056:  ldloc.s    V_4
+    IL_0058:  ldloc.3
+    IL_0059:  ldloca.s   V_4
+    IL_005b:  call       "Function Microsoft.VisualBasic.CompilerServices.ObjectFlowControl.ForLoopControl.ForNextCheckObj(Object, Object, ByRef Object) As Boolean"
+    IL_0060:  brtrue.s   IL_003a
+    IL_0062:  ldc.i4.7
+    IL_0063:  stloc.2
+    IL_0064:  ldstr      "3"
+    IL_0069:  call       "Function Program.M(String) As Integer"
+    IL_006e:  pop
+    IL_006f:  br.s       IL_00a3
+    IL_0071:  ldc.i4.s   9
+    IL_0073:  stloc.2
+    IL_0074:  ldstr      "OnError - {0}"
+    IL_0079:  call       "Function Microsoft.VisualBasic.Information.Err() As Microsoft.VisualBasic.ErrObject"
+    IL_007e:  callvirt   "Function Microsoft.VisualBasic.ErrObject.GetException() As System.Exception"
+    IL_0083:  callvirt   "Function System.Exception.GetType() As System.Type"
+    IL_0088:  call       "Sub System.Console.WriteLine(String, Object)"
+    IL_008d:  ldc.i4.s   10
+    IL_008f:  stloc.2
+    IL_0090:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0095:  ldloc.1
+    IL_0096:  brtrue.s   IL_00a5
+    IL_0098:  ldc.i4     0x800a0014
+    IL_009d:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+    IL_00a2:  throw
+    IL_00a3:  leave.s    IL_0122
+    IL_00a5:  ldloc.1
+    IL_00a6:  ldc.i4.1
+    IL_00a7:  add
+    IL_00a8:  ldc.i4.0
+    IL_00a9:  stloc.1
+    IL_00aa:  switch    (
+        IL_00df,
+        IL_0000,
+        IL_0007,
+        IL_0014,
+        IL_003a,
+        IL_0047,
+        IL_0054,
+        IL_0062,
+        IL_00a3,
+        IL_0071,
+        IL_008d,
+        IL_00a3)
+    IL_00df:  leave.s    IL_0117
+    IL_00e1:  ldloc.2
+    IL_00e2:  stloc.1
+    IL_00e3:  ldloc.0
+    IL_00e4:  switch    (
+        IL_00f5,
+        IL_00a5,
+        IL_0071)
+    IL_00f5:  leave.s    IL_0117
+  }
   filter
-{
-    IL_00fa:  isinst     "System.Exception"
-    IL_00ff:  ldnull
-    IL_0100:  cgt.un
-    IL_0102:  ldloc.0
-    IL_0103:  ldc.i4.0
-    IL_0104:  cgt.un
-    IL_0106:  and
-    IL_0107:  ldloc.1
-    IL_0108:  ldc.i4.0
-    IL_0109:  ceq
-    IL_010b:  and
-    IL_010c:  endfilter
-}  // end filter
-{  // handler
-    IL_010e:  castclass  "System.Exception"
-    IL_0113:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-    IL_0118:  leave.s    IL_00e4
-}
-  IL_011a:  ldc.i4     0x800a0033
-  IL_011f:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_0124:  throw
-  IL_0125:  ldloc.1
-  IL_0126:  brfalse.s  IL_012d
-  IL_0128:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_012d:  ret
+  {
+    IL_00f7:  isinst     "System.Exception"
+    IL_00fc:  ldnull
+    IL_00fd:  cgt.un
+    IL_00ff:  ldloc.0
+    IL_0100:  ldc.i4.0
+    IL_0101:  cgt.un
+    IL_0103:  and
+    IL_0104:  ldloc.1
+    IL_0105:  ldc.i4.0
+    IL_0106:  ceq
+    IL_0108:  and
+    IL_0109:  endfilter
+  }  // end filter
+  {  // handler
+    IL_010b:  castclass  "System.Exception"
+    IL_0110:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_0115:  leave.s    IL_00e1
+  }
+  IL_0117:  ldc.i4     0x800a0033
+  IL_011c:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+  IL_0121:  throw
+  IL_0122:  ldloc.1
+  IL_0123:  brfalse.s  IL_012a
+  IL_0125:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_012a:  ret
 }]]>)
         End Sub
 
@@ -10466,8 +10470,9 @@ End Module
             compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.ReleaseExe)
             compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Program.Test",
-            <![CDATA[{
-  // Code size      317 (0x13d)
+            <![CDATA[
+{
+  // Code size      314 (0x13a)
   .maxstack  3
   .locals init (Integer V_0,
                 Integer V_1,
@@ -10476,130 +10481,130 @@ End Module
                 Integer V_4,
                 Char V_5) //c
   .try
-{
-  IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0005:  ldc.i4.2
-  IL_0006:  stloc.0
-  IL_0007:  ldc.i4.2
-  IL_0008:  stloc.2
-  IL_0009:  ldstr      "0"
-  IL_000e:  call       "Function Program.M(String) As Integer"
-  IL_0013:  pop
-  IL_0014:  ldc.i4.3
-  IL_0015:  stloc.2
-  IL_0016:  call       "Function Program.GetString() As String"
-  IL_001b:  stloc.3
-  IL_001c:  ldc.i4.0
-  IL_001d:  stloc.s    V_4
-  IL_001f:  br.s       IL_0060
-  IL_0021:  ldloc.3
-  IL_0022:  ldloc.s    V_4
-  IL_0024:  callvirt   "Function String.get_Chars(Integer) As Char"
-  IL_0029:  stloc.s    V_5
-  IL_002b:  ldc.i4.4
-  IL_002c:  stloc.2
-  IL_002d:  ldstr      "c={0}"
-  IL_0032:  ldloc.s    V_5
-  IL_0034:  box        "Integer"
-  IL_0039:  call       "Sub System.Console.WriteLine(String, Object)"
-  IL_003e:  ldc.i4.5
-  IL_003f:  stloc.2
-  IL_0040:  ldstr      "1"
-  IL_0045:  call       "Function Program.M(String) As Integer"
-  IL_004a:  pop
-  IL_004b:  ldc.i4.6
-  IL_004c:  stloc.2
-  IL_004d:  ldstr      "2"
-  IL_0052:  call       "Function Program.M(String) As Integer"
-  IL_0057:  pop
-  IL_0058:  ldc.i4.7
-  IL_0059:  stloc.2
-  IL_005a:  ldloc.s    V_4
-  IL_005c:  ldc.i4.1
-  IL_005d:  add.ovf
-  IL_005e:  stloc.s    V_4
-  IL_0060:  ldloc.s    V_4
-  IL_0062:  ldloc.3
-  IL_0063:  callvirt   "Function String.get_Length() As Integer"
-  IL_0068:  blt.s      IL_0021
-  IL_006a:  ldc.i4.8
-  IL_006b:  stloc.2
-  IL_006c:  ldstr      "3"
-  IL_0071:  call       "Function Program.M(String) As Integer"
-  IL_0076:  pop
-    IL_0077:  leave      IL_0134
-  IL_007c:  ldc.i4.s   10
-  IL_007e:  stloc.2
-  IL_007f:  ldstr      "OnError - {0}"
-  IL_0084:  call       "Function Microsoft.VisualBasic.Information.Err() As Microsoft.VisualBasic.ErrObject"
-  IL_0089:  callvirt   "Function Microsoft.VisualBasic.ErrObject.GetException() As System.Exception"
-  IL_008e:  callvirt   "Function System.Exception.GetType() As System.Type"
-  IL_0093:  call       "Sub System.Console.WriteLine(String, Object)"
-  IL_0098:  ldc.i4.s   11
-  IL_009a:  stloc.2
-  IL_009b:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_00a0:  ldloc.1
-  IL_00a1:  brtrue.s   IL_00b3
-  IL_00a3:  ldc.i4     0x800a0014
-  IL_00a8:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_00ad:  throw
-    IL_00ae:  leave      IL_0134
-  IL_00b3:  ldloc.1
-  IL_00b4:  ldc.i4.1
-  IL_00b5:  add
-  IL_00b6:  ldc.i4.0
-  IL_00b7:  stloc.1
-  IL_00b8:  switch    (
-  IL_00f1,
-  IL_0000,
-  IL_0007,
-  IL_0014,
-  IL_002b,
-  IL_003e,
-  IL_004b,
-  IL_0058,
-  IL_006a,
-  IL_00ae,
-  IL_007c,
-  IL_0098,
-  IL_00ae)
-    IL_00f1:  leave.s    IL_0129
-  IL_00f3:  ldloc.2
-  IL_00f4:  stloc.1
-  IL_00f5:  ldloc.0
-    IL_00f6:  switch    (
-        IL_0107,
-  IL_00b3,
-  IL_007c)
-    IL_0107:  leave.s    IL_0129
-}
+  {
+    IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0005:  ldc.i4.2
+    IL_0006:  stloc.0
+    IL_0007:  ldc.i4.2
+    IL_0008:  stloc.2
+    IL_0009:  ldstr      "0"
+    IL_000e:  call       "Function Program.M(String) As Integer"
+    IL_0013:  pop
+    IL_0014:  ldc.i4.3
+    IL_0015:  stloc.2
+    IL_0016:  call       "Function Program.GetString() As String"
+    IL_001b:  stloc.3
+    IL_001c:  ldc.i4.0
+    IL_001d:  stloc.s    V_4
+    IL_001f:  br.s       IL_0060
+    IL_0021:  ldloc.3
+    IL_0022:  ldloc.s    V_4
+    IL_0024:  callvirt   "Function String.get_Chars(Integer) As Char"
+    IL_0029:  stloc.s    V_5
+    IL_002b:  ldc.i4.4
+    IL_002c:  stloc.2
+    IL_002d:  ldstr      "c={0}"
+    IL_0032:  ldloc.s    V_5
+    IL_0034:  box        "Integer"
+    IL_0039:  call       "Sub System.Console.WriteLine(String, Object)"
+    IL_003e:  ldc.i4.5
+    IL_003f:  stloc.2
+    IL_0040:  ldstr      "1"
+    IL_0045:  call       "Function Program.M(String) As Integer"
+    IL_004a:  pop
+    IL_004b:  ldc.i4.6
+    IL_004c:  stloc.2
+    IL_004d:  ldstr      "2"
+    IL_0052:  call       "Function Program.M(String) As Integer"
+    IL_0057:  pop
+    IL_0058:  ldc.i4.7
+    IL_0059:  stloc.2
+    IL_005a:  ldloc.s    V_4
+    IL_005c:  ldc.i4.1
+    IL_005d:  add.ovf
+    IL_005e:  stloc.s    V_4
+    IL_0060:  ldloc.s    V_4
+    IL_0062:  ldloc.3
+    IL_0063:  callvirt   "Function String.get_Length() As Integer"
+    IL_0068:  blt.s      IL_0021
+    IL_006a:  ldc.i4.8
+    IL_006b:  stloc.2
+    IL_006c:  ldstr      "3"
+    IL_0071:  call       "Function Program.M(String) As Integer"
+    IL_0076:  pop
+    IL_0077:  br.s       IL_00ab
+    IL_0079:  ldc.i4.s   10
+    IL_007b:  stloc.2
+    IL_007c:  ldstr      "OnError - {0}"
+    IL_0081:  call       "Function Microsoft.VisualBasic.Information.Err() As Microsoft.VisualBasic.ErrObject"
+    IL_0086:  callvirt   "Function Microsoft.VisualBasic.ErrObject.GetException() As System.Exception"
+    IL_008b:  callvirt   "Function System.Exception.GetType() As System.Type"
+    IL_0090:  call       "Sub System.Console.WriteLine(String, Object)"
+    IL_0095:  ldc.i4.s   11
+    IL_0097:  stloc.2
+    IL_0098:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_009d:  ldloc.1
+    IL_009e:  brtrue.s   IL_00b0
+    IL_00a0:  ldc.i4     0x800a0014
+    IL_00a5:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+    IL_00aa:  throw
+    IL_00ab:  leave      IL_0131
+    IL_00b0:  ldloc.1
+    IL_00b1:  ldc.i4.1
+    IL_00b2:  add
+    IL_00b3:  ldc.i4.0
+    IL_00b4:  stloc.1
+    IL_00b5:  switch    (
+        IL_00ee,
+        IL_0000,
+        IL_0007,
+        IL_0014,
+        IL_002b,
+        IL_003e,
+        IL_004b,
+        IL_0058,
+        IL_006a,
+        IL_00ab,
+        IL_0079,
+        IL_0095,
+        IL_00ab)
+    IL_00ee:  leave.s    IL_0126
+    IL_00f0:  ldloc.2
+    IL_00f1:  stloc.1
+    IL_00f2:  ldloc.0
+    IL_00f3:  switch    (
+        IL_0104,
+        IL_00b0,
+        IL_0079)
+    IL_0104:  leave.s    IL_0126
+  }
   filter
-{
-    IL_0109:  isinst     "System.Exception"
-    IL_010e:  ldnull
-    IL_010f:  cgt.un
-    IL_0111:  ldloc.0
-    IL_0112:  ldc.i4.0
-    IL_0113:  cgt.un
-    IL_0115:  and
-    IL_0116:  ldloc.1
-    IL_0117:  ldc.i4.0
-    IL_0118:  ceq
-    IL_011a:  and
-    IL_011b:  endfilter
-}  // end filter
-{  // handler
-    IL_011d:  castclass  "System.Exception"
-    IL_0122:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-    IL_0127:  leave.s    IL_00f3
-}
-  IL_0129:  ldc.i4     0x800a0033
-  IL_012e:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_0133:  throw
-  IL_0134:  ldloc.1
-  IL_0135:  brfalse.s  IL_013c
-  IL_0137:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_013c:  ret
+  {
+    IL_0106:  isinst     "System.Exception"
+    IL_010b:  ldnull
+    IL_010c:  cgt.un
+    IL_010e:  ldloc.0
+    IL_010f:  ldc.i4.0
+    IL_0110:  cgt.un
+    IL_0112:  and
+    IL_0113:  ldloc.1
+    IL_0114:  ldc.i4.0
+    IL_0115:  ceq
+    IL_0117:  and
+    IL_0118:  endfilter
+  }  // end filter
+  {  // handler
+    IL_011a:  castclass  "System.Exception"
+    IL_011f:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_0124:  leave.s    IL_00f0
+  }
+  IL_0126:  ldc.i4     0x800a0033
+  IL_012b:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+  IL_0130:  throw
+  IL_0131:  ldloc.1
+  IL_0132:  brfalse.s  IL_0139
+  IL_0134:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_0139:  ret
 }]]>)
         End Sub
 
@@ -13096,8 +13101,9 @@ End Module
             compilationVerifier = CompileAndVerify(compilation)
 
             compilationVerifier.VerifyIL("Program.TestInstance.Test",
-            <![CDATA[{
-  // Code size      326 (0x146)
+            <![CDATA[
+{
+  // Code size      323 (0x143)
   .maxstack  4
   .locals init (Integer V_0,
                 Integer V_1,
@@ -13135,44 +13141,44 @@ End Module
     IL_0044:  ldstr      "4"
     IL_0049:  call       "Function Program.M(String) As Integer"
     IL_004e:  pop
-    IL_004f:  leave      IL_013d
-    IL_0054:  ldc.i4.s   11
-    IL_0056:  stloc.2
-    IL_0057:  call       "Function Microsoft.VisualBasic.Information.Err() As Microsoft.VisualBasic.ErrObject"
-    IL_005c:  callvirt   "Function Microsoft.VisualBasic.ErrObject.GetException() As System.Exception"
-    IL_0061:  stloc.3
-    IL_0062:  ldc.i4.s   12
-    IL_0064:  stloc.2
-    IL_0065:  ldstr      "OnError - {0}{1}"
-    IL_006a:  ldloc.3
-    IL_006b:  callvirt   "Function System.Exception.GetType() As System.Type"
-    IL_0070:  ldloc.3
-    IL_0071:  isinst     "Program.TestException"
-    IL_0076:  brtrue.s   IL_007f
-    IL_0078:  ldsfld     "String.Empty As String"
-    IL_007d:  br.s       IL_0094
-    IL_007f:  ldstr      " - {0}"
-    IL_0084:  ldloc.3
-    IL_0085:  castclass  "Program.TestException"
-    IL_008a:  ldfld      "Program.TestException.Value As String"
-    IL_008f:  call       "Function String.Format(String, Object) As String"
-    IL_0094:  call       "Sub System.Console.WriteLine(String, Object, Object)"
-    IL_0099:  ldc.i4.s   13
-    IL_009b:  stloc.2
-    IL_009c:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-    IL_00a1:  ldloc.1
-    IL_00a2:  brtrue.s   IL_00b4
-    IL_00a4:  ldc.i4     0x800a0014
-    IL_00a9:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-    IL_00ae:  throw
-    IL_00af:  leave      IL_013d
-    IL_00b4:  ldloc.1
-    IL_00b5:  ldc.i4.1
-    IL_00b6:  add
-    IL_00b7:  ldc.i4.0
-    IL_00b8:  stloc.1
-    IL_00b9:  switch    (
-        IL_00fa,
+    IL_004f:  br.s       IL_00ac
+    IL_0051:  ldc.i4.s   11
+    IL_0053:  stloc.2
+    IL_0054:  call       "Function Microsoft.VisualBasic.Information.Err() As Microsoft.VisualBasic.ErrObject"
+    IL_0059:  callvirt   "Function Microsoft.VisualBasic.ErrObject.GetException() As System.Exception"
+    IL_005e:  stloc.3
+    IL_005f:  ldc.i4.s   12
+    IL_0061:  stloc.2
+    IL_0062:  ldstr      "OnError - {0}{1}"
+    IL_0067:  ldloc.3
+    IL_0068:  callvirt   "Function System.Exception.GetType() As System.Type"
+    IL_006d:  ldloc.3
+    IL_006e:  isinst     "Program.TestException"
+    IL_0073:  brtrue.s   IL_007c
+    IL_0075:  ldsfld     "String.Empty As String"
+    IL_007a:  br.s       IL_0091
+    IL_007c:  ldstr      " - {0}"
+    IL_0081:  ldloc.3
+    IL_0082:  castclass  "Program.TestException"
+    IL_0087:  ldfld      "Program.TestException.Value As String"
+    IL_008c:  call       "Function String.Format(String, Object) As String"
+    IL_0091:  call       "Sub System.Console.WriteLine(String, Object, Object)"
+    IL_0096:  ldc.i4.s   13
+    IL_0098:  stloc.2
+    IL_0099:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_009e:  ldloc.1
+    IL_009f:  brtrue.s   IL_00b1
+    IL_00a1:  ldc.i4     0x800a0014
+    IL_00a6:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+    IL_00ab:  throw
+    IL_00ac:  leave      IL_013a
+    IL_00b1:  ldloc.1
+    IL_00b2:  ldc.i4.1
+    IL_00b3:  add
+    IL_00b4:  ldc.i4.0
+    IL_00b5:  stloc.1
+    IL_00b6:  switch    (
+        IL_00f7,
         IL_0000,
         IL_0033,
         IL_0033,
@@ -13182,48 +13188,48 @@ End Module
         IL_0026,
         IL_0033,
         IL_0041,
-        IL_00af,
-        IL_0054,
-        IL_0062,
-        IL_0099,
-        IL_00af)
-    IL_00fa:  leave.s    IL_0132
-    IL_00fc:  ldloc.2
-    IL_00fd:  stloc.1
-    IL_00fe:  ldloc.0
-    IL_00ff:  switch    (
-        IL_0110,
-        IL_00b4,
-        IL_0054)
-    IL_0110:  leave.s    IL_0132
+        IL_00ac,
+        IL_0051,
+        IL_005f,
+        IL_0096,
+        IL_00ac)
+    IL_00f7:  leave.s    IL_012f
+    IL_00f9:  ldloc.2
+    IL_00fa:  stloc.1
+    IL_00fb:  ldloc.0
+    IL_00fc:  switch    (
+        IL_010d,
+        IL_00b1,
+        IL_0051)
+    IL_010d:  leave.s    IL_012f
   }
   filter
   {
-    IL_0112:  isinst     "System.Exception"
-    IL_0117:  ldnull
-    IL_0118:  cgt.un
-    IL_011a:  ldloc.0
-    IL_011b:  ldc.i4.0
-    IL_011c:  cgt.un
-    IL_011e:  and
-    IL_011f:  ldloc.1
-    IL_0120:  ldc.i4.0
-    IL_0121:  ceq
-    IL_0123:  and
-    IL_0124:  endfilter
+    IL_010f:  isinst     "System.Exception"
+    IL_0114:  ldnull
+    IL_0115:  cgt.un
+    IL_0117:  ldloc.0
+    IL_0118:  ldc.i4.0
+    IL_0119:  cgt.un
+    IL_011b:  and
+    IL_011c:  ldloc.1
+    IL_011d:  ldc.i4.0
+    IL_011e:  ceq
+    IL_0120:  and
+    IL_0121:  endfilter
   }  // end filter
   {  // handler
-    IL_0126:  castclass  "System.Exception"
-    IL_012b:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-    IL_0130:  leave.s    IL_00fc
+    IL_0123:  castclass  "System.Exception"
+    IL_0128:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_012d:  leave.s    IL_00f9
   }
-  IL_0132:  ldc.i4     0x800a0033
-  IL_0137:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_013c:  throw
-  IL_013d:  ldloc.1
-  IL_013e:  brfalse.s  IL_0145
-  IL_0140:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0145:  ret
+  IL_012f:  ldc.i4     0x800a0033
+  IL_0134:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+  IL_0139:  throw
+  IL_013a:  ldloc.1
+  IL_013b:  brfalse.s  IL_0142
+  IL_013d:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_0142:  ret
 }]]>)
 
 
@@ -16144,8 +16150,9 @@ End Module
 }
 ]]>)
 
-            compilationVerifier.VerifyIL("Module1.DoWhile", <![CDATA[{
-  // Code size      225 (0xe1)
+            compilationVerifier.VerifyIL("Module1.DoWhile", <![CDATA[
+{
+  // Code size      220 (0xdc)
   .maxstack  3
   .locals init (Integer V_0,
                 Integer V_1,
@@ -16183,24 +16190,23 @@ End Module
     IL_0039:  stloc.2
     IL_003a:  ldloc.3
     IL_003b:  ldc.i4.3
-    IL_003c:  blt.s      IL_0043
-    IL_003e:  leave      IL_00d8
-    IL_0043:  ldc.i4.s   10
-    IL_0045:  stloc.2
-    IL_0046:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-    IL_004b:  ldloc.1
-    IL_004c:  brtrue.s   IL_005b
-    IL_004e:  ldc.i4     0x800a0014
-    IL_0053:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-    IL_0058:  throw
-    IL_0059:  leave.s    IL_00d8
-    IL_005b:  ldloc.1
-    IL_005c:  ldc.i4.1
-    IL_005d:  add
-    IL_005e:  ldc.i4.0
-    IL_005f:  stloc.1
-    IL_0060:  switch    (
-        IL_0095,
+    IL_003c:  bge.s      IL_0054
+    IL_003e:  ldc.i4.s   10
+    IL_0040:  stloc.2
+    IL_0041:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0046:  ldloc.1
+    IL_0047:  brtrue.s   IL_0056
+    IL_0049:  ldc.i4     0x800a0014
+    IL_004e:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+    IL_0053:  throw
+    IL_0054:  leave.s    IL_00d3
+    IL_0056:  ldloc.1
+    IL_0057:  ldc.i4.1
+    IL_0058:  add
+    IL_0059:  ldc.i4.0
+    IL_005a:  stloc.1
+    IL_005b:  switch    (
+        IL_0090,
         IL_0000,
         IL_001b,
         IL_001b,
@@ -16209,51 +16215,51 @@ End Module
         IL_001b,
         IL_002c,
         IL_0038,
-        IL_0059,
-        IL_0043,
-        IL_0059)
-    IL_0095:  leave.s    IL_00cd
-    IL_0097:  ldloc.2
-    IL_0098:  stloc.1
-    IL_0099:  ldloc.0
-    IL_009a:  switch    (
-        IL_00ab,
-        IL_005b,
+        IL_0054,
+        IL_003e,
+        IL_0054)
+    IL_0090:  leave.s    IL_00c8
+    IL_0092:  ldloc.2
+    IL_0093:  stloc.1
+    IL_0094:  ldloc.0
+    IL_0095:  switch    (
+        IL_00a6,
+        IL_0056,
         IL_0038)
-    IL_00ab:  leave.s    IL_00cd
+    IL_00a6:  leave.s    IL_00c8
   }
   filter
   {
-    IL_00ad:  isinst     "System.Exception"
-    IL_00b2:  ldnull
-    IL_00b3:  cgt.un
-    IL_00b5:  ldloc.0
+    IL_00a8:  isinst     "System.Exception"
+    IL_00ad:  ldnull
+    IL_00ae:  cgt.un
+    IL_00b0:  ldloc.0
+    IL_00b1:  ldc.i4.0
+    IL_00b2:  cgt.un
+    IL_00b4:  and
+    IL_00b5:  ldloc.1
     IL_00b6:  ldc.i4.0
-    IL_00b7:  cgt.un
+    IL_00b7:  ceq
     IL_00b9:  and
-    IL_00ba:  ldloc.1
-    IL_00bb:  ldc.i4.0
-    IL_00bc:  ceq
-    IL_00be:  and
-    IL_00bf:  endfilter
+    IL_00ba:  endfilter
   }  // end filter
   {  // handler
-    IL_00c1:  castclass  "System.Exception"
-    IL_00c6:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-    IL_00cb:  leave.s    IL_0097
+    IL_00bc:  castclass  "System.Exception"
+    IL_00c1:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00c6:  leave.s    IL_0092
   }
-  IL_00cd:  ldc.i4     0x800a0033
-  IL_00d2:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_00d7:  throw
-  IL_00d8:  ldloc.1
-  IL_00d9:  brfalse.s  IL_00e0
-  IL_00db:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_00e0:  ret
+  IL_00c8:  ldc.i4     0x800a0033
+  IL_00cd:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+  IL_00d2:  throw
+  IL_00d3:  ldloc.1
+  IL_00d4:  brfalse.s  IL_00db
+  IL_00d6:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_00db:  ret
 }]]>)
 
             compilationVerifier.VerifyIL("Module1.ForNextStepError", <![CDATA[
 {
-  // Code size      218 (0xda)
+  // Code size      213 (0xd5)
   .maxstack  3
   .locals init (Integer V_0,
                 Integer V_1,
@@ -16277,7 +16283,7 @@ End Module
     IL_0013:  stloc.s    V_4
     IL_0015:  ldc.i4.0
     IL_0016:  stloc.s    V_5
-    IL_0018:  br.s       IL_004c
+    IL_0018:  br.s       IL_0047
     IL_001a:  ldc.i4.4
     IL_001b:  stloc.2
     IL_001c:  ldstr      "In Loop"
@@ -16295,78 +16301,77 @@ End Module
     IL_0039:  stloc.2
     IL_003a:  ldloc.3
     IL_003b:  ldc.i4.3
-    IL_003c:  blt.s      IL_0043
-    IL_003e:  leave      IL_00d1
-    IL_0043:  ldc.i4.8
-    IL_0044:  stloc.2
-    IL_0045:  ldloc.s    V_5
+    IL_003c:  bge.s      IL_0059
+    IL_003e:  ldc.i4.8
+    IL_003f:  stloc.2
+    IL_0040:  ldloc.s    V_5
+    IL_0042:  ldloc.s    V_4
+    IL_0044:  add.ovf
+    IL_0045:  stloc.s    V_5
     IL_0047:  ldloc.s    V_4
-    IL_0049:  add.ovf
-    IL_004a:  stloc.s    V_5
-    IL_004c:  ldloc.s    V_4
-    IL_004e:  ldc.i4.s   31
-    IL_0050:  shr
-    IL_0051:  ldloc.s    V_5
-    IL_0053:  xor
-    IL_0054:  ldloc.s    V_4
-    IL_0056:  ldc.i4.s   31
-    IL_0058:  shr
-    IL_0059:  ldc.i4.s   10
-    IL_005b:  xor
-    IL_005c:  ble.s      IL_001a
-    IL_005e:  leave.s    IL_00d1
-    IL_0060:  ldloc.1
-    IL_0061:  ldc.i4.1
-    IL_0062:  add
-    IL_0063:  ldc.i4.0
-    IL_0064:  stloc.1
-    IL_0065:  switch    (
-        IL_0092,
+    IL_0049:  ldc.i4.s   31
+    IL_004b:  shr
+    IL_004c:  ldloc.s    V_5
+    IL_004e:  xor
+    IL_004f:  ldloc.s    V_4
+    IL_0051:  ldc.i4.s   31
+    IL_0053:  shr
+    IL_0054:  ldc.i4.s   10
+    IL_0056:  xor
+    IL_0057:  ble.s      IL_001a
+    IL_0059:  leave.s    IL_00cc
+    IL_005b:  ldloc.1
+    IL_005c:  ldc.i4.1
+    IL_005d:  add
+    IL_005e:  ldc.i4.0
+    IL_005f:  stloc.1
+    IL_0060:  switch    (
+        IL_008d,
         IL_0000,
         IL_0007,
         IL_000b,
         IL_001a,
         IL_0032,
         IL_0038,
-        IL_005e,
-        IL_0043,
-        IL_005e)
-    IL_0092:  leave.s    IL_00c6
-    IL_0094:  ldloc.2
-    IL_0095:  stloc.1
-    IL_0096:  ldloc.0
-    IL_0097:  switch    (
-        IL_00a4,
-        IL_0060)
-    IL_00a4:  leave.s    IL_00c6
+        IL_0059,
+        IL_003e,
+        IL_0059)
+    IL_008d:  leave.s    IL_00c1
+    IL_008f:  ldloc.2
+    IL_0090:  stloc.1
+    IL_0091:  ldloc.0
+    IL_0092:  switch    (
+        IL_009f,
+        IL_005b)
+    IL_009f:  leave.s    IL_00c1
   }
   filter
   {
-    IL_00a6:  isinst     "System.Exception"
-    IL_00ab:  ldnull
-    IL_00ac:  cgt.un
-    IL_00ae:  ldloc.0
+    IL_00a1:  isinst     "System.Exception"
+    IL_00a6:  ldnull
+    IL_00a7:  cgt.un
+    IL_00a9:  ldloc.0
+    IL_00aa:  ldc.i4.0
+    IL_00ab:  cgt.un
+    IL_00ad:  and
+    IL_00ae:  ldloc.1
     IL_00af:  ldc.i4.0
-    IL_00b0:  cgt.un
+    IL_00b0:  ceq
     IL_00b2:  and
-    IL_00b3:  ldloc.1
-    IL_00b4:  ldc.i4.0
-    IL_00b5:  ceq
-    IL_00b7:  and
-    IL_00b8:  endfilter
+    IL_00b3:  endfilter
   }  // end filter
   {  // handler
-    IL_00ba:  castclass  "System.Exception"
-    IL_00bf:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-    IL_00c4:  leave.s    IL_0094
+    IL_00b5:  castclass  "System.Exception"
+    IL_00ba:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00bf:  leave.s    IL_008f
   }
-  IL_00c6:  ldc.i4     0x800a0033
-  IL_00cb:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_00d0:  throw
-  IL_00d1:  ldloc.1
-  IL_00d2:  brfalse.s  IL_00d9
-  IL_00d4:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_00d9:  ret
+  IL_00c1:  ldc.i4     0x800a0033
+  IL_00c6:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+  IL_00cb:  throw
+  IL_00cc:  ldloc.1
+  IL_00cd:  brfalse.s  IL_00d4
+  IL_00cf:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_00d4:  ret
 }
 ]]>)
 
@@ -16678,136 +16683,136 @@ In Foo After Reset
 Foo
 ]]>)
 
-            compilationVerifier.VerifyIL("Module1.GotoMinus1", <![CDATA[{
-  // Code size      298 (0x12a)
+            compilationVerifier.VerifyIL("Module1.GotoMinus1", <![CDATA[
+{
+  // Code size      293 (0x125)
   .maxstack  3
   .locals init (Integer V_0,
                 Integer V_1,
                 Integer V_2,
                 Integer V_3) //IiNDEX
   .try
-{
-  IL_0000:  ldc.i4.1
-  IL_0001:  stloc.2
-  IL_0002:  ldc.i4.0
-  IL_0003:  stloc.3
-  IL_0004:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0009:  ldc.i4.2
-  IL_000a:  stloc.0
-  IL_000b:  ldc.i4.3
-  IL_000c:  stloc.2
-  IL_000d:  ldstr      "Before 1st Error"
-  IL_0012:  call       "Sub System.Console.WriteLine(String)"
-  IL_0017:  ldc.i4.4
-  IL_0018:  stloc.2
-  IL_0019:  ldc.i4.1
-  IL_001a:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_001f:  throw
-  IL_0020:  ldc.i4.5
-  IL_0021:  stloc.2
-  IL_0022:  ldstr      "Before 2nd Error"
-  IL_0027:  call       "Sub System.Console.WriteLine(String)"
-  IL_002c:  ldc.i4.6
-  IL_002d:  stloc.2
-  IL_002e:  ldc.i4.2
-  IL_002f:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_0034:  throw
-  IL_0035:  ldc.i4.8
-  IL_0036:  stloc.2
-  IL_0037:  ldstr      "Foo"
-  IL_003c:  call       "Sub System.Console.WriteLine(String)"
-  IL_0041:  ldc.i4.s   9
-  IL_0043:  stloc.2
-  IL_0044:  ldloc.3
-  IL_0045:  ldc.i4.1
-  IL_0046:  add.ovf
-  IL_0047:  stloc.3
-  IL_0048:  ldc.i4.s   10
-  IL_004a:  stloc.2
-  IL_004b:  ldloc.3
-  IL_004c:  ldc.i4.3
-  IL_004d:  blt.s      IL_0054
-  IL_004f:  leave      IL_0121
-  IL_0054:  ldc.i4.s   12
-  IL_0056:  stloc.2
-  IL_0057:  ldstr      "In Foo Before Reset"
-  IL_005c:  call       "Sub System.Console.WriteLine(String)"
-  IL_0061:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0066:  ldc.i4.0
-  IL_0067:  stloc.1
-  IL_0068:  ldc.i4.s   14
-  IL_006a:  stloc.2
-  IL_006b:  ldstr      "In Foo After Reset"
-  IL_0070:  call       "Sub System.Console.WriteLine(String)"
-  IL_0075:  ldc.i4.s   15
-  IL_0077:  stloc.2
-  IL_0078:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_007d:  ldloc.1
-  IL_007e:  brtrue.s   IL_0090
-  IL_0080:  ldc.i4     0x800a0014
-  IL_0085:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_008a:  throw
-  IL_008b:  leave      IL_0121
-  IL_0090:  ldloc.1
-  IL_0091:  ldc.i4.1
-  IL_0092:  add
-  IL_0093:  ldc.i4.0
-  IL_0094:  stloc.1
-  IL_0095:  switch    (
-  IL_00de,
-  IL_0000,
-  IL_0004,
-  IL_000b,
-  IL_0017,
-  IL_0020,
-  IL_002c,
-  IL_008b,
-  IL_0035,
-  IL_0041,
-  IL_0048,
-  IL_008b,
-  IL_0054,
-  IL_0061,
-  IL_0068,
-  IL_0075,
-  IL_008b)
-  IL_00de:  leave.s    IL_0116
-  IL_00e0:  ldloc.2
-  IL_00e1:  stloc.1
-  IL_00e2:  ldloc.0
-  IL_00e3:  switch    (
-  IL_00f4,
-  IL_0090,
-  IL_0035)
-  IL_00f4:  leave.s    IL_0116
-}
+  {
+    IL_0000:  ldc.i4.1
+    IL_0001:  stloc.2
+    IL_0002:  ldc.i4.0
+    IL_0003:  stloc.3
+    IL_0004:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0009:  ldc.i4.2
+    IL_000a:  stloc.0
+    IL_000b:  ldc.i4.3
+    IL_000c:  stloc.2
+    IL_000d:  ldstr      "Before 1st Error"
+    IL_0012:  call       "Sub System.Console.WriteLine(String)"
+    IL_0017:  ldc.i4.4
+    IL_0018:  stloc.2
+    IL_0019:  ldc.i4.1
+    IL_001a:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+    IL_001f:  throw
+    IL_0020:  ldc.i4.5
+    IL_0021:  stloc.2
+    IL_0022:  ldstr      "Before 2nd Error"
+    IL_0027:  call       "Sub System.Console.WriteLine(String)"
+    IL_002c:  ldc.i4.6
+    IL_002d:  stloc.2
+    IL_002e:  ldc.i4.2
+    IL_002f:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+    IL_0034:  throw
+    IL_0035:  ldc.i4.8
+    IL_0036:  stloc.2
+    IL_0037:  ldstr      "Foo"
+    IL_003c:  call       "Sub System.Console.WriteLine(String)"
+    IL_0041:  ldc.i4.s   9
+    IL_0043:  stloc.2
+    IL_0044:  ldloc.3
+    IL_0045:  ldc.i4.1
+    IL_0046:  add.ovf
+    IL_0047:  stloc.3
+    IL_0048:  ldc.i4.s   10
+    IL_004a:  stloc.2
+    IL_004b:  ldloc.3
+    IL_004c:  ldc.i4.3
+    IL_004d:  bge.s      IL_0086
+    IL_004f:  ldc.i4.s   12
+    IL_0051:  stloc.2
+    IL_0052:  ldstr      "In Foo Before Reset"
+    IL_0057:  call       "Sub System.Console.WriteLine(String)"
+    IL_005c:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0061:  ldc.i4.0
+    IL_0062:  stloc.1
+    IL_0063:  ldc.i4.s   14
+    IL_0065:  stloc.2
+    IL_0066:  ldstr      "In Foo After Reset"
+    IL_006b:  call       "Sub System.Console.WriteLine(String)"
+    IL_0070:  ldc.i4.s   15
+    IL_0072:  stloc.2
+    IL_0073:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0078:  ldloc.1
+    IL_0079:  brtrue.s   IL_008b
+    IL_007b:  ldc.i4     0x800a0014
+    IL_0080:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+    IL_0085:  throw
+    IL_0086:  leave      IL_011c
+    IL_008b:  ldloc.1
+    IL_008c:  ldc.i4.1
+    IL_008d:  add
+    IL_008e:  ldc.i4.0
+    IL_008f:  stloc.1
+    IL_0090:  switch    (
+        IL_00d9,
+        IL_0000,
+        IL_0004,
+        IL_000b,
+        IL_0017,
+        IL_0020,
+        IL_002c,
+        IL_0086,
+        IL_0035,
+        IL_0041,
+        IL_0048,
+        IL_0086,
+        IL_004f,
+        IL_005c,
+        IL_0063,
+        IL_0070,
+        IL_0086)
+    IL_00d9:  leave.s    IL_0111
+    IL_00db:  ldloc.2
+    IL_00dc:  stloc.1
+    IL_00dd:  ldloc.0
+    IL_00de:  switch    (
+        IL_00ef,
+        IL_008b,
+        IL_0035)
+    IL_00ef:  leave.s    IL_0111
+  }
   filter
-{
-  IL_00f6:  isinst     "System.Exception"
-  IL_00fb:  ldnull
-  IL_00fc:  cgt.un
-  IL_00fe:  ldloc.0
-  IL_00ff:  ldc.i4.0
-  IL_0100:  cgt.un
-  IL_0102:  and
-  IL_0103:  ldloc.1
-  IL_0104:  ldc.i4.0
-  IL_0105:  ceq
-  IL_0107:  and
-  IL_0108:  endfilter
-}  // end filter
-{  // handler
-  IL_010a:  castclass  "System.Exception"
-  IL_010f:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_0114:  leave.s    IL_00e0
-}
-  IL_0116:  ldc.i4     0x800a0033
-  IL_011b:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_0120:  throw
-  IL_0121:  ldloc.1
-  IL_0122:  brfalse.s  IL_0129
-  IL_0124:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0129:  ret
+  {
+    IL_00f1:  isinst     "System.Exception"
+    IL_00f6:  ldnull
+    IL_00f7:  cgt.un
+    IL_00f9:  ldloc.0
+    IL_00fa:  ldc.i4.0
+    IL_00fb:  cgt.un
+    IL_00fd:  and
+    IL_00fe:  ldloc.1
+    IL_00ff:  ldc.i4.0
+    IL_0100:  ceq
+    IL_0102:  and
+    IL_0103:  endfilter
+  }  // end filter
+  {  // handler
+    IL_0105:  castclass  "System.Exception"
+    IL_010a:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_010f:  leave.s    IL_00db
+  }
+  IL_0111:  ldc.i4     0x800a0033
+  IL_0116:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+  IL_011b:  throw
+  IL_011c:  ldloc.1
+  IL_011d:  brfalse.s  IL_0124
+  IL_011f:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_0124:  ret
 }]]>)
         End Sub
 
@@ -16869,135 +16874,134 @@ Foo]]>)
 
             compilationVerifier.VerifyIL("Module1.GotoMinus1", <![CDATA[
 {
-  // Code size      298 (0x12a)
+  // Code size      293 (0x125)
   .maxstack  3
   .locals init (Integer V_0,
                 Integer V_1,
                 Integer V_2,
                 Integer V_3) //IiNDEX
   .try
-{
-  IL_0000:  ldc.i4.1
-  IL_0001:  stloc.2
-  IL_0002:  ldc.i4.0
-  IL_0003:  stloc.3
-  IL_0004:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0009:  ldc.i4.2
-  IL_000a:  stloc.0
-  IL_000b:  ldc.i4.3
-  IL_000c:  stloc.2
-  IL_000d:  ldstr      "Before 1st Error"
-  IL_0012:  call       "Sub System.Console.WriteLine(String)"
-  IL_0017:  ldc.i4.4
-  IL_0018:  stloc.2
-  IL_0019:  ldc.i4.1
-  IL_001a:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_001f:  throw
-  IL_0020:  ldc.i4.5
-  IL_0021:  stloc.2
-  IL_0022:  ldstr      "In Main Block Before Reset"
-  IL_0027:  call       "Sub System.Console.WriteLine(String)"
-  IL_002c:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0031:  ldc.i4.0
-  IL_0032:  stloc.1
-  IL_0033:  ldc.i4.7
-  IL_0034:  stloc.2
-  IL_0035:  ldstr      "In Main Block After Reset"
-  IL_003a:  call       "Sub System.Console.WriteLine(String)"
-  IL_003f:  ldc.i4.8
-  IL_0040:  stloc.2
-  IL_0041:  ldstr      "Before 2nd Error"
-  IL_0046:  call       "Sub System.Console.WriteLine(String)"
-  IL_004b:  ldc.i4.s   9
-  IL_004d:  stloc.2
-  IL_004e:  ldc.i4.2
-  IL_004f:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_0054:  throw
-  IL_0055:  ldc.i4.s   11
-  IL_0057:  stloc.2
-  IL_0058:  ldstr      "Foo"
-  IL_005d:  call       "Sub System.Console.WriteLine(String)"
-  IL_0062:  ldc.i4.s   12
-  IL_0064:  stloc.2
-  IL_0065:  ldloc.3
-  IL_0066:  ldc.i4.1
-  IL_0067:  add.ovf
-  IL_0068:  stloc.3
-  IL_0069:  ldc.i4.s   13
-  IL_006b:  stloc.2
-  IL_006c:  ldloc.3
-  IL_006d:  ldc.i4.3
-  IL_006e:  blt.s      IL_0075
-  IL_0070:  leave      IL_0121
-  IL_0075:  ldc.i4.s   15
-  IL_0077:  stloc.2
-  IL_0078:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_007d:  ldloc.1
-  IL_007e:  brtrue.s   IL_0090
-  IL_0080:  ldc.i4     0x800a0014
-  IL_0085:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_008a:  throw
-  IL_008b:  leave      IL_0121
-  IL_0090:  ldloc.1
-  IL_0091:  ldc.i4.1
-  IL_0092:  add
-  IL_0093:  ldc.i4.0
-  IL_0094:  stloc.1
-  IL_0095:  switch    (
-  IL_00de,
-  IL_0000,
-  IL_0004,
-  IL_000b,
-  IL_0017,
-  IL_0020,
-  IL_002c,
-  IL_0033,
-  IL_003f,
-  IL_004b,
-  IL_008b,
-  IL_0055,
-  IL_0062,
-  IL_0069,
-  IL_008b,
-  IL_0075,
-  IL_008b)
-  IL_00de:  leave.s    IL_0116
-  IL_00e0:  ldloc.2
-  IL_00e1:  stloc.1
-  IL_00e2:  ldloc.0
-  IL_00e3:  switch    (
-  IL_00f4,
-  IL_0090,
-  IL_0055)
-  IL_00f4:  leave.s    IL_0116
-}
+  {
+    IL_0000:  ldc.i4.1
+    IL_0001:  stloc.2
+    IL_0002:  ldc.i4.0
+    IL_0003:  stloc.3
+    IL_0004:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0009:  ldc.i4.2
+    IL_000a:  stloc.0
+    IL_000b:  ldc.i4.3
+    IL_000c:  stloc.2
+    IL_000d:  ldstr      "Before 1st Error"
+    IL_0012:  call       "Sub System.Console.WriteLine(String)"
+    IL_0017:  ldc.i4.4
+    IL_0018:  stloc.2
+    IL_0019:  ldc.i4.1
+    IL_001a:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+    IL_001f:  throw
+    IL_0020:  ldc.i4.5
+    IL_0021:  stloc.2
+    IL_0022:  ldstr      "In Main Block Before Reset"
+    IL_0027:  call       "Sub System.Console.WriteLine(String)"
+    IL_002c:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0031:  ldc.i4.0
+    IL_0032:  stloc.1
+    IL_0033:  ldc.i4.7
+    IL_0034:  stloc.2
+    IL_0035:  ldstr      "In Main Block After Reset"
+    IL_003a:  call       "Sub System.Console.WriteLine(String)"
+    IL_003f:  ldc.i4.8
+    IL_0040:  stloc.2
+    IL_0041:  ldstr      "Before 2nd Error"
+    IL_0046:  call       "Sub System.Console.WriteLine(String)"
+    IL_004b:  ldc.i4.s   9
+    IL_004d:  stloc.2
+    IL_004e:  ldc.i4.2
+    IL_004f:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+    IL_0054:  throw
+    IL_0055:  ldc.i4.s   11
+    IL_0057:  stloc.2
+    IL_0058:  ldstr      "Foo"
+    IL_005d:  call       "Sub System.Console.WriteLine(String)"
+    IL_0062:  ldc.i4.s   12
+    IL_0064:  stloc.2
+    IL_0065:  ldloc.3
+    IL_0066:  ldc.i4.1
+    IL_0067:  add.ovf
+    IL_0068:  stloc.3
+    IL_0069:  ldc.i4.s   13
+    IL_006b:  stloc.2
+    IL_006c:  ldloc.3
+    IL_006d:  ldc.i4.3
+    IL_006e:  bge.s      IL_0086
+    IL_0070:  ldc.i4.s   15
+    IL_0072:  stloc.2
+    IL_0073:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0078:  ldloc.1
+    IL_0079:  brtrue.s   IL_008b
+    IL_007b:  ldc.i4     0x800a0014
+    IL_0080:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+    IL_0085:  throw
+    IL_0086:  leave      IL_011c
+    IL_008b:  ldloc.1
+    IL_008c:  ldc.i4.1
+    IL_008d:  add
+    IL_008e:  ldc.i4.0
+    IL_008f:  stloc.1
+    IL_0090:  switch    (
+        IL_00d9,
+        IL_0000,
+        IL_0004,
+        IL_000b,
+        IL_0017,
+        IL_0020,
+        IL_002c,
+        IL_0033,
+        IL_003f,
+        IL_004b,
+        IL_0086,
+        IL_0055,
+        IL_0062,
+        IL_0069,
+        IL_0086,
+        IL_0070,
+        IL_0086)
+    IL_00d9:  leave.s    IL_0111
+    IL_00db:  ldloc.2
+    IL_00dc:  stloc.1
+    IL_00dd:  ldloc.0
+    IL_00de:  switch    (
+        IL_00ef,
+        IL_008b,
+        IL_0055)
+    IL_00ef:  leave.s    IL_0111
+  }
   filter
-{
-  IL_00f6:  isinst     "System.Exception"
-  IL_00fb:  ldnull
-  IL_00fc:  cgt.un
-  IL_00fe:  ldloc.0
-  IL_00ff:  ldc.i4.0
-  IL_0100:  cgt.un
-  IL_0102:  and
-  IL_0103:  ldloc.1
-  IL_0104:  ldc.i4.0
-  IL_0105:  ceq
-  IL_0107:  and
-  IL_0108:  endfilter
-}  // end filter
-{  // handler
-  IL_010a:  castclass  "System.Exception"
-  IL_010f:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_0114:  leave.s    IL_00e0
-}
-  IL_0116:  ldc.i4     0x800a0033
-  IL_011b:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_0120:  throw
-  IL_0121:  ldloc.1
-  IL_0122:  brfalse.s  IL_0129
-  IL_0124:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0129:  ret
+  {
+    IL_00f1:  isinst     "System.Exception"
+    IL_00f6:  ldnull
+    IL_00f7:  cgt.un
+    IL_00f9:  ldloc.0
+    IL_00fa:  ldc.i4.0
+    IL_00fb:  cgt.un
+    IL_00fd:  and
+    IL_00fe:  ldloc.1
+    IL_00ff:  ldc.i4.0
+    IL_0100:  ceq
+    IL_0102:  and
+    IL_0103:  endfilter
+  }  // end filter
+  {  // handler
+    IL_0105:  castclass  "System.Exception"
+    IL_010a:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_010f:  leave.s    IL_00db
+  }
+  IL_0111:  ldc.i4     0x800a0033
+  IL_0116:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+  IL_011b:  throw
+  IL_011c:  ldloc.1
+  IL_011d:  brfalse.s  IL_0124
+  IL_011f:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_0124:  ret
 }]]>)
         End Sub
 
@@ -17046,114 +17050,115 @@ Foo
 After 2 Exception]]>)
 
 
-            compilationVerifier.VerifyIL("Module1.GotoMinus1", <![CDATA[{
-  // Code size      261 (0x105)
+            compilationVerifier.VerifyIL("Module1.GotoMinus1", <![CDATA[
+{
+  // Code size      258 (0x102)
   .maxstack  3
   .locals init (Integer V_0,
                 Integer V_1,
                 Integer V_2)
   .try
-{
-  IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0005:  ldc.i4.2
-  IL_0006:  stloc.0
-  IL_0007:  ldc.i4.2
-  IL_0008:  stloc.2
-  IL_0009:  ldstr      "Before 1 Exception"
-  IL_000e:  call       "Sub System.Console.WriteLine(String)"
-  IL_0013:  ldc.i4.3
-  IL_0014:  stloc.2
-  IL_0015:  newobj     "Sub System.Exception..ctor()"
-  IL_001a:  throw
-  IL_001b:  ldc.i4.4
-  IL_001c:  stloc.2
-  IL_001d:  ldstr      "After 1 Exception"
-  IL_0022:  call       "Sub System.Console.WriteLine(String)"
-  IL_0027:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_002c:  ldc.i4.0
-  IL_002d:  stloc.1
-  IL_002e:  ldc.i4.6
-  IL_002f:  stloc.2
-  IL_0030:  ldstr      "Before 2 Exception"
-  IL_0035:  call       "Sub System.Console.WriteLine(String)"
-  IL_003a:  ldc.i4.7
-  IL_003b:  stloc.2
-  IL_003c:  newobj     "Sub System.Exception..ctor()"
-  IL_0041:  throw
-  IL_0042:  ldc.i4.8
-  IL_0043:  stloc.2
-  IL_0044:  ldstr      "After 2 Exception"
-  IL_0049:  call       "Sub System.Console.WriteLine(String)"
-  IL_004e:  leave      IL_00fc
-  IL_0053:  ldc.i4.s   10
-  IL_0055:  stloc.2
-  IL_0056:  ldstr      "Foo"
-  IL_005b:  call       "Sub System.Console.WriteLine(String)"
-  IL_0060:  ldc.i4.s   11
-  IL_0062:  stloc.2
-  IL_0063:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0068:  ldloc.1
-  IL_0069:  brtrue.s   IL_007b
-  IL_006b:  ldc.i4     0x800a0014
-  IL_0070:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_0075:  throw
-  IL_0076:  leave      IL_00fc
-  IL_007b:  ldloc.1
-  IL_007c:  ldc.i4.1
-  IL_007d:  add
-  IL_007e:  ldc.i4.0
-  IL_007f:  stloc.1
-  IL_0080:  switch    (
-  IL_00b9,
-  IL_0000,
-  IL_0007,
-  IL_0013,
-  IL_001b,
-  IL_0027,
-  IL_002e,
-  IL_003a,
-  IL_0042,
-  IL_0076,
-  IL_0053,
-  IL_0060,
-  IL_0076)
-  IL_00b9:  leave.s    IL_00f1
-  IL_00bb:  ldloc.2
-  IL_00bc:  stloc.1
-  IL_00bd:  ldloc.0
-  IL_00be:  switch    (
-  IL_00cf,
-  IL_007b,
-  IL_0053)
-  IL_00cf:  leave.s    IL_00f1
-}
+  {
+    IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0005:  ldc.i4.2
+    IL_0006:  stloc.0
+    IL_0007:  ldc.i4.2
+    IL_0008:  stloc.2
+    IL_0009:  ldstr      "Before 1 Exception"
+    IL_000e:  call       "Sub System.Console.WriteLine(String)"
+    IL_0013:  ldc.i4.3
+    IL_0014:  stloc.2
+    IL_0015:  newobj     "Sub System.Exception..ctor()"
+    IL_001a:  throw
+    IL_001b:  ldc.i4.4
+    IL_001c:  stloc.2
+    IL_001d:  ldstr      "After 1 Exception"
+    IL_0022:  call       "Sub System.Console.WriteLine(String)"
+    IL_0027:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_002c:  ldc.i4.0
+    IL_002d:  stloc.1
+    IL_002e:  ldc.i4.6
+    IL_002f:  stloc.2
+    IL_0030:  ldstr      "Before 2 Exception"
+    IL_0035:  call       "Sub System.Console.WriteLine(String)"
+    IL_003a:  ldc.i4.7
+    IL_003b:  stloc.2
+    IL_003c:  newobj     "Sub System.Exception..ctor()"
+    IL_0041:  throw
+    IL_0042:  ldc.i4.8
+    IL_0043:  stloc.2
+    IL_0044:  ldstr      "After 2 Exception"
+    IL_0049:  call       "Sub System.Console.WriteLine(String)"
+    IL_004e:  br.s       IL_0073
+    IL_0050:  ldc.i4.s   10
+    IL_0052:  stloc.2
+    IL_0053:  ldstr      "Foo"
+    IL_0058:  call       "Sub System.Console.WriteLine(String)"
+    IL_005d:  ldc.i4.s   11
+    IL_005f:  stloc.2
+    IL_0060:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0065:  ldloc.1
+    IL_0066:  brtrue.s   IL_0078
+    IL_0068:  ldc.i4     0x800a0014
+    IL_006d:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+    IL_0072:  throw
+    IL_0073:  leave      IL_00f9
+    IL_0078:  ldloc.1
+    IL_0079:  ldc.i4.1
+    IL_007a:  add
+    IL_007b:  ldc.i4.0
+    IL_007c:  stloc.1
+    IL_007d:  switch    (
+        IL_00b6,
+        IL_0000,
+        IL_0007,
+        IL_0013,
+        IL_001b,
+        IL_0027,
+        IL_002e,
+        IL_003a,
+        IL_0042,
+        IL_0073,
+        IL_0050,
+        IL_005d,
+        IL_0073)
+    IL_00b6:  leave.s    IL_00ee
+    IL_00b8:  ldloc.2
+    IL_00b9:  stloc.1
+    IL_00ba:  ldloc.0
+    IL_00bb:  switch    (
+        IL_00cc,
+        IL_0078,
+        IL_0050)
+    IL_00cc:  leave.s    IL_00ee
+  }
   filter
-{
-  IL_00d1:  isinst     "System.Exception"
-  IL_00d6:  ldnull
-  IL_00d7:  cgt.un
-  IL_00d9:  ldloc.0
-  IL_00da:  ldc.i4.0
-  IL_00db:  cgt.un
-  IL_00dd:  and
-  IL_00de:  ldloc.1
-  IL_00df:  ldc.i4.0
-  IL_00e0:  ceq
-  IL_00e2:  and
-  IL_00e3:  endfilter
-}  // end filter
-{  // handler
-  IL_00e5:  castclass  "System.Exception"
-  IL_00ea:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_00ef:  leave.s    IL_00bb
-}
-  IL_00f1:  ldc.i4     0x800a0033
-  IL_00f6:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_00fb:  throw
-  IL_00fc:  ldloc.1
-  IL_00fd:  brfalse.s  IL_0104
-  IL_00ff:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0104:  ret
+  {
+    IL_00ce:  isinst     "System.Exception"
+    IL_00d3:  ldnull
+    IL_00d4:  cgt.un
+    IL_00d6:  ldloc.0
+    IL_00d7:  ldc.i4.0
+    IL_00d8:  cgt.un
+    IL_00da:  and
+    IL_00db:  ldloc.1
+    IL_00dc:  ldc.i4.0
+    IL_00dd:  ceq
+    IL_00df:  and
+    IL_00e0:  endfilter
+  }  // end filter
+  {  // handler
+    IL_00e2:  castclass  "System.Exception"
+    IL_00e7:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_00ec:  leave.s    IL_00b8
+  }
+  IL_00ee:  ldc.i4     0x800a0033
+  IL_00f3:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+  IL_00f8:  throw
+  IL_00f9:  ldloc.1
+  IL_00fa:  brfalse.s  IL_0101
+  IL_00fc:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_0101:  ret
 }]]>)
         End Sub
 
@@ -18082,134 +18087,135 @@ In Handler
 After Case]]>)
 
             'Check IF For the resume points
-            CompilationVerifier.VerifyIL("Module1.Main", <![CDATA[{
-  // Code size      315 (0x13b)
+            CompilationVerifier.VerifyIL("Module1.Main", <![CDATA[
+{
+  // Code size      312 (0x138)
   .maxstack  3
   .locals init (Integer V_0,
                 Integer V_1,
                 Integer V_2,
                 Object V_3)
   .try
-{
-  IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0005:  ldc.i4.2
-  IL_0006:  stloc.0
-  IL_0007:  ldc.i4.2
-  IL_0008:  stloc.2
-  IL_0009:  ldstr      "Before Select"
-  IL_000e:  call       "Sub System.Console.WriteLine(String)"
-  IL_0013:  ldc.i4.3
-  IL_0014:  stloc.2
-  IL_0015:  call       "Function Module1.foo() As Object"
-  IL_001a:  stloc.3
-  IL_001b:  ldc.i4.5
-  IL_001c:  stloc.2
-  IL_001d:  ldloc.3
-  IL_001e:  ldc.i4.1
-  IL_001f:  box        "Integer"
-  IL_0024:  ldc.i4.0
-  IL_0025:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.ConditionalCompareObjectEqual(Object, Object, Boolean) As Boolean"
-  IL_002a:  brfalse.s  IL_003a
-  IL_002c:  ldc.i4.6
-  IL_002d:  stloc.2
-  IL_002e:  ldstr      "1"
-  IL_0033:  call       "Sub System.Console.WriteLine(String)"
-  IL_0038:  br.s       IL_0067
-  IL_003a:  ldc.i4.8
-  IL_003b:  stloc.2
-  IL_003c:  ldloc.3
-  IL_003d:  ldc.i4.2
-  IL_003e:  box        "Integer"
-  IL_0043:  ldc.i4.0
-  IL_0044:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.ConditionalCompareObjectEqual(Object, Object, Boolean) As Boolean"
-  IL_0049:  brfalse.s  IL_005a
-  IL_004b:  ldc.i4.s   9
-  IL_004d:  stloc.2
-  IL_004e:  ldstr      "2"
-  IL_0053:  call       "Sub System.Console.WriteLine(String)"
-  IL_0058:  br.s       IL_0067
-  IL_005a:  ldc.i4.s   11
-  IL_005c:  stloc.2
-  IL_005d:  ldstr      "else"
-  IL_0062:  call       "Sub System.Console.WriteLine(String)"
-  IL_0067:  ldc.i4.s   12
-  IL_0069:  stloc.2
-  IL_006a:  ldstr      "After Case"
-  IL_006f:  call       "Sub System.Console.WriteLine(String)"
-  IL_0074:  leave      IL_0132
-  IL_0079:  ldc.i4.s   14
-  IL_007b:  stloc.2
-  IL_007c:  ldstr      "In Handler"
-  IL_0081:  call       "Sub System.Console.WriteLine(String)"
-  IL_0086:  ldc.i4.s   15
-  IL_0088:  stloc.2
-  IL_0089:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_008e:  ldloc.1
-  IL_008f:  brtrue.s   IL_00a1
-  IL_0091:  ldc.i4     0x800a0014
-  IL_0096:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_009b:  throw
-  IL_009c:  leave      IL_0132
-  IL_00a1:  ldloc.1
-  IL_00a2:  ldc.i4.1
-  IL_00a3:  add
-  IL_00a4:  ldc.i4.0
-  IL_00a5:  stloc.1
-  IL_00a6:  switch    (
-  IL_00ef,
-  IL_0000,
-  IL_0007,
-  IL_0013,
-  IL_0067,
-  IL_001b,
-  IL_002c,
-  IL_0067,
-  IL_003a,
-  IL_004b,
-  IL_0067,
-  IL_005a,
-  IL_0067,
-  IL_009c,
-  IL_0079,
-  IL_0086,
-  IL_009c)
-  IL_00ef:  leave.s    IL_0127
-  IL_00f1:  ldloc.2
-  IL_00f2:  stloc.1
-  IL_00f3:  ldloc.0
-  IL_00f4:  switch    (
-  IL_0105,
-  IL_00a1,
-  IL_0079)
-  IL_0105:  leave.s    IL_0127
-}
+  {
+    IL_0000:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0005:  ldc.i4.2
+    IL_0006:  stloc.0
+    IL_0007:  ldc.i4.2
+    IL_0008:  stloc.2
+    IL_0009:  ldstr      "Before Select"
+    IL_000e:  call       "Sub System.Console.WriteLine(String)"
+    IL_0013:  ldc.i4.3
+    IL_0014:  stloc.2
+    IL_0015:  call       "Function Module1.foo() As Object"
+    IL_001a:  stloc.3
+    IL_001b:  ldc.i4.5
+    IL_001c:  stloc.2
+    IL_001d:  ldloc.3
+    IL_001e:  ldc.i4.1
+    IL_001f:  box        "Integer"
+    IL_0024:  ldc.i4.0
+    IL_0025:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.ConditionalCompareObjectEqual(Object, Object, Boolean) As Boolean"
+    IL_002a:  brfalse.s  IL_003a
+    IL_002c:  ldc.i4.6
+    IL_002d:  stloc.2
+    IL_002e:  ldstr      "1"
+    IL_0033:  call       "Sub System.Console.WriteLine(String)"
+    IL_0038:  br.s       IL_0067
+    IL_003a:  ldc.i4.8
+    IL_003b:  stloc.2
+    IL_003c:  ldloc.3
+    IL_003d:  ldc.i4.2
+    IL_003e:  box        "Integer"
+    IL_0043:  ldc.i4.0
+    IL_0044:  call       "Function Microsoft.VisualBasic.CompilerServices.Operators.ConditionalCompareObjectEqual(Object, Object, Boolean) As Boolean"
+    IL_0049:  brfalse.s  IL_005a
+    IL_004b:  ldc.i4.s   9
+    IL_004d:  stloc.2
+    IL_004e:  ldstr      "2"
+    IL_0053:  call       "Sub System.Console.WriteLine(String)"
+    IL_0058:  br.s       IL_0067
+    IL_005a:  ldc.i4.s   11
+    IL_005c:  stloc.2
+    IL_005d:  ldstr      "else"
+    IL_0062:  call       "Sub System.Console.WriteLine(String)"
+    IL_0067:  ldc.i4.s   12
+    IL_0069:  stloc.2
+    IL_006a:  ldstr      "After Case"
+    IL_006f:  call       "Sub System.Console.WriteLine(String)"
+    IL_0074:  br.s       IL_0099
+    IL_0076:  ldc.i4.s   14
+    IL_0078:  stloc.2
+    IL_0079:  ldstr      "In Handler"
+    IL_007e:  call       "Sub System.Console.WriteLine(String)"
+    IL_0083:  ldc.i4.s   15
+    IL_0085:  stloc.2
+    IL_0086:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_008b:  ldloc.1
+    IL_008c:  brtrue.s   IL_009e
+    IL_008e:  ldc.i4     0x800a0014
+    IL_0093:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+    IL_0098:  throw
+    IL_0099:  leave      IL_012f
+    IL_009e:  ldloc.1
+    IL_009f:  ldc.i4.1
+    IL_00a0:  add
+    IL_00a1:  ldc.i4.0
+    IL_00a2:  stloc.1
+    IL_00a3:  switch    (
+        IL_00ec,
+        IL_0000,
+        IL_0007,
+        IL_0013,
+        IL_0067,
+        IL_001b,
+        IL_002c,
+        IL_0067,
+        IL_003a,
+        IL_004b,
+        IL_0067,
+        IL_005a,
+        IL_0067,
+        IL_0099,
+        IL_0076,
+        IL_0083,
+        IL_0099)
+    IL_00ec:  leave.s    IL_0124
+    IL_00ee:  ldloc.2
+    IL_00ef:  stloc.1
+    IL_00f0:  ldloc.0
+    IL_00f1:  switch    (
+        IL_0102,
+        IL_009e,
+        IL_0076)
+    IL_0102:  leave.s    IL_0124
+  }
   filter
-{
-  IL_0107:  isinst     "System.Exception"
-  IL_010c:  ldnull
-  IL_010d:  cgt.un
-  IL_010f:  ldloc.0
-  IL_0110:  ldc.i4.0
-  IL_0111:  cgt.un
-  IL_0113:  and
-  IL_0114:  ldloc.1
-  IL_0115:  ldc.i4.0
-  IL_0116:  ceq
-  IL_0118:  and
-  IL_0119:  endfilter
-}  // end filter
-{  // handler
-  IL_011b:  castclass  "System.Exception"
-  IL_0120:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_0125:  leave.s    IL_00f1
-}
-  IL_0127:  ldc.i4     0x800a0033
-  IL_012c:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
-  IL_0131:  throw
-  IL_0132:  ldloc.1
-  IL_0133:  brfalse.s  IL_013a
-  IL_0135:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_013a:  ret
+  {
+    IL_0104:  isinst     "System.Exception"
+    IL_0109:  ldnull
+    IL_010a:  cgt.un
+    IL_010c:  ldloc.0
+    IL_010d:  ldc.i4.0
+    IL_010e:  cgt.un
+    IL_0110:  and
+    IL_0111:  ldloc.1
+    IL_0112:  ldc.i4.0
+    IL_0113:  ceq
+    IL_0115:  and
+    IL_0116:  endfilter
+  }  // end filter
+  {  // handler
+    IL_0118:  castclass  "System.Exception"
+    IL_011d:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_0122:  leave.s    IL_00ee
+  }
+  IL_0124:  ldc.i4     0x800a0033
+  IL_0129:  call       "Function Microsoft.VisualBasic.CompilerServices.ProjectData.CreateProjectError(Integer) As System.Exception"
+  IL_012e:  throw
+  IL_012f:  ldloc.1
+  IL_0130:  brfalse.s  IL_0137
+  IL_0132:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+  IL_0137:  ret
 }]]>)
 
         End Sub

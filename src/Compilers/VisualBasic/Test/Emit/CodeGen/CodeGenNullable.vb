@@ -3330,38 +3330,37 @@ End Module
             VerifyIL("M.Main",
             <![CDATA[
 {
-  // Code size       55 (0x37)
+  // Code size       53 (0x35)
   .maxstack  2
   .locals init (Integer V_0,
-  Integer? V_1,
-  System.ArgumentNullException V_2) //ex
+                Integer? V_1,
+                System.ArgumentNullException V_2) //ex
   .try
-{
-  IL_0000:  call       "Function M.foo_exception() As Integer"
-  IL_0005:  stloc.0
-  IL_0006:  call       "Function M.foo_eval_check() As Integer?"
-  IL_000b:  stloc.1
-  IL_000c:  ldloca.s   V_1
-  IL_000e:  call       "Function Integer?.get_HasValue() As Boolean"
-  IL_0013:  brtrue.s   IL_0017
-  IL_0015:  leave.s    IL_0036
-  IL_0017:  ldloc.0
-  IL_0018:  ldloca.s   V_1
-  IL_001a:  call       "Function Integer?.GetValueOrDefault() As Integer"
-  IL_001f:  div
-  IL_0020:  newobj     "Sub Integer?..ctor(Integer)"
-  IL_0025:  pop
-  IL_0026:  leave.s    IL_0036
-}
+  {
+    IL_0000:  call       "Function M.foo_exception() As Integer"
+    IL_0005:  stloc.0
+    IL_0006:  call       "Function M.foo_eval_check() As Integer?"
+    IL_000b:  stloc.1
+    IL_000c:  ldloca.s   V_1
+    IL_000e:  call       "Function Integer?.get_HasValue() As Boolean"
+    IL_0013:  brfalse.s  IL_0024
+    IL_0015:  ldloc.0
+    IL_0016:  ldloca.s   V_1
+    IL_0018:  call       "Function Integer?.GetValueOrDefault() As Integer"
+    IL_001d:  div
+    IL_001e:  newobj     "Sub Integer?..ctor(Integer)"
+    IL_0023:  pop
+    IL_0024:  leave.s    IL_0034
+  }
   catch System.ArgumentNullException
-{
-  IL_0028:  dup
-  IL_0029:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
-  IL_002e:  stloc.2
-  IL_002f:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
-  IL_0034:  leave.s    IL_0036
-}
-  IL_0036:  ret
+  {
+    IL_0026:  dup
+    IL_0027:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)"
+    IL_002c:  stloc.2
+    IL_002d:  call       "Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()"
+    IL_0032:  leave.s    IL_0034
+  }
+  IL_0034:  ret
 }
                 ]]>)
         End Sub

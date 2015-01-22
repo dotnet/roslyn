@@ -910,45 +910,873 @@ class C
 InvalidOperationException: i != 0
 Exception: i != 0");
             compilation.VerifyIL("C.M",
-@"{
-  // Code size       55 (0x37)
+@"
+{
+  // Code size       57 (0x39)
   .maxstack  2
   .locals init (System.InvalidOperationException V_0, //e
-           System.Exception V_1) //e
+                System.Exception V_1) //e
   .try
   {
     .try
     {
-      IL_0000:  ldarg.0   
+      IL_0000:  ldarg.0
       IL_0001:  call       ""void C.F(int)""
-      IL_0006:  leave.s    IL_0036
+      IL_0006:  leave.s    IL_0023
     }
     catch System.InvalidOperationException
     {
-      IL_0008:  stloc.0   
+      IL_0008:  stloc.0
       IL_0009:  ldstr      ""InvalidOperationException: {0}""
-      IL_000e:  ldloc.0   
+      IL_000e:  ldloc.0
       IL_000f:  callvirt   ""string System.Exception.Message.get""
       IL_0014:  call       ""void System.Console.WriteLine(string, object)""
-      IL_0019:  ldarg.0   
-      IL_001a:  ldc.i4.1  
-      IL_001b:  add       
+      IL_0019:  ldarg.0
+      IL_001a:  ldc.i4.1
+      IL_001b:  add
       IL_001c:  call       ""void C.F(int)""
-      IL_0021:  leave.s    IL_0036
+      IL_0021:  leave.s    IL_0023
     }
+    IL_0023:  leave.s    IL_0038
   }
   catch System.Exception
   {
-    IL_0023:  stloc.1   
-    IL_0024:  ldstr      ""Exception: {0}""
-    IL_0029:  ldloc.1   
-    IL_002a:  callvirt   ""string System.Exception.Message.get""
-    IL_002f:  call       ""void System.Console.WriteLine(string, object)""
-    IL_0034:  leave.s    IL_0036
+    IL_0025:  stloc.1
+    IL_0026:  ldstr      ""Exception: {0}""
+    IL_002b:  ldloc.1
+    IL_002c:  callvirt   ""string System.Exception.Message.get""
+    IL_0031:  call       ""void System.Console.WriteLine(string, object)""
+    IL_0036:  leave.s    IL_0038
   }
-  IL_0036:  ret       
-}");
+  IL_0038:  ret
+}
+");
         }
+
+        [Fact]
+        public void NestedExceptionHandlersThreadAbort01()
+        {
+            var source =
+@"
+using System;
+using System.Threading;
+
+class Program
+{
+    static ManualResetEventSlim s = new ManualResetEventSlim(false);
+
+    static void Main(string[] args)
+    {
+        var ts = new ThreadStart(Test);
+        var t = new Thread(ts);
+
+        t.Start();
+        s.Wait();
+        t.Abort();
+        t.Join();
+    }
+
+    public static void Test()
+    {
+        try
+        {
+            try
+            {
+                s.Set();
+                for (; ;) ;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(""catch1"");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(""catch2"");
+        }
+    }
+}
+";
+            var compilation = CompileAndVerify(source, expectedOutput: @"
+catch1
+catch2
+");
+            compilation.VerifyIL("Program.Test",
+@"
+{
+  // Code size       41 (0x29)
+  .maxstack  1
+  .try
+  {
+    .try
+    {
+      IL_0000:  ldsfld     ""System.Threading.ManualResetEventSlim Program.s""
+      IL_0005:  callvirt   ""void System.Threading.ManualResetEventSlim.Set()""
+      IL_000a:  br.s       IL_000a
+    }
+    catch System.Exception
+    {
+      IL_000c:  pop
+      IL_000d:  ldstr      ""catch1""
+      IL_0012:  call       ""void System.Console.WriteLine(string)""
+      IL_0017:  leave.s    IL_0019
+    }
+    IL_0019:  leave.s    IL_0028
+  }
+  catch System.Exception
+  {
+    IL_001b:  pop
+    IL_001c:  ldstr      ""catch2""
+    IL_0021:  call       ""void System.Console.WriteLine(string)""
+    IL_0026:  leave.s    IL_0028
+  }
+  IL_0028:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NestedExceptionHandlersThreadAbort02()
+        {
+            var source =
+@"
+using System;
+using System.Threading;
+
+class Program
+{
+    static ManualResetEventSlim s = new ManualResetEventSlim(false);
+
+    static void Main(string[] args)
+    {
+        var ts = new ThreadStart(Test);
+        var t = new Thread(ts);
+
+        t.Start();
+        s.Wait();
+        t.Abort();
+        t.Join();
+    }
+
+    public static void Test()
+    {
+        try
+        {
+            try
+            {
+                try
+                {
+                    s.Set();
+                    for (; ;) ;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(""catch1"");
+                }
+            }
+            finally
+            {
+                Console.WriteLine(""finally"");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(""catch2"");
+        }
+    }
+}
+";
+            var compilation = CompileAndVerify(source, expectedOutput: @"
+catch1
+finally
+catch2
+");
+            compilation.VerifyIL("Program.Test",
+@"
+{
+  // Code size       54 (0x36)
+  .maxstack  1
+  .try
+  {
+    .try
+    {
+      .try
+      {
+        IL_0000:  ldsfld     ""System.Threading.ManualResetEventSlim Program.s""
+        IL_0005:  callvirt   ""void System.Threading.ManualResetEventSlim.Set()""
+        IL_000a:  br.s       IL_000a
+      }
+      catch System.Exception
+      {
+        IL_000c:  pop
+        IL_000d:  ldstr      ""catch1""
+        IL_0012:  call       ""void System.Console.WriteLine(string)""
+        IL_0017:  leave.s    IL_0019
+      }
+      IL_0019:  leave.s    IL_0026
+    }
+    finally
+    {
+      IL_001b:  ldstr      ""finally""
+      IL_0020:  call       ""void System.Console.WriteLine(string)""
+      IL_0025:  endfinally
+    }
+    IL_0026:  leave.s    IL_0035
+  }
+  catch System.Exception
+  {
+    IL_0028:  pop
+    IL_0029:  ldstr      ""catch2""
+    IL_002e:  call       ""void System.Console.WriteLine(string)""
+    IL_0033:  leave.s    IL_0035
+  }
+  IL_0035:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NestedExceptionHandlersThreadAbort03()
+        {
+            var source =
+@"
+using System;
+using System.Threading;
+
+class Program
+{
+    static ManualResetEventSlim s = new ManualResetEventSlim(false);
+
+    static void Main(string[] args)
+    {
+        var ts = new ThreadStart(Test);
+        var t = new Thread(ts);
+
+        t.Start();
+        s.Wait();
+        t.Abort();
+        t.Join();
+    }
+
+    public static void Test()
+    {
+        try
+        {
+            try
+            {
+                try
+                {
+                    try
+                    {
+                        s.Set();
+                        while (s != null) {};
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(""catch1"");
+                    }
+    }
+                finally
+                {
+                    Console.WriteLine(""finally1"");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(""catch2"");
+            }
+        }
+        finally
+        {
+            Console.WriteLine(""finally2"");
+        }
+    }
+}
+";
+            var compilation = CompileAndVerify(source, expectedOutput: @"
+catch1
+finally1
+catch2
+finally2
+");
+            compilation.VerifyIL("Program.Test",
+@"
+{
+  // Code size       72 (0x48)
+  .maxstack  1
+  .try
+  {
+    .try
+    {
+      .try
+      {
+        .try
+        {
+          IL_0000:  ldsfld     ""System.Threading.ManualResetEventSlim Program.s""
+          IL_0005:  callvirt   ""void System.Threading.ManualResetEventSlim.Set()""
+          IL_000a:  ldsfld     ""System.Threading.ManualResetEventSlim Program.s""
+          IL_000f:  brtrue.s   IL_000a
+          IL_0011:  leave.s    IL_0020
+        }
+        catch System.Exception
+        {
+          IL_0013:  pop
+          IL_0014:  ldstr      ""catch1""
+          IL_0019:  call       ""void System.Console.WriteLine(string)""
+          IL_001e:  leave.s    IL_0020
+        }
+        IL_0020:  leave.s    IL_002d
+      }
+      finally
+      {
+        IL_0022:  ldstr      ""finally1""
+        IL_0027:  call       ""void System.Console.WriteLine(string)""
+        IL_002c:  endfinally
+      }
+      IL_002d:  leave.s    IL_0047
+    }
+    catch System.Exception
+    {
+      IL_002f:  pop
+      IL_0030:  ldstr      ""catch2""
+      IL_0035:  call       ""void System.Console.WriteLine(string)""
+      IL_003a:  leave.s    IL_0047
+    }
+  }
+  finally
+  {
+    IL_003c:  ldstr      ""finally2""
+    IL_0041:  call       ""void System.Console.WriteLine(string)""
+    IL_0046:  endfinally
+  }
+  IL_0047:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NestedExceptionHandlersThreadAbort04()
+        {
+            var source =
+@"
+using System;
+using System.Threading;
+
+class Program
+{
+    static ManualResetEventSlim s = new ManualResetEventSlim(false);
+
+    static void Main(string[] args)
+    {
+        var ts = new ThreadStart(Test);
+        var t = new Thread(ts);
+
+        t.Start();
+        s.Wait();
+        t.Abort();
+        t.Join();
+    }
+
+    public static void Test()
+    {
+        try
+        {
+            try
+            {
+                try
+                {
+                    try
+                    {
+                        s.Set();
+                        while (s != null) {};
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(""catch1"");
+                    }
+    }
+                finally
+                {
+                    Console.WriteLine(""finally1"");
+                }
+            }
+            catch (Exception ex) when (ex != null)
+            {
+                Console.WriteLine(""catch2"");
+            }
+        }
+        finally
+        {
+            Console.WriteLine(""finally2"");
+        }
+    }
+}
+";
+            var compilation = CompileAndVerify(source, expectedOutput: @"
+catch1
+finally1
+catch2
+finally2
+");
+            compilation.VerifyIL("Program.Test",
+@"
+{
+  // Code size       92 (0x5c)
+  .maxstack  2
+  .try
+  {
+    .try
+    {
+      .try
+      {
+        .try
+        {
+          IL_0000:  ldsfld     ""System.Threading.ManualResetEventSlim Program.s""
+          IL_0005:  callvirt   ""void System.Threading.ManualResetEventSlim.Set()""
+          IL_000a:  ldsfld     ""System.Threading.ManualResetEventSlim Program.s""
+          IL_000f:  brtrue.s   IL_000a
+          IL_0011:  leave.s    IL_0020
+        }
+        catch System.Exception
+        {
+          IL_0013:  pop
+          IL_0014:  ldstr      ""catch1""
+          IL_0019:  call       ""void System.Console.WriteLine(string)""
+          IL_001e:  leave.s    IL_0020
+        }
+        IL_0020:  leave.s    IL_002d
+      }
+      finally
+      {
+        IL_0022:  ldstr      ""finally1""
+        IL_0027:  call       ""void System.Console.WriteLine(string)""
+        IL_002c:  endfinally
+      }
+      IL_002d:  leave.s    IL_005b
+    }
+    filter
+    {
+      IL_002f:  isinst     ""System.Exception""
+      IL_0034:  dup
+      IL_0035:  brtrue.s   IL_003b
+      IL_0037:  pop
+      IL_0038:  ldc.i4.0
+      IL_0039:  br.s       IL_0041
+      IL_003b:  ldnull
+      IL_003c:  cgt.un
+      IL_003e:  ldc.i4.0
+      IL_003f:  cgt.un
+      IL_0041:  endfilter
+    }  // end filter
+    {  // handler
+      IL_0043:  pop
+      IL_0044:  ldstr      ""catch2""
+      IL_0049:  call       ""void System.Console.WriteLine(string)""
+      IL_004e:  leave.s    IL_005b
+    }
+  }
+  finally
+  {
+    IL_0050:  ldstr      ""finally2""
+    IL_0055:  call       ""void System.Console.WriteLine(string)""
+    IL_005a:  endfinally
+  }
+  IL_005b:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NestedExceptionHandlersThreadAbort05()
+        {
+            var source =
+@"
+using System;
+using System.Threading;
+
+class Program
+{
+    static ManualResetEventSlim s = new ManualResetEventSlim(false);
+
+    static void Main(string[] args)
+    {
+        var ts = new ThreadStart(Test);
+        var t = new Thread(ts);
+
+        t.Start();
+        s.Wait();
+        t.Abort();
+        t.Join();
+    }
+
+    public static void Test()
+    {
+        try
+        {
+            try
+            {
+                s.Set();
+                while (s != null) {};
+            }
+            catch
+            {
+                try
+                {
+                }
+                catch
+                {
+                    Console.WriteLine(""catch1"");
+                }
+            }
+            finally
+            {
+                try
+                {
+                    Console.WriteLine(""try2"");
+                }
+                catch
+                {
+                    Console.WriteLine(""catch2"");
+                }
+            }
+        }
+        catch
+        {
+            Console.WriteLine(""catch3"");
+        }
+    }
+}
+";
+            var compilation = CompileAndVerify(source, expectedOutput: @"
+try2
+catch3
+");
+            compilation.VerifyIL("Program.Test",
+@"
+{
+  // Code size       82 (0x52)
+  .maxstack  1
+  .try
+  {
+    .try
+    {
+      .try
+      {
+        IL_0000:  ldsfld     ""System.Threading.ManualResetEventSlim Program.s""
+        IL_0005:  callvirt   ""void System.Threading.ManualResetEventSlim.Set()""
+        IL_000a:  ldsfld     ""System.Threading.ManualResetEventSlim Program.s""
+        IL_000f:  brtrue.s   IL_000a
+        IL_0011:  leave.s    IL_0025
+      }
+      catch object
+      {
+        IL_0013:  pop
+        .try
+        {
+          IL_0014:  leave.s    IL_0023
+        }
+        catch object
+        {
+          IL_0016:  pop
+          IL_0017:  ldstr      ""catch1""
+          IL_001c:  call       ""void System.Console.WriteLine(string)""
+          IL_0021:  leave.s    IL_0023
+        }
+        IL_0023:  leave.s    IL_0025
+      }
+      IL_0025:  leave.s    IL_0042
+    }
+    finally
+    {
+      IL_0027:  nop
+      .try
+      {
+        IL_0028:  ldstr      ""try2""
+        IL_002d:  call       ""void System.Console.WriteLine(string)""
+        IL_0032:  leave.s    IL_0041
+      }
+      catch object
+      {
+        IL_0034:  pop
+        IL_0035:  ldstr      ""catch2""
+        IL_003a:  call       ""void System.Console.WriteLine(string)""
+        IL_003f:  leave.s    IL_0041
+      }
+      IL_0041:  endfinally
+    }
+    IL_0042:  leave.s    IL_0051
+  }
+  catch object
+  {
+    IL_0044:  pop
+    IL_0045:  ldstr      ""catch3""
+    IL_004a:  call       ""void System.Console.WriteLine(string)""
+    IL_004f:  leave.s    IL_0051
+  }
+  IL_0051:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NestedExceptionHandlersThreadAbort06()
+        {
+            var source =
+@"
+using System;
+using System.Threading;
+
+class Program
+{
+    static ManualResetEventSlim s = new ManualResetEventSlim(false);
+
+    static void Main(string[] args)
+    {
+        var ts = new ThreadStart(Test);
+        var t = new Thread(ts);
+
+        t.Start();
+        s.Wait();
+        t.Abort();
+        t.Join();
+    }
+
+    public static void Test()
+    {
+        try
+        {
+            try
+            {
+                s.Set();
+                while (s != null) {};
+            }
+            catch
+            {
+                try
+                {
+                    int i = 0;
+                    i = i / i;
+                }
+                catch
+                {
+                    Console.WriteLine(""catch1"");
+                }
+            }
+            finally
+            {
+                try
+                {
+                    Console.WriteLine(""try2"");
+                }
+                catch
+                {
+                    Console.WriteLine(""catch2"");
+                }
+            }
+        }
+        catch
+        {
+            Console.WriteLine(""catch3"");
+        }
+    }
+}
+";
+            var compilation = CompileAndVerify(source, expectedOutput: @"
+catch1
+try2
+catch3
+");
+            compilation.VerifyIL("Program.Test",
+@"
+{
+  // Code size       86 (0x56)
+  .maxstack  2
+  .try
+  {
+    .try
+    {
+      .try
+      {
+        IL_0000:  ldsfld     ""System.Threading.ManualResetEventSlim Program.s""
+        IL_0005:  callvirt   ""void System.Threading.ManualResetEventSlim.Set()""
+        IL_000a:  ldsfld     ""System.Threading.ManualResetEventSlim Program.s""
+        IL_000f:  brtrue.s   IL_000a
+        IL_0011:  leave.s    IL_0029
+      }
+      catch object
+      {
+        IL_0013:  pop
+        .try
+        {
+          IL_0014:  ldc.i4.0
+          IL_0015:  dup
+          IL_0016:  div
+          IL_0017:  pop
+          IL_0018:  leave.s    IL_0027
+        }
+        catch object
+        {
+          IL_001a:  pop
+          IL_001b:  ldstr      ""catch1""
+          IL_0020:  call       ""void System.Console.WriteLine(string)""
+          IL_0025:  leave.s    IL_0027
+        }
+        IL_0027:  leave.s    IL_0029
+      }
+      IL_0029:  leave.s    IL_0046
+    }
+    finally
+    {
+      IL_002b:  nop
+      .try
+      {
+        IL_002c:  ldstr      ""try2""
+        IL_0031:  call       ""void System.Console.WriteLine(string)""
+        IL_0036:  leave.s    IL_0045
+      }
+      catch object
+      {
+        IL_0038:  pop
+        IL_0039:  ldstr      ""catch2""
+        IL_003e:  call       ""void System.Console.WriteLine(string)""
+        IL_0043:  leave.s    IL_0045
+      }
+      IL_0045:  endfinally
+    }
+    IL_0046:  leave.s    IL_0055
+  }
+  catch object
+  {
+    IL_0048:  pop
+    IL_0049:  ldstr      ""catch3""
+    IL_004e:  call       ""void System.Console.WriteLine(string)""
+    IL_0053:  leave.s    IL_0055
+  }
+  IL_0055:  ret
+}
+");
+        }
+
+        [Fact]
+        public void NestedExceptionHandlersThreadAbort07()
+        {
+            var source =
+@"
+using System;
+using System.Threading;
+
+class Program
+{
+    static ManualResetEventSlim s = new ManualResetEventSlim(false);
+
+    static void Main(string[] args)
+    {
+        var ts = new ThreadStart(Test);
+        var t = new Thread(ts);
+
+        t.Start();
+        s.Wait();
+        t.Abort();
+        t.Join();
+    }
+
+    public static void Test()
+    {
+        try
+        {
+            try
+            {
+                try
+                {
+                    try
+                    {
+                        s.Set();
+                        while (s != null) {};
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine(""catch1"");
+                    }
+    }
+                finally
+                {
+                    Console.WriteLine(""finally1"");
+                }
+            }
+            finally
+            {
+                Console.WriteLine(""finally2"");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(""catch2"");
+        }
+    }
+}
+";
+            var compilation = CompileAndVerify(source, expectedOutput: @"
+catch1
+finally1
+finally2
+catch2
+");
+            compilation.VerifyIL("Program.Test",
+@"
+{
+  // Code size       74 (0x4a)
+  .maxstack  1
+  .try
+  {
+    .try
+    {
+      .try
+      {
+        .try
+        {
+          IL_0000:  ldsfld     ""System.Threading.ManualResetEventSlim Program.s""
+          IL_0005:  callvirt   ""void System.Threading.ManualResetEventSlim.Set()""
+          IL_000a:  ldsfld     ""System.Threading.ManualResetEventSlim Program.s""
+          IL_000f:  brtrue.s   IL_000a
+          IL_0011:  leave.s    IL_0020
+        }
+        catch System.Exception
+        {
+          IL_0013:  pop
+          IL_0014:  ldstr      ""catch1""
+          IL_0019:  call       ""void System.Console.WriteLine(string)""
+          IL_001e:  leave.s    IL_0020
+        }
+        IL_0020:  leave.s    IL_002d
+      }
+      finally
+      {
+        IL_0022:  ldstr      ""finally1""
+        IL_0027:  call       ""void System.Console.WriteLine(string)""
+        IL_002c:  endfinally
+      }
+      IL_002d:  leave.s    IL_003a
+    }
+    finally
+    {
+      IL_002f:  ldstr      ""finally2""
+      IL_0034:  call       ""void System.Console.WriteLine(string)""
+      IL_0039:  endfinally
+    }
+    IL_003a:  leave.s    IL_0049
+  }
+  catch System.Exception
+  {
+    IL_003c:  pop
+    IL_003d:  ldstr      ""catch2""
+    IL_0042:  call       ""void System.Console.WriteLine(string)""
+    IL_0047:  leave.s    IL_0049
+  }
+  IL_0049:  ret
+}
+");
+        }
+
 
         [Fact]
         public void ThrowInTry()

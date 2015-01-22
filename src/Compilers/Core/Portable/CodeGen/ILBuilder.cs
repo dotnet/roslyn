@@ -607,7 +607,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                             var newHandler = targetsTarget.EnclosingHandler;
 
                             // can skip the jump if it is in the same try scope
-                            if (InSameOrOuterHandler(currentHandler, newHandler))
+                            if (CanMoveLabelToAnotherHandler(currentHandler, newHandler))
                             {
                                 labelInfos[label] = labelInfo.WithNewTarget(targetsTarget);
                                 madeChanges = true;
@@ -623,11 +623,30 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return madeChanges;
         }
 
-        private static bool InSameOrOuterHandler(ExceptionHandlerScope currentHandler, 
+        private static bool CanMoveLabelToAnotherHandler(ExceptionHandlerScope currentHandler, 
                                                  ExceptionHandlerScope newHandler)
         {
+            // Generally, asuming already valid code that contains "LABEL1: goto LABEL2" 
+            // we can substitute LABEL1 for LABEL2 so that the branches go directly to 
+            // the final destination.
+            // Technically we can allow "moving" a label to any scope that contains the current one
+            // However we should be careful with the cases when current label is protected by a 
+            // catch clause.
+            // 
+            // [COMPAT]
+            // If we move a label out of catch-protected try clause, we could be forcing JIT to inject 
+            // it back since, in the case of Thread.Abort, the re-throwing of the exception needs 
+            // to happen around this leave instruction which we would be removing.
+            // In addition to just extra work on the JIT side, handling of this case appears to be
+            // very delicate and there are known cases where JITs did not handle this particular 
+            // scenario correctly resulting in various violations of Thread.Abort behavior.
+            // We cannot rely on these JIT issues being fixed in the end user environment.
+            //
+            // Considering that we are only winning a single LEAVE here, it seems reasonable to 
+            // just disallow labels to move outside of a catch-protected regions.
+            
             // no handler means outermost scope (method level)
-            if (newHandler == null)
+            if (newHandler == null && currentHandler.ContainingExceptionScope.FinallyOnly())
             {
                 return true;
             }
@@ -640,7 +659,15 @@ namespace Microsoft.CodeAnalysis.CodeGen
                     return true;
                 }
 
-                currentHandler = currentHandler.ContainingExceptionScope.ContainingHandler;
+                var contanerScope = currentHandler.ContainingExceptionScope;
+                if (!contanerScope.FinallyOnly())
+                {
+                    // this may move the label outside of catch-protected region
+                    // we will disallow that.
+                    return false;
+                }
+
+                currentHandler = contanerScope.ContainingHandler;
 
             } while (currentHandler != null);
             
