@@ -69,7 +69,7 @@ Microsoft.CodeAnalysis.CodeFixes.ExportCodeFixProviderAttribute.Name.get
 Microsoft.CodeAnalysis.CodeFixes.ExportCodeFixProviderAttribute.Name.set
 Microsoft.CodeAnalysis.CodeFixes.FixAllContext
 Microsoft.CodeAnalysis.CodeFixes.FixAllContext.CancellationToken.get
-Microsoft.CodeAnalysis.CodeFixes.FixAllContext.CodeActionId.get
+Microsoft.CodeAnalysis.CodeFixes.FixAllContext.CodeActionEquivalenceKey.get
 Microsoft.CodeAnalysis.CodeFixes.FixAllContext.CodeFixProvider.get
 Microsoft.CodeAnalysis.CodeFixes.FixAllContext.DiagnosticIds.get
 Microsoft.CodeAnalysis.CodeFixes.FixAllContext.Document.get
@@ -1060,8 +1060,8 @@ readonly Microsoft.CodeAnalysis.Options.OptionKey.Language
 readonly Microsoft.CodeAnalysis.Options.OptionKey.Option
 static Microsoft.CodeAnalysis.Classification.Classifier.GetClassifiedSpans(Microsoft.CodeAnalysis.SemanticModel semanticModel, Microsoft.CodeAnalysis.Text.TextSpan textSpan, Microsoft.CodeAnalysis.Workspace workspace, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
 static Microsoft.CodeAnalysis.Classification.Classifier.GetClassifiedSpansAsync(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.Text.TextSpan textSpan, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
-static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> createChangedDocument, string id = null)
-static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>> createChangedSolution, string id = null)
+static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Document>> createChangedDocument, string equivalenceKey = null)
+static Microsoft.CodeAnalysis.CodeActions.CodeAction.Create(string title, System.Func<System.Threading.CancellationToken, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>> createChangedSolution, string equivalenceKey = null)
 static Microsoft.CodeAnalysis.CodeActions.ConflictAnnotation.Create(string description)
 static Microsoft.CodeAnalysis.CodeActions.ConflictAnnotation.GetDescription(Microsoft.CodeAnalysis.SyntaxAnnotation annotation)
 static Microsoft.CodeAnalysis.CodeActions.RenameAnnotation.Create()
@@ -1223,7 +1223,7 @@ virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.ComputeOperationsAsync(Sys
 virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.ComputePreviewOperationsAsync(System.Threading.CancellationToken cancellationToken)
 virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.GetChangedDocumentAsync(System.Threading.CancellationToken cancellationToken)
 virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.GetChangedSolutionAsync(System.Threading.CancellationToken cancellationToken)
-virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.Id.get
+virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.EquivalenceKey.get
 virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.PostProcessChangesAsync(Microsoft.CodeAnalysis.Document document, System.Threading.CancellationToken cancellationToken)
 virtual Microsoft.CodeAnalysis.CodeActions.CodeActionOperation.Apply(Microsoft.CodeAnalysis.Workspace workspace, System.Threading.CancellationToken cancellationToken)
 virtual Microsoft.CodeAnalysis.CodeActions.CodeActionOperation.Title.get

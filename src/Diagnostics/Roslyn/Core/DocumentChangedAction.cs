@@ -11,13 +11,13 @@ namespace Microsoft.CodeAnalysis
     {
         private readonly string title;
         private readonly Func<CancellationToken, Task<Document>> createChangedDocument;
-        private readonly string id;
+        private readonly string equivalenceKey;
 
-        public DocumentChangeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string id = null)
+        public DocumentChangeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument, string equivalenceKey = null)
         {
             this.title = title;
             this.createChangedDocument = createChangedDocument;
-            this.id = id;
+            this.equivalenceKey = equivalenceKey;
         }
 
         public override string Title
@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis
             get { return this.title; }
         }
 
-        public override string Id
+        public override string EquivalenceKey
         {
-            get { return this.id; }
+            get { return this.equivalenceKey; }
         }
 
         protected override Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)

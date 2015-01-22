@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
     {
         // Fix all context logging.
         private static readonly string CodeFixProvider = "CodeFixProvider";
-        private static readonly string CodeActionId = "CodeActionId";
+        private static readonly string CodeActionEquivalenceKey = "CodeActionEquivalenceKey";
         private static readonly string FixAllScope = "FixAllScope";
         private static readonly string LanguageName = "LanguageName";
         private static readonly string DocumentCount = "DocumentCount";
@@ -40,13 +40,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 if (isInternalCodeFixProvider)
                 {
                     m[CodeFixProvider] = fixAllContext.CodeFixProvider.GetType().FullName;
-                    m[CodeActionId] = fixAllContext.CodeActionId;
+                    m[CodeActionEquivalenceKey] = fixAllContext.CodeActionEquivalenceKey;
                     m[LanguageName] = fixAllContext.Project.Language;
                 }
                 else
                 {
                     m[CodeFixProvider] = fixAllContext.CodeFixProvider.GetType().FullName.GetHashCode().ToString();
-                    m[CodeActionId] = fixAllContext.CodeActionId != null ? fixAllContext.CodeActionId.GetHashCode().ToString() : null;
+                    m[CodeActionEquivalenceKey] = fixAllContext.CodeActionEquivalenceKey != null ? fixAllContext.CodeActionEquivalenceKey.GetHashCode().ToString() : null;
                     m[LanguageName] = fixAllContext.Project.Language.GetHashCode().ToString();
                 }
                 
