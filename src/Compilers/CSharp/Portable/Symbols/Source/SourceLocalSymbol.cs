@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (inProgress == this)
                     {
                         // The problem is circularity, but Dev12 reports ERR_NotConstantExpression instead of ERR_CircConstValue.
-                        // Also, the native compiler squiggles the RHS for ERR_CircConstValue but the LHS for ERR_CircConstValue.
+                        // Also, the native compiler squiggles the RHS for ERR_NotConstantExpression but the LHS for ERR_CircConstValue.
                         diagnostics.Add(ErrorCode.ERR_NotConstantExpression, initValueNodeLocation, this);
                     }
                     else
