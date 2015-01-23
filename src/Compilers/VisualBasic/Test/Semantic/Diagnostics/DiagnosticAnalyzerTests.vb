@@ -618,6 +618,28 @@ End Class
             Next
         End Sub
 
+        <Fact, WorkItem(1111667)>
+        Sub TestFieldSymbolAnalyzer_FieldWithoutInitializer()
+            Dim analyzer = New FieldSymbolAnalyzer()
+            Dim sources = <compilation>
+                              <file name="c.vb">
+                                  <![CDATA[
+Public Class TestClass
+    Public Field As System.IntPtr
+End Class
+]]>
+                              </file>
+                          </compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndReferences(sources,
+                    references:={SystemCoreRef, MsvbRef},
+                    options:=TestOptions.ReleaseDll)
+
+            compilation.VerifyDiagnostics()
+            compilation.VerifyAnalyzerDiagnostics({analyzer}, Nothing, Nothing,
+                    AnalyzerDiagnostic("FieldSymbolDiagnostic", <![CDATA[Field]]>))
+        End Sub
+
         Class FieldSymbolAnalyzer
             Inherits DiagnosticAnalyzer
 

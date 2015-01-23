@@ -29,6 +29,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private m_lazyLexicalSortKey As LexicalSortKey = LexicalSortKey.NotInitialized
 
+        ' Set to 1 when the compilation event has been produced
+        Private m_eventProduced As Integer
+
         Protected Sub New(container As SourceMemberContainerTypeSymbol,
                           syntaxRef As SyntaxReference,
                           name As String,
@@ -50,6 +53,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim unusedType = Me.Type
             GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
+
+            ' We want declaration events to be last, after all compilation analysis is done, so we produce them here
+            Dim sourceModule = DirectCast(Me.ContainingModule, SourceModuleSymbol)
+            If Interlocked.CompareExchange(m_eventProduced, 1, 0) = 0 AndAlso Not Me.IsImplicitlyDeclared Then
+                sourceModule.DeclaringCompilation.SymbolDeclaredEvent(Me)
+            End If
         End Sub
 
         ''' <summary>
