@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    partial class ServerDispatcher
+    internal partial class ServerDispatcher
     {
         /// <summary>
         /// Uses p/invoke to gain access to information about how much memory this process is using

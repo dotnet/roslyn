@@ -118,7 +118,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
         private class AbsoluteValueComparer : IEqualityComparer<int>
         {
-
             #region IEqualityComparer<int> Members
 
             bool IEqualityComparer<int>.Equals(int x, int y)
@@ -130,7 +129,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             {
                 return Math.Abs(x);
             }
-
             #endregion
         }
 

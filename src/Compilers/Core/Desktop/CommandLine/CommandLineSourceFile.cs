@@ -10,15 +10,15 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public struct CommandLineSourceFile
     {
-        private readonly string path;
-        private readonly bool isScript;
+        private readonly string _path;
+        private readonly bool _isScript;
 
         internal CommandLineSourceFile(string path, bool isScript)
         {
             Debug.Assert(!string.IsNullOrEmpty(path));
 
-            this.path = path;
-            this.isScript = isScript;
+            _path = path;
+            _isScript = isScript;
         }
 
         /// <summary>
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public string Path
         {
-            get { return path; }
+            get { return _path; }
         }
 
         /// <summary>
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool IsScript
         {
-            get { return isScript; }
+            get { return _isScript; }
         }
     }
 }

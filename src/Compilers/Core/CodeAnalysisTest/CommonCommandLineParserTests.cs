@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     public class CommonCommandLineParserTests : TestBase
     {
         private const int EN_US = 1033;
-        
+
         private void VerifyCommandLineSplitter(string commandLine, string[] expected)
         {
             string[] actual = CommandLineSplitter.SplitCommandLine(commandLine);
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     locSpecific = false;
                 }
                 else
-                { 
+                {
                     System.Threading.Thread.CurrentThread.CurrentUICulture = preferred;
                 }
             }
@@ -85,11 +85,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             VerifyCommandLineSplitter("", new string[0]);
             VerifyCommandLineSplitter("   \t   ", new string[0]);
-            VerifyCommandLineSplitter("   abc\tdef baz    quuz   ", new string[] {"abc", "def", "baz", "quuz"});
+            VerifyCommandLineSplitter("   abc\tdef baz    quuz   ", new string[] { "abc", "def", "baz", "quuz" });
             VerifyCommandLineSplitter(@"  ""abc def""  fi""ddle dee de""e  ""hi there ""dude  he""llo there""  ",
                                         new string[] { @"abc def", @"fi""ddle dee de""e", @"""hi there ""dude", @"he""llo there""" });
             VerifyCommandLineSplitter(@"  ""abc def \"" baz quuz"" ""\""straw berry"" fi\""zz \""buzz fizzbuzz",
-                                        new string[] { @"abc def "" baz quuz", @"""straw berry", @"fi""zz", @"""buzz", @"fizzbuzz"});
+                                        new string[] { @"abc def "" baz quuz", @"""straw berry", @"fi""zz", @"""buzz", @"fizzbuzz" });
             VerifyCommandLineSplitter(@"  \\""abc def""  \\\""abc def"" ",
                                         new string[] { @"\""abc def""", @"\""abc", @"def""" });
             VerifyCommandLineSplitter(@"  \\\\""abc def""  \\\\\""abc def"" ",
@@ -451,7 +451,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
   </Rules>
 </RuleSet>
 ";
-            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.InvalidRuleSetInclude, "foo.ruleset", string.Format(CodeAnalysisResources.FailedToResolveRuleSetName, "foo.ruleset")), otherSources: new string[] {""});
+            VerifyRuleSetError(source, () => string.Format(CodeAnalysisResources.InvalidRuleSetInclude, "foo.ruleset", string.Format(CodeAnalysisResources.FailedToResolveRuleSetName, "foo.ruleset")), otherSources: new string[] { "" });
         }
 
         [Fact]

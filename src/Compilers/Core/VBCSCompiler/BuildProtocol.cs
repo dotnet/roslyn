@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
     internal class MismatchedVersionBuildResponse : BuildResponse
     {
-        public override ResponseType Type { get { return ResponseType.MismatchedVersion;  } }
+        public override ResponseType Type { get { return ResponseType.MismatchedVersion; } }
 
         public static MismatchedVersionBuildResponse Create(BinaryReader reader)
         {
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <summary>
         /// MismatchedVersion has no body.
         /// </summary>
-        protected override void AddResponseBody(BinaryWriter writer) {}
+        protected override void AddResponseBody(BinaryWriter writer) { }
     }
 
     /// <summary>

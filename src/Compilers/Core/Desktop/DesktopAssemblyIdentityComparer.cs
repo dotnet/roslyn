@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             FrameworkAssemblyDictionary.Value value;
-            if (!g_arFxPolicy.TryGetValue(identity.Name, out value) ||
+            if (!s_arFxPolicy.TryGetValue(identity.Name, out value) ||
                 !value.PublicKeyToken.SequenceEqual(identity.PublicKeyToken))
             {
                 return false;
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             FrameworkRetargetingDictionary.Value value;
-            retargetable = g_arRetargetPolicy.TryGetValue(identity, out value);
+            retargetable = s_arRetargetPolicy.TryGetValue(identity, out value);
             portable = value.IsPortable;
         }
 
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             FrameworkRetargetingDictionary.Value value;
-            if (g_arRetargetPolicy.TryGetValue(identity, out value))
+            if (s_arRetargetPolicy.TryGetValue(identity, out value))
             {
                 return new AssemblyIdentity(
                     value.NewName ?? identity.Name,
@@ -255,32 +255,32 @@ namespace Microsoft.CodeAnalysis
             var version = (AssemblyVersion)identity.Version;
             if (version >= new AssemblyVersion(2, 0, 0, 0) && version <= new AssemblyVersion(5, 9, 0, 0))
             {
-                if (identity.PublicKeyToken.SequenceEqual(SILVERLIGHT_PLATFORM_PUBLICKEY_STR_L))
+                if (identity.PublicKeyToken.SequenceEqual(s_SILVERLIGHT_PLATFORM_PUBLICKEY_STR_L))
                 {
                     if (!policy.SuppressSilverlightPlatformAssembliesPortability)
                     {
                         if (SimpleNameComparer.Equals(identity.Name, "System") ||
                             SimpleNameComparer.Equals(identity.Name, "System.Core"))
                         {
-                            newVersion = (Version)VER_ASSEMBLYVERSION_STR_L;
-                            newPublicKeyToken = ECMA_PUBLICKEY_STR_L;
+                            newVersion = (Version)s_VER_ASSEMBLYVERSION_STR_L;
+                            newPublicKeyToken = s_ECMA_PUBLICKEY_STR_L;
                         }
                     }
                 }
-                else if (identity.PublicKeyToken.SequenceEqual(SILVERLIGHT_PUBLICKEY_STR_L))
+                else if (identity.PublicKeyToken.SequenceEqual(s_SILVERLIGHT_PUBLICKEY_STR_L))
                 {
                     if (!policy.SuppressSilverlightLibraryAssembliesPortability)
                     {
                         if (SimpleNameComparer.Equals(identity.Name, "Microsoft.VisualBasic"))
                         {
                             newVersion = new Version(10, 0, 0, 0);
-                            newPublicKeyToken = MICROSOFT_PUBLICKEY_STR_L;
+                            newPublicKeyToken = s_MICROSOFT_PUBLICKEY_STR_L;
                         }
 
                         if (SimpleNameComparer.Equals(identity.Name, "System.ComponentModel.Composition"))
                         {
-                            newVersion = (Version)VER_ASSEMBLYVERSION_STR_L;
-                            newPublicKeyToken = ECMA_PUBLICKEY_STR_L;
+                            newVersion = (Version)s_VER_ASSEMBLYVERSION_STR_L;
+                            newPublicKeyToken = s_ECMA_PUBLICKEY_STR_L;
                         }
                     }
                 }

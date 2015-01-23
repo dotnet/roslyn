@@ -14,12 +14,12 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal sealed class AdditionalTextFile : AdditionalText
     {
-        private readonly CommandLineSourceFile sourceFile;
-        private readonly CommonCompiler compiler;
-        private SourceText text;
-        private IList<DiagnosticInfo> diagnostics;
+        private readonly CommandLineSourceFile _sourceFile;
+        private readonly CommonCompiler _compiler;
+        private SourceText _text;
+        private IList<DiagnosticInfo> _diagnostics;
 
-        private readonly object lockObject = new object();
+        private readonly object _lockObject = new object();
 
         public AdditionalTextFile(CommandLineSourceFile sourceFile, CommonCompiler compiler)
         {
@@ -28,15 +28,15 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(compiler));
             }
 
-            this.sourceFile = sourceFile;
-            this.compiler = compiler;
-            this.diagnostics = SpecializedCollections.EmptyList<DiagnosticInfo>();
+            _sourceFile = sourceFile;
+            _compiler = compiler;
+            _diagnostics = SpecializedCollections.EmptyList<DiagnosticInfo>();
         }
 
         /// <summary>
         /// Path to the file.
         /// </summary>
-        public override string Path => this.sourceFile.Path;
+        public override string Path => _sourceFile.Path;
 
         /// <summary>
         /// Returns a <see cref="SourceText"/> with the contents of this file, or <c>null</c> if
@@ -44,28 +44,28 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public override SourceText GetText(CancellationToken cancellationToken = default(CancellationToken))
         {
-            lock (lockObject)
+            lock (_lockObject)
             {
-                if (this.text == null)
+                if (_text == null)
                 {
                     var diagnostics = new List<DiagnosticInfo>();
-                    this.text = this.compiler.ReadFileContent(
-                        this.sourceFile,
+                    _text = _compiler.ReadFileContent(
+                        _sourceFile,
                         diagnostics,
-                        this.compiler.Arguments.Encoding,
-                        this.compiler.Arguments.ChecksumAlgorithm);
+                        _compiler.Arguments.Encoding,
+                        _compiler.Arguments.ChecksumAlgorithm);
 
-                    this.diagnostics = diagnostics;
+                    _diagnostics = diagnostics;
                 }
             }
 
-            return this.text;
+            return _text;
         }
 
         /// <summary>
         /// Errors encountered when trying to read the additional file. Always empty if
         /// <see cref="GetText(CancellationToken)"/> has not been called.
         /// </summary>
-        internal IList<DiagnosticInfo> Diagnostics => this.diagnostics;
+        internal IList<DiagnosticInfo> Diagnostics => _diagnostics;
     }
 }

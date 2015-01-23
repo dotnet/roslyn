@@ -75,12 +75,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             }
         }
 
-        private static readonly BuildRequest EmptyCSharpBuildRequest = new BuildRequest(
+        private static readonly BuildRequest s_emptyCSharpBuildRequest = new BuildRequest(
             1,
             BuildProtocolConstants.RequestLanguage.CSharpCompile,
             ImmutableArray<BuildRequest.Argument>.Empty);
 
-        private static readonly BuildResponse EmptyBuildResponse = new CompletedBuildResponse(
+        private static readonly BuildResponse s_emptyBuildResponse = new CompletedBuildResponse(
             returnCode: 0,
             utf8output: false,
             output: string.Empty,
@@ -161,7 +161,7 @@ class Hello
         {
             var clientConnection = new TestableClientConnection();
             clientConnection.MonitorTask = Task.Delay(-1);
-            clientConnection.ReadBuildRequestTask = Task.FromResult(EmptyCSharpBuildRequest);
+            clientConnection.ReadBuildRequestTask = Task.FromResult(s_emptyCSharpBuildRequest);
 
             var ex = new Exception();
             var handler = new Mock<IRequestHandler>();
@@ -185,7 +185,7 @@ class Hello
         public void ClientDisconnectCancelBuildAndReturnsFailure()
         {
             var clientConnection = new TestableClientConnection();
-            clientConnection.ReadBuildRequestTask = Task.FromResult(EmptyCSharpBuildRequest);
+            clientConnection.ReadBuildRequestTask = Task.FromResult(s_emptyCSharpBuildRequest);
 
             var monitorTaskSource = new TaskCompletionSource<bool>();
             clientConnection.MonitorTask = monitorTaskSource.Task;
@@ -200,7 +200,7 @@ class Hello
                     handlerTaskSource.SetResult(t);
                     releaseHandlerSource.Task.Wait();
                 })
-                .Returns(EmptyBuildResponse);
+                .Returns(s_emptyBuildResponse);
 
             var client = new ServerDispatcher.Connection(clientConnection, handler.Object);
             var serveTask = client.ServeConnection(new TaskCompletionSource<TimeSpan?>());
@@ -243,12 +243,12 @@ class Hello
         {
             var clientConnection = new TestableClientConnection();
             clientConnection.MonitorTask = Task.Delay(-1);
-            clientConnection.ReadBuildRequestTask = Task.FromResult(EmptyCSharpBuildRequest);
+            clientConnection.ReadBuildRequestTask = Task.FromResult(s_emptyCSharpBuildRequest);
             clientConnection.WriteBuildResponseTask = TaskFromException(new Exception());
             var handler = new Mock<IRequestHandler>();
             handler
                 .Setup(x => x.HandleRequest(It.IsAny<BuildRequest>(), It.IsAny<CancellationToken>()))
-                .Returns(EmptyBuildResponse);
+                .Returns(s_emptyBuildResponse);
 
             var client = new ServerDispatcher.Connection(clientConnection, handler.Object);
             Assert.Equal(ServerDispatcher.CompletionReason.ClientDisconnect, client.ServeConnection().Result);

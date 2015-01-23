@@ -23,40 +23,40 @@ namespace Microsoft.CodeAnalysis
     /// 
     /// For analyzer assemblies - a map from file name and timestamp to a weak reference to the diagnostic analyzers defined in the assembly.
     /// </summary>
-    [Obsolete("To be removed", error:false)]
+    [Obsolete("To be removed", error: false)]
     internal static class MetadataCache
     {
         /// <summary>
         /// Global cache for assemblies imported from files.
         /// The cache must be locked for the duration of read/write operations, see CacheLockObject property.
         /// </summary>
-        private static Dictionary<FileKey, CachedAssembly> assembliesFromFiles =
+        private static Dictionary<FileKey, CachedAssembly> s_assembliesFromFiles =
             new Dictionary<FileKey, CachedAssembly>();
 
-        private static List<FileKey> assemblyKeys = new List<FileKey>();
+        private static List<FileKey> s_assemblyKeys = new List<FileKey>();
 
         /// <summary>
         /// Global cache for net-modules imported from files.
         /// The cache must be locked for the duration of read/write operations, see CacheLockObject property.
         /// </summary>
-        private static Dictionary<FileKey, CachedModule> modulesFromFiles =
+        private static Dictionary<FileKey, CachedModule> s_modulesFromFiles =
             new Dictionary<FileKey, CachedModule>();
 
-        private static List<FileKey> moduleKeys = new List<FileKey>();
+        private static List<FileKey> s_moduleKeys = new List<FileKey>();
 
         /// <summary>
         /// Global cache for diagnostic analyzers imported from analyzer assembly files.
         /// The cache must be locked for the duration of read/write operations, see CacheLockObject property.
         /// </summary>
-        private static Dictionary<FileKey, CachedAnalyzers> analyzersFromFiles =
+        private static Dictionary<FileKey, CachedAnalyzers> s_analyzersFromFiles =
             new Dictionary<FileKey, CachedAnalyzers>();
 
-        private static List<FileKey> analyzerAssemblyKeys = new List<FileKey>();
+        private static List<FileKey> s_analyzerAssemblyKeys = new List<FileKey>();
 
         /// <summary>
         /// Timer triggering compact operation for metadata cache.
         /// </summary>
-        private static readonly Timer compactTimer = new Timer(CompactCache);
+        private static readonly Timer s_compactTimer = new Timer(CompactCache);
 
         /// <summary>
         /// Period at which the timer is firing (30 seconds).
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
         /// compactTimer's procedure is in progress.
         /// Used to prevent multiple instances running in parallel.
         /// </summary>
-        private static int compactInProgress;
+        private static int s_compactInProgress;
 
         /// <summary>
         /// compactTimer is on, i.e. will fire.
@@ -78,12 +78,12 @@ namespace Microsoft.CodeAnalysis
         /// This field is changed to 'yes' only by EnableCompactTimer(),
         /// and is changed to 'no' only by CompactCache().
         /// </summary>
-        private static int compactTimerIsOn;
+        private static int s_compactTimerIsOn;
 
         /// <summary>
         /// Collection count last time the cache was compacted.
         /// </summary>
-        private static int compactCollectionCount;
+        private static int s_compactCollectionCount;
 
         internal struct CachedAssembly
         {
@@ -162,13 +162,13 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private static void CompactCache(Object state)
         {
-            if (compactTimerIsOn == no)
+            if (s_compactTimerIsOn == no)
             {
                 return;
             }
 
             // Prevent execution in parallel.
-            if (Interlocked.CompareExchange(ref compactInProgress, yes, no) != no)
+            if (Interlocked.CompareExchange(ref s_compactInProgress, yes, no) != no)
             {
                 return;
             }
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis
             {
                 int currentCollectionCount = GetCollectionCount();
 
-                if (currentCollectionCount == compactCollectionCount)
+                if (currentCollectionCount == s_compactCollectionCount)
                 {
                     // Nothing was collected since we compacted caches last time.
                     return;
@@ -187,22 +187,22 @@ namespace Microsoft.CodeAnalysis
                 CompactCacheOfModules();
                 CompactCacheOfAnalyzers();
 
-                compactCollectionCount = currentCollectionCount;
+                s_compactCollectionCount = currentCollectionCount;
 
                 lock (Guard)
                 {
                     if (!(AnyAssembliesCached() || AnyModulesCached() || AnyAnalyzerAssembliesCached()))
                     {
                         // Stop the timer
-                        compactTimerIsOn = no;
-                        compactTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                        s_compactTimerIsOn = no;
+                        s_compactTimer.Change(Timeout.Infinite, Timeout.Infinite);
                     }
                 }
             }
             finally
             {
-                System.Diagnostics.Debug.Assert(compactInProgress == yes);
-                compactInProgress = no;
+                System.Diagnostics.Debug.Assert(s_compactInProgress == yes);
+                s_compactInProgress = no;
             }
         }
 
@@ -212,10 +212,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal static void EnableCompactTimer()
         {
-            if (Interlocked.CompareExchange(ref compactTimerIsOn, yes, no) == no)
+            if (Interlocked.CompareExchange(ref s_compactTimerIsOn, yes, no) == no)
             {
-                compactCollectionCount = GetCollectionCount();
-                compactTimer.Change(compactTimerPeriod, compactTimerPeriod);
+                s_compactCollectionCount = GetCollectionCount();
+                s_compactTimer.Change(compactTimerPeriod, compactTimerPeriod);
             }
         }
 
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return compactTimerIsOn == yes;
+                return s_compactTimerIsOn == yes;
             }
         }
 
@@ -239,28 +239,28 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal static void TriggerCacheCompact()
         {
-            if (Thread.VolatileRead(ref compactTimerIsOn) == yes)
+            if (Thread.VolatileRead(ref s_compactTimerIsOn) == yes)
             {
                 // If CompactCache procedure is in progress, wait for it to complete.
                 // If the cache is locked by this thread, we might wait forever because 
                 // CompactCache might be deadlocked.
-                while (Interlocked.CompareExchange(ref compactInProgress, yes, no) != no)
+                while (Interlocked.CompareExchange(ref s_compactInProgress, yes, no) != no)
                 {
                     Thread.Sleep(10);
                 }
 
-                if (Thread.VolatileRead(ref compactTimerIsOn) == yes)
+                if (Thread.VolatileRead(ref s_compactTimerIsOn) == yes)
                 {
-                    compactInProgress = 0;
+                    s_compactInProgress = 0;
 
                     // Force the timer to fire now.
-                    compactTimer.Change(0, compactTimerPeriod);
+                    s_compactTimer.Change(0, compactTimerPeriod);
                 }
                 else
                 {
                     // Timer was disabled while we were waiting for CompactCache to complete.
                     // Do not enable it.
-                    compactInProgress = 0;
+                    s_compactInProgress = 0;
                 }
             }
         }
@@ -282,21 +282,21 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (originalCount == -1)
                     {
-                        originalCount = assemblyKeys.Count;
+                        originalCount = s_assemblyKeys.Count;
                     }
 
-                    if (assemblyKeys.Count > current)
+                    if (s_assemblyKeys.Count > current)
                     {
                         CachedAssembly cachedAssembly;
-                        FileKey key = assemblyKeys[current];
+                        FileKey key = s_assemblyKeys[current];
 
-                        if (assembliesFromFiles.TryGetValue(key, out cachedAssembly))
+                        if (s_assembliesFromFiles.TryGetValue(key, out cachedAssembly))
                         {
                             if (cachedAssembly.Metadata.IsNull())
                             {
                                 // Assembly has been collected
-                                assembliesFromFiles.Remove(key);
-                                assemblyKeys.RemoveAt(current);
+                                s_assembliesFromFiles.Remove(key);
+                                s_assemblyKeys.RemoveAt(current);
                                 current--;
                             }
                         }
@@ -304,17 +304,17 @@ namespace Microsoft.CodeAnalysis
                         {
                             // Key is not found. Shouldn't ever get here!
                             System.Diagnostics.Debug.Assert(false);
-                            assemblyKeys.RemoveAt(current);
+                            s_assemblyKeys.RemoveAt(current);
                             current--;
                         }
                     }
 
-                    if (assemblyKeys.Count <= current + 1)
+                    if (s_assemblyKeys.Count <= current + 1)
                     {
                         // no more assemblies to process
-                        if (originalCount > assemblyKeys.Count)
+                        if (originalCount > s_assemblyKeys.Count)
                         {
-                            assemblyKeys.TrimExcess();
+                            s_assemblyKeys.TrimExcess();
                         }
 
                         return;
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis
 
         private static bool AnyAssembliesCached()
         {
-            return assemblyKeys.Count > 0;
+            return s_assemblyKeys.Count > 0;
         }
 
         /// <summary>
@@ -347,21 +347,21 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (originalCount == -1)
                     {
-                        originalCount = moduleKeys.Count;
+                        originalCount = s_moduleKeys.Count;
                     }
 
-                    if (moduleKeys.Count > current)
+                    if (s_moduleKeys.Count > current)
                     {
                         CachedModule cachedModule;
-                        FileKey key = moduleKeys[current];
+                        FileKey key = s_moduleKeys[current];
 
-                        if (modulesFromFiles.TryGetValue(key, out cachedModule))
+                        if (s_modulesFromFiles.TryGetValue(key, out cachedModule))
                         {
                             if (cachedModule.Metadata.IsNull())
                             {
                                 // Module has been collected
-                                modulesFromFiles.Remove(key);
-                                moduleKeys.RemoveAt(current);
+                                s_modulesFromFiles.Remove(key);
+                                s_moduleKeys.RemoveAt(current);
                                 current--;
                             }
                         }
@@ -369,17 +369,17 @@ namespace Microsoft.CodeAnalysis
                         {
                             // Key is not found. Shouldn't ever get here!
                             System.Diagnostics.Debug.Assert(false);
-                            moduleKeys.RemoveAt(current);
+                            s_moduleKeys.RemoveAt(current);
                             current--;
                         }
                     }
 
-                    if (moduleKeys.Count <= current + 1)
+                    if (s_moduleKeys.Count <= current + 1)
                     {
                         // no more modules to process
-                        if (originalCount > moduleKeys.Count)
+                        if (originalCount > s_moduleKeys.Count)
                         {
-                            moduleKeys.TrimExcess();
+                            s_moduleKeys.TrimExcess();
                         }
 
                         return;
@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis
 
         private static bool AnyModulesCached()
         {
-            return moduleKeys.Count > 0;
+            return s_moduleKeys.Count > 0;
         }
 
         /// <summary>
@@ -412,21 +412,21 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (originalCount == -1)
                     {
-                        originalCount = analyzerAssemblyKeys.Count;
+                        originalCount = s_analyzerAssemblyKeys.Count;
                     }
 
-                    if (analyzerAssemblyKeys.Count > current)
+                    if (s_analyzerAssemblyKeys.Count > current)
                     {
                         CachedAnalyzers cahedAnalyzers;
-                        FileKey key = analyzerAssemblyKeys[current];
+                        FileKey key = s_analyzerAssemblyKeys[current];
 
-                        if (analyzersFromFiles.TryGetValue(key, out cahedAnalyzers))
+                        if (s_analyzersFromFiles.TryGetValue(key, out cahedAnalyzers))
                         {
                             if (!cahedAnalyzers.Analyzers.IsAlive)
                             {
                                 // Analyzers has been collected
-                                analyzersFromFiles.Remove(key);
-                                analyzerAssemblyKeys.RemoveAt(current);
+                                s_analyzersFromFiles.Remove(key);
+                                s_analyzerAssemblyKeys.RemoveAt(current);
                                 current--;
                             }
                         }
@@ -434,17 +434,17 @@ namespace Microsoft.CodeAnalysis
                         {
                             // Key is not found. Shouldn't ever get here!
                             System.Diagnostics.Debug.Assert(false);
-                            analyzerAssemblyKeys.RemoveAt(current);
+                            s_analyzerAssemblyKeys.RemoveAt(current);
                             current--;
                         }
                     }
 
-                    if (analyzerAssemblyKeys.Count <= current + 1)
+                    if (s_analyzerAssemblyKeys.Count <= current + 1)
                     {
                         // no more assemblies to process
-                        if (originalCount > analyzerAssemblyKeys.Count)
+                        if (originalCount > s_analyzerAssemblyKeys.Count)
                         {
-                            analyzerAssemblyKeys.TrimExcess();
+                            s_analyzerAssemblyKeys.TrimExcess();
                         }
 
                         return;
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis
 
         private static bool AnyAnalyzerAssembliesCached()
         {
-            return analyzerAssemblyKeys.Count > 0;
+            return s_analyzerAssemblyKeys.Count > 0;
         }
 
         /// <summary>
@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return assembliesFromFiles;
+                return s_assembliesFromFiles;
             }
         }
 
@@ -480,7 +480,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return assemblyKeys;
+                return s_assemblyKeys;
             }
         }
 
@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return modulesFromFiles;
+                return s_modulesFromFiles;
             }
         }
 
@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return moduleKeys;
+                return s_moduleKeys;
             }
         }
 
@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return analyzersFromFiles;
+                return s_analyzersFromFiles;
             }
         }
 
@@ -529,7 +529,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return analyzerAssemblyKeys;
+                return s_analyzerAssemblyKeys;
             }
         }
 
@@ -547,20 +547,20 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal class CleaningCacheLock : IDisposable
         {
-            private Dictionary<FileKey, CachedAssembly> saveAssembliesFromFiles;
-            private List<FileKey> saveAssemblyKeys;
-            private Dictionary<FileKey, CachedModule> saveModulesFromFiles;
-            private List<FileKey> saveModuleKeys;
-            private Dictionary<FileKey, CachedAnalyzers> saveAnalyzersFromFiles;
-            private List<FileKey> saveAnalyzerAssemblyKeys;
+            private Dictionary<FileKey, CachedAssembly> _saveAssembliesFromFiles;
+            private List<FileKey> _saveAssemblyKeys;
+            private Dictionary<FileKey, CachedModule> _saveModulesFromFiles;
+            private List<FileKey> _saveModuleKeys;
+            private Dictionary<FileKey, CachedAnalyzers> _saveAnalyzersFromFiles;
+            private List<FileKey> _saveAnalyzerAssemblyKeys;
 
-            private bool cacheIsLocked;
+            private bool _cacheIsLocked;
 
             // helpers to diagnose lock leaks.
-            private CleaningCacheLock next;
-            private static CleaningCacheLock last;
-            private string stackTrace;
-            private int threadId;
+            private CleaningCacheLock _next;
+            private static CleaningCacheLock s_last;
+            private string _stackTrace;
+            private int _threadId;
 
             private CleaningCacheLock()
             { }
@@ -571,14 +571,14 @@ namespace Microsoft.CodeAnalysis
 
                 try
                 {
-                    Monitor.Enter(Guard, ref result.cacheIsLocked);
+                    Monitor.Enter(Guard, ref result._cacheIsLocked);
 
-                    result.saveAssembliesFromFiles = assembliesFromFiles;
-                    result.saveAssemblyKeys = assemblyKeys;
-                    result.saveModulesFromFiles = modulesFromFiles;
-                    result.saveModuleKeys = moduleKeys;
-                    result.saveAnalyzersFromFiles = analyzersFromFiles;
-                    result.saveAnalyzerAssemblyKeys = analyzerAssemblyKeys;
+                    result._saveAssembliesFromFiles = s_assembliesFromFiles;
+                    result._saveAssemblyKeys = s_assemblyKeys;
+                    result._saveModulesFromFiles = s_modulesFromFiles;
+                    result._saveModuleKeys = s_moduleKeys;
+                    result._saveAnalyzersFromFiles = s_analyzersFromFiles;
+                    result._saveAnalyzerAssemblyKeys = s_analyzerAssemblyKeys;
 
                     var newAssembliesFromFiles = new Dictionary<FileKey, CachedAssembly>();
                     var newAssemblyKeys = new List<FileKey>();
@@ -587,24 +587,24 @@ namespace Microsoft.CodeAnalysis
                     var newAnalyzersFromFiles = new Dictionary<FileKey, CachedAnalyzers>();
                     var newAnalyzerAssemblyKeys = new List<FileKey>();
 
-                    assembliesFromFiles = newAssembliesFromFiles;
-                    assemblyKeys = newAssemblyKeys;
-                    modulesFromFiles = newModulesFromFiles;
-                    moduleKeys = newModuleKeys;
-                    analyzersFromFiles = newAnalyzersFromFiles;
-                    analyzerAssemblyKeys = newAnalyzerAssemblyKeys;
+                    s_assembliesFromFiles = newAssembliesFromFiles;
+                    s_assemblyKeys = newAssemblyKeys;
+                    s_modulesFromFiles = newModulesFromFiles;
+                    s_moduleKeys = newModuleKeys;
+                    s_analyzersFromFiles = newAnalyzersFromFiles;
+                    s_analyzerAssemblyKeys = newAnalyzerAssemblyKeys;
 
-                    result.threadId = Thread.CurrentThread.ManagedThreadId;
-                    result.stackTrace = Environment.StackTrace;
+                    result._threadId = Thread.CurrentThread.ManagedThreadId;
+                    result._stackTrace = Environment.StackTrace;
 
-                    result.next = last;
-                    last = result;
+                    result._next = s_last;
+                    s_last = result;
                 }
                 catch
                 {
-                    if (result.cacheIsLocked)
+                    if (result._cacheIsLocked)
                     {
-                        result.cacheIsLocked = false;
+                        result._cacheIsLocked = false;
                         Monitor.Exit(Guard);
                     }
 
@@ -616,7 +616,7 @@ namespace Microsoft.CodeAnalysis
 
             public void FreeAndRestore()
             {
-                if (!cacheIsLocked)
+                if (!_cacheIsLocked)
                 {
                     throw new InvalidOperationException();
                 }
@@ -629,37 +629,37 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             public void CleanCaches()
             {
-                if (!cacheIsLocked)
+                if (!_cacheIsLocked)
                 {
                     throw new InvalidOperationException();
                 }
 
-                assembliesFromFiles.Clear();
-                assemblyKeys.Clear();
-                modulesFromFiles.Clear();
-                moduleKeys.Clear();
-                analyzersFromFiles.Clear();
-                analyzerAssemblyKeys.Clear();
+                s_assembliesFromFiles.Clear();
+                s_assemblyKeys.Clear();
+                s_modulesFromFiles.Clear();
+                s_moduleKeys.Clear();
+                s_analyzersFromFiles.Clear();
+                s_analyzerAssemblyKeys.Clear();
             }
 
             public void Dispose()
             {
-                if (cacheIsLocked)
+                if (_cacheIsLocked)
                 {
                     DisposeCachedMetadata();
 
-                    assembliesFromFiles = this.saveAssembliesFromFiles;
-                    assemblyKeys = this.saveAssemblyKeys;
-                    modulesFromFiles = this.saveModulesFromFiles;
-                    moduleKeys = this.saveModuleKeys;
-                    analyzersFromFiles = this.saveAnalyzersFromFiles;
-                    analyzerAssemblyKeys = this.saveAnalyzerAssemblyKeys;
+                    s_assembliesFromFiles = _saveAssembliesFromFiles;
+                    s_assemblyKeys = _saveAssemblyKeys;
+                    s_modulesFromFiles = _saveModulesFromFiles;
+                    s_moduleKeys = _saveModuleKeys;
+                    s_analyzersFromFiles = _saveAnalyzersFromFiles;
+                    s_analyzerAssemblyKeys = _saveAnalyzerAssemblyKeys;
 
-                    Debug.Assert(ReferenceEquals(last, this));
-                    Debug.Assert(this.threadId == Thread.CurrentThread.ManagedThreadId);
+                    Debug.Assert(ReferenceEquals(s_last, this));
+                    Debug.Assert(_threadId == Thread.CurrentThread.ManagedThreadId);
 
-                    last = this.next;
-                    cacheIsLocked = false;
+                    s_last = _next;
+                    _cacheIsLocked = false;
                     Monitor.Exit(Guard);
                 }
             }
@@ -667,7 +667,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static void DisposeCachedMetadata()
         {
-            foreach (var cachedAssembly in assembliesFromFiles.Values)
+            foreach (var cachedAssembly in s_assembliesFromFiles.Values)
             {
                 AssemblyMetadata metadata;
                 if (cachedAssembly.Metadata.TryGetTarget(out metadata))
@@ -676,7 +676,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            foreach (var cachedModule in modulesFromFiles.Values)
+            foreach (var cachedModule in s_modulesFromFiles.Values)
             {
                 ModuleMetadata metadata;
                 if (cachedModule.Metadata.TryGetTarget(out metadata))
@@ -715,7 +715,7 @@ namespace Microsoft.CodeAnalysis
                 FileKey key = FileKey.Create(fullPath);
 
                 CachedAnalyzers cachedAnalyzers;
-                if (analyzersFromFiles.TryGetValue(key, out cachedAnalyzers))
+                if (s_analyzersFromFiles.TryGetValue(key, out cachedAnalyzers))
                 {
                     if (cachedAnalyzers.Analyzers.IsAlive && cachedAnalyzers.Language == langauge)
                     {
@@ -723,10 +723,10 @@ namespace Microsoft.CodeAnalysis
                     }
                     else
                     {
-                        analyzersFromFiles.Remove(key);
-                        var removed = analyzerAssemblyKeys.Remove(key);
+                        s_analyzersFromFiles.Remove(key);
+                        var removed = s_analyzerAssemblyKeys.Remove(key);
                         Debug.Assert(removed);
-                        Debug.Assert(!analyzerAssemblyKeys.Contains(key));
+                        Debug.Assert(!s_analyzerAssemblyKeys.Contains(key));
                     }
                 }
 
@@ -738,9 +738,9 @@ namespace Microsoft.CodeAnalysis
                 // refresh the timestamp (the file may have changed just before we memory-mapped it):
                 key = FileKey.Create(fullPath);
 
-                analyzersFromFiles[key] = new CachedAnalyzers(analyzers, langauge);
-                Debug.Assert(!analyzerAssemblyKeys.Contains(key));
-                analyzerAssemblyKeys.Add(key);
+                s_analyzersFromFiles[key] = new CachedAnalyzers(analyzers, langauge);
+                Debug.Assert(!s_analyzerAssemblyKeys.Contains(key));
+                s_analyzerAssemblyKeys.Add(key);
                 EnableCompactTimer();
 
                 return analyzers;
@@ -756,7 +756,7 @@ namespace Microsoft.CodeAnalysis
             FileKey key = FileKey.Create(fullPath);
 
             CachedAssembly cachedAssembly;
-            bool existingKey = assembliesFromFiles.TryGetValue(key, out cachedAssembly);
+            bool existingKey = s_assembliesFromFiles.TryGetValue(key, out cachedAssembly);
             if (existingKey && cachedAssembly.Metadata.TryGetTarget(out assembly))
             {
                 return assembly;
@@ -781,11 +781,11 @@ namespace Microsoft.CodeAnalysis
             }
 
             cachedAssembly = new CachedAssembly(assembly);
-            assembliesFromFiles[key] = cachedAssembly;
+            s_assembliesFromFiles[key] = cachedAssembly;
 
             if (!existingKey)
             {
-                assemblyKeys.Add(key);
+                s_assemblyKeys.Add(key);
                 EnableCompactTimer();
             }
 
@@ -801,7 +801,7 @@ namespace Microsoft.CodeAnalysis
             FileKey key = FileKey.Create(fullPath);
 
             CachedModule cachedModule;
-            bool existingKey = modulesFromFiles.TryGetValue(key, out cachedModule);
+            bool existingKey = s_modulesFromFiles.TryGetValue(key, out cachedModule);
             if (existingKey && cachedModule.Metadata.TryGetTarget(out module))
             {
                 return module;
@@ -826,11 +826,11 @@ namespace Microsoft.CodeAnalysis
             }
 
             cachedModule = new CachedModule(module);
-            modulesFromFiles[key] = cachedModule;
+            s_modulesFromFiles[key] = cachedModule;
 
             if (!existingKey)
             {
-                moduleKeys.Add(key);
+                s_moduleKeys.Add(key);
                 EnableCompactTimer();
             }
 

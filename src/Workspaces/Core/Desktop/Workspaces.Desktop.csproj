@@ -78,15 +78,12 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
       <Link>InternalUtilities\FusionAssemblyIdentity.cs</Link>
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
     </Compile>
     <Compile Include="..\..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GlobalAssemblyCache.cs">
       <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
     </Compile>
     <Compile Include="..\..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GacFileResolver.cs">
       <Link>InternalUtilities\GacFileResolver.cs</Link>
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
     </Compile>
     <Compile Include="InternalUtilities\FilePathUtilities.cs" />
     <Compile Include="Log\EtwLogger.cs" />
@@ -180,7 +177,6 @@
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\..\build\VSL.Imports.Closed.targets" />
-    <Import Project="..\..\..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets" Condition="Exists('..\..\..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets')" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

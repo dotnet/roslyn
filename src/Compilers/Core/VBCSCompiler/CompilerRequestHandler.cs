@@ -33,11 +33,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
         }
 
-        private readonly string responseFileDirectory;
+        private readonly string _responseFileDirectory;
 
         internal CompilerRequestHandler(string responseFileDirectory)
         {
-            this.responseFileDirectory = responseFileDirectory;
+            _responseFileDirectory = responseFileDirectory;
         }
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     return new CompletedBuildResponse(-1,
                         utf8output: false,
                         output: "",
-                        errorOutput:  "");
+                        errorOutput: "");
             }
         }
 
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             int returnCode = CSharpCompile(
                 currentDirectory,
                 libDirectory,
-                this.responseFileDirectory,
+                _responseFileDirectory,
                 tempPath,
                 commandLineArguments,
                 output,
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 // If we don't have a current directory, compilation can't proceed. This shouldn't ever happen,
                 // because our clients always send the current directory.
                 Debug.Assert(false, "Client did not send current directory; this is required.");
-                return new CompletedBuildResponse(-1, utf8output: false, output:  "", errorOutput: "");
+                return new CompletedBuildResponse(-1, utf8output: false, output: "", errorOutput: "");
             }
 
             if (tempPath == null)
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
             bool utf8output;
             int returnCode = BasicCompile(
-                this.responseFileDirectory,
+                _responseFileDirectory,
                 currentDirectory,
                 libDirectory,
                 tempPath,
@@ -249,11 +249,11 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             return VisualBasicCompilerServer.RunCompiler(
                 responseFileDirectory,
-                commandLineArguments, 
-                currentDirectory, 
+                commandLineArguments,
+                currentDirectory,
                 libDirectory,
                 tempPath,
-                output, 
+                output,
                 cancellationToken,
                 out utf8output);
         }

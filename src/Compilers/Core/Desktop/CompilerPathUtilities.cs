@@ -19,5 +19,4 @@ namespace Roslyn.Utilities
             }
         }
     }
-
 }

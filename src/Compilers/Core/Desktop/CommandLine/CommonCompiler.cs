@@ -52,13 +52,13 @@ namespace Microsoft.CodeAnalysis
             return Path.Combine(GetResponseFileDirectory(), responseFileName);
         }
 
-        private readonly ObjectPool<MemoryStream> memoryStreamPool = new ObjectPool<MemoryStream>(() => new MemoryStream(), 4);
+        private readonly ObjectPool<MemoryStream> _memoryStreamPool = new ObjectPool<MemoryStream>(() => new MemoryStream(), 4);
 
         public CommonMessageProvider MessageProvider { get; private set; }
         public CommandLineArguments Arguments { get; private set; }
         public abstract DiagnosticFormatter DiagnosticFormatter { get; }
-        private readonly HashSet<Diagnostic> reportedDiagnostics = new HashSet<Diagnostic>();
-        private readonly string tempPath;
+        private readonly HashSet<Diagnostic> _reportedDiagnostics = new HashSet<Diagnostic>();
+        private readonly string _tempPath;
 
         protected abstract Compilation CreateCompilation(TextWriter consoleOutput, TouchedFileLogger touchedFilesLogger);
         protected abstract void PrintLogo(TextWriter consoleOutput);
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(null == responseFile || PathUtilities.IsAbsolute(responseFile));
             Debug.Assert(tempPath != null);
 
-            this.tempPath = FileUtilities.ResolveRelativePath(tempPath, baseDirectory);
+            _tempPath = FileUtilities.ResolveRelativePath(tempPath, baseDirectory);
 
             if (!SuppressDefaultResponseFile(args) && File.Exists(responseFile))
             {
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis
             bool hasErrors = false;
             foreach (var diag in diagnostics)
             {
-                if (reportedDiagnostics.Contains(diag))
+                if (_reportedDiagnostics.Contains(diag))
                 {
                     // TODO: This invariant fails (at least) in the case where we see a member declaration "x = 1;".
                     // First we attempt to parse a member declaration starting at "x".  When we see the "=", we
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis
                     hasErrors = true;
                 }
 
-                reportedDiagnostics.Add(diag);
+                _reportedDiagnostics.Add(diag);
             }
 
             return hasErrors;
@@ -650,34 +650,34 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal Func<string, FileMode, FileAccess, FileShare, FileStream> FileOpen
         {
-            get { return fileOpen ?? File.Open; }
-            set { fileOpen = value; }
+            get { return _fileOpen ?? File.Open; }
+            set { _fileOpen = value; }
         }
-        private Func<string, FileMode, FileAccess, FileShare, FileStream> fileOpen;
+        private Func<string, FileMode, FileAccess, FileShare, FileStream> _fileOpen;
 
         /// <summary>
         /// Test hook for intercepting File.Delete.
         /// </summary>
         internal Action<string> FileDelete
         {
-            get { return fileDelete ?? File.Delete; }
-            set { fileDelete = value; }
+            get { return _fileDelete ?? File.Delete; }
+            set { _fileDelete = value; }
         }
-        private Action<string> fileDelete;
+        private Action<string> _fileDelete;
 
         /// <summary>
         /// Test hook for intercepting File.Move.
         /// </summary>
         internal Action<string, string> FileMove
         {
-            get { return fileMove ?? File.Move; }
-            set { fileMove = value; }
+            get { return _fileMove ?? File.Move; }
+            set { _fileMove = value; }
         }
-        private Action<string, string> fileMove;
+        private Action<string, string> _fileMove;
 
         private string GetTempFileName()
         {
-            return Path.Combine(tempPath, Guid.NewGuid().ToString("N") + ".tmp");
+            return Path.Combine(_tempPath, Guid.NewGuid().ToString("N") + ".tmp");
         }
 
         /// <summary>
@@ -962,18 +962,16 @@ namespace Microsoft.CodeAnalysis
                 return Arguments.PreferredUILang ?? CultureInfo.CurrentUICulture;
             }
         }
-
 #if REPL
-       ...
 
-            // let the assembly loader know about location of all files referenced by the compilation:
-            foreach (AssemblyIdentity reference in compilation.ReferencedAssemblyNames)
+        // let the assembly loader know about location of all files referenced by the compilation:
+        foreach (AssemblyIdentity reference in compilation.ReferencedAssemblyNames)
+        {
+            if (reference.Location != null)
             {
-                if (reference.Location != null)
-                {
-                    assemblyLoader.RegisterDependency(reference);
-                }
+                assemblyLoader.RegisterDependency(reference);
             }
+}
 
 
         private void RunInteractiveLoop()

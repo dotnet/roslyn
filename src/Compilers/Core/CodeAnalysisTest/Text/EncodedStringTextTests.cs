@@ -125,7 +125,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var encoding = Encoding.GetEncoding(1252);
             Assert.False(EncodedStringText.IsBinary(encoding.GetString(new byte[] { 0x81, 0x8D, 0x8F, 0x90, 0x9D })));
-            Assert.False(EncodedStringText.IsBinary("abc def baz aeiouy äëïöüû"));
+            // Unicode string: äëïöüû
+            Assert.False(EncodedStringText.IsBinary("abc def baz aeiouy \u00E4\u00EB\u00EF\u00F6\u00FC\u00FB"));
             Assert.True(EncodedStringText.IsBinary(encoding.GetString(ProprietaryTestResources.NetFX.v4_0_30319.System)));
         }
 
@@ -162,7 +163,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void Decode_Utf8()
         {
             var utf8 = new UTF8Encoding(false, true);
-            var text = "abc def baz aeiouy äëïöüû";
+            var text = "abc def baz aeiouy \u00E4\u00EB\u00EF\u00F6\u00FC\u00FB";
             var bytes = utf8.GetBytesWithPreamble(text);
 
             // Detect encoding should correctly pick UTF-8

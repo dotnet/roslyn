@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             var nameOfResource1 = @"Resource1";
             var nameOfResource2 = @"Resource2";
             var nameOfResource3 = @"Resource3";
-            
+
             var fixedTitle = enResourceSet.GetString(nameOfResource1);
             var fixedMessageFormat = enResourceSet.GetString(nameOfResource2);
             var fixedDescription = enResourceSet.GetString(nameOfResource3);
@@ -148,22 +148,22 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         private class CustomResourceManager : ResourceManager
         {
-            private readonly Dictionary<string, CustomResourceSet> resourceSetMap;
+            private readonly Dictionary<string, CustomResourceSet> _resourceSetMap;
             internal static readonly CustomResourceManager TestInstance = GetTestResourceManagerInstance();
 
             public CustomResourceManager(Dictionary<string, CustomResourceSet> resourceSetMap)
             {
-                this.resourceSetMap = resourceSetMap;
+                _resourceSetMap = resourceSetMap;
             }
 
             public CustomResourceManager(Dictionary<string, Dictionary<string, string>> resourceSetMap)
             {
-                this.resourceSetMap = new Dictionary<string, CustomResourceSet>();
+                _resourceSetMap = new Dictionary<string, CustomResourceSet>();
 
                 foreach (var kvp in resourceSetMap)
                 {
                     var resourceSet = new CustomResourceSet(kvp.Value);
-                    this.resourceSetMap.Add(kvp.Key, resourceSet);
+                    _resourceSetMap.Add(kvp.Key, resourceSet);
                 }
             }
 
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
                 var actual = this.GetString(resourceName, CultureInfo.CreateSpecificCulture(cultureName));
                 Assert.Equal(expectedResourceValue, actual);
             }
-            
+
             public override string GetString(string name, CultureInfo culture)
             {
                 return GetResourceSet(culture, false, false).GetString(name);
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
             public override ResourceSet GetResourceSet(CultureInfo culture, bool createIfNotExists, bool tryParents)
             {
-                return resourceSetMap[culture.Name];
+                return _resourceSetMap[culture.Name];
             }
 
             public override string GetString(string name)
@@ -200,15 +200,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
             public class CustomResourceSet : ResourceSet
             {
-                private readonly Dictionary<string, string> resourcesMap;
+                private readonly Dictionary<string, string> _resourcesMap;
                 public CustomResourceSet(Dictionary<string, string> resourcesMap)
                 {
-                    this.resourcesMap = resourcesMap;
+                    _resourcesMap = resourcesMap;
                 }
 
                 public override string GetString(string name)
                 {
-                    return resourcesMap[name];
+                    return _resourcesMap[name];
                 }
 
                 public override string GetString(string name, bool ignoreCase)

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis
     {
         public static readonly XmlFileResolver Default = new XmlFileResolver(baseDirectory: null);
 
-        private readonly string baseDirectory;
+        private readonly string _baseDirectory;
 
         public XmlFileResolver(string baseDirectory)
         {
@@ -23,12 +23,12 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.AbsolutePathExpected, "baseDirectory");
             }
 
-            this.baseDirectory = baseDirectory;
+            _baseDirectory = baseDirectory;
         }
 
         public string BaseDirectory
         {
-            get { return baseDirectory; }
+            get { return _baseDirectory; }
         }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis
 
             if (baseFilePath != null)
             {
-                resolvedPath = FileUtilities.ResolveRelativePath(path, baseFilePath, baseDirectory);
+                resolvedPath = FileUtilities.ResolveRelativePath(path, baseFilePath, _baseDirectory);
                 Debug.Assert(resolvedPath == null || PathUtilities.IsAbsolute(resolvedPath));
                 if (FileExists(resolvedPath))
                 {
@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            if (baseDirectory != null)
+            if (_baseDirectory != null)
             {
-                resolvedPath = FileUtilities.ResolveRelativePath(path, baseDirectory);
+                resolvedPath = FileUtilities.ResolveRelativePath(path, _baseDirectory);
                 Debug.Assert(resolvedPath == null || PathUtilities.IsAbsolute(resolvedPath));
                 if (FileExists(resolvedPath))
                 {
@@ -93,12 +93,12 @@ namespace Microsoft.CodeAnalysis
             }
 
             var other = (XmlFileResolver)obj;
-            return string.Equals(this.baseDirectory, other.baseDirectory, StringComparison.Ordinal);
+            return string.Equals(_baseDirectory, other._baseDirectory, StringComparison.Ordinal);
         }
 
         public override int GetHashCode()
         {
-            return this.baseDirectory != null ? StringComparer.Ordinal.GetHashCode(this.baseDirectory) : 0;
+            return _baseDirectory != null ? StringComparer.Ordinal.GetHashCode(_baseDirectory) : 0;
         }
     }
 }

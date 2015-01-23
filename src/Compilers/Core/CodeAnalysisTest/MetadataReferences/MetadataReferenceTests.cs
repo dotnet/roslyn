@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var r = MetadataReference.CreateFromStream(new MemoryStream(TestResources.SymbolsTests.General.C1, writable: false));
             Assert.Equal(CodeAnalysisResources.InMemoryAssembly, r.Display);
 
-            Assert.Equal("C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9", 
+            Assert.Equal("C, Version=1.0.0.0, Culture=neutral, PublicKeyToken=374d0c2befcd8cc9",
                 ((AssemblyMetadata)r.GetMetadata()).GetAssembly().Identity.GetDisplayName());
         }
 
@@ -331,26 +331,26 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(@"compilation name", r.Display);
         }
 
-        private static readonly AssemblyIdentity MscorlibIdentity = new AssemblyIdentity(
-                name: "mscorlib", 
-                version: new Version(4, 0, 0, 0), 
+        private static readonly AssemblyIdentity s_mscorlibIdentity = new AssemblyIdentity(
+                name: "mscorlib",
+                version: new Version(4, 0, 0, 0),
                 cultureName: "",
                 publicKeyOrToken: new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 }.AsImmutableOrNull(),
                 hasPublicKey: true);
 
         private class MyReference : PortableExecutableReference
         {
-            private readonly string display;
+            private readonly string _display;
 
             public MyReference(string fullPath, string display)
                 : base(default(MetadataReferenceProperties), fullPath)
             {
-                this.display = display;
+                _display = display;
             }
 
             public override string Display
             {
-                get { return display; }
+                get { return _display; }
             }
 
             protected override Metadata GetMetadataImpl()
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         private class MyReference2 : PortableExecutableReference
-        {            
+        {
             public MyReference2(string fullPath, string display)
                 : base(default(MetadataReferenceProperties), fullPath)
             {
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var c1a = CS.CSharpCompilation.Create("foo").ToMetadataReference();
             var c1b = c1a.Compilation.ToMetadataReference();
             var c2 = CS.CSharpCompilation.Create("foo").ToMetadataReference();
-            
+
             var all = new MetadataReference[] { f1, f2, i1, i2, m1a, m1b, m2, c1a, c1b, c2 };
             foreach (var r in all)
             {
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 {
                     var eq = comparer.Equals(r, s);
 
-                    if (ReferenceEquals(r, s) || 
+                    if (ReferenceEquals(r, s) ||
                         ReferenceEquals(r, c1a) && ReferenceEquals(s, c1b) ||
                         ReferenceEquals(s, c1a) && ReferenceEquals(r, c1b))
                     {
@@ -449,10 +449,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var f1 = MscorlibRef;
             var f2 = SystemCoreRef;
-            
+
             var m1a = new MyReference2(@"c:\a\foo.dll", display: "m1a");
             Assert.Equal(@"c:\a\foo.dll", m1a.Display);
-            Assert.Equal(@"c:\a\foo.dll", m1a.FilePath);            
+            Assert.Equal(@"c:\a\foo.dll", m1a.FilePath);
         }
 
         [Fact]
@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var corlib = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.NetFX.v4_0_30319.mscorlib).
                 GetReference(display: "corlib", documentation: docProvider);
 
-            var comp = CS.CSharpCompilation.Create("foo", 
+            var comp = CS.CSharpCompilation.Create("foo",
                 syntaxTrees: new[] { CS.SyntaxFactory.ParseSyntaxTree("class C : System.Collections.ArrayList { }") },
                 references: new[] { corlib });
 

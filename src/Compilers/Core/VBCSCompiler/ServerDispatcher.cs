@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     /// <summary>
     /// The interface used by <see cref="ServerDispatcher"/> to dispatch requests.
     /// </summary>
-    interface IRequestHandler
+    internal interface IRequestHandler
     {
         BuildResponse HandleRequest(BuildRequest req, CancellationToken cancellationToken);
     }
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     /// <remarks>
     /// One instance of this is created per process.
     /// </remarks>
-    partial class ServerDispatcher
+    internal partial class ServerDispatcher
     {
         private class ConnectionData
         {
@@ -51,13 +51,13 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <summary>
         /// Default time the server will stay alive after the last request disconnects.
         /// </summary>
-        private static readonly TimeSpan DefaultServerKeepAlive = TimeSpan.FromMinutes(5);
+        private static readonly TimeSpan s_defaultServerKeepAlive = TimeSpan.FromMinutes(5);
 
         /// <summary>
         /// Time to delay after the last connection before initiating a garbage collection
         /// in the server. 
         /// </summary>
-        private static readonly TimeSpan GCTimeout = TimeSpan.FromSeconds(30);
+        private static readonly TimeSpan s_GCTimeout = TimeSpan.FromSeconds(30);
 
         /// <summary>
         /// Main entry point for the process. Initialize the server dispatcher
@@ -89,12 +89,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
                 else
                 {
-                    keepAliveTimeout = DefaultServerKeepAlive;
+                    keepAliveTimeout = s_defaultServerKeepAlive;
                 }
             }
             catch (ConfigurationErrorsException e)
             {
-                keepAliveTimeout = DefaultServerKeepAlive;
+                keepAliveTimeout = s_defaultServerKeepAlive;
                 CompilerServerLogger.LogException(e, "Could not read AppSettings");
             }
 
@@ -117,8 +117,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         // Size of the buffers to use
         private const int PipeBufferSize = 0x10000;  // 64K
 
-        private readonly IRequestHandler handler;
-        private readonly IDiagnosticListener diagnosticListener;
+        private readonly IRequestHandler _handler;
+        private readonly IDiagnosticListener _diagnosticListener;
 
         /// <summary>
         /// Create a new server that listens on the given base pipe name.
@@ -127,8 +127,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         public ServerDispatcher(IRequestHandler handler, IDiagnosticListener diagnosticListener)
         {
-            this.handler = handler;
-            this.diagnosticListener = diagnosticListener;
+            _handler = handler;
+            _diagnosticListener = diagnosticListener;
         }
 
         /// <summary>
@@ -219,9 +219,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 if (connectionList.Count == 0 && gcTask == null)
                 {
-                    gcTask = Task.Delay(GCTimeout);
+                    gcTask = Task.Delay(s_GCTimeout);
                 }
-
             } while (true);
 
             try
@@ -289,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             int processedCount = connectionList.RemoveAll(x => x.ConnectionTask.IsCompleted);
             if (processedCount > 0)
             {
-                this.diagnosticListener.ConnectionProcessed(processedCount);
+                _diagnosticListener.ConnectionProcessed(processedCount);
             }
 
             return allFine;
@@ -310,7 +309,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 {
                     keepAlive = value;
                     isKeepAliveDefault = false;
-                    this.diagnosticListener.UpdateKeepAlive(value.Value);
+                    _diagnosticListener.UpdateKeepAlive(value.Value);
                 }
             }
         }
@@ -405,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         {
             var pipeStream = await pipeStreamTask.ConfigureAwait(false);
             var clientConnection = new NamedPipeClientConnection(pipeStream);
-            var connection = new Connection(clientConnection, this.handler);
+            var connection = new Connection(clientConnection, _handler);
             return await connection.ServeConnection(changeKeepAliveSource, cancellationToken).ConfigureAwait(false);
         }
 

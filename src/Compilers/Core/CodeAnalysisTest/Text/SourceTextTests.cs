@@ -12,23 +12,23 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
 {
     public class SourceTextTests
     {
-        private static readonly Encoding Utf8 = Encoding.UTF8;
-        private static readonly Encoding Utf8Bom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
-        private static readonly Encoding Unicode = Encoding.Unicode;
+        private static readonly Encoding s_utf8 = Encoding.UTF8;
+        private static readonly Encoding s_utf8Bom = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
+        private static readonly Encoding s_unicode = Encoding.Unicode;
 
         [Fact]
         public void Encoding1()
         {
-            Assert.Same(Utf8, SourceText.From("foo", Utf8).Encoding);
-            Assert.Same(Unicode, SourceText.From("foo", Unicode).Encoding);
-            Assert.Same(Unicode, SourceText.From(new MemoryStream(Unicode.GetBytes("foo")), Unicode).Encoding);
+            Assert.Same(s_utf8, SourceText.From("foo", s_utf8).Encoding);
+            Assert.Same(s_unicode, SourceText.From("foo", s_unicode).Encoding);
+            Assert.Same(s_unicode, SourceText.From(new MemoryStream(s_unicode.GetBytes("foo")), s_unicode).Encoding);
         }
 
         [Fact]
         public void EncodingBOM()
         {
-            var stream = new MemoryStream(Utf8Bom.GetPreamble().Concat(Utf8Bom.GetBytes("abc")).ToArray());
-            Assert.Equal(Utf8.EncodingName, SourceText.From(stream, Unicode).Encoding.EncodingName);
+            var stream = new MemoryStream(s_utf8Bom.GetPreamble().Concat(s_utf8Bom.GetBytes("abc")).ToArray());
+            Assert.Equal(s_utf8.EncodingName, SourceText.From(stream, s_unicode).Encoding.EncodingName);
         }
 
         [Fact]
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             Assert.Equal(SourceHashAlgorithm.Sha1, SourceText.From("foo", checksumAlgorithm: SourceHashAlgorithm.Sha1).ChecksumAlgorithm);
             Assert.Equal(SourceHashAlgorithm.Sha256, SourceText.From("foo", checksumAlgorithm: SourceHashAlgorithm.Sha256).ChecksumAlgorithm);
 
-            var stream = new MemoryStream(Unicode.GetBytes("foo"));
+            var stream = new MemoryStream(s_unicode.GetBytes("foo"));
 
             Assert.Equal(SourceHashAlgorithm.Sha1, SourceText.From(stream).ChecksumAlgorithm);
             Assert.Equal(SourceHashAlgorithm.Sha1, SourceText.From(stream, checksumAlgorithm: SourceHashAlgorithm.Sha1).ChecksumAlgorithm);
@@ -48,14 +48,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
         [Fact]
         public void ContentEquals()
         {
-            var f = SourceText.From("foo", Utf8);
+            var f = SourceText.From("foo", s_utf8);
 
-            Assert.True(f.ContentEquals(SourceText.From("foo", Utf8)));
-            Assert.False(f.ContentEquals(SourceText.From("fooo", Utf8)));
-            Assert.True(SourceText.From("foo", Utf8).ContentEquals(SourceText.From("foo", Utf8)));
+            Assert.True(f.ContentEquals(SourceText.From("foo", s_utf8)));
+            Assert.False(f.ContentEquals(SourceText.From("fooo", s_utf8)));
+            Assert.True(SourceText.From("foo", s_utf8).ContentEquals(SourceText.From("foo", s_utf8)));
 
-            var e1 = EncodedStringText.Create(new MemoryStream(Unicode.GetBytes("foo")), Unicode);
-            var e2 = EncodedStringText.Create(new MemoryStream(Utf8.GetBytes("foo")), Utf8);
+            var e1 = EncodedStringText.Create(new MemoryStream(s_unicode.GetBytes("foo")), s_unicode);
+            var e2 = EncodedStringText.Create(new MemoryStream(s_utf8.GetBytes("foo")), s_utf8);
 
             Assert.True(e1.ContentEquals(e1));
             Assert.True(f.ContentEquals(e1));

@@ -15,40 +15,40 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public class RuleSet
     {
-        private readonly string filePath;
+        private readonly string _filePath;
         /// <summary>
         /// The file path of the ruleset file.
         /// </summary>
         public string FilePath
         {
-            get { return filePath; }
+            get { return _filePath; }
         }
 
-        private readonly ReportDiagnostic generalDiagnosticOption;
+        private readonly ReportDiagnostic _generalDiagnosticOption;
         /// <summary>
         /// The global option specified by the IncludeAll tag.
         /// </summary>
         public ReportDiagnostic GeneralDiagnosticOption
         {
-            get { return generalDiagnosticOption; }
+            get { return _generalDiagnosticOption; }
         }
 
-        private readonly ImmutableDictionary<string, ReportDiagnostic> specificDiagnosticOptions;
+        private readonly ImmutableDictionary<string, ReportDiagnostic> _specificDiagnosticOptions;
         /// <summary>
         /// Individual ruleids and their associated actions.
         /// </summary>
         public ImmutableDictionary<string, ReportDiagnostic> SpecificDiagnosticOptions
         {
-            get { return specificDiagnosticOptions; }
+            get { return _specificDiagnosticOptions; }
         }
 
-        private readonly ImmutableArray<RuleSetInclude> includes;
+        private readonly ImmutableArray<RuleSetInclude> _includes;
         /// <summary>
         /// List of rulesets included by this ruleset.
         /// </summary>
         public ImmutableArray<RuleSetInclude> Includes
         {
-            get { return includes; }
+            get { return _includes; }
         }
 
         /// <summary>
@@ -56,10 +56,10 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public RuleSet(string filePath, ReportDiagnostic generalOption, ImmutableDictionary<string, ReportDiagnostic> specificOptions, ImmutableArray<RuleSetInclude> includes)
         {
-            this.filePath = filePath;
-            this.generalDiagnosticOption = generalOption;
-            this.specificDiagnosticOptions = specificOptions == null ? ImmutableDictionary<string, ReportDiagnostic>.Empty : specificOptions;
-            this.includes = includes.IsDefault ? ImmutableArray<RuleSetInclude>.Empty : includes;
+            _filePath = filePath;
+            _generalDiagnosticOption = generalOption;
+            _specificDiagnosticOptions = specificOptions == null ? ImmutableDictionary<string, ReportDiagnostic>.Empty : specificOptions;
+            _includes = includes.IsDefault ? ImmutableArray<RuleSetInclude>.Empty : includes;
         }
 
         /// <summary>
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public RuleSet WithEffectiveAction(ReportDiagnostic action)
         {
-            if (!includes.IsEmpty)
+            if (!_includes.IsEmpty)
             {
                 throw new ArgumentException("Effective action cannot be applied to rulesets with Includes");
             }
@@ -82,16 +82,16 @@ namespace Microsoft.CodeAnalysis
                 case ReportDiagnostic.Warn:
                 case ReportDiagnostic.Info:
                 case ReportDiagnostic.Hidden:
-                    var generalOption = generalDiagnosticOption == ReportDiagnostic.Default ? ReportDiagnostic.Default : action;
-                    var specificOptions = specificDiagnosticOptions.ToBuilder();
-                    foreach (var item in specificDiagnosticOptions)
+                    var generalOption = _generalDiagnosticOption == ReportDiagnostic.Default ? ReportDiagnostic.Default : action;
+                    var specificOptions = _specificDiagnosticOptions.ToBuilder();
+                    foreach (var item in _specificDiagnosticOptions)
                     {
                         if (item.Value != ReportDiagnostic.Suppress && item.Value != ReportDiagnostic.Default)
                         {
                             specificOptions[item.Key] = action;
                         }
                     }
-                    return new RuleSet(FilePath, generalOption, specificOptions.ToImmutable(), includes);
+                    return new RuleSet(FilePath, generalOption, specificOptions.ToImmutable(), _includes);
                 default:
                     return null;
             }
@@ -102,16 +102,16 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private RuleSet GetEffectiveRuleSet(HashSet<string> includedRulesetPaths)
         {
-            var effectiveGeneralOption = generalDiagnosticOption;
+            var effectiveGeneralOption = _generalDiagnosticOption;
             var effectiveSpecificOptions = new Dictionary<string, ReportDiagnostic>();
 
             // If we don't have any include then there's nothing to resolve.
-            if (includes.IsEmpty)
+            if (_includes.IsEmpty)
             {
                 return this;
             }
 
-            foreach (var ruleSetInclude in includes)
+            foreach (var ruleSetInclude in _includes)
             {
                 // If the include has been suppressed then there's nothing to do.
                 if (ruleSetInclude.Action == ReportDiagnostic.Suppress)
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis
 
             // Finally, copy all the rules in the current ruleset. This overrides the actions
             // of any included ruleset - therefore, no strictness check.
-            foreach (var item in specificDiagnosticOptions)
+            foreach (var item in _specificDiagnosticOptions)
             {
                 if (effectiveSpecificOptions.ContainsKey(item.Key))
                 {
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return new RuleSet(filePath, effectiveGeneralOption, effectiveSpecificOptions.ToImmutableDictionary(), ImmutableArray<RuleSetInclude>.Empty);
+            return new RuleSet(_filePath, effectiveGeneralOption, effectiveSpecificOptions.ToImmutableDictionary(), ImmutableArray<RuleSetInclude>.Empty);
         }
 
         /// <summary>
@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis
         {
             arrayBuilder.Add(this.FilePath);
 
-            foreach (var ruleSetInclude in includes)
+            foreach (var ruleSetInclude in _includes)
             {
                 var ruleSet = ruleSetInclude.LoadRuleSet(this);
 

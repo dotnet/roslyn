@@ -173,7 +173,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
                             if ((rInner.pstringName.Ordinal == i + 1) &&    //ICON IDs start at 1
                                 (rInner.pstringType.Ordinal == 3))  //RT_ICON
                             {
-
                                 found = true;
                                 break;
                             }

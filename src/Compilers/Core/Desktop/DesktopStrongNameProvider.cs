@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private readonly ImmutableArray<string> keyFileSearchPaths;
+        private readonly ImmutableArray<string> _keyFileSearchPaths;
 
         /// <summary>
         /// Creates an instance of <see cref="DesktopStrongNameProvider"/>.
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException(CodeAnalysisResources.AbsolutePathExpected, "keyFileSearchPaths");
             }
 
-            this.keyFileSearchPaths = keyFileSearchPaths.NullToEmpty();
+            _keyFileSearchPaths = keyFileSearchPaths.NullToEmpty();
         }
 
         internal virtual bool FileExists(string fullPath)
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis
                 return path;
             }
 
-            foreach (var searchPath in this.keyFileSearchPaths)
+            foreach (var searchPath in _keyFileSearchPaths)
             {
                 string combinedPath = PathUtilities.CombineAbsoluteAndRelativePaths(searchPath, path);
 
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis
             Func<string, FileStream> streamConstructor = lPath => new TempFileStream(lPath, FileMode.Create, FileAccess.ReadWrite, FileShare.ReadWrite);
             return FileUtilities.CreateFileStreamChecked(streamConstructor, path);
         }
-        
+
         internal override StrongNameKeys CreateKeys(string keyFilePath, string keyContainerName, CommonMessageProvider messageProvider)
         {
             var keyPair = default(ImmutableArray<byte>);
@@ -153,7 +153,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return new StrongNameKeys(keyPair, publicKey, container, keyFilePath);
-
         }
 
         private void ReadKeysFromContainer(string keyContainer, out ImmutableArray<byte> publicKey)
@@ -220,7 +219,7 @@ namespace Microsoft.CodeAnalysis
         //In IDE typing scenarios scenarios we often need to infer public key from the same 
         //key file blob repeatedly and it is relatively expensive.
         //So we will store last seen blob and corresponding key here.
-        private static Tuple<byte[], ImmutableArray<byte>> lastSeenKeyPair;
+        private static Tuple<byte[], ImmutableArray<byte>> s_lastSeenKeyPair;
 
         // EDMAURER in the event that the key is supplied as a file,
         // this type could get an instance member that caches the file
@@ -228,13 +227,13 @@ namespace Microsoft.CodeAnalysis
         // public key to establish the assembly name and another to do 
         // the actual signing
 
-        private static Guid CLSID_CLRStrongName =
+        private static Guid s_CLSID_CLRStrongName =
             new Guid(0xB79B0ACD, 0xF5CD, 0x409b, 0xB5, 0xA5, 0xA1, 0x62, 0x44, 0x61, 0x0B, 0x92);
 
         // internal for testing
         internal static ICLRStrongName GetStrongNameInterface()
         {
-            return ClrMetaHost.CurrentRuntime.GetInterface<ICLRStrongName>(CLSID_CLRStrongName);
+            return ClrMetaHost.CurrentRuntime.GetInterface<ICLRStrongName>(s_CLSID_CLRStrongName);
         }
 
         // internal for testing
@@ -294,7 +293,7 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                var lastSeen = lastSeenKeyPair;
+                var lastSeen = s_lastSeenKeyPair;
                 if (lastSeen != null && ByteSequenceComparer.Equals(lastSeen.Item1, keyFileContents))
                 {
                     return lastSeen.Item2;
@@ -326,7 +325,7 @@ namespace Microsoft.CodeAnalysis
                 strongName.StrongNameFreeBuffer(keyBlob);
 
                 var result = pubKey.AsImmutableOrNull();
-                lastSeenKeyPair = Tuple.Create(keyFileContents, result);
+                s_lastSeenKeyPair = Tuple.Create(keyFileContents, result);
 
                 return result;
             }
@@ -417,12 +416,12 @@ namespace Microsoft.CodeAnalysis
             }
 
             var other = (DesktopStrongNameProvider)obj;
-            return this.keyFileSearchPaths.SequenceEqual(other.keyFileSearchPaths, StringComparer.Ordinal);
+            return _keyFileSearchPaths.SequenceEqual(other._keyFileSearchPaths, StringComparer.Ordinal);
         }
 
         public override int GetHashCode()
         {
-            return Hash.CombineValues(this.keyFileSearchPaths, StringComparer.Ordinal);
+            return Hash.CombineValues(_keyFileSearchPaths, StringComparer.Ordinal);
         }
     }
 }

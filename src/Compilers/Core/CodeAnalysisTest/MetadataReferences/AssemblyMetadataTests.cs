@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Assert.Equal("mod3.netmodule", a.GetModules()[2].Name);
             }
         }
-        
+
         [Fact]
         public void Disposal()
         {

@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         }
     }
 
-    static class RandomExtensions
+    internal static class RandomExtensions
     {
         public static bool NextBool(this Random self)
         {

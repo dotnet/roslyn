@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 subFilePath,
                 dotted
             };
-            
+
             var resolver = new VirtualizedFileReferenceResolver(
                 existingFullPaths: fs,
                 searchPaths: ImmutableArray.Create<string>(),

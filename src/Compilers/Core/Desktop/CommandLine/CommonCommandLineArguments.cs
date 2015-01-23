@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis
             return resolved;
         }
 
-        internal virtual bool ResolveMetadataReferences(MetadataReferenceResolver metadataResolver,List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt, List<MetadataReference> resolved)
+        internal virtual bool ResolveMetadataReferences(MetadataReferenceResolver metadataResolver, List<DiagnosticInfo> diagnosticsOpt, CommonMessageProvider messageProviderOpt, List<MetadataReference> resolved)
         {
             bool result = true;
 
@@ -309,7 +309,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             return references;
-        }
+            }
 
         #endregion
 
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis
         {
             foreach (CommandLineAnalyzerReference cmdLineReference in AnalyzerReferences)
             {
-                yield return ResolveAnalyzerReference(cmdLineReference) 
+                yield return ResolveAnalyzerReference(cmdLineReference)
                     ?? (AnalyzerReference)new UnresolvedAnalyzerReference(cmdLineReference.FilePath);
             }
         }
@@ -398,7 +398,6 @@ namespace Microsoft.CodeAnalysis
 
             return null;
         }
-
         #endregion
     }
 }

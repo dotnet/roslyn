@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.Shell.Interop
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern IntPtr LoadLibrary(String libPath);
 
-        private static Lazy<QueryServiceDelegate> queryService = new Lazy<QueryServiceDelegate>(TryGetSqmServiceDelegate, true);
+        private static Lazy<QueryServiceDelegate> s_queryService = new Lazy<QueryServiceDelegate>(TryGetSqmServiceDelegate, true);
 
         private static QueryServiceDelegate TryGetSqmServiceDelegate()
         {
@@ -79,11 +79,11 @@ namespace Microsoft.VisualStudio.Shell.Interop
             IVsSqmMulti result = null;
             Guid rsid = new Guid("2508FDF0-EF80-4366-878E-C9F024B8D981");
             Guid riid = new Guid("B17A7D4A-C1A3-45A2-B916-826C3ABA067E");
-            if (queryService.Value != null)
+            if (s_queryService.Value != null)
             {
                 try
                 {
-                    queryService.Value(ref rsid, ref riid, out result);
+                    s_queryService.Value(ref rsid, ref riid, out result);
                 }
                 catch (Exception e)
                 {

@@ -107,10 +107,10 @@ namespace Microsoft.CodeAnalysis
 
         // NOTE: The CLR caches assembly identities, but doesn't do so in a threadsafe manner.
         // Wrap all calls to this with a lock.
-        private static object assemblyIdentityGate = new object();
+        private static object s_assemblyIdentityGate = new object();
         private static int CreateAssemblyNameObject(out IAssemblyName ppEnum, string szAssemblyName, uint dwFlags, IntPtr pvReserved)
         {
-            lock (assemblyIdentityGate)
+            lock (s_assemblyIdentityGate)
             {
                 return RealCreateAssemblyNameObject(out ppEnum, szAssemblyName, dwFlags, pvReserved);
             }
@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis
                 if (assemblyName.IndexOf('\0') >= 0)
                 {
 #if SCRIPTING
-                    
+
                     throw new ArgumentException(Roslyn.Scripting.CommonScriptingResources.InvalidCharactersInAssemblyName, "name");
 
 #elif WORKSPACE_DESKTOP
@@ -482,7 +482,6 @@ namespace Microsoft.CodeAnalysis
 #else
 
                     throw new ArgumentException(Microsoft.CodeAnalysis.CodeAnalysisResources.InvalidCharactersInAssemblyName, "name");
-
 #endif
                 }
 
@@ -504,7 +503,7 @@ namespace Microsoft.CodeAnalysis
                 if (cultureName.IndexOf('\0') >= 0)
                 {
 #if SCRIPTING
-                    
+
                     throw new ArgumentException(Roslyn.Scripting.CommonScriptingResources.InvalidCharactersInAssemblyName, "name");
 
 #elif WORKSPACE_DESKTOP
@@ -514,7 +513,6 @@ namespace Microsoft.CodeAnalysis
 #else
 
                     throw new ArgumentException(Microsoft.CodeAnalysis.CodeAnalysisResources.InvalidCharactersInAssemblyName, "name");
-
 #endif
                 }
 

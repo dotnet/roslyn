@@ -205,12 +205,12 @@ namespace Roslyn.Utilities
             }
         }
 
-        private static readonly char[] InvalidPathChars = Path.GetInvalidPathChars();
+        private static readonly char[] s_invalidPathChars = Path.GetInvalidPathChars();
 
         internal static string NormalizeRelativePath(string path, string basePath, string baseDirectory)
         {
             // Does this look like a URI at all or does it have any invalid path characters? If so, just use it as is.
-            if (path.IndexOf("://") >= 0 || path.IndexOfAny(InvalidPathChars) >= 0)
+            if (path.IndexOf("://") >= 0 || path.IndexOfAny(s_invalidPathChars) >= 0)
             {
                 return null;
             }

@@ -13,19 +13,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class CommonTypedConstantTests : TestBase
     {
-        private readonly CSharp.CSharpCompilation compilation;
-        private readonly ITypeSymbol intType;
-        private readonly ITypeSymbol stringType;
-        private readonly ITypeSymbol enumString1;
-        private readonly ITypeSymbol enumString2;
+        private readonly CSharp.CSharpCompilation _compilation;
+        private readonly ITypeSymbol _intType;
+        private readonly ITypeSymbol _stringType;
+        private readonly ITypeSymbol _enumString1;
+        private readonly ITypeSymbol _enumString2;
 
         public CommonTypedConstantTests()
         {
-            compilation = (CSharp.CSharpCompilation)CSharp.CSharpCompilation.Create("class C {}");
-            intType = compilation.GetSpecialType(SpecialType.System_Int32);
-            stringType = compilation.GetSpecialType(SpecialType.System_String);
-            enumString1 = compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(compilation.GetSpecialType(SpecialType.System_String));
-            enumString2 = compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(compilation.GetSpecialType(SpecialType.System_String));
+            _compilation = (CSharp.CSharpCompilation)CSharp.CSharpCompilation.Create("class C {}");
+            _intType = _compilation.GetSpecialType(SpecialType.System_Int32);
+            _stringType = _compilation.GetSpecialType(SpecialType.System_String);
+            _enumString1 = _compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(_compilation.GetSpecialType(SpecialType.System_String));
+            _enumString2 = _compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(_compilation.GetSpecialType(SpecialType.System_String));
         }
 
         [Fact]
@@ -34,31 +34,31 @@ namespace Microsoft.CodeAnalysis.UnitTests
             EqualityTesting.AssertEqual(default(TypedConstant), default(TypedConstant));
 
             EqualityTesting.AssertEqual(
-                new TypedConstant(this.intType, TypedConstantKind.Primitive, 1),
-                new TypedConstant(this.intType, TypedConstantKind.Primitive, 1));
+                new TypedConstant(_intType, TypedConstantKind.Primitive, 1),
+                new TypedConstant(_intType, TypedConstantKind.Primitive, 1));
 
             var s1 = "foo";
             var s2 = String.Format("{0}{1}{1}", "f", "o");
 
             EqualityTesting.AssertEqual(
-                new TypedConstant(this.stringType, TypedConstantKind.Primitive, s1),
-                new TypedConstant(this.stringType, TypedConstantKind.Primitive, s2));
+                new TypedConstant(_stringType, TypedConstantKind.Primitive, s1),
+                new TypedConstant(_stringType, TypedConstantKind.Primitive, s2));
 
             EqualityTesting.AssertEqual(
-                new TypedConstant(this.stringType, TypedConstantKind.Primitive, null),
-                new TypedConstant(this.stringType, TypedConstantKind.Primitive, null));
+                new TypedConstant(_stringType, TypedConstantKind.Primitive, null),
+                new TypedConstant(_stringType, TypedConstantKind.Primitive, null));
 
             EqualityTesting.AssertEqual(
-                new TypedConstant(this.enumString1, TypedConstantKind.Primitive, null),
-                new TypedConstant(this.enumString2, TypedConstantKind.Primitive, null));
+                new TypedConstant(_enumString1, TypedConstantKind.Primitive, null),
+                new TypedConstant(_enumString2, TypedConstantKind.Primitive, null));
 
             EqualityTesting.AssertNotEqual(
-                new TypedConstant(this.stringType, TypedConstantKind.Primitive, null),
-                new TypedConstant(this.stringType, TypedConstantKind.Error, null));
+                new TypedConstant(_stringType, TypedConstantKind.Primitive, null),
+                new TypedConstant(_stringType, TypedConstantKind.Error, null));
 
             EqualityTesting.AssertNotEqual(
-                new TypedConstant(this.stringType, TypedConstantKind.Primitive, null),
-                new TypedConstant(this.enumString1, TypedConstantKind.Primitive, null));
+                new TypedConstant(_stringType, TypedConstantKind.Primitive, null),
+                new TypedConstant(_enumString1, TypedConstantKind.Primitive, null));
         }
     }
 }

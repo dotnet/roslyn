@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             stream.Position = 0;
             Assert.Throws<COMException>(() => FusionAssemblyPortabilityPolicy.LoadFromFile(appConfig.Path));
             Assert.Throws<XmlException>(() => AssemblyPortabilityPolicy.LoadFromXml(stream));
-     
+
             // missing root element:
             appConfig.WriteAllText(
 @"<?xml version=""1.0"" encoding=""utf-8"" ?>

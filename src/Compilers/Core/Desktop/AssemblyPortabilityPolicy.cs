@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis
             return reader.ReadToDescendant(elementName, elementNamespace) && reader.Depth == depth;
         }
 
-        private static readonly XmlReaderSettings XmlSettings = new XmlReaderSettings()
+        private static readonly XmlReaderSettings s_xmlSettings = new XmlReaderSettings()
         {
             DtdProcessing = DtdProcessing.Prohibit,
             XmlResolver = null
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis
 
             const string ns = "urn:schemas-microsoft-com:asm.v1";
 
-            using (XmlReader xml = XmlReader.Create(input, XmlSettings))
+            using (XmlReader xml = XmlReader.Create(input, s_xmlSettings))
             {
                 if (!ReadToChild(xml, 0, "configuration") ||
                     !ReadToChild(xml, 1, "runtime") ||

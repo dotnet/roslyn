@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal sealed class ExistingReferencesResolver : LoggingMetadataReferencesResolver
         {
-            private readonly ImmutableArray<PortableExecutableReference> availableReferences;
-            private readonly AssemblyIdentityComparer assemblyIdentityComparer;
+            private readonly ImmutableArray<PortableExecutableReference> _availableReferences;
+            private readonly AssemblyIdentityComparer _assemblyIdentityComparer;
 
             public ExistingReferencesResolver(
                 ImmutableArray<PortableExecutableReference> availableReferences,
@@ -30,8 +30,8 @@ namespace Microsoft.CodeAnalysis
             {
                 Debug.Assert(!availableReferences.Any(r => r.Properties.Kind != MetadataImageKind.Assembly));
 
-                this.availableReferences = availableReferences;
-                this.assemblyIdentityComparer = assemblyIdentityComparer;
+                _availableReferences = availableReferences;
+                _assemblyIdentityComparer = assemblyIdentityComparer;
             }
 
             public override string ResolveReference(string reference, string baseFilePath)
@@ -51,10 +51,10 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             private string ResolveAssemblyName(string displayName)
             {
-                foreach (var fileReference in availableReferences)
+                foreach (var fileReference in _availableReferences)
                 {
                     var identity = ((AssemblyMetadata)fileReference.GetMetadata()).GetAssembly().Identity;
-                    if (assemblyIdentityComparer.ReferenceMatchesDefinition(displayName, identity))
+                    if (_assemblyIdentityComparer.ReferenceMatchesDefinition(displayName, identity))
                     {
                         return fileReference.FilePath;
                     }
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var fullPath = base.ResolveReference(path, basePath);
 
-                foreach (var fileReference in availableReferences)
+                foreach (var fileReference in _availableReferences)
                 {
                     if (string.Equals(fileReference.FilePath, fullPath, StringComparison.OrdinalIgnoreCase))
                     {

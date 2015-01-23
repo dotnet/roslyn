@@ -98,7 +98,6 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\HashAlgorithms.cs">
       <Link>InternalUtilities\HashAlgorithms.cs</Link>
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ImmutableListExtensions.cs">
       <Link>InternalUtilities\ImmutableListExtensions.cs</Link>
@@ -400,9 +399,7 @@
     <Compile Include="Workspace\Host\Caching\IProjectCacheService.cs" />
     <Compile Include="Differencing\Edit.cs" />
     <Compile Include="Differencing\EditKind.cs" />
-    <Compile Include="Differencing\EditScript.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Differencing\EditScript.cs" />
     <Compile Include="Differencing\LongestCommonSubsequence.cs" />
     <Compile Include="Differencing\LongestCommonSubstring.cs" />
     <Compile Include="Differencing\Match.cs" />
@@ -410,9 +407,7 @@
     <Compile Include="Differencing\TreeComparer.cs" />
     <Compile Include="ExtensionManager\AbstractExtensionManager.cs" />
     <Compile Include="ExtensionManager\IExtensionManager.cs" />
-    <Compile Include="ExtensionManager\IExtensionManagerExtensions.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="ExtensionManager\IExtensionManagerExtensions.cs" />
     <Compile Include="ExtensionManager\ServicesLayerExtensionManager.cs" />
     <Compile Include="ExtensionOrderAttribute.cs" />
     <Compile Include="FindSymbols\Extensions.cs" />
@@ -614,9 +609,7 @@
     <Compile Include="Rename\ConflictEngine\ConflictingIdentifierTracker.cs" />
     <Compile Include="Rename\ConflictEngine\ConflictResolution.cs" />
     <Compile Include="Rename\ConflictEngine\ConflictResolver.cs" />
-    <Compile Include="Rename\ConflictEngine\ConflictResolver.Session.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Rename\ConflictEngine\ConflictResolver.Session.cs" />
     <Compile Include="Rename\ConflictEngine\DeclarationConflictHelpers.cs" />
     <Compile Include="Rename\ConflictEngine\RelatedLocation.cs" />
     <Compile Include="Rename\ConflictEngine\RelatedLocationType.cs" />
@@ -671,9 +664,7 @@
     <Compile Include="Shared\Extensions\IParameterSymbolExtensions.cs" />
     <Compile Include="Shared\Extensions\IPropertySymbolExtensions.cs" />
     <Compile Include="Shared\Extensions\ISolutionExtensions.cs" />
-    <Compile Include="Shared\Extensions\ISymbolExtensions.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Shared\Extensions\ISymbolExtensions.cs" />
     <Compile Include="Shared\Extensions\ISymbolExtensions.IsUnsafeVisitor.cs" />
     <Compile Include="Shared\Extensions\ISymbolExtensions_2.cs" />
     <Compile Include="Shared\Extensions\ISymbolExtensions_Accessibility.cs" />
@@ -684,9 +675,7 @@
     <Compile Include="Shared\Extensions\ITypeSymbolExtensions.AnonymousTypeRemover.cs" />
     <Compile Include="Shared\Extensions\ITypeSymbolExtensions.CollectTypeParameterSymbolsVisitor.cs" />
     <Compile Include="Shared\Extensions\ITypeSymbolExtensions.CompilationTypeGenerator.cs" />
-    <Compile Include="Shared\Extensions\ITypeSymbolExtensions.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Shared\Extensions\ITypeSymbolExtensions.cs" />
     <Compile Include="Shared\Extensions\ITypeSymbolExtensions.MinimalAccessibilityVisitor.cs" />
     <Compile Include="Shared\Extensions\ITypeSymbolExtensions.SubstituteTypesVisitor.cs" />
     <Compile Include="Shared\Extensions\ITypeSymbolExtensions.UnavailableTypeParameterRemover.cs" />
@@ -711,9 +700,7 @@
     <Compile Include="Shared\NormalizedTextSpanCollection.cs" />
     <Compile Include="Shared\Utilities\AliasSymbolCache.cs" />
     <Compile Include="Shared\Utilities\BitArrayUtilities.cs" />
-    <Compile Include="Shared\Utilities\BloomFilter.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Shared\Utilities\BloomFilter.cs" />
     <Compile Include="Shared\Utilities\BloomFilter_Serialization.cs" />
     <Compile Include="Shared\Utilities\CommonFormattingHelpers.cs" />
     <Compile Include="Shared\Utilities\DocumentationComment.cs" />
@@ -785,9 +772,7 @@
     <Compile Include="Utilities\Async\AsyncEnumerable_Select.cs" />
     <Compile Include="Utilities\Async\IAsyncEnumerable.cs" />
     <Compile Include="Utilities\Async\IAsyncEnumerator.cs" />
-    <Compile Include="Utilities\AsyncLazy`1.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Utilities\AsyncLazy`1.cs" />
     <Compile Include="Utilities\AsyncSemaphore.cs" />
     <Compile Include="Utilities\BidirectionalMap.cs" />
     <Compile Include="Utilities\CancellableLazy.cs" />
@@ -812,12 +797,8 @@
     <Compile Include="Utilities\SimpleTaskQueue.cs" />
     <Compile Include="Utilities\SpecializedTasks.cs" />
     <Compile Include="Utilities\SyntaxPath.cs" />
-    <Compile Include="Utilities\TaskExtensions.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
-    <Compile Include="Utilities\TaskFactoryExtensions.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Utilities\TaskExtensions.cs" />
+    <Compile Include="Utilities\TaskFactoryExtensions.cs" />
     <Compile Include="Utilities\TopologicalSorter.cs" />
     <Compile Include="Utilities\ValuesSources\ConstantValueSource.cs" />
     <Compile Include="Utilities\ValuesSources\ValueSource.cs" />
@@ -852,19 +833,13 @@
     <Compile Include="Workspace\Host\TextFactory\TextFactoryServiceFactory.TextFactoryService.cs" />
     <Compile Include="Workspace\PrimaryWorkspace.cs" />
     <Compile Include="LinkedFileDiffMerging\AbstractLinkedFileMergeConflictCommentAdditionService.cs" />
-    <Compile Include="Workspace\Solution\AdditionalTextDocument.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Workspace\Solution\AdditionalTextDocument.cs" />
     <Compile Include="LinkedFileDiffMerging\IMergeConflictHandler.cs" />
     <Compile Include="Workspace\Solution\IDocumentTextDifferencingService.cs" />
     <Compile Include="Workspace\Solution\MetadataReferenceManager.cs" />
-    <Compile Include="Workspace\Solution\TextDocumentState.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Workspace\Solution\TextDocumentState.cs" />
     <Compile Include="Workspace\Solution\BranchId.cs" />
-    <Compile Include="Workspace\Solution\Document.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Workspace\Solution\Document.cs" />
     <Compile Include="Workspace\Solution\DocumentDiagnostic.cs" />
     <Compile Include="Workspace\Solution\DocumentId.cs" />
     <Compile Include="Workspace\Solution\DocumentInfo.cs" />
@@ -887,18 +862,12 @@
     <Compile Include="Workspace\Solution\TextDocument.cs" />
     <Compile Include="Workspace\Solution\RecoverableTextAndVersion.cs" />
     <Compile Include="Workspace\Solution\SemanticDocument.cs" />
-    <Compile Include="Workspace\Solution\Solution.CompilationTracker.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Workspace\Solution\Solution.CompilationTracker.cs" />
     <Compile Include="Workspace\Solution\Solution.CompilationTracker.State.cs" />
     <Compile Include="Workspace\Solution\Solution.CompilationTranslationAction.Actions.cs" />
     <Compile Include="Workspace\Solution\Solution.CompilationTranslationAction.cs" />
-    <Compile Include="Workspace\Solution\Solution.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
-    <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingSession.cs">
-      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
-    </Compile>
+    <Compile Include="Workspace\Solution\Solution.cs" />
+    <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingSession.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileMergeResult.cs" />
     <Compile Include="Workspace\Solution\SolutionChanges.cs" />
     <Compile Include="Workspace\Solution\SolutionId.cs" />
@@ -964,7 +933,6 @@
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\..\build\VSL.Imports.Closed.targets" />
-    <Import Project="..\..\..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets" Condition="Exists('..\..\..\..\packages\StyleCop.MSBuild.4.7.48.2\build\StyleCop.MSBuild.Targets')" />
     <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
   </ImportGroup>
 </Project>

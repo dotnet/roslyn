@@ -7,23 +7,23 @@ namespace Microsoft.CodeAnalysis
 {
     public class AnalyzerAssemblyLoadEventArgs : EventArgs
     {
-        private readonly string path;
-        private readonly Assembly loadedAssembly;
+        private readonly string _path;
+        private readonly Assembly _loadedAssembly;
 
         public AnalyzerAssemblyLoadEventArgs(string path, Assembly loadedAssembly)
         {
-            this.path = path;
-            this.loadedAssembly = loadedAssembly;
+            _path = path;
+            _loadedAssembly = loadedAssembly;
         }
 
         public string Path
         {
-            get { return this.path; }
+            get { return _path; }
         }
 
         public Assembly LoadedAssembly
         {
-            get { return this.loadedAssembly; }
+            get { return _loadedAssembly; }
         }
     }
 }

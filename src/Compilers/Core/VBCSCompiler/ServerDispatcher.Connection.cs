@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
-    partial class ServerDispatcher
+    internal partial class ServerDispatcher
     {
         internal enum CompletionReason
         {
@@ -41,15 +41,15 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// </summary>
         internal class Connection
         {
-            private readonly IClientConnection clientConnection;
-            private readonly IRequestHandler handler;
-            private readonly string loggingIdentifier;
+            private readonly IClientConnection _clientConnection;
+            private readonly IRequestHandler _handler;
+            private readonly string _loggingIdentifier;
 
             public Connection(IClientConnection clientConnection, IRequestHandler handler)
             {
-                this.clientConnection = clientConnection;
-                this.loggingIdentifier = clientConnection.LoggingIdentifier;
-                this.handler = handler;
+                _clientConnection = clientConnection;
+                _loggingIdentifier = clientConnection.LoggingIdentifier;
+                _handler = handler;
             }
 
             public async Task<CompletionReason> ServeConnection(TaskCompletionSource<TimeSpan?> timeoutCompletionSource = null, CancellationToken cancellationToken = default(CancellationToken))
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     try
                     {
                         Log("Begin reading request.");
-                        request = await this.clientConnection.ReadBuildRequest(cancellationToken).ConfigureAwait(false);
+                        request = await _clientConnection.ReadBuildRequest(cancellationToken).ConfigureAwait(false);
                         Log("End reading request.");
                     }
                     catch (Exception e)
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     // Kick off both the compilation and a task to monitor the pipe for closing.  
                     var buildCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                     var compilationTask = ServeBuildRequest(request, buildCts.Token);
-                    var monitorTask = this.clientConnection.CreateMonitorDisconnectTask(buildCts.Token);
+                    var monitorTask = _clientConnection.CreateMonitorDisconnectTask(buildCts.Token);
                     await Task.WhenAny(compilationTask, monitorTask).ConfigureAwait(false);
 
                     // Do an 'await' on the completed task, preference being compilation, to force
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                         try
                         {
                             Log("Begin writing response.");
-                            await this.clientConnection.WriteBuildResponse(response, cancellationToken).ConfigureAwait(false);
+                            await _clientConnection.WriteBuildResponse(response, cancellationToken).ConfigureAwait(false);
                             reason = CompletionReason.Completed;
                             Log("End writing response.");
                         }
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 }
                 finally
                 {
-                    this.clientConnection.Close();
+                    _clientConnection.Close();
 
                     // Ensure that the task is completed.  If the code previously added a real result this will
                     // simply be a nop.
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                     {
                         // Do the compilation
                         Log("Begin compilation");
-                        BuildResponse response = this.handler.HandleRequest(request, cancellationToken);
+                        BuildResponse response = _handler.HandleRequest(request, cancellationToken);
                         Log("End compilation");
                         return response;
                     }
@@ -164,12 +164,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
             private void Log(string message)
             {
-                CompilerServerLogger.Log("Client {0}: {1}", this.loggingIdentifier, message);
+                CompilerServerLogger.Log("Client {0}: {1}", _loggingIdentifier, message);
             }
 
             private void LogException(Exception e, string message)
             {
-                CompilerServerLogger.LogException(e, string.Format("Client {0}: {1}", this.loggingIdentifier, message));
+                CompilerServerLogger.LogException(e, string.Format("Client {0}: {1}", _loggingIdentifier, message));
             }
         }
     }
