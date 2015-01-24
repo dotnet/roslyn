@@ -384,11 +384,6 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Task<Compilation> GetCompilationAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (!this.SupportsCompilation)
-            {
-                return Task.FromResult<Compilation>(null);
-            }
-
             return this.solution.GetCompilationAsync(this.Id, cancellationToken);
         }
 

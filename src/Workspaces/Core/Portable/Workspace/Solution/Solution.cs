@@ -1965,9 +1965,16 @@ namespace Microsoft.CodeAnalysis
                 && tracker.TryGetCompilation(out compilation);
         }
 
+        /// <summary>
+        /// Returns the compilation for the specified project ID.  Can return <code>null</code> when the project
+        /// does not support compilations.
+        /// </summary>
         internal Task<Compilation> GetCompilationAsync(ProjectId projectId, CancellationToken cancellationToken)
         {
-            return this.GetCompilationTracker(projectId).GetCompilationAsync(this, cancellationToken);
+            var project = GetProject(projectId);
+            return project.SupportsCompilation
+                ? this.GetCompilationTracker(projectId).GetCompilationAsync(this, cancellationToken)
+                : SpecializedTasks.Default<Compilation>();
         }
 
         private static readonly ConditionalWeakTable<MetadataReference, ProjectId> metadataReferenceToProjectMap =
@@ -2074,6 +2081,12 @@ namespace Microsoft.CodeAnalysis
 
             // it looks like declaration compilation doesnt exist yet. we have to build full compilation
             var compilation = await GetCompilationAsync(id, cancellationToken).ConfigureAwait(false);
+            if (compilation == null)
+            {
+                // some projects don't support compilations (e.g., TypeScript) so there's nothing to check
+                return false;
+            }
+
             return compilation.ContainsSymbolsWithName(predicate, filter, cancellationToken);
         }
 
@@ -2088,6 +2101,12 @@ namespace Microsoft.CodeAnalysis
 
             // it looks like declaration compilation doesnt exist yet. we have to build full compilation
             var compilation = await GetCompilationAsync(id, cancellationToken).ConfigureAwait(false);
+            if (compilation == null)
+            {
+                // some projects don't support compilations (e.g., TypeScript) so there's nothing to check
+                return SpecializedCollections.EmptyEnumerable<Document>();
+            }
+
             return ConvertTreesToDocuments(
                 id, compilation.GetSymbolsWithName(predicate, filter, cancellationToken).SelectMany(s => s.DeclaringSyntaxReferences.Select(r => r.SyntaxTree)));
         }
