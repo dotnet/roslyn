@@ -2374,7 +2374,7 @@ class C { }";
 
             var document = project.Documents.First(d => d.Name == "class1.cs");
             var text = document.GetTextAsync().Result;
-            Assert.Equal(encoding, text.Encoding);
+            Assert.Equal(encoding.EncodingName, text.Encoding.EncodingName);
             Assert.Equal(fileContent, text.ToString());
 
             var root = document.GetSyntaxRootAsync().Result;
@@ -2390,7 +2390,7 @@ class C { }";
             using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
             {
                 var reloadedText = EncodedStringText.Create(stream);
-                Assert.Equal(encoding, reloadedText.Encoding);
+                Assert.Equal(encoding.EncodingName, reloadedText.Encoding.EncodingName);
             }
         }
     }
