@@ -596,6 +596,56 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         ''' <summary>
+        ''' Adjusts receiver of a call or a member access if the receiver is an
+        ''' ambiguous BoundTypeOrValueExpression. This can only hapen if the
+        ''' receiver is the LHS of a member access expression in which the
+        ''' RHS cannot be resolved (i.e. the RHS is an error or a late-bound
+        ''' invocation/access).
+        ''' </summary>
+        Private Function AdjustReceiverAmbiguousTypeOrValue(receiver As BoundExpression, diagnostics As DiagnosticBag) As BoundExpression
+            If receiver IsNot Nothing AndAlso receiver.Kind = BoundKind.TypeOrValueExpression Then
+                Dim typeOrValue = DirectCast(receiver, BoundTypeOrValueExpression)
+                diagnostics.AddRange(typeOrValue.Data.ValueDiagnostics)
+                receiver = typeOrValue.Data.ValueExpression
+            End If
+
+            Return receiver
+        End Function
+
+        Private Function AdjustReceiverAmbiguousTypeOrValue(ByRef group As BoundMethodOrPropertyGroup, diagnostics As DiagnosticBag) As BoundExpression
+            Debug.Assert(group IsNot Nothing)
+
+            Dim receiver = group.ReceiverOpt
+            If receiver IsNot Nothing AndAlso receiver.Kind = BoundKind.TypeOrValueExpression Then
+                receiver = AdjustReceiverAmbiguousTypeOrValue(receiver, diagnostics)
+ 
+                Select Case group.Kind
+                    Case BoundKind.MethodGroup
+                        Dim methodGroup = DirectCast(group, BoundMethodGroup)
+                        group = methodGroup.Update(methodGroup.TypeArgumentsOpt,
+                                                   methodGroup.Methods,
+                                                   methodGroup.PendingExtensionMethodsOpt,
+                                                   methodGroup.ResultKind,
+                                                   receiver,
+                                                   methodGroup.QualificationKind)
+
+                    Case BoundKind.PropertyGroup
+                        Dim propertyGroup = DirectCast(group, BoundPropertyGroup)
+                        group = propertyGroup.Update(propertyGroup.Properties,
+                                                     propertyGroup.ResultKind,
+                                                     receiver,
+                                                     propertyGroup.QualificationKind)
+
+                    Case Else
+                        Throw ExceptionUtilities.UnexpectedValue(group.Kind)
+                End Select
+            End If
+
+           Return receiver
+        End Function
+
+
+        ''' <summary>
         ''' Adjusts receiver of a call or a member access if it is a value
         '''  * will turn Unknown property access into Get property access
         ''' </summary>
@@ -2260,33 +2310,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' =======  11.6.1 Identical Type and Member Names
             ' It is not uncommon to name members using the same name as their type. In that situation, however, 
             ' inconvenient name hiding can occur:
-
+            '
             '        Enum Color
             '            Red
             '            Green
             '            Yellow
             '        End Enum
-
+            '
             '        Class Test
             '            ReadOnly Property Color() As Color
             '                Get
             '                    Return Color.Red
             '                End Get
             '            End Property
-
+            '
             '            Shared Function DefaultColor() As Color
             '                Return Color.Green    ' Binds to the instance property!
             '            End Function
             '        End Class
-
+            '
             '  In the previous example, the simple name Color in DefaultColor binds to the instance property 
             '  instead of the type. Because an instance member cannot be referenced in a shared member, 
             '  this would normally be an error.
+            '
             '  However, a special rule allows access to the type in this case. If the base expression 
             '  of a member access expression is a simple name and binds to a constant, field, property, 
             '  local variable or parameter whose type has the same name, then the base expression can refer 
             '  either to the member or the type. This can never result in ambiguity because the members 
             '  that can be accessed off of either one are the same.
+            '
+            '  In the case that such a base expression binds to an instance member but the binding occurs
+            '  within a context in which "Me" is not accessible, the expression instead binds to the
+            '  type (if applicable).
+            '
+            '  If the base expression cannot be successfully disambiguated by the context in which it
+            '  occurs, it binds to the member. This can occur in particular in late-bound calls or
+            '  error conditions.
 
             If leftOpt.Kind = SyntaxKind.IdentifierName Then
                 Dim node = DirectCast(leftOpt, SimpleNameSyntax)
@@ -2303,26 +2362,48 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim leftSymbol = boundValue.ExpressionSymbol
                 If leftSymbol IsNot Nothing Then
                     Dim leftType As TypeSymbol
+                    Dim isInstanceMember As Boolean
+
                     Select Case leftSymbol.Kind
-                        Case SymbolKind.Field, SymbolKind.Local, SymbolKind.Parameter, SymbolKind.Property, SymbolKind.RangeVariable
+                        Case SymbolKind.Field, SymbolKind.Property
+                            Debug.Assert(boundValue.Type IsNot Nothing)
                             leftType = boundValue.Type
-                            Debug.Assert(leftType IsNot Nothing)
+                            isInstanceMember = Not leftSymbol.IsShared
 
-                            Dim leftName = node.Identifier.ValueText
-                            If CaseInsensitiveComparison.Equals(leftType.Name, leftName) AndAlso leftType.TypeKind <> TypeKind.TypeParameter Then
-                                Dim typeDiagnostics = New DiagnosticBag()
-                                Dim boundType = Me.BindNamespaceOrTypeExpression(node, typeDiagnostics)
-                                If boundType.Type = leftType Then
-                                    Dim valueDiagnostics = New DiagnosticBag()
-                                    valueDiagnostics.AddRangeAndFree(leftDiagnostics)
-                                    If propertyDiagnostics IsNot Nothing Then
-                                        valueDiagnostics.AddRangeAndFree(propertyDiagnostics)
-                                    End If
+                        Case SymbolKind.Local, SymbolKind.Parameter, SymbolKind.RangeVariable
+                            Debug.Assert(boundValue.Type IsNot Nothing)
+                            leftType = boundValue.Type
+                            isInstanceMember = False
 
-                                    Return New BoundTypeOrValueExpression(leftOpt, New BoundTypeOrValueData(boundValue, valueDiagnostics, boundType, typeDiagnostics), leftType)
-                                End If
-                            End If
+                        Case Else
+                            leftType = Nothing
+                            isInstanceMember = False
                     End Select
+
+                    If leftType IsNot Nothing Then
+                        Dim leftName = node.Identifier.ValueText
+                        If CaseInsensitiveComparison.Equals(leftType.Name, leftName) AndAlso leftType.TypeKind <> TypeKind.TypeParameter Then
+                            Dim typeDiagnostics = New DiagnosticBag()
+                            Dim boundType = Me.BindNamespaceOrTypeExpression(node, typeDiagnostics)
+                            If boundType.Type = leftType Then
+                                Dim err As ERRID = Nothing
+                                If isInstanceMember AndAlso (Not CanAccessMe(implicitReference:=True, errorId:=err) OrElse ContainingType <> leftSymbol.ContainingType) Then
+                                    diagnostics.AddRange(typeDiagnostics)
+                                    leftDiagnostics.Free()
+
+                                    Return boundType
+                                End If
+
+                                Dim valueDiagnostics = New DiagnosticBag()
+                                valueDiagnostics.AddRangeAndFree(leftDiagnostics)
+                                If propertyDiagnostics IsNot Nothing Then
+                                    valueDiagnostics.AddRangeAndFree(propertyDiagnostics)
+                                End If
+
+                                Return New BoundTypeOrValueExpression(leftOpt, New BoundTypeOrValueData(boundValue, valueDiagnostics, boundType, typeDiagnostics), leftType)
+                            End If
+                        End If
+                    End If
                 End If
 
                 If propertyDiagnostics IsNot Nothing Then
@@ -2403,7 +2484,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                             Dim hasErrors As Boolean = left.HasErrors
                             If Not hasErrors AndAlso right.Kind = SyntaxKind.GenericName Then
-                                ' Report rror BC30282
+                                ' Report error BC30282
                                 ReportDiagnostic(diagnostics, node, ERRID.ERR_InvalidConstructorCall)
                                 hasErrors = True
                             End If

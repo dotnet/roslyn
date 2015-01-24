@@ -2976,5 +2976,451 @@ BC42104: Variable 'e' is used before it has been assigned a value. A null refere
                                                 </expected>)
         End Sub
 
+        <WorkItem(1108007, "DevDiv")>
+        <Fact()>
+        Public Sub Bug1108007_1()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Class Color
+    Public Shared Sub M(x As Integer)
+        System.Console.WriteLine(x)
+    End Sub
+
+    Public Sub M(x As String)
+    End Sub
+End Class
+
+Class Program
+    Dim Color As Color
+
+    Shared Sub Main()
+        Dim x As Object = 42
+        Color.M(x)
+    End Sub
+End Class
+    </file>
+</compilation>, TestOptions.ReleaseExe)
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim node = tree.GetRoot().DescendantNodes.OfType(Of MemberAccessExpressionSyntax)().Select(Function(e) e.Expression).Where(Function(e) e.ToString() = "Color").Single()
+
+            Dim symbol = model.GetSymbolInfo(node).Symbol
+            Assert.NotNull(symbol)
+            Assert.Equal("Color", symbol.Name)
+            Assert.Equal(SymbolKind.NamedType, symbol.Kind)
+
+            AssertTheseDiagnostics(compilation, <expected></expected>)
+            
+            CompileAndVerify(compilation, expectedOutput:="42")
+        End Sub
+
+        <WorkItem(1108007, "DevDiv")>
+        <Fact()>
+        Public Sub Bug1108007_2()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Class Color
+    Public Shared Sub M(x As Integer)
+        Console.WriteLine(x)
+    End Sub
+
+    Public Sub M(x As String)
+    End Sub
+End Class
+
+Class Program
+    Dim Color As Color
+
+    Shared Sub Main()
+        Try
+            Dim x As Object = ""
+            Color.M(x)
+        Catch e As Exception
+            Console.WriteLine(e)
+        End Try
+    End Sub
+End Class
+    </file>
+</compilation>, TestOptions.ReleaseExe)
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim node = tree.GetRoot().DescendantNodes.OfType(Of MemberAccessExpressionSyntax)().Select(Function(e) e.Expression).Where(Function(e) e.ToString() = "Color").Single()
+
+            Dim symbol = model.GetSymbolInfo(node).Symbol
+            Assert.NotNull(symbol)
+            Assert.Equal("Color", symbol.Name)
+            Assert.Equal(SymbolKind.NamedType, symbol.Kind)
+
+            AssertTheseDiagnostics(compilation, <expected></expected>)
+            
+            CompileAndVerify(compilation, expectedOutput:=<![CDATA[
+System.NullReferenceException: Reference to non-shared member 'Public Sub M(x As String)' requires an object reference.
+   at Microsoft.VisualBasic.CompilerServices.Symbols.Container.InvokeMethod(Method TargetProcedure, Object[] Arguments, Boolean[] CopyBack, BindingFlags Flags)
+   at Microsoft.VisualBasic.CompilerServices.NewLateBinding.CallMethod(Container BaseReference, String MethodName, Object[] Arguments, String[] ArgumentNames, Type[] TypeArguments, Boolean[] CopyBack, BindingFlags InvocationFlags, Boolean ReportErrors, ResolutionFailure& Failure)
+   at Microsoft.VisualBasic.CompilerServices.NewLateBinding.ObjectLateCall(Object Instance, Type Type, String MemberName, Object[] Arguments, String[] ArgumentNames, Type[] TypeArguments, Boolean[] CopyBack, Boolean IgnoreReturn)
+   at Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateCall(Object Instance, Type Type, String MemberName, Object[] Arguments, String[] ArgumentNames, Type[] TypeArguments, Boolean[] CopyBack, Boolean IgnoreReturn)
+   at Program.Main()]]>)
+        End Sub
+
+        <WorkItem(1108007, "DevDiv")>
+        <Fact()>
+        Public Sub Bug1108007_3()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Class MyAttribute
+    Inherits System.Attribute
+
+    Public ReadOnly I As Integer
+
+    Public Sub New(i As Integer)
+        Me.I = i
+    End Sub
+End Class
+
+Class Color
+    Public Const I As Integer = 42
+End Class
+
+Class Program
+    Dim Color As Color
+
+    <MyAttribute(Color.I)>
+    Shared Sub Main()
+    End Sub
+End Class
+        ]]>
+    </file>
+</compilation>, TestOptions.ReleaseExe)
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim node = tree.GetRoot().DescendantNodes.OfType(Of MemberAccessExpressionSyntax)().Select(Function(e) e.Expression).Where(Function(e) e.ToString() = "Color").Single()
+
+            Dim symbol = model.GetSymbolInfo(node).Symbol
+            Assert.NotNull(symbol)
+            Assert.Equal("Color", symbol.Name)
+            Assert.Equal(SymbolKind.NamedType, symbol.Kind)
+
+            AssertTheseDiagnostics(compilation, <expected></expected>)
+        End Sub
+
+        <WorkItem(1108007, "DevDiv")>
+        <Fact()>
+        Public Sub Bug1108007_4()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Class Color
+    Public Shared Sub M(x As Integer)
+        Console.WriteLine(x)
+    End Sub
+
+    Public Sub M(x As String)
+    End Sub
+
+    Class Program
+        Dim Color As Color
+
+        Sub M()
+            Try
+                Dim x As Object = ""
+                Color.M(x)
+            Catch e As Exception
+                Console.WriteLine(e)
+            End Try
+        End Sub
+
+        Shared Sub Main()
+            Dim p = New Program()
+            p.M()
+        End Sub
+    End Class
+End Class
+    </file>
+</compilation>, TestOptions.ReleaseExe)
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim node = tree.GetRoot().DescendantNodes.OfType(Of MemberAccessExpressionSyntax)().Select(Function(e) e.Expression).Where(Function(e) e.ToString() = "Color").Single()
+
+            Dim symbol = model.GetSymbolInfo(node).Symbol
+            Assert.NotNull(symbol)
+            Assert.Equal("Color", symbol.Name)
+            Assert.Equal(SymbolKind.Field, symbol.Kind)
+
+            AssertTheseDiagnostics(compilation, <expected></expected>)
+
+            CompileAndVerify(compilation, expectedOutput:=<![CDATA[
+System.NullReferenceException: Object variable or With block variable not set.
+   at Microsoft.VisualBasic.CompilerServices.Symbols.Container..ctor(Object Instance)
+   at Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateCall(Object Instance, Type Type, String MemberName, Object[] Arguments, String[] ArgumentNames, Type[] TypeArguments, Boolean[] CopyBack, Boolean IgnoreReturn)
+   at Color.Program.M()]]>)
+        End Sub
+
+        <WorkItem(1108007, "DevDiv")>
+        <Fact()>
+        Public Sub Bug1108007_5()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Class Color
+    Public Shared Function M(x As Integer) As Integer
+        Return x
+    End Function
+
+    Public Function M(x As String) As Integer
+        Return x.Length
+    End Function
+End Class
+
+Class A
+    Public Sub New(x As Integer)
+        Console.WriteLine(x)
+    End Sub
+End Class
+
+Class B
+    Inherits A
+
+    Dim Color As Color
+
+    Public Sub New()
+        MyBase.New(Color.M(DirectCast(42, Object)))
+    End Sub
+
+    Shared Sub Main()
+        Dim b = New B()
+    End Sub
+End Class
+    </file>
+</compilation>, TestOptions.ReleaseExe)
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim node = tree.GetRoot().DescendantNodes.OfType(Of MemberAccessExpressionSyntax)().Select(Function(e) e.Expression).Where(Function(e) e.ToString() = "Color").Single()
+
+            Dim symbol = model.GetSymbolInfo(node).Symbol
+            Assert.NotNull(symbol)
+            Assert.Equal("Color", symbol.Name)
+            Assert.Equal(SymbolKind.NamedType, symbol.Kind)
+
+            AssertTheseDiagnostics(compilation, <expected></expected>)
+
+            CompileAndVerify(compilation, expectedOutput:="42")
+        End Sub
+
+        <WorkItem(1108007, "DevDiv")>
+        <Fact()>
+        Public Sub Bug1108007_6()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Class Color
+    Public Shared Function M(x As Integer) As Integer
+        Console.WriteLine(x)
+        Return x
+    End Function
+
+    Public Function M(x As String) As Integer
+        Return x.Length
+    End Function
+End Class
+
+Class Program
+    Dim Color As Color
+    Dim I As Integer = Color.M(DirectCast(42, Object))
+
+    Shared Sub Main()
+        Try
+            Dim p = New Program()
+        Catch e As Exception
+            Console.WriteLine(e)
+        End Try
+    End Sub
+End Class
+    </file>
+</compilation>, TestOptions.ReleaseExe)
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim node = tree.GetRoot().DescendantNodes.OfType(Of MemberAccessExpressionSyntax)().Select(Function(e) e.Expression).Where(Function(e) e.ToString() = "Color").Single()
+
+            Dim symbol = model.GetSymbolInfo(node).Symbol
+            Assert.NotNull(symbol)
+            Assert.Equal("Color", symbol.Name)
+            Assert.Equal(SymbolKind.Field, symbol.Kind)
+
+            AssertTheseDiagnostics(compilation, <expected></expected>)
+
+            CompileAndVerify(compilation, expectedOutput:=<![CDATA[
+System.NullReferenceException: Object variable or With block variable not set.
+   at Microsoft.VisualBasic.CompilerServices.Symbols.Container..ctor(Object Instance)
+   at Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateGet(Object Instance, Type Type, String MemberName, Object[] Arguments, String[] ArgumentNames, Type[] TypeArguments, Boolean[] CopyBack)
+   at Program..ctor()
+   at Program.Main()]]>)
+        End Sub
+
+        <WorkItem(1108007, "DevDiv")>
+        <Fact()>
+        Public Sub Bug1108007_7()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Class Color
+    Public Shared Function M(x As Integer) As Integer
+        Console.WriteLine(x)
+        Return x
+    End Function
+
+    Public Function M(x As String) As Integer
+        Return x.Length
+    End Function
+End Class
+
+Class Program
+    Dim Color As Color
+    Shared Dim I As Integer = Color.M(DirectCast(42, Object))
+
+    Shared Sub Main()
+        Dim i = Program.I
+    End Sub
+End Class
+    </file>
+</compilation>, TestOptions.ReleaseExe)
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim node = tree.GetRoot().DescendantNodes.OfType(Of MemberAccessExpressionSyntax)().Select(Function(e) e.Expression).Where(Function(e) e.ToString() = "Color").Single()
+
+            Dim symbol = model.GetSymbolInfo(node).Symbol
+            Assert.NotNull(symbol)
+            Assert.Equal("Color", symbol.Name)
+            Assert.Equal(SymbolKind.NamedType, symbol.Kind)
+
+            AssertTheseDiagnostics(compilation, <expected></expected>)
+
+            CompileAndVerify(compilation, expectedOutput:="42")
+        End Sub
+
+        <WorkItem(1108007, "DevDiv")>
+        <Fact()>
+        Public Sub Bug1108007_8()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Imports System
+
+Class Color
+    Public Shared Sub M(x As Integer)
+        Console.WriteLine(x)
+    End Sub
+
+    Public Sub M(x As String)
+    End Sub
+End Class
+
+Class Outer
+    Dim Color As Color
+
+    Class Program
+        Sub M()
+            Try
+                Dim x As Object = ""
+                Color.M(x)
+            Catch e As Exception
+                Console.WriteLine(e)
+            End Try
+        End Sub
+
+        Shared Sub Main()
+            Dim p = New Program()
+            p.M()
+        End Sub
+    End Class
+End Class
+    </file>
+</compilation>, TestOptions.ReleaseExe)
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim node = tree.GetRoot().DescendantNodes.OfType(Of MemberAccessExpressionSyntax)().Select(Function(e) e.Expression).Where(Function(e) e.ToString() = "Color").Single()
+
+            Dim symbol = model.GetSymbolInfo(node).Symbol
+            Assert.NotNull(symbol)
+            Assert.Equal("Color", symbol.Name)
+            Assert.Equal(SymbolKind.NamedType, symbol.Kind)
+
+            AssertTheseDiagnostics(compilation, <expected></expected>)
+
+            CompileAndVerify(compilation, expectedOutput:=<![CDATA[
+System.NullReferenceException: Reference to non-shared member 'Public Sub M(x As String)' requires an object reference.
+   at Microsoft.VisualBasic.CompilerServices.Symbols.Container.InvokeMethod(Method TargetProcedure, Object[] Arguments, Boolean[] CopyBack, BindingFlags Flags)
+   at Microsoft.VisualBasic.CompilerServices.NewLateBinding.CallMethod(Container BaseReference, String MethodName, Object[] Arguments, String[] ArgumentNames, Type[] TypeArguments, Boolean[] CopyBack, BindingFlags InvocationFlags, Boolean ReportErrors, ResolutionFailure& Failure)
+   at Microsoft.VisualBasic.CompilerServices.NewLateBinding.ObjectLateCall(Object Instance, Type Type, String MemberName, Object[] Arguments, String[] ArgumentNames, Type[] TypeArguments, Boolean[] CopyBack, Boolean IgnoreReturn)
+   at Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateCall(Object Instance, Type Type, String MemberName, Object[] Arguments, String[] ArgumentNames, Type[] TypeArguments, Boolean[] CopyBack, Boolean IgnoreReturn)
+   at Outer.Program.M()]]>)
+        End Sub
+
+        <WorkItem(1108007, "DevDiv")>
+        <Fact()>
+        Public Sub Bug1108007_9()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Class Color
+    Public Shared Sub M(x As Integer)
+        System.Console.WriteLine(x)
+    End Sub
+
+    Public Sub M(x As String)
+    End Sub
+End Class
+
+Class Outer
+    Shared Dim Color As Color = New Color()
+
+    Class Program
+        Sub M()
+            Dim x As Object = 42
+            Color.M(x)
+        End Sub
+
+        Shared Sub Main()
+            Dim p = New Program()
+            p.M()
+        End Sub
+    End Class
+End Class    </file>
+</compilation>, TestOptions.ReleaseExe)
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim node = tree.GetRoot().DescendantNodes.OfType(Of MemberAccessExpressionSyntax)().Select(Function(e) e.Expression).Where(Function(e) e.ToString() = "Color").Single()
+
+            Dim symbol = model.GetSymbolInfo(node).Symbol
+            Assert.NotNull(symbol)
+            Assert.Equal("Color", symbol.Name)
+            Assert.Equal(SymbolKind.Field, symbol.Kind)
+
+            AssertTheseDiagnostics(compilation, <expected></expected>)
+
+            CompileAndVerify(compilation, expectedOutput:="42")
+        End Sub
     End Class
 End Namespace

@@ -2314,6 +2314,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Public Overrides Function VisitObjectInitializerExpression(node As BoundObjectInitializerExpression) As BoundNode
                 Return Me.VisitObjectInitializerExpressionBase(node)
             End Function
+
+            Public Overrides Function VisitLateInvocation(node As BoundLateInvocation) As BoundNode
+                MyBase.VisitLateInvocation(node)
+
+                Dim member = TryCast(node.Member, BoundLateMemberAccess)
+                If member IsNot Nothing AndAlso member.ReceiverOpt Is Nothing AndAlso node.MethodOrPropertyGroupOpt IsNot Nothing Then
+                    ' The semantic model needs to see the method or property group's receiver if its member's receiver is Nothing.
+                    Visit(node.MethodOrPropertyGroupOpt.ReceiverOpt)
+                End If
+
+                Return Nothing
+            End Function
         End Class
     End Class
 End Namespace
