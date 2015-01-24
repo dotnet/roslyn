@@ -5232,6 +5232,12 @@
   <data name="ERR_InterpolationFormatWhitespace" xml:space="preserve">
     <value>Format specifier may not contain trailing whitespace.</value>
   </data>
+  <data name="ERR_InterpolationAlignmentOutOfRange" xml:space="preserve">
+    <value>Alignment value is outside of the supported range.</value>
+  </data>
+  <data name="ERR_InterpolatedStringFactoryError" xml:space="preserve">
+    <value>There were one or more errors emitting a call to {0}.{1}. Method or its return type may be missing or malformed.</value>
+  </data>
   <data name="HDN_UnusedImportClause_Title" xml:space="preserve">
     <value>Unused import clause</value>
   </data>

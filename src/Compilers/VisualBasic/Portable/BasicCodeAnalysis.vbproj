@@ -215,6 +215,7 @@
     <Compile Include="Binding\TypesOfImportedNamespacesMembersBinder.vb" />
     <Compile Include="Binding\UsingBlockBinder.vb" />
     <Compile Include="Binding\UsingInfo.vb" />
+    <Compile Include="BoundTree\BoundInterpolatedStringExpression.vb" />
     <Compile Include="BoundTree\BoundMyClassReference.vb" />
     <Compile Include="BoundTree\BoundMyBaseReference.vb" />
     <Compile Include="BoundTree\BoundAddressOfOperator.vb" />

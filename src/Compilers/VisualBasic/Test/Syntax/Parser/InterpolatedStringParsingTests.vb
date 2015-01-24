@@ -166,48 +166,194 @@ End Module")
     End Sub
 
     <Fact>
-    Public Sub ImplicitLineContinuation_AfterAfterOpenBraceAndBeforeCloseBraceWithoutFormatClause()
-
+    Public Sub ERR_InterpolationFormatWhitespace()
         Parse(
 "Module Program
     Sub Main()
-        Console.WriteLine($""Hello, {
-                                        From name In names 
-                                        Select name.Length
-                                    }!"")
+        Console.WriteLine($""Hello, {EventArgs.Empty:C02 }!"")
     End Sub
-End Module")
+End Module"
+        ).AssertTheseDiagnostics(
+<expected>
+BC37249: Format specifier may not contain trailing whitespace.
+        Console.WriteLine($"Hello, {EventArgs.Empty:C02 }!")
+                                                    ~~~
+</expected>)
 
     End Sub
 
     <Fact>
-    Public Sub ImplicitLineContinuation_AfterAlignmentClause()
-
+    Public Sub Error_NewLineAfterAfterOpenBraceAndBeforeCloseBraceWithoutFormatClause()
         Parse(
 "Module Program
     Sub Main()
         Console.WriteLine($""Hello, {
-                                        From name In names 
-                                        Select name.Length,-5
-                                    }!"")
+EventArgs.Empty
+}!"")
     End Sub
-End Module")
+End Module"
+        ).AssertTheseDiagnostics(
+<expected>
+BC30625: 'Module' statement must end with a matching 'End Module'.
+Module Program
+~~~~~~~~~~~~~~
+BC30026: 'End Sub' expected.
+    Sub Main()
+    ~~~~~~~~~~
+BC30198: ')' expected.
+        Console.WriteLine($"Hello, {
+                                    ~
+BC30201: Expression expected.
+        Console.WriteLine($"Hello, {
+                                    ~
+BC30370: '}' expected.
+        Console.WriteLine($"Hello, {
+                                    ~
+BC30648: String constants must end with a double quote.
+}!")
+  ~~~
+</expected>)
 
     End Sub
 
     <Fact>
-    Public Sub ImplicitLineContinuation_AfterFormatClause()
-
+    Public Sub Error_NewLineAfterAlignmentClause()
         Parse(
 "Module Program
     Sub Main()
-        Console.WriteLine($""Hello, {
-                                        From name In names 
-                                        Select name.Length:C02
-                                    }!"")
+        Console.WriteLine($""Hello, {EventArgs.Empty,-10
+:C02}!"")
     End Sub
-End Module")
+End Module"
+        ).AssertTheseDiagnostics(
+<expected>
+BC30625: 'Module' statement must end with a matching 'End Module'.
+Module Program
+~~~~~~~~~~~~~~
+BC30026: 'End Sub' expected.
+    Sub Main()
+    ~~~~~~~~~~
+BC30198: ')' expected.
+        Console.WriteLine($"Hello, {EventArgs.Empty,-10
+                                                       ~
+BC30370: '}' expected.
+        Console.WriteLine($"Hello, {EventArgs.Empty,-10
+                                                       ~
+BC30201: Expression expected.
+:C02}!")
+    ~
+BC30800: Method arguments must be enclosed in parentheses.
+:C02}!")
+    ~
+BC30648: String constants must end with a double quote.
+:C02}!")
+      ~~~
+</expected>)
+    End Sub
 
+    <Fact>
+    Public Sub Error_NewLineAfterAlignmentClauseCommaToken()
+        Parse(
+"Module Program
+    Sub Main()
+        Console.WriteLine($""Hello, {EventArgs.Empty,
+-10:C02}!"")
+    End Sub
+End Module"
+        ).AssertTheseDiagnostics(
+<expected>
+BC30625: 'Module' statement must end with a matching 'End Module'.
+Module Program
+~~~~~~~~~~~~~~
+BC30026: 'End Sub' expected.
+    Sub Main()
+    ~~~~~~~~~~
+BC30198: ')' expected.
+        Console.WriteLine($"Hello, {EventArgs.Empty,
+                                                    ~
+BC30204: Integer constant expected.
+        Console.WriteLine($"Hello, {EventArgs.Empty,
+                                                    ~
+BC30370: '}' expected.
+        Console.WriteLine($"Hello, {EventArgs.Empty,
+                                                    ~
+BC30035: Syntax error.
+-10:C02}!")
+~
+BC30201: Expression expected.
+-10:C02}!")
+       ~
+BC30800: Method arguments must be enclosed in parentheses.
+-10:C02}!")
+       ~
+BC30648: String constants must end with a double quote.
+-10:C02}!")
+         ~~~
+</expected>)
+    End Sub
+
+    <Fact>
+    Public Sub Error_NewLineAfterFormatClause()
+        Parse(
+"Module Program
+    Sub Main()
+        Console.WriteLine($""Hello, {EventArgs.Empty:C02
+}!"")
+    End Sub
+End Module"
+        ).AssertTheseDiagnostics(
+<expected>
+BC30625: 'Module' statement must end with a matching 'End Module'.
+Module Program
+~~~~~~~~~~~~~~
+BC30026: 'End Sub' expected.
+    Sub Main()
+    ~~~~~~~~~~
+BC30198: ')' expected.
+        Console.WriteLine($"Hello, {EventArgs.Empty:C02
+                                                       ~
+BC30370: '}' expected.
+        Console.WriteLine($"Hello, {EventArgs.Empty:C02
+                                                       ~
+BC30648: String constants must end with a double quote.
+}!")
+  ~~~
+</expected>)
+    End Sub
+
+    <Fact>
+    Public Sub Error_NewLineAfterFormatClauseColonToken()
+        Parse(
+"Module Program
+    Sub Main()
+        Console.WriteLine($""Hello, {EventArgs.Empty:
+C02}!"")
+    End Sub
+End Module"
+        ).AssertTheseDiagnostics(
+<expected>
+BC30625: 'Module' statement must end with a matching 'End Module'.
+Module Program
+~~~~~~~~~~~~~~
+BC30026: 'End Sub' expected.
+    Sub Main()
+    ~~~~~~~~~~
+BC30198: ')' expected.
+        Console.WriteLine($"Hello, {EventArgs.Empty:
+                                                    ~
+BC30370: '}' expected.
+        Console.WriteLine($"Hello, {EventArgs.Empty:
+                                                    ~
+BC30201: Expression expected.
+C02}!")
+   ~
+BC30800: Method arguments must be enclosed in parentheses.
+C02}!")
+   ~
+BC30648: String constants must end with a double quote.
+C02}!")
+     ~~~
+</expected>)
     End Sub
 
     <Fact>

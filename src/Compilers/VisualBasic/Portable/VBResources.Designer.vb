@@ -5586,6 +5586,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to There were one or more errors emitting a call to {0}.{1}. Method or its return type may be missing or malformed..
+        '''</summary>
+        Friend ReadOnly Property ERR_InterpolatedStringFactoryError() As String
+            Get
+                Return ResourceManager.GetString("ERR_InterpolatedStringFactoryError", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Alignment value is outside of the supported range..
+        '''</summary>
+        Friend ReadOnly Property ERR_InterpolationAlignmentOutOfRange() As String
+            Get
+                Return ResourceManager.GetString("ERR_InterpolationAlignmentOutOfRange", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Format specifier may not contain trailing whitespace..
         '''</summary>
         Friend ReadOnly Property ERR_InterpolationFormatWhitespace() As String
@@ -11695,7 +11713,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Unused import clause..
+        '''  Looks up a localized string similar to Unused import clause.
         '''</summary>
         Friend ReadOnly Property HDN_UnusedImportClause_Title() As String
             Get
@@ -11713,7 +11731,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Unused import statement..
+        '''  Looks up a localized string similar to Unused import statement.
         '''</summary>
         Friend ReadOnly Property HDN_UnusedImportStatement_Title() As String
             Get
@@ -11848,7 +11866,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Skip loading types in analyzer assembly that fail due to a ReflectionTypeLoadException..
+        '''  Looks up a localized string similar to Skip loading types in analyzer assembly that fail due to a ReflectionTypeLoadException.
         '''</summary>
         Friend ReadOnly Property INF_UnableToLoadSomeTypesInAnalyzer_Title() As String
             Get
@@ -12091,7 +12109,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Conversion may be ambiguous..
+        '''  Looks up a localized string similar to Conversion may be ambiguous.
         '''</summary>
         Friend ReadOnly Property WRN_AmbiguousCastConversion2_Title() As String
             Get
@@ -12109,7 +12127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Instance of analyzer cannot be created..
+        '''  Looks up a localized string similar to Instance of analyzer cannot be created.
         '''</summary>
         Friend ReadOnly Property WRN_AnalyzerCannotBeCreated_Title() As String
             Get
@@ -12127,7 +12145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Cannot infer an element type..
+        '''  Looks up a localized string similar to Cannot infer an element type.
         '''</summary>
         Friend ReadOnly Property WRN_ArrayInitNoTypeObjectAssumed_Title() As String
             Get
@@ -12145,7 +12163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Cannot infer an element type because more than one type is possible..
+        '''  Looks up a localized string similar to Cannot infer an element type because more than one type is possible.
         '''</summary>
         Friend ReadOnly Property WRN_ArrayInitTooManyTypesObjectAssumed_Title() As String
             Get
@@ -12181,7 +12199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Attribute from module will be ignored in favor of the instance appearing in source..
+        '''  Looks up a localized string similar to Attribute from module will be ignored in favor of the instance appearing in source.
         '''</summary>
         Friend ReadOnly Property WRN_AssemblyAttributeFromModuleIsOverridden_Title() As String
             Get
@@ -12217,7 +12235,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Possible problem detected while building assembly..
+        '''  Looks up a localized string similar to Possible problem detected while building assembly.
         '''</summary>
         Friend ReadOnly Property WRN_AssemblyGeneration1_Title() As String
             Get
@@ -12235,7 +12253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to This async method lacks &apos;Await&apos; operators and so will run synchronously..
+        '''  Looks up a localized string similar to This async method lacks &apos;Await&apos; operators and so will run synchronously.
         '''</summary>
         Friend ReadOnly Property WRN_AsyncLacksAwaits_Title() As String
             Get
@@ -12253,7 +12271,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Some overloads here take an Async Function rather than an Async Sub..
+        '''  Looks up a localized string similar to Some overloads here take an Async Function rather than an Async Sub.
         '''</summary>
         Friend ReadOnly Property WRN_AsyncSubCouldBeFunction_Title() As String
             Get
@@ -12271,7 +12289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Bad checksum value, non hex digits or odd number of hex digits..
+        '''  Looks up a localized string similar to Bad checksum value, non hex digits or odd number of hex digits.
         '''</summary>
         Friend ReadOnly Property WRN_BadChecksumValExtChecksum_Title() As String
             Get
@@ -12289,7 +12307,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Bad GUID format..
+        '''  Looks up a localized string similar to Bad GUID format.
         '''</summary>
         Friend ReadOnly Property WRN_BadGUIDFormatExtChecksum_Title() As String
             Get
@@ -12361,7 +12379,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Could not find standard library..
+        '''  Looks up a localized string similar to Could not find standard library.
         '''</summary>
         Friend ReadOnly Property WRN_CannotFindStandardLibrary1_Title() As String
             Get
@@ -12397,7 +12415,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to AddHandler or RemoveHandler method for event cannot be marked CLS compliant because its containing type is not CLS compliant..
+        '''  Looks up a localized string similar to AddHandler or RemoveHandler method for event cannot be marked CLS compliant because its containing type is not CLS compliant.
         '''</summary>
         Friend ReadOnly Property WRN_CLSEventMethodInNonCLSType3_Title() As String
             Get
@@ -12433,7 +12451,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to &apos;Microsoft.VisualBasic.ComClassAttribute&apos; on class implicitly declares member, which conflicts with a member of the same name..
+        '''  Looks up a localized string similar to &apos;Microsoft.VisualBasic.ComClassAttribute&apos; on class implicitly declares member, which conflicts with a member of the same name.
         '''</summary>
         Friend ReadOnly Property WRN_ComClassInterfaceShadows5_Title() As String
             Get
@@ -12469,7 +12487,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Property cannot be exposed to COM as a property &apos;Let&apos;..
+        '''  Looks up a localized string similar to Property cannot be exposed to COM as a property &apos;Let&apos;.
         '''</summary>
         Friend ReadOnly Property WRN_ComClassPropertySetObject1_Title() As String
             Get
@@ -12487,7 +12505,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Attribute &apos;Conditional&apos; is only valid on &apos;Sub&apos; declarations..
+        '''  Looks up a localized string similar to Attribute &apos;Conditional&apos; is only valid on &apos;Sub&apos; declarations.
         '''</summary>
         Friend ReadOnly Property WRN_ConditionalNotValidOnFunction_Title() As String
             Get
@@ -12505,7 +12523,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Referenced assembly targets a different processor..
+        '''  Looks up a localized string similar to Referenced assembly targets a different processor.
         '''</summary>
         Friend ReadOnly Property WRN_ConflictingMachineAssembly_Title() As String
             Get
@@ -12523,7 +12541,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Type arguments inferred for method result in warnings..
+        '''  Looks up a localized string similar to Type arguments inferred for method result in warnings.
         '''</summary>
         Friend ReadOnly Property WRN_ConstraintsFailedForInferredArgs2_Title() As String
             Get
@@ -12541,7 +12559,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to System.Diagnostics.DebuggerHiddenAttribute does not affect &apos;Get&apos; or &apos;Set&apos; when applied to the Property definition..
+        '''  Looks up a localized string similar to System.Diagnostics.DebuggerHiddenAttribute does not affect &apos;Get&apos; or &apos;Set&apos; when applied to the Property definition.
         '''</summary>
         Friend ReadOnly Property WRN_DebuggerHiddenIgnoredOnProperties_Title() As String
             Get
@@ -12559,7 +12577,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Function doesn&apos;t return a value on all code paths..
+        '''  Looks up a localized string similar to Function doesn&apos;t return a value on all code paths.
         '''</summary>
         Friend ReadOnly Property WRN_DefAsgNoRetValFuncRef1_Title() As String
             Get
@@ -12577,7 +12595,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Function doesn&apos;t return a value on all code paths..
+        '''  Looks up a localized string similar to Function doesn&apos;t return a value on all code paths.
         '''</summary>
         Friend ReadOnly Property WRN_DefAsgNoRetValFuncVal1_Title() As String
             Get
@@ -12595,7 +12613,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Operator doesn&apos;t return a value on all code paths..
+        '''  Looks up a localized string similar to Operator doesn&apos;t return a value on all code paths.
         '''</summary>
         Friend ReadOnly Property WRN_DefAsgNoRetValOpRef1_Title() As String
             Get
@@ -12613,7 +12631,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Operator doesn&apos;t return a value on all code paths..
+        '''  Looks up a localized string similar to Operator doesn&apos;t return a value on all code paths.
         '''</summary>
         Friend ReadOnly Property WRN_DefAsgNoRetValOpVal1_Title() As String
             Get
@@ -12631,7 +12649,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Property doesn&apos;t return a value on all code paths..
+        '''  Looks up a localized string similar to Property doesn&apos;t return a value on all code paths.
         '''</summary>
         Friend ReadOnly Property WRN_DefAsgNoRetValPropRef1_Title() As String
             Get
@@ -12649,7 +12667,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Property doesn&apos;t return a value on all code paths..
+        '''  Looks up a localized string similar to Property doesn&apos;t return a value on all code paths.
         '''</summary>
         Friend ReadOnly Property WRN_DefAsgNoRetValPropVal1_Title() As String
             Get
@@ -12667,7 +12685,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to The AddHandler for Windows Runtime event doesn&apos;t return a value on all code paths..
+        '''  Looks up a localized string similar to The AddHandler for Windows Runtime event doesn&apos;t return a value on all code paths.
         '''</summary>
         Friend ReadOnly Property WRN_DefAsgNoRetValWinRtEventVal1_Title() As String
             Get
@@ -12685,7 +12703,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Variable is used before it has been assigned a value..
+        '''  Looks up a localized string similar to Variable is used before it has been assigned a value.
         '''</summary>
         Friend ReadOnly Property WRN_DefAsgUseNullRef_Title() As String
             Get
@@ -12703,7 +12721,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Variable is passed by reference before it has been assigned a value..
+        '''  Looks up a localized string similar to Variable is passed by reference before it has been assigned a value.
         '''</summary>
         Friend ReadOnly Property WRN_DefAsgUseNullRefByRef_Title() As String
             Get
@@ -12721,7 +12739,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Variable is passed by reference before it has been assigned a value..
+        '''  Looks up a localized string similar to Variable is passed by reference before it has been assigned a value.
         '''</summary>
         Friend ReadOnly Property WRN_DefAsgUseNullRefByRefStr_Title() As String
             Get
@@ -12739,7 +12757,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Variable is used before it has been assigned a value..
+        '''  Looks up a localized string similar to Variable is used before it has been assigned a value.
         '''</summary>
         Friend ReadOnly Property WRN_DefAsgUseNullRefStr_Title() As String
             Get
@@ -12757,7 +12775,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Default property conflicts with the default property in the base type..
+        '''  Looks up a localized string similar to Default property conflicts with the default property in the base type.
         '''</summary>
         Friend ReadOnly Property WRN_DefaultnessShadowed4_Title() As String
             Get
@@ -12775,7 +12793,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Delay signing was specified and requires a public key, but no public key was specified..
+        '''  Looks up a localized string similar to Delay signing was specified and requires a public key, but no public key was specified.
         '''</summary>
         Friend ReadOnly Property WRN_DelaySignButNoKey_Title() As String
             Get
@@ -12793,7 +12811,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to &apos;Catch&apos; block never reached; exception type handled above in the same Try statement..
+        '''  Looks up a localized string similar to &apos;Catch&apos; block never reached; exception type handled above in the same Try statement.
         '''</summary>
         Friend ReadOnly Property WRN_DuplicateCatch_Title() As String
             Get
@@ -12811,7 +12829,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to The xmlns attribute has special meaning and should not be written with a prefix..
+        '''  Looks up a localized string similar to The xmlns attribute has special meaning and should not be written with a prefix.
         '''</summary>
         Friend ReadOnly Property WRN_EmptyPrefixAndXmlnsLocalName_Title() As String
             Get
@@ -12847,7 +12865,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to This expression will always evaluate to Nothing..
+        '''  Looks up a localized string similar to This expression will always evaluate to Nothing.
         '''</summary>
         Friend ReadOnly Property WRN_EqualToLiteralNothing_Title() As String
             Get
@@ -12865,7 +12883,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Delegate type of event is not CLS-compliant..
+        '''  Looks up a localized string similar to Delegate type of event is not CLS-compliant.
         '''</summary>
         Friend ReadOnly Property WRN_EventDelegateTypeNotCLSCompliant2_Title() As String
             Get
@@ -12883,7 +12901,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Constructor in designer-generated type should call InitializeComponent method..
+        '''  Looks up a localized string similar to Constructor in designer-generated type should call InitializeComponent method.
         '''</summary>
         Friend ReadOnly Property WRN_ExpectedInitComponentCall2_Title() As String
             Get
@@ -12955,7 +12973,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Cannot infer a common type..
+        '''  Looks up a localized string similar to Cannot infer a common type.
         '''</summary>
         Friend ReadOnly Property WRN_IfNoTypeObjectAssumed_Title() As String
             Get
@@ -12973,7 +12991,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Cannot infer a common type because more than one type is possible..
+        '''  Looks up a localized string similar to Cannot infer a common type because more than one type is possible.
         '''</summary>
         Friend ReadOnly Property WRN_IfTooManyTypesObjectAssumed_Title() As String
             Get
@@ -13009,7 +13027,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Implicit conversion..
+        '''  Looks up a localized string similar to Implicit conversion.
         '''</summary>
         Friend ReadOnly Property WRN_ImplicitConversion2_Title() As String
             Get
@@ -13027,7 +13045,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Implicit conversion in copying the value of &apos;ByRef&apos; parameter back to the matching argument..
+        '''  Looks up a localized string similar to Implicit conversion in copying the value of &apos;ByRef&apos; parameter back to the matching argument.
         '''</summary>
         Friend ReadOnly Property WRN_ImplicitConversionCopyBack_Title() As String
             Get
@@ -13045,7 +13063,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Implicit conversion..
+        '''  Looks up a localized string similar to Implicit conversion.
         '''</summary>
         Friend ReadOnly Property WRN_ImplicitConversionSubst1_Title() As String
             Get
@@ -13063,7 +13081,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to A reference was created to embedded interop assembly because of an indirect reference to that assembly..
+        '''  Looks up a localized string similar to A reference was created to embedded interop assembly because of an indirect reference to that assembly.
         '''</summary>
         Friend ReadOnly Property WRN_IndirectRefToLinkedAssembly2_Title() As String
             Get
@@ -13099,7 +13117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Runtime errors might occur when converting to or from interface type..
+        '''  Looks up a localized string similar to Runtime errors might occur when converting to or from interface type.
         '''</summary>
         Friend ReadOnly Property WRN_InterfaceConversion2_Title() As String
             Get
@@ -13117,7 +13135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Assembly reference is invalid and cannot be resolved..
+        '''  Looks up a localized string similar to Assembly reference is invalid and cannot be resolved.
         '''</summary>
         Friend ReadOnly Property WRN_InvalidAssemblyName_Title() As String
             Get
@@ -13135,7 +13153,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to The specified version string does not conform to the recommended format..
+        '''  Looks up a localized string similar to The specified version string does not conform to the recommended format.
         '''</summary>
         Friend ReadOnly Property WRN_InvalidVersionFormat_Title() As String
             Get
@@ -13171,7 +13189,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Cannot infer a return type..
+        '''  Looks up a localized string similar to Cannot infer a return type.
         '''</summary>
         Friend ReadOnly Property WRN_LambdaNoTypeObjectAssumed_Title() As String
             Get
@@ -13189,7 +13207,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Lambda expression will not be removed from this event handler..
+        '''  Looks up a localized string similar to Lambda expression will not be removed from this event handler.
         '''</summary>
         Friend ReadOnly Property WRN_LambdaPassedToRemoveHandler_Title() As String
             Get
@@ -13207,7 +13225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Cannot infer a return type because more than one type is possible..
+        '''  Looks up a localized string similar to Cannot infer a return type because more than one type is possible.
         '''</summary>
         Friend ReadOnly Property WRN_LambdaTooManyTypesObjectAssumed_Title() As String
             Get
@@ -13225,7 +13243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Late bound resolution..
+        '''  Looks up a localized string similar to Late bound resolution.
         '''</summary>
         Friend ReadOnly Property WRN_LateBindingResolution_Title() As String
             Get
@@ -13243,7 +13261,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Using the iteration variable in a lambda expression may have unexpected results..
+        '''  Looks up a localized string similar to Using the iteration variable in a lambda expression may have unexpected results.
         '''</summary>
         Friend ReadOnly Property WRN_LiftControlVariableLambda_Title() As String
             Get
@@ -13261,7 +13279,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Using the iteration variable in a query expression may have unexpected results..
+        '''  Looks up a localized string similar to Using the iteration variable in a query expression may have unexpected results.
         '''</summary>
         Friend ReadOnly Property WRN_LiftControlVariableQuery_Title() As String
             Get
@@ -13279,7 +13297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to The entry point of the program is global script code; ignoring entry point..
+        '''  Looks up a localized string similar to The entry point of the program is global script code; ignoring entry point.
         '''</summary>
         Friend ReadOnly Property WRN_MainIgnored_Title() As String
             Get
@@ -13315,7 +13333,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Function without an &apos;As&apos; clause..
+        '''  Looks up a localized string similar to Function without an &apos;As&apos; clause.
         '''</summary>
         Friend ReadOnly Property WRN_MissingAsClauseinFunction_Title() As String
             Get
@@ -13333,7 +13351,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Operator without an &apos;As&apos; clause..
+        '''  Looks up a localized string similar to Operator without an &apos;As&apos; clause.
         '''</summary>
         Friend ReadOnly Property WRN_MissingAsClauseinOperator_Title() As String
             Get
@@ -13351,7 +13369,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Property without an &apos;As&apos; clause..
+        '''  Looks up a localized string similar to Property without an &apos;As&apos; clause.
         '''</summary>
         Friend ReadOnly Property WRN_MissingAsClauseinProperty_Title() As String
             Get
@@ -13369,7 +13387,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Variable declaration without an &apos;As&apos; clause..
+        '''  Looks up a localized string similar to Variable declaration without an &apos;As&apos; clause.
         '''</summary>
         Friend ReadOnly Property WRN_MissingAsClauseinVarDecl_Title() As String
             Get
@@ -13387,7 +13405,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to File name already declared with a different GUID and checksum value..
+        '''  Looks up a localized string similar to File name already declared with a different GUID and checksum value.
         '''</summary>
         Friend ReadOnly Property WRN_MultipleDeclFileExtChecksum_Title() As String
             Get
@@ -13441,7 +13459,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Method conflicts with other members of the same name across the inheritance hierarchy and so should be declared &apos;Shadows&apos;..
+        '''  Looks up a localized string similar to Method conflicts with other members of the same name across the inheritance hierarchy and so should be declared &apos;Shadows&apos;.
         '''</summary>
         Friend ReadOnly Property WRN_MustShadowOnMultipleInheritance2_Title() As String
             Get
@@ -13459,7 +13477,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Local variable declared by Using statement is read-only and its type may be a structure..
+        '''  Looks up a localized string similar to Local variable declared by Using statement is read-only and its type may be a structure.
         '''</summary>
         Friend ReadOnly Property WRN_MutableGenericStructureInUsing_Title() As String
             Get
@@ -13477,7 +13495,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Local variable declared by Using statement is read-only and its type is a structure..
+        '''  Looks up a localized string similar to Local variable declared by Using statement is read-only and its type is a structure.
         '''</summary>
         Friend ReadOnly Property WRN_MutableStructureInUsing_Title() As String
             Get
@@ -13513,7 +13531,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Casing of namespace name does not match..
+        '''  Looks up a localized string similar to Casing of namespace name does not match.
         '''</summary>
         Friend ReadOnly Property WRN_NamespaceCaseMismatch3_Title() As String
             Get
@@ -13531,7 +13549,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Assembly does not contain any analyzers..
+        '''  Looks up a localized string similar to Assembly does not contain any analyzers.
         '''</summary>
         Friend ReadOnly Property WRN_NoAnalyzerInAssembly_Title() As String
             Get
@@ -13603,7 +13621,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Class should declare a &apos;Sub New&apos; because the constructor in its base class is marked obsolete..
+        '''  Looks up a localized string similar to Class should declare a &apos;Sub New&apos; because the constructor in its base class is marked obsolete.
         '''</summary>
         Friend ReadOnly Property WRN_NoNonObsoleteConstructorOnBase3_Title() As String
             Get
@@ -13621,7 +13639,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Class should declare a &apos;Sub New&apos; because the constructor in its base class is marked obsolete..
+        '''  Looks up a localized string similar to Class should declare a &apos;Sub New&apos; because the constructor in its base class is marked obsolete.
         '''</summary>
         Friend ReadOnly Property WRN_NoNonObsoleteConstructorOnBase4_Title() As String
             Get
@@ -13639,7 +13657,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to This expression will always evaluate to Nothing..
+        '''  Looks up a localized string similar to This expression will always evaluate to Nothing.
         '''</summary>
         Friend ReadOnly Property WRN_NotEqualToLiteralNothing_Title() As String
             Get
@@ -13657,7 +13675,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Function without an &apos;As&apos; clause..
+        '''  Looks up a localized string similar to Function without an &apos;As&apos; clause.
         '''</summary>
         Friend ReadOnly Property WRN_ObjectAssumed1_Title() As String
             Get
@@ -13675,7 +13693,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Property without an &apos;As&apos; clause..
+        '''  Looks up a localized string similar to Property without an &apos;As&apos; clause.
         '''</summary>
         Friend ReadOnly Property WRN_ObjectAssumedProperty1_Title() As String
             Get
@@ -13693,7 +13711,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Variable declaration without an &apos;As&apos; clause..
+        '''  Looks up a localized string similar to Variable declaration without an &apos;As&apos; clause.
         '''</summary>
         Friend ReadOnly Property WRN_ObjectAssumedVar1_Title() As String
             Get
@@ -13711,7 +13729,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Operands of type Object used for operator..
+        '''  Looks up a localized string similar to Operands of type Object used for operator.
         '''</summary>
         Friend ReadOnly Property WRN_ObjectMath1_Title() As String
             Get
@@ -13729,7 +13747,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Operands of type Object used for operator &lt;&gt;..
+        '''  Looks up a localized string similar to Operands of type Object used for operator &lt;&gt;.
         '''</summary>
         Friend ReadOnly Property WRN_ObjectMath1Not_Title() As String
             Get
@@ -13747,7 +13765,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Operands of type Object used for operator..
+        '''  Looks up a localized string similar to Operands of type Object used for operator.
         '''</summary>
         Friend ReadOnly Property WRN_ObjectMath2_Title() As String
             Get
@@ -13765,7 +13783,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Operands of type Object used in expressions for &apos;Select&apos;, &apos;Case&apos; statements..
+        '''  Looks up a localized string similar to Operands of type Object used in expressions for &apos;Select&apos;, &apos;Case&apos; statements.
         '''</summary>
         Friend ReadOnly Property WRN_ObjectMathSelectCase_Title() As String
             Get
@@ -13783,7 +13801,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Using DirectCast operator to cast a value-type to the same type is obsolete..
+        '''  Looks up a localized string similar to Using DirectCast operator to cast a value-type to the same type is obsolete.
         '''</summary>
         Friend ReadOnly Property WRN_ObsoleteIdentityDirectCastForValueType_Title() As String
             Get
@@ -13819,7 +13837,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to &apos;Catch&apos; block never reached; exception type&apos;s base type handled above in the same Try statement..
+        '''  Looks up a localized string similar to &apos;Catch&apos; block never reached; exception type&apos;s base type handled above in the same Try statement.
         '''</summary>
         Friend ReadOnly Property WRN_OverlapingCatch_Title() As String
             Get
@@ -13873,7 +13891,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Local name is too long for PDB..
+        '''  Looks up a localized string similar to Local name is too long for PDB.
         '''</summary>
         Friend ReadOnly Property WRN_PdbLocalNameTooLong_Title() As String
             Get
@@ -13891,7 +13909,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Import string is too long for PDB..
+        '''  Looks up a localized string similar to Import string is too long for PDB.
         '''</summary>
         Friend ReadOnly Property WRN_PdbUsingNameTooLong_Title() As String
             Get
@@ -13909,7 +13927,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to It is not recommended to have attributes named xmlns..
+        '''  Looks up a localized string similar to It is not recommended to have attributes named xmlns.
         '''</summary>
         Friend ReadOnly Property WRN_PrefixAndXmlnsLocalName_Title() As String
             Get
@@ -13945,7 +13963,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Range variable is assumed to be of type Object because its type cannot be inferred..
+        '''  Looks up a localized string similar to Range variable is assumed to be of type Object because its type cannot be inferred.
         '''</summary>
         Friend ReadOnly Property WRN_QueryMissingAsClauseinVarDecl_Title() As String
             Get
@@ -13963,7 +13981,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Statement recursively calls the event&apos;s containing AddHandler..
+        '''  Looks up a localized string similar to Statement recursively calls the event&apos;s containing AddHandler.
         '''</summary>
         Friend ReadOnly Property WRN_RecursiveAddHandlerCall_Title() As String
             Get
@@ -13981,7 +13999,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Expression recursively calls the containing Operator..
+        '''  Looks up a localized string similar to Expression recursively calls the containing Operator.
         '''</summary>
         Friend ReadOnly Property WRN_RecursiveOperatorCall_Title() As String
             Get
@@ -13999,7 +14017,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Expression recursively calls the containing property..
+        '''  Looks up a localized string similar to Expression recursively calls the containing property.
         '''</summary>
         Friend ReadOnly Property WRN_RecursivePropertyCall_Title() As String
             Get
@@ -14017,7 +14035,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Referenced assembly has different culture setting..
+        '''  Looks up a localized string similar to Referenced assembly has different culture setting.
         '''</summary>
         Friend ReadOnly Property WRN_RefCultureMismatch_Title() As String
             Get
@@ -14035,7 +14053,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Referenced assembly does not have a strong name..
+        '''  Looks up a localized string similar to Referenced assembly does not have a strong name.
         '''</summary>
         Friend ReadOnly Property WRN_ReferencedAssemblyDoesNotHaveStrongName_Title() As String
             Get
@@ -14053,7 +14071,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to The &apos;AddressOf&apos; expression has no effect in this context because the method argument to &apos;AddressOf&apos; requires a relaxed conversion to the delegate type of the event..
+        '''  Looks up a localized string similar to The &apos;AddressOf&apos; expression has no effect in this context because the method argument to &apos;AddressOf&apos; requires a relaxed conversion to the delegate type of the event.
         '''</summary>
         Friend ReadOnly Property WRN_RelDelegatePassedToRemoveHandler_Title() As String
             Get
@@ -14071,7 +14089,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to First statement of this &apos;Sub New&apos; should be an explicit call to &apos;MyBase.New&apos; or &apos;MyClass.New&apos; because the constructor in the base class is marked obsolete..
+        '''  Looks up a localized string similar to First statement of this &apos;Sub New&apos; should be an explicit call to &apos;MyBase.New&apos; or &apos;MyClass.New&apos; because the constructor in the base class is marked obsolete.
         '''</summary>
         Friend ReadOnly Property WRN_RequiredNonObsoleteNewCall3_Title() As String
             Get
@@ -14089,7 +14107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to First statement of this &apos;Sub New&apos; should be an explicit call to &apos;MyBase.New&apos; or &apos;MyClass.New&apos; because the constructor in the base class is marked obsolete..
+        '''  Looks up a localized string similar to First statement of this &apos;Sub New&apos; should be an explicit call to &apos;MyBase.New&apos; or &apos;MyClass.New&apos; because the constructor in the base class is marked obsolete.
         '''</summary>
         Friend ReadOnly Property WRN_RequiredNonObsoleteNewCall4_Title() As String
             Get
@@ -14107,7 +14125,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Attributes applied on a return type of a WriteOnly Property have no effect..
+        '''  Looks up a localized string similar to Attributes applied on a return type of a WriteOnly Property have no effect.
         '''</summary>
         Friend ReadOnly Property WRN_ReturnTypeAttributeOnWriteOnlyProperty_Title() As String
             Get
@@ -14161,7 +14179,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Range specified for &apos;Case&apos; statement is not valid..
+        '''  Looks up a localized string similar to Range specified for &apos;Case&apos; statement is not valid.
         '''</summary>
         Friend ReadOnly Property WRN_SelectCaseInvalidRange_Title() As String
             Get
@@ -14179,7 +14197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Type parameter has the same name as a type parameter of an enclosing type..
+        '''  Looks up a localized string similar to Type parameter has the same name as a type parameter of an enclosing type.
         '''</summary>
         Friend ReadOnly Property WRN_ShadowingGenericParamWithParam1_Title() As String
             Get
@@ -14197,7 +14215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Access of shared member, constant member, enum member or nested type through an instance..
+        '''  Looks up a localized string similar to Access of shared member, constant member, enum member or nested type through an instance.
         '''</summary>
         Friend ReadOnly Property WRN_SharedMemberThroughInstance_Title() As String
             Get
@@ -14215,7 +14233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Static variable declared without an &apos;As&apos; clause..
+        '''  Looks up a localized string similar to Static variable declared without an &apos;As&apos; clause.
         '''</summary>
         Friend ReadOnly Property WRN_StaticLocalNoInference_Title() As String
             Get
@@ -14233,7 +14251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Property or event implicitly declares type or member that conflicts with a member in the base type..
+        '''  Looks up a localized string similar to Property or event implicitly declares type or member that conflicts with a member in the base type.
         '''</summary>
         Friend ReadOnly Property WRN_SynthMemberShadowsMember5_Title() As String
             Get
@@ -14251,7 +14269,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Property or event implicitly declares member, which conflicts with a member implicitly declared for property or event in the base type..
+        '''  Looks up a localized string similar to Property or event implicitly declares member, which conflicts with a member implicitly declared for property or event in the base type.
         '''</summary>
         Friend ReadOnly Property WRN_SynthMemberShadowsSynthMember7_Title() As String
             Get
@@ -14269,7 +14287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Type and partial type conflict, but are being merged because one of them is declared partial..
+        '''  Looks up a localized string similar to Type and partial type conflict, but are being merged because one of them is declared partial.
         '''</summary>
         Friend ReadOnly Property WRN_TypeConflictButMerged6_Title() As String
             Get
@@ -14287,7 +14305,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Data type could not be inferred..
+        '''  Looks up a localized string similar to Data type could not be inferred.
         '''</summary>
         Friend ReadOnly Property WRN_TypeInferenceAssumed3_Title() As String
             Get
@@ -14323,7 +14341,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Unable to load analyzer assembly..
+        '''  Looks up a localized string similar to Unable to load analyzer assembly.
         '''</summary>
         Friend ReadOnly Property WRN_UnableToLoadAnalyzer_Title() As String
             Get
@@ -14341,7 +14359,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Namespace or type specified in Imports statement doesn&apos;t contain any public member or cannot be found..
+        '''  Looks up a localized string similar to Namespace or type specified in Imports statement doesn&apos;t contain any public member or cannot be found.
         '''</summary>
         Friend ReadOnly Property WRN_UndefinedOrEmptyNamespaceOrClass1_Title() As String
             Get
@@ -14359,7 +14377,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Namespace or type imported at project level doesn&apos;t contain any public member or cannot be found..
+        '''  Looks up a localized string similar to Namespace or type imported at project level doesn&apos;t contain any public member or cannot be found.
         '''</summary>
         Friend ReadOnly Property WRN_UndefinedOrEmpyProjectNamespaceOrClass1_Title() As String
             Get
@@ -14377,7 +14395,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Command line switch is not yet implemented..
+        '''  Looks up a localized string similar to Command line switch is not yet implemented.
         '''</summary>
         Friend ReadOnly Property WRN_UnimplementedCommandLineSwitch_Title() As String
             Get
@@ -14395,7 +14413,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to The Task returned from this Async Function will be dropped, and any exceptions in it ignored..
+        '''  Looks up a localized string similar to The Task returned from this Async Function will be dropped, and any exceptions in it ignored.
         '''</summary>
         Friend ReadOnly Property WRN_UnobservedAwaitableDelegate_Title() As String
             Get
@@ -14413,7 +14431,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Because this call is not awaited, execution of the current method continues before the call is completed..
+        '''  Looks up a localized string similar to Because this call is not awaited, execution of the current method continues before the call is completed.
         '''</summary>
         Friend ReadOnly Property WRN_UnobservedAwaitableExpression_Title() As String
             Get
@@ -14431,7 +14449,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Unreachable code detected..
+        '''  Looks up a localized string similar to Unreachable code detected.
         '''</summary>
         Friend ReadOnly Property WRN_UnreachableCode_Title() As String
             Get
@@ -14449,7 +14467,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Unused local variable..
+        '''  Looks up a localized string similar to Unused local variable.
         '''</summary>
         Friend ReadOnly Property WRN_UnusedLocal_Title() As String
             Get
@@ -14467,7 +14485,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Unused local constant..
+        '''  Looks up a localized string similar to Unused local constant.
         '''</summary>
         Friend ReadOnly Property WRN_UnusedLocalConst_Title() As String
             Get
@@ -14557,7 +14575,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Use command-line option /keyfile, /keycontainer, or /delaysign instead of AssemblyKeyFileAttribute, AssemblyKeyNameAttribute, or AssemblyDelaySignAttribute..
+        '''  Looks up a localized string similar to Use command-line option /keyfile, /keycontainer, or /delaysign instead of AssemblyKeyFileAttribute, AssemblyKeyNameAttribute, or AssemblyDelaySignAttribute.
         '''</summary>
         Friend ReadOnly Property WRN_UseSwitchInsteadOfAttribute_Title() As String
             Get
@@ -14593,7 +14611,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Implicit conversion; this conversion may fail because the target type is not derived from the source type, as required for &apos;In&apos; generic parameter..
+        '''  Looks up a localized string similar to Implicit conversion; this conversion may fail because the target type is not derived from the source type, as required for &apos;In&apos; generic parameter.
         '''</summary>
         Friend ReadOnly Property WRN_VarianceConversionFailedIn6_Title() As String
             Get
@@ -14611,7 +14629,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Implicit conversion; this conversion may fail because the target type is not derived from the source type, as required for &apos;Out&apos; generic parameter..
+        '''  Looks up a localized string similar to Implicit conversion; this conversion may fail because the target type is not derived from the source type, as required for &apos;Out&apos; generic parameter.
         '''</summary>
         Friend ReadOnly Property WRN_VarianceConversionFailedOut6_Title() As String
             Get
@@ -14629,7 +14647,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Type cannot be converted to target type..
+        '''  Looks up a localized string similar to Type cannot be converted to target type.
         '''</summary>
         Friend ReadOnly Property WRN_VarianceConversionFailedTryIn4_Title() As String
             Get
@@ -14647,7 +14665,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Type cannot be converted to target type..
+        '''  Looks up a localized string similar to Type cannot be converted to target type.
         '''</summary>
         Friend ReadOnly Property WRN_VarianceConversionFailedTryOut4_Title() As String
             Get
@@ -14665,7 +14683,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Interface is ambiguous with another implemented interface due to &apos;In&apos; and &apos;Out&apos; parameters..
+        '''  Looks up a localized string similar to Interface is ambiguous with another implemented interface due to &apos;In&apos; and &apos;Out&apos; parameters.
         '''</summary>
         Friend ReadOnly Property WRN_VarianceDeclarationAmbiguous3_Title() As String
             Get
@@ -14683,7 +14701,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Type cannot be converted to target collection type..
+        '''  Looks up a localized string similar to Type cannot be converted to target collection type.
         '''</summary>
         Friend ReadOnly Property WRN_VarianceIEnumerableSuggestion3_Title() As String
             Get
@@ -14701,7 +14719,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Unable to create XML documentation file..
+        '''  Looks up a localized string similar to Unable to create XML documentation file.
         '''</summary>
         Friend ReadOnly Property WRN_XMLCannotWriteToXMLDocFile2_Title() As String
             Get
@@ -14719,7 +14737,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Unable to include XML fragment..
+        '''  Looks up a localized string similar to Unable to include XML fragment.
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocBadFormedXML_Title() As String
             Get
@@ -14737,7 +14755,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to XML comment type parameter does not match a type parameter on the corresponding declaration statement..
+        '''  Looks up a localized string similar to XML comment type parameter does not match a type parameter on the corresponding declaration statement.
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocBadGenericParamTag2_Title() As String
             Get
@@ -14755,7 +14773,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to XML comment parameter does not match a parameter on the corresponding declaration statement..
+        '''  Looks up a localized string similar to XML comment parameter does not match a parameter on the corresponding declaration statement.
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocBadParamTag2_Title() As String
             Get
@@ -14773,7 +14791,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to XML comment block must immediately precede the language element to which it applies..
+        '''  Looks up a localized string similar to XML comment block must immediately precede the language element to which it applies.
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocBadXMLLine_Title() As String
             Get
@@ -14791,7 +14809,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to XML comment has a tag with a &apos;cref&apos; attribute that could not be resolved..
+        '''  Looks up a localized string similar to XML comment has a tag with a &apos;cref&apos; attribute that could not be resolved.
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocCrefAttributeNotFound1_Title() As String
             Get
@@ -14809,7 +14827,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to XML comment has a tag with a &apos;cref&apos; attribute that bound to a type parameter..
+        '''  Looks up a localized string similar to XML comment has a tag with a &apos;cref&apos; attribute that bound to a type parameter.
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocCrefToTypeParameter_Title() As String
             Get
@@ -14827,7 +14845,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to XML comment tag appears with identical attributes more than once in the same XML comment block..
+        '''  Looks up a localized string similar to XML comment tag appears with identical attributes more than once in the same XML comment block.
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocDuplicateXMLNode1_Title() As String
             Get
@@ -14845,7 +14863,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to XML comment exception must have a &apos;cref&apos; attribute..
+        '''  Looks up a localized string similar to XML comment exception must have a &apos;cref&apos; attribute.
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocExceptionTagWithoutCRef_Title() As String
             Get
@@ -14863,7 +14881,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to XML comment type parameter must have a &apos;name&apos; attribute..
+        '''  Looks up a localized string similar to XML comment type parameter must have a &apos;name&apos; attribute.
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocGenericParamTagWithoutName_Title() As String
             Get
@@ -14881,7 +14899,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to XML comment tag is not permitted on language element..
+        '''  Looks up a localized string similar to XML comment tag is not permitted on language element.
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocIllegalTagOnElement2_Title() As String
             Get
@@ -14899,7 +14917,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to XML comment cannot appear within a method or a property..
+        '''  Looks up a localized string similar to XML comment cannot appear within a method or a property.
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocInsideMethod_Title() As String
             Get
@@ -14917,7 +14935,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Unable to include XML fragment..
+        '''  Looks up a localized string similar to Unable to include XML fragment.
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocInvalidXMLFragment_Title() As String
             Get
@@ -14935,7 +14953,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Only one XML comment block is allowed per language element..
+        '''  Looks up a localized string similar to Only one XML comment block is allowed per language element.
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocMoreThanOneCommentBlock_Title() As String
             Get
@@ -14953,7 +14971,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to XML comment must be the first statement on a line..
+        '''  Looks up a localized string similar to XML comment must be the first statement on a line.
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocNotFirstOnLine_Title() As String
             Get
@@ -14971,7 +14989,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to XML comment cannot be applied more than once on a partial type..
+        '''  Looks up a localized string similar to XML comment cannot be applied more than once on a partial type.
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocOnAPartialType_Title() As String
             Get
@@ -14989,7 +15007,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to XML comment parameter must have a &apos;name&apos; attribute..
+        '''  Looks up a localized string similar to XML comment parameter must have a &apos;name&apos; attribute.
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocParamTagWithoutName_Title() As String
             Get
@@ -15007,7 +15025,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to XML documentation parse error..
+        '''  Looks up a localized string similar to XML documentation parse error.
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocParseError1_Title() As String
             Get
@@ -15025,7 +15043,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to XML comment tag &apos;returns&apos; is not permitted on a &apos;declare sub&apos; language element..
+        '''  Looks up a localized string similar to XML comment tag &apos;returns&apos; is not permitted on a &apos;declare sub&apos; language element.
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocReturnsOnADeclareSub_Title() As String
             Get
@@ -15043,7 +15061,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to XML comment tag &apos;returns&apos; is not permitted on a &apos;WriteOnly&apos; Property..
+        '''  Looks up a localized string similar to XML comment tag &apos;returns&apos; is not permitted on a &apos;WriteOnly&apos; Property.
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocReturnsOnWriteOnlyProperty_Title() As String
             Get
@@ -15061,7 +15079,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to XML documentation parse error: Start tag doesn&apos;t have a matching end tag..
+        '''  Looks up a localized string similar to XML documentation parse error: Start tag doesn&apos;t have a matching end tag.
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocStartTagWithNoEndTag_Title() As String
             Get
@@ -15079,7 +15097,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to XML documentation comments must precede member or type declarations..
+        '''  Looks up a localized string similar to XML documentation comments must precede member or type declarations.
         '''</summary>
         Friend ReadOnly Property WRN_XMLDocWithoutLanguageElement_Title() As String
             Get
@@ -15097,7 +15115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to XML comment tag &apos;include&apos; must have &apos;file&apos; and &apos;path&apos; attributes..
+        '''  Looks up a localized string similar to XML comment tag &apos;include&apos; must have &apos;file&apos; and &apos;path&apos; attributes.
         '''</summary>
         Friend ReadOnly Property WRN_XMLMissingFileOrPathAttribute1_Title() As String
             Get
