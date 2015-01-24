@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -11,26 +11,50 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 {
     internal static class FatalError
     {
-        private static Action<Exception> handler;
+        private static Action<Exception> fatalHandler;
+        private static Action<Exception> nonFatalHandler;
+
         private static Exception reportedException;
         private static string reportedExceptionMessage;
 
-        // Set by the host to a fail fast trigger, 
-        // if the host desires to crash the process on a fatal exception.
-        // May also just report a non-fatal Watson and continue.
+        /// <summary>
+        /// Set by the host to a fail fast trigger, 
+        /// if the host desires to crash the process on a fatal exception.
+        /// </summary>
         public static Action<Exception> Handler
         {
             get
             {
-                return handler;
+                return fatalHandler;
             }
 
             set
             {
-                if (handler != value)
+                if (fatalHandler != value)
                 {
-                    Debug.Assert(handler == null, "Handler already set");
-                    handler = value;
+                    Debug.Assert(fatalHandler == null, "Handler already set");
+                    fatalHandler = value;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Set by the host to a fail fast trigger, 
+        /// if the host desires to NOT crash the process on a non fatal exception.
+        /// </summary>
+        public static Action<Exception> NonFatalHandler
+        {
+            get
+            {
+                return nonFatalHandler;
+            }
+
+            set
+            {
+                if (nonFatalHandler != value)
+                {
+                    Debug.Assert(nonFatalHandler == null, "Handler already set");
+                    nonFatalHandler = value;
                 }
             }
         }
@@ -40,13 +64,13 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         // overwrite this value.
         public static void OverwriteHandler(Action<Exception> value)
         {
-            handler = value;
+            fatalHandler = value;
         }
 
         /// <summary>
         /// Use in an exception filter to report a fatal error. 
         /// Unless the exception is <see cref="OperationCanceledException"/> 
-        /// it calls <see cref="Handler"/>. The exception is passed thru (the method returns false).
+        /// it calls <see cref="Handler"/>. The exception is passed through (the method returns false).
         /// </summary>
         /// <returns>False to avoid catching the exception.</returns>
         [DebuggerHidden]
@@ -61,9 +85,26 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
         }
 
         /// <summary>
+        /// Use in an exception filter to report a non fatal error. 
+        /// Unless the exception is <see cref="OperationCanceledException"/> 
+        /// it calls <see cref="NonFatalHandler"/>. The exception isn't passed through (the method returns true).
+        /// </summary>
+        /// <returns>True to catch the exception.</returns>
+        [DebuggerHidden]
+        public static bool ReportWithoutCrashUnlessCanceled(Exception exception)
+        {
+            if (exception is OperationCanceledException)
+            {
+                return false;
+            }
+
+            return ReportWithoutCrash(exception);
+        }
+
+        /// <summary>
         /// Use in an exception filter to report a fatal error. 
         /// Unless the exception is <see cref="NotImplementedException"/> 
-        /// it calls <see cref="Handler"/>. The exception is passed thru (the method returns false).
+        /// it calls <see cref="Handler"/>. The exception is passed through (the method returns false).
         /// </summary>
         /// <returns>False to avoid catching the exception.</returns>
         [DebuggerHidden]
@@ -79,22 +120,38 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
 
         /// <summary>
         /// Use in an exception filter to report a fatal error.
-        /// Calls <see cref="Handler"/> and passes the exception thru (the method returns false).
+        /// Calls <see cref="Handler"/> and passes the exception through (the method returns false).
         /// </summary>
         /// <returns>False to avoid catching the exception.</returns>
+        [DebuggerHidden]
         public static bool Report(Exception exception)
+        {
+            Report(exception, fatalHandler);
+            return false;
+        }
+
+        /// <summary>
+        /// Use in an exception filter to report a non fatal error.
+        /// Calls <see cref="NonFatalHandler"/> and doesn't pass the exception through (the method returns true).
+        /// </summary>
+        /// <returns>True to catch the exception.</returns>
+        [DebuggerHidden]
+        public static bool ReportWithoutCrash(Exception exception)
+        {
+            Report(exception, nonFatalHandler);
+            return true;
+        }
+
+        private static void Report(Exception exception, Action<Exception> handler)
         {
             // hold onto last exception to make investigation easier
             reportedException = exception;
             reportedExceptionMessage = exception.ToString();
 
-            var localHandler = handler;
-            if (localHandler != null)
+            if (handler != null)
             {
-                localHandler(exception);
+                handler(exception);
             }
-
-            return false;
         }
     }
 }
