@@ -290,8 +290,7 @@ public class C
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x1"" hidden=""true"" document=""0"" />
-        <entry offset=""0x3"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""19"" document=""0"" />
+        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""19"" document=""0"" />
         <entry offset=""0x12"" startLine=""9"" startColumn=""20"" endLine=""9"" endColumn=""21"" document=""0"" />
         <entry offset=""0x13"" startLine=""9"" startColumn=""22"" endLine=""9"" endColumn=""23"" document=""0"" />
         <entry offset=""0x16"" hidden=""true"" document=""0"" />
@@ -314,8 +313,7 @@ public class C
         <forward declaringType=""C"" methodName=""F"" />
       </customDebugInfo>
       <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x2"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""19"" document=""0"" />
+        <entry offset=""0x0"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""19"" document=""0"" />
         <entry offset=""0x10"" startLine=""9"" startColumn=""22"" endLine=""9"" endColumn=""23"" document=""0"" />
         <entry offset=""0x12"" hidden=""true"" document=""0"" />
         <entry offset=""0x1c"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""20"" document=""0"" />
@@ -476,23 +474,23 @@ public class C
                 object V_2,
                 bool V_3)
  -IL_0000:  nop
- ~IL_0001:  ldc.i4.0
-  IL_0002:  stloc.1
+ -IL_0001:  call       ""object C.F()""
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.0
+  IL_0008:  stloc.1
   .try
   {
-   -IL_0003:  call       ""object C.F()""
-    IL_0008:  stloc.0
     IL_0009:  ldloc.0
     IL_000a:  ldloca.s   V_1
     IL_000c:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
     IL_0011:  nop
    -IL_0012:  nop
-   ~IL_0013:  ldc.i4.0
-    IL_0014:  stloc.3
+   -IL_0013:  call       ""object C.F()""
+    IL_0018:  stloc.2
+    IL_0019:  ldc.i4.0
+    IL_001a:  stloc.3
     .try
     {
-     -IL_0015:  call       ""object C.F()""
-      IL_001a:  stloc.2
       IL_001b:  ldloc.2
       IL_001c:  ldloca.s   V_3
       IL_001e:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
@@ -1482,12 +1480,12 @@ class C
                 char V_4, //c
                 System.IDisposable V_5)
   IL_0000:  nop
-  IL_0001:  ldc.i4.0
-  IL_0002:  stloc.1
+  IL_0001:  call       ""object C.F1()""
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.0
+  IL_0008:  stloc.1
   .try
   {
-    IL_0003:  call       ""object C.F1()""
-    IL_0008:  stloc.0
     IL_0009:  ldloc.0
     IL_000a:  ldloca.s   V_1
     IL_000c:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
@@ -1568,12 +1566,12 @@ class C
                 char V_4, //c
                 [unchanged] V_5)
   IL_0000:  nop
-  IL_0001:  ldc.i4.0
-  IL_0002:  stloc.1
+  IL_0001:  call       ""object C.F1()""
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.0
+  IL_0008:  stloc.1
   .try
   {
-    IL_0003:  call       ""object C.F1()""
-    IL_0008:  stloc.0
     IL_0009:  ldloc.0
     IL_000a:  ldloca.s   V_1
     IL_000c:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
@@ -1648,12 +1646,12 @@ class C
     IL_0017:  nop
     IL_0018:  endfinally
   }
- ~IL_0019:  ldc.i4.0
-  IL_001a:  stloc.1
+ -IL_0019:  call       ""object C.F1()""
+  IL_001e:  stloc.0
+  IL_001f:  ldc.i4.0
+  IL_0020:  stloc.1
   .try
   {
-   -IL_001b:  call       ""object C.F1()""
-    IL_0020:  stloc.0
     IL_0021:  ldloc.0
     IL_0022:  ldloca.s   V_1
     IL_0024:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
@@ -1758,12 +1756,12 @@ class C
                 object V_6,
                 bool V_7)
   IL_0000:  nop
-  IL_0001:  ldc.i4.0
-  IL_0002:  stloc.s    V_5
+  IL_0001:  call       ""object C.F3()""
+  IL_0006:  stloc.s    V_4
+  IL_0008:  ldc.i4.0
+  IL_0009:  stloc.s    V_5
   .try
   {
-    IL_0004:  call       ""object C.F3()""
-    IL_0009:  stloc.s    V_4
     IL_000b:  ldloc.s    V_4
     IL_000d:  ldloca.s   V_5
     IL_000f:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
@@ -1781,12 +1779,12 @@ class C
     IL_0024:  nop
     IL_0025:  endfinally
   }
-  IL_0026:  ldc.i4.0
-  IL_0027:  stloc.1
+  IL_0026:  call       ""object C.F1()""
+  IL_002b:  stloc.0
+  IL_002c:  ldc.i4.0
+  IL_002d:  stloc.1
   .try
   {
-    IL_0028:  call       ""object C.F1()""
-    IL_002d:  stloc.0
     IL_002e:  ldloc.0
     IL_002f:  ldloca.s   V_1
     IL_0031:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
@@ -1804,12 +1802,12 @@ class C
     IL_0044:  nop
     IL_0045:  endfinally
   }
-  IL_0046:  ldc.i4.0
-  IL_0047:  stloc.s    V_7
+  IL_0046:  call       ""object C.F4()""
+  IL_004b:  stloc.s    V_6
+  IL_004d:  ldc.i4.0
+  IL_004e:  stloc.s    V_7
   .try
   {
-    IL_0049:  call       ""object C.F4()""
-    IL_004e:  stloc.s    V_6
     IL_0050:  ldloc.s    V_6
     IL_0052:  ldloca.s   V_7
     IL_0054:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
@@ -1927,12 +1925,12 @@ class C
     IL_0037:  nop
     IL_0038:  endfinally
   }
-  IL_0039:  ldc.i4.0
-  IL_003a:  stloc.s    V_5
+  IL_0039:  call       ""A C.F()""
+  IL_003e:  stloc.s    V_4
+  IL_0040:  ldc.i4.0
+  IL_0041:  stloc.s    V_5
   .try
   {
-    IL_003c:  call       ""A C.F()""
-    IL_0041:  stloc.s    V_4
     IL_0043:  ldloc.s    V_4
     IL_0045:  ldloca.s   V_5
     IL_0047:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
@@ -2662,12 +2660,12 @@ class C
   .locals init (object V_0,
                 bool V_1)
   IL_0000:  nop
-  IL_0001:  ldc.i4.0
-  IL_0002:  stloc.1
+  IL_0001:  call       ""object C.F()""
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.0
+  IL_0008:  stloc.1
   .try
   {
-    IL_0003:  call       ""object C.F()""
-    IL_0008:  stloc.0
     IL_0009:  ldloc.0
     IL_000a:  ldloca.s   V_1
     IL_000c:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
@@ -2753,15 +2751,15 @@ class C
   IL_001c:  stfld      ""int C.<F>d__0.<>1__state""
   IL_0021:  nop
   IL_0022:  ldarg.0
-  IL_0023:  ldc.i4.0
-  IL_0024:  stfld      ""bool C.<F>d__0.<>s__2""
+  IL_0023:  ldarg.0
+  IL_0024:  ldfld      ""C C.<F>d__0.<>4__this""
+  IL_0029:  callvirt   ""System.Collections.Generic.IEnumerable<int> C.F()""
+  IL_002e:  stfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
+  IL_0033:  ldarg.0
+  IL_0034:  ldc.i4.0
+  IL_0035:  stfld      ""bool C.<F>d__0.<>s__2""
   .try
   {
-    IL_0029:  ldarg.0
-    IL_002a:  ldarg.0
-    IL_002b:  ldfld      ""C C.<F>d__0.<>4__this""
-    IL_0030:  callvirt   ""System.Collections.Generic.IEnumerable<int> C.F()""
-    IL_0035:  stfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
     IL_003a:  ldarg.0
     IL_003b:  ldfld      ""System.Collections.Generic.IEnumerable<int> C.<F>d__0.<>s__1""
     IL_0040:  ldarg.0
@@ -2860,15 +2858,15 @@ class C
     IL_000c:  br         IL_009e
     IL_0011:  nop
     IL_0012:  ldarg.0
-    IL_0013:  ldc.i4.0
-    IL_0014:  stfld      ""bool C.<F>d__0.<>s__2""
+    IL_0013:  ldarg.0
+    IL_0014:  ldfld      ""C C.<F>d__0.<>4__this""
+    IL_0019:  callvirt   ""System.Threading.Tasks.Task<int> C.F()""
+    IL_001e:  stfld      ""System.Threading.Tasks.Task<int> C.<F>d__0.<>s__1""
+    IL_0023:  ldarg.0
+    IL_0024:  ldc.i4.0
+    IL_0025:  stfld      ""bool C.<F>d__0.<>s__2""
     .try
     {
-      IL_0019:  ldarg.0
-      IL_001a:  ldarg.0
-      IL_001b:  ldfld      ""C C.<F>d__0.<>4__this""
-      IL_0020:  callvirt   ""System.Threading.Tasks.Task<int> C.F()""
-      IL_0025:  stfld      ""System.Threading.Tasks.Task<int> C.<F>d__0.<>s__1""
       IL_002a:  ldarg.0
       IL_002b:  ldfld      ""System.Threading.Tasks.Task<int> C.<F>d__0.<>s__1""
       IL_0030:  ldarg.0

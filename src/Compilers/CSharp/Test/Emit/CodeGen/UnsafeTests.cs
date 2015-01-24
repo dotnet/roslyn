@@ -2704,12 +2704,12 @@ unsafe class C
                 bool V_1,
                 char* V_2, //p
                 pinned string V_3)
-  IL_0000:  ldc.i4.0
-  IL_0001:  stloc.1
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  stloc.1
   .try
   {
-    IL_0002:  ldarg.0
-    IL_0003:  stloc.0
     IL_0004:  ldloc.0
     IL_0005:  ldloca.s   V_1
     IL_0007:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""

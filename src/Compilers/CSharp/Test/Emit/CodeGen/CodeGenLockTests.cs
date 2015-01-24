@@ -7,7 +7,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    public class LockTests : EmitMetadataTestBase
+    public class CodeGenLockTests : EmitMetadataTestBase
     {
         #region 4.0 codegen
 
@@ -35,34 +35,34 @@ public class Test
   // Code size       55 (0x37)
   .maxstack  2
   .locals init (object V_0,
-  bool V_1)
-  IL_0000:  ldstr      ""Before""
+                bool V_1)
+ -IL_0000:  ldstr      ""Before""
   IL_0005:  call       ""void System.Console.WriteLine(string)""
-  IL_000a:  ldc.i4.0
-  IL_000b:  stloc.1
+ -IL_000a:  ldnull
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  stloc.1
   .try
   {
-    IL_000c:  ldnull
-    IL_000d:  stloc.0
     IL_000e:  ldloc.0
     IL_000f:  ldloca.s   V_1
     IL_0011:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-    IL_0016:  ldstr      ""In""
+   -IL_0016:  ldstr      ""In""
     IL_001b:  call       ""void System.Console.WriteLine(string)""
-    IL_0020:  leave.s    IL_002c
+   -IL_0020:  leave.s    IL_002c
   }
   finally
   {
-    IL_0022:  ldloc.1
+   ~IL_0022:  ldloc.1
     IL_0023:  brfalse.s  IL_002b
     IL_0025:  ldloc.0
     IL_0026:  call       ""void System.Threading.Monitor.Exit(object)""
     IL_002b:  endfinally
   }
-  IL_002c:  ldstr      ""After""
+ -IL_002c:  ldstr      ""After""
   IL_0031:  call       ""void System.Console.WriteLine(string)""
-  IL_0036:  ret
-}");
+ -IL_0036:  ret
+}", sequencePoints: "Test.M");
         }
 
         [Fact]
@@ -87,40 +87,37 @@ public class Test
             var verifier = CompileAndVerify(text);
             verifier.VerifyIL("Test.M", @"
 {
-  // Code size       61 (0x3d)
+  // Code size       59 (0x3b)
   .maxstack  2
-  .locals init (object V_0, //o
-  object V_1,
-  bool V_2)
-  IL_0000:  newobj     ""object..ctor()""
-  IL_0005:  stloc.0
-  IL_0006:  ldstr      ""Before""
-  IL_000b:  call       ""void System.Console.WriteLine(string)""
+  .locals init (object V_0,
+                bool V_1)
+ -IL_0000:  newobj     ""object..ctor()""
+ -IL_0005:  ldstr      ""Before""
+  IL_000a:  call       ""void System.Console.WriteLine(string)""
+ -IL_000f:  stloc.0
   IL_0010:  ldc.i4.0
-  IL_0011:  stloc.2
+  IL_0011:  stloc.1
   .try
   {
     IL_0012:  ldloc.0
-    IL_0013:  stloc.1
-    IL_0014:  ldloc.1
-    IL_0015:  ldloca.s   V_2
-    IL_0017:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-    IL_001c:  ldstr      ""In""
-    IL_0021:  call       ""void System.Console.WriteLine(string)""
-    IL_0026:  leave.s    IL_0032
+    IL_0013:  ldloca.s   V_1
+    IL_0015:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+   -IL_001a:  ldstr      ""In""
+    IL_001f:  call       ""void System.Console.WriteLine(string)""
+   -IL_0024:  leave.s    IL_0030
   }
   finally
   {
-    IL_0028:  ldloc.2
-    IL_0029:  brfalse.s  IL_0031
-    IL_002b:  ldloc.1
-    IL_002c:  call       ""void System.Threading.Monitor.Exit(object)""
-    IL_0031:  endfinally
+   ~IL_0026:  ldloc.1
+    IL_0027:  brfalse.s  IL_002f
+    IL_0029:  ldloc.0
+    IL_002a:  call       ""void System.Threading.Monitor.Exit(object)""
+    IL_002f:  endfinally
   }
-  IL_0032:  ldstr      ""After""
-  IL_0037:  call       ""void System.Console.WriteLine(string)""
-  IL_003c:  ret
-}");
+ -IL_0030:  ldstr      ""After""
+  IL_0035:  call       ""void System.Console.WriteLine(string)""
+ -IL_003a:  ret
+}", sequencePoints: "Test.M");
         }
 
         [Fact]
@@ -150,12 +147,12 @@ public class Test
   bool V_1)
   IL_0000:  ldstr      ""Before""
   IL_0005:  call       ""void System.Console.WriteLine(string)""
-  IL_000a:  ldc.i4.0
-  IL_000b:  stloc.1
+  IL_000a:  ldarg.1
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  stloc.1
   .try
   {
-    IL_000c:  ldarg.1
-    IL_000d:  stloc.0
     IL_000e:  ldloc.0
     IL_000f:  ldloca.s   V_1
     IL_0011:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
@@ -203,16 +200,16 @@ public class Test
   // Code size       60 (0x3c)
   .maxstack  2
   .locals init (object V_0,
-  bool V_1)
+                bool V_1)
   IL_0000:  ldstr      ""Before""
   IL_0005:  call       ""void System.Console.WriteLine(string)""
-  IL_000a:  ldc.i4.0
-  IL_000b:  stloc.1
+  IL_000a:  ldarg.0
+  IL_000b:  ldfld      ""object Test.o""
+  IL_0010:  stloc.0
+  IL_0011:  ldc.i4.0
+  IL_0012:  stloc.1
   .try
   {
-    IL_000c:  ldarg.0
-    IL_000d:  ldfld      ""object Test.o""
-    IL_0012:  stloc.0
     IL_0013:  ldloc.0
     IL_0014:  ldloca.s   V_1
     IL_0016:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
@@ -260,15 +257,15 @@ public class Test
   // Code size       59 (0x3b)
   .maxstack  2
   .locals init (object V_0,
-  bool V_1)
+                bool V_1)
   IL_0000:  ldstr      ""Before""
   IL_0005:  call       ""void System.Console.WriteLine(string)""
-  IL_000a:  ldc.i4.0
-  IL_000b:  stloc.1
+  IL_000a:  ldsfld     ""object Test.o""
+  IL_000f:  stloc.0
+  IL_0010:  ldc.i4.0
+  IL_0011:  stloc.1
   .try
   {
-    IL_000c:  ldsfld     ""object Test.o""
-    IL_0011:  stloc.0
     IL_0012:  ldloc.0
     IL_0013:  ldloca.s   V_1
     IL_0015:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
@@ -314,15 +311,15 @@ public class Test
   // Code size       55 (0x37)
   .maxstack  2
   .locals init (Test V_0,
-  bool V_1)
+                bool V_1)
   IL_0000:  ldstr      ""Before""
   IL_0005:  call       ""void System.Console.WriteLine(string)""
-  IL_000a:  ldc.i4.0
-  IL_000b:  stloc.1
+  IL_000a:  ldarg.0
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  stloc.1
   .try
   {
-    IL_000c:  ldarg.0
-    IL_000d:  stloc.0
     IL_000e:  ldloc.0
     IL_000f:  ldloca.s   V_1
     IL_0011:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
@@ -368,34 +365,34 @@ public class Test
   // Code size       59 (0x3b)
   .maxstack  2
   .locals init (object V_0,
-  bool V_1)
-  IL_0000:  ldstr      ""Before""
+                bool V_1)
+ -IL_0000:  ldstr      ""Before""
   IL_0005:  call       ""void System.Console.WriteLine(string)""
-  IL_000a:  ldc.i4.0
-  IL_000b:  stloc.1
+ -IL_000a:  newobj     ""object..ctor()""
+  IL_000f:  stloc.0
+  IL_0010:  ldc.i4.0
+  IL_0011:  stloc.1
   .try
   {
-    IL_000c:  newobj     ""object..ctor()""
-    IL_0011:  stloc.0
     IL_0012:  ldloc.0
     IL_0013:  ldloca.s   V_1
     IL_0015:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-    IL_001a:  ldstr      ""In""
+   -IL_001a:  ldstr      ""In""
     IL_001f:  call       ""void System.Console.WriteLine(string)""
-    IL_0024:  leave.s    IL_0030
+   -IL_0024:  leave.s    IL_0030
   }
   finally
   {
-    IL_0026:  ldloc.1
+   ~IL_0026:  ldloc.1
     IL_0027:  brfalse.s  IL_002f
     IL_0029:  ldloc.0
     IL_002a:  call       ""void System.Threading.Monitor.Exit(object)""
     IL_002f:  endfinally
   }
-  IL_0030:  ldstr      ""After""
+ -IL_0030:  ldstr      ""After""
   IL_0035:  call       ""void System.Console.WriteLine(string)""
-  IL_003a:  ret
-}");
+ -IL_003a:  ret
+}", sequencePoints: "Test.M");
         }
 
         [Fact]
@@ -422,16 +419,16 @@ public class Test
   // Code size       60 (0x3c)
   .maxstack  2
   .locals init (object V_0,
-  bool V_1)
+                bool V_1)
   IL_0000:  ldstr      ""Before""
   IL_0005:  call       ""void System.Console.WriteLine(string)""
-  IL_000a:  ldc.i4.0
-  IL_000b:  stloc.1
+  IL_000a:  ldarg.1
+  IL_000b:  box        ""T""
+  IL_0010:  stloc.0
+  IL_0011:  ldc.i4.0
+  IL_0012:  stloc.1
   .try
   {
-    IL_000c:  ldarg.1
-    IL_000d:  box        ""T""
-    IL_0012:  stloc.0
     IL_0013:  ldloc.0
     IL_0014:  ldloca.s   V_1
     IL_0016:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
@@ -482,22 +479,22 @@ class Test
                 bool V_1)
   IL_0000:  ldstr      ""Before""
   IL_0005:  call       ""void System.Console.WriteLine(string)""
-  IL_000a:  ldc.i4.0
-  IL_000b:  stloc.1
+  IL_000a:  ldstr      ""ABC""
+  IL_000f:  ldsfld     ""System.Func<char, char> Test.<>c.<>9__0_0""
+  IL_0014:  dup
+  IL_0015:  brtrue.s   IL_002e
+  IL_0017:  pop
+  IL_0018:  ldsfld     ""Test.<>c Test.<>c.<>9""
+  IL_001d:  ldftn      ""char Test.<>c.<Main>b__0_0(char)""
+  IL_0023:  newobj     ""System.Func<char, char>..ctor(object, System.IntPtr)""
+  IL_0028:  dup
+  IL_0029:  stsfld     ""System.Func<char, char> Test.<>c.<>9__0_0""
+  IL_002e:  call       ""System.Collections.Generic.IEnumerable<char> System.Linq.Enumerable.Select<char, char>(System.Collections.Generic.IEnumerable<char>, System.Func<char, char>)""
+  IL_0033:  stloc.0
+  IL_0034:  ldc.i4.0
+  IL_0035:  stloc.1
   .try
   {
-    IL_000c:  ldstr      ""ABC""
-    IL_0011:  ldsfld     ""System.Func<char, char> Test.<>c.<>9__0_0""
-    IL_0016:  dup
-    IL_0017:  brtrue.s   IL_0030
-    IL_0019:  pop
-    IL_001a:  ldsfld     ""Test.<>c Test.<>c.<>9""
-    IL_001f:  ldftn      ""char Test.<>c.<Main>b__0_0(char)""
-    IL_0025:  newobj     ""System.Func<char, char>..ctor(object, System.IntPtr)""
-    IL_002a:  dup
-    IL_002b:  stsfld     ""System.Func<char, char> Test.<>c.<>9__0_0""
-    IL_0030:  call       ""System.Collections.Generic.IEnumerable<char> System.Linq.Enumerable.Select<char, char>(System.Collections.Generic.IEnumerable<char>, System.Func<char, char>)""
-    IL_0035:  stloc.0
     IL_0036:  ldloc.0
     IL_0037:  ldloca.s   V_1
     IL_0039:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
@@ -547,28 +544,28 @@ partial class Test
   // Code size       36 (0x24)
   .maxstack  2
   .locals init (D V_0,
-  bool V_1)
-  IL_0000:  ldc.i4.0
-  IL_0001:  stloc.1
+                bool V_1)
+  IL_0000:  ldnull
+  IL_0001:  ldftn      ""void Test.PM(int)""
+  IL_0007:  newobj     ""D..ctor(object, System.IntPtr)""
+  IL_000c:  stloc.0
+  IL_000d:  ldc.i4.0
+  IL_000e:  stloc.1
   .try
-{
-  IL_0002:  ldnull
-  IL_0003:  ldftn      ""void Test.PM(int)""
-  IL_0009:  newobj     ""D..ctor(object, System.IntPtr)""
-  IL_000e:  stloc.0
-  IL_000f:  ldloc.0
-  IL_0010:  ldloca.s   V_1
-  IL_0012:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-  IL_0017:  leave.s    IL_0023
-}
+  {
+    IL_000f:  ldloc.0
+    IL_0010:  ldloca.s   V_1
+    IL_0012:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+    IL_0017:  leave.s    IL_0023
+  }
   finally
-{
-  IL_0019:  ldloc.1
-  IL_001a:  brfalse.s  IL_0022
-  IL_001c:  ldloc.0
-  IL_001d:  call       ""void System.Threading.Monitor.Exit(object)""
-  IL_0022:  endfinally
-}
+  {
+    IL_0019:  ldloc.1
+    IL_001a:  brfalse.s  IL_0022
+    IL_001c:  ldloc.0
+    IL_001d:  call       ""void System.Threading.Monitor.Exit(object)""
+    IL_0022:  endfinally
+  }
   IL_0023:  ret
 }");
         }
@@ -652,18 +649,18 @@ public static partial class Extensions
   // Code size       72 (0x48)
   .maxstack  2
   .locals init (Test V_0, //myLock
-  object V_1,
-  bool V_2,
-  Test V_3)
+                object V_1,
+                bool V_2,
+                Test V_3)
   IL_0000:  newobj     ""Test..ctor()""
   IL_0005:  stloc.0
-  IL_0006:  ldc.i4.0
-  IL_0007:  stloc.2
+  IL_0006:  ldloc.0
+  IL_0007:  call       ""object Extensions.Test(object)""
+  IL_000c:  stloc.1
+  IL_000d:  ldc.i4.0
+  IL_000e:  stloc.2
   .try
   {
-    IL_0008:  ldloc.0
-    IL_0009:  call       ""object Extensions.Test(object)""
-    IL_000e:  stloc.1
     IL_000f:  ldloc.1
     IL_0010:  ldloca.s   V_2
     IL_0012:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
@@ -677,12 +674,12 @@ public static partial class Extensions
     IL_001d:  call       ""void System.Threading.Monitor.Exit(object)""
     IL_0022:  endfinally
   }
-  IL_0023:  ldc.i4.0
-  IL_0024:  stloc.2
+  IL_0023:  ldloc.0
+  IL_0024:  stloc.3
+  IL_0025:  ldc.i4.0
+  IL_0026:  stloc.2
   .try
   {
-    IL_0025:  ldloc.0
-    IL_0026:  stloc.3
     IL_0027:  ldloc.3
     IL_0028:  ldloca.s   V_2
     IL_002a:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
@@ -723,33 +720,30 @@ class Test
 ";
             CompileAndVerify(text).VerifyIL("Test.Main", @"
 {
-  // Code size       31 (0x1f)
+  // Code size       29 (0x1d)
   .maxstack  2
-  .locals init (<>f__AnonymousType0 V_0, //a
-  <>f__AnonymousType0 V_1,
-  bool V_2)
+  .locals init (<>f__AnonymousType0 V_0,
+                bool V_1)
   IL_0000:  newobj     ""<>f__AnonymousType0..ctor()""
   IL_0005:  stloc.0
   IL_0006:  ldc.i4.0
-  IL_0007:  stloc.2
+  IL_0007:  stloc.1
   .try
-{
-  IL_0008:  ldloc.0
-  IL_0009:  stloc.1
-  IL_000a:  ldloc.1
-  IL_000b:  ldloca.s   V_2
-  IL_000d:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-  IL_0012:  leave.s    IL_001e
-}
+  {
+    IL_0008:  ldloc.0
+    IL_0009:  ldloca.s   V_1
+    IL_000b:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+    IL_0010:  leave.s    IL_001c
+  }
   finally
-{
-  IL_0014:  ldloc.2
-  IL_0015:  brfalse.s  IL_001d
-  IL_0017:  ldloc.1
-  IL_0018:  call       ""void System.Threading.Monitor.Exit(object)""
-  IL_001d:  endfinally
-}
-  IL_001e:  ret
+  {
+    IL_0012:  ldloc.1
+    IL_0013:  brfalse.s  IL_001b
+    IL_0015:  ldloc.0
+    IL_0016:  call       ""void System.Threading.Monitor.Exit(object)""
+    IL_001b:  endfinally
+  }
+  IL_001c:  ret
 }");
         }
 
@@ -771,34 +765,31 @@ class Test
 ";
             CompileAndVerify(text).VerifyIL("Test.Main", @"
 {
-  // Code size       33 (0x21)
+  // Code size       31 (0x1f)
   .maxstack  2
-  .locals init (<>f__AnonymousType0<int> V_0, //b
-  <>f__AnonymousType0<int> V_1,
-  bool V_2)
+  .locals init (<>f__AnonymousType0<int> V_0,
+                bool V_1)
   IL_0000:  ldc.i4.s   10
   IL_0002:  newobj     ""<>f__AnonymousType0<int>..ctor(int)""
   IL_0007:  stloc.0
   IL_0008:  ldc.i4.0
-  IL_0009:  stloc.2
+  IL_0009:  stloc.1
   .try
-{
-  IL_000a:  ldloc.0
-  IL_000b:  stloc.1
-  IL_000c:  ldloc.1
-  IL_000d:  ldloca.s   V_2
-  IL_000f:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-  IL_0014:  leave.s    IL_0020
-}
+  {
+    IL_000a:  ldloc.0
+    IL_000b:  ldloca.s   V_1
+    IL_000d:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+    IL_0012:  leave.s    IL_001e
+  }
   finally
-{
-  IL_0016:  ldloc.2
-  IL_0017:  brfalse.s  IL_001f
-  IL_0019:  ldloc.1
-  IL_001a:  call       ""void System.Threading.Monitor.Exit(object)""
-  IL_001f:  endfinally
-}
-  IL_0020:  ret
+  {
+    IL_0014:  ldloc.1
+    IL_0015:  brfalse.s  IL_001d
+    IL_0017:  ldloc.0
+    IL_0018:  call       ""void System.Threading.Monitor.Exit(object)""
+    IL_001d:  endfinally
+  }
+  IL_001e:  ret
 }");
         }
 
@@ -820,35 +811,32 @@ class Test
 ";
             CompileAndVerify(text).VerifyIL("Test.Main", @"
 {
-  // Code size       42 (0x2a)
+  // Code size       40 (0x28)
   .maxstack  2
-  .locals init (<>f__AnonymousType0<double, char> V_0, //c
-  <>f__AnonymousType0<double, char> V_1,
-  bool V_2)
+  .locals init (<>f__AnonymousType0<double, char> V_0,
+                bool V_1)
   IL_0000:  ldc.r8     10
   IL_0009:  ldc.i4.s   97
   IL_000b:  newobj     ""<>f__AnonymousType0<double, char>..ctor(double, char)""
   IL_0010:  stloc.0
   IL_0011:  ldc.i4.0
-  IL_0012:  stloc.2
+  IL_0012:  stloc.1
   .try
-{
-  IL_0013:  ldloc.0
-  IL_0014:  stloc.1
-  IL_0015:  ldloc.1
-  IL_0016:  ldloca.s   V_2
-  IL_0018:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-  IL_001d:  leave.s    IL_0029
-}
+  {
+    IL_0013:  ldloc.0
+    IL_0014:  ldloca.s   V_1
+    IL_0016:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+    IL_001b:  leave.s    IL_0027
+  }
   finally
-{
-  IL_001f:  ldloc.2
-  IL_0020:  brfalse.s  IL_0028
-  IL_0022:  ldloc.1
-  IL_0023:  call       ""void System.Threading.Monitor.Exit(object)""
-  IL_0028:  endfinally
-}
-  IL_0029:  ret
+  {
+    IL_001d:  ldloc.1
+    IL_001e:  brfalse.s  IL_0026
+    IL_0020:  ldloc.0
+    IL_0021:  call       ""void System.Threading.Monitor.Exit(object)""
+    IL_0026:  endfinally
+  }
+  IL_0027:  ret
 }");
         }
 
@@ -872,27 +860,27 @@ class Test
   // Code size       34 (0x22)
   .maxstack  2
   .locals init (System.Type V_0,
-  bool V_1)
-  IL_0000:  ldc.i4.0
-  IL_0001:  stloc.1
+                bool V_1)
+  IL_0000:  ldtoken    ""decimal""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  stloc.0
+  IL_000b:  ldc.i4.0
+  IL_000c:  stloc.1
   .try
-{
-  IL_0002:  ldtoken    ""decimal""
-  IL_0007:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_000c:  stloc.0
-  IL_000d:  ldloc.0
-  IL_000e:  ldloca.s   V_1
-  IL_0010:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-  IL_0015:  leave.s    IL_0021
-}
+  {
+    IL_000d:  ldloc.0
+    IL_000e:  ldloca.s   V_1
+    IL_0010:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+    IL_0015:  leave.s    IL_0021
+  }
   finally
-{
-  IL_0017:  ldloc.1
-  IL_0018:  brfalse.s  IL_0020
-  IL_001a:  ldloc.0
-  IL_001b:  call       ""void System.Threading.Monitor.Exit(object)""
-  IL_0020:  endfinally
-}
+  {
+    IL_0017:  ldloc.1
+    IL_0018:  brfalse.s  IL_0020
+    IL_001a:  ldloc.0
+    IL_001b:  call       ""void System.Threading.Monitor.Exit(object)""
+    IL_0020:  endfinally
+  }
   IL_0021:  ret
 }");
         }
@@ -915,34 +903,31 @@ class Test
 ";
             CompileAndVerify(text).VerifyIL("Test.Main", @"
 {
-  // Code size       36 (0x24)
+  // Code size       34 (0x22)
   .maxstack  2
-  .locals init (object V_0, //obj
-  System.Type V_1,
-  bool V_2)
+  .locals init (System.Type V_0,
+                bool V_1)
   IL_0000:  newobj     ""object..ctor()""
-  IL_0005:  stloc.0
-  IL_0006:  ldc.i4.0
-  IL_0007:  stloc.2
+  IL_0005:  callvirt   ""System.Type object.GetType()""
+  IL_000a:  stloc.0
+  IL_000b:  ldc.i4.0
+  IL_000c:  stloc.1
   .try
-{
-  IL_0008:  ldloc.0
-  IL_0009:  callvirt   ""System.Type object.GetType()""
-  IL_000e:  stloc.1
-  IL_000f:  ldloc.1
-  IL_0010:  ldloca.s   V_2
-  IL_0012:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-  IL_0017:  leave.s    IL_0023
-}
+  {
+    IL_000d:  ldloc.0
+    IL_000e:  ldloca.s   V_1
+    IL_0010:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+    IL_0015:  leave.s    IL_0021
+  }
   finally
-{
-  IL_0019:  ldloc.2
-  IL_001a:  brfalse.s  IL_0022
-  IL_001c:  ldloc.1
-  IL_001d:  call       ""void System.Threading.Monitor.Exit(object)""
-  IL_0022:  endfinally
-}
-  IL_0023:  ret
+  {
+    IL_0017:  ldloc.1
+    IL_0018:  brfalse.s  IL_0020
+    IL_001a:  ldloc.0
+    IL_001b:  call       ""void System.Threading.Monitor.Exit(object)""
+    IL_0020:  endfinally
+  }
+  IL_0021:  ret
 }");
         }
 
@@ -969,28 +954,28 @@ struct S
   // Code size       39 (0x27)
   .maxstack  2
   .locals init (System.Type V_0,
-  bool V_1)
-  IL_0000:  ldc.i4.0
-  IL_0001:  stloc.1
+                bool V_1)
+  IL_0000:  ldsfld     ""S Test.x""
+  IL_0005:  box        ""S""
+  IL_000a:  call       ""System.Type object.GetType()""
+  IL_000f:  stloc.0
+  IL_0010:  ldc.i4.0
+  IL_0011:  stloc.1
   .try
-{
-  IL_0002:  ldsfld     ""S Test.x""
-  IL_0007:  box        ""S""
-  IL_000c:  call       ""System.Type object.GetType()""
-  IL_0011:  stloc.0
-  IL_0012:  ldloc.0
-  IL_0013:  ldloca.s   V_1
-  IL_0015:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-  IL_001a:  leave.s    IL_0026
-}
+  {
+    IL_0012:  ldloc.0
+    IL_0013:  ldloca.s   V_1
+    IL_0015:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+    IL_001a:  leave.s    IL_0026
+  }
   finally
-{
-  IL_001c:  ldloc.1
-  IL_001d:  brfalse.s  IL_0025
-  IL_001f:  ldloc.0
-  IL_0020:  call       ""void System.Threading.Monitor.Exit(object)""
-  IL_0025:  endfinally
-}
+  {
+    IL_001c:  ldloc.1
+    IL_001d:  brfalse.s  IL_0025
+    IL_001f:  ldloc.0
+    IL_0020:  call       ""void System.Threading.Monitor.Exit(object)""
+    IL_0025:  endfinally
+  }
   IL_0026:  ret
 }");
         }
@@ -1015,26 +1000,26 @@ class Test
   // Code size       29 (0x1d)
   .maxstack  2
   .locals init (string V_0,
-  bool V_1)
-  IL_0000:  ldc.i4.0
-  IL_0001:  stloc.1
+                bool V_1)
+  IL_0000:  ldstr      ""abc""
+  IL_0005:  stloc.0
+  IL_0006:  ldc.i4.0
+  IL_0007:  stloc.1
   .try
-{
-  IL_0002:  ldstr      ""abc""
-  IL_0007:  stloc.0
-  IL_0008:  ldloc.0
-  IL_0009:  ldloca.s   V_1
-  IL_000b:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-  IL_0010:  leave.s    IL_001c
-}
+  {
+    IL_0008:  ldloc.0
+    IL_0009:  ldloca.s   V_1
+    IL_000b:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+    IL_0010:  leave.s    IL_001c
+  }
   finally
-{
-  IL_0012:  ldloc.1
-  IL_0013:  brfalse.s  IL_001b
-  IL_0015:  ldloc.0
-  IL_0016:  call       ""void System.Threading.Monitor.Exit(object)""
-  IL_001b:  endfinally
-}
+  {
+    IL_0012:  ldloc.1
+    IL_0013:  brfalse.s  IL_001b
+    IL_0015:  ldloc.0
+    IL_0016:  call       ""void System.Threading.Monitor.Exit(object)""
+    IL_001b:  endfinally
+  }
   IL_001c:  ret
 }");
         }
@@ -1060,54 +1045,51 @@ class Test
 ";
             CompileAndVerify(text).VerifyIL("Test.Main", @"
 {
-  // Code size       64 (0x40)
+  // Code size       60 (0x3c)
   .maxstack  2
   .locals init (System.Type V_0,
-  bool V_1,
-  Test V_2, //C
-  Test V_3,
-  bool V_4)
-  IL_0000:  ldc.i4.0
-  IL_0001:  stloc.1
+                bool V_1,
+                Test V_2,
+                bool V_3)
+  IL_0000:  ldtoken    ""Test""
+  IL_0005:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_000a:  stloc.0
+  IL_000b:  ldc.i4.0
+  IL_000c:  stloc.1
   .try
-{
-  IL_0002:  ldtoken    ""Test""
-  IL_0007:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_000c:  stloc.0
-  IL_000d:  ldloc.0
-  IL_000e:  ldloca.s   V_1
-  IL_0010:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-  IL_0015:  newobj     ""Test..ctor()""
-  IL_001a:  stloc.2
-  IL_001b:  ldc.i4.0
-  IL_001c:  stloc.s    V_4
-  .try
-{
-  IL_001e:  ldloc.2
-  IL_001f:  stloc.3
-  IL_0020:  ldloc.3
-  IL_0021:  ldloca.s   V_4
-  IL_0023:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-  IL_0028:  leave.s    IL_003f
-}
+  {
+    IL_000d:  ldloc.0
+    IL_000e:  ldloca.s   V_1
+    IL_0010:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+    IL_0015:  newobj     ""Test..ctor()""
+    IL_001a:  stloc.2
+    IL_001b:  ldc.i4.0
+    IL_001c:  stloc.3
+    .try
+    {
+      IL_001d:  ldloc.2
+      IL_001e:  ldloca.s   V_3
+      IL_0020:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+      IL_0025:  leave.s    IL_003b
+    }
+    finally
+    {
+      IL_0027:  ldloc.3
+      IL_0028:  brfalse.s  IL_0030
+      IL_002a:  ldloc.2
+      IL_002b:  call       ""void System.Threading.Monitor.Exit(object)""
+      IL_0030:  endfinally
+    }
+  }
   finally
-{
-  IL_002a:  ldloc.s    V_4
-  IL_002c:  brfalse.s  IL_0034
-  IL_002e:  ldloc.3
-  IL_002f:  call       ""void System.Threading.Monitor.Exit(object)""
-  IL_0034:  endfinally
-}
-}
-  finally
-{
-  IL_0035:  ldloc.1
-  IL_0036:  brfalse.s  IL_003e
-  IL_0038:  ldloc.0
-  IL_0039:  call       ""void System.Threading.Monitor.Exit(object)""
-  IL_003e:  endfinally
-}
-  IL_003f:  ret
+  {
+    IL_0031:  ldloc.1
+    IL_0032:  brfalse.s  IL_003a
+    IL_0034:  ldloc.0
+    IL_0035:  call       ""void System.Threading.Monitor.Exit(object)""
+    IL_003a:  endfinally
+  }
+  IL_003b:  ret
 }");
         }
 
@@ -1135,48 +1117,48 @@ class Test
   // Code size       57 (0x39)
   .maxstack  2
   .locals init (object V_0,
-  bool V_1,
-  object V_2,
-  bool V_3)
-  IL_0000:  ldc.i4.0
-  IL_0001:  stloc.1
+                bool V_1,
+                object V_2,
+                bool V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""object Test.syncroot""
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.0
+  IL_0008:  stloc.1
   .try
-{
-  IL_0002:  ldarg.0
-  IL_0003:  ldfld      ""object Test.syncroot""
-  IL_0008:  stloc.0
-  IL_0009:  ldloc.0
-  IL_000a:  ldloca.s   V_1
-  IL_000c:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-  IL_0011:  ldc.i4.0
-  IL_0012:  stloc.3
-  .try
-{
-  IL_0013:  ldarg.0
-  IL_0014:  ldfld      ""object Test.syncroot""
-  IL_0019:  stloc.2
-  IL_001a:  ldloc.2
-  IL_001b:  ldloca.s   V_3
-  IL_001d:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-  IL_0022:  leave.s    IL_0038
-}
+  {
+    IL_0009:  ldloc.0
+    IL_000a:  ldloca.s   V_1
+    IL_000c:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+    IL_0011:  ldarg.0
+    IL_0012:  ldfld      ""object Test.syncroot""
+    IL_0017:  stloc.2
+    IL_0018:  ldc.i4.0
+    IL_0019:  stloc.3
+    .try
+    {
+      IL_001a:  ldloc.2
+      IL_001b:  ldloca.s   V_3
+      IL_001d:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+      IL_0022:  leave.s    IL_0038
+    }
+    finally
+    {
+      IL_0024:  ldloc.3
+      IL_0025:  brfalse.s  IL_002d
+      IL_0027:  ldloc.2
+      IL_0028:  call       ""void System.Threading.Monitor.Exit(object)""
+      IL_002d:  endfinally
+    }
+  }
   finally
-{
-  IL_0024:  ldloc.3
-  IL_0025:  brfalse.s  IL_002d
-  IL_0027:  ldloc.2
-  IL_0028:  call       ""void System.Threading.Monitor.Exit(object)""
-  IL_002d:  endfinally
-}
-}
-  finally
-{
-  IL_002e:  ldloc.1
-  IL_002f:  brfalse.s  IL_0037
-  IL_0031:  ldloc.0
-  IL_0032:  call       ""void System.Threading.Monitor.Exit(object)""
-  IL_0037:  endfinally
-}
+  {
+    IL_002e:  ldloc.1
+    IL_002f:  brfalse.s  IL_0037
+    IL_0031:  ldloc.0
+    IL_0032:  call       ""void System.Threading.Monitor.Exit(object)""
+    IL_0037:  endfinally
+  }
   IL_0038:  ret
 }");
         }
@@ -1259,41 +1241,41 @@ class Test
 ";
             CompileAndVerify(text).VerifyIL ("Test.Main", @"
 {
-// Code size       49 (0x31)
+  // Code size       49 (0x31)
   .maxstack  2
   .locals init (object V_0, //myLock
-  string V_1,
-  bool V_2,
-  bool V_3)
+                string V_1,
+                bool V_2,
+                bool V_3)
   IL_0000:  ldnull
   IL_0001:  stloc.0
-  IL_0002:  ldc.i4.0
-  IL_0003:  stloc.2
+  IL_0002:  ldloc.0
+  IL_0003:  ldnull
+  IL_0004:  ceq
+  IL_0006:  stloc.3
+  IL_0007:  ldloca.s   V_3
+  IL_0009:  call       ""string bool.ToString()""
+  IL_000e:  stloc.1
+  IL_000f:  ldc.i4.0
+  IL_0010:  stloc.2
   .try
-{
-  IL_0004:  ldloc.0
-  IL_0005:  ldnull
-  IL_0006:  ceq
-  IL_0008:  stloc.3
-  IL_0009:  ldloca.s   V_3
-  IL_000b:  call       ""string bool.ToString()""
-  IL_0010:  stloc.1
-  IL_0011:  ldloc.1
-  IL_0012:  ldloca.s   V_2
-  IL_0014:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-  IL_0019:  ldloc.0
-  IL_001a:  callvirt   ""string object.ToString()""
-  IL_001f:  call       ""void System.Console.WriteLine(string)""
-  IL_0024:  leave.s    IL_0030
-}
+  {
+    IL_0011:  ldloc.1
+    IL_0012:  ldloca.s   V_2
+    IL_0014:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+    IL_0019:  ldloc.0
+    IL_001a:  callvirt   ""string object.ToString()""
+    IL_001f:  call       ""void System.Console.WriteLine(string)""
+    IL_0024:  leave.s    IL_0030
+  }
   finally
-{
-  IL_0026:  ldloc.2
-  IL_0027:  brfalse.s  IL_002f
-  IL_0029:  ldloc.1
-  IL_002a:  call       ""void System.Threading.Monitor.Exit(object)""
-  IL_002f:  endfinally
-}
+  {
+    IL_0026:  ldloc.2
+    IL_0027:  brfalse.s  IL_002f
+    IL_0029:  ldloc.1
+    IL_002a:  call       ""void System.Threading.Monitor.Exit(object)""
+    IL_002f:  endfinally
+  }
   IL_0030:  ret
 }");
         }
@@ -1318,32 +1300,35 @@ class Test
 ";
             CompileAndVerify(text).VerifyIL("Test.Main", @"
 {
-// Code size       35 (0x23)
-  .maxstack  3
-  .locals init (object V_0,
-  bool V_1)
-  IL_0000:  ldc.i4.0
-  IL_0001:  stloc.1
+  // Code size       37 (0x25)
+  .maxstack  2
+  .locals init (object V_0, //myLock
+                object V_1,
+                bool V_2)
+  IL_0000:  newobj     ""object..ctor()""
+  IL_0005:  dup
+  IL_0006:  stloc.0
+  IL_0007:  stloc.1
+  IL_0008:  ldc.i4.0
+  IL_0009:  stloc.2
   .try
-{
-  IL_0002:  newobj     ""object..ctor()""
-  IL_0007:  dup
-  IL_0008:  stloc.0
-  IL_0009:  ldloc.0
-  IL_000a:  ldloca.s   V_1
-  IL_000c:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-  IL_0011:  call       ""void System.Console.WriteLine(object)""
-  IL_0016:  leave.s    IL_0022
-}
+  {
+    IL_000a:  ldloc.1
+    IL_000b:  ldloca.s   V_2
+    IL_000d:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
+    IL_0012:  ldloc.0
+    IL_0013:  call       ""void System.Console.WriteLine(object)""
+    IL_0018:  leave.s    IL_0024
+  }
   finally
-{
-  IL_0018:  ldloc.1
-  IL_0019:  brfalse.s  IL_0021
-  IL_001b:  ldloc.0
-  IL_001c:  call       ""void System.Threading.Monitor.Exit(object)""
-  IL_0021:  endfinally
-}
-  IL_0022:  ret
+  {
+    IL_001a:  ldloc.2
+    IL_001b:  brfalse.s  IL_0023
+    IL_001d:  ldloc.1
+    IL_001e:  call       ""void System.Threading.Monitor.Exit(object)""
+    IL_0023:  endfinally
+  }
+  IL_0024:  ret
 }");
         }
 
@@ -1376,28 +1361,28 @@ public class Test
   // Code size       48 (0x30)
   .maxstack  1
   .locals init (object V_0)
-  IL_0000:  ldstr      ""Before""
+ -IL_0000:  ldstr      ""Before""
   IL_0005:  call       ""void System.Console.WriteLine(string)""
-  IL_000a:  ldnull
+ -IL_000a:  ldnull
   IL_000b:  stloc.0
   IL_000c:  ldloc.0
   IL_000d:  call       ""void System.Threading.Monitor.Enter(object)""
   .try
   {
-    IL_0012:  ldstr      ""In""
+   -IL_0012:  ldstr      ""In""
     IL_0017:  call       ""void System.Console.WriteLine(string)""
-    IL_001c:  leave.s    IL_0025
+   -IL_001c:  leave.s    IL_0025
   }
   finally
   {
-    IL_001e:  ldloc.0
+   ~IL_001e:  ldloc.0
     IL_001f:  call       ""void System.Threading.Monitor.Exit(object)""
     IL_0024:  endfinally
   }
-  IL_0025:  ldstr      ""After""
+ -IL_0025:  ldstr      ""After""
   IL_002a:  call       ""void System.Console.WriteLine(string)""
-  IL_002f:  ret
-}");
+ -IL_002f:  ret
+}", sequencePoints: "Test.M");
         }
 
         [Fact]

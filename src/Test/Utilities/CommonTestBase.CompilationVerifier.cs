@@ -215,6 +215,16 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return this;
             }
 
+            public CompilationVerifier VerifyPdb(
+               string qualifiedMethodName,
+               XElement expectedPdb,
+               [CallerLineNumber]int expectedValueSourceLine = 0,
+               [CallerFilePath]string expectedValueSourcePath = null)
+            {
+                this.compilation.VerifyPdb(qualifiedMethodName, expectedPdb, expectedValueSourceLine, expectedValueSourcePath);
+                return this;
+            }
+
             public sealed class DebugInfoProvider : IDisposable
             {
                 public readonly TempPdbReader PdbReader;

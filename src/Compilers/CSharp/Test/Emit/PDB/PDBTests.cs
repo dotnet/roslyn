@@ -2885,68 +2885,7 @@ class C
 
         #endregion
 
-        #region LockStatement
-
-        [Fact]
-        public void LockStatement()
-        {
-            var source = @"
-using System;
-
-class C
-{
-    static void Main()
-    {
-        object o;
-        Console.WriteLine(""Before"");
-        lock (o = new object())
-        {
-            Console.WriteLine(""In"");
-        }
-        Console.WriteLine(""After"");
-    }
-}
-";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb("C.Main", @"
-<symbols>
-  <methods>
-    <method containingType=""C"" name=""Main"">
-      <customDebugInfo>
-        <using>
-          <namespace usingCount=""1"" />
-        </using>
-        <encLocalSlotMap>
-          <slot kind=""0"" offset=""18"" />
-          <slot kind=""3"" offset=""68"" />
-          <slot kind=""2"" offset=""68"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x1"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""37"" document=""0"" />
-        <entry offset=""0xc"" hidden=""true"" document=""0"" />
-        <entry offset=""0xe"" startLine=""10"" startColumn=""9"" endLine=""10"" endColumn=""32"" document=""0"" />
-        <entry offset=""0x1f"" startLine=""11"" startColumn=""9"" endLine=""11"" endColumn=""10"" document=""0"" />
-        <entry offset=""0x20"" startLine=""12"" startColumn=""13"" endLine=""12"" endColumn=""37"" document=""0"" />
-        <entry offset=""0x2b"" startLine=""13"" startColumn=""9"" endLine=""13"" endColumn=""10"" document=""0"" />
-        <entry offset=""0x2e"" hidden=""true"" document=""0"" />
-        <entry offset=""0x39"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""36"" document=""0"" />
-        <entry offset=""0x44"" startLine=""15"" startColumn=""5"" endLine=""15"" endColumn=""6"" document=""0"" />
-      </sequencePoints>
-      <locals>
-        <local name=""o"" il_index=""0"" il_start=""0x0"" il_end=""0x45"" attributes=""0"" />
-      </locals>
-      <scope startOffset=""0x0"" endOffset=""0x45"">
-        <namespace name=""System"" />
-        <local name=""o"" il_index=""0"" il_start=""0x0"" il_end=""0x45"" attributes=""0"" />
-      </scope>
-    </method>
-  </methods>
-</symbols>");
-        }
-
-        #endregion
+        // LockStatement tested in CodeGenLock
 
         #region Anonymous Type
 
