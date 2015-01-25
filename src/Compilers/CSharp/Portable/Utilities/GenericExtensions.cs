@@ -4,14 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.Exts
+namespace Microsoft.CodeAnalysis
 {
   public enum Clusivity : int
   {
     @In = 0,
     @Ex = -1
   }
-  public static class Exts
+  public static class GenericExtensions
   {
 
 

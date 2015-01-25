@@ -2,7 +2,6 @@
 
 using System.Diagnostics;
 using System.Globalization;
-using Microsoft.CodeAnalysis.Exts;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {

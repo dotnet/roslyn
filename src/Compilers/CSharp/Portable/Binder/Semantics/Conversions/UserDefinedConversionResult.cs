@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var sb = new System.Text.StringBuilder();
             sb.AppendLine("User defined conversion analysis results:");
-            sb.AppendFormat("Summary: {0}\n", Kind);
+            sb.AppendLine($"Summary: {Kind}");
             for (int i = 0; i < Results.Length; ++i)
             {
                 sb.AppendFormat("{0} Conversion: {1} Result: {2}\n",

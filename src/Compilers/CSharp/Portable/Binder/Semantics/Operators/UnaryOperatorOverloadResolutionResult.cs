@@ -63,32 +63,35 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+
+    const string _OverFail = "Overload resolution failed because";
+    const string _OverSucc = "Overload resolution succeeded";
 #if DEBUG
         public string Dump()
         {
             if (Results.Count == 0)
             {
-                return "Overload resolution failed because there were no candidate operators.";
+                return $"{_OverFail} there were no candidate operators.";
             }
 
             var sb = new StringBuilder();
             if (this.Best.HasValue)
             {
-                sb.AppendLine("Overload resolution succeeded and chose " + this.Best.Signature.ToString());
+                sb.AppendLine($"{_OverSucc} and chose {this.Best.Signature.ToString()}");
             }
             else if (CountKind(OperatorAnalysisResultKind.Applicable) > 1)
             {
-                sb.AppendLine("Overload resolution failed because of ambiguous possible best operators.");
+                sb.AppendLine($"{_OverFail} of ambiguous possible best operators.");
             }
             else
             {
-                sb.AppendLine("Overload resolution failed because no operator was applicable.");
+                sb.AppendLine($"{_OverFail} no operator was applicable.");
             }
 
             sb.AppendLine("Detailed results:");
             foreach (var result in Results)
             {
-                sb.AppendFormat("operator: {0} reason: {1}\n", result.Signature.ToString(), result.Kind.ToString());
+                sb.AppendLine($"operator: {result.Signature.ToString()} reason: {result.Kind.ToString()}");
             }
 
             return sb.ToString();
