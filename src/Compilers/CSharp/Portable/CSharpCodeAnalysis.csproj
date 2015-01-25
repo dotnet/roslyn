@@ -345,6 +345,7 @@
     <Compile Include="Errors\SyntaxDiagnosticInfo.cs" />
     <Compile Include="Errors\XmlParseErrorCode.cs" />
     <Compile Include="Errors\XmlSyntaxDiagnosticInfo.cs" />
+    <Compile Include="Exts\Exts.cs" />
     <Compile Include="FlowAnalysis\AbstractFlowPass.cs" />
     <Compile Include="FlowAnalysis\AbstractRegionControlFlowPass.cs" />
     <Compile Include="FlowAnalysis\AbstractRegionDataFlowPass.cs" />
