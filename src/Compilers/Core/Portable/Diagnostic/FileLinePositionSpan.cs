@@ -75,11 +75,7 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentNullException"><paramref name="path"/> is null.</exception>
         public FileLinePositionSpan(string path, LinePositionSpan span)
         {
-            if (path == null)
-            {
-                throw new ArgumentNullException("path");
-            }
-
+            if (path == null) throw new ArgumentNullException("path");
             _path = path;
             _span = span;
             _hasMappedPath = false;
@@ -144,7 +140,7 @@ namespace Microsoft.CodeAnalysis
         /// <example>Path: (0,0)-(5,6)</example>
         public override string ToString()
         {
-            return _path + ": " + _span;
+            return $"{_path}: {_span}";
         }
     }
 }

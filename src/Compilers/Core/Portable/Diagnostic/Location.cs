@@ -12,9 +12,7 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     public abstract class Location
     {
-        protected Location()
-        {
-        }
+        protected Location() { }
 
         /// <summary>
         /// Location kind (None/SourceFile/MetadataFile).
@@ -63,10 +61,7 @@ namespace Microsoft.CodeAnalysis
         /// 
         /// The values are not affected by line mapping directives (#line in C# or #ExternalSource in VB).
         /// </returns>
-        public virtual FileLinePositionSpan GetLineSpan()
-        {
-            return default(FileLinePositionSpan);
-        }
+        public virtual FileLinePositionSpan GetLineSpan() { return default(FileLinePositionSpan); }
 
         /// <summary>
         /// Gets the location in terms of path, line and column after applying source line mapping directives
@@ -76,10 +71,7 @@ namespace Microsoft.CodeAnalysis
         /// <see cref="FileLinePositionSpan"/> that contains file, line and column information,
         /// or an invalid span (see <see cref="FileLinePositionSpan.IsValid"/>) if not available.
         /// </returns>
-        public virtual FileLinePositionSpan GetMappedLineSpan()
-        {
-            return default(FileLinePositionSpan);
-        }
+        public virtual FileLinePositionSpan GetMappedLineSpan() { return default(FileLinePositionSpan); }
 
         // Derived classes should provide value equality semantics.
         public abstract override bool Equals(object obj);
@@ -90,14 +82,11 @@ namespace Microsoft.CodeAnalysis
             string result = Kind.ToString();
             if (IsInSource)
             {
-                result += "(" + (this.SourceTree != null ? this.SourceTree.FilePath : null) + this.SourceSpan + ")";
+                result += $"({(SourceTree != null ? SourceTree.FilePath : null)}{SourceSpan})";
             }
             else if (IsInMetadata)
             {
-                if (this.MetadataModule != null)
-                {
-                    result += "(" + this.MetadataModule.Name + ")";
-                }
+                if ( MetadataModule != null ) { result += $"({MetadataModule.Name})"; }
             }
             else
             {
@@ -105,7 +94,7 @@ namespace Microsoft.CodeAnalysis
                 if (pos.Path != null)
                 {
                     // user-visible line and column counts are 1-based, but internally are 0-based.
-                    result += "(" + pos.Path + "@" + (pos.StartLinePosition.Line + 1) + ":" + (pos.StartLinePosition.Character + 1) + ")";
+                    result += $"({pos.Path}@{pos.StartLinePosition.Line + 1}:{pos.StartLinePosition.Character + 1})";
                 }
             }
 
@@ -114,18 +103,11 @@ namespace Microsoft.CodeAnalysis
 
         public static bool operator ==(Location left, Location right)
         {
-            if (object.ReferenceEquals(left, null))
-            {
-                return object.ReferenceEquals(right, null);
-            }
-
+            if (object.ReferenceEquals(left, null))  { return object.ReferenceEquals(right, null); }
             return left.Equals(right);
         }
 
-        public static bool operator !=(Location left, Location right)
-        {
-            return !(left == right);
-        }
+        public static bool operator !=(Location left, Location right) { return !(left == right); }
 
         protected virtual string GetDebuggerDisplay()
         {
@@ -134,7 +116,7 @@ namespace Microsoft.CodeAnalysis
             if (pos.Path != null)
             {
                 // user-visible line and column counts are 1-based, but internally are 0-based.
-                result += "(" + pos.Path + "@" + (pos.StartLinePosition.Line + 1) + ":" + (pos.StartLinePosition.Character + 1) + ")";
+                result += $"({pos.Path}@{pos.StartLinePosition.Line + 1} :{pos.StartLinePosition.Character + 1})";
             }
 
             return result;
@@ -150,11 +132,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static Location Create(SyntaxTree syntaxTree, TextSpan textSpan)
         {
-            if (syntaxTree == null)
-            {
-                throw new ArgumentNullException("syntaxTree");
-            }
-
+            if (syntaxTree == null) throw new ArgumentNullException("syntaxTree");
             return new SourceLocation(syntaxTree, textSpan);
         }
 
@@ -163,11 +141,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public static Location Create(string filePath, TextSpan textSpan, LinePositionSpan lineSpan)
         {
-            if (filePath == null)
-            {
-                throw new ArgumentNullException("filePath");
-            }
-
+            if (filePath == null) throw new ArgumentNullException("filePath");
             return new ExternalFileLocation(filePath, textSpan, lineSpan);
         }
     }

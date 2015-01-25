@@ -136,25 +136,11 @@ namespace Microsoft.CodeAnalysis
             string helpLinkUri,
             ImmutableArray<string> customTags)
         {
-            if (string.IsNullOrWhiteSpace(id))
-            {
-                throw new ArgumentException(CodeAnalysisResources.DiagnosticIdCantBeNullOrWhitespace, nameof(id));
-            }
-
-            if (messageFormat == null)
-            {
-                throw new ArgumentNullException(nameof(messageFormat));
-            }
-
-            if (category == null)
-            {
-                throw new ArgumentNullException(nameof(category));
-            }
-
-            if (title == null)
-            {
-                throw new ArgumentNullException(nameof(title));
-            }
+            if (string.IsNullOrWhiteSpace(id))  throw new ArgumentException(CodeAnalysisResources.DiagnosticIdCantBeNullOrWhitespace, nameof(id));
+            if (messageFormat == null)          throw new ArgumentNullException(nameof(messageFormat));
+            if (category == null)               throw new ArgumentNullException(nameof(category));
+            if (title == null)                  throw new ArgumentNullException(nameof(title));
+ 
 
             this.Id = id;
             this.Title = title;
@@ -210,12 +196,7 @@ namespace Microsoft.CodeAnalysis
         internal static bool IsNotConfigurable(IEnumerable<string> customTags)
         {
             foreach (var customTag in customTags)
-            {
-                if (customTag == WellKnownDiagnosticTags.NotConfigurable)
-                {
-                    return true;
-                }
-            }
+                if (customTag == WellKnownDiagnosticTags.NotConfigurable) return true;
 
             return false;
         }

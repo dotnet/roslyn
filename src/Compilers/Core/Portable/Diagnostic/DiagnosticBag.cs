@@ -60,19 +60,9 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         public bool HasAnyErrors()
         {
-            if (IsEmptyWithoutResolution)
-            {
-                return false;
-            }
-
+            if (IsEmptyWithoutResolution) return false;
             foreach (Diagnostic diagnostic in Bag)
-            {
-                if (diagnostic.Severity == DiagnosticSeverity.Error)
-                {
-                    return true;
-                }
-            }
-
+                if (diagnostic.Severity == DiagnosticSeverity.Error) return true;
             return false;
         }
 
@@ -116,10 +106,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public void AddRange(DiagnosticBag bag)
         {
-            if (!bag.IsEmptyWithoutResolution)
-            {
-                AddRange(bag.Bag);
-            }
+            if (!bag.IsEmptyWithoutResolution) AddRange(bag.Bag);
         }
 
         /// <summary>
@@ -200,9 +187,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return foundVoid
-                ? AsEnumerableFiltered()
-                : bag;
+            return foundVoid  ?  AsEnumerableFiltered()  :  bag;
         }
 
         /// <remarks>
@@ -273,10 +258,7 @@ namespace Microsoft.CodeAnalysis
         internal void Clear()
         {
             ConcurrentQueue<Diagnostic> bag = _lazyBag;
-            if (bag != null)
-            {
-                _lazyBag = null;
-            }
+            if (bag != null) _lazyBag = null;
         }
 
         #region "Poolable"
@@ -318,14 +300,8 @@ namespace Microsoft.CodeAnalysis
                 get
                 {
                     ConcurrentQueue<Diagnostic> lazyBag = _bag._lazyBag;
-                    if (lazyBag != null)
-                    {
-                        return lazyBag.ToArray();
-                    }
-                    else
-                    {
-                        return SpecializedCollections.EmptyObjects;
-                    }
+                    if (lazyBag != null) return lazyBag.ToArray();
+                    return SpecializedCollections.EmptyObjects;
                 }
             }
         }
@@ -333,7 +309,7 @@ namespace Microsoft.CodeAnalysis
         private string GetDebuggerDisplay()
         {
             ConcurrentQueue<Diagnostic> lazyBag = _lazyBag;
-            return "Count = " + (lazyBag != null ? lazyBag.Count : 0);
+            return $"Count = {lazyBag?.Count ?? 0}";
         }
         #endregion
     }

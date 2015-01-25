@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis
         private XmlLocation(string path, int lineNumber, int columnNumber)
         {
             LinePosition start = new LinePosition(lineNumber, columnNumber);
-            LinePosition end = new LinePosition(lineNumber, columnNumber + 1);
+            LinePosition end   = new LinePosition(lineNumber, columnNumber + 1);
             _positionSpan = new FileLinePositionSpan(path, start, end);
         }
 
@@ -43,37 +43,18 @@ namespace Microsoft.CodeAnalysis
             return new XmlLocation(path, lineNumber, columnNumber);
         }
 
-        public override LocationKind Kind
-        {
-            get
-            {
-                return LocationKind.XmlFile;
-            }
-        }
+        public override LocationKind Kind  { get { return LocationKind.XmlFile; } }
 
-        public override FileLinePositionSpan GetLineSpan()
-        {
-            return _positionSpan;
-        }
+        public override FileLinePositionSpan GetLineSpan()  {  return _positionSpan; }
 
         public bool Equals(XmlLocation other)
         {
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
-
+            if (ReferenceEquals(this, other))  return true;
             return other != null && other._positionSpan.Equals(_positionSpan);
         }
 
-        public override bool Equals(object obj)
-        {
-            return this.Equals(obj as XmlLocation);
-        }
+        public override bool Equals(object obj)  { return this.Equals(obj as XmlLocation); }
 
-        public override int GetHashCode()
-        {
-            return _positionSpan.GetHashCode();
-        }
+        public override int GetHashCode()  { return _positionSpan.GetHashCode(); }
     }
 }

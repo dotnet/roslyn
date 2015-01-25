@@ -27,57 +27,23 @@ namespace Microsoft.CodeAnalysis
             _location = location;
         }
 
-        public override Location Location
-        {
-            get { return _location; }
-        }
+        public override Location Location  { get { return _location; } }
 
-        public override IReadOnlyList<Location> AdditionalLocations
-        {
-            get { return this.Info.AdditionalLocations; }
-        }
+        public override IReadOnlyList<Location> AdditionalLocations { get { return Info.AdditionalLocations; } }
 
-        internal override IReadOnlyList<string> CustomTags
-        {
-            get
-            {
-                return this.Info.CustomTags;
-            }
-        }
+        internal override IReadOnlyList<string> CustomTags { get { return Info.CustomTags; } }
 
-        public override DiagnosticDescriptor Descriptor
-        {
-            get
-            {
-                return this.Info.Descriptor;
-            }
-        }
+        public override DiagnosticDescriptor Descriptor  { get { return Info.Descriptor; } }
 
-        public override string Id
-        {
-            get { return this.Info.MessageIdentifier; }
-        }
+        public override string Id  { get { return Info.MessageIdentifier; } }
 
-        internal override string Category
-        {
-            get { return this.Info.Category; }
-        }
+        internal override string Category { get { return Info.Category; } }
+        
+        internal sealed override int Code { get { return Info.Code; } }
 
+        public sealed override DiagnosticSeverity Severity { get { return Info.Severity; } }
 
-        internal sealed override int Code
-        {
-            get { return this.Info.Code; }
-        }
-
-        public sealed override DiagnosticSeverity Severity
-        {
-            get { return this.Info.Severity; }
-        }
-
-        public sealed override DiagnosticSeverity DefaultSeverity
-        {
-            get { return this.Info.DefaultSeverity; }
-        }
+        public sealed override DiagnosticSeverity DefaultSeverity { get { return Info.DefaultSeverity; } }
 
         internal sealed override bool IsEnabledByDefault
         {
@@ -85,19 +51,16 @@ namespace Microsoft.CodeAnalysis
             get { return true; }
         }
 
-        public sealed override int WarningLevel
-        {
-            get { return this.Info.WarningLevel; }
-        }
+        public sealed override int WarningLevel { get { return this.Info.WarningLevel; } }
 
         public override string GetMessage(IFormatProvider formatProvider = null)
         {
-            return this.Info.GetMessage(formatProvider);
+            return Info.GetMessage(formatProvider);
         }
 
         internal override IReadOnlyList<object> Arguments
         {
-            get { return this.Info.Arguments; }
+            get { return Info.Arguments; }
         }
 
         /// <summary>
@@ -141,22 +104,14 @@ namespace Microsoft.CodeAnalysis
 
         public override bool Equals(Diagnostic obj)
         {
-            if (this == obj)
-            {
-                return true;
-            }
-
+            if (this == obj) return true;
             var other = obj as DiagnosticWithInfo;
-
-            if (other == null || this.GetType() != other.GetType())
-            {
-                return false;
-            }
+            if (other == null || this.GetType() != other.GetType()) return false;
 
             return
-                this.Location.Equals(other._location) &&
-                this.Info.Equals(other.Info) &&
-                this.AdditionalLocations.SequenceEqual(other.AdditionalLocations);
+                Location.Equals(other._location) &&
+                Info.Equals(other.Info) &&
+                AdditionalLocations.SequenceEqual(other.AdditionalLocations);
         }
 
         private string GetDebuggerDisplay()
@@ -181,27 +136,15 @@ namespace Microsoft.CodeAnalysis
 
         internal override Diagnostic WithLocation(Location location)
         {
-            if (location == null)
-            {
-                throw new ArgumentNullException("location");
-            }
-
-            if (location != _location)
-            {
-                return new DiagnosticWithInfo(_info, location);
-            }
-
-            return this;
+            if (location == null) throw new ArgumentNullException("location");
+            if (location == _location) return this;
+            return new DiagnosticWithInfo(_info, location);
         }
 
         internal override Diagnostic WithSeverity(DiagnosticSeverity severity)
         {
-            if (this.Severity != severity)
-            {
-                return new DiagnosticWithInfo(this.Info.GetInstanceWithSeverity(severity), _location);
-            }
-
-            return this;
+            if (this.Severity == severity) return this;
+            return new DiagnosticWithInfo(this.Info.GetInstanceWithSeverity(severity), _location);
         }
 
         internal sealed override bool IsNotConfigurable()
