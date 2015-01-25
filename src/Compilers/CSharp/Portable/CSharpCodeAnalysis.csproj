@@ -48,6 +48,7 @@
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <CodeAnalysisRuleSet>..\CSharpCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
+    <LangVersion>6</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <CodeAnalysisRuleSet>..\CSharpCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>

@@ -60,13 +60,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return null;
             }
         }
+    protected void AddError(int position, int width, ErrorCode code, string arg )
+    {
+      this.AddError(this.MakeError(position, width, code, arg));
+    }
 
-        protected void AddError(int position, int width, ErrorCode code, params object[] args)
+    protected void AddError(int position, int width, ErrorCode code, object[] args = null)
         {
             this.AddError(this.MakeError(position, width, code, args));
         }
 
-        protected void AddError(int position, int width, XmlParseErrorCode code, params object[] args)
+        protected void AddError(int position, int width, XmlParseErrorCode code, object[] args = null)
         {
             this.AddError(this.MakeError(position, width, code, args));
         }
@@ -77,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         }
 
 
-        protected void AddError(XmlParseErrorCode code, params object[] args)
+        protected void AddError(XmlParseErrorCode code, object[] args = null)
         {
             this.AddError(MakeError(code, args));
         }
@@ -95,13 +99,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        protected SyntaxDiagnosticInfo MakeError(int position, int width, ErrorCode code, params object[] args)
+
+    protected SyntaxDiagnosticInfo MakeError(int position, int width, ErrorCode code, string arg )
+    {
+      int offset = GetLexemeOffsetFromPosition(position);
+      return new SyntaxDiagnosticInfo(offset, width, code, arg);
+    }
+
+
+    protected SyntaxDiagnosticInfo MakeError(int position, int width, ErrorCode code, object[] args = null)
         {
             int offset = GetLexemeOffsetFromPosition(position);
-            return new SyntaxDiagnosticInfo(offset, width, code, args);
+            return new SyntaxDiagnosticInfo( offset, width, code, args);
         }
 
-        protected XmlSyntaxDiagnosticInfo MakeError(int position, int width, XmlParseErrorCode code, params object[] args)
+        protected XmlSyntaxDiagnosticInfo MakeError(int position, int width, XmlParseErrorCode code, object[] args = null)
         {
             int offset = GetLexemeOffsetFromPosition(position);
             return new XmlSyntaxDiagnosticInfo(offset, width, code, args);
@@ -112,14 +124,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return position >= TextWindow.LexemeStartPosition ? position - TextWindow.LexemeStartPosition : position;
         }
 
-        protected static SyntaxDiagnosticInfo MakeError(ErrorCode code, params object[] args)
+    protected static SyntaxDiagnosticInfo MakeError(ErrorCode code, string arg)
+    {
+      return new SyntaxDiagnosticInfo(code, arg);
+    }
+
+    protected static SyntaxDiagnosticInfo MakeError(ErrorCode code, object[] args = null)
         {
             return new SyntaxDiagnosticInfo(code, args);
         }
 
-        protected static XmlSyntaxDiagnosticInfo MakeError(XmlParseErrorCode code, params object[] args)
+        protected static XmlSyntaxDiagnosticInfo MakeError(XmlParseErrorCode code, object[] args = null)
         {
             return new XmlSyntaxDiagnosticInfo(0, 0, code, args);
         }
+    protected static XmlSyntaxDiagnosticInfo MakeError(XmlParseErrorCode code, string arg)
+    {
+      return new XmlSyntaxDiagnosticInfo(0, 0, code, arg);
     }
+  }
 }

@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis
         private readonly DiagnosticSeverity _defaultSeverity;
         private readonly DiagnosticSeverity _effectiveSeverity;
         private readonly object[] _arguments;
+        private string _arg = null;
 
         private static ImmutableDictionary<int, DiagnosticDescriptor> s_errorCodeToDescriptorMap = ImmutableDictionary<int, DiagnosticDescriptor>.Empty;
 
@@ -41,10 +42,19 @@ namespace Microsoft.CodeAnalysis
             _defaultSeverity = messageProvider.GetSeverity(errorCode);
             _effectiveSeverity = _defaultSeverity;
         }
+        // Only the compiler creates instances.
+        internal DiagnosticInfo(CommonMessageProvider messageProvider, int errorCode, string arg)
+        {
+            _messageProvider = messageProvider;
+            _errorCode = errorCode;
+            _defaultSeverity = messageProvider.GetSeverity(errorCode);
+            _effectiveSeverity = _defaultSeverity;
+            _arg = arg;
+        }
 
         // Only the compiler creates instances.
         internal DiagnosticInfo(CommonMessageProvider messageProvider, int errorCode, params object[] arguments)
-            : this(messageProvider, errorCode)
+                : this(messageProvider, errorCode)
         {
             AssertMessageSerializable(arguments);
 
@@ -53,11 +63,10 @@ namespace Microsoft.CodeAnalysis
 
         private DiagnosticInfo(DiagnosticInfo original, DiagnosticSeverity overridenSeverity)
         {
-            _messageProvider = original.MessageProvider;
-            _errorCode = original._errorCode;
-            _defaultSeverity = original.DefaultSeverity;
-            _arguments = original._arguments;
-
+            _messageProvider   = original.MessageProvider;
+            _errorCode         = original._errorCode;
+            _defaultSeverity   = original.DefaultSeverity;
+            _arguments         = original._arguments;
             _effectiveSeverity = overridenSeverity;
         }
 
@@ -74,13 +83,13 @@ namespace Microsoft.CodeAnalysis
 
         private static DiagnosticDescriptor CreateDescriptor(int errorCode, DiagnosticSeverity defaultSeverity, CommonMessageProvider messageProvider)
         {
-            var id = messageProvider.GetIdForErrorCode(errorCode);
-            var title = messageProvider.GetTitle(errorCode);
-            var description = messageProvider.GetDescription(errorCode);
+            var            id = messageProvider.GetIdForErrorCode(errorCode);
+            var         title = messageProvider.GetTitle(errorCode);
+            var   description = messageProvider.GetDescription(errorCode);
             var messageFormat = messageProvider.GetMessageFormat(errorCode);
-            var helpLink = messageProvider.GetHelpLink(errorCode);
-            var category = messageProvider.GetCategory(errorCode);
-            var customTags = GetCustomTags(defaultSeverity);
+            var      helpLink = messageProvider.GetHelpLink(errorCode);
+            var      category = messageProvider.GetCategory(errorCode);
+            var    customTags = GetCustomTags(defaultSeverity);
             return new DiagnosticDescriptor(id, title, messageFormat, category, defaultSeverity,
                 isEnabledByDefault: true, description: description, helpLinkUri: helpLink, customTags: customTags);
         }
@@ -91,25 +100,16 @@ namespace Microsoft.CodeAnalysis
             foreach (var arg in args)
             {
                 Debug.Assert(arg != null);
-
-                if (arg is IMessageSerializable)
-                {
-                    continue;
-                }
+                if (arg is IMessageSerializable)   continue;   
 
                 var type = arg.GetType();
-                if (type == typeof(string) || type == typeof(AssemblyIdentity))
-                {
-                    continue;
-                }
+                if (type == typeof(string) || type == typeof(AssemblyIdentity))  continue;
 
                 var info = type.GetTypeInfo();
-                if (info.IsPrimitive)
-                {
-                    continue;
-                }
+                if (info.IsPrimitive)  continue;
+                
 
-                Debug.Assert(false, "Unexpected type: " + type);
+                Debug.Assert(false, $"Unexpected type: {type}");
             }
         }
 
@@ -119,10 +119,8 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(!isWarningAsError || _defaultSeverity == DiagnosticSeverity.Warning);
 
-            if (isWarningAsError)
-            {
-                _effectiveSeverity = DiagnosticSeverity.Error;
-            }
+            if (isWarningAsError)   _effectiveSeverity = DiagnosticSeverity.Error;
+ 
         }
 
         // Create a copy of this instance with a explicit overridden severity
@@ -155,12 +153,20 @@ namespace Microsoft.CodeAnalysis
                     writer.WriteString(arg.ToString());
                 }
             }
+            else if (count == 0)
+            {
+                if (_arg != null)
+                {
+                    writer.WriteString(_arg);
+                }
+            }
         }
 
         Func<ObjectReader, object> IObjectReadable.GetReader()
         {
             return this.GetReader();
         }
+        
 
         protected virtual Func<ObjectReader, object> GetReader()
         {
@@ -341,26 +347,33 @@ namespace Microsoft.CodeAnalysis
 
         protected object[] GetArgumentsToUse(IFormatProvider formatProvider)
         {
-            object[] argumentsToUse = null;
-            for (int i = 0; i < _arguments.Length; i++)
+            if (_arguments != null)
             {
-                var embedded = _arguments[i] as DiagnosticInfo;
-                if (embedded != null)
+                object[] argumentsToUse = null;
+                for (int i = 0; i < _arguments.Length; i++)
                 {
-                    argumentsToUse = InitializeArgumentListIfNeeded(argumentsToUse);
-                    argumentsToUse[i] = embedded.GetMessage(formatProvider);
-                    continue;
+                    var embedded = _arguments[i] as DiagnosticInfo;
+                    if (embedded != null)
+                    {
+                        argumentsToUse = InitializeArgumentListIfNeeded(argumentsToUse);
+                        argumentsToUse[i] = embedded.GetMessage(formatProvider);
+                        continue;
+                    }
+
+                    var symbol = _arguments[i] as ISymbol;
+                    if (symbol != null)
+                    {
+                        argumentsToUse = InitializeArgumentListIfNeeded(argumentsToUse);
+                        argumentsToUse[i] = _messageProvider.ConvertSymbolToString(_errorCode, symbol);
+                    }
                 }
 
-                var symbol = _arguments[i] as ISymbol;
-                if (symbol != null)
-                {
-                    argumentsToUse = InitializeArgumentListIfNeeded(argumentsToUse);
-                    argumentsToUse[i] = _messageProvider.ConvertSymbolToString(_errorCode, symbol);
-                }
+                return argumentsToUse ?? _arguments;
             }
-
-            return argumentsToUse ?? _arguments;
+            else
+            {
+                return new object[] { _arg };
+            }
         }
 
         private object[] InitializeArgumentListIfNeeded(object[] argumentsToUse)
@@ -378,7 +391,7 @@ namespace Microsoft.CodeAnalysis
 
         internal object[] Arguments
         {
-            get { return _arguments; }
+            get { return (_arg == null) ? _arguments : new object[] { _arg }; }
         }
 
         internal CommonMessageProvider MessageProvider
@@ -455,14 +468,14 @@ namespace Microsoft.CodeAnalysis
             // sure we don't call ToString for those.
             switch (Code)
             {
-                case InternalErrorCode.Unknown:
-                    return "Unresolved DiagnosticInfo";
+            case InternalErrorCode.Unknown:
+                return "Unresolved DiagnosticInfo";
 
-                case InternalErrorCode.Void:
-                    return "Void DiagnosticInfo";
+            case InternalErrorCode.Void:
+                return "Void DiagnosticInfo";
 
-                default:
-                    return ToString();
+            default:
+                return ToString();
             }
         }
 

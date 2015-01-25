@@ -1243,7 +1243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (!Double.TryParse(text, NumberStyles.AllowDecimalPoint | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out result))
             {
                 //we've already lexed the literal, so the error must be from overflow
-                this.AddError(MakeError(ErrorCode.ERR_FloatOverflow, "double"));
+                this.AddError(MakeError(ErrorCode.ERR_FloatOverflow,  "double" ));
             }
 
             return result;
