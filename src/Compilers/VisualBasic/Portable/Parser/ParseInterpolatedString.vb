@@ -157,12 +157,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     If CurrentToken.Kind = SyntaxKind.ColonToken Then
                         widthToken = DirectCast(RemoveTrailingColonTriviaAndConvertToColonToken(widthToken, colonToken, excessText), IntegerLiteralTokenSyntax)
                     End If
-
-                    If Not widthToken.ContainsDiagnostics AndAlso
-                       (widthToken.Base <> LiteralBase.Decimal OrElse widthToken.TypeSuffix <> TypeCharacter.None) _
-                    Then
-                        widthToken = ReportSyntaxError(widthToken, ERRID.ERR_Syntax)
-                    End If
                 Else
                     widthToken = ReportSyntaxError(InternalSyntaxFactory.MissingIntegerLiteralToken(), ERRID.ERR_ExpectedIntLiteral)
                 End If

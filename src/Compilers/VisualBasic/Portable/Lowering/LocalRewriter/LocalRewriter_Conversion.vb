@@ -100,6 +100,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                           node.ConversionKind, node.Checked, node.ExplicitCastInCode,
                                           node.ConstantValueOpt, node.ConstructorOpt,
                                           relaxationLambdaOpt:=Nothing, relaxationReceiverPlaceholderOpt:=Nothing, type:=node.Type)
+
+            ElseIf node.ConversionKind = ConversionKind.InterpolatedString Then
+                returnValue = RewriteInterpolatedStringConversion(node)
+
             Else
                 returnValue = MyBase.VisitConversion(node)
                 If returnValue.Kind = BoundKind.Conversion Then

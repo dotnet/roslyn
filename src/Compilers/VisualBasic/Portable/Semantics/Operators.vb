@@ -3239,7 +3239,7 @@ Next_i:
                                                                            ImmutableArray.Create(Of BoundExpression)(argument1, argument2)),
                                                                         Nothing, Nothing, lateBindingIsAllowed, binder:=binder,
                                                                         asyncLambdaSubToFunctionMismatch:=Nothing,
-                                                                        callerInfoOpt:=Nothing,
+                                                                        callerInfoOpt:=Nothing, forceExpandedForm:=False,
                                                                         useSiteDiagnostics:=useSiteDiagnostics)
             candidates.Free()
 

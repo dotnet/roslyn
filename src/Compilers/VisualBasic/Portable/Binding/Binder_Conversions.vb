@@ -1224,8 +1224,13 @@ DoneWithDiagnostics:
                 Case BoundKind.ArrayLiteral
                     argument = ReclassifyArrayLiteralExpression(conversionSemantics, tree, convKind, isExplicit, DirectCast(argument, BoundArrayLiteral), targetType, diagnostics)
                     Return True
-            End Select
 
+                Case BoundKind.InterpolatedStringExpression
+
+                    argument = ReclassifyInterpolatedStringExpression(conversionSemantics, tree, convKind, isExplicit, DirectCast(argument, BoundInterpolatedStringExpression), targetType, diagnostics)
+                    Return argument.Kind = BoundKind.Conversion
+
+            End Select
 
             Return False
         End Function
@@ -1545,6 +1550,17 @@ DoneWithDiagnostics:
             End If
 
             Throw ExceptionUtilities.UnexpectedValue(conversionSemantics)
+        End Function
+
+        Private Function ReclassifyInterpolatedStringExpression(conversionSemantics As SyntaxKind, tree As VisualBasicSyntaxNode, convKind As ConversionKind, isExplicit As Boolean, node As BoundInterpolatedStringExpression, targetType As TypeSymbol, diagnostics As DiagnosticBag) As BoundExpression
+
+            If convKind = ConversionKind.InterpolatedString Then
+                Debug.Assert(targetType.Equals(Compilation.GetWellKnownType(WellKnownType.System_IFormattable)) OrElse targetType.Equals(Compilation.GetWellKnownType(WellKnownType.System_FormattableString)))
+                Return New BoundConversion(tree, node, ConversionKind.InterpolatedString, False, isExplicit, targetType)
+            End If
+
+            Return node
+
         End Function
 
         Private Sub WarnOnNarrowingConversionBetweenSealedClassAndAnInterface(

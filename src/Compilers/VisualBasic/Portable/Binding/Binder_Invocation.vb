@@ -710,7 +710,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional allowConstructorCall As Boolean = False,
             Optional suppressAbstractCallDiagnostics As Boolean = False,
             Optional isDefaultMemberAccess As Boolean = False,
-            Optional representCandidateInDiagnosticsOpt As Symbol = Nothing
+            Optional representCandidateInDiagnosticsOpt As Symbol = Nothing,
+            Optional forceExpandedForm As Boolean = False
         ) As BoundExpression
 
             Debug.Assert(group IsNot Nothing)
@@ -721,7 +722,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' When this happens, it is worth trying to do overload resolution on the "bad" set
             ' to report better errors.
             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-            Dim results As OverloadResolution.OverloadResolutionResult = OverloadResolution.MethodOrPropertyInvocationOverloadResolution(group, boundArguments, argumentNames, Me, callerInfoOpt, useSiteDiagnostics)
+            Dim results As OverloadResolution.OverloadResolutionResult = OverloadResolution.MethodOrPropertyInvocationOverloadResolution(group, boundArguments, argumentNames, Me, callerInfoOpt, useSiteDiagnostics, forceExpandedForm:=forceExpandedForm)
 
             If diagnostics.Add(node, useSiteDiagnostics) Then
                 If group.ResultKind <> LookupResultKind.Inaccessible Then
@@ -776,7 +777,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Create and report the diagnostic.
                 If results.Candidates.Length = 0 Then
                     results = OverloadResolution.MethodOrPropertyInvocationOverloadResolution(group, boundArguments, argumentNames, Me, includeEliminatedCandidates:=True, callerInfoOpt:=callerInfoOpt,
-                                                                                              useSiteDiagnostics:=Nothing)
+                                                                                              useSiteDiagnostics:=Nothing, forceExpandedForm:=forceExpandedForm)
                 End If
 
                 Return ReportOverloadResolutionFailureAndProduceBoundNode(node, group, boundArguments, argumentNames, results, diagnostics,

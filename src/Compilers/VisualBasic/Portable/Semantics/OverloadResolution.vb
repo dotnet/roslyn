@@ -800,7 +800,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             binder As Binder,
             callerInfoOpt As VisualBasicSyntaxNode,
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
-            Optional includeEliminatedCandidates As Boolean = False
+            Optional includeEliminatedCandidates As Boolean = False,
+            Optional forceExpandedForm As Boolean = False
         ) As OverloadResolutionResult
 
             If group.Kind = BoundKind.MethodGroup Then
@@ -812,7 +813,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     binder,
                     callerInfoOpt,
                     useSiteDiagnostics,
-                    includeEliminatedCandidates)
+                    includeEliminatedCandidates,
+                    forceExpandedForm:=forceExpandedForm)
             Else
                 Dim propertyGroup = DirectCast(group, BoundPropertyGroup)
                 Return PropertyInvocationOverloadResolution(
@@ -865,7 +867,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Optional delegateReturnType As TypeSymbol = Nothing,
             Optional delegateReturnTypeReferenceBoundNode As BoundNode = Nothing,
             Optional lateBindingIsAllowed As Boolean = True,
-            Optional isQueryOperatorInvocation As Boolean = False
+            Optional isQueryOperatorInvocation As Boolean = False,
+            Optional forceExpandedForm As Boolean = False
         ) As OverloadResolutionResult
             Debug.Assert(methodGroup.ResultKind = LookupResultKind.Good OrElse methodGroup.ResultKind = LookupResultKind.Inaccessible)
 
@@ -910,12 +913,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 CollectOverloadedCandidates(
                     binder, candidates, instanceCandidates, typeArguments,
                     arguments, argumentNames, delegateReturnType, delegateReturnTypeReferenceBoundNode,
-                    includeEliminatedCandidates, isQueryOperatorInvocation, asyncLambdaSubToFunctionMismatch,
+                    includeEliminatedCandidates, isQueryOperatorInvocation, forceExpandedForm, asyncLambdaSubToFunctionMismatch,
                     useSiteDiagnostics)
 
                 applicableInstanceCandidateCount = EliminateNotApplicableToArguments(methodGroup, candidates, arguments, argumentNames, binder,
                                                                                      applicableNarrowingCandidateCount, asyncLambdaSubToFunctionMismatch,
                                                                                      callerInfoOpt,
+                                                                                     forceExpandedForm,
                                                                                      useSiteDiagnostics)
             End If
 
@@ -941,7 +945,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     CollectOverloadedCandidates(
                         binder, candidates, curriedCandidates, typeArguments,
                         arguments, argumentNames, delegateReturnType, delegateReturnTypeReferenceBoundNode,
-                        includeEliminatedCandidates, isQueryOperatorInvocation, asyncLambdaSubToFunctionMismatch,
+                        includeEliminatedCandidates, isQueryOperatorInvocation, forceExpandedForm, asyncLambdaSubToFunctionMismatch,
                         useSiteDiagnostics)
                 End If
             End If
@@ -952,7 +956,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If applicableInstanceCandidateCount = 0 AndAlso Not addedExtensionMethods Then
                 result = ReportOverloadResolutionFailedOrLateBound(candidates, applicableInstanceCandidateCount, lateBindingIsAllowed AndAlso binder.OptionStrict <> OptionStrict.On, asyncLambdaSubToFunctionMismatch)
             Else
-                result = ResolveOverloading(methodGroup, candidates, arguments, argumentNames, delegateReturnType, lateBindingIsAllowed, binder, asyncLambdaSubToFunctionMismatch, callerInfoOpt,
+                result = ResolveOverloading(methodGroup, candidates, arguments, argumentNames, delegateReturnType, lateBindingIsAllowed, binder, asyncLambdaSubToFunctionMismatch, callerInfoOpt, forceExpandedForm,
                                             useSiteDiagnostics)
             End If
 
@@ -1011,13 +1015,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             CollectOverloadedCandidates(binder, results, candidates, ImmutableArray(Of TypeSymbol).Empty,
                                         arguments, argumentNames, Nothing, Nothing, includeEliminatedCandidates,
-                                        isQueryOperatorInvocation:=False, asyncLambdaSubToFunctionMismatch:=asyncLambdaSubToFunctionMismatch,
+                                        isQueryOperatorInvocation:=False, forceExpandedForm:=False, asyncLambdaSubToFunctionMismatch:=asyncLambdaSubToFunctionMismatch,
                                         useSiteDiagnostics:=useSiteDiagnostics)
             Debug.Assert(asyncLambdaSubToFunctionMismatch Is Nothing)
             candidates.Free()
 
             Dim result = ResolveOverloading(propertyGroup, results, arguments, argumentNames, delegateReturnType:=Nothing, lateBindingIsAllowed:=True, binder:=binder,
-                                            asyncLambdaSubToFunctionMismatch:=asyncLambdaSubToFunctionMismatch, callerInfoOpt:=callerInfoOpt,
+                                            asyncLambdaSubToFunctionMismatch:=asyncLambdaSubToFunctionMismatch, callerInfoOpt:=callerInfoOpt, forceExpandedForm:=False,
                                             useSiteDiagnostics:=useSiteDiagnostics)
             results.Free()
 
@@ -1056,6 +1060,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             binder As Binder,
             <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
             callerInfoOpt As VisualBasicSyntaxNode,
+            forceExpandedForm As Boolean,
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
         ) As OverloadResolutionResult
 
@@ -1080,6 +1085,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             applicableCandidates = EliminateNotApplicableToArguments(methodOrPropertyGroup, candidates, arguments, argumentNames, binder,
                                                                      applicableNarrowingCandidates, asyncLambdaSubToFunctionMismatch,
                                                                      callerInfoOpt,
+                                                                     forceExpandedForm,
                                                                      useSiteDiagnostics)
             If applicableCandidates < 2 Then
                 narrowingCandidatesRemainInTheSet = (applicableNarrowingCandidates > 0)
@@ -2581,6 +2587,7 @@ Done:
             <Out()> ByRef applicableNarrowingCandidates As Integer,
             <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
             callerInfoOpt As VisualBasicSyntaxNode,
+            forceExpandedForm As Boolean,
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
         ) As Integer
             Dim applicableCandidates As Integer = 0
@@ -2597,7 +2604,7 @@ Done:
                 End If
 
                 If Not current.ArgumentMatchingDone Then
-                    MatchArguments(methodOrPropertyGroup, current, arguments, argumentNames, binder, asyncLambdaSubToFunctionMismatch, callerInfoOpt, useSiteDiagnostics)
+                    MatchArguments(methodOrPropertyGroup, current, arguments, argumentNames, binder, asyncLambdaSubToFunctionMismatch, callerInfoOpt, forceExpandedForm, useSiteDiagnostics)
                     current.SetArgumentMatchingDone()
                     candidates(i) = current
                 End If
@@ -2830,6 +2837,7 @@ Bailout:
             binder As Binder,
             <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
             callerInfoOpt As VisualBasicSyntaxNode,
+            forceExpandedForm As Boolean,
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
         )
             Debug.Assert(Not arguments.IsDefault)
@@ -2968,9 +2976,13 @@ Bailout:
                         Debug.Assert(candidate.IsExpandedParamArrayForm)
 
                         '§11.8.2 Applicable Methods
-                        'If the argument expression is the literal Nothing, then the method is only applicable in its unexpanded form.
+                        ' If the argument expression is the literal Nothing, then the method is only applicable in its unexpanded form.
                         ' Note, that explicitly converted NOTHING is treated the same way by Dev10.
-                        If paramArrayItems.Count = 1 AndAlso arguments(paramArrayItems(0)).IsNothingLiteral() Then
+                        ' But, for the purpose of interpolated string lowering the method is applicable even if the argument expression
+                        ' is the literal Nothing. This is because for interpolated string lowering we want to always call methods
+                        ' in their expanded form. E.g. $"{Nothing}" should be lowered to String.Format("{0}", New Object() {Nothing}) not
+                        ' String.Format("{0}", CType(Nothing, Object())).
+                        If paramArrayItems.Count = 1 AndAlso arguments(paramArrayItems(0)).IsNothingLiteral() AndAlso Not forceExpandedForm Then
                             candidate.State = CandidateAnalysisResultState.ArgumentMismatch
                             candidate.IgnoreExtensionMethods = False
                             GoTo Bailout
@@ -3041,7 +3053,7 @@ Bailout:
                         diagnostics = DiagnosticBag.GetInstance()
                     End If
 
-                    defaultArgument = Binder.GetArgumentForParameterDefaultValue(param, methodOrPropertyGroup.Syntax, diagnostics, callerInfoOpt)
+                    defaultArgument = binder.GetArgumentForParameterDefaultValue(param, methodOrPropertyGroup.Syntax, diagnostics, callerInfoOpt)
 
                     If defaultArgument IsNot Nothing AndAlso Not diagnostics.HasAnyErrors Then
                         Debug.Assert(Not diagnostics.AsEnumerable().Any())
@@ -3464,6 +3476,7 @@ Bailout:
             delegateReturnTypeReferenceBoundeNode As BoundNode,
             includeEliminatedCandidates As Boolean,
             isQueryOperatorInvocation As Boolean,
+            forceExpandedForm As Boolean,
             <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
         )
@@ -3479,7 +3492,7 @@ Bailout:
                     Continue For
                 End If
 
-                Dim info As QuickApplicabilityInfo = DoQuickApplicabilityCheck(group(i), typeArguments, arguments, isQueryOperatorInvocation, useSiteDiagnostics)
+                Dim info As QuickApplicabilityInfo = DoQuickApplicabilityCheck(group(i), typeArguments, arguments, isQueryOperatorInvocation, forceExpandedForm, useSiteDiagnostics)
 
                 If info.Candidate Is Nothing Then
                     Continue For
@@ -3512,7 +3525,7 @@ Bailout:
                     End If
 
                     If container = group(j).UnderlyingSymbol.ContainingSymbol Then
-                        info = DoQuickApplicabilityCheck(group(j), typeArguments, arguments, isQueryOperatorInvocation, useSiteDiagnostics)
+                        info = DoQuickApplicabilityCheck(group(j), typeArguments, arguments, isQueryOperatorInvocation, forceExpandedForm, useSiteDiagnostics)
                         group(j) = Nothing
 
                         If info.Candidate Is Nothing Then
@@ -3659,6 +3672,7 @@ Bailout:
             typeArguments As ImmutableArray(Of TypeSymbol),
             arguments As ImmutableArray(Of BoundExpression),
             isQueryOperatorInvocation As Boolean,
+            forceExpandedForm As Boolean,
             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
         ) As QuickApplicabilityInfo
             If isQueryOperatorInvocation AndAlso DirectCast(candidate.UnderlyingSymbol, MethodSymbol).IsSub Then
@@ -3732,7 +3746,7 @@ Bailout:
             Dim applicableInNormalForm As Boolean = False
             Dim applicableInParamArrayForm As Boolean = False
 
-            If Not hasParamArray OrElse arguments.Length = maxCount Then
+            If Not hasParamArray OrElse (arguments.Length = maxCount AndAlso Not forceExpandedForm) Then
                 applicableInNormalForm = True
             End If
 
@@ -4843,7 +4857,7 @@ ContinueCandidatesLoop:
                 Dim inferenceLevel As TypeArgumentInference.InferenceLevel = TypeArgumentInference.InferenceLevel.None
                 Dim allFailedInferenceIsDueToObject As Boolean = False
                 Dim someInferenceFailed As Boolean = False
-                Dim inferenceErrorReasons As InferenceErrorReasons = inferenceErrorReasons.Other
+                Dim inferenceErrorReasons As InferenceErrorReasons = InferenceErrorReasons.Other
                 Dim inferredTypeByAssumption As BitArray = Nothing
                 Dim typeArgumentsLocation As ImmutableArray(Of SyntaxNodeOrToken) = Nothing
 
@@ -4877,7 +4891,7 @@ ContinueCandidatesLoop:
                                     candidate.TypeArgumentInferenceDiagnosticsOpt = diagnostics
                                 End If
 
-                                binder.ReportDiagnostic(diagnostics,
+                                Binder.ReportDiagnostic(diagnostics,
                                                         typeArgumentsLocation(i),
                                                         ERRID.WRN_TypeInferenceAssumed3,
                                                         candidate.Candidate.TypeParameters(i),

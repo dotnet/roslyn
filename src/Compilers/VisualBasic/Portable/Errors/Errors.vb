@@ -1675,6 +1675,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_InReferencedAssembly = 37247
         ERR_EncReferenceToAddedMember = 37248
         ERR_InterpolationFormatWhitespace = 37249
+        ERR_InterpolationAlignmentOutOfRange = 37250
+        ERR_InterpolatedStringFactoryError = 37251
 
         ERR_LastPlusOne
 
