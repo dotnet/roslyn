@@ -38,7 +38,7 @@ to help explore the syntax trees you'll be analyzing.
 
 To get started on **Visual Studio 2015 CTP 5**:
 
-1. Set up a box with Visual Studio 2015 CPT 5. Either 
+1. Set up a box with Visual Studio 2015 CTP 5. Either 
 [install  Visual Studio 2015 CTP 5](http://go.microsoft.com/fwlink/?LinkId=400496), 
 or grab a [prebuilt Azure VM image](http://blogs.msdn.com/b/visualstudioalm/archive/2014/06/04/visual-studio-14-ctp-now-available-in-the-virtual-machine-azure-gallery.aspx).
 2. Install the [Visual Studio 2015 CTP 5 SDK](http://go.microsoft.com/fwlink/?LinkId=400496). 
