@@ -3589,6 +3589,17 @@ public class CS1698_a {}
         [Fact]
         public void Bug15538()
         {
+            // Several Jenkins VMs are still running with local systems permissions.  This suite won't run properly
+            // in that environment.  Removing this check is being tracked by issue #79.  
+            bool isSystem;
+            using (var identity = System.Security.Principal.WindowsIdentity.GetCurrent())
+            {
+                if (identity.IsSystem)
+                {
+                    return;
+                }
+            }
+
             var folder = Temp.CreateDirectory();
             var source = folder.CreateFile("src.vb").WriteAllText("").Path;
             var _ref = folder.CreateFile("ref.dll").WriteAllText("").Path;

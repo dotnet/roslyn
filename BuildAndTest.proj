@@ -44,7 +44,7 @@
 
       <!-- 
            These assemblies currently don't run correctly in Jenkins.  Disabling while
-           we investigate the failures"
+           we investigate the failures.  This is being tracked by issue #79
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CompilerServer.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.NativeClient.UnitTests.dll" />
@@ -52,10 +52,10 @@
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.Emit.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.Symbol.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.Syntax.UnitTests.dll" />
+      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.Emit.UnitTests.dll" />
       -->
 
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.CommandLine.UnitTests.dll" />
-      <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.Emit.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.Semantic.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.CSharp.Syntax.UnitTests.dll" />
       <TestAssemblies Include="Binaries\Debug\Roslyn.Compilers.VisualBasic.CommandLine.UnitTests.dll" />
