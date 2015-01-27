@@ -26,6 +26,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
 
         public async Task<BraceMatchingResult?> GetMatchingBracesAsync(Document document, int position, CancellationToken cancellationToken)
         {
+            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            if (position < 0 || position > text.Length)
+            {
+                throw new ArgumentException(nameof(position));
+            }
+
             var matchers = _braceMatchers.Where(b => b.Metadata.Language == document.Project.Language);
             foreach (var matcher in matchers)
             {
