@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns a new compilation with a given event queue.
         /// </summary>
-        public abstract Compilation WithEventQueue(AsyncQueue<CompilationEvent> eventQueue);
+        internal abstract Compilation WithEventQueue(AsyncQueue<CompilationEvent> eventQueue);
 
         /// <summary>
         /// Gets a new <see cref="SemanticModel"/> for the specified syntax tree.

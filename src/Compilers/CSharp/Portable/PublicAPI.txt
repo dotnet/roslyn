@@ -2468,7 +2468,6 @@ override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.IsCaseSensitive.get
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.Language.get
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.ReferencedAssemblyNames.get
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.ToMetadataReference(System.Collections.Immutable.ImmutableArray<string> aliases = default(System.Collections.Immutable.ImmutableArray<string>), bool embedInteropTypes = false)
-override Microsoft.CodeAnalysis.CSharp.CSharpCompilation.WithEventQueue(Microsoft.CodeAnalysis.Diagnostics.AsyncQueue<Microsoft.CodeAnalysis.Diagnostics.CompilationEvent> eventQueue)
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.CommonWithAssemblyIdentityComparer(Microsoft.CodeAnalysis.AssemblyIdentityComparer comparer)
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.CommonWithFeatures(System.Collections.Immutable.ImmutableArray<string> features)
 override Microsoft.CodeAnalysis.CSharp.CSharpCompilationOptions.CommonWithGeneralDiagnosticOption(Microsoft.CodeAnalysis.ReportDiagnostic value)
