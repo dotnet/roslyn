@@ -191,6 +191,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpScripting", "Scriptin
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CSharpScriptingTest", "Scripting\CSharpTest\CSharpScriptingTest.csproj", "{2DAE4406-7A89-4B5F-95C3-BC5422CE47CE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InteractiveFeatures", "Interactive\Features\InteractiveFeatures.csproj", "{8E2A252E-A140-45A6-A81A-2652996EA589}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InteractiveWindow", "InteractiveWindow\Editor\InteractiveWindow.csproj", "{01E9BD68-0339-4A13-B42F-A3CA84D164F3}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Compilers\Core\SharedCollections\SharedCollections.projitems*{5f8d2414-064a-4b3a-9b42-8e2a04246be5}*SharedItemsImports = 4
@@ -1185,6 +1189,18 @@ Global
 		{2DAE4406-7A89-4B5F-95C3-BC5422CE47CE}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{2DAE4406-7A89-4B5F-95C3-BC5422CE47CE}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{2DAE4406-7A89-4B5F-95C3-BC5422CE47CE}.Release|x64.ActiveCfg = Release|Any CPU
+		{8E2A252E-A140-45A6-A81A-2652996EA589}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{8E2A252E-A140-45A6-A81A-2652996EA589}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{8E2A252E-A140-45A6-A81A-2652996EA589}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{8E2A252E-A140-45A6-A81A-2652996EA589}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{8E2A252E-A140-45A6-A81A-2652996EA589}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{8E2A252E-A140-45A6-A81A-2652996EA589}.Release|x64.ActiveCfg = Release|Any CPU
+		{01E9BD68-0339-4A13-B42F-A3CA84D164F3}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{01E9BD68-0339-4A13-B42F-A3CA84D164F3}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{01E9BD68-0339-4A13-B42F-A3CA84D164F3}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{01E9BD68-0339-4A13-B42F-A3CA84D164F3}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{01E9BD68-0339-4A13-B42F-A3CA84D164F3}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{01E9BD68-0339-4A13-B42F-A3CA84D164F3}.Release|x64.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
