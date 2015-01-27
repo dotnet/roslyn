@@ -158,16 +158,17 @@ Microsoft.CodeAnalysis.CSharp.Syntax.AliasQualifiedNameSyntax.Update(Microsoft.C
 Microsoft.CodeAnalysis.CSharp.Syntax.AliasQualifiedNameSyntax.WithAlias(Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax alias)
 Microsoft.CodeAnalysis.CSharp.Syntax.AliasQualifiedNameSyntax.WithColonColonToken(Microsoft.CodeAnalysis.SyntaxToken colonColonToken)
 Microsoft.CodeAnalysis.CSharp.Syntax.AliasQualifiedNameSyntax.WithName(Microsoft.CodeAnalysis.CSharp.Syntax.SimpleNameSyntax name)
+Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.AddBlockStatements(params Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax[] items)
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.AddParameterListParameters(params Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax[] items)
-Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.AsyncKeyword.get
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.Block.get
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.DelegateKeyword.get
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.ParameterList.get
-Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword, Microsoft.CodeAnalysis.SyntaxToken delegateKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax block)
+Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword, Microsoft.CodeAnalysis.SyntaxToken delegateKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList, Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body)
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.WithAsyncKeyword(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword)
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.WithBlock(Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax block)
+Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.WithBody(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body)
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.WithDelegateKeyword(Microsoft.CodeAnalysis.SyntaxToken delegateKeyword)
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.WithParameterList(Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList)
 Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousObjectCreationExpressionSyntax
@@ -1112,6 +1113,7 @@ Microsoft.CodeAnalysis.CSharp.Syntax.LabeledStatementSyntax.Update(Microsoft.Cod
 Microsoft.CodeAnalysis.CSharp.Syntax.LabeledStatementSyntax.WithColonToken(Microsoft.CodeAnalysis.SyntaxToken colonToken)
 Microsoft.CodeAnalysis.CSharp.Syntax.LabeledStatementSyntax.WithIdentifier(Microsoft.CodeAnalysis.SyntaxToken identifier)
 Microsoft.CodeAnalysis.CSharp.Syntax.LabeledStatementSyntax.WithStatement(Microsoft.CodeAnalysis.CSharp.Syntax.StatementSyntax statement)
+Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.LetClauseSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.LetClauseSyntax.EqualsToken.get
 Microsoft.CodeAnalysis.CSharp.Syntax.LetClauseSyntax.Expression.get
@@ -1352,9 +1354,6 @@ Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedExpressionSyntax.WithExpressio
 Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedExpressionSyntax.WithOpenParenToken(Microsoft.CodeAnalysis.SyntaxToken openParenToken)
 Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.AddParameterListParameters(params Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax[] items)
-Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.ArrowToken.get
-Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.AsyncKeyword.get
-Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.Body.get
 Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.ParameterList.get
 Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList, Microsoft.CodeAnalysis.SyntaxToken arrowToken, Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body)
 Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.WithArrowToken(Microsoft.CodeAnalysis.SyntaxToken arrowToken)
@@ -1533,9 +1532,6 @@ Microsoft.CodeAnalysis.CSharp.Syntax.SimpleBaseTypeSyntax.WithType(Microsoft.Cod
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.AddParameterAttributeLists(params Microsoft.CodeAnalysis.CSharp.Syntax.AttributeListSyntax[] items)
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.AddParameterModifiers(params Microsoft.CodeAnalysis.SyntaxToken[] items)
-Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.ArrowToken.get
-Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.AsyncKeyword.get
-Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.Body.get
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.Parameter.get
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterSyntax parameter, Microsoft.CodeAnalysis.SyntaxToken arrowToken, Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body)
 Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.WithArrowToken(Microsoft.CodeAnalysis.SyntaxToken arrowToken)
@@ -2381,6 +2377,8 @@ abstract Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.Accept<TResult>(Microsof
 abstract Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.GetRoot(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
 abstract Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.Options.get
 abstract Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.TryGetRoot(out Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode root)
+abstract Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax.AsyncKeyword.get
+abstract Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousFunctionExpressionSyntax.Body.get
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseArgumentListSyntax.Arguments.get
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseCrefParameterListSyntax.Parameters.get
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.BaseFieldDeclarationSyntax.AttributeLists.get
@@ -2412,6 +2410,7 @@ abstract Microsoft.CodeAnalysis.CSharp.Syntax.ConditionalDirectiveTriviaSyntax.C
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.DirectiveTriviaSyntax.EndOfDirectiveToken.get
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.DirectiveTriviaSyntax.HashToken.get
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.DirectiveTriviaSyntax.IsActive.get
+abstract Microsoft.CodeAnalysis.CSharp.Syntax.LambdaExpressionSyntax.ArrowToken.get
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.SimpleNameSyntax.Identifier.get
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.SwitchLabelSyntax.ColonToken.get
 abstract Microsoft.CodeAnalysis.CSharp.Syntax.SwitchLabelSyntax.Keyword.get
@@ -2728,6 +2727,8 @@ override Microsoft.CodeAnalysis.CSharp.Syntax.AliasQualifiedNameSyntax.Accept(Mi
 override Microsoft.CodeAnalysis.CSharp.Syntax.AliasQualifiedNameSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor)
 override Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor)
 override Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor)
+override Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.AsyncKeyword.get
+override Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousMethodExpressionSyntax.Body.get
 override Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousObjectCreationExpressionSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor)
 override Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousObjectCreationExpressionSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor)
 override Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousObjectMemberDeclaratorSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor)
@@ -3090,6 +3091,9 @@ override Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedExpressionSyntax.Acce
 override Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedExpressionSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor)
 override Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor)
 override Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor)
+override Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.ArrowToken.get
+override Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.AsyncKeyword.get
+override Microsoft.CodeAnalysis.CSharp.Syntax.ParenthesizedLambdaExpressionSyntax.Body.get
 override Microsoft.CodeAnalysis.CSharp.Syntax.PointerTypeSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor)
 override Microsoft.CodeAnalysis.CSharp.Syntax.PointerTypeSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor)
 override Microsoft.CodeAnalysis.CSharp.Syntax.PostfixUnaryExpressionSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor)
@@ -3148,6 +3152,9 @@ override Microsoft.CodeAnalysis.CSharp.Syntax.SimpleBaseTypeSyntax.Accept<TResul
 override Microsoft.CodeAnalysis.CSharp.Syntax.SimpleBaseTypeSyntax.Type.get
 override Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor)
 override Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor)
+override Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.ArrowToken.get
+override Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.AsyncKeyword.get
+override Microsoft.CodeAnalysis.CSharp.Syntax.SimpleLambdaExpressionSyntax.Body.get
 override Microsoft.CodeAnalysis.CSharp.Syntax.SizeOfExpressionSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor)
 override Microsoft.CodeAnalysis.CSharp.Syntax.SizeOfExpressionSyntax.Accept<TResult>(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult> visitor)
 override Microsoft.CodeAnalysis.CSharp.Syntax.SkippedTokensTriviaSyntax.Accept(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor visitor)
@@ -3387,8 +3394,9 @@ static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AliasQualifiedName(Microsoft.
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AliasQualifiedName(Microsoft.CodeAnalysis.CSharp.Syntax.IdentifierNameSyntax alias, Microsoft.CodeAnalysis.SyntaxToken colonColonToken, Microsoft.CodeAnalysis.CSharp.Syntax.SimpleNameSyntax name)
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AliasQualifiedName(string alias, Microsoft.CodeAnalysis.CSharp.Syntax.SimpleNameSyntax name)
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AnonymousMethodExpression()
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AnonymousMethodExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax block)
-static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AnonymousMethodExpression(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword, Microsoft.CodeAnalysis.SyntaxToken delegateKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList, Microsoft.CodeAnalysis.CSharp.Syntax.BlockSyntax block)
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AnonymousMethodExpression(Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body)
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AnonymousMethodExpression(Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList, Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body)
+static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AnonymousMethodExpression(Microsoft.CodeAnalysis.SyntaxToken asyncKeyword, Microsoft.CodeAnalysis.SyntaxToken delegateKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ParameterListSyntax parameterList, Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode body)
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AnonymousObjectCreationExpression(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousObjectMemberDeclaratorSyntax> initializers = default(Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousObjectMemberDeclaratorSyntax>))
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AnonymousObjectCreationExpression(Microsoft.CodeAnalysis.SyntaxToken newKeyword, Microsoft.CodeAnalysis.SyntaxToken openBraceToken, Microsoft.CodeAnalysis.SeparatedSyntaxList<Microsoft.CodeAnalysis.CSharp.Syntax.AnonymousObjectMemberDeclaratorSyntax> initializers, Microsoft.CodeAnalysis.SyntaxToken closeBraceToken)
 static Microsoft.CodeAnalysis.CSharp.SyntaxFactory.AnonymousObjectMemberDeclarator(Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression)

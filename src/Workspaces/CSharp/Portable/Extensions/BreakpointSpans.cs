@@ -658,11 +658,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     return true;
 
                 case SyntaxKind.SimpleLambdaExpression:
-                    Debug.Assert(((SimpleLambdaExpressionSyntax)parent).Body == expression);
-                    return true;
-
                 case SyntaxKind.ParenthesizedLambdaExpression:
-                    Debug.Assert(((ParenthesizedLambdaExpressionSyntax)parent).Body == expression);
+                    Debug.Assert(((AnonymousFunctionExpressionSyntax)parent).Body == expression);
                     return true;
 
                 case SyntaxKind.ForStatement:

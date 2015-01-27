@@ -777,6 +777,7 @@
     <Compile Include="Syntax\InternalSyntax\SyntaxFirstTokenReplacer.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxTrivia.cs" />
     <Compile Include="Syntax\InternalSyntax\SyntaxVisitor.cs" />
+    <Compile Include="Syntax\AnonymousMethodExpressionSyntax.cs" />
     <Compile Include="Syntax\LookupPosition.cs" />
     <Compile Include="Syntax\MethodDeclarationSyntax.cs" />
     <Compile Include="Syntax\NamespaceDeclarationSyntax.cs" />
