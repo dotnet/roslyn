@@ -1,0 +1,173 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Text;
+using Microsoft.CodeAnalysis.Internal.Log;
+using Roslyn.Utilities;
+
+namespace Microsoft.CodeAnalysis.Diagnostics
+{
+    internal class DiagnosticAnalyzerLogger
+    {
+        private const string Id = "Id";
+        private const string AnalyzerCount = "AnalyzerCount";
+        private const string AnalyzerName = "Analyzer.Name";
+        private const string AnalyzerHashCode = "Analyzer.NameHashCode";
+        private const string AnalyzerCrashCount = "Analyzer.CrashCount";
+        private const string AnalyzerException = "Analyzer.Exception";
+        private const string AnalyzerExceptionHashCode = "Analyzer.ExceptionHashCode";
+
+        private static readonly SHA256CryptoServiceProvider sha256CryptoServiceProvider = new SHA256CryptoServiceProvider();
+
+        private static readonly ConditionalWeakTable<DiagnosticAnalyzer, StrongBox<bool>> telemetryCache = new ConditionalWeakTable<DiagnosticAnalyzer, StrongBox<bool>>();
+
+        private static string ComputeSha256Hash(string name)
+        {
+            byte[] hash = sha256CryptoServiceProvider.ComputeHash(Encoding.UTF8.GetBytes(name));
+            return Convert.ToBase64String(hash);
+        }
+
+        public static void LogWorkspaceAnalyzers(ImmutableArray<AnalyzerReference> analyzers)
+        {
+            Logger.Log(FunctionId.DiagnosticAnalyzerService_Analyzers, KeyValueLogMessage.Create(m =>
+            {
+                m[AnalyzerCount] = analyzers.Length.ToString();
+            }));
+        }
+
+        public static void LogAnalyzerCrashCount(DiagnosticAnalyzer analyzer, Exception ex, LogAggregator logAggregator)
+        {
+            if (logAggregator == null || analyzer == null || ex == null || ex is OperationCanceledException)
+            {
+                return;
+            }
+
+            // TODO: once we create description manager, pass that into here.
+            bool telemetry = DiagnosticAnalyzerLogger.AllowsTelemetry(null, analyzer);
+            var tuple = ValueTuple.Create(telemetry, analyzer.GetType(), ex.GetType());
+            logAggregator.IncreaseCount(tuple);
+        }
+
+        public static void LogAnalyzerCrashCountSummary(int correlationId, LogAggregator logAggregator)
+        {
+            if (logAggregator == null)
+            {
+                return;
+            }
+
+            foreach (var analyzerCrash in logAggregator)
+            {
+                Logger.Log(FunctionId.DiagnosticAnalyzerDriver_AnalyzerCrash, KeyValueLogMessage.Create(m =>
+                {
+                    var key = (ValueTuple<bool, Type, Type>)analyzerCrash.Key;
+                    bool telemetry = key.Item1;
+                    m[Id] = correlationId.ToString();
+
+                    // we log analyzer name and exception as it is, if telemetry is allowed
+                    if (telemetry)
+                    {
+                        m[AnalyzerName] = key.Item2.FullName;
+                        m[AnalyzerCrashCount] = analyzerCrash.Value.GetCount().ToString();
+                        m[AnalyzerException] = key.Item3.FullName;
+                    }
+                    else
+                    {
+                        string analyzerName = key.Item2.FullName;
+                        string exceptionName = key.Item3.FullName;
+
+                        m[AnalyzerHashCode] = ComputeSha256Hash(analyzerName);
+                        m[AnalyzerCrashCount] = analyzerCrash.Value.GetCount().ToString();
+                        m[AnalyzerExceptionHashCode] = ComputeSha256Hash(exceptionName);
+                    }
+                }));
+            }
+        }
+
+        public static void UpdateAnalyzerTypeCount(DiagnosticAnalyzer analyzer, AnalyzerActions analyzerActions, DiagnosticLogAggregator logAggregator)
+        {
+            if (analyzerActions == null || analyzer == null || logAggregator == null)
+            {
+                return;
+            }
+
+            logAggregator.UpdateAnalyzerTypeCount(analyzer, analyzerActions);
+        }
+
+        public static void LogAnalyzerTypeCountSummary(int correlationId, DiagnosticLogAggregator logAggregator)
+        {
+            if (logAggregator == null)
+            {
+                return;
+            }
+
+            foreach (var kvp in logAggregator.AnalyzerInfoMap)
+            {
+                Logger.Log(FunctionId.DiagnosticAnalyzerDriver_AnalyzerTypeCount, KeyValueLogMessage.Create(m =>
+                {
+                    m[Id] = correlationId.ToString();
+
+                    var ai = kvp.Value;
+                    bool hasTelemetry = ai.Telemetry;
+
+                    // we log analyzer name as it is, if telemetry is allowed
+                    if (hasTelemetry)
+                    {
+                        m[AnalyzerName] = ai.CLRType.FullName;
+                    }
+                    else
+                    {
+                        // if it is from third party, we use hashcode
+                        m[AnalyzerHashCode] = ComputeSha256Hash(ai.CLRType.FullName);
+                    }
+
+                    for (var i = 0; i < ai.Counts.Length; i++)
+                    {
+                        m[DiagnosticLogAggregator.AnalyzerTypes[i]] = ai.Counts[i].ToString();
+                    }
+                }));
+            }
+        }
+
+        public static bool AllowsTelemetry(DiagnosticAnalyzerService service, DiagnosticAnalyzer analyzer)
+        {
+            StrongBox<bool> value;
+            if (telemetryCache.TryGetValue(analyzer, out value))
+            {
+                return value.Value;
+            }
+
+            return telemetryCache.GetValue(analyzer, a => new StrongBox<bool>(CheckTelemetry(service, a))).Value;
+        }
+
+        private static bool CheckTelemetry(DiagnosticAnalyzerService service, DiagnosticAnalyzer analyzer)
+        {
+            if (DiagnosticAnalyzerDriver.IsCompilerAnalyzer(analyzer))
+            {
+                return true;
+            }
+
+            ImmutableArray<DiagnosticDescriptor> diagDescriptors;
+            try
+            {
+                // SupportedDiagnostics is potentially user code and can throw an exception.
+                diagDescriptors = service != null ? service.GetDiagnosticDescriptors(analyzer) : analyzer.SupportedDiagnostics;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+
+            if (diagDescriptors == null)
+            {
+                return false;
+            }
+
+            // find if the first diagnostic in this analyzer allows telemetry
+            DiagnosticDescriptor diagnostic = diagDescriptors.Length > 0 ? diagDescriptors[0] : null;
+            return diagnostic == null ? false : diagnostic.CustomTags.Any(t => t == WellKnownDiagnosticTags.Telemetry);
+        }
+    }
+}
