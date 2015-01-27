@@ -2387,7 +2387,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim boundType = Me.BindNamespaceOrTypeExpression(node, typeDiagnostics)
                             If boundType.Type = leftType Then
                                 Dim err As ERRID = Nothing
-                                If isInstanceMember AndAlso (Not CanAccessMe(implicitReference:=True, errorId:=err) OrElse Not ContainingType.IsOrDerivedFrom(leftSymbol.ContainingType, Nothing)) Then
+                                If isInstanceMember AndAlso (Not CanAccessMe(implicitReference:=True, errorId:=err) OrElse Not BindSimpleNameIsMemberOfType(leftSymbol, ContainingType)) Then
                                     diagnostics.AddRange(typeDiagnostics)
                                     leftDiagnostics.Free()
 
