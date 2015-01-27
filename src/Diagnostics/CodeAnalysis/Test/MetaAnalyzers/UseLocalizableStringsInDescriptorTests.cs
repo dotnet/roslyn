@@ -21,7 +21,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer]
+[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
 class MyAnalyzer : DiagnosticAnalyzer
 {
     private static readonly DiagnosticDescriptor descriptor =
@@ -52,7 +52,7 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 
-<DiagnosticAnalyzer>
+<DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
 Class MyAnalyzer
 	Inherits DiagnosticAnalyzer
     Private Shared ReadOnly descriptor As DiagnosticDescriptor = new DiagnosticDescriptor(""MyDiagnosticId"", ""MyDiagnosticTitle"", ""MyDiagnosticMessage"", ""MyDiagnosticCategory"", DiagnosticSeverity.Warning, isEnabledByDefault:= true)
@@ -80,7 +80,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer]
+[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
 class MyAnalyzer : DiagnosticAnalyzer
 {
     private static LocalizableString dummyLocalizableTitle = new LocalizableResourceString(""dummyName"", null, null);
@@ -113,7 +113,7 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 
-<DiagnosticAnalyzer>
+<DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)>
 Class MyAnalyzer
 	Inherits DiagnosticAnalyzer
 

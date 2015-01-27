@@ -165,22 +165,6 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer]
-class MyAnalyzerWithAttribute : DiagnosticAnalyzer
-{
-    public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-    {
-        get
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public override void Initialize(AnalysisContext context)
-    {
-    }
-}
-
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 class MyAnalyzerWithLanguageSpecificAttribute : DiagnosticAnalyzer
 {
@@ -212,19 +196,6 @@ Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
-
-<DiagnosticAnalyzer>
-Class MyAnalyzerWithAttribute
-	Inherits DiagnosticAnalyzer
-	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
-		Get
-			Throw New NotImplementedException()
-		End Get
-	End Property
-
-	Public Overrides Sub Initialize(context As AnalysisContext)
-	End Sub
-End Class
 
 <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
 Class MyAnalyzerWithLanguageSpecificAttribute

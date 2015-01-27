@@ -157,7 +157,6 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 var isRegisterSymbolAction = IsRegisterAction(RegisterSymbolActionName, method, analysisContext, compilationStartAnalysisContext);
                 var isRegisterSyntaxNodeAction = IsRegisterAction(RegisterSyntaxNodeActionName, method, analysisContext, compilationStartAnalysisContext, codeBlockStartAnalysisContext);
                 var isRegisterCodeBlockStartAction = IsRegisterAction(RegisterCodeBlockStartActionName, method, analysisContext, compilationStartAnalysisContext);
-                var isRegisterCodeBlockEndAction = IsRegisterAction(RegisterCodeBlockEndActionName, method, analysisContext, compilationStartAnalysisContext);
 
                 if (isRegisterSymbolAction || isRegisterSyntaxNodeAction)
                 {
@@ -211,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     }
                 }
 
-                if (isRegisterSyntaxNodeAction || isRegisterCodeBlockStartAction || isRegisterCodeBlockEndAction)
+                if (isRegisterSyntaxNodeAction || isRegisterCodeBlockStartAction)
                 {
                     Debug.Assert(method.TypeParameters.Length > 0);
 

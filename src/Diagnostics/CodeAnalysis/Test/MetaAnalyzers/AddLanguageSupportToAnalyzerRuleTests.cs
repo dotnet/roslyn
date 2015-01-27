@@ -19,7 +19,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
+[DiagnosticAnalyzer(LanguageNames.CSharp, ""MyLanguage"")]
 class MyAnalyzer : DiagnosticAnalyzer
 {
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
@@ -52,7 +52,7 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 
-<DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+<DiagnosticAnalyzer(LanguageNames.VisualBasic, ""MyLanguage"")>
 Class MyAnalyzer
 	Inherits DiagnosticAnalyzer
 	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
@@ -99,9 +99,8 @@ class MyAnalyzerWithCustomLanguageAttribute : DiagnosticAnalyzer
     }
 }
 
-[DiagnosticAnalyzer(LanguageNames.CSharp)]
-[DiagnosticAnalyzer(""MyLanguage"")]
-class MyAnalyzerWithMultipleAttributes : DiagnosticAnalyzer
+[DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+class MyAnalyzerWithBothLanguages : DiagnosticAnalyzer
 {
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
     {
@@ -147,9 +146,8 @@ Class MyAnalyzerWithCustomLanguageAttribute
 	End Sub
 End Class
 
-<DiagnosticAnalyzer(LanguageNames.VisualBasic)>
-<DiagnosticAnalyzer(""MyLanguage"")>
-Class MyAnalyzerWithMultipleAttributes
+<DiagnosticAnalyzer(LanguageNames.VisualBasic, LanguageNames.CSharp)>
+Class MyAnalyzerWithBothLanguages
 	Inherits DiagnosticAnalyzer
 	Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
 		Get
