@@ -24,7 +24,7 @@ namespace Roslyn.Test.Utilities
 
         private class AssertEqualityComparer<T> : IEqualityComparer<T>
         {
-            private static readonly IEqualityComparer<T> instance = new AssertEqualityComparer<T>();
+            private static readonly IEqualityComparer<T> s_instance = new AssertEqualityComparer<T>();
 
             private static bool CanBeNull()
             {
@@ -45,7 +45,7 @@ namespace Roslyn.Test.Utilities
 
             public static bool Equals(T left, T right)
             {
-                return instance.Equals(left, right);
+                return s_instance.Equals(left, right);
             }
 
             bool IEqualityComparer<T>.Equals(T x, T y)
@@ -439,7 +439,7 @@ namespace Roslyn.Test.Utilities
             return GetAssertMessage(expected, actual, toString: toString, separator: "\r\n", expectedValueSourcePath: expectedValueSourcePath, expectedValueSourceLine: expectedValueSourceLine);
         }
 
-        private static readonly string DiffToolPath = Environment.GetEnvironmentVariable("ROSLYN_DIFFTOOL");
+        private static readonly string s_diffToolPath = Environment.GetEnvironmentVariable("ROSLYN_DIFFTOOL");
 
         public static string GetAssertMessage<T>(
             IEnumerable<T> expected,
@@ -476,7 +476,7 @@ namespace Roslyn.Test.Utilities
         internal static bool TryGenerateExpectedSourceFielAndGetDiffLink(string actualString, int expectedLineCount, string expectedValueSourcePath, int expectedValueSourceLine, out string link)
         {
             // add a link to a .cmd file that opens a diff tool:
-            if (!string.IsNullOrEmpty(DiffToolPath) && expectedValueSourcePath != null && expectedValueSourceLine != 0)
+            if (!string.IsNullOrEmpty(s_diffToolPath) && expectedValueSourcePath != null && expectedValueSourceLine != 0)
             {
                 var actualFile = Path.GetTempFileName();
                 var testFileLines = File.ReadAllLines(expectedValueSourcePath);
@@ -486,11 +486,11 @@ namespace Roslyn.Test.Utilities
                 File.AppendAllLines(actualFile, testFileLines.Skip(expectedValueSourceLine + expectedLineCount));
 
                 var compareCmd = Path.GetTempFileName() + ".cmd";
-                File.WriteAllText(compareCmd, string.Format("\"{0}\" \"{1}\" \"{2}\"", DiffToolPath, actualFile, expectedValueSourcePath));
+                File.WriteAllText(compareCmd, string.Format("\"{0}\" \"{1}\" \"{2}\"", s_diffToolPath, actualFile, expectedValueSourcePath));
 
                 link = "file://" + compareCmd;
 
-                DiffLinks.Value.Add(Tuple.Create(expectedValueSourcePath, expectedValueSourceLine, link));
+                s_diffLinks.Value.Add(Tuple.Create(expectedValueSourcePath, expectedValueSourceLine, link));
                 return true;
             }
 
@@ -498,13 +498,13 @@ namespace Roslyn.Test.Utilities
             return false;
         }
 
-        private static Lazy<List<Tuple<string, int, string>>> DiffLinks = new Lazy<List<Tuple<string, int, string>>>(() =>
+        private static Lazy<List<Tuple<string, int, string>>> s_diffLinks = new Lazy<List<Tuple<string, int, string>>>(() =>
         {
             AppDomain.CurrentDomain.DomainUnload += (_, __) =>
             {
                 Debug.WriteLine("All error diffs:");
 
-                foreach (var link in DiffLinks.Value.OrderBy(l => l.Item1).ThenBy(l => l.Item2))
+                foreach (var link in s_diffLinks.Value.OrderBy(l => l.Item1).ThenBy(l => l.Item2))
                 {
                     Debug.WriteLine(link.Item3);
                 }
