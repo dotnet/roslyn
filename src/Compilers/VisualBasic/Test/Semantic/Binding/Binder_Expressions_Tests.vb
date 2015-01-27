@@ -3422,5 +3422,49 @@ End Class    </file>
 
             CompileAndVerify(compilation, expectedOutput:="42")
         End Sub
+
+        <WorkItem(1114969, "DevDiv")>
+        <Fact()>
+        Public Sub Bug1114969()
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+<compilation>
+    <file name="a.vb">
+Class Color
+    Public Function M() As Integer
+        Return 42
+    End Function
+End Class
+
+Class Base
+    Protected Dim Color As Color = New Color()
+End Class
+    
+Class Derived
+    Inherits Base
+
+    Sub M()
+        System.Console.WriteLine(Color.M())
+    End Sub
+
+    Shared Sub Main()
+        Dim d = New Derived()
+        d.M()
+    End Sub
+End Class    </file>
+</compilation>, TestOptions.ReleaseExe)
+
+            Dim tree = compilation.SyntaxTrees(0)
+            Dim model = compilation.GetSemanticModel(tree)
+            Dim node = tree.GetRoot().DescendantNodes.OfType(Of MemberAccessExpressionSyntax)().Select(Function(e) e.Expression).Where(Function(e) e.ToString() = "Color").Single()
+
+            Dim symbol = model.GetSymbolInfo(node).Symbol
+            Assert.NotNull(symbol)
+            Assert.Equal("Color", symbol.Name)
+            Assert.Equal(SymbolKind.Field, symbol.Kind)
+
+            AssertTheseDiagnostics(compilation, <expected></expected>)
+
+            CompileAndVerify(compilation, expectedOutput:="42")
+        End Sub
     End Class
 End Namespace

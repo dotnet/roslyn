@@ -597,7 +597,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Adjusts receiver of a call or a member access if the receiver is an
-        ''' ambiguous BoundTypeOrValueExpression. This can only hapen if the
+        ''' ambiguous BoundTypeOrValueExpression. This can only happen if the
         ''' receiver is the LHS of a member access expression in which the
         ''' RHS cannot be resolved (i.e. the RHS is an error or a late-bound
         ''' invocation/access).
@@ -2387,7 +2387,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim boundType = Me.BindNamespaceOrTypeExpression(node, typeDiagnostics)
                             If boundType.Type = leftType Then
                                 Dim err As ERRID = Nothing
-                                If isInstanceMember AndAlso (Not CanAccessMe(implicitReference:=True, errorId:=err) OrElse ContainingType <> leftSymbol.ContainingType) Then
+                                If isInstanceMember AndAlso (Not CanAccessMe(implicitReference:=True, errorId:=err) OrElse Not ContainingType.IsOrDerivedFrom(leftSymbol.ContainingType, Nothing)) Then
                                     diagnostics.AddRange(typeDiagnostics)
                                     leftDiagnostics.Free()
 
