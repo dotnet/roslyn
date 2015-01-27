@@ -1,5 +1,7 @@
 ## Welcome to the .NET Compiler Platform ("Roslyn")
 
+[![Build Status](http://corefx-ci.cloudapp.net/jenkins/job/dotnet_roslyn/badge/icon)](http://corefx-ci.cloudapp.net/jenkins/job/dotnet_roslyn/)
+
 The .NET Compiler Platform ("Roslyn") provides open-source C# and Visual Basic compilers 
 with rich code analysis APIs.  It enables building code analysis tools with the same APIs 
 that are used by Visual Studio.
