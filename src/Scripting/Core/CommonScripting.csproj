@@ -1,0 +1,142 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="Settings">
+    <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Settings.targets" />
+    <Import Project="..\..\..\build\VSL.Settings.Closed.targets" />
+  </ImportGroup>
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{12A68549-4E8C-42D6-8703-A09335F97997}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Roslyn.Scripting</RootNamespace>
+    <AssemblyName>Roslyn.Scripting.Common</AssemblyName>
+    <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
+  </PropertyGroup>
+  <ItemGroup Label="Linked Files">
+    <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
+      <Link>FusionAssemblyIdentity.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GlobalAssemblyCache.cs">
+      <Link>GlobalAssemblyCache.cs</Link>
+    </Compile>
+    <Compile Include="..\..\Compilers\Helpers\GlobalAssemblyCacheHelpers\GacFileResolver.cs">
+      <Link>GacFileResolver.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\Compilers\Core\Desktop\CodeAnalysis.Desktop.csproj">
+      <Project>{dfa21ca1-7f96-47ee-940c-069858e81727}</Project>
+      <Name>CodeAnalysis.Desktop</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
+      <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
+      <Name>CodeAnalysis</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|Any CPU' ">
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|Any CPU' ">
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM' ">
+    <PlatformTarget>ARM</PlatformTarget>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|ARM' ">
+    <PlatformTarget>ARM</PlatformTarget>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DogfoodDebug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DogfoodDebug|ARM'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DogfoodRelease|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'DogfoodRelease|ARM'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>TRACE;DEBUG;SCRIPTING</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DefineConstants>TRACE;SCRIPTING</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Collections.Immutable, Version=1.1.33.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\System.Collections.Immutable.1.1.33-beta\lib\portable-net45+win8+wp8+wpa81\System.Collections.Immutable.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Core" />
+    <Reference Include="System.Reflection.Metadata, Version=1.0.18.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\System.Reflection.Metadata.1.0.18-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="AssemblyLoader.cs" />
+    <Compile Include="AssemblyLoadResult.cs" />
+    <Compile Include="ObjectFormatter.cs" />
+    <Compile Include="ObjectFormatter.Formatter.cs" />
+    <Compile Include="Script.cs" />
+    <Compile Include="ScriptBuilder.cs" />
+    <Compile Include="CommonScriptingResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>CommonScriptingResources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="CompilationErrorException.cs" />
+    <Compile Include="Emit\CommonCompilationExtensions.cs" />
+    <Compile Include="Emit\ReflectionEmitResult.cs" />
+    <Compile Include="Emit\ReflectionEmitter.cs" />
+    <Compile Include="Emit\ReflectionEmitter.Refs.cs" />
+    <Compile Include="InteractiveAssemblyLoader.cs" />
+    <Compile Include="MemberDisplayFormat.cs" />
+    <Compile Include="MetadataShadowCopy.cs" />
+    <Compile Include="MetadataShadowCopyProvider.cs" />
+    <Compile Include="ObjectFormattingOptions.cs" />
+    <Compile Include="ScriptExecutionState.cs" />
+    <Compile Include="ScriptVariables.cs" />
+    <Compile Include="ScriptOptions.cs" />
+    <Compile Include="ScriptState.cs" />
+    <Compile Include="ScriptVariable.cs" />
+    <Compile Include="ShadowCopy.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Roslyn.Scripting.CSharp" />
+    <InternalsVisibleTo Include="Roslyn.Scripting.VisualBasic" />
+    <InternalsVisibleTo Include="Roslyn.InteractiveFeatures" />
+    <InternalsVisibleTo Include="Roslyn.InteractiveEditorFeatures" />
+    <InternalsVisibleTo Include="Roslyn.VisualStudio.InteractiveServices" />
+    <InternalsVisibleTo Include="csi" />
+    <InternalsVisibleTo Include="vbi" />
+    <!-- GAC helpers -->
+    <InternalsVisibleToTest Include="Roslyn.Compilers.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Scripting.Common.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Scripting.CSharp.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Scripting.VisualBasic.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Test.Utilities" />
+    <InternalsVisibleToTest Include="RoslynTaoActions" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="CommonScriptingResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>CommonScriptingResources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ImportGroup Label="Targets">
+    <Import Project="..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />
+    <Import Project="..\..\..\build\VSL.Imports.Closed.targets" />
+    <Import Project="$(SolutionDir)\.nuget\NuGet.targets" Condition="Exists('$(SolutionDir)\.nuget\NuGet.targets')" />
+  </ImportGroup>
+</Project>
