@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -204,6 +204,31 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End While
         End Sub
 
+        Public Shared Function FindPartner(leftRoot As SyntaxNode, rightRoot As SyntaxNode, leftNode As SyntaxNode) As SyntaxNode
+            ' Finding a partner of a zero-width node is complicated and not supported atm
+            Debug.Assert(leftNode.FullSpan.Length > 0)
+
+            Dim originalLeftNode = leftNode
+            Dim leftPosition = leftNode.SpanStart
+            leftNode = leftRoot
+            Dim rightNode = rightRoot
+
+            While leftNode IsNot originalLeftNode
+                Debug.Assert(leftNode.RawKind = rightNode.RawKind)
+
+                Dim childIndex = 0
+                Dim leftChild = leftNode.ChildThatContainsPosition(leftPosition, childIndex)
+
+                ' Can only happen when searching for zero-width node.
+                Debug.Assert(Not leftChild.IsToken)
+
+                rightNode = rightNode.ChildNodesAndTokens().ElementAt(childIndex).AsNode()
+                leftNode = leftChild.AsNode()
+            End While
+
+            Return rightNode
+        End Function
+
         Public Shared Function IsNotLambda(node As SyntaxNode) As Boolean
             Return Not IsLambda(node.Kind())
         End Function
@@ -261,29 +286,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                    Not DirectCast(propertyDeclaration, PropertyStatementSyntax).Modifiers.Any(SyntaxKind.MustOverrideKeyword)
         End Function
 
-        Public Shared Function IsAsyncMethodOrLambda(node As SyntaxNode) As Boolean
-            ' TODO: check Lambda
+        Public Shared Function IsAsyncMethodOrLambda(declaration As SyntaxNode) As Boolean
+            Return GetModifiers(declaration).Any(SyntaxKind.AsyncKeyword)
+        End Function
 
-            Select Case node.Kind
-                Case SyntaxKind.SubBlock,
-                     SyntaxKind.FunctionBlock
-                    Return DirectCast(node, MethodBlockBaseSyntax).BlockStatement.Modifiers.Any(SyntaxKind.AsyncKeyword)
-            End Select
-
-            Return False
+        Public Shared Function IsIteratorMethodOrLambda(declaration As SyntaxNode) As Boolean
+            Return GetModifiers(declaration).Any(SyntaxKind.IteratorKeyword)
         End Function
 
         Public Shared Function GetAwaitExpressions(body As SyntaxNode) As ImmutableArray(Of SyntaxNode)
             ' skip lambda bodies
-            Return ImmutableArray.CreateRange(Of SyntaxNode)(body.DescendantNodes(Function(n) IsNotLambda(n)).
+            Return ImmutableArray.CreateRange(body.DescendantNodes(Function(n) IsNotLambda(n)).
                 Where(Function(n) n.IsKind(SyntaxKind.AwaitExpression)))
         End Function
 
         Public Shared Function GetYieldStatements(body As SyntaxNode) As ImmutableArray(Of SyntaxNode)
             ' enumerate statements:
-            Return ImmutableArray.CreateRange(Of SyntaxNode)(body.DescendantNodes(Function(n) TypeOf n IsNot ExpressionSyntax).
+            Return ImmutableArray.CreateRange(body.DescendantNodes(Function(n) TypeOf n IsNot ExpressionSyntax).
                 Where(Function(n) n.IsKind(SyntaxKind.YieldStatement)))
 
+        End Function
+
+        Public Shared Function GetModifiers(declaration As SyntaxNode) As SyntaxTokenList
+            Select Case declaration.Kind
+                Case SyntaxKind.SubBlock,
+                     SyntaxKind.FunctionBlock
+                    Return DirectCast(declaration, MethodBlockBaseSyntax).BlockStatement.Modifiers
+
+                Case SyntaxKind.MultiLineFunctionLambdaExpression,
+                     SyntaxKind.SingleLineFunctionLambdaExpression,
+                     SyntaxKind.MultiLineSubLambdaExpression,
+                     SyntaxKind.SingleLineSubLambdaExpression
+                    Return DirectCast(declaration, LambdaExpressionSyntax).SubOrFunctionHeader.Modifiers
+            End Select
+
+            Return Nothing
         End Function
     End Class
 End Namespace

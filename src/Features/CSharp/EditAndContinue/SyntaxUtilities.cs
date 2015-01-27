@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -185,6 +185,34 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
         }
 
+        public static SyntaxNode FindPartner(SyntaxNode leftRoot, SyntaxNode rightRoot, SyntaxNode leftNode)
+        {
+            // Finding a partner of a zero-width node is complicated and not supported atm:
+            Debug.Assert(leftNode.FullSpan.Length > 0);
+            Debug.Assert(leftNode.SyntaxTree == leftRoot.SyntaxTree);
+
+            SyntaxNode originalLeftNode = leftNode;
+            int leftPosition = leftNode.SpanStart;
+            leftNode = leftRoot;
+            SyntaxNode rightNode = rightRoot;
+
+            while (leftNode != originalLeftNode)
+            {
+                Debug.Assert(leftNode.RawKind == rightNode.RawKind);
+
+                int childIndex;
+                var leftChild = leftNode.ChildThatContainsPosition(leftPosition, out childIndex);
+
+                // Can only happen when searching for zero-width node.
+                Debug.Assert(!leftChild.IsToken);
+
+                rightNode = rightNode.ChildNodesAndTokens().ElementAt(childIndex).AsNode();
+                leftNode = leftChild.AsNode();
+            }
+
+            return rightNode;
+        }
+
         public static bool IsNotLambda(SyntaxNode node)
         {
             return !IsLambda(node.Kind());
@@ -324,29 +352,29 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 && property.AccessorList.Accessors.Any(e => e.Body == null);
         }
 
-        public static bool IsAsyncMethodOrLambda(SyntaxNode node)
+        public static bool IsAsyncMethodOrLambda(SyntaxNode declaration)
         {
-            if (node.IsKind(SyntaxKind.ParenthesizedLambdaExpression))
+            if (declaration.IsKind(SyntaxKind.ParenthesizedLambdaExpression))
             {
-                var lambda = (ParenthesizedLambdaExpressionSyntax)node;
+                var lambda = (ParenthesizedLambdaExpressionSyntax)declaration;
                 if (lambda.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword))
                 {
                     return true;
                 }
             }
 
-            if (node.IsKind(SyntaxKind.SimpleLambdaExpression))
+            if (declaration.IsKind(SyntaxKind.SimpleLambdaExpression))
             {
-                var lambda = (SimpleLambdaExpressionSyntax)node;
+                var lambda = (SimpleLambdaExpressionSyntax)declaration;
                 if (lambda.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword))
                 {
                     return true;
                 }
             }
 
-            if (node.IsKind(SyntaxKind.AnonymousMethodExpression))
+            if (declaration.IsKind(SyntaxKind.AnonymousMethodExpression))
             {
-                var lambda = (AnonymousMethodExpressionSyntax)node;
+                var lambda = (AnonymousMethodExpressionSyntax)declaration;
                 if (lambda.AsyncKeyword.IsKind(SyntaxKind.AsyncKeyword))
                 {
                     return true;
@@ -354,17 +382,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             // expression bodied methods:
-            if (node.IsKind(SyntaxKind.ArrowExpressionClause))
+            if (declaration.IsKind(SyntaxKind.ArrowExpressionClause))
             {
-                node = node.Parent;
+                declaration = declaration.Parent;
             }
 
-            if (!node.IsKind(SyntaxKind.MethodDeclaration))
+            if (!declaration.IsKind(SyntaxKind.MethodDeclaration))
             {
                 return false;
             }
 
-            var method = (MethodDeclarationSyntax)node;
+            var method = (MethodDeclarationSyntax)declaration;
             return method.Modifiers.Any(SyntaxKind.AsyncKeyword);
         }
 
@@ -385,6 +413,19 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             // enumerate statements:
             return ImmutableArray.CreateRange(body.DescendantNodes(n => !(n is ExpressionSyntax))
                    .Where(n => n.IsKind(SyntaxKind.YieldBreakStatement) || n.IsKind(SyntaxKind.YieldReturnStatement)));
+        }
+
+        public static bool IsIteratorMethod(SyntaxNode declaration)
+        {
+            // lambdas and expression-bodied methods can't be iterators:
+            if (!declaration.IsKind(SyntaxKind.MethodDeclaration))
+            {
+                return false;
+            }
+
+            // enumerate statements:
+            return declaration.DescendantNodes(n => !(n is ExpressionSyntax))
+                   .Any(n => n.IsKind(SyntaxKind.YieldBreakStatement) || n.IsKind(SyntaxKind.YieldReturnStatement));
         }
     }
 }

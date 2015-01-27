@@ -397,6 +397,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return node
         End Function
 
+        Friend Overrides Function CreateSyntaxMapForEquivalentNodes(oldRoot As SyntaxNode, newRoot As SyntaxNode) As Func(Of SyntaxNode, SyntaxNode)
+            Debug.Assert(SyntaxFactory.AreEquivalent(oldRoot, newRoot))
+            Return Function(newNode) SyntaxUtilities.FindPartner(newRoot, oldRoot, newNode)
+        End Function
+
         Protected Overrides Function FindEnclosingLambdaBody(containerOpt As SyntaxNode, node As SyntaxNode) As SyntaxNode
             Dim root As SyntaxNode = GetEncompassingAncestor(containerOpt)
 
@@ -2670,7 +2675,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 
 #Region "State Machines"
 
+        Friend Overrides Function IsStateMachineMethod(declaration As SyntaxNode) As Boolean
+            Return SyntaxUtilities.IsAsyncMethodOrLambda(declaration) OrElse
+                   SyntaxUtilities.IsIteratorMethodOrLambda(declaration)
+        End Function
+
         Protected Overrides Function GetStateMachineSuspensionPoints(body As SyntaxNode) As ImmutableArray(Of SyntaxNode)
+            ' In VB declaration and body are reprsented by teh same node for both lambdas and methods (unlike C#)
             If SyntaxUtilities.IsAsyncMethodOrLambda(body) Then
                 Return SyntaxUtilities.GetAwaitExpressions(body)
             Else

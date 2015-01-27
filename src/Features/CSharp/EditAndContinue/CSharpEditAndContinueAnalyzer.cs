@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -350,6 +350,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 default:
                     throw ExceptionUtilities.UnexpectedValue(part);
             }
+        }
+
+        internal override Func<SyntaxNode, SyntaxNode> CreateSyntaxMapForEquivalentNodes(SyntaxNode oldRoot, SyntaxNode newRoot)
+        {
+            Debug.Assert(SyntaxFactory.AreEquivalent(oldRoot, newRoot));
+            return newNode => SyntaxUtilities.FindPartner(newRoot, oldRoot, newNode);
         }
 
         protected override SyntaxNode FindEnclosingLambdaBody(SyntaxNode containerOpt, SyntaxNode node)
@@ -2591,6 +2597,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         #endregion
 
         #region State Machines
+
+        internal override bool IsStateMachineMethod(SyntaxNode declaration)
+        {
+            return SyntaxUtilities.IsAsyncMethodOrLambda(declaration) ||
+                   SyntaxUtilities.IsIteratorMethod(declaration);
+        }
 
         protected override ImmutableArray<SyntaxNode> GetStateMachineSuspensionPoints(SyntaxNode body)
         {

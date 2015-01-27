@@ -130,6 +130,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         }
 
         /// <summary>
+        /// Returns a function that maps nodes of <paramref name="newRoot"/> to corresponding nodes of <paramref name="oldRoot"/>,
+        /// assuming that the bodies only differ in trivia.
+        /// </summary>
+        internal abstract Func<SyntaxNode, SyntaxNode> CreateSyntaxMapForEquivalentNodes(SyntaxNode oldRoot, SyntaxNode newRoot);
+
+        /// <summary>
         /// Returns a node that represents a body of a lambda containing specified <paramref name="node"/>,
         /// or null if the node isn't contained in a lambda. If a node is returned it must uniquely represent the lambda,
         /// i.e. be no two distinct nodes may represent the same lambda.
@@ -193,7 +199,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         protected abstract List<SyntaxNode> GetExceptionHandlingAncestors(SyntaxNode node, bool isLeaf);
         protected abstract ImmutableArray<SyntaxNode> GetStateMachineSuspensionPoints(SyntaxNode body);
         protected abstract TextSpan GetExceptionHandlingRegion(SyntaxNode node, out bool coversAllChildren);
-        
+
         internal abstract void ReportSyntacticRudeEdits(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, Edit<SyntaxNode> edit, Dictionary<SyntaxNode, EditKind> editMap);
         internal abstract void ReportEnclosingExceptionHandlingRudeEdits(List<RudeEditDiagnostic> diagnostics, IEnumerable<Edit<SyntaxNode>> exceptionHandlingEdits, SyntaxNode oldStatement, SyntaxNode newStatement);
         internal abstract void ReportOtherRudeEditsAroundActiveStatement(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match, SyntaxNode oldStatement, SyntaxNode newStatement, bool isLeaf);
@@ -202,6 +208,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal abstract void ReportStateMachineSuspensionPointRudeEdits(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode);
 
         internal abstract bool IsMethod(SyntaxNode declaration);
+        internal abstract bool IsStateMachineMethod(SyntaxNode declaration);
         internal abstract SyntaxNode TryGetContainingTypeDeclaration(SyntaxNode memberDeclaration);
 
         internal abstract bool HasBackingField(SyntaxNode propertyDeclaration);
@@ -2043,9 +2050,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 if (IsMethod(edit.Key))
                 {
                     int start, end;
-                    bool preserveLocalVariables = TryGetOverlappingActiveStatements(oldText, edit.Key.Span, oldActiveStatements, out start, out end);
 
-                    semanticEdits.Add(new SemanticEdit(SemanticEditKind.Update, oldSymbol, newSymbol, preserveLocalVariables: preserveLocalVariables));
+                    // TODO: also preserve local variables if the body contains lambdas
+                    bool preserveLocalVariables = 
+                        TryGetOverlappingActiveStatements(oldText, edit.Key.Span, oldActiveStatements, out start, out end) ||
+                        IsStateMachineMethod(edit.Key);
+
+                    var syntaxMap = preserveLocalVariables ? CreateSyntaxMapForEquivalentNodes(edit.Key, edit.Value) : null;
+
+                    semanticEdits.Add(new SemanticEdit(SemanticEditKind.Update, oldSymbol, newSymbol, syntaxMap, preserveLocalVariables));
                     newSymbolsWithEdit.Add(newSymbol);
                 }
                 else
@@ -2337,6 +2350,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     // of the constructor. They don't contain any local declarators that span statements (explicit or temp).
                     // And the constructor body haven't changed.
 
+                    // TODO: preserve local variables if the constructor or the initializers contain lambdas
                     semanticEdits.Add(new SemanticEdit((oldCtor == null) ? SemanticEditKind.Insert : SemanticEditKind.Update, oldCtor, newCtor));
                 }
             }

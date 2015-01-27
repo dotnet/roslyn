@@ -17,6 +17,86 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
     public class LocalSlotMappingTests : EditAndContinueTestBase
     {
+        /// <summary>
+        /// If no changes were made we don't product a syntax map.
+        /// If we don't have syntax map and preserve variables is true we should still successfully map the locals to their previous slots.
+        /// </summary>
+        [Fact]
+        public void SlotMappingWithNoChanges()
+        {
+            var source0 = @"
+using System;
+
+class C
+{
+    static void Main(string[] args)
+    {
+        var b = true;
+        do
+        {
+            Console.WriteLine(""hi"");
+        } while (b == true);
+    }
+}
+";
+            var compilation0 = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+            var compilation1 = compilation0.WithSource(source0);
+
+            var v0 = CompileAndVerify(compilation0);
+
+            var methodData0 = v0.TestData.GetMethodData("C.Main");
+            var method0 = compilation0.GetMember<MethodSymbol>("C.Main");
+            var method1 = compilation1.GetMember<MethodSymbol>("C.Main");
+            var generation0 = EmitBaseline.CreateInitialBaseline(ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData), methodData0.EncDebugInfoProvider());
+
+            v0.VerifyIL("C.Main", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  1
+  .locals init (bool V_0, //b
+                bool V_1)
+ -IL_0000:  nop
+ -IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+ -IL_0003:  nop
+ -IL_0004:  ldstr      ""hi""
+  IL_0009:  call       ""void System.Console.WriteLine(string)""
+  IL_000e:  nop
+ -IL_000f:  nop
+ -IL_0010:  ldloc.0
+  IL_0011:  stloc.1
+ ~IL_0012:  ldloc.1
+  IL_0013:  brtrue.s   IL_0003
+ -IL_0015:  ret
+}", sequencePoints: "C.Main");
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1, syntaxMap: null, preserveLocalVariables: true)));
+
+            diff1.VerifyIL("C.Main", @"
+{
+  // Code size       22 (0x16)
+  .maxstack  1
+  .locals init (bool V_0, //b
+                bool V_1)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.1
+  IL_0002:  stloc.0
+  IL_0003:  nop
+  IL_0004:  ldstr      ""hi""
+  IL_0009:  call       ""void System.Console.WriteLine(string)""
+  IL_000e:  nop
+  IL_000f:  nop
+  IL_0010:  ldloc.0
+  IL_0011:  stloc.1
+  IL_0012:  ldloc.1
+  IL_0013:  brtrue.s   IL_0003
+  IL_0015:  ret
+
+}");
+        }
+
         [Fact]
         public void OutOfOrderUserLocals()
         {
@@ -2421,7 +2501,7 @@ class C
         }
 
         [Fact]
-        public void Do()
+        public void Do1()
         {
             var source0 = @"
 class C
