@@ -1,0 +1,143 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports System.Threading
+Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Editor.Host
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
+Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
+Imports Microsoft.VisualStudio.Text
+Imports Microsoft.VisualStudio.Text.Editor
+Imports Microsoft.VisualStudio.Text.Operations
+
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
+    Friend Class CommitTestData
+        Implements IDisposable
+
+        Public ReadOnly Buffer As ITextBuffer
+        Public ReadOnly CommandHandler As CommitCommandHandler
+        Public ReadOnly EditorOperations As IEditorOperations
+        Public ReadOnly Workspace As TestWorkspace
+        Public ReadOnly View As ITextView
+        Public ReadOnly UndoHistory As ITextUndoHistory
+        Private ReadOnly Formatter As FormatterMock
+        Private ReadOnly InlineRenameService As InlineRenameServiceMock
+
+        Public Sub New(test As XElement)
+            Workspace = TestWorkspaceFactory.CreateWorkspace(test)
+            View = Workspace.Documents.Single().GetTextView()
+            EditorOperations = Workspace.GetService(Of IEditorOperationsFactoryService).GetEditorOperations(View)
+
+            Dim position = Workspace.Documents.Single(Function(d) d.CursorPosition.HasValue).CursorPosition.Value
+            View.Caret.MoveTo(New SnapshotPoint(View.TextSnapshot, position))
+
+            Buffer = Workspace.Documents.Single().TextBuffer
+
+            ' HACK: We may have already created a CommitBufferManager for the buffer, so remove it
+            If (Buffer.Properties.ContainsProperty(GetType(CommitBufferManager))) Then
+                Dim oldManager = Buffer.Properties.GetProperty(Of CommitBufferManager)(GetType(CommitBufferManager))
+                oldManager.RemoveReferencingView()
+                Buffer.Properties.RemoveProperty(GetType(CommitBufferManager))
+            End If
+
+            Dim textUndoHistoryRegistry = Workspace.GetService(Of ITextUndoHistoryRegistry)()
+            UndoHistory = textUndoHistoryRegistry.GetHistory(View.TextBuffer)
+
+            Formatter = New FormatterMock(Workspace)
+            InlineRenameService = New InlineRenameServiceMock()
+            Dim commitManagerFactory As New CommitBufferManagerFactory(Formatter, InlineRenameService)
+
+            ' Make sure the manager exists for the buffer
+            Dim commitManager = commitManagerFactory.CreateForBuffer(Buffer)
+            commitManager.AddReferencingView()
+
+            CommandHandler = New CommitCommandHandler(
+                commitManagerFactory,
+                Workspace.GetService(Of IEditorOperationsFactoryService),
+                Workspace.GetService(Of ISmartIndentationService),
+                textUndoHistoryRegistry,
+                Workspace.GetService(Of Microsoft.CodeAnalysis.Editor.Host.IWaitIndicator))
+        End Sub
+
+        Friend Sub AssertHadCommit(expectCommit As Boolean)
+            Assert.Equal(expectCommit, Formatter.GotCommit)
+        End Sub
+
+        Friend Sub AssertUsedSemantics(expected As Boolean)
+            Assert.Equal(expected, Formatter.UsedSemantics)
+        End Sub
+
+        Friend Sub StartInlineRenameSession()
+            InlineRenameService.HasSession = True
+        End Sub
+
+        Public Sub Dispose() Implements IDisposable.Dispose
+            Workspace.Dispose()
+        End Sub
+
+        Private Class InlineRenameServiceMock
+            Implements IInlineRenameService
+
+            Public Property HasSession As Boolean
+
+            Public ReadOnly Property ActiveSession As IInlineRenameSession Implements IInlineRenameService.ActiveSession
+                Get
+                    Return If(HasSession, New MockInlineRenameSession(), Nothing)
+                End Get
+            End Property
+
+            Public Function StartInlineSession(snapshot As Document, triggerSpan As TextSpan, Optional cancellationToken As CancellationToken = Nothing) As InlineRenameSessionInfo Implements IInlineRenameService.StartInlineSession
+                Throw New NotImplementedException()
+            End Function
+
+            Private Class MockInlineRenameSession
+                Implements IInlineRenameSession
+
+                Public Sub Cancel() Implements IInlineRenameSession.Cancel
+                    Throw New NotImplementedException()
+                End Sub
+
+                Public Sub Commit(Optional previewChanges As Boolean = False) Implements IInlineRenameSession.Commit
+                    Throw New NotImplementedException()
+                End Sub
+            End Class
+        End Class
+
+        Private Class FormatterMock
+            Implements ICommitFormatter
+
+            Private ReadOnly _testWorkspace As TestWorkspace
+            Public Property GotCommit As Boolean
+
+            Public Property UsedSemantics As Boolean
+
+            Public Sub New(testWorkspace As TestWorkspace)
+                _testWorkspace = testWorkspace
+            End Sub
+
+            Public Sub CommitRegion(spanToFormat As SnapshotSpan,
+                                    isExplicitFormat As Boolean,
+                                    useSemantics As Boolean,
+                                    dirtyRegion As SnapshotSpan,
+                                    baseSnapshot As ITextSnapshot,
+                                    baseTree As SyntaxTree,
+                                    cancellationToken As CancellationToken) Implements ICommitFormatter.CommitRegion
+                GotCommit = True
+                UsedSemantics = useSemantics
+
+                ' Assert the span if we have an assertion
+                If _testWorkspace.Documents.Any(Function(d) d.SelectedSpans.Any()) Then
+                    Dim expectedSpan = _testWorkspace.Documents.Single(Function(d) d.SelectedSpans.Any()).SelectedSpans.Single()
+                    Dim trackingSpan = _testWorkspace.Documents.Single().InitialTextSnapshot.CreateTrackingSpan(expectedSpan.ToSpan(), SpanTrackingMode.EdgeInclusive)
+
+                    Assert.Equal(trackingSpan.GetSpan(spanToFormat.Snapshot), spanToFormat.Span)
+                End If
+
+                Dim realCommitFormatter As New CommitFormatter()
+                realCommitFormatter.CommitRegion(spanToFormat, isExplicitFormat, useSemantics, dirtyRegion, baseSnapshot, baseTree, cancellationToken)
+            End Sub
+        End Class
+    End Class
+End Namespace

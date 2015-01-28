@@ -1,0 +1,78 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Utilities;
+using Xunit;
+
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
+{
+    public abstract partial class AbstractMetadataAsSourceTests
+    {
+        internal static void GenerateAndVerifySource(string metadataSource, string symbolName, string projectLanguage, string expected, bool compareTokens = true, bool includeXmlDocComments = false)
+        {
+            using (var context = new TestContext(projectLanguage, SpecializedCollections.SingletonEnumerable(metadataSource), includeXmlDocComments))
+            {
+                context.GenerateAndVerifySource(symbolName, expected, compareTokens);
+            }
+        }
+
+        internal static void TestNotReusedOnAssemblyDiffers(string projectLanguage)
+        {
+            var metadataSources = new[]
+            {
+                @"[assembly: System.Reflection.AssemblyVersion(""1.0.0.0"")] public class D {}",
+                @"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class D {}"
+            };
+
+            using (var context = new TestContext(projectLanguage))
+            {
+                var projectId = ProjectId.CreateNewId();
+                var metadataProject = context.CurrentSolution
+                    .AddProject(projectId, "Metadata", "Metadata", LanguageNames.CSharp).GetProject(projectId)
+                    .AddMetadataReference(TestReferences.NetFx.v4_0_30319.mscorlib)
+                    .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+                var references = new List<MetadataReference>();
+
+                foreach (var source in metadataSources)
+                {
+                    var newDoc = metadataProject.AddDocument("MetadataSource", source);
+                    metadataProject = newDoc.Project;
+                    references.Add(MetadataReference.CreateFromImage(metadataProject.GetCompilationAsync().Result.EmitToArray()));
+                    metadataProject = metadataProject.RemoveDocument(newDoc.Id);
+                }
+
+                var project = context.DefaultProject.AddMetadataReference(references[0]);
+                var a = context.GenerateSource("D", project);
+
+                project = project.RemoveMetadataReference(references[0]).AddMetadataReference(references[1]);
+                var b = context.GenerateSource("D", project);
+
+                context.VerifyDocumentNotReused(a, b);
+            }
+        }
+
+        internal static void TestSymbolIdMatchesMetadata(string projectLanguage)
+        {
+            var metadataSource = @"[assembly: System.Reflection.AssemblyVersion(""2.0.0.0"")] public class C { }";
+            var symbolName = "C";
+
+            using (var context = new TestContext(projectLanguage, SpecializedCollections.SingletonEnumerable(metadataSource)))
+            {
+                var metadataSymbol = context.ResolveSymbol(symbolName);
+                var metadataSymbolId = metadataSymbol.GetSymbolKey();
+                var generatedFile = context.GenerateSource(symbolName);
+                var generatedDocument = context.GetDocument(generatedFile);
+                var generatedCompilation = generatedDocument.Project.GetCompilationAsync().Result;
+                var generatedSymbol = generatedCompilation.Assembly.GetTypeByMetadataName(symbolName);
+                Assert.False(generatedSymbol.Locations.Where(loc => loc.IsInSource).IsEmpty());
+                Assert.True(SymbolKey.GetComparer(ignoreCase: true, ignoreAssemblyKeys: false).Equals(metadataSymbolId, generatedSymbol.GetSymbolKey()));
+            }
+        }
+    }
+}

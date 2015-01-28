@@ -1,0 +1,1075 @@
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.Diagnostics
+
+Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateMethod
+    Partial Public Class GenerateMethodCrossLanguageTests
+        Inherits AbstractCrossLanguageUserDiagnosticTest
+
+        Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, language As String) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
+            If language = LanguageNames.CSharp Then
+                Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
+                    Nothing,
+                    New CodeAnalysis.CSharp.CodeFixes.GenerateMethod.GenerateMethodCodeFixProvider())
+            Else
+                Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
+                    Nothing,
+                    New CodeAnalysis.VisualBasic.CodeFixes.GenerateMethod.GenerateParameterizedMemberCodeFixProvider())
+            End If
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub TestSimpleInstanceMethod_CSharpToVisualBasic()
+            Dim input =
+        <Workspace>
+            <Project Language="C#" AssemblyName="CSharpAssembly1" CommonReferences="true">
+                <ProjectReference>VbAssembly1</ProjectReference>
+                <Document>
+                    public class CSClass
+                    {
+                        public void Foo()
+                        {
+                            VBClass v;
+                            v.$$Bar();
+                        }
+                    }
+                </Document>
+            </Project>
+            <Project Language="Visual Basic" AssemblyName="VbAssembly1" CommonReferences="true">
+                <Document FilePath=<%= DestinationDocument %>>
+                    public class VBClass
+
+                    end class
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+                <text>
+public class VBClass
+    Public Sub Bar()
+        Throw New NotImplementedException()
+    End Sub
+end class
+                </text>.Value.Trim()
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub TestSimpleStaticMethod_CSharpToVisualBasic()
+            Dim input =
+        <Workspace>
+            <Project Language="C#" AssemblyName="CSharpAssembly1" CommonReferences="true">
+                <ProjectReference>VbAssembly1</ProjectReference>
+                <Document>
+                    public class CSClass
+                    {
+                        public void Foo()
+                        {
+                            VBClass.$$Bar();
+                        }
+                    }
+                </Document>
+            </Project>
+            <Project Language="Visual Basic" AssemblyName="VbAssembly1" CommonReferences="true">
+                <Document FilePath=<%= DestinationDocument %>>
+                    public class VBClass
+
+                    end class
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+                <text>
+public class VBClass
+    Public Shared Sub Bar()
+        Throw New NotImplementedException()
+    End Sub
+end class
+                </text>.Value.Trim()
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub TestParameters_CSharpToVisualBasic()
+            Dim input =
+        <Workspace>
+            <Project Language="C#" AssemblyName="CSharpAssembly1" CommonReferences="true">
+                <ProjectReference>VbAssembly1</ProjectReference>
+                <Document>
+                    public class CSClass
+                    {
+                        public void Foo()
+                        {
+                            VBClass v;
+                            int i;
+                            char c;
+                            double d;
+                            string s;
+                            bool b = v.$$Bar(i, ref c, out d, namedParam: s);
+                        }
+                    }
+                </Document>
+            </Project>
+            <Project Language="Visual Basic" AssemblyName="VbAssembly1" CommonReferences="true">
+                <Document FilePath=<%= DestinationDocument %>>
+                    public class VBClass
+
+                    end class
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+                <text>
+public class VBClass
+    Public Function Bar(i As Integer, ByRef c As Char, ByRef d As Double, namedParam As String) As Boolean
+        Throw New NotImplementedException()
+    End Function
+end class
+                </text>.Value.Trim()
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub TestExplicitInterface_CSharpToVisualBasic()
+            Dim input =
+        <Workspace>
+            <Project Language="C#" AssemblyName="CSharpAssembly1" CommonReferences="true">
+                <ProjectReference>VbAssembly1</ProjectReference>
+                <Document>
+                    public class CSClass : IVBInterface
+                    {
+                        bool IVBInterface.$$Foo(string s)
+                        {
+                        }
+                    }
+                </Document>
+            </Project>
+            <Project Language="Visual Basic" AssemblyName="VbAssembly1" CommonReferences="true">
+                <Document FilePath=<%= DestinationDocument %>>
+                    public interface IVBInterface
+
+                    end interface
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+                <text>
+                    public interface IVBInterface
+                        Function Foo(s As String) As Boolean
+                    end interface
+                </text>.Value.Trim()
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub TestDelegate_CSharpToVisualBasic()
+            Dim input =
+        <Workspace>
+            <Project Language="C#" AssemblyName="CSharpAssembly1" CommonReferences="true">
+                <ProjectReference>VbAssembly1</ProjectReference>
+                <Document><![CDATA[
+                    using System;
+                    public class CSClass
+                    {
+                        void Foo()
+                        {
+                            Bar(VBClass.$$Method)
+                        }
+
+                        void Bar(Func<int,string> f)
+                        {
+                        }
+                    }]]>
+                </Document>
+            </Project>
+            <Project Language="Visual Basic" AssemblyName="VbAssembly1" CommonReferences="true">
+                <Document FilePath=<%= DestinationDocument %>>
+                    public class VBClass
+
+                    end class
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+                <text>
+                    public class VBClass
+                        Public Shared Function Method(arg As Integer) As String
+                            Throw New NotImplementedException()
+                        End Function
+                    end class
+                </text>.Value.Trim()
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub TestAbstractMethod_CSharpToVisualBasic()
+            Dim input =
+        <Workspace>
+            <Project Language="C#" AssemblyName="CSharpAssembly1" CommonReferences="true">
+                <ProjectReference>VbAssembly1</ProjectReference>
+                <Document>
+                    public class CSClass
+                    {
+                        public void Foo()
+                        {
+                            VBClass v;
+                            v.$$Bar();
+                        }
+                    }
+                </Document>
+            </Project>
+            <Project Language="Visual Basic" AssemblyName="VbAssembly1" CommonReferences="true">
+                <Document FilePath=<%= DestinationDocument %>>
+                    public mustinherit class VBClass
+
+                    end class
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+                <text>
+                    public mustinherit class VBClass
+                        Public MustOverride Sub Bar()
+                    end class
+                </text>.Value.Trim()
+
+            Test(input, expected, codeActionIndex:=1)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub TestSimpleInstanceMethod_VisualBasicToCSharp()
+            Dim input =
+        <Workspace>
+            <Project Language="Visual Basic" AssemblyName="VBAssembly1" CommonReferences="true">
+                <ProjectReference>CSAssembly1</ProjectReference>
+                <Document>
+                    public class VBClass
+                        public sub Foo()
+                            dim v as CSClass
+                            v.$$Bar()
+                        end sub
+                    end class
+                </Document>
+            </Project>
+            <Project Language="C#" AssemblyName="CSAssembly1" CommonReferences="true">
+                <Document FilePath=<%= DestinationDocument %>>
+                    public class CSClass
+                    {
+                    }
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+                <text>using System;
+
+                    public class CSClass
+                    {
+                        public void Bar()
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                </text>.Value.Trim()
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub TestIntoNestedType_CSharpToVisualBasic()
+            Dim input =
+        <Workspace>
+            <Project Language="C#" AssemblyName="CSharpAssembly1" CommonReferences="true">
+                <ProjectReference>VbAssembly1</ProjectReference>
+                <Document>
+                    public class CSClass
+                    {
+                        public void Foo()
+                        {
+                            VBClass.Inner v;
+                            v.$$Bar();
+                        }
+                    }
+                </Document>
+            </Project>
+            <Project Language="Visual Basic" AssemblyName="VbAssembly1" CommonReferences="true">
+                <Document FilePath=<%= DestinationDocument %>>
+                    public class VBClass
+                        public class Inner
+                        end class
+                    end class
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+                <text>                    
+                    public class VBClass
+                        public class Inner
+                            Public Sub Bar()
+                                Throw New NotImplementedException()
+                            End Sub
+                        end class
+                    end class
+                </text>.Value.Trim()
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub TestIntoNestedGenericType_CSharpToVisualBasic()
+            Dim input =
+        <Workspace>
+            <Project Language="C#" AssemblyName="CSharpAssembly1" CommonReferences="true">
+                <ProjectReference>VbAssembly1</ProjectReference>
+                <Document><![CDATA[
+                    public class CSClass
+                    {
+                        public void Foo()
+                        {
+                            VBClass<string>.Inner<int> v;
+                            v.$$Bar();
+                        }
+                    }]]>
+                </Document>
+            </Project>
+            <Project Language="Visual Basic" AssemblyName="VbAssembly1" CommonReferences="true">
+                <Document FilePath=<%= DestinationDocument %>>
+                    public class VBClass(of X)
+                        public class Inner(of Y)
+                        end class
+                    end class
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+                <text>
+    public class VBClass(of X)
+        public class Inner(of Y)
+            Public Sub Bar()
+                Throw New NotImplementedException()
+            End Sub
+        end class
+    end class
+                </text>.Value.Trim()
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub TestIntoNestedType_VisualBasicToCSharp()
+            Dim input =
+        <Workspace>
+            <Project Language="Visual Basic" AssemblyName="VBAssembly1" CommonReferences="true">
+                <ProjectReference>CSAssembly1</ProjectReference>
+                <Document>
+                    public class VBClass
+                        public sub Foo()
+                            dim v as CSClass.Inner
+                            v.$$Bar()
+                        end sub
+                    end class
+                </Document>
+            </Project>
+            <Project Language="C#" AssemblyName="CSAssembly1" CommonReferences="true">
+                <Document FilePath=<%= DestinationDocument %>>
+                    public class CSClass
+                    {
+                        public class Inner
+                        {
+                        }
+                    }
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+                <text>using System;
+
+                    public class CSClass
+                    {
+                        public class Inner
+                        {
+                            public void Bar()
+                            {
+                                throw new NotImplementedException();
+                            }
+                        }
+                    }
+                </text>.Value.Trim()
+
+            Test(input, expected)
+        End Sub
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub TestIntoNestedGenericType_VisualBasicToCSharp()
+            Dim input =
+        <Workspace>
+            <Project Language="Visual Basic" AssemblyName="VBAssembly1" CommonReferences="true">
+                <ProjectReference>CSAssembly1</ProjectReference>
+                <Document>
+                    public class VBClass
+                        public sub Foo()
+                            dim v as CSClass(of Integer).Inner(of String)
+                            v.$$Bar()
+                        end sub
+                    end class
+                </Document>
+            </Project>
+            <Project Language="C#" AssemblyName="CSAssembly1" CommonReferences="true">
+                <Document FilePath=<%= DestinationDocument %>><![CDATA[
+                    public class CSClass<T>
+                    {
+                        public class Inner<U>
+                        {
+                        }
+                    }]]>
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+                <text><![CDATA[using System;
+
+                    public class CSClass<T>
+                    {
+                        public class Inner<U>
+                        {
+                            public void Bar()
+                            {
+                                throw new NotImplementedException();
+                            }
+                        }
+                    }]]>
+                </text>.Value.Trim()
+
+            Test(input, expected)
+        End Sub
+
+        <WorkItem(608827)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub GenerateMethodUsingTypeConstraint_SingleNamedType()
+            Dim input =
+        <Workspace>
+            <Project Language="Visual Basic" AssemblyName="VBAssembly1" CommonReferences="true">
+                <ProjectReference>CSAssembly1</ProjectReference>
+                <Document>
+Module Program
+    Sub Main(args As String())
+        Dim list = New List(Of String)
+        list.AddRange($$foo())
+    End Sub
+End Module
+                </Document>
+            </Project>
+            <Project Language="C#" AssemblyName="CSAssembly1" CommonReferences="true">
+                <Document FilePath=<%= DestinationDocument %>><![CDATA[
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+ 
+public static class extensions
+{
+    public static void AddRange<T, U>(this List<T> list, MyStruct<U> items) where U : T
+    {
+    }
+}
+ 
+public struct MyStruct<T>
+{
+ 
+}]]>
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+                <text><![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim list = New List(Of String)
+        list.AddRange(foo())
+    End Sub
+
+    Private Function foo() As MyStruct(Of String)
+        Throw New NotImplementedException()
+    End Function
+End Module]]>
+                </text>.Value.Trim()
+
+            Test(input, expected)
+        End Sub
+
+        <WorkItem(608827)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub GenerateMethodUsingTypeConstraint_2BaseTypeConstraints()
+            Dim input =
+        <Workspace>
+            <Project Language="Visual Basic" AssemblyName="VBAssembly1" CommonReferences="true">
+                <ProjectReference>CSAssembly1</ProjectReference>
+                <Document>
+Module Program
+    Sub Main(args As String())
+        Dim list = New List(Of String)
+        list.AddRange($$foo())
+    End Sub
+End Module
+                </Document>
+            </Project>
+            <Project Language="C#" AssemblyName="CSAssembly1" CommonReferences="true">
+                <Document FilePath=<%= DestinationDocument %>><![CDATA[
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+public static class extensions
+{
+    public static void AddRange<T, U>(this List<T> list, MyStruct<U> items) where U : AAA, BBB
+    {
+    }
+}
+
+public struct MyStruct<T>
+{
+
+}
+
+public class AAA
+{
+
+}
+
+public interface BBB
+{
+
+}
+
+public class CCC : AAA, BBB
+{
+
+}]]>
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+                <text><![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim list = New List(Of String)
+        list.AddRange(foo())
+    End Sub
+
+    Private Function foo() As MyStruct(Of CCC)
+        Throw New NotImplementedException()
+    End Function
+End Module]]>
+                </text>.Value.Trim()
+
+            Test(input, expected)
+        End Sub
+
+        <WorkItem(608827)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub GenerateMethodUsingTypeConstraint_2BaseTypeConstraints_Interfaces()
+            Dim input =
+        <Workspace>
+            <Project Language="Visual Basic" AssemblyName="VBAssembly1" CommonReferences="true">
+                <ProjectReference>CSAssembly1</ProjectReference>
+                <Document>
+Module Program
+    Sub Main(args As String())
+        Dim list = New List(Of String)
+        list.AddRange($$foo())
+    End Sub
+End Module
+                </Document>
+            </Project>
+            <Project Language="C#" AssemblyName="CSAssembly1" CommonReferences="true">
+                <Document FilePath=<%= DestinationDocument %>><![CDATA[
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+public static class extensions
+{
+    public static void AddRange<T, U>(this List<T> list, MyStruct<U> items) where U : AAA, BBB
+    {
+    }
+}
+
+public struct MyStruct<T>
+{
+
+}
+
+public interface AAA
+{
+
+}
+
+public interface BBB
+{
+
+}
+
+public class CCC : AAA, BBB
+{
+
+}]]>
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+                <text><![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim list = New List(Of String)
+        list.AddRange(foo())
+    End Sub
+
+    Private Function foo() As MyStruct(Of CCC)
+        Throw New NotImplementedException()
+    End Function
+End Module]]>
+                </text>.Value.Trim()
+
+            Test(input, expected)
+        End Sub
+
+        <WorkItem(608827)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub GenerateMethodUsingTypeConstraint_3BaseTypeConstraints_NoCommonDerived()
+            Dim input =
+        <Workspace>
+            <Project Language="Visual Basic" AssemblyName="VBAssembly1" CommonReferences="true">
+                <ProjectReference>CSAssembly1</ProjectReference>
+                <Document>
+Module Program
+    Sub Main(args As String())
+        Dim list = New List(Of String)
+        list.AddRange($$foo())
+    End Sub
+End Module
+                </Document>
+            </Project>
+            <Project Language="C#" AssemblyName="CSAssembly1" CommonReferences="true">
+                <Document FilePath=<%= DestinationDocument %>><![CDATA[
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+public static class extensions
+{
+    public static void AddRange<T, U>(this List<T> list, MyStruct<U> items) where U : interface1, interface2, interface3
+    {
+    }
+}
+
+public struct MyStruct<T>
+{
+
+}
+
+public interface interface1
+{
+
+}
+
+public interface interface2
+{
+
+}
+
+public class derived1 : interface1, interface2
+{
+
+}
+
+public interface interface3
+{
+
+}
+
+public class derived2 : interface3
+{
+
+}]]>
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+                <text><![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim list = New List(Of String)
+        list.AddRange(foo())
+    End Sub
+
+    Private Function foo() As MyStruct(Of Object)
+        Throw New NotImplementedException()
+    End Function
+End Module]]>
+                </text>.Value.Trim()
+
+            Test(input, expected)
+        End Sub
+
+        Public Sub GenerateMethodUsingTypeConstraint_3BaseTypeConstraints_CommonDerived()
+            Dim input =
+        <Workspace>
+            <Project Language="Visual Basic" AssemblyName="VBAssembly1" CommonReferences="true">
+                <ProjectReference>CSAssembly1</ProjectReference>
+                <Document>
+Module Program
+    Sub Main(args As String())
+        Dim list = New List(Of String)
+        list.AddRange($$foo())
+    End Sub
+End Module
+                </Document>
+            </Project>
+            <Project Language="C#" AssemblyName="CSAssembly1" CommonReferences="true">
+                <Document FilePath=<%= DestinationDocument %>><![CDATA[
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+public static class extensions
+{
+    public static void AddRange<T, U>(this List<T> list, MyStruct<U> items) where U : interface1, interface2, interface3
+    {
+    }
+}
+
+public struct MyStruct<T>
+{
+
+}
+
+public interface interface1
+{
+
+}
+
+public interface interface2
+{
+
+}
+
+public class derived1 : interface1, interface2
+{
+
+}
+
+public interface interface3
+{
+
+}
+
+public class derived2 : interface3
+{
+
+}
+
+public class outer
+{
+    public class inner
+    {
+        public class derived3 : derived1, interface3
+        {
+        }
+    }
+}]]>
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+                <text><![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim list = New List(Of String)
+        list.AddRange(foo())
+    End Sub
+
+    Private Function foo() As MyStruct(Of outer.inner.derived3)
+        Throw New NotImplementedException()
+    End Function
+End Module]]>
+                </text>.Value.Trim()
+
+            Test(input, expected)
+        End Sub
+
+        <WorkItem(608827)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub GenerateMethodUsingTypeConstraint_3BaseTypeConstraints_CommonDerivedNestedType()
+            Dim input =
+        <Workspace>
+            <Project Language="Visual Basic" AssemblyName="VBAssembly1" CommonReferences="true">
+                <ProjectReference>CSAssembly1</ProjectReference>
+                <Document>
+Module Program
+    Sub Main(args As String())
+        Dim list = New List(Of String)
+        list.AddRange($$foo())
+    End Sub
+End Module
+                </Document>
+            </Project>
+            <Project Language="C#" AssemblyName="CSAssembly1" CommonReferences="true">
+                <Document FilePath=<%= DestinationDocument %>><![CDATA[
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+public static class extensions
+{
+    public static void AddRange<T, U>(this List<T> list, MyStruct<U> items) where U : interface1, interface2, interface3
+    {
+    }
+}
+
+public struct MyStruct<T>
+{
+
+}
+
+public interface interface1
+{
+
+}
+
+public interface interface2
+{
+
+}
+
+public class derived1 : interface1, interface2
+{
+
+}
+
+public interface interface3
+{
+
+}
+
+public class derived2 : interface3
+{
+
+}
+
+public class derived3 : derived1, interface3
+{
+
+}]]>
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+                <text><![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim list = New List(Of String)
+        list.AddRange(foo())
+    End Sub
+
+    Private Function foo() As MyStruct(Of derived3)
+        Throw New NotImplementedException()
+    End Function
+End Module]]>
+                </text>.Value.Trim()
+
+            Test(input, expected)
+        End Sub
+
+        <WorkItem(608827)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub GenerateMethodUsingTypeConstraint_3BaseTypeConstraints_CommonDerivedInstantiatedTypes()
+            Dim input =
+        <Workspace>
+            <Project Language="Visual Basic" AssemblyName="VBAssembly1" CommonReferences="true">
+                <ProjectReference>CSAssembly1</ProjectReference>
+                <Document>
+Module Program
+    Sub Main(args As String())
+        Dim list = New List(Of String)
+        list.AddRange($$foo())
+    End Sub
+End Module
+                </Document>
+            </Project>
+            <Project Language="C#" AssemblyName="CSAssembly1" CommonReferences="true">
+                <Document FilePath=<%= DestinationDocument %>><![CDATA[
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+public static class extensions
+{
+    public static void AddRange<T, U>(this List<T> list, MyStruct<U> items) where U : interface1, interface2, interface3
+    {
+    }
+}
+
+public struct MyStruct<T>
+{
+
+}
+
+public interface interface1
+{
+
+}
+
+public interface interface2
+{
+
+}
+
+
+
+public class derived1 : interface1, interface2
+{
+
+}
+
+public interface interface3
+{
+
+}
+
+public class derived2 : interface3
+{
+
+}
+
+public class outer
+{
+    public class inner
+    {
+        public class derived3 : derived1, interface3
+        {
+        }
+    }
+}]]>
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+                <text><![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim list = New List(Of String)
+        list.AddRange(foo())
+    End Sub
+
+    Private Function foo() As MyStruct(Of outer.inner.derived3)
+        Throw New NotImplementedException()
+    End Function
+End Module]]>
+                </text>.Value.Trim()
+
+            Test(input, expected)
+        End Sub
+
+        <WorkItem(608827)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Sub GenerateMethodUsingTypeConstraint_InstantiatedGenerics()
+            Dim input =
+        <Workspace>
+            <Project Language="Visual Basic" AssemblyName="VBAssembly1" CommonReferences="true">
+                <ProjectReference>CSAssembly1</ProjectReference>
+                <Document>Module Program
+    Sub Main(args As String())
+        Dim list = New List(Of String)
+        list.AddRange($$foo())
+    End Sub
+End Module</Document>
+            </Project>
+            <Project Language="C#" AssemblyName="CSAssembly1" CommonReferences="true">
+                <Document FilePath=<%= DestinationDocument %>><![CDATA[
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+public static class extensions
+{
+    public static void AddRange<T, U>(this List<T> list, MyStruct<U> items) where U : Base1<AAA>, inter1
+    {
+    }
+}
+
+public struct MyStruct<T>
+{
+
+}
+
+public interface inter1
+{
+
+}
+
+public class Base1<T>
+{
+
+}
+
+public class AAA
+{
+
+}
+
+public class FinalType<T> : Base1<T>, inter1 where T : AAA
+{
+
+}]]>
+                </Document>
+            </Project>
+        </Workspace>
+
+            Dim expected =
+                <text><![CDATA[
+Module Program
+    Sub Main(args As String())
+        Dim list = New List(Of String)
+        list.AddRange(foo())
+    End Sub
+
+    Private Function foo() As MyStruct(Of FinalType(Of AAA))
+        Throw New NotImplementedException()
+    End Function
+End Module]]>
+                </text>.Value.Trim()
+
+            Test(input, expected)
+        End Sub
+    End Class
+End Namespace
