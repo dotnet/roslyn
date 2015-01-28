@@ -52,8 +52,6 @@ Friend NotInheritable Class LocalVariableDeclaratorsCollector
     End Sub
 
     Public Overrides Sub VisitIdentifierName(node As IdentifierNameSyntax)
-        Debug.Assert(Not Me.builder.Contains(node))
-        Me.builder.Add(node)
     End Sub
 
     Public Overrides Sub VisitGoToStatement(node As GoToStatementSyntax)
