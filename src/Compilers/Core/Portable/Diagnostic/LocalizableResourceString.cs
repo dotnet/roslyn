@@ -18,7 +18,17 @@ namespace Microsoft.CodeAnalysis
         private readonly ResourceManager _resourceManager;
         private readonly Type _resourceSource;
         private readonly string[] _formatArguments;
-        private static readonly string[] s_emptyArguments = new string[0];
+
+        /// <summary>
+        /// Creates a localizable resource string with no formatting arguments.
+        /// </summary>
+        /// <param name="nameOfLocalizableResource">nameof the resource that needs to be localized.</param>
+        /// <param name="resourceManager"><see cref="ResourceManager"/> for the calling assembly.</param>
+        /// <param name="resourceSource">Type handling assembly's resource management. Typically, this is the static class generated for the resources file from which resources are accessed.</param>
+        public LocalizableResourceString(string nameOfLocalizableResource, ResourceManager resourceManager, Type resourceSource)
+            : this(nameOfLocalizableResource, resourceManager, resourceSource, SpecializedCollections.EmptyArray<string>())
+        {
+        }
 
         /// <summary>
         /// Creates a localizable resource string that may possibly be formatted differently depending on culture.
@@ -64,7 +74,7 @@ namespace Microsoft.CodeAnalysis
             var length = (int)reader.ReadCompressedUInt();
             if (length == 0)
             {
-                _formatArguments = s_emptyArguments;
+                _formatArguments = SpecializedCollections.EmptyArray<string>();
             }
             else
             {

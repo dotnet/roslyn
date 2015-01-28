@@ -587,6 +587,7 @@ Microsoft.CodeAnalysis.LineVisibility.BeforeFirstLineDirective = 0
 Microsoft.CodeAnalysis.LineVisibility.Hidden = 1
 Microsoft.CodeAnalysis.LineVisibility.Visible = 2
 Microsoft.CodeAnalysis.LocalizableResourceString
+Microsoft.CodeAnalysis.LocalizableResourceString.LocalizableResourceString(string nameOfLocalizableResource, System.Resources.ResourceManager resourceManager, System.Type resourceSource)
 Microsoft.CodeAnalysis.LocalizableResourceString.LocalizableResourceString(string nameOfLocalizableResource, System.Resources.ResourceManager resourceManager, System.Type resourceSource, params string[] formatArguments)
 Microsoft.CodeAnalysis.LocalizableString
 Microsoft.CodeAnalysis.Location
