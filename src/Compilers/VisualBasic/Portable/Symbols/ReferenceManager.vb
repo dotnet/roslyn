@@ -745,7 +745,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Property
             End Class
 
-            Private Class AssemblyDataForFile
+            Private NotInheritable Class AssemblyDataForFile
                 Inherits AssemblyDataForMetadataOrCompilation
 
                 Private ReadOnly m_Assembly As PEAssembly
@@ -873,9 +873,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return m_Assembly.DeclaresTheObjectClass
                     End Get
                 End Property
+
+                Public Overrides Function GetWinMdVersion(ByRef majorVersion As Integer, ByRef minorVersion As Integer) As Boolean
+                    Dim reader = m_Assembly.ManifestModule.MetadataReader
+                    Return reader.GetWinMdVersion(majorVersion, minorVersion)
+                End Function
             End Class
 
-            Private Class AssemblyDataForCompilation
+            Private NotInheritable Class AssemblyDataForCompilation
                 Inherits AssemblyDataForMetadataOrCompilation
 
                 Private ReadOnly m_Compilation As VisualBasicCompilation
@@ -959,6 +964,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return m_Compilation.DeclaresTheObjectClass
                     End Get
                 End Property
+
+                Public Overrides Function GetWinMdVersion(ByRef majorVersion As Integer, ByRef minorVersion As Integer) As Boolean
+                    majorVersion = 0
+                    minorVersion = 0
+                    Return False
+                End Function
             End Class
 
             ''' <summary>

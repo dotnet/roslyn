@@ -725,11 +725,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return moduleRef;
             }
 
+            moduleRef = TranslateModule(module, diagnostics);
+            moduleRef = AssemblyOrModuleSymbolToModuleRefMap.GetOrAdd(module, moduleRef);
+
+            return moduleRef;
+        }
+
+        protected virtual Cci.IModuleReference TranslateModule(ModuleSymbol module, DiagnosticBag diagnostics)
+        {
             AssemblySymbol container = module.ContainingAssembly;
 
             if ((object)container != null && ReferenceEquals(container.Modules[0], module))
             {
-                moduleRef = new AssemblyReference(container, assemblySymbolMapper);
+                Cci.IModuleReference moduleRef = new AssemblyReference(container, assemblySymbolMapper);
                 Cci.IModuleReference cachedModuleRef = AssemblyOrModuleSymbolToModuleRefMap.GetOrAdd(container, moduleRef);
 
                 if (cachedModuleRef == moduleRef)
@@ -740,15 +748,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 {
                     moduleRef = cachedModuleRef;
                 }
+
+                return moduleRef;
             }
             else
             {
-                moduleRef = new ModuleReference(this, module);
+                return new ModuleReference(this, module);
             }
-
-            moduleRef = AssemblyOrModuleSymbolToModuleRefMap.GetOrAdd(module, moduleRef);
-
-            return moduleRef;
         }
 
         internal Cci.INamedTypeReference Translate(

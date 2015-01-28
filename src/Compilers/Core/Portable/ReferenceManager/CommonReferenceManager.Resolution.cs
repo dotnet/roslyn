@@ -837,38 +837,19 @@ namespace Microsoft.CodeAnalysis
                 return new AssemblyReferenceBinding(reference, maxLowerVersionDefinition, versionDifference: -1);
             }
 
-            // If the reference is a winmd, see if there a substitute winmd that is
-            // sufficient. For instance, a debugger EE could construct a compilation
-            // from the modules of the running process, where the winmds loaded
-            // at runtime are distinct from those used when the exe was compiled.
-            if (reference.ContentType == AssemblyContentType.WindowsRuntime)
+            // Handle cases where Windows.winmd is a runtime substitute for a
+            // reference to a compile-time winmd. This is for scenarios such as a
+            // debugger EE which constructs a compilation from the modules of
+            // the running process where Windows.winmd loaded at runtime is a
+            // substitute for a collection of Windows.*.winmd compile-time references.
+            if (IsWindowsComponent(reference))
             {
-                var defsByName = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
                 for (int i = definitionOffset; i < definitions.Length; i++)
                 {
-                    var definition = definitions[i].Identity;
-                    if (definition.ContentType == AssemblyContentType.WindowsRuntime)
+                    if (IsWindowsRuntime(definitions[i]))
                     {
-                        defsByName.Add(definition.Name, i);
+                        return new AssemblyReferenceBinding(reference, i);
                     }
-                }
-
-                // The name of a winmd is a containing namespace for the assembly. Use
-                // the definition with the longest substring that matches the reference.
-                var refName = reference.Name;
-                while (true)
-                {
-                    int index;
-                    if (defsByName.TryGetValue(refName, out index))
-                    {
-                        return new AssemblyReferenceBinding(reference, index);
-                    }
-                    int separator = refName.LastIndexOf('.');
-                    if (separator < 0)
-                    {
-                        break;
-                    }
-                    refName = refName.Substring(0, separator);
                 }
             }
 
@@ -883,6 +864,33 @@ namespace Microsoft.CodeAnalysis
             }
 
             return new AssemblyReferenceBinding(reference);
+        }
+
+        // Windows.*[.winmd]
+        private static bool IsWindowsComponent(AssemblyIdentity identity)
+        {
+            return (identity.ContentType == AssemblyContentType.WindowsRuntime) &&
+                identity.Name.StartsWith("windows.", StringComparison.OrdinalIgnoreCase);
+        }
+
+        // Windows[.winmd]
+        private static bool IsWindowsRuntime(AssemblyIdentity identity)
+        {
+            return (identity.ContentType == AssemblyContentType.WindowsRuntime) &&
+                string.Equals(identity.Name, "windows", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static bool IsWindowsRuntime(AssemblyData definition)
+        {
+            if (!IsWindowsRuntime(definition.Identity))
+            {
+                return false;
+            }
+            int majorVersion;
+            int minorVersion;
+            return definition.GetWinMdVersion(out majorVersion, out minorVersion) &&
+                (majorVersion == 1) &&
+                (minorVersion >= 4);
         }
     }
 }

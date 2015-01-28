@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Text;
 using System.Diagnostics;
 using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis
@@ -143,6 +142,13 @@ namespace Microsoft.CodeAnalysis
                 {
                     return false;
                 }
+            }
+
+            public override bool GetWinMdVersion(out int majorVersion, out int minorVersion)
+            {
+                majorVersion = 0;
+                minorVersion = 0;
+                return false;
             }
         }
     }
