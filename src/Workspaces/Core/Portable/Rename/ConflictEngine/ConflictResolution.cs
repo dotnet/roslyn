@@ -67,12 +67,15 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                 {
                     var document = newSolution.GetDocument(documentId);
                     var root = document.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+
+                    // For the computeReplacementToken and computeReplacementNode functions, use 
+                    // the "updated" node to maintain any annotation removals from descendants.
                     var newRoot = root.ReplaceSyntax(
-                        annotationSet.GetAnnotatedNodes(root),
-                        (original, dummy) => annotationSet.WithoutAnnotations(original, annotationSet.GetAnnotations(original).ToArray()),
-                        annotationSet.GetAnnotatedTokens(root),
-                        (original, dummy) => annotationSet.WithoutAnnotations(original, annotationSet.GetAnnotations(original).ToArray()),
-                        SpecializedCollections.EmptyEnumerable<SyntaxTrivia>(),
+                        nodes:  annotationSet.GetAnnotatedNodes(root),
+                        computeReplacementNode: (original, updated) => annotationSet.WithoutAnnotations(updated, annotationSet.GetAnnotations(updated).ToArray()),
+                        tokens:  annotationSet.GetAnnotatedTokens(root),
+                        computeReplacementToken: (original, updated) => annotationSet.WithoutAnnotations(updated, annotationSet.GetAnnotations(updated).ToArray()),
+                        trivia: SpecializedCollections.EmptyEnumerable<SyntaxTrivia>(),
                         computeReplacementTrivia: null);
 
                     this.intermediateSolutionContainingOnlyModifiedDocuments = this.intermediateSolutionContainingOnlyModifiedDocuments.WithDocumentSyntaxRoot(documentId, newRoot, PreservationMode.PreserveIdentity);
