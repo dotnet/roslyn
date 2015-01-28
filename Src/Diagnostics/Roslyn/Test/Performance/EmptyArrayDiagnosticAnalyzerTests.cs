@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Performance;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Performance
@@ -14,7 +15,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Performance
         protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer() { return new BasicEmptyArrayDiagnosticAnalyzer(); }
         protected override CodeFixProvider GetBasicCodeFixProvider() { return new BasicEmptyArrayCodeFixProvider(); }
 
-        [Fact]
+        [Fact(Skip = "1114958")]
         public void EmptyArrayCSharp()
         {
             const string ArrayEmptySource =
@@ -86,7 +87,7 @@ class C
                 allowNewCompilerDiagnostics: true);
         }
 
-        [Fact]
+        [Fact(Skip = "1114958")]
         public void EmptyArrayVisualBasic()
         {
             const string ArrayEmptySource = @"
