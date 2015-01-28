@@ -1,13 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 
-namespace ConsoleApplication3
+namespace FakeSign
 {    
     /// <summary>
     /// Takes a delay-signed assembly and flips its CLI header "strong-name signed" bit without
@@ -34,13 +32,25 @@ namespace ConsoleApplication3
 
         private static bool ExecuteCore(string assemblyPath)
         {
+            if (Directory.Exists(assemblyPath))
+            {
+                Console.Error.WriteLine($"Expected file, not a directory: {assemblyPath}");
+                return false;
+            }
+
+            if (!File.Exists(assemblyPath))
+            {
+                Console.Error.WriteLine($"File not found: {assemblyPath}");
+                return false;
+            }
+
             using (var stream = OpenFile(assemblyPath, FileMode.Open, FileAccess.ReadWrite, FileShare.Read))
             using (var reader = new PEReader(stream))
             using (var writer = new BinaryWriter(stream))
             {
                 if (!Validate(reader))
                 {
-                    Console.WriteLine("Unable to sign {0}", assemblyPath);
+                    Console.Error.WriteLine($"Unable to sign {assemblyPath}");
                     return false;
                 }
 
@@ -59,27 +69,27 @@ namespace ConsoleApplication3
         {
             if (!peReader.HasMetadata)
             {
-                Console.WriteLine("PE file is not a managed module.");
+                Console.Error.WriteLine("PE file is not a managed module.");
                 return false;
             }
 
             var mdReader = peReader.GetMetadataReader();
             if (!mdReader.IsAssembly)
             {
-                Console.WriteLine("PE file is not an assembly.");
+                Console.Error.WriteLine("PE file is not an assembly.");
                 return false;
             }
 
             CorHeader header = peReader.PEHeaders.CorHeader;
             if ((header.Flags & CorFlags.StrongNameSigned) == CorFlags.StrongNameSigned)
             {
-                Console.WriteLine("PE file is already strong-name signed.");
+                Console.Error.WriteLine("PE file is already strong-name signed.");
                 return false;
             }
 
             if ((header.StrongNameSignatureDirectory.Size <= 0) || mdReader.GetAssemblyDefinition().PublicKey.IsNil)
             {
-                Console.WriteLine("PE file is not a delay-signed assembly.");
+                Console.Error.WriteLine("PE file is not a delay-signed assembly.");
                 return false;
             }
 
@@ -114,13 +124,13 @@ namespace ConsoleApplication3
             // Create a byte array to hold the information.
             if (args.Length == 0)
             {
-                Console.WriteLine("No file passed");
+                Console.Error.WriteLine("No file passed");
                 return 1;
             }
 
             if (!ExecuteCore(args[0]))
             {
-                Console.WriteLine("Could not sign assembly");
+                Console.Error.WriteLine("Could not sign assembly");
                 return 1;
             }
 
