@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(Microsoft.CodeAnalysis.Text.Implementation.TextBufferFactoryService.TextBufferCloneServiceFactory),
                 typeof(Microsoft.CodeAnalysis.Host.MetadataServiceFactory),
                 typeof(Microsoft.CodeAnalysis.Host.TemporaryStorageServiceFactory),
-                typeof(Microsoft.CodeAnalysis.Host.TextFactoryServiceFactory),
+                typeof(Microsoft.CodeAnalysis.Host.TextFactoryService),
                 typeof(Microsoft.CodeAnalysis.Editor.Implementation.Workspaces.ProjectCacheHostServiceFactory),
                 typeof(Solution), // ServicesCore
                 typeof(Microsoft.CodeAnalysis.Options.OptionService), // Service

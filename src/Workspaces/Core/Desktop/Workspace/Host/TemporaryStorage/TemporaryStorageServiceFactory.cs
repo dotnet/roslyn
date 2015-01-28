@@ -48,6 +48,7 @@ namespace Microsoft.CodeAnalysis.Host
             private class TemporaryTextStorage : ITemporaryTextStorage
             {
                 private readonly TemporaryStorageService service;
+                private Encoding encoding;
                 private MemoryMappedInfo memoryMappedInfo;
 
                 public TemporaryTextStorage(TemporaryStorageService service)
@@ -65,6 +66,11 @@ namespace Microsoft.CodeAnalysis.Host
                         memoryMappedInfo.Dispose();
                         memoryMappedInfo = null;
                     }
+
+                    if (encoding != null)
+                    {
+                        encoding = null;
+                    }
                 }
 
                 public SourceText ReadText(CancellationToken cancellationToken)
@@ -76,9 +82,12 @@ namespace Microsoft.CodeAnalysis.Host
 
                     using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_ReadText, cancellationToken))
                     {
+                        // unfortunately, there is no way to re-use stream reader. it will repeatedly re-allocate its buffer(1K).
+                        // but most of time, this shouldn't be used that much since we consume tree directly rather than text.
                         using (var stream = memoryMappedInfo.CreateReadableStream())
+                        using (var reader = new StreamReader(stream, Encoding.Unicode, detectEncodingFromByteOrderMarks: false))
                         {
-                            return this.service.textFactory.CreateText(stream, Encoding.Unicode, cancellationToken);
+                            return this.service.textFactory.CreateText(reader, encoding, cancellationToken);
                         }
                     }
                 }
@@ -107,13 +116,15 @@ namespace Microsoft.CodeAnalysis.Host
 
                     using (Logger.LogBlock(FunctionId.TemporaryStorageServiceFactory_WriteText, cancellationToken))
                     {
+                        encoding = text.Encoding;
+
+                        // the method we use to get text out of SourceText uses Unicode (2bytes per char). 
                         var size = Encoding.Unicode.GetMaxByteCount(text.Length);
                         memoryMappedInfo = service.memoryMappedFileManager.CreateViewInfo(size);
 
+                        // Write the source text out as Unicode. We expect that to be cheap.
                         using (var stream = memoryMappedInfo.CreateWritableStream())
                         {
-                            // PERF: Don't call text.Write(writer) directly since it can cause multiple large string
-                            // allocations from String.Substring.  Instead use one of our pooled char[] buffers.
                             using (var writer = new StreamWriter(stream, Encoding.Unicode))
                             {
                                 text.Write(writer, cancellationToken);

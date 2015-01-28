@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.IO;
 using System.Linq;
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                         return mockTextBuffer.Object;
                     });
 
-            var factory = new TextFactoryFactory.TextBufferTextFactory(mockTextBufferFactoryService.Object, new Mock<IContentTypeRegistryService>().Object);
+            var factory = new EditorTextFactoryService(mockTextBufferFactoryService.Object, new Mock<IContentTypeRegistryService>().Object);
             using (var stream = new MemoryStream(bytes))
             {
                 var text = factory.CreateText(stream, defaultEncoding);

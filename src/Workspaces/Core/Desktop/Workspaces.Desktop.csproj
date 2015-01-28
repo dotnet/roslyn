@@ -105,8 +105,7 @@
     <Compile Include="Workspace\Host\Mef\MefV1HostServices.cs" />
     <Compile Include="Workspace\Host\TemporaryStorage\TemporaryStorageServiceFactory.cs" />
     <Compile Include="Workspace\Host\TemporaryStorage\TemporaryStorageServiceFactory.MemoryMappedFiles.cs" />
-    <Compile Include="Workspace\Host\TextFactory\TextFactoryServiceFactory.cs" />
-    <Compile Include="Workspace\Host\TextFactory\TextFactoryServiceFactory.TextFactoryService.cs" />
+    <Compile Include="Workspace\Host\TextFactory\DesktopTextFactoryService.cs" />
     <Compile Include="Workspace\MSBuild\MSBuildWorkspace.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\BuildTargets.cs" />
     <Compile Include="Workspace\MSBuild\ProjectFile\DocumentFileInfo.cs" />

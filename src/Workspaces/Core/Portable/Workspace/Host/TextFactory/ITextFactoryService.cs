@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.Host
     /// <summary>
     /// A factory for creating <see cref="SourceText"/> instances.
     /// </summary>
-    public interface ITextFactoryService : IWorkspaceService
+    internal interface ITextFactoryService : IWorkspaceService
     {
         /// <summary>
         /// Creates <see cref="SourceText"/> from a stream.
@@ -28,5 +28,13 @@ namespace Microsoft.CodeAnalysis.Host
         /// </exception>
         /// <exception cref="IOException">An IO error occurred while reading from the stream.</exception>
         SourceText CreateText(Stream stream, Encoding defaultEncoding, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Creates <see cref="SourceText"/> from a reader.
+        /// </summary>
+        /// <param name="reader">The <see cref="TextReader"/> to read the text from.</param>
+        /// <param name="encoding">Specifies an encoding for the <see cref="SourceText"/>SourceText.</param>
+        /// <param name="cancellationToken">Cancellation token.</param>
+        SourceText CreateText(TextReader reader, Encoding encoding, CancellationToken cancellationToken = default(CancellationToken));
     }
 }

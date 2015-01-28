@@ -61,6 +61,9 @@ namespace Microsoft.CodeAnalysis
             return factory.CreateText(stream, defaultEncoding);
         }
 
+        /// <summary>
+        /// Load a text and a version of the document in the workspace.
+        /// </summary>
         /// <exception cref="IOException"></exception>
         public override async Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken)
         {
@@ -71,10 +74,16 @@ namespace Microsoft.CodeAnalysis
             {
                 System.Diagnostics.Debug.Assert(stream.IsAsync);
                 var version = VersionStamp.Create(prevLastWriteTime);
-                var memoryStream = await this.ReadStreamAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                var text = CreateText(memoryStream, workspace);
-                textAndVersion = TextAndVersion.Create(text, version, path);
+                Contract.Requires(stream.Position == 0);
+
+                // we do this so that we asynchronously read from file. and this should allocate less for IDE case. 
+                // but probably not for command line case where it doesn't use more sophisticated services.
+                using (var readStream = await SerializableBytes.CreateReadableStreamAsync(stream, cancellationToken: cancellationToken).ConfigureAwait(false))
+                {
+                    var text = CreateText(readStream, workspace);
+                    textAndVersion = TextAndVersion.Create(text, version, path);
+                }
             }
 
             // this has a potential to return corrupted state text if someone changed text in the middle of us reading it.
@@ -94,18 +103,6 @@ namespace Microsoft.CodeAnalysis
             }
 
             return textAndVersion;
-        }
-
-        private async Task<MemoryStream> ReadStreamAsync(FileStream stream, CancellationToken cancellationToken)
-        {
-            Contract.ThrowIfFalse(stream.Position == 0);
-
-            byte[] buffer = new byte[(int)stream.Length];
-
-            await stream.ReadAsync(buffer, 0, buffer.Length, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
-
-            // publiclyVisible must be true to enable optimizations in Roslyn.Compilers.TextUtilities.DetectEncodingAndDecode
-            return new MemoryStream(buffer, index: 0, count: buffer.Length, writable: false, publiclyVisible: true);
         }
     }
 }

@@ -242,7 +242,7 @@ namespace Roslyn.Utilities
                     throw new ArgumentOutOfRangeException("offset");
                 }
 
-                if (target < 0 || target >= length)
+                if (target < 0)
                 {
                     throw new ArgumentOutOfRangeException("offset");
                 }

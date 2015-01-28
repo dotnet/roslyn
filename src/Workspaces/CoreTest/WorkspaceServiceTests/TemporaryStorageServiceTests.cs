@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestTemporaryStorageText()
         {
-            var textFactory = new TextFactoryServiceFactory.TextFactoryService();
+            var textFactory = new TextFactoryService();
             var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
 
             // test normal string
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestTemporaryStorageStream()
         {
-            var textFactory = new TextFactoryServiceFactory.TextFactoryService();
+            var textFactory = new TextFactoryService();
             var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
             var temporaryStorage = service.CreateTemporaryStreamStorage(System.Threading.CancellationToken.None);
 
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestTemporaryTextStorageExceptions()
         {
-            var textFactory = new TextFactoryServiceFactory.TextFactoryService();
+            var textFactory = new TextFactoryService();
             var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
             var storage = service.CreateTemporaryTextStorage(CancellationToken.None);
 
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestTemporaryStreamStorageExceptions()
         {
-            var textFactory = new TextFactoryServiceFactory.TextFactoryService();
+            var textFactory = new TextFactoryService();
             var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
             var storage = service.CreateTemporaryStreamStorage(CancellationToken.None);
 
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact, Trait(Traits.Feature, Traits.Features.Workspace)]
         public void TestTemporaryStorageMemoryMappedFileManagement()
         {
-            var textFactory = new TextFactoryServiceFactory.TextFactoryService();
+            var textFactory = new TextFactoryService();
             var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
             var buffer = new MemoryStream(257 * 1024 + 1);
             for (int i = 0; i < buffer.Length; i++)
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // use up our address space in a 32 bit process.
             if (Environment.Is64BitOperatingSystem && !Environment.Is64BitProcess)
             {
-                var textFactory = new TextFactoryServiceFactory.TextFactoryService();
+                var textFactory = new TextFactoryService();
                 var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
 
                 using (var data = SerializableBytes.CreateWritableStream())
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void StreamTest1()
         {
-            var textFactory = new TextFactoryServiceFactory.TextFactoryService();
+            var textFactory = new TextFactoryService();
             var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
             var storage = service.CreateTemporaryStreamStorage(CancellationToken.None);
 
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void StreamTest2()
         {
-            var textFactory = new TextFactoryServiceFactory.TextFactoryService();
+            var textFactory = new TextFactoryService();
             var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
             var storage = service.CreateTemporaryStreamStorage(CancellationToken.None);
 
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void StreamTest3()
         {
-            var textFactory = new TextFactoryServiceFactory.TextFactoryService();
+            var textFactory = new TextFactoryService();
             var service = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
             var storage = service.CreateTemporaryStreamStorage(CancellationToken.None);
 

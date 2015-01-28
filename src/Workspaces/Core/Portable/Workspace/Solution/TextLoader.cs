@@ -12,6 +12,9 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     public abstract class TextLoader
     {
+        /// <summary>
+        /// Load a text and a version of the document in the workspace.
+        /// </summary>
         public abstract Task<TextAndVersion> LoadTextAndVersionAsync(Workspace workspace, DocumentId documentId, CancellationToken cancellationToken);
 
         /// <summary>

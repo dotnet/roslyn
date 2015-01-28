@@ -418,8 +418,6 @@ Microsoft.CodeAnalysis.Host.ITemporaryTextStorage.ReadText(System.Threading.Canc
 Microsoft.CodeAnalysis.Host.ITemporaryTextStorage.ReadTextAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
 Microsoft.CodeAnalysis.Host.ITemporaryTextStorage.WriteText(Microsoft.CodeAnalysis.Text.SourceText text, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
 Microsoft.CodeAnalysis.Host.ITemporaryTextStorage.WriteTextAsync(Microsoft.CodeAnalysis.Text.SourceText text, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
-Microsoft.CodeAnalysis.Host.ITextFactoryService
-Microsoft.CodeAnalysis.Host.ITextFactoryService.CreateText(System.IO.Stream stream, System.Text.Encoding defaultEncoding, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
 Microsoft.CodeAnalysis.Host.IWorkspaceService
 Microsoft.CodeAnalysis.Host.Mef.ExportLanguageServiceAttribute
 Microsoft.CodeAnalysis.Host.Mef.ExportLanguageServiceAttribute.ExportLanguageServiceAttribute(System.Type type, string language, string layer = "Default")
@@ -1221,9 +1219,9 @@ static readonly Microsoft.CodeAnalysis.Simplification.Simplifier.SpecialTypeAnno
 static readonly Microsoft.CodeAnalysis.VersionStamp.Default
 virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.ComputeOperationsAsync(System.Threading.CancellationToken cancellationToken)
 virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.ComputePreviewOperationsAsync(System.Threading.CancellationToken cancellationToken)
+virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.EquivalenceKey.get
 virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.GetChangedDocumentAsync(System.Threading.CancellationToken cancellationToken)
 virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.GetChangedSolutionAsync(System.Threading.CancellationToken cancellationToken)
-virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.EquivalenceKey.get
 virtual Microsoft.CodeAnalysis.CodeActions.CodeAction.PostProcessChangesAsync(Microsoft.CodeAnalysis.Document document, System.Threading.CancellationToken cancellationToken)
 virtual Microsoft.CodeAnalysis.CodeActions.CodeActionOperation.Apply(Microsoft.CodeAnalysis.Workspace workspace, System.Threading.CancellationToken cancellationToken)
 virtual Microsoft.CodeAnalysis.CodeActions.CodeActionOperation.Title.get
@@ -1240,7 +1238,6 @@ virtual Microsoft.CodeAnalysis.Host.HostWorkspaceServices.IsSupported(string lan
 virtual Microsoft.CodeAnalysis.Host.HostWorkspaceServices.PersistentStorage.get
 virtual Microsoft.CodeAnalysis.Host.HostWorkspaceServices.SupportedLanguages.get
 virtual Microsoft.CodeAnalysis.Host.HostWorkspaceServices.TemporaryStorage.get
-virtual Microsoft.CodeAnalysis.Host.HostWorkspaceServices.TextFactory.get
 virtual Microsoft.CodeAnalysis.Workspace.AdjustReloadedProject(Microsoft.CodeAnalysis.Project oldProject, Microsoft.CodeAnalysis.Project reloadedProject)
 virtual Microsoft.CodeAnalysis.Workspace.AdjustReloadedSolution(Microsoft.CodeAnalysis.Solution oldSolution, Microsoft.CodeAnalysis.Solution reloadedSolution)
 virtual Microsoft.CodeAnalysis.Workspace.ApplyAdditionalDocumentAdded(Microsoft.CodeAnalysis.DocumentInfo info, Microsoft.CodeAnalysis.Text.SourceText text)

@@ -829,8 +829,7 @@
     <Compile Include="Workspace\Host\TemporaryStorage\TrivialTemporaryStorageService.cs" />
     <Compile Include="Workspace\Host\TextFactory\ITextFactoryService.cs" />
     <Compile Include="Workspace\Host\HostWorkspaceServices.cs" />
-    <Compile Include="Workspace\Host\TextFactory\TextFactoryServiceFactory.cs" />
-    <Compile Include="Workspace\Host\TextFactory\TextFactoryServiceFactory.TextFactoryService.cs" />
+    <Compile Include="Workspace\Host\TextFactory\TextFactoryService.cs" />
     <Compile Include="Workspace\PrimaryWorkspace.cs" />
     <Compile Include="LinkedFileDiffMerging\AbstractLinkedFileMergeConflictCommentAdditionService.cs" />
     <Compile Include="Workspace\Solution\AdditionalTextDocument.cs" />
