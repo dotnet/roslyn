@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Returns a new compilation with a given event queue.
         /// </summary>
-        public override Compilation WithEventQueue(AsyncQueue<CompilationEvent> eventQueue)
+        internal override Compilation WithEventQueue(AsyncQueue<CompilationEvent> eventQueue)
         {
             return new CSharpCompilation(
                 this.AssemblyName,

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// A queue whose enqueue and dequeue operations can be performed in parallel.
     /// </summary>
     /// <typeparam name="TElement">The type of values kept by the queue.</typeparam>
-    public sealed class AsyncQueue<TElement>
+    internal sealed class AsyncQueue<TElement>
     {
         private readonly TaskCompletionSource<bool> whenCompleted = new TaskCompletionSource<bool>();
 

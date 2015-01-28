@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     /// Note that some symbols may have multiple declarations (namespaces, partial types) and may therefore
     /// have multiple events.
     /// </summary>
-    public sealed class SymbolDeclaredCompilationEvent : CompilationEvent
+    internal sealed class SymbolDeclaredCompilationEvent : CompilationEvent
     {
         public SymbolDeclaredCompilationEvent(Compilation compilation, ISymbol symbol) : base(compilation)
         {

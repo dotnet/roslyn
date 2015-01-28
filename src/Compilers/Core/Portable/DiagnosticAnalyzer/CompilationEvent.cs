@@ -2,7 +2,7 @@
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    public abstract class CompilationEvent
+    internal abstract class CompilationEvent
     {
         internal CompilationEvent(Compilation compilation)
         {

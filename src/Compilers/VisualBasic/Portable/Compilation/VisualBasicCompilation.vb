@@ -659,7 +659,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Returns a new compilation with a given event queue.
         ''' </summary>
-        Public Overrides Function WithEventQueue(eventQueue As AsyncQueue(Of CompilationEvent)) As Compilation
+        Friend Overrides Function WithEventQueue(eventQueue As AsyncQueue(Of CompilationEvent)) As Compilation
             Return New VisualBasicCompilation(
                 Me.AssemblyName,
                 Me.Options,
