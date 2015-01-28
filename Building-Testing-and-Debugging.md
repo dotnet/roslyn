@@ -2,26 +2,26 @@
 # Building, Testing, and Debugging
 
 ## Required Software
-**Microsoft Visual Studio Ultimate 2015 Preview**
+**Microsoft Visual Studio Ultimate 2015 CTP5**
 
-The Roslyn source code currently targets prerelease builds of Visual Studio 2015", the latest preview release can be downloaded free from [http://www.visualstudio.com/en-us/downloads/visual-studio-2015-downloads-vs](http://www.visualstudio.com/en-us/downloads/visual-studio-2015-downloads-vs).
+The Roslyn source code currently targets prerelease builds of Visual Studio 2015", the latest preview release (**CTP5**)can be downloaded free from [http://support.microsoft.com/kb/2967191](http://support.microsoft.com/kb/2967191).
 
-**Microsoft Visual Studio 2015 Preview SDK**
+**Microsoft Visual Studio 2015 CTP5 SDK**
 
-The Visual Studio SDK is used to extend Visual Studio 2015".  This can be downloaded free from a [url:http://www.visualstudio.com/en-us/downloads/visual-studio-14-ctp-vs].
+The Visual Studio SDK is used to extend Visual Studio 2015".  This can be downloaded free from a [url:http://support.microsoft.com/kb/2967191].
 
 **NuGet package manager**
 
 We use [NuGet](http://nuget.org) with package restore for our dependencies.  We have seen some issues with package restore in some versions of the NuGet Package Manager, so we recommend making sure you have at least NuGet 2.8.1 installed.  Go to Tools\Extensions and Updates and click on the Updates tab to see if you are up to date.
 
-**Latest Visual Studio 2015 Preview is recommended**
+**Latest Visual Studio 2015 CTP5 is recommended**
 
-When using a Preview build you should ensure you select the repo branch that matches your installed Visual Studio preview, E.g releases/Dev14Preview. Roslyn is being developed at the same time as other core Visual Studio Components, APIs Roslyn is using may change during this preview phase, if you select the matching branch, then the source code you build will match the installed core Visual Studio components. 
+When using a Preview build you should ensure you select the repo branch that matches your installed Visual Studio preview, E.g releases/Dev14CTP5. Roslyn is being developed at the same time as other core Visual Studio Components, APIs Roslyn is using may change during this preview phase, if you select the matching branch, then the source code you build will match the installed core Visual Studio components. 
 
 ## Getting the code
 
 1. Clone (http://github.com/dotnet/roslyn)
-2. Switch to the "releases/Dev14Preview" branch
+2. Switch to the "releases/Dev14CTP5" branch
 
 ## Using Visual Studio Preview releases 
 
@@ -33,13 +33,13 @@ There are API differences between "master" and "releases/build-preview". If you 
 git branch --list --all
   master
   remotes/origin/HEAD -> origin/master
-  remotes/origin/releases/Dev14Preview
+  remotes/origin/releases/Dev14CTP5
 ```
 
 > Select the branch that matches your Visual Studio preview release, E.g:
 
 ```
-git checkout releases/Dev14Preview 
+git checkout releases/Dev14CTP5 
 ```
 
 ## Strong Name Verification
@@ -136,7 +136,7 @@ You are welcome to continue to use the End User Preview to provide feedback on t
 1. Install the latest Visual Studio 14 preview from (http://www.visualstudio.com/en-us/downloads/visual-studio-14-ctp-vs.aspx)
 2. Install the corresponding  VSSDK from the same page 
 3. Clone the repo using: git clone https://github.com/dotnet/roslyn.git
-4. Checkout the branch that matches the downloaded preview E.g: Git checkout releases/Dev14Preview
+4. Checkout the branch that matches the downloaded preview E.g: Git checkout releases/Dev14CTP5
 5. Start VS, Load the Roslyn Solution 
 6. Set the Tools\OpenSourceDebug project to the default project 
 7. Use the menu to build the solution 
