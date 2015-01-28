@@ -7,29 +7,35 @@
     AssemblyFile="packages\xunit.runners.2.0.0-alpha-build2576\tools\xunit.runner.msbuild.dll"
     TaskName="Xunit.Runner.MSBuild.xunit" />
 
+  <!-- At the moment Jenkins runs on a machine without any build of Visual Studio 2015.  Hence we must
+       use a 2013 compatible solution -->
+  <PropertyGroup>
+    <RoslynSolution>$(MSBuildThisFileDirectory)\Src\Roslyn.sln</RoslynSolution>
+    <RoslynSolution Condition="$(CIBuild) == 'true'">$(MSBuildThisFileDirectory)\Src\Roslyn2013.sln</RoslynSolution>
+  </PropertyGroup>
+
   <Target Name="RestorePackages">
     <Exec Command="&quot;$(MSBuildThisFileDirectory)\Src\.nuget\Nuget.exe&quot; install xunit.runners -pre -version 2.0.0-alpha-build2576 -outputdirectory packages"/>
-    <Exec Command="&quot;$(MSBuildThisFileDirectory)\Src\.nuget\Nuget.exe&quot; restore &quot;$(MSBuildThisFileDirectory)\Src\Roslyn.sln&quot;" />
+    <Exec Command="&quot;$(MSBuildThisFileDirectory)\Src\.nuget\Nuget.exe&quot; restore &quot;$(RoslynSolution)&quot;" />
   </Target>
 
-  <Target Name="Build"
-          DependsOnTargets="RestorePackages">
+  <Target Name="Build" DependsOnTargets="RestorePackages">
     <MSBuild BuildInParallel="true"
-             Projects="$(MSBuildThisFileDirectory)\Src\Roslyn.sln"
+             Projects="$(RoslynSolution)"
              Properties="RestorePackages=false"
              Targets="Build"/>
   </Target>
 
   <Target Name="Clean">
     <MSBuild BuildInParallel="true"
-             Projects="$(MSBuildThisFileDirectory)\Src\Roslyn.sln"
+             Projects="$(RoslynSolution)"
              Properties="RestorePackages=false"
              Targets="Clean"/>
   </Target>
 
   <Target Name="Rebuild">
     <MSBuild BuildInParallel="true"
-             Projects="$(MSBuildThisFileDirectory)\Src\Roslyn.sln"
+             Projects="$(RoslynSolution)"
              Properties="RestorePackages=false"
              Targets="Rebuild"/>
   </Target>
