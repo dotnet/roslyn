@@ -140,10 +140,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         public void Generate(out int asyncCatchHandlerOffset, out ImmutableArray<int> asyncYieldPoints, out ImmutableArray<int> asyncResumePoints)
         {
             this.GenerateImpl();
+            Debug.Assert(this.asyncCatchHandlerOffset >= 0);
 
-            asyncCatchHandlerOffset = (this.asyncCatchHandlerOffset < 0)
-                ? -1
-                : this.builder.GetILOffsetFromMarker(this.asyncCatchHandlerOffset);
+            asyncCatchHandlerOffset = this.builder.GetILOffsetFromMarker(this.asyncCatchHandlerOffset);
 
             ArrayBuilder<int> yieldPoints = this.asyncYieldPoints;
             ArrayBuilder<int> resumePoints = this.asyncResumePoints;

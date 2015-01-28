@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 errorLineNumber = New BoundLocal(node.Syntax, currentLineTemporary, isLValue:=False, type:=currentLineTemporary.Type)
             End If
 
-            Return node.Update(node.LocalOpt, newExceptionSource, errorLineNumber, newFilter, newCatchBody)
+            Return node.Update(node.LocalOpt, newExceptionSource, errorLineNumber, newFilter, newCatchBody, node.IsSynthesizedAsyncCatchAll)
         End Function
 
         Private Sub ReportErrorsOnCatchBlockHelpers(node As BoundCatchBlock)

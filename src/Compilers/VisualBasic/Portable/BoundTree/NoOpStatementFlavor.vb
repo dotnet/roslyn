@@ -25,12 +25,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' only allowed inside MoveNext methods generated for Async methods
         ''' </summary>
         AwaitResumePoint
-
-        ''' <summary> 
-        ''' Marks an upper-level catch handler offset inside Async method; is processed by codegen; 
-        ''' only allowed inside MoveNext methods generated for Async methods
-        ''' </summary>
-        AsyncMethodCatchHandler
     End Enum
 
 End Namespace

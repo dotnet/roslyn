@@ -134,11 +134,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     Debug.Assert(this.asyncYieldPoints.Count == this.asyncResumePoints.Count);
                     break;
 
-                case NoOpStatementFlavor.AsyncMethodCatchHandler:
-                    Debug.Assert(this.asyncCatchHandlerOffset < 0); // only one expected
-                    this.asyncCatchHandlerOffset = this.builder.AllocateILMarker();
-                    break;
-
                 default:
                     throw ExceptionUtilities.UnexpectedValue(statement.Flavor);
             }
@@ -802,6 +797,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             if (catchBlock.ExceptionFilterOpt == null)
             {
                 builder.OpenLocalScope(ScopeType.Catch, exceptionType);
+
+                if (catchBlock.IsSynthesizedAsyncCatchAll)
+                {
+                    Debug.Assert(this.asyncCatchHandlerOffset < 0); // only one expected
+                    this.asyncCatchHandlerOffset = this.builder.AllocateILMarker();
+                }
 
                 // Dev12 inserts the sequence point on catch clause without a filter, just before 
                 // the exception object is assigned to the variable.

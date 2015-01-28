@@ -546,7 +546,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     body: F.Block(
                         F.HiddenSequencePoint(),
                         F.ExpressionStatement(storePending),
-                        setPendingCatchNum));
+                        setPendingCatchNum),
+                    isSynthesizedAsyncCatchAll: node.IsSynthesizedAsyncCatchAll);
 
                 // catch locals live on the synthetic catch handler block
                 if ((object)node.LocalOpt != null)
@@ -583,7 +584,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     exceptionFilterOpt: newFilter,
                     body: F.Block(
                         F.HiddenSequencePoint(),
-                        setPendingCatchNum));
+                        setPendingCatchNum),
+                    isSynthesizedAsyncCatchAll: node.IsSynthesizedAsyncCatchAll);
             }
 
             var handlerStatements = ArrayBuilder<BoundStatement>.GetInstance();

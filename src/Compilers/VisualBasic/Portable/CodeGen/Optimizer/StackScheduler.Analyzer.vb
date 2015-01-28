@@ -1024,7 +1024,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Dim body As BoundBlock = DirectCast(Me.Visit(node.Body), BoundBlock)
 
                 EnsureOnlyEvalStack()
-                Return node.Update(node.LocalOpt, exceptionVariableOpt, errorLineNumberOpt, exceptionFilterOpt, body)
+                Return node.Update(node.LocalOpt, exceptionVariableOpt, errorLineNumberOpt, exceptionFilterOpt, body, node.IsSynthesizedAsyncCatchAll)
             End Function
 
             Public Overrides Function VisitArrayInitialization(node As BoundArrayInitialization) As BoundNode

@@ -782,7 +782,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenExceptionSource,
                 exceptionTypeOpt,
                 rewrittenFilter,
-                rewrittenBlock);
+                rewrittenBlock,
+                node.IsSynthesizedAsyncCatchAll);
         }
 
         public override BoundNode VisitSequence(BoundSequence node)

@@ -795,6 +795,7 @@
     
     <Field Name="ExceptionFilterOpt" Type="BoundExpression" Null="allow"/>
     <Field Name="Body" Type="BoundBlock"/>
+    <Field Name="IsSynthesizedAsyncCatchAll" Type="bool" />
   </Node>
 
   <Node Name="BoundLiteral" Base="BoundExpression">

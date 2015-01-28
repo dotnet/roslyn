@@ -248,22 +248,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim tryBlock = nodeFactory.Block(statements.ToImmutable())
             statements.Clear()
 
-            statements.Add(RewriteTryStatement(node.Syntax,
-                                               tryBlock,
-                                               ImmutableArray.Create(New BoundCatchBlock(node.Syntax,
-                                                                                           Nothing,
-                                                                                           Nothing,
-                                                                                           If(currentLineTemporary IsNot Nothing,
-                                                                                              New BoundLocal(node.Syntax, currentLineTemporary, isLValue:=False, type:=currentLineTemporary.Type),
-                                                                                              Nothing),
-                                                                                           New BoundUnstructuredExceptionHandlingCatchFilter(node.Syntax,
-                                                                                                   nodeFactory.Local(unstructuredExceptionHandling.ActiveHandlerTemporary, isLValue:=False),
-                                                                                                   nodeFactory.Local(unstructuredExceptionHandling.ResumeTargetTemporary, isLValue:=False),
-                                                                                                   bool),
-                                                                                           nodeFactory.Block(ImmutableArray.Create(Of BoundStatement)(
-                                                                                                             nodeFactory.Goto(onErrorLabel))))),
-                                                Nothing,
-                                                Nothing))
+            statements.Add(RewriteTryStatement(
+                node.Syntax,
+                tryBlock,
+                ImmutableArray.Create(New BoundCatchBlock(
+                    node.Syntax,
+                    Nothing,
+                    Nothing,
+                    If(currentLineTemporary IsNot Nothing,
+                        New BoundLocal(node.Syntax, currentLineTemporary, isLValue:=False, type:=currentLineTemporary.Type),
+                        Nothing),
+                    New BoundUnstructuredExceptionHandlingCatchFilter(node.Syntax,
+                        nodeFactory.Local(unstructuredExceptionHandling.ActiveHandlerTemporary, isLValue:=False),
+                        nodeFactory.Local(unstructuredExceptionHandling.ResumeTargetTemporary, isLValue:=False),
+                        bool),
+                    nodeFactory.Block(ImmutableArray.Create(Of BoundStatement)(nodeFactory.Goto(onErrorLabel))),
+                    isSynthesizedAsyncCatchAll:=False)),
+                Nothing,
+                Nothing))
 
             ' Something has gone wrong with the On Error mechanism if execution
             ' makes it here.  

@@ -1494,7 +1494,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     ' In VB async method may be partial. Debug info needs to be associated with the emitted definition, 
                     ' but the kickoff method is the method implementation (the part with body).
-                    asyncDebugInfo = New Cci.AsyncMethodBodyDebugInfo(If(kickoffMethod.PartialDefinitionPart, kickoffMethod), asyncCatchHandlerOffset, asyncYieldPoints, asyncResumePoints)
+
+                    ' The exception handler IL offset is used by the debugger to treat exceptions caught by the marked catch block as "user unhandled". 
+                    ' This is important for async void because async void exceptions generally result in the process being terminated, 
+                    ' but without anything useful on the call stack. Async Task methods on the other hand return exceptions as the result of the Task. 
+                    ' So it is undesirable to consider these exceptions "user unhandled" since there may well be user code that is awaiting the task. 
+                    ' This is a heuristic since it's possible that there is no user code awaiting the task. 
+                    asyncDebugInfo = New Cci.AsyncMethodBodyDebugInfo(
+                        If(kickoffMethod.PartialDefinitionPart, kickoffMethod),
+                        If(kickoffMethod.IsSub, asyncCatchHandlerOffset, -1),
+                        asyncYieldPoints,
+                        asyncResumePoints)
                 Else
                     codeGen.Generate()
                 End If
