@@ -104,11 +104,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Me._asyncResumePoints.Add(Me._builder.AllocateILMarker())
                     Return
 
-                Case NoOpStatementFlavor.AsyncMethodCatchHandler
-                    Debug.Assert(Me._asyncCatchHandlerOffset < 0) ' Only one expected
-                    Me._asyncCatchHandlerOffset = Me._builder.AllocateILMarker()
-                    Return
-
             End Select
 
             Throw ExceptionUtilities.UnexpectedValue(statement.Flavor)
@@ -266,6 +261,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 ' converts to what we want.
                 If catchBlock.ExceptionFilterOpt Is Nothing Then
                     _builder.OpenLocalScope(ScopeType.Catch, exceptionType)
+
+                    If catchBlock.IsSynthesizedAsyncCatchAll Then
+                        Debug.Assert(_asyncCatchHandlerOffset < 0)
+                        _asyncCatchHandlerOffset = _builder.AllocateILMarker()
+                    End If
                 Else
                     _builder.OpenLocalScope(ScopeType.Filter)
 

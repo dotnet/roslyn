@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         options: PdbToXmlOptions.ResolveTokens | PdbToXmlOptions.ThrowOnError, 
                         methodName: sequencePoints);
 
-                    markers = GetSequencePointMarkers(actualPdbXml);
+                    markers = GetMarkers(actualPdbXml);
                 }
 
                 if (!realIL)

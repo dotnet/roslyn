@@ -22,12 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Marks a control resume point for emitted await operator; is processed by codegen; 
         // only allowed inside MoveNext methods generated for Async methods
         // </summary>
-        AwaitResumePoint,
-
-        // <summary> 
-        // Marks an upper-level catch handler offset inside Async method; is processed by codegen; 
-        // only allowed inside MoveNext methods generated for Async methods
-        // </summary>
-        AsyncMethodCatchHandler
+        AwaitResumePoint
     }
 }

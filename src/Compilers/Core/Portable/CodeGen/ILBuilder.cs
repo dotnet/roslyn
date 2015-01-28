@@ -1113,7 +1113,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             return _emitState.InstructionsEmitted == _instructionCountAtLastLabel;
         }
 
-        internal void OpenLocalScope(ScopeType scopeType = ScopeType.Variable, Microsoft.Cci.ITypeReference exceptionType = null)
+        internal void OpenLocalScope(ScopeType scopeType = ScopeType.Variable, Cci.ITypeReference exceptionType = null)
         {
             if (scopeType == ScopeType.TryCatchFinally && IsJustPastLabel())
             {

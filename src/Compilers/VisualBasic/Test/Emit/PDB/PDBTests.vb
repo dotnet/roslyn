@@ -1025,9 +1025,10 @@ End Module
 ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestReferences, options:=TestOptions.DebugDll)
+            Dim compilation = CreateCompilationWithReferences(source, references:=LatestReferences, options:=TestOptions.DebugDll)
+            Dim v = CompileAndVerify(compilation)
 
-            compilation.VerifyPdb("Module1.F",
+            v.VerifyPdb("Module1.F",
 <symbols>
     <methods>
         <method containingType="Module1" name="F" parameterNames="a">
@@ -1040,7 +1041,7 @@ End Module
     </methods>
 </symbols>)
 
-            compilation.VerifyPdb("Module1+VB$StateMachine_1_F.MoveNext",
+            v.VerifyPdb("Module1+VB$StateMachine_1_F.MoveNext",
 <symbols>
     <methods>
         <method containingType="Module1+VB$StateMachine_1_F" name="MoveNext">
@@ -1079,7 +1080,7 @@ End Module
     </methods>
 </symbols>)
 
-            compilation.VerifyPdb("Module1.Test",
+            v.VerifyPdb("Module1.Test",
 <symbols>
     <methods>
         <method containingType="Module1" name="Test">
@@ -1092,7 +1093,7 @@ End Module
     </methods>
 </symbols>)
 
-            compilation.VerifyPdb("Module1+VB$StateMachine_2_Test.MoveNext",
+            v.VerifyPdb("Module1+VB$StateMachine_2_Test.MoveNext",
 <symbols>
     <methods>
         <method containingType="Module1+VB$StateMachine_2_Test" name="MoveNext">
@@ -1153,7 +1154,7 @@ End Module
     </methods>
 </symbols>)
 
-            compilation.VerifyPdb("Module1.S",
+            v.VerifyPdb("Module1.S",
 <symbols>
     <methods>
         <method containingType="Module1" name="S">
@@ -1166,7 +1167,103 @@ End Module
     </methods>
 </symbols>)
 
-            compilation.VerifyPdb("Module1+VB$StateMachine_3_S.MoveNext",
+            v.VerifyIL("Module1.VB$StateMachine_3_S.MoveNext", "
+{
+  // Code size      186 (0xba)
+  .maxstack  3
+  .locals init (Integer V_0,
+                System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter V_1,
+                System.Runtime.CompilerServices.YieldAwaitable V_2,
+                Boolean V_3,
+                Module1.VB$StateMachine_3_S V_4,
+                System.Exception V_5)
+ ~IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""Module1.VB$StateMachine_3_S.$State As Integer""
+  IL_0006:  stloc.0
+  .try
+  {
+   ~IL_0007:  ldloc.0
+    IL_0008:  brfalse.s  IL_000c
+    IL_000a:  br.s       IL_000f
+    IL_000c:  nop
+    IL_000d:  br.s       IL_004f
+   -IL_000f:  nop
+   -IL_0010:  nop
+    IL_0011:  call       ""Function System.Threading.Tasks.Task.Yield() As System.Runtime.CompilerServices.YieldAwaitable""
+    IL_0016:  stloc.2
+    IL_0017:  ldloca.s   V_2
+    IL_0019:  call       ""Function System.Runtime.CompilerServices.YieldAwaitable.GetAwaiter() As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
+    IL_001e:  stloc.1
+    IL_001f:  ldloca.s   V_1
+    IL_0021:  call       ""Function System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.get_IsCompleted() As Boolean""
+    IL_0026:  stloc.3
+    IL_0027:  ldloc.3
+    IL_0028:  brtrue.s   IL_006d
+    IL_002a:  ldarg.0
+    IL_002b:  ldc.i4.0
+    IL_002c:  dup
+    IL_002d:  stloc.0
+    IL_002e:  stfld      ""Module1.VB$StateMachine_3_S.$State As Integer""
+   <IL_0033:  ldarg.0
+    IL_0034:  ldloc.1
+    IL_0035:  stfld      ""Module1.VB$StateMachine_3_S.$A0 As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
+    IL_003a:  ldarg.0
+    IL_003b:  ldflda     ""Module1.VB$StateMachine_3_S.$Builder As System.Runtime.CompilerServices.AsyncVoidMethodBuilder""
+    IL_0040:  ldloca.s   V_1
+    IL_0042:  ldarg.0
+    IL_0043:  stloc.s    V_4
+    IL_0045:  ldloca.s   V_4
+    IL_0047:  call       ""Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.AwaitUnsafeOnCompleted(Of System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, Module1.VB$StateMachine_3_S)(ByRef System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter, ByRef Module1.VB$StateMachine_3_S)""
+    IL_004c:  nop
+    IL_004d:  leave.s    IL_00b9
+   >IL_004f:  ldarg.0
+    IL_0050:  ldc.i4.m1
+    IL_0051:  dup
+    IL_0052:  stloc.0
+    IL_0053:  stfld      ""Module1.VB$StateMachine_3_S.$State As Integer""
+    IL_0058:  ldarg.0
+    IL_0059:  ldfld      ""Module1.VB$StateMachine_3_S.$A0 As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
+    IL_005e:  stloc.1
+    IL_005f:  ldarg.0
+    IL_0060:  ldflda     ""Module1.VB$StateMachine_3_S.$A0 As System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
+    IL_0065:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
+    IL_006b:  br.s       IL_006d
+    IL_006d:  ldloca.s   V_1
+    IL_006f:  call       ""Sub System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter.GetResult()""
+    IL_0074:  ldloca.s   V_1
+    IL_0076:  initobj    ""System.Runtime.CompilerServices.YieldAwaitable.YieldAwaiter""
+   -IL_007c:  leave.s    IL_00a3
+  }
+  catch System.Exception
+  {
+  ~$IL_007e:  dup
+    IL_007f:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.SetProjectError(System.Exception)""
+    IL_0084:  stloc.s    V_5
+   ~IL_0086:  ldarg.0
+    IL_0087:  ldc.i4.s   -2
+    IL_0089:  stfld      ""Module1.VB$StateMachine_3_S.$State As Integer""
+    IL_008e:  ldarg.0
+    IL_008f:  ldflda     ""Module1.VB$StateMachine_3_S.$Builder As System.Runtime.CompilerServices.AsyncVoidMethodBuilder""
+    IL_0094:  ldloc.s    V_5
+    IL_0096:  call       ""Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetException(System.Exception)""
+    IL_009b:  nop
+    IL_009c:  call       ""Sub Microsoft.VisualBasic.CompilerServices.ProjectData.ClearProjectError()""
+    IL_00a1:  leave.s    IL_00b9
+  }
+ -IL_00a3:  ldarg.0
+  IL_00a4:  ldc.i4.s   -2
+  IL_00a6:  dup
+  IL_00a7:  stloc.0
+  IL_00a8:  stfld      ""Module1.VB$StateMachine_3_S.$State As Integer""
+ ~IL_00ad:  ldarg.0
+  IL_00ae:  ldflda     ""Module1.VB$StateMachine_3_S.$Builder As System.Runtime.CompilerServices.AsyncVoidMethodBuilder""
+  IL_00b3:  call       ""Sub System.Runtime.CompilerServices.AsyncVoidMethodBuilder.SetResult()""
+  IL_00b8:  nop
+  IL_00b9:  ret
+}
+", sequencePoints:="Module1+VB$StateMachine_3_S.MoveNext")
+
+            v.VerifyPdb("Module1+VB$StateMachine_3_S.MoveNext",
 <symbols>
     <methods>
         <method containingType="Module1+VB$StateMachine_3_S" name="MoveNext">
@@ -1196,7 +1293,7 @@ End Module
                 <importsforward declaringType="Module1" methodName="Main" parameterNames="args"/>
             </scope>
             <asyncInfo>
-                <catchHandler offset="0x86"/>
+                <catchHandler offset="0x7e"/>
                 <kickoffMethod declaringType="Module1" methodName="S"/>
                 <await yield="0x33" resume="0x4f" declaringType="Module1+VB$StateMachine_3_S" methodName="MoveNext"/>
             </asyncInfo>

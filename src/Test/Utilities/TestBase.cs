@@ -684,12 +684,31 @@ namespace Roslyn.Test.Utilities
             return actual;
         }
 
-        public static Dictionary<int, string> GetSequencePointMarkers(string pdbXml)
+        public static Dictionary<int, string> GetMarkers(string pdbXml)
         {
-            return EnumerateSequencepointMarkers(pdbXml).ToDictionary(pair => pair.Key, pair => pair.Value);
+            return ToDictionary<int, string, string>(EnumerateMarkers(pdbXml), (markers, marker) => markers + marker);
         }
 
-        public static IEnumerable<KeyValuePair<int, string>> EnumerateSequencepointMarkers(string pdbXml)
+        private static Dictionary<K, V> ToDictionary<K, V, I>(IEnumerable<KeyValuePair<K, I>> pairs, Func<V, I, V> aggregator)
+        {
+            var result = new Dictionary<K, V>();
+            foreach (var pair in pairs)
+            {
+                V existing;
+                if (result.TryGetValue(pair.Key, out existing))
+                {
+                    result[pair.Key] = aggregator(existing, pair.Value);
+                }
+                else
+                {
+                    result.Add(pair.Key, aggregator(default(V), pair.Value));
+                }
+            }
+
+            return result;
+        }
+
+        public static IEnumerable<KeyValuePair<int, string>> EnumerateMarkers(string pdbXml)
         {
             var doc = new XmlDocument();
             doc.LoadXml(pdbXml);
@@ -701,6 +720,22 @@ namespace Roslyn.Test.Utilities
                     yield return KeyValuePair.Create(
                         Convert.ToInt32(item.GetAttribute("offset"), 16),
                         (item.GetAttribute("hidden") == "true") ? "~" : "-");
+                }
+            }
+
+            foreach (XmlNode entry in doc.GetElementsByTagName("asyncInfo"))
+            {
+                foreach (XmlElement item in entry.ChildNodes)
+                {
+                    if (item.Name == "await")
+                    {
+                        yield return KeyValuePair.Create(Convert.ToInt32(item.GetAttribute("yield"), 16), "<");
+                        yield return KeyValuePair.Create(Convert.ToInt32(item.GetAttribute("resume"), 16), ">");
+                    }
+                    else if (item.Name == "catchHandler")
+                    {
+                        yield return KeyValuePair.Create(Convert.ToInt32(item.GetAttribute("offset"), 16), "$");
+                    }
                 }
             }
         }

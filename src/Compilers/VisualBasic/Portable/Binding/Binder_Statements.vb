@@ -4770,7 +4770,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                        errorLineNumberOpt:=Nothing,
                                        exceptionFilterOpt:=exceptionFilter,
                                        body:=block,
-                                       hasErrors:=hasError)
+                                       hasErrors:=hasError,
+                                       isSynthesizedAsyncCatchAll:=False)
         End Function
 
 

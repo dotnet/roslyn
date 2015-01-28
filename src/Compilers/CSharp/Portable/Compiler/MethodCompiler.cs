@@ -1233,7 +1233,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableArray<int> asyncResumePoints;
                     codeGen.Generate(out asyncCatchHandlerOffset, out asyncYieldPoints, out asyncResumePoints);
 
-                    asyncDebugInfo = new Cci.AsyncMethodBodyDebugInfo(stateMachineMethod.StateMachineType.KickoffMethod, asyncCatchHandlerOffset, asyncYieldPoints, asyncResumePoints);
+                    var kickoffMethod = stateMachineMethod.StateMachineType.KickoffMethod;
+
+                    // The exception handler IL offset is used by the debugger to treat exceptions caught by the marked catch block as "user unhandled".
+                    // This is important for async void because async void exceptions generally result in the process being terminated,
+                    // but without anything useful on the call stack. Async Task methods on the other hand return exceptions as the result of the Task.
+                    // So it is undesirable to consider these exceptions "user unhandled" since there may well be user code that is awaiting the task.
+                    // This is a heuristic since it's possible that there is no user code awaiting the task.
+                    asyncDebugInfo = new Cci.AsyncMethodBodyDebugInfo(kickoffMethod, kickoffMethod.ReturnsVoid ? asyncCatchHandlerOffset : -1, asyncYieldPoints, asyncResumePoints);
                 }
                 else
                 {

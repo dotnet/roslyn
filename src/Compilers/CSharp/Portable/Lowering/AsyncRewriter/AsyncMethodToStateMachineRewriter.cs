@@ -139,10 +139,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         rewrittenBody
                     ),
                     F.CatchBlocks(
-                        F.Catch(
+                        new BoundCatchBlock(
+                            F.Syntax,
                             exceptionLocal,
-                            F.Block(
-                                F.NoOp(method.ReturnsVoid ? NoOpStatementFlavor.AsyncMethodCatchHandler : NoOpStatementFlavor.Default),
+                            F.Local(exceptionLocal), 
+                            exceptionLocal.Type,
+                            exceptionFilterOpt: null, 
+                            body: F.Block(
                                 // this.state = finishedState
                                 F.Assignment(F.Field(F.This(), stateField), F.Literal(StateMachineStates.FinishedStateMachine)),
                                 // builder.SetException(ex)
@@ -151,11 +154,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         F.Field(F.This(), asyncMethodBuilderField),
                                         asyncMethodBuilderMemberCollection.SetException,
                                         F.Local(exceptionLocal))),
-                                GenerateReturn(false)
-                            )
+                                GenerateReturn(false)), 
+                            isSynthesizedAsyncCatchAll: true) 
                         )
                     )
-                ));
+                );
 
             // ReturnLabel (for the rewritten return expressions in the user's method body)
             bodyBuilder.Add(F.Label(exprReturnLabel));
