@@ -22,8 +22,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging.TagSources
         public ViewTagSource(
             ITextView textView, ITextBuffer subjectBuffer, ITagProducer<TTag> tagProducer, ITaggerEventSource eventSource,
             IAsynchronousOperationListener asyncListener, IForegroundNotificationService notificationService,
-            bool removeTagsThatIntersectEdits) :
-            base(subjectBuffer, tagProducer, eventSource, asyncListener, notificationService, removeTagsThatIntersectEdits, null)
+            bool removeTagsThatIntersectEdits,
+            SpanTrackingMode spanTrackingMode) :
+            base(subjectBuffer, tagProducer, eventSource, asyncListener, notificationService, removeTagsThatIntersectEdits, spanTrackingMode, bufferToRelatedTagSource: null)
         {
             _textView = textView;
         }

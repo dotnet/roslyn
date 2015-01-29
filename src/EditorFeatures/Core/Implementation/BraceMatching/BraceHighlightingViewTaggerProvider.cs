@@ -35,13 +35,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
             _braceMatcherService = braceMatcherService;
         }
 
-        protected override bool RemoveTagsThatIntersectEdits
-        {
-            get
-            {
-                return true;
-            }
-        }
+        protected override bool RemoveTagsThatIntersectEdits => true;
+
+        protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
 
         protected override IEnumerable<Option<bool>> TagSourceOptions
         {

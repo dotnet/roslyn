@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         }
 
         protected abstract bool RemoveTagsThatIntersectEdits { get; }
+        protected abstract SpanTrackingMode SpanTrackingMode { get; }
+
         protected abstract ITagProducer<TTag> CreateTagProducer();
         protected abstract ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer);
 
@@ -44,6 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                 AsyncListener,
                 NotificationService,
                 this.RemoveTagsThatIntersectEdits,
+                this.SpanTrackingMode,
                 GetRelatedTagSource);
         }
 

@@ -56,6 +56,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
         /// </summary>
         private readonly bool _removeTagsThatIntersectEdits;
 
+        /// <summary>
+        /// The tracking mode we want to use for the tracking spans we create.
+        /// </summary>
+        private readonly SpanTrackingMode _spanTrackingMode;
+
         private ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> _cachedTags;
 
         private bool _computeTagsSynchronouslyIfNoAsynchronousComputationHasCompleted;
@@ -98,11 +103,18 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             IAsynchronousOperationListener asyncListener,
             IForegroundNotificationService notificationService,
             bool removeTagsThatIntersectEdits,
+            SpanTrackingMode spanTrackingMode,
             Func<ITextBuffer, ProducerPopulatedTagSource<TTag>> bufferToRelatedTagSource = null) :
                 base(subjectBuffer, notificationService, asyncListener)
         {
+            if (spanTrackingMode == SpanTrackingMode.Custom)
+            {
+                throw new ArgumentException("SpanTrackingMode.Custom not allowed.", "spanTrackingMode");
+            }
+
             _tagProducer = tagProducer;
             _removeTagsThatIntersectEdits = removeTagsThatIntersectEdits;
+            _spanTrackingMode = spanTrackingMode;
 
             _cachedTags = ImmutableDictionary.Create<ITextBuffer, TagSpanIntervalTree<TTag>>();
 
@@ -270,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             TagSpanIntervalTree<TTag> oldCachedTagsForBuffer = null;
             if (!oldCachedTags.TryGetValue(snapshot.TextBuffer, out oldCachedTagsForBuffer))
             {
-                oldCachedTagsForBuffer = new TagSpanIntervalTree<TTag>(snapshot.TextBuffer, SpanTrackingMode.EdgeExclusive);
+                oldCachedTagsForBuffer = new TagSpanIntervalTree<TTag>(snapshot.TextBuffer, _spanTrackingMode);
             }
 
             var difference = ComputeDifference(snapshot, oldCachedTagsForBuffer, newTagsForBuffer);
@@ -427,14 +439,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
                     tags = tagsInBuffer;
                 }
 
-                map = map.Add(tagsInBuffer.Key, new TagSpanIntervalTree<TTag>(tagsInBuffer.Key, SpanTrackingMode.EdgeExclusive, tags));
+                map = map.Add(tagsInBuffer.Key, new TagSpanIntervalTree<TTag>(tagsInBuffer.Key, _spanTrackingMode, tags));
             }
 
             foreach (var kv in tagsToKeepByBuffer)
             {
                 if (!map.ContainsKey(kv.Key) && kv.Value.Any())
                 {
-                    map = map.Add(kv.Key, new TagSpanIntervalTree<TTag>(kv.Key, SpanTrackingMode.EdgeExclusive, kv.Value));
+                    map = map.Add(kv.Key, new TagSpanIntervalTree<TTag>(kv.Key, _spanTrackingMode, kv.Value));
                 }
             }
 
@@ -453,12 +465,12 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
             foreach (var tagsInBuffer in tagsByBuffer)
             {
                 var tags = tagsInBuffer.Key == invalidBuffer ? tagsInBuffer.Concat(tagsToKeep) : tagsInBuffer;
-                map = map.Add(tagsInBuffer.Key, new TagSpanIntervalTree<TTag>(tagsInBuffer.Key, SpanTrackingMode.EdgeExclusive, tags));
+                map = map.Add(tagsInBuffer.Key, new TagSpanIntervalTree<TTag>(tagsInBuffer.Key, _spanTrackingMode, tags));
             }
 
             if (!map.ContainsKey(invalidBuffer) && tagsToKeep.Any())
             {
-                map = map.Add(invalidBuffer, new TagSpanIntervalTree<TTag>(invalidBuffer, SpanTrackingMode.EdgeExclusive, tagsToKeep));
+                map = map.Add(invalidBuffer, new TagSpanIntervalTree<TTag>(invalidBuffer, _spanTrackingMode, tagsToKeep));
             }
 
             return map;

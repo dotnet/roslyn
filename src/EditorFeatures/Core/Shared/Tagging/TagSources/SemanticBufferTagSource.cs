@@ -22,10 +22,15 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging.TagSources
         private VersionStamp _lastSemanticVersion;
 
         public SemanticBufferTagSource(
-            ITextBuffer subjectBuffer, ITagProducer<TTag> tagProducer, ITaggerEventSource eventSource,
-            IAsynchronousOperationListener asyncListener, IForegroundNotificationService notificationService,
-            bool removeTagsThatIntersectEdits, Func<ITextBuffer, ProducerPopulatedTagSource<TTag>> bufferToRelatedTagSource) :
-            base(subjectBuffer, tagProducer, eventSource, asyncListener, notificationService, removeTagsThatIntersectEdits, bufferToRelatedTagSource)
+            ITextBuffer subjectBuffer,
+            ITagProducer<TTag> tagProducer,
+            ITaggerEventSource eventSource,
+            IAsynchronousOperationListener asyncListener,
+            IForegroundNotificationService notificationService,
+            bool removeTagsThatIntersectEdits,
+            SpanTrackingMode spanTrackingMode,
+            Func<ITextBuffer, ProducerPopulatedTagSource<TTag>> bufferToRelatedTagSource)
+            : base(subjectBuffer, tagProducer, eventSource, asyncListener, notificationService, removeTagsThatIntersectEdits, spanTrackingMode, bufferToRelatedTagSource)
         {
             _lastSemanticVersion = VersionStamp.Default;
         }

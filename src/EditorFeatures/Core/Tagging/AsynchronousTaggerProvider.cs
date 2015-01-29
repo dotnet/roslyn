@@ -63,13 +63,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 _dataSource = dataSource;
             }
 
-            protected override bool RemoveTagsThatIntersectEdits
-            {
-                get
-                {
-                    return _dataSource.RemoveTagsThatIntersectEdits;
-                }
-            }
+            protected override bool RemoveTagsThatIntersectEdits => _dataSource.RemoveTagsThatIntersectEdits;
+
+            protected override SpanTrackingMode SpanTrackingMode => _dataSource.SpanTrackingMode;
 
             protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
             {

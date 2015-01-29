@@ -35,13 +35,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
             _highlighterService = highlighterService;
         }
 
-        protected override bool RemoveTagsThatIntersectEdits
-        {
-            get
-            {
-                return true;
-            }
-        }
+        protected override bool RemoveTagsThatIntersectEdits => true;
+
+        protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
 
         protected override IEnumerable<Option<bool>> TagSourceOptions
         {
@@ -73,7 +69,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
                 CreateEventSource(textViewOpt, subjectBuffer),
                 AsyncListener,
                 NotificationService,
-                this.RemoveTagsThatIntersectEdits);
+                this.RemoveTagsThatIntersectEdits,
+                this.SpanTrackingMode);
         }
     }
 }

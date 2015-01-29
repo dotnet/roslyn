@@ -20,8 +20,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging.TagSources
             ITextBuffer subjectBuffer, ITagProducer<TTag> tagProducer, ITaggerEventSource eventSource,
             IAsynchronousOperationListener asyncListener, IForegroundNotificationService notificationService,
             bool removeTagsThatIntersectEdits,
+            SpanTrackingMode spanTrackingMode,
             Func<ITextBuffer, ProducerPopulatedTagSource<TTag>> bufferToRelatedTagSource) :
-            base(subjectBuffer, tagProducer, eventSource, asyncListener, notificationService, removeTagsThatIntersectEdits, bufferToRelatedTagSource)
+            base(subjectBuffer, tagProducer, eventSource, asyncListener, notificationService, removeTagsThatIntersectEdits, spanTrackingMode, bufferToRelatedTagSource)
         {
         }
 

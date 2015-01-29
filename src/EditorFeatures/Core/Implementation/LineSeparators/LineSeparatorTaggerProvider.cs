@@ -33,13 +33,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
         {
         }
 
-        protected override bool RemoveTagsThatIntersectEdits
-        {
-            get
-            {
-                return true;
-            }
-        }
+        protected override bool RemoveTagsThatIntersectEdits => true;
+
+        protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
 
         protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {

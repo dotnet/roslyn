@@ -38,17 +38,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             _typeMap = typeMap;
         }
 
-        protected override bool RemoveTagsThatIntersectEdits
-        {
-            get
-            {
-                // We don't want to remove a tag just because it intersected an edit.  This can 
-                // cause flashing when a edit touches the edge of a classified symbol without
-                // changing it.  For example, if you have "Console." and you remove the <dot>,
-                // then you don't want to remove the classification for 'Console'.
-                return false;
-            }
-        }
+        // We don't want to remove a tag just because it intersected an edit.  This can 
+        // cause flashing when a edit touches the edge of a classified symbol without
+        // changing it.  For example, if you have "Console." and you remove the <dot>,
+        // then you don't want to remove the classification for 'Console'.
+        protected override bool RemoveTagsThatIntersectEdits => false;
+
+        protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
 
         protected override IEnumerable<Option<bool>> TagSourceOptions
         {
@@ -67,6 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 AsyncListener,
                 NotificationService,
                 this.RemoveTagsThatIntersectEdits,
+                this.SpanTrackingMode,
                 GetRelatedTagSource);
         }
 

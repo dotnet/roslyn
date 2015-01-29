@@ -51,13 +51,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
             _projectionBufferFactoryService = projectionBufferFactoryService;
         }
 
-        protected override bool RemoveTagsThatIntersectEdits
-        {
-            get
-            {
-                return true;
-            }
-        }
+        protected override bool RemoveTagsThatIntersectEdits => true;
+
+        protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
 
         protected override ITaggerEventSource CreateEventSource(ITextView textViewOpt, ITextBuffer subjectBuffer)
         {

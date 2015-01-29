@@ -36,13 +36,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
             _semanticChangeNotificationService = semanticChangeNotificationService;
         }
 
-        protected override bool RemoveTagsThatIntersectEdits
-        {
-            get
-            {
-                return true;
-            }
-        }
+        protected override bool RemoveTagsThatIntersectEdits => true;
+
+        protected override SpanTrackingMode SpanTrackingMode => SpanTrackingMode.EdgeExclusive;
 
         protected override IEnumerable<PerLanguageOption<bool>> TagSourcePerLanguageOptions
         {
@@ -85,7 +81,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
                 CreateEventSource(textViewOpt, subjectBuffer),
                 AsyncListener,
                 NotificationService,
-                this.RemoveTagsThatIntersectEdits);
+                this.RemoveTagsThatIntersectEdits,
+                this.SpanTrackingMode);
         }
     }
 }

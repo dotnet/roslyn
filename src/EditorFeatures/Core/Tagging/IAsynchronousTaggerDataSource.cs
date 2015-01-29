@@ -29,6 +29,13 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         bool RemoveTagsThatIntersectEdits { get; }
 
         /// <summary>
+        /// The behavior of tags that are created by the async tagger.  This will matter for tags
+        /// created for a previous version of a document that are mapped forward by the async
+        /// tagging architecture.  This value cannot be <see cref="SpanTrackingMode.Custom"/>.
+        /// </summary>
+        SpanTrackingMode SpanTrackingMode { get; }
+
+        /// <summary>
         /// Creates the <see cref="ITaggerEventSource"/> that notifies the <see cref="AsynchronousTaggerProvider{TTag}"/>
         /// that it should recompute tags for the text buffer after an appropriate <see cref="TaggerDelay"/>.
         /// </summary>

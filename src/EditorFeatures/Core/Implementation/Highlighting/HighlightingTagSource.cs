@@ -23,13 +23,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Highlighting
             ITaggerEventSource eventSource,
             IAsynchronousOperationListener asyncListener,
             IForegroundNotificationService notificationService,
-            bool removeTagsThatIntersectEdits) : base(textView,
-                                                      subjectBuffer,
-                                                      tagProducer,
-                                                      eventSource,
-                                                      asyncListener,
-                                                      notificationService,
-                                                      removeTagsThatIntersectEdits)
+            bool removeTagsThatIntersectEdits,
+            SpanTrackingMode spanTrackingMode)
+            : base(textView, subjectBuffer, tagProducer, eventSource, asyncListener, notificationService, removeTagsThatIntersectEdits, spanTrackingMode)
         {
         }
 

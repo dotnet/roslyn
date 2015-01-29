@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -31,11 +30,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ReferenceHighlighting
         private int _lastUpdateTagsSolutionVersion = VoidVersion;
 
         public ReferenceHighlightingTagSource(
-            ITextView textView, ITextBuffer subjectBuffer,
-            ITagProducer<AbstractNavigatableReferenceHighlightingTag> tagProducer, ITaggerEventSource eventSource,
-            IAsynchronousOperationListener asyncListener, IForegroundNotificationService notificationService,
-            bool removeTagsThatIntersectEdits) :
-                base(subjectBuffer, tagProducer, eventSource, asyncListener, notificationService, removeTagsThatIntersectEdits, null)
+            ITextView textView,
+            ITextBuffer subjectBuffer,
+            ITagProducer<AbstractNavigatableReferenceHighlightingTag> tagProducer,
+            ITaggerEventSource eventSource,
+            IAsynchronousOperationListener asyncListener,
+            IForegroundNotificationService notificationService,
+            bool removeTagsThatIntersectEdits,
+            SpanTrackingMode spanTrackingMode)
+            : base(subjectBuffer, tagProducer, eventSource, asyncListener, notificationService, removeTagsThatIntersectEdits, spanTrackingMode, bufferToRelatedTagSource: null)
         {
             _textView = textView;
         }
