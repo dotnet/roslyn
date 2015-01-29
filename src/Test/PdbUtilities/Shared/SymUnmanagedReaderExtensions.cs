@@ -31,8 +31,8 @@ namespace Microsoft.VisualStudio.SymReaderInterop
 
         public bool Equals(AsyncStepInfo other)
         {
-            return YieldOffset == other.YieldOffset 
-                && ResumeMethod == other.ResumeMethod 
+            return YieldOffset == other.YieldOffset
+                && ResumeMethod == other.ResumeMethod
                 && ResumeOffset == other.ResumeOffset;
         }
 
@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
         internal const int E_FAIL = unchecked((int)0x80004005);
         internal const int E_NOTIMPL = unchecked((int)0x80004001);
 
-        private static readonly IntPtr IgnoreIErrorInfo = new IntPtr(-1);
+        private static readonly IntPtr s_ignoreIErrorInfo = new IntPtr(-1);
 
         // The name of the attribute containing the byte array of custom debug info.
         // MSCUSTOMDEBUGINFO in Dev10.
@@ -166,7 +166,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
         /// </summary>
         public static byte[] GetCustomDebugInfo(this ISymUnmanagedReader reader, int methodToken, int methodVersion)
         {
-            return GetItems(reader, new SymbolToken(methodToken), CdiAttributeName, 
+            return GetItems(reader, new SymbolToken(methodToken), CdiAttributeName,
                 (ISymUnmanagedReader a, SymbolToken b, string c, int d, out int e, byte[] f) => a.GetSymAttribute(b, c, d, out e, f));
         }
 
@@ -187,7 +187,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
 
         public static ImmutableArray<ISymUnmanagedDocument> GetDocuments(this ISymUnmanagedReader reader)
         {
-            return ToImmutableOrEmpty(GetItems(reader, 
+            return ToImmutableOrEmpty(GetItems(reader,
                 (ISymUnmanagedReader a, int b, out int c, ISymUnmanagedDocument[] d) => a.GetDocuments(b, out c, d)));
         }
 
@@ -387,7 +387,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
 
         private static ISymUnmanagedScope[] GetScopesInternal(ISymUnmanagedScope scope)
         {
-            return GetItems(scope, 
+            return GetItems(scope,
                 (ISymUnmanagedScope a, int b, out int c, ISymUnmanagedScope[] d) => a.GetChildren(b, out c, d));
         }
 
@@ -432,7 +432,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
 
         public static string GetName(this ISymUnmanagedVariable local)
         {
-            return ToString(GetItems(local, 
+            return ToString(GetItems(local,
                 (ISymUnmanagedVariable a, int b, out int c, char[] d) => a.GetName(b, out c, d)));
         }
 
@@ -484,7 +484,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
             // E_NOTIMPL indicates a lack of ISymUnmanagedReader support (in a particular implementation).
             if (hr < 0 && hr != E_FAIL && hr != E_NOTIMPL)
             {
-                Marshal.ThrowExceptionForHR(hr, IgnoreIErrorInfo);
+                Marshal.ThrowExceptionForHR(hr, s_ignoreIErrorInfo);
             }
         }
 

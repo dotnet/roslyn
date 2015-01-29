@@ -29,5 +29,5 @@ namespace Microsoft.VisualStudio.SymReaderInterop
         int GetStartOffset(out int pRetVal);
         [PreserveSig]
         int GetEndOffset(out int pRetVal);
-    } 
+    }
 }

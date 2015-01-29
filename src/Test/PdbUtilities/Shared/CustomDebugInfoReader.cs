@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
             kind = (CustomDebugInfoKind)bytes[offset + 1];
 
             // two bytes of padding after kind
-            size = BitConverter.ToInt32(bytes, offset + 4); 
+            size = BitConverter.ToInt32(bytes, offset + 4);
 
             offset += CDI.CdiRecordHeaderSize;
         }
@@ -284,7 +284,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
             ImmutableArray<short> groupSizes = default(ImmutableArray<short>);
             bool seenForward = false;
 
-            RETRY:
+        RETRY:
             byte[] bytes = reader.GetCustomDebugInfo(methodToken, methodVersion);
             if (bytes == null)
             {
@@ -311,7 +311,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
                         }
 
                         methodToken = DecodeForwardRecord(record.Data);
-                        
+
                         // Follow at most one forward link (as in FUNCBRECEE::ensureNamespaces).
                         // NOTE: Dev11 may produce chains of forward links (e.g. for System.Collections.Immutable).
                         if (!seenForward)
@@ -715,7 +715,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
             }
 
             // VB current namespace
-            if (import.Length == 0) 
+            if (import.Length == 0)
             {
                 alias = null;
                 target = import;
@@ -728,7 +728,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
             switch (import[pos])
             {
                 case '&':
-                    // Indicates the presence of embedded PIA types from a given assembly.  No longer required (as of Roslyn).
+                // Indicates the presence of embedded PIA types from a given assembly.  No longer required (as of Roslyn).
                 case '$':
                 case '#':
                     // From ProcedureContext::LoadImportsAndDefaultNamespaceNormal:
@@ -839,7 +839,7 @@ namespace Microsoft.VisualStudio.SymReaderInterop
                             return true;
                     }
 
-                default: 
+                default:
                     // VB current namespace
                     alias = null;
                     target = import;

@@ -26,9 +26,9 @@ namespace Microsoft.VisualStudio.SymReaderInterop
 
         [PreserveSig]
         int GetAsyncStepInfo(
-            uint cStepInfo, 
-            out uint cStepInfoBack, 
-            [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] uint[] yieldOffsets, 
+            uint cStepInfo,
+            out uint cStepInfoBack,
+            [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] uint[] yieldOffsets,
             [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] uint[] breakpointOffset,
             [MarshalAs(UnmanagedType.LPArray, SizeParamIndex = 0)] uint[] breakpointMethod);
     }
