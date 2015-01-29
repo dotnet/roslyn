@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
             // Find the start token to attach leading pragma disable warning directive.
             var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             SyntaxTrivia containingTrivia = root.FindTrivia(span.Start);
-            var lines = syntaxTree.GetText().Lines;
+            var lines = syntaxTree.GetText(cancellationToken).Lines;
             int indexOfLine;
             if (containingTrivia == default(SyntaxTrivia))
             {

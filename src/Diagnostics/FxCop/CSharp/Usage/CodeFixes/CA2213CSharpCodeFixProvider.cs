@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Usage
             }
 
             var factory = document.GetLanguageService<SyntaxGenerator>();
-            var symbol = model.GetDeclaredSymbol(syntaxNode);
+            var symbol = model.GetDeclaredSymbol(syntaxNode, cancellationToken);
 
             // handle a case where a local in the Dipose method with the same name by generating this (or ClassName) and simplifying it
             var path = symbol.IsStatic

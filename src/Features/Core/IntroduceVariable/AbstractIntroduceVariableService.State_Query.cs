@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     return false;
                 }
 
-                var info = this.Document.SemanticModel.GetTypeInfo(this.Expression);
+                var info = this.Document.SemanticModel.GetTypeInfo(this.Expression, cancellationToken);
                 if (info.Type == null || info.Type.SpecialType == SpecialType.System_Void)
                 {
                     return false;

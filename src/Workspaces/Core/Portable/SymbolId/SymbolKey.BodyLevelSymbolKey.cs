@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis
 
                     foreach (var token in node.DescendantNodes())
                     {
-                        var symbol = semanticModel.GetDeclaredSymbol(token) as TSymbol;
+                        var symbol = semanticModel.GetDeclaredSymbol(token, cancellationToken) as TSymbol;
 
                         if (symbol != null && Equals(compilation.IsCaseSensitive, symbol.Name, name))
                         {

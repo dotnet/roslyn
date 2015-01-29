@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Globalization
             {
                 // could be either a [DllImport] or [MarshalAs] attribute
                 var attribute = (AttributeSyntax)nodeToFix;
-                var attributeType = model.GetSymbolInfo(attribute).Symbol;
+                var attributeType = model.GetSymbolInfo(attribute, cancellationToken).Symbol;
                 var arguments = attribute.ArgumentList.Arguments;
                 if (dllImportType.Equals(attributeType.ContainingType))
                 {

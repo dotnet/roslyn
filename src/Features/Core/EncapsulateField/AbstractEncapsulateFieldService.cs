@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var compilation = semanticModel.Compilation;
-                var currentField = field.GetSymbolKey().Resolve(compilation).Symbol as IFieldSymbol;
+                var currentField = field.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol as IFieldSymbol;
 
                 // We couldn't resolve this field. skip it
                 if (currentField == null)
@@ -154,8 +154,8 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
             // Annotate the field declarations so we can find it after rename.
             var fieldDeclaration = field.DeclaringSyntaxReferences.First();
             var declarationAnnotation = new SyntaxAnnotation();
-            document = document.WithSyntaxRoot(fieldDeclaration.SyntaxTree.GetRoot().ReplaceNode(fieldDeclaration.GetSyntax(),
-                fieldDeclaration.GetSyntax().WithAdditionalAnnotations(declarationAnnotation)));
+            document = document.WithSyntaxRoot(fieldDeclaration.SyntaxTree.GetRoot(cancellationToken).ReplaceNode(fieldDeclaration.GetSyntax(cancellationToken),
+                fieldDeclaration.GetSyntax(cancellationToken).WithAdditionalAnnotations(declarationAnnotation)));
 
             var solution = document.Project.Solution;
 
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var compilation = semanticModel.Compilation;
-            field = field.GetSymbolKey().Resolve(compilation).Symbol as IFieldSymbol;
+            field = field.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol as IFieldSymbol;
             Solution solutionNeedingProperty = null;
 
             // We couldn't resolve field after annotating its declaration. Bail
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
                         semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                         compilation = semanticModel.Compilation;
-                        field = field.GetSymbolKey().Resolve(compilation).Symbol as IFieldSymbol;
+                        field = field.GetSymbolKey().Resolve(compilation, cancellationToken: cancellationToken).Symbol as IFieldSymbol;
                     }
                 }
 

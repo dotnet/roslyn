@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             }
 
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var resolutionResult = symbolId.Resolve(compilation, ignoreAssemblyKey: true);
+            var resolutionResult = symbolId.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken);
             if (resolutionResult.Symbol == null)
             {
                 return null;

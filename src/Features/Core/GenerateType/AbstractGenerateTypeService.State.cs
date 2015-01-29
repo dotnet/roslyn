@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 TExpressionSyntax leftSide,
                 CancellationToken cancellationToken)
             {
-                var leftSideInfo = semanticModel.GetSymbolInfo(leftSide);
+                var leftSideInfo = semanticModel.GetSymbolInfo(leftSide, cancellationToken);
 
                 if (leftSideInfo.Symbol != null)
                 {

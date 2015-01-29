@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                         return false;
                     }
 
-                    var leftSymbol = semanticModel.GetSymbolInfo(((MemberAccessExpressionSyntax)nameOrMemberAccessExpression).Expression).Symbol;
+                    var leftSymbol = semanticModel.GetSymbolInfo(((MemberAccessExpressionSyntax)nameOrMemberAccessExpression).Expression, cancellationToken).Symbol;
                     var token = simpleName.GetLastToken().GetNextToken();
 
                     // We let only the Namespace to be left of the Dot
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                     var parent = simpleName.Parent as QualifiedNameSyntax;
                     if (parent != null)
                     {
-                        var leftSymbol = semanticModel.GetSymbolInfo(parent.Left).Symbol;
+                        var leftSymbol = semanticModel.GetSymbolInfo(parent.Left, cancellationToken).Symbol;
 
                         if (leftSymbol != null && leftSymbol.IsKind(SymbolKind.Namespace))
                         {
@@ -587,7 +587,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 var enclosingNamespace = GetDeclaringNamespace(containerList, 0, compilationUnit);
                 if (enclosingNamespace != null)
                 {
-                    var enclosingNamespaceSymbol = semanticModel.GetSymbolInfo(enclosingNamespace.Name);
+                    var enclosingNamespaceSymbol = semanticModel.GetSymbolInfo(enclosingNamespace.Name, cancellationToken);
                     if (enclosingNamespaceSymbol.Symbol != null)
                     {
                         return Tuple.Create((INamespaceSymbol)enclosingNamespaceSymbol.Symbol,

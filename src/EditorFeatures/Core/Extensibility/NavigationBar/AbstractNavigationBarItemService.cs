@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Extensibility.NavigationBar
         {
             var symbolNavigationService = document.Project.Solution.Workspace.Services.GetService<ISymbolNavigationService>();
 
-            var symbolInfo = item.NavigationSymbolId.Resolve(document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken), ignoreAssemblyKey: true);
+            var symbolInfo = item.NavigationSymbolId.Resolve(document.Project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken), ignoreAssemblyKey: true, cancellationToken: cancellationToken);
             var symbol = symbolInfo.GetAnySymbol();
 
             // Do not allow third party navigation to types or constructors

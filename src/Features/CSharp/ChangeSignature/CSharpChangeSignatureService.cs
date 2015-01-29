@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
         public override ISymbol GetInvocationSymbol(Document document, int position, bool restrictToDeclarations, CancellationToken cancellationToken)
         {
             var tree = document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var token = tree.GetRoot().FindToken(position != tree.Length ? position : Math.Max(0, position - 1));
+            var token = tree.GetRoot(cancellationToken).FindToken(position != tree.Length ? position : Math.Max(0, position - 1));
 
             var ancestorDeclarationKinds = restrictToDeclarations ? invokableAncestorKinds.Add(SyntaxKind.Block) : invokableAncestorKinds;
             SyntaxNode matchingNode = token.Parent.AncestorsAndSelf().FirstOrDefault(n => ancestorDeclarationKinds.Contains(n.Kind()));
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
                 if (token.Parent.AncestorsAndSelf().Any(a => a == objectCreation.Type))
                 {
-                    var typeSymbol = semanticModel.GetSymbolInfo(objectCreation.Type).Symbol;
+                    var typeSymbol = semanticModel.GetSymbolInfo(objectCreation.Type, cancellationToken).Symbol;
                     if (typeSymbol != null && typeSymbol.IsKind(SymbolKind.NamedType) && (typeSymbol as ITypeSymbol).TypeKind == TypeKind.Delegate)
                     {
                         return typeSymbol;
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 var invocation = updatedNode as InvocationExpressionSyntax;
                 var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
 
-                var symbolInfo = semanticModel.GetSymbolInfo(originalNode as InvocationExpressionSyntax);
+                var symbolInfo = semanticModel.GetSymbolInfo(originalNode as InvocationExpressionSyntax, cancellationToken);
                 var methodSymbol = symbolInfo.Symbol as IMethodSymbol;
                 var isReducedExtensionMethod = false;
 
@@ -516,12 +516,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                     n =>
                         {
                             if (!n.IsKind(SyntaxKind.IdentifierName) ||
-                                !semanticModel.GetMemberGroup(n).Any())
+                                !semanticModel.GetMemberGroup(n, cancellationToken).Any())
                             {
                                 return false;
                             }
 
-                            ISymbol convertedType = semanticModel.GetTypeInfo(n).ConvertedType;
+                            ISymbol convertedType = semanticModel.GetTypeInfo(n, cancellationToken).ConvertedType;
 
                             if (convertedType != null)
                             {
@@ -530,12 +530,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
                             if (convertedType != null)
                             {
-                                convertedType = SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution).WaitAndGetResult(cancellationToken) ?? convertedType;
+                                convertedType = SymbolFinder.FindSourceDefinitionAsync(convertedType, document.Project.Solution, cancellationToken).WaitAndGetResult(cancellationToken) ?? convertedType;
                             }
 
                             return convertedType == symbol.ContainingType;
                         })
-                .Select(n => semanticModel.GetSymbolInfo(n).Symbol);
+                .Select(n => semanticModel.GetSymbolInfo(n, cancellationToken).Symbol);
 
             return convertedMethodGroups;
         }

@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             // See if the name binds to something other then the error type. If it does, there's nothing further we need to do.
             // For extension methods, however, we will continue to search if there exists any better matched method.
             cancellationToken.ThrowIfCancellationRequested();
-            var symbolInfo = semanticModel.GetSymbolInfo(expression);
+            var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
             if (symbolInfo.CandidateReason == CandidateReason.OverloadResolutionFailure && !checkForExtensionMethods)
             {
                 return true;

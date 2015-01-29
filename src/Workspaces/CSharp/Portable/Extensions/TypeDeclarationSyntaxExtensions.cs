@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var isPartialType = typeNode.Modifiers.Any(m => m.Kind() == SyntaxKind.PartialKeyword);
             if (isPartialType)
             {
-                var typeSymbol = model.GetDeclaredSymbol(typeNode);
+                var typeSymbol = model.GetDeclaredSymbol(typeNode, cancellationToken);
                 if (typeSymbol != null)
                 {
                     foreach (var syntaxRef in typeSymbol.DeclaringSyntaxReferences)

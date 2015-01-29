@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 
         private async Task<Document> GetUpdatedDocumentForRuleNameRenameAsync(Document document, IFieldSymbol field, CancellationToken cancellationToken)
         {
-            var newSolution = await Rename.Renamer.RenameSymbolAsync(document.Project.Solution, field, "None", null).ConfigureAwait(false);
+            var newSolution = await Rename.Renamer.RenameSymbolAsync(document.Project.Solution, field, "None", null, cancellationToken).ConfigureAwait(false);
             return newSolution.GetDocument(document.Id);
         }
 
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                 }
                 else
                 {
-                    await editor.EditOneDeclarationAsync(field, (e, d) => e.RemoveNode(d)); // removes the field declaration
+                    await editor.EditOneDeclarationAsync(field, (e, d) => e.RemoveNode(d), cancellationToken); // removes the field declaration
                     makeNextFieldExplicit = true;
                 }
             }
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
             {
                 if (CA1008DiagnosticAnalyzer.IsMemberNamedNone(field))
                 {
-                    await editor.EditOneDeclarationAsync(field, (e, d) => e.RemoveNode(d)); 
+                    await editor.EditOneDeclarationAsync(field, (e, d) => e.RemoveNode(d), cancellationToken); 
                 }
             }
 

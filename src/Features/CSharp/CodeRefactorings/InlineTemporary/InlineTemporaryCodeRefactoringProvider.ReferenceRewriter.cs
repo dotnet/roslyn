@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 CancellationToken cancellationToken)
             {
                 this.semanticModel = semanticModel;
-                this.localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(variableDeclarator);
+                this.localSymbol = (ILocalSymbol)semanticModel.GetDeclaredSymbol(variableDeclarator, cancellationToken);
                 this.variableDeclarator = variableDeclarator;
                 this.expressionToInline = expressionToInline;
                 this.cancellationToken = cancellationToken;

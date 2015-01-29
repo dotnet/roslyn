@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                     return false;
                 }
 
-                this.IsConstant = this.Document.SemanticModel.GetConstantValue(this.Expression).HasValue;
+                this.IsConstant = this.Document.SemanticModel.GetConstantValue(this.Expression, cancellationToken).HasValue;
 
                 // Note: the ordering of these clauses are important.  They go, generally, from 
                 // innermost to outermost order.  

@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (typeArgumentKeysOpt != null)
                 {
-                    typeArguments = typeArgumentKeysOpt.Select(a => a.Resolve(compilation).Symbol as ITypeSymbol).ToArray();
+                    typeArguments = typeArgumentKeysOpt.Select(a => a.Resolve(compilation, cancellationToken: cancellationToken).Symbol as ITypeSymbol).ToArray();
 
                     if (typeArguments.Any(a => a == null))
                     {

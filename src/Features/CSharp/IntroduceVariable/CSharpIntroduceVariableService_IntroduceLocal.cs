@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                         SyntaxFactory.EqualsValueClause(expression.WithoutTrailingTrivia().WithoutLeadingTrivia())))));
 
             var anonymousMethodParameters = GetAnonymousMethodParameters(document, expression, cancellationToken);
-            var lambdas = anonymousMethodParameters.SelectMany(p => p.ContainingSymbol.DeclaringSyntaxReferences.Select(r => r.GetSyntax()).AsEnumerable())
+            var lambdas = anonymousMethodParameters.SelectMany(p => p.ContainingSymbol.DeclaringSyntaxReferences.Select(r => r.GetSyntax(cancellationToken)).AsEnumerable())
                                                    .Where(n => n is ParenthesizedLambdaExpressionSyntax || n is SimpleLambdaExpressionSyntax)
                                                    .ToSet();
 

@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
                 declarator = root.GetAnnotatedNodes<VariableDeclaratorSyntax>(tempAnnotation).First();
                 declaration = declarator.Parent as VariableDeclarationSyntax;
 
-                var field = semanticModel.GetDeclaredSymbol(declarator) as IFieldSymbol;
+                var field = semanticModel.GetDeclaredSymbol(declarator, cancellationToken) as IFieldSymbol;
 
                 var fieldToAdd = declarationAnnotation.AddAnnotationToSymbol(CodeGenerationSymbolFactory.CreateFieldSymbol(
                     field.GetAttributes(),
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EncapsulateField
                 declarators = declarations.SelectMany(d => d.Variables.Where(v => v.Span.IntersectsWith(span)));
             }
 
-            return declarators.Select(d => semanticModel.GetDeclaredSymbol(d) as IFieldSymbol)
+            return declarators.Select(d => semanticModel.GetDeclaredSymbol(d, cancellationToken) as IFieldSymbol)
                                 .WhereNotNull()
                                 .Where(f => f.Name.Length != 0);
         }

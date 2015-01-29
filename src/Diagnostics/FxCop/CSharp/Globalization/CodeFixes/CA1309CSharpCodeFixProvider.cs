@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Globalization
                     var invokeParent = identifier.GetAncestor<InvocationExpressionSyntax>();
                     if (invokeParent != null)
                     {
-                        var methodSymbol = model.GetSymbolInfo(identifier).Symbol as IMethodSymbol;
+                        var methodSymbol = model.GetSymbolInfo(identifier, cancellationToken).Symbol as IMethodSymbol;
                         if (methodSymbol != null && CanAddStringComparison(methodSymbol))
                         {
                             // append a new StringComparison.Ordinal argument

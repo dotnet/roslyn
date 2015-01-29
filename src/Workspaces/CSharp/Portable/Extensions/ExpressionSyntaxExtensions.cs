@@ -821,7 +821,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            var symbol = semanticModel.GetSymbolInfo(node).Symbol;
+            var symbol = semanticModel.GetSymbolInfo(node, cancellationToken).Symbol;
 
             // If the Symbol is a contrcutor get its containing type
             if (symbol.IsConstructor())
@@ -869,7 +869,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             if (node.Kind() == SyntaxKind.IdentifierName &&
-                semanticModel.GetAliasInfo((IdentifierNameSyntax)node) != null)
+                semanticModel.GetAliasInfo((IdentifierNameSyntax)node, cancellationToken) != null)
             {
                 return false;
             }
@@ -886,7 +886,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 var qualifiedName = (QualifiedNameSyntax)node;
                 if (!qualifiedName.Right.HasAnnotation(Simplifier.SpecialTypeAnnotation))
                 {
-                    var type = semanticModel.GetTypeInfo(node).Type;
+                    var type = semanticModel.GetTypeInfo(node, cancellationToken).Type;
                     if (type != null)
                     {
                         var keywordKind = GetPredefinedKeywordKind(type.SpecialType);
@@ -903,7 +903,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 var aliasQualifiedNameSyntax = (AliasQualifiedNameSyntax)node;
                 if (!aliasQualifiedNameSyntax.Name.HasAnnotation(Simplifier.SpecialTypeAnnotation))
                 {
-                    var type = semanticModel.GetTypeInfo(node).Type;
+                    var type = semanticModel.GetTypeInfo(node, cancellationToken).Type;
                     if (type != null)
                     {
                         var keywordKind = GetPredefinedKeywordKind(type.SpecialType);
@@ -1290,7 +1290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         if (PreferPredefinedTypeKeywordInDeclarations(name, optionSet, semanticModel) ||
                             PreferPredefinedTypeKeywordInMemberAccess(name, optionSet, semanticModel))
                         {
-                            var type = semanticModel.GetTypeInfo(name).Type;
+                            var type = semanticModel.GetTypeInfo(name, cancellationToken).Type;
                             if (type != null)
                             {
                                 var keywordKind = GetPredefinedKeywordKind(type.SpecialType);
@@ -1700,7 +1700,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (memberAccess.Expression.Kind() == SyntaxKind.BaseExpression)
             {
                 var enclosingNamedType = semanticModel.GetEnclosingNamedType(memberAccess.SpanStart, cancellationToken);
-                var symbol = semanticModel.GetSymbolInfo(memberAccess.Name).Symbol;
+                var symbol = semanticModel.GetSymbolInfo(memberAccess.Name, cancellationToken).Symbol;
                 if (enclosingNamedType != null &&
                     !enclosingNamedType.IsSealed &&
                     symbol != null &&
@@ -1985,7 +1985,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
-            var type = semanticModel.GetTypeInfo(simpleName).Type;
+            var type = semanticModel.GetTypeInfo(simpleName, cancellationToken).Type;
 
             // the variable cannot be initialized to a method group or an anonymous function
             if (type != null &&
@@ -1994,7 +1994,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
-            var initializerType = semanticModel.GetTypeInfo(equalsValueClause.Value).Type;
+            var initializerType = semanticModel.GetTypeInfo(equalsValueClause.Value, cancellationToken).Type;
 
             if (!type.Equals(initializerType))
             {
@@ -2005,7 +2005,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var possibleSameLocals = equalsValueClause.DescendantNodesAndSelf().Where(n => n.Kind() == SyntaxKind.IdentifierName && ((IdentifierNameSyntax)n).Identifier.ValueText.Equals(identifier.ValueText));
             var anyUse = possibleSameLocals.Any(n =>
             {
-                var symbol = semanticModel.GetSymbolInfo(n).Symbol;
+                var symbol = semanticModel.GetSymbolInfo(n, cancellationToken).Symbol;
                 if (symbol != null && symbol.Kind == SymbolKind.Local)
                 {
                     return true;

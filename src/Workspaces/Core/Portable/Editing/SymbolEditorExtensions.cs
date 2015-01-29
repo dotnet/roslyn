@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editing
                 var model = await doc.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var gen = SyntaxGenerator.GetGenerator(doc);
 
-                var typeRef = gen.GetBaseAndInterfaceTypes(decl).FirstOrDefault(r => model.GetTypeInfo(r).Type.Equals(baseOrInterfaceType));
+                var typeRef = gen.GetBaseAndInterfaceTypes(decl).FirstOrDefault(r => model.GetTypeInfo(r, cancellationToken).Type.Equals(baseOrInterfaceType));
                 if (typeRef != null)
                 {
                     return typeRef;

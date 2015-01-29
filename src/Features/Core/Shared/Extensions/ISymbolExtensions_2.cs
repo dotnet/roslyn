@@ -173,11 +173,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var globalNamespace = semanticModel.Compilation.GlobalNamespace;
 
             var documentation = symbol.TypeSwitch(
-                    (IParameterSymbol parameter) => parameter.ContainingSymbol.OriginalDefinition.GetDocumentationComment().GetParameterText(symbol.Name),
-                    (ITypeParameterSymbol typeParam) => typeParam.ContainingSymbol.GetDocumentationComment().GetTypeParameterText(symbol.Name),
+                    (IParameterSymbol parameter) => parameter.ContainingSymbol.OriginalDefinition.GetDocumentationComment(cancellationToken: cancellationToken).GetParameterText(symbol.Name),
+                    (ITypeParameterSymbol typeParam) => typeParam.ContainingSymbol.GetDocumentationComment(cancellationToken: cancellationToken).GetTypeParameterText(symbol.Name),
                     (IMethodSymbol method) => GetMethodDocumentation(method),
-                    (IAliasSymbol alias) => alias.Target.GetDocumentationComment().SummaryText,
-                    _ => symbol.GetDocumentationComment().SummaryText);
+                    (IAliasSymbol alias) => alias.Target.GetDocumentationComment(cancellationToken: cancellationToken).SummaryText,
+                    _ => symbol.GetDocumentationComment(cancellationToken: cancellationToken).SummaryText);
 
             if (documentation != null)
             {

@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers.AddConstructorParameters
             {
                 var workspace = document.Project.Solution.Workspace;
                 var declarationService = document.Project.LanguageServices.GetService<ISymbolDeclarationService>();
-                var constructor = declarationService.GetDeclarations(state.DelegatedConstructor).Select(r => r.GetSyntax()).First();
+                var constructor = declarationService.GetDeclarations(state.DelegatedConstructor).Select(r => r.GetSyntax(cancellationToken)).First();
 
                 var newConstructor = constructor;
                 newConstructor = CodeGenerator.AddParameterDeclarations(newConstructor, parameters.Skip(state.DelegatedConstructor.Parameters.Length), workspace);

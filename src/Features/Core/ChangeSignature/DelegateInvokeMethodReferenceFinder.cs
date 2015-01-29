@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             var convertedAnonymousFunctions = nodes.Where(n => syntaxFactsService.IsAnonymousFunction(n))
                 .Where(n =>
                     {
-                        ISymbol convertedType = semanticModel.GetTypeInfo(n).ConvertedType;
+                        ISymbol convertedType = semanticModel.GetTypeInfo(n, cancellationToken).ConvertedType;
 
                         if (convertedType != null)
                         {

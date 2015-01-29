@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var originalDocument = oldSolution.GetDocument(linkedDocumentGroup.First());
-            var originalSourceText = await originalDocument.GetTextAsync().ConfigureAwait(false);
+            var originalSourceText = await originalDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
             // Add comments in source explaining diffs that could not be merged
 

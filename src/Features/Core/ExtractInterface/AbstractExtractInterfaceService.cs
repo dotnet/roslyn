@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
         private static Solution GetSolutionWithFormattedInterfaceDocument(Document unformattedInterfaceDocument, CancellationToken cancellationToken)
         {
             Solution solutionWithInterfaceDocument;
-            var formattedRoot = Formatter.Format(unformattedInterfaceDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken), unformattedInterfaceDocument.Project.Solution.Workspace);
+            var formattedRoot = Formatter.Format(unformattedInterfaceDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken), unformattedInterfaceDocument.Project.Solution.Workspace, cancellationToken: cancellationToken);
             var rootToSimplify = formattedRoot.WithAdditionalAnnotations(Simplifier.Annotation);
             var finalInterfaceDocument = Simplifier.ReduceAsync(unformattedInterfaceDocument.WithSyntaxRoot(rootToSimplify), cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
 

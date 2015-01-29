@@ -344,10 +344,10 @@ public class B
                     // Note: It's important for us to maintain identity of nodes/trees, so we find
                     // the equivalent node in our CountedSyntaxTree.
                     countedSyntaxTree.AccessCount++;
-                    var nodeInUnderlying = underlyingSyntaxReference.GetSyntax();
+                    var nodeInUnderlying = underlyingSyntaxReference.GetSyntax(cancellationToken);
 
 
-                    var token = countedSyntaxTree.GetCompilationUnitRoot().FindToken(nodeInUnderlying.SpanStart);
+                    var token = countedSyntaxTree.GetCompilationUnitRoot(cancellationToken).FindToken(nodeInUnderlying.SpanStart);
                     for (var node = token.Parent; node != null; node = node.Parent)
                     {
                         if (node.Span == nodeInUnderlying.Span && node.RawKind == nodeInUnderlying.RawKind)

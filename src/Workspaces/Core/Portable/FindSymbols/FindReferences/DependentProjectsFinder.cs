@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             // Find the projects that reference this assembly.
 
-            var sourceProject = solution.GetProject(containingAssembly);
+            var sourceProject = solution.GetProject(containingAssembly, cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
 
             // 1) Compute all the dependent projects (submission + non-submission) and their InternalsVisibleTo semantics to the definition project.
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                     if (compilation.PreviousSubmission != null)
                     {
-                        var referencedProject = solution.GetProject(compilation.PreviousSubmission.Assembly);
+                        var referencedProject = solution.GetProject(compilation.PreviousSubmission.Assembly, cancellationToken);
                         List<ProjectId> referencingSubmissions = null;
 
                         if (!projectIdsToReferencingSubmissionIds.TryGetValue(referencedProject.Id, out referencingSubmissions))

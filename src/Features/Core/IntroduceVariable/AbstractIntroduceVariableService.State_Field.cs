@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 }
 
                 // Can't extract out an anonymous type used in a field initializer.
-                var info = this.Document.SemanticModel.GetTypeInfo(this.Expression);
+                var info = this.Document.SemanticModel.GetTypeInfo(this.Expression, cancellationToken);
                 if (info.Type.ContainsAnonymousType())
                 {
                     return false;

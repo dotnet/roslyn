@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 // Now, try to bind the invocation and see if it succeeds or not.  if it succeeds and
                 // binds uniquely, then we don't need to offer this quick fix.
                 cancellationToken.ThrowIfCancellationRequested();
-                var semanticInfo = semanticModel.GetSymbolInfo(this.SimpleNameOrMemberAccessExpressionOpt);
+                var semanticInfo = semanticModel.GetSymbolInfo(this.SimpleNameOrMemberAccessExpressionOpt, cancellationToken);
 
                 cancellationToken.ThrowIfCancellationRequested();
                 if (semanticInfo.Symbol != null)

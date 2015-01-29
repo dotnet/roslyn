@@ -1896,7 +1896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (memberModel != null)
                 {
                     // Could be parameter of lambda.
-                    return memberModel.GetDeclaredSymbol(declarationSyntax);
+                    return memberModel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
                 }
 
                 return GetDeclaredNonLambdaParameterSymbol(declarationSyntax, cancellationToken);

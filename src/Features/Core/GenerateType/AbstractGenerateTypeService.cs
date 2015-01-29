@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
             var declarationService = document.Project.LanguageServices.GetService<ISymbolDeclarationService>();
             var decl = declarationService.GetDeclarations(containingNamespace)
                                          .Where(r => r.SyntaxTree == node.SyntaxTree)
-                                         .Select(r => r.GetSyntax())
+                                         .Select(r => r.GetSyntax(cancellationToken))
                                          .FirstOrDefault(node.GetAncestorsOrThis<SyntaxNode>().Contains);
 
             return

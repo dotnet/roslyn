@@ -67,7 +67,7 @@ namespace Roslyn.Diagnostics.Analyzers.CSharp.ApiDesign
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var methodSymbol = semanticModel.GetDeclaredSymbol(declaration);
+                var methodSymbol = semanticModel.GetDeclaredSymbol(declaration, cancellationToken);
                 var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var cancellationTokenType = compilation.GetTypeByMetadataName("System.Threading.CancellationToken");
 
@@ -75,7 +75,7 @@ namespace Roslyn.Diagnostics.Analyzers.CSharp.ApiDesign
                 var nonCancellationTokenParameters = new List<ParameterSyntax>();
                 foreach (var param in declaration.ParameterList.Parameters)
                 {
-                    var paramSymbol = semanticModel.GetDeclaredSymbol(param);
+                    var paramSymbol = semanticModel.GetDeclaredSymbol(param, cancellationToken);
                     if (paramSymbol.Type.Equals(cancellationTokenType))
                     {
                         cancellationTokenParameters.Add(param);

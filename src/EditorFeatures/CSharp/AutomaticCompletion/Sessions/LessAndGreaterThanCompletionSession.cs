@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
             }
 
             var model = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-            var info = model.GetSymbolInfo(node.Left);
+            var info = model.GetSymbolInfo(node.Left, cancellationToken);
 
             return info.CandidateSymbols.Any(IsGenericTypeOrMethod);
         }

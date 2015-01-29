@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
                     return false;
                 }
 
-                var semanticInfo = semanticModel.GetSymbolInfo(this.SimpleNameOrMemberAccessExpression);
+                var semanticInfo = semanticModel.GetSymbolInfo(this.SimpleNameOrMemberAccessExpression, cancellationToken);
                 if (cancellationToken.IsCancellationRequested)
                 {
                     return false;

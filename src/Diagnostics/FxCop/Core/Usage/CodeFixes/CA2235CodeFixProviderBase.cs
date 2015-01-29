@@ -37,11 +37,11 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
                 actions = SpecializedCollections.SingletonEnumerable(codeAction);
 
                 // Fix 2: If the type of the field is defined in source, then add the serializable attribute to the type.
-                var fieldSymbol = model.GetDeclaredSymbol(nodeToFix) as IFieldSymbol;
+                var fieldSymbol = model.GetDeclaredSymbol(nodeToFix, cancellationToken) as IFieldSymbol;
                 var type = fieldSymbol.Type;
                 if (type.Locations.Any(l => l.IsInSource))
                 {
-                    var typeDeclNode = type.DeclaringSyntaxReferences.First().GetSyntax();
+                    var typeDeclNode = type.DeclaringSyntaxReferences.First().GetSyntax(cancellationToken);
 
                     var serializableAttr = generator.Attribute(generator.TypeExpression(WellKnownTypes.SerializableAttribute(model.Compilation)));
                     var newTypeDeclNode = generator.AddAttributes(typeDeclNode, serializableAttr);

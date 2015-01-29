@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
             CancellationToken cancellationToken)
         {
             var invocationExpression = node.ChildNodes().FirstOrDefault(n => n.IsKind(SyntaxKind.InvocationExpression));
-            var methodSymbol = semanticModel.GetSymbolInfo(invocationExpression).Symbol as IMethodSymbol;
+            var methodSymbol = semanticModel.GetSymbolInfo(invocationExpression, cancellationToken).Symbol as IMethodSymbol;
             if (methodSymbol == null)
             {
                 return null;

@@ -61,11 +61,11 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 
         private static SyntaxNode RemoveFlagsAttribute(Workspace workspace, SemanticModel model, SyntaxNode enumTypeSyntax, INamedTypeSymbol flagsAttributeType, CancellationToken cancellationToken)
         {
-            var enumType = model.GetDeclaredSymbol(enumTypeSyntax) as INamedTypeSymbol;
+            var enumType = model.GetDeclaredSymbol(enumTypeSyntax, cancellationToken) as INamedTypeSymbol;
             Contract.ThrowIfNull(enumType);
 
             var flagsAttribute = enumType.GetAttributes().First(a => a.AttributeClass == flagsAttributeType);
-            var attributeNode = flagsAttribute.ApplicationSyntaxReference.GetSyntax();
+            var attributeNode = flagsAttribute.ApplicationSyntaxReference.GetSyntax(cancellationToken);
             var generator = SyntaxGenerator.GetGenerator(workspace, enumTypeSyntax.Language);
 
             return generator.RemoveNode(enumTypeSyntax, attributeNode);

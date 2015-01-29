@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.C
             // Resolve member and type in our new, forked, solution
             var semanticModel = document.GetSemanticModelAsync(cancellationToken).WaitAndGetResult(cancellationToken);
             var containingType = semanticModel.GetEnclosingSymbol<INamedTypeSymbol>(line.Start, cancellationToken);
-            var resolution = completionItem.SymbolId.Resolve(semanticModel.Compilation);
+            var resolution = completionItem.SymbolId.Resolve(semanticModel.Compilation, cancellationToken: cancellationToken);
             var overriddenMember = GetResolvedSymbol(resolution, line.Extent.Span.ToTextSpan());
 
             // CodeGenerationOptions containing before and after
@@ -155,15 +155,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.C
             Document memberContainingDocument = null;
             if (generatedMember.Kind == SymbolKind.Method)
             {
-                memberContainingDocument = codeGenService.AddMethodAsync(document.Project.Solution, containingType, (IMethodSymbol)generatedMember, options).WaitAndGetResult(cancellationToken);
+                memberContainingDocument = codeGenService.AddMethodAsync(document.Project.Solution, containingType, (IMethodSymbol)generatedMember, options, cancellationToken).WaitAndGetResult(cancellationToken);
             }
             else if (generatedMember.Kind == SymbolKind.Property)
             {
-                memberContainingDocument = codeGenService.AddPropertyAsync(document.Project.Solution, containingType, (IPropertySymbol)generatedMember, options).WaitAndGetResult(cancellationToken);
+                memberContainingDocument = codeGenService.AddPropertyAsync(document.Project.Solution, containingType, (IPropertySymbol)generatedMember, options, cancellationToken).WaitAndGetResult(cancellationToken);
             }
             else if (generatedMember.Kind == SymbolKind.Event)
             {
-                memberContainingDocument = codeGenService.AddEventAsync(document.Project.Solution, containingType, (IEventSymbol)generatedMember, options).WaitAndGetResult(cancellationToken);
+                memberContainingDocument = codeGenService.AddEventAsync(document.Project.Solution, containingType, (IEventSymbol)generatedMember, options, cancellationToken).WaitAndGetResult(cancellationToken);
             }
 
             return memberContainingDocument;

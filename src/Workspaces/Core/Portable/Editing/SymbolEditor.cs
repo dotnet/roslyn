@@ -104,14 +104,14 @@ namespace Microsoft.CodeAnalysis.Editing
             var symbolId = DocumentationCommentId.CreateDeclarationId(symbol);
 
             // check to see if symbol is from current solution
-            var project = this.currentSolution.GetProject(symbol.ContainingAssembly);
+            var project = this.currentSolution.GetProject(symbol.ContainingAssembly, cancellationToken);
             if (project != null)
             {
                 return await GetSymbolAsync(this.currentSolution, project.Id, symbolId, cancellationToken).ConfigureAwait(false);
             }
 
             // check to see if it is from original solution
-            project = this.originalSolution.GetProject(symbol.ContainingAssembly);
+            project = this.originalSolution.GetProject(symbol.ContainingAssembly, cancellationToken);
             if (project != null)
             {
                 return await GetSymbolAsync(this.currentSolution, project.Id, symbolId, cancellationToken).ConfigureAwait(false);
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.Editing
 
             // try to find new symbol by looking up via original declaration
             var model = await newDoc.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var newDeclaration = model.SyntaxTree.GetRoot().GetCurrentNode(declaration);
+            var newDeclaration = model.SyntaxTree.GetRoot(cancellationToken).GetCurrentNode(declaration);
             if (newDeclaration != null)
             {
                 var newSymbol = model.GetDeclaredSymbol(newDeclaration, cancellationToken);

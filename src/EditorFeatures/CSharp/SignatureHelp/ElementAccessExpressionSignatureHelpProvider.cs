@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp
 
             if (indexers.Any() && expression is MemberAccessExpressionSyntax)
             {
-                expressionType = semanticModel.GetTypeInfo(((MemberAccessExpressionSyntax)expression).Expression).Type;
+                expressionType = semanticModel.GetTypeInfo(((MemberAccessExpressionSyntax)expression).Expression, cancellationToken).Type;
                 return true;
             }
 

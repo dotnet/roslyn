@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.RenameTracking
                     if (textBuffer.Properties.TryGetProperty(typeof(StateMachine), out stateMachine))
                     {
                         TrackingSession trackingSession;
-                        if (stateMachine.CanInvokeRename(out trackingSession))
+                        if (stateMachine.CanInvokeRename(out trackingSession, cancellationToken: cancellationToken))
                         {
                             var snapshotSpan = stateMachine.TrackingSession.TrackingSpan.GetSpan(stateMachine.Buffer.CurrentSnapshot);
                             var str = string.Format(EditorFeaturesResources.RenameTo, stateMachine.TrackingSession.OriginalName, snapshotSpan.GetText());

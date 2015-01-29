@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static ImmutableArray<DeclarationInfo> GetDeclarationsInSpan(SemanticModel model, TextSpan span, bool getSymbol, CancellationToken cancellationToken)
         {
             var builder = ArrayBuilder<DeclarationInfo>.GetInstance();
-            ComputeDeclarations(model, model.SyntaxTree.GetRoot(),
+            ComputeDeclarations(model, model.SyntaxTree.GetRoot(cancellationToken),
                 (node, level) => !node.Span.OverlapsWith(span) || InvalidLevel(level),
                 getSymbol, builder, null, cancellationToken);
             return builder.ToImmutable();

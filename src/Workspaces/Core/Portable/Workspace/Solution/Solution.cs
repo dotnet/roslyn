@@ -1876,7 +1876,7 @@ namespace Microsoft.CodeAnalysis
                 var doc = this.GetDocument(documentId);
                 var tree = await doc.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
 
-                using (this.StateLock.DisposableWait())
+                using (this.StateLock.DisposableWait(cancellationToken))
                 {
                     // in progress solutions are disabled for some testing
                     Workspace ws = this.Workspace as Workspace;

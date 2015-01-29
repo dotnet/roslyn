@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 .Select(ident => GetTopMostParentingExpression(ident))
                 .Distinct();
 
-            var originalInitializerSymbolInfo = semanticModel.GetSymbolInfo(variableDeclarator.Initializer.Value);
+            var originalInitializerSymbolInfo = semanticModel.GetSymbolInfo(variableDeclarator.Initializer.Value, cancellationToken);
 
             // Make each topmost parenting statement or Equals Clause Expressions semantically explicit.
             updatedDocument = await updatedDocument.ReplaceNodesAsync(topmostParentingExpressions, (o, n) => Simplifier.Expand(n, semanticModel, workspace, cancellationToken: cancellationToken), cancellationToken).ConfigureAwait(false);

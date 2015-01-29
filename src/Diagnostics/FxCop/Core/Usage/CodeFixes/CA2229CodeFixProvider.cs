@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Usage
 
         internal async override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            var symbol = model.GetDeclaredSymbol(nodeToFix);
+            var symbol = model.GetDeclaredSymbol(nodeToFix, cancellationToken);
             var generator = SyntaxGenerator.GetGenerator(document);
 
             // There was no constructor and so the diagnostic was on the type. Generate a serlialization ctor.

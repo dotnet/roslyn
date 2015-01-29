@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy.Finders
             var workspace = _project.Solution.Workspace;
             var currentProject = workspace.CurrentSolution.GetProject(_project.Id);
             var compilation = await currentProject.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var resolution = _symbol.Resolve(compilation);
+            var resolution = _symbol.Resolve(compilation, cancellationToken: cancellationToken);
 
             var documents = this.Documents ?? IncludeDocuments(scope, currentProject);
 

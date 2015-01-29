@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             {
                 // Call accessors directly if C# overriding VB
                 if (document.Project.Language == LanguageNames.CSharp
-                    && SymbolFinder.FindSourceDefinitionAsync(overriddenProperty, document.Project.Solution)
+                    && SymbolFinder.FindSourceDefinitionAsync(overriddenProperty, document.Project.Solution, cancellationToken)
                                     .WaitAndGetResult(CancellationToken.None).Language == LanguageNames.VisualBasic)
                 {
                     var getName = overriddenProperty.GetMethod != null ? overriddenProperty.GetMethod.Name : null;

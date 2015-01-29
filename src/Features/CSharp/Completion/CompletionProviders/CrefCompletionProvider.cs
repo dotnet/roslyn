@@ -95,8 +95,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             {
                 // cref "a.|"
                 var parent = token.Parent as QualifiedCrefSyntax;
-                var leftType = semanticModel.GetTypeInfo(parent.Container).Type;
-                var leftSymbol = semanticModel.GetSymbolInfo(parent.Container).Symbol;
+                var leftType = semanticModel.GetTypeInfo(parent.Container, cancellationToken).Type;
+                var leftSymbol = semanticModel.GetSymbolInfo(parent.Container, cancellationToken).Symbol;
 
                 var container = leftSymbol ?? leftType;
 

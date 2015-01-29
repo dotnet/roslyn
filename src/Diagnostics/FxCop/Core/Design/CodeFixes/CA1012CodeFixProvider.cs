@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 
         internal override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            var classSymbol = (INamedTypeSymbol)model.GetDeclaredSymbol(nodeToFix);
+            var classSymbol = (INamedTypeSymbol)model.GetDeclaredSymbol(nodeToFix, cancellationToken);
             var instanceConstructors = classSymbol.InstanceConstructors.Where(t => t.DeclaredAccessibility == Accessibility.Public).Select(t => GetDeclaration(t)).Where(d => d != null).ToList();
             var generator = SyntaxGenerator.GetGenerator(document);
             var newRoot = root.ReplaceNodes(instanceConstructors, (original, rewritten) => generator.WithAccessibility(original, Accessibility.Protected));

@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders.Xm
                 var typeDeclaration = attachedToken.GetAncestor<TypeDeclarationSyntax>();
                 if (typeDeclaration != null)
                 {
-                    declaredSymbol = semanticModel.GetDeclaredSymbol(typeDeclaration);
+                    declaredSymbol = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken);
                 }
             }
 

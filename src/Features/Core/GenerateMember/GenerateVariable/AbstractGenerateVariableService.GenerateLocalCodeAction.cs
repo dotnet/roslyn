@@ -70,7 +70,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable
                 return codeGenService.AddStatements(
                     root,
                     SpecializedCollections.SingletonEnumerable(localStatement),
-                    options: new CodeGenerationOptions(beforeThisLocation: state.IdentifierToken.GetLocation()));
+                    options: new CodeGenerationOptions(beforeThisLocation: state.IdentifierToken.GetLocation()),
+                    cancellationToken: cancellationToken);
             }
         }
     }

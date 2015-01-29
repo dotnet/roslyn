@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion.Sessions
                     // first add one line in between, and format braces 
                     if (session.SubjectBuffer.GetOption(FeatureOnOffOptions.AutoFormattingOnCloseBrace))
                     {
-                        document.InsertText(session.ClosingPoint.GetPosition(session.SubjectBuffer.CurrentSnapshot) - 1, Environment.NewLine);
+                        document.InsertText(session.ClosingPoint.GetPosition(session.SubjectBuffer.CurrentSnapshot) - 1, Environment.NewLine, cancellationToken);
                         FormatTrackingSpan(session, GetFormattingRules(document));
                     }
 

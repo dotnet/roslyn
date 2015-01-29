@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public bool CanAddTo(ISymbol destination, Solution solution, CancellationToken cancellationToken)
         {
             var declarations = symbolDeclarationService.GetDeclarations(destination);
-            return declarations.Any(r => CanAddTo(r.GetSyntax(), solution, cancellationToken));
+            return declarations.Any(r => CanAddTo(r.GetSyntax(cancellationToken), solution, cancellationToken));
         }
 
         protected static SyntaxToken GetEndToken(SyntaxNode node)

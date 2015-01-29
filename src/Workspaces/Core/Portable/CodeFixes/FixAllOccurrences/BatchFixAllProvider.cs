@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
                     mergeTasks[i] = Task.Run(async () =>
                     {
-                        var appliedChanges = (await documentsToMerge[0].GetTextChangesAsync(oldDocument).ConfigureAwait(false)).ToList();
+                        var appliedChanges = (await documentsToMerge[0].GetTextChangesAsync(oldDocument, cancellationToken).ConfigureAwait(false)).ToList();
 
                         foreach (var document in documentsToMerge.Skip(1))
                         {
@@ -431,7 +431,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             var successfullyMergedChanges = new List<TextChange>();
 
             int cumulativeChangeIndex = 0;
-            foreach (var change in await newDocument.GetTextChangesAsync(oldDocument).ConfigureAwait(false))
+            foreach (var change in await newDocument.GetTextChangesAsync(oldDocument, cancellationToken).ConfigureAwait(false))
             {
                 while (cumulativeChangeIndex < cumulativeChanges.Count && cumulativeChanges[cumulativeChangeIndex].Span.End < change.Span.Start)
                 {

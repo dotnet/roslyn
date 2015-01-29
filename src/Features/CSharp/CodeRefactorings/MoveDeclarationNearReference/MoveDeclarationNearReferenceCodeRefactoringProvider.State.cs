@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
                 this.VariableDeclaration = this.DeclarationStatement.Declaration;
                 this.VariableDeclarator = this.VariableDeclaration.Variables[0];
                 this.OutermostBlock = (BlockSyntax)this.DeclarationStatement.Parent;
-                this.LocalSymbol = (ILocalSymbol)document.SemanticModel.GetDeclaredSymbol(this.VariableDeclarator);
+                this.LocalSymbol = (ILocalSymbol)document.SemanticModel.GetDeclaredSymbol(this.VariableDeclarator, cancellationToken);
                 if (this.LocalSymbol == null)
                 {
                     // This can happen in broken code, for example: "{ object x; object }"

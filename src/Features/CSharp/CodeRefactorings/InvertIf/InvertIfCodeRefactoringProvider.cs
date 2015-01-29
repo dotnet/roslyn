@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             SemanticModel semanticModel,
             CancellationToken cancellationToken)
         {
-            var numericValue = semanticModel.GetConstantValue(numericLiteralExpression);
+            var numericValue = semanticModel.GetConstantValue(numericLiteralExpression, cancellationToken);
             if (numericValue.HasValue && numericValue.Value is int && (int)numericValue.Value == 0)
             {
                 var symbol = semanticModel.GetSymbolInfo(variableExpression, cancellationToken).Symbol;

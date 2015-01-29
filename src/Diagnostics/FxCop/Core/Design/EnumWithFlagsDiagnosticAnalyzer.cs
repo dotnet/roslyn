@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                             Contract.ThrowIfNull(missingValues);
 
                             var missingValuesString = missingValues.Select(v => v.ToString()).Aggregate((i, j) => i + ", " + j);
-                            var location = GetDiagnosticLocation(symbol.DeclaringSyntaxReferences[0].GetSyntax());
+                            var location = GetDiagnosticLocation(symbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken));
                             addDiagnostic(location.CreateDiagnostic(Rule2217, symbol.Name, missingValuesString));
                         }
                     }
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                         // Ignore continguous value enums to reduce noise.
                         if (!IsContiguous(memberValues) && ShouldBeFlags(memberValues))
                         {
-                            var location = GetDiagnosticLocation(symbol.DeclaringSyntaxReferences[0].GetSyntax());
+                            var location = GetDiagnosticLocation(symbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken));
                             addDiagnostic(location.CreateDiagnostic(Rule1027, symbol.Name));
                         }
                     }

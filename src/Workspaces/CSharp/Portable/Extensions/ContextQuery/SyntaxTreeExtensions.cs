@@ -2176,7 +2176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     return true;
                 }
 
-                return semanticModelOpt.GetSymbolInfo(parentExpression).Symbol == null;
+                return semanticModelOpt.GetSymbolInfo(parentExpression, cancellationToken).Symbol == null;
             }
 
             return false;
@@ -2369,7 +2369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             var memberAccess = (MemberAccessExpressionSyntax)token.Parent;
-            var leftHandBinding = semanticModel.GetSymbolInfo(memberAccess.Expression);
+            var leftHandBinding = semanticModel.GetSymbolInfo(memberAccess.Expression, cancellationToken);
             var symbol = leftHandBinding.GetBestOrAllSymbols().FirstOrDefault();
 
             if (symbol == null)

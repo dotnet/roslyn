@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             }
             else if (context.IsDestructorTypeContext)
             {
-                return SpecializedCollections.SingletonEnumerable(context.SemanticModel.GetDeclaredSymbol(context.ContainingTypeOrEnumDeclaration));
+                return SpecializedCollections.SingletonEnumerable(context.SemanticModel.GetDeclaredSymbol(context.ContainingTypeOrEnumDeclaration, cancellationToken));
             }
 
             return SpecializedCollections.EmptyEnumerable<ISymbol>();
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
         {
             var enclosingSymbol = context.LeftToken.Parent
                 .AncestorsAndSelf()
-                .Select(n => context.SemanticModel.GetDeclaredSymbol(n))
+                .Select(n => context.SemanticModel.GetDeclaredSymbol(n, cancellationToken))
                 .WhereNotNull()
                 .FirstOrDefault();
 

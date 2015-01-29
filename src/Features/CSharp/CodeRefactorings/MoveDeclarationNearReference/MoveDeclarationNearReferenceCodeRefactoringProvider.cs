@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
             {
                 // Type inference.  Only merge if types match.
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var rightType = semanticModel.GetTypeInfo(expression.Right);
+                var rightType = semanticModel.GetTypeInfo(expression.Right, cancellationToken);
                 return (localSymbol.Type == null && rightType.Type == null) || localSymbol.Type.Equals(rightType.Type);
             }
             else

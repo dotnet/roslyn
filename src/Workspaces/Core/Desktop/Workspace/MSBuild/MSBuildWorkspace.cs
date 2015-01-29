@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             var absoluteSolutionPath = this.GetAbsoluteSolutionPath(solutionFilePath, Environment.CurrentDirectory);
 
-            using (this.dataGuard.DisposableWait())
+            using (this.dataGuard.DisposableWait(cancellationToken))
             {
                 this.SetSolutionProperties(absoluteSolutionPath);
             }
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var invalidProjects = new List<ProjectInSolution>();
 
             // seed loaders from known project types
-            using (this.dataGuard.DisposableWait())
+            using (this.dataGuard.DisposableWait(cancellationToken))
             {
                 foreach (var project in solutionFile.ProjectsInOrder)
                 {

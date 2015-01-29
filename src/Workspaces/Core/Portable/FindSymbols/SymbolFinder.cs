@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return null;
             }
 
-            var project = solution.GetProject(symbol.ContainingAssembly);
+            var project = solution.GetProject(symbol.ContainingAssembly, cancellationToken);
             if (project != null)
             {
                 var symbolId = symbol.GetSymbolKey();

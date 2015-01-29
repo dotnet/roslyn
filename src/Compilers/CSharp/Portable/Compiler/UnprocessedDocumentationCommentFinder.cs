@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (tree.ReportDocumentationCommentDiagnostics())
             {
                 UnprocessedDocumentationCommentFinder finder = new UnprocessedDocumentationCommentFinder(diagnostics, filterSpanWithinTree, cancellationToken);
-                finder.Visit(tree.GetRoot());
+                finder.Visit(tree.GetRoot(cancellationToken));
             }
         }
 

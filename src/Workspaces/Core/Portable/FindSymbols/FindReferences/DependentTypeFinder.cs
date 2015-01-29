@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var resolvedSymbols = id.Resolve(compilation).GetAllSymbols();
+                var resolvedSymbols = id.Resolve(compilation, cancellationToken: cancellationToken).GetAllSymbols();
                 foreach (var resolvedSymbol in resolvedSymbols)
                 {
                     var mappedSymbol = await SymbolFinder.FindSourceDefinitionAsync(resolvedSymbol, solution, cancellationToken).ConfigureAwait(false) ?? resolvedSymbol;
