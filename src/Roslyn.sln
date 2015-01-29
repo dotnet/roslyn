@@ -219,6 +219,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "csi", "Interactive\csi\csi.
 EndProject
 Project("{F184B08F-C81C-45F6-A57F-5ABD9991F28F}") = "vbi", "Interactive\vbi\vbi.vbproj", "{6E62A0FF-D0DC-4109-9131-AB8E60CDFF7B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InteractiveWindowTest", "InteractiveWindow\EditorTest\InteractiveWindowTest.csproj", "{7F3CB45E-4993-4FA4-8D6A-C2DFFED2DFC3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioInteractiveWindow", "InteractiveWindow\VisualStudio\VisualStudioInteractiveWindow.csproj", "{20BB6FAC-44D2-4D76-ABFE-0C1E163A1A4F}"
+EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Compilers\Core\SharedCollections\SharedCollections.projitems*{5f8d2414-064a-4b3a-9b42-8e2a04246be5}*SharedItemsImports = 4
@@ -1297,6 +1301,18 @@ Global
 		{6E62A0FF-D0DC-4109-9131-AB8E60CDFF7B}.Release|Mixed Platforms.ActiveCfg = Release|x86
 		{6E62A0FF-D0DC-4109-9131-AB8E60CDFF7B}.Release|Mixed Platforms.Build.0 = Release|x86
 		{6E62A0FF-D0DC-4109-9131-AB8E60CDFF7B}.Release|x64.ActiveCfg = Release|x86
+		{7F3CB45E-4993-4FA4-8D6A-C2DFFED2DFC3}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{7F3CB45E-4993-4FA4-8D6A-C2DFFED2DFC3}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{7F3CB45E-4993-4FA4-8D6A-C2DFFED2DFC3}.Debug|x64.ActiveCfg = Debug|x86
+		{7F3CB45E-4993-4FA4-8D6A-C2DFFED2DFC3}.Release|Mixed Platforms.ActiveCfg = Release|x86
+		{7F3CB45E-4993-4FA4-8D6A-C2DFFED2DFC3}.Release|Mixed Platforms.Build.0 = Release|x86
+		{7F3CB45E-4993-4FA4-8D6A-C2DFFED2DFC3}.Release|x64.ActiveCfg = Release|x86
+		{20BB6FAC-44D2-4D76-ABFE-0C1E163A1A4F}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{20BB6FAC-44D2-4D76-ABFE-0C1E163A1A4F}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{20BB6FAC-44D2-4D76-ABFE-0C1E163A1A4F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{20BB6FAC-44D2-4D76-ABFE-0C1E163A1A4F}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{20BB6FAC-44D2-4D76-ABFE-0C1E163A1A4F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{20BB6FAC-44D2-4D76-ABFE-0C1E163A1A4F}.Release|x64.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
