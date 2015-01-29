@@ -187,6 +187,33 @@ namespace Roslyn.Diagnostics.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Do not create tasks unless you are using one of the overloads that takes a TaskScheduler. The default is to schedule on TaskScheduler.Current, which would lead to deadlocks. Either use TaskScheduler.Default to schedule on the thread pool, or explicitly pass TaskScheduler.Current to make your intentions clear..
+        /// </summary>
+        internal static string DoNotCreateTasksWithoutTaskSchedulerDescription {
+            get {
+                return ResourceManager.GetString("DoNotCreateTasksWithoutTaskSchedulerDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do not call {0} without passing a TaskScheduler.
+        /// </summary>
+        internal static string DoNotCreateTasksWithoutTaskSchedulerMessage {
+            get {
+                return ResourceManager.GetString("DoNotCreateTasksWithoutTaskSchedulerMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do not create tasks without passing a TaskScheduler.
+        /// </summary>
+        internal static string DoNotCreateTasksWithoutTaskSchedulerTitle {
+            get {
+                return ResourceManager.GetString("DoNotCreateTasksWithoutTaskSchedulerTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to This collection is directly indexable.  Going through LINQ here causes unnecessary allocations and CPU work..
         /// </summary>
         internal static string DoNotUseLinqOnIndexableCollectionDescription {

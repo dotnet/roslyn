@@ -84,6 +84,7 @@
     <Compile Include="Performance\SpecializedEnumerableCreationAnalyzer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Reliability\AttributeHelpers.cs" />
+    <Compile Include="Reliability\DoNotCreateTasksWithoutTaskSchedulerAnalyzer.cs" />
     <Compile Include="Reliability\DirectlyAwaitingTaskAnalyzer.cs" />
     <Compile Include="Reliability\DirectlyAwaitingTaskAnalyzerRule.cs" />
     <Compile Include="Reliability\DirectlyAwaitingTaskFix.cs" />

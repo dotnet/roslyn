@@ -100,6 +100,7 @@
     <Compile Include="Performance\BasicEmptyArrayCodeFixProvider.vb" />
     <Compile Include="Performance\BasicEmptyArrayDiagnosticAnalyzer.vb" />
     <Compile Include="Performance\BasicSpecializedEnumerableCreationAnalyzer.vb" />
+    <Compile Include="Reliability\BasicDoNotCreateTasksWithoutTaskSchedulerAnalyzer.vb" />
     <Compile Include="Reliability\BasicConsumePreserveSigAnalyzer.vb" />
     <Compile Include="Reliability\BasicDirectlyAwaitingTaskAnalyzer.vb" />
     <Compile Include="Reliability\BasicDirectlyAwaitingTaskFix.vb" />

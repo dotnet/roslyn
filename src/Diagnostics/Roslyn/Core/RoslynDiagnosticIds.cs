@@ -22,5 +22,6 @@ namespace Roslyn.Diagnostics.Analyzers
         public const string ConsumePreserveSigRuleId = "RS0015";
         public const string DeclarePublicApiRuleId = "RS0016";
         public const string RemoveDeletedApiRuleId = "RS0017";
+        public const string DoNotCreateTasksWithoutTaskSchedulerRuleId = "RS0018";
     }
 }

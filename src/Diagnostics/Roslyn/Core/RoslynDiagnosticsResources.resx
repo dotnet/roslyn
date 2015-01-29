@@ -237,4 +237,13 @@
   <data name="RemoveDeletedApiDescription" xml:space="preserve">
     <value>When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes.</value>
   </data>
+  <data name="DoNotCreateTasksWithoutTaskSchedulerDescription" xml:space="preserve">
+    <value>Do not create tasks unless you are using one of the overloads that takes a TaskScheduler. The default is to schedule on TaskScheduler.Current, which would lead to deadlocks. Either use TaskScheduler.Default to schedule on the thread pool, or explicitly pass TaskScheduler.Current to make your intentions clear.</value>
+  </data>
+  <data name="DoNotCreateTasksWithoutTaskSchedulerTitle" xml:space="preserve">
+    <value>Do not create tasks without passing a TaskScheduler</value>
+  </data>
+  <data name="DoNotCreateTasksWithoutTaskSchedulerMessage" xml:space="preserve">
+    <value>Do not call {0} without passing a TaskScheduler</value>
+  </data>
 </root>
