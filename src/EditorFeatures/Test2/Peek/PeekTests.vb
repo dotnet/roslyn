@@ -140,6 +140,47 @@ End Module
             End Using
         End Sub
 
+
+        <Fact>
+        <WorkItem(1091211)>
+        Public Sub PeekAcrossProjectsInvolvingPortableReferences()
+            Dim workspaceDefinition =
+<Workspace>
+    <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferencesPortable="true">
+        <Document>
+            namespace N
+            {
+                public class CSClass
+                {
+                    public void  {|Identifier:M|}(int i) { }
+                }
+            }
+        </Document>
+    </Project>
+    <Project Language="Visual Basic" AssemblyName="VBAssembly" CommonReferences="true" CommonReferenceFacadeSystemRuntime="true">
+        <ProjectReference>CSharpAssembly</ProjectReference>
+        <Document>
+            Imports N
+
+            Public Class VBClass
+                Sub Test()
+                    Dim x As New CSClass()
+                    x.M$$(5)
+                End Sub
+            End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Using workspace = TestWorkspaceFactory.CreateWorkspace(workspaceDefinition)
+                Dim result = GetPeekResultCollection(workspace)
+
+                Assert.Equal(1, result.Items.Count)
+                result.AssertNavigatesToIdentifier(0, "Identifier")
+            End Using
+
+        End Sub
+
         Private Function GetPeekResultCollection(workspace As XElement) As PeekResultCollection
             Using testWorkspace = TestWorkspaceFactory.CreateWorkspace(workspace)
                 Return GetPeekResultCollection(testWorkspace)
