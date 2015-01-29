@@ -72,6 +72,40 @@ namespace Roslyn.Scripting.CSharp.Test
             var result = CSharpScript.Run("Console.WriteLine(0);");
         }
 
+        [Fact]
+        public void TestRunDynamicVoidScriptWithTerminatingSemicolon()
+        {
+
+            var result = CSharpScript.Run(@"
+class SomeClass
+{
+    public void Do()
+    {
+    }
+}
+dynamic d = new SomeClass();
+d.Do();"
+, ScriptOptions.Default.WithReferences(MscorlibRef, SystemRef, SystemCoreRef, CSharpRef));
+
+        }
+
+        [Fact]
+        public void TestRunDynamicVoidScriptWithoutTerminatingSemicolon()
+        {
+
+            var result = CSharpScript.Run(@"
+class SomeClass
+{
+    public void Do()
+    {
+    }
+}
+dynamic d = new SomeClass();
+d.Do()"
+, ScriptOptions.Default.WithReferences(MscorlibRef, SystemRef, SystemCoreRef, CSharpRef));
+
+        }
+
         public class Globals
         {
             public int X;
