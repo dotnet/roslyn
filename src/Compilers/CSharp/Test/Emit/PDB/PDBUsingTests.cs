@@ -516,7 +516,7 @@ class C { void M() { } }
                 <extern alias=""A""/>
                 <extern alias=""B""/>
                 <alias name=""X"" target=""N"" kind=""namespace""/>
-                <alias name=""Y"" qualifier=""B"" target=""N"" kind=""namespace""/>
+                <alias name=""Y"" target=""N"" kind=""namespace""/>
                 <alias name=""Z"" target=""N"" kind=""namespace""/>
                 <externinfo alias=""A"" assembly=""A, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""/>
                 <externinfo alias=""B"" assembly=""B, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null""/>

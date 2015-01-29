@@ -155,14 +155,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableArray<string> aliases = reference.Properties.Aliases;
                     if (!aliases.IsDefaultOrEmpty)
                     {
+                        if (aliases.Contains(MetadataReferenceProperties.GlobalAlias))
+                        {
+                            // If the namespace can be referenced without alias qualification, don't use any.
+                            return null;
+                        }
+
                         foreach (string alias in aliases)
                         {
-                            if (alias == MetadataReferenceProperties.GlobalAlias)
-                            {
-                                // Don't bother explicitly emitting "global".
-                                return null;
-                            }
-                            else if (validAliases.Contains(alias))
+                            if (validAliases.Contains(alias))
                             {
                                 // CONSIDER: Dev12 uses the one that appeared in source, whereas we use
                                 // the first one that COULD have appeared in source.  (DevDiv #913022)
