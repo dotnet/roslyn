@@ -515,6 +515,7 @@
     <Compile Include="TypeInferrer\TypeInferrerTests.vb" />
     <Compile Include="Utils.vb" />
     <EmbeddedResource Include="Formatting\XmlLiterals.resx" />
+    <None Include="app.config" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
