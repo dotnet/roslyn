@@ -1095,5 +1095,47 @@ class C
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
         }
+
+        [WorkItem(1112875, "DevDiv")]
+        [Fact]
+        public void Bug1112875_1()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+using System;
+ 
+class Program
+{
+    static void Main()
+    {
+        ICloneable c = """";
+        Foo(() => (c.Clone()), null);
+    }
+ 
+    static void Foo(Action x, string y) { }
+    static void Foo(Func<object> x, object y) { Console.WriteLine(42); }
+}", options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "42");
+        }
+
+        [WorkItem(1112875, "DevDiv")]
+        [Fact]
+        public void Bug1112875_2()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Program
+{
+    void M()
+    {
+        var d = new System.Action(() => (new object()));
+    }
+}
+");
+            comp.VerifyDiagnostics(
+                // (6,41): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                //         var d = new System.Action(() => (new object()));
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(new object())").WithLocation(6, 41));
+        }
     }
 }

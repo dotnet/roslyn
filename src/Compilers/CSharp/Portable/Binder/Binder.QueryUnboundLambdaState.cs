@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(castTypeSyntax != null);
                 // We transform the expression from "expr" to "expr.Cast<castTypeOpt>()".
                 expression = lambdaBodyBinder.MakeQueryInvocation(body, expression, "Cast", castTypeSyntax, castType, diagnostics);
-                return lambdaBodyBinder.CreateBlockFromExpression(lambdaBodyBinder.Locals, expression, body, diagnostics);
+                return lambdaBodyBinder.CreateBlockFromExpression(body, lambdaBodyBinder.Locals, body, expression, diagnostics);
             })
             { }
 

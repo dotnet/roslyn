@@ -5142,11 +5142,11 @@ class C<T>
     static public void F1(C<T> c) 
     {
         System.Console.WriteLine(""F1"");
-        Action a = () => ((c?.M()));
+        Action a = () => c?.M();
         a();
     }
 
-    static public void F2(C<T> c) => (c?.M());
+    static public void F2(C<T> c) => c?.M();
 
     T M() 
     {
@@ -5271,11 +5271,11 @@ unsafe class C
     static public void F1(C c) 
     {
         System.Console.WriteLine(""F1"");
-        Action<object> a = o => (c?.M());
+        Action<object> a = o => c?.M();
         a(null);
     }
 
-    static public void F2(C c) => ((c?.M()));
+    static public void F2(C c) => c?.M();
 
     void* M() 
     {

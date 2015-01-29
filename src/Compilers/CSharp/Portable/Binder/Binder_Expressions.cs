@@ -6311,40 +6311,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // We are not doing this for types that can be made nullable to still allow expression evaluator to 
                 // to get the value.
                 bool resultIsNotUsed = false;
-                CSharpSyntaxNode child = node;
-                CSharpSyntaxNode parent = child.Parent;
-
-                // Skip through parenthesis
-                while (parent != null && parent.Kind() == SyntaxKind.ParenthesizedExpression)
-                {
-                    child = parent;
-                    parent = child.Parent;
-                }
+                CSharpSyntaxNode parent = node.Parent;
 
                 if (parent != null)
                 {
                     switch (parent.Kind())
                     {
                         case SyntaxKind.ExpressionStatement:
-                            resultIsNotUsed = ((ExpressionStatementSyntax)parent).Expression == child;
+                            resultIsNotUsed = ((ExpressionStatementSyntax)parent).Expression == node;
                             break;
 
                         case SyntaxKind.SimpleLambdaExpression:
-                            resultIsNotUsed = (((SimpleLambdaExpressionSyntax)parent).Body == child) && ContainingMethodOrLambdaReturnsVoid();
+                            resultIsNotUsed = (((SimpleLambdaExpressionSyntax)parent).Body == node) && ContainingMethodOrLambdaReturnsVoid();
                             break;
 
                         case SyntaxKind.ParenthesizedLambdaExpression:
-                            resultIsNotUsed = (((ParenthesizedLambdaExpressionSyntax)parent).Body == child) && ContainingMethodOrLambdaReturnsVoid();
+                            resultIsNotUsed = (((ParenthesizedLambdaExpressionSyntax)parent).Body == node) && ContainingMethodOrLambdaReturnsVoid();
                             break;
 
                         case SyntaxKind.ArrowExpressionClause:
-                            resultIsNotUsed = (((ArrowExpressionClauseSyntax)parent).Expression == child) && ContainingMethodOrLambdaReturnsVoid();
+                            resultIsNotUsed = (((ArrowExpressionClauseSyntax)parent).Expression == node) && ContainingMethodOrLambdaReturnsVoid();
                             break;
 
                         case SyntaxKind.ForStatement:
                             // Incrementors and Initializers doesn't have to produce a value
                             var loop = (ForStatementSyntax)parent;
-                            resultIsNotUsed = loop.Incrementors.Contains(child) || loop.Initializers.Contains(child);
+                            resultIsNotUsed = loop.Incrementors.Contains(node) || loop.Initializers.Contains(node);
                             break;
                     }
                 }

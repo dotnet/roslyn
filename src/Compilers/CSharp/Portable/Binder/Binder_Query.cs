@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var x1Expression = new BoundParameter(node, lambdaSymbol.Parameters[0]) { WasCompilerGenerated = true };
                 var x2Expression = new BoundParameter(node, lambdaSymbol.Parameters[1]) { WasCompilerGenerated = true };
                 var construction = MakePair(node, x1.Name, x1Expression, x2.Name, x2Expression, state, d);
-                return lambdaBodyBinder.CreateBlockFromExpression(ImmutableArray<LocalSymbol>.Empty, construction, node, d);
+                return lambdaBodyBinder.CreateBlockFromExpression(node, ImmutableArray<LocalSymbol>.Empty, null, construction, d);
             };
             var result = MakeQueryUnboundLambda(state.RangeVariableMap(), Args(x1, x2), node, resolver);
             state.rangeVariable = state.TransparentRangeVariable(this);
@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var construction = MakePair(let, x.Name, xExpression, let.Identifier.ValueText, yExpression, state, d);
-                return lambdaBodyBinder.CreateBlockFromExpression(lambdaBodyBinder.Locals, construction, let, d);
+                return lambdaBodyBinder.CreateBlockFromExpression(let, lambdaBodyBinder.Locals, null, construction, d);
             };
             var lambda = MakeQueryUnboundLambda(state.RangeVariableMap(), x, let.Expression, resolver);
             state.rangeVariable = state.TransparentRangeVariable(this);

@@ -365,5 +365,20 @@ class Program
             Assert.Equal(typeInfo1.Type, typeInfo2.Type);
         }
 
+        [WorkItem(1112875, "DevDiv")]
+        [Fact]
+        public void Bug1112875()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class Program
+{
+    private void M() => (new object());
+}
+");
+            comp.VerifyDiagnostics(
+                // (4,25): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                //     private void M() => (new object());
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(new object())").WithLocation(4, 25));
+        }
     }
 }

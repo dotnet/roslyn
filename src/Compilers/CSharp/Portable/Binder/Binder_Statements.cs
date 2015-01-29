@@ -3164,13 +3164,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Wrap a given expression e into a block as either { e; } or { return e; } 
         /// Shared between lambda and expression-bodied method binding.
         /// </summary>
-        internal BoundBlock CreateBlockFromExpression(ImmutableArray<LocalSymbol> locals,
-            BoundExpression expression, CSharpSyntaxNode node, DiagnosticBag diagnostics)
+        internal BoundBlock CreateBlockFromExpression(CSharpSyntaxNode node, ImmutableArray<LocalSymbol> locals, ExpressionSyntax expressionSyntax, BoundExpression expression, DiagnosticBag diagnostics)
         {
             var returnType = GetCurrentReturnType();
-            BoundStatement statement;
-            var syntax = expression.Syntax;
+            var syntax = expressionSyntax ?? expression.Syntax;
 
+            BoundStatement statement;
             if ((object)returnType != null)
             {
                 if (returnType.SpecialType == SpecialType.System_Void || IsTaskReturningAsyncMethod())
@@ -3178,10 +3177,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // If the return type is void then the expression is required to be a legal
                     // statement expression.
 
+                    Debug.Assert(expressionSyntax != null || !IsValidStatementExpression(expression.Syntax, expression));
+
                     bool errors = false;
-                    if (!IsValidStatementExpression(syntax, expression))
+                    if (expressionSyntax == null || !IsValidStatementExpression(expressionSyntax, expression))
                     {
-                        Error(diagnostics, ErrorCode.ERR_IllegalStatement, node);
+                        Error(diagnostics, ErrorCode.ERR_IllegalStatement, syntax);
                         errors = true;
                     }
 
@@ -3193,7 +3194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    expression = CreateReturnConversion(node, diagnostics, expression, returnType);
+                    expression = CreateReturnConversion(syntax, diagnostics, expression, returnType);
                     statement = new BoundReturnStatement(syntax, expression) { WasCompilerGenerated = true };
                 }
             }
@@ -3217,7 +3218,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                     DiagnosticBag diagnostics)
         {
             BoundExpression expression = this.BindValue(expressionBody.Expression, diagnostics, BindValueKind.RValue);
-            return CreateBlockFromExpression(this.Locals, expression, expressionBody, diagnostics);
+            return CreateBlockFromExpression(expressionBody, this.Locals, expressionBody.Expression, expression, diagnostics);
         }
 
         /// <summary>
@@ -3226,7 +3227,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundBlock BindLambdaExpressionAsBlock(ExpressionSyntax body, DiagnosticBag diagnostics)
         {
             BoundExpression expression = this.BindValue(body, diagnostics, BindValueKind.RValue);
-            return CreateBlockFromExpression(this.Locals, expression, body, diagnostics);
+            return CreateBlockFromExpression(body, this.Locals, body, expression, diagnostics);
         }
 
         internal virtual ImmutableArray<LocalSymbol> Locals
