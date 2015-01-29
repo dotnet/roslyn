@@ -31,5 +31,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             return Hash.Combine((int)SynthesizedKind, Id.GetHashCode());
         }
+
+        public override string ToString()
+        {
+            return SynthesizedKind.ToString() + " " + Id.ToString();
+        }
     }
 }

@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
             var containingType = (SourceMemberContainerTypeSymbol)this.ContainingType;
-            return containingType.CalculateLocalSyntaxOffsetInSynthesizedConstructor(localPosition, localTree, isStatic: false);
+            return containingType.CalculateSyntaxOffsetInSynthesizedConstructor(localPosition, localTree, isStatic: false);
         }
 
         #endregion

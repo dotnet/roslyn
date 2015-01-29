@@ -38,8 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 containingType,
                 location,
                 syntax.GetReference(),
-                syntax.Body.GetReferenceOrNull()
-                ?? syntax.ExpressionBody.GetReferenceOrNull(),
+                syntax.Body?.GetReference() ?? syntax.ExpressionBody?.GetReference(),
                 syntax.Modifiers,
                 diagnostics,
                 isExpressionBodied)

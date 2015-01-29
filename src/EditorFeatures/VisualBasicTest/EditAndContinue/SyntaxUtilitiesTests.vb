@@ -4,6 +4,7 @@ Imports System.Linq
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
 Imports Xunit
+Imports SyntaxUtilities = Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.SyntaxUtilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EditAndContinue
 

@@ -34,14 +34,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public BoundLambda(CSharpSyntaxNode syntax, BoundBlock body, ImmutableArray<Diagnostic> diagnostics, Binder binder, TypeSymbol type, bool inferReturnTypeMarker)
+        public BoundLambda(CSharpSyntaxNode syntax, BoundBlock body, ImmutableArray<Diagnostic> diagnostics, Binder binder, TypeSymbol type, bool inferReturnType)
             : this(syntax, (LambdaSymbol)binder.ContainingMemberOrLambda, body, diagnostics, binder, type)
         {
-            this.inferredReturnType = InferReturnType(this.Body, this.Binder, this.Symbol.IsAsync, ref this.inferredReturnTypeUseSiteDiagnostics, out this.inferredFromSingleType);
+            if (inferReturnType)
+            {
+                this.inferredReturnType = InferReturnType(this.Body, this.Binder, this.Symbol.IsAsync, ref this.inferredReturnTypeUseSiteDiagnostics, out this.inferredFromSingleType);
 
 #if DEBUG
-            this.hasInferredReturnType = true;
+                this.hasInferredReturnType = true;
 #endif
+            }
+
+            Debug.Assert(
+                syntax.IsAnonymousFunction() ||                                                 // lambda expressions
+                syntax is ExpressionSyntax && SyntaxFacts.IsLambdaBody(syntax) ||               // query lambdas
+                SyntaxFacts.IsQueryPairLambda(syntax)                                           // "pair" lambdas in queries
+            );
         }
 
         public TypeSymbol InferredReturnType(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -200,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal abstract class UnboundLambdaState
     {
-        protected UnboundLambda unboundLambda; // we would prefer this readonly, but we have an initialization cycle.
+        private UnboundLambda unboundLambda; // we would prefer this readonly, but we have an initialization cycle.
         protected readonly Binder binder;
         private readonly ConcurrentDictionary<object, BoundLambda> bindingCache = new ConcurrentDictionary<object, BoundLambda>();
 
@@ -209,11 +218,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundLambda errorBinding;
 
-        public UnboundLambdaState(UnboundLambda unboundLambda, Binder binder)
+        public UnboundLambdaState(Binder binder, UnboundLambda unboundLambdaOpt)
         {
-            this.unboundLambda = unboundLambda;
+            Debug.Assert(binder != null);
+
+            // might be initialized later (for query lambdas)
+            this.unboundLambda = unboundLambdaOpt;
             this.binder = binder;
         }
+
+        public void SetUnboundLambda(UnboundLambda unbound)
+        {
+            Debug.Assert(unbound != null);
+            Debug.Assert(unboundLambda == null);
+            unboundLambda = unbound;
+        }
+
+        public UnboundLambda UnboundLambda => unboundLambda;
 
         public abstract MessageID MessageID { get; }
         public abstract string ParameterName(int index);
@@ -368,7 +389,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SourceMemberMethodSymbol.ReportAsyncParameterErrors(lambdaSymbol, diagnostics, lambdaSymbol.Locations[0]);
             }
 
-            var result = new BoundLambda(this.unboundLambda.Syntax, block, diagnostics.ToReadOnlyAndFree(), lambdaBodyBinder, delegateType)
+            var result = new BoundLambda(this.unboundLambda.Syntax, block, diagnostics.ToReadOnlyAndFree(), lambdaBodyBinder, delegateType, inferReturnType: false)
             { WasCompilerGenerated = this.unboundLambda.WasCompilerGenerated };
 
             return result;
@@ -405,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder lambdaBodyBinder = new ExecutableCodeBinder(this.unboundLambda.Syntax, lambdaSymbol, ParameterBinder(lambdaSymbol, binder));
             var block = BindLambdaBody(lambdaSymbol, ref lambdaBodyBinder, diagnostics);
 
-            var result = new BoundLambda(this.unboundLambda.Syntax, block, diagnostics.ToReadOnlyAndFree(), lambdaBodyBinder, delegateType, inferReturnTypeMarker: true)
+            var result = new BoundLambda(this.unboundLambda.Syntax, block, diagnostics.ToReadOnlyAndFree(), lambdaBodyBinder, delegateType, inferReturnType: true)
             { WasCompilerGenerated = this.unboundLambda.WasCompilerGenerated };
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null; // TODO: figure out if this should be somehow merged into BoundLambda.Diagnostics.
@@ -672,7 +693,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeSymbol> parameterTypes,
             ImmutableArray<RefKind> parameterRefKinds,
             bool isAsync)
-            : base(unboundLambda, binder)
+            : base(binder, unboundLambda)
         {
             this.parameterNames = parameterNames;
             this.parameterTypes = parameterTypes;
@@ -688,13 +709,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override bool IsAsync { get { return this.isAsync; } }
 
-        public override MessageID MessageID { get { return this.unboundLambda.Syntax.Kind() == SyntaxKind.AnonymousMethodExpression ? MessageID.IDS_AnonMethod : MessageID.IDS_Lambda; } }
+        public override MessageID MessageID { get { return this.UnboundLambda.Syntax.Kind() == SyntaxKind.AnonymousMethodExpression ? MessageID.IDS_AnonMethod : MessageID.IDS_Lambda; } }
 
         private CSharpSyntaxNode Body
         {
             get
             {
-                var Syntax = unboundLambda.Syntax;
+                var Syntax = UnboundLambda.Syntax;
                 switch (Syntax.Kind())
                 {
                     default:
@@ -711,7 +732,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override Location ParameterLocation(int index)
         {
             Debug.Assert(HasSignature && 0 <= index && index < ParameterCount);
-            var Syntax = unboundLambda.Syntax;
+            var Syntax = UnboundLambda.Syntax;
             switch (Syntax.Kind())
             {
                 default:

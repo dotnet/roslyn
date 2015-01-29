@@ -227,6 +227,10 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
           <slot kind=""0"" offset=""139"" />
           <slot kind=""28"" offset=""146"" />
         </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>1</methodOrdinal>
+          <lambda offset=""86"" />
+        </encLambdaMap>
       </customDebugInfo>
       <sequencePoints />
       <locals />
@@ -650,6 +654,11 @@ class C
     <method containingType=""C"" name=""M"" parameterNames=""b"">
       <customDebugInfo>
         <forwardIterator name=""&lt;M&gt;d__0"" />
+        <encLambdaMap>
+          <methodOrdinal>0</methodOrdinal>
+          <closure offset=""0"" />
+          <lambda offset=""95"" closure=""0"" />
+        </encLambdaMap>
       </customDebugInfo>
       <sequencePoints />
       <locals />
@@ -746,6 +755,11 @@ class C
         <encLocalSlotMap>
           <slot kind=""30"" offset=""0"" />
         </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>0</methodOrdinal>
+          <closure offset=""0"" />
+          <lambda offset=""95"" closure=""0"" />
+        </encLambdaMap>
       </customDebugInfo>
       <sequencePoints />
       <locals />
@@ -831,6 +845,11 @@ class C
     <method containingType=""C"" name=""M"" parameterNames=""b"">
       <customDebugInfo>
         <forwardIterator name=""&lt;M&gt;d__0"" />
+        <encLambdaMap>
+          <methodOrdinal>0</methodOrdinal>
+          <closure offset=""0"" />
+          <lambda offset=""95"" closure=""0"" />
+        </encLambdaMap>
       </customDebugInfo>
       <sequencePoints />
       <locals />
@@ -927,6 +946,11 @@ class C
         <encLocalSlotMap>
           <slot kind=""30"" offset=""0"" />
         </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>0</methodOrdinal>
+          <closure offset=""0"" />
+          <lambda offset=""95"" closure=""0"" />
+        </encLambdaMap>
       </customDebugInfo>
       <sequencePoints />
       <locals />

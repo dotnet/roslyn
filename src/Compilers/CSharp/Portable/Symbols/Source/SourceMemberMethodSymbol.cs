@@ -78,8 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             base(containingType,
                  syntax.GetReference(),
                  // Prefer a block body if both exist
-                 syntax.Body.GetReferenceOrNull()
-                 ?? syntax.ExpressionBody.GetReferenceOrNull(),
+                 syntax.Body?.GetReference() ?? syntax.ExpressionBody?.GetReference(),
                  location)
         {
             this.name = name;

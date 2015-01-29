@@ -682,5 +682,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return SyntaxFactory.AreEquivalent(Me, DirectCast(node, VisualBasicSyntaxNode), topLevel)
         End Function
 
+        Friend Overrides Function GetCorrespondingLambdaBody(body As SyntaxNode) As SyntaxNode
+            Return SyntaxUtilities.GetCorrespondingLambdaBody(body, Me)
+        End Function
+
     End Class
 End Namespace

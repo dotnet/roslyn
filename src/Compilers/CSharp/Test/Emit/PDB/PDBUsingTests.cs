@@ -1337,6 +1337,10 @@ class C
         <using>
           <namespace usingCount=""1"" />
         </using>
+        <encLambdaMap>
+          <methodOrdinal>2</methodOrdinal>
+          <lambda offset=""-23"" />
+        </encLambdaMap>
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""59"" document=""0"" />
@@ -1349,6 +1353,10 @@ class C
     <method containingType=""C"" name="".cctor"">
       <customDebugInfo>
         <forward declaringType=""C"" methodName="".ctor"" />
+        <encLambdaMap>
+          <methodOrdinal>3</methodOrdinal>
+          <lambda offset=""-38"" />
+        </encLambdaMap>
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""10"" endColumn=""8"" document=""0"" />

@@ -10,45 +10,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class Binder
     {
-        delegate BoundBlock LambdaBodyResolver(LambdaSymbol lambdaSymbol, ref Binder lambdaBodyBinder, DiagnosticBag diagnostics);
+        private delegate BoundBlock LambdaBodyFactory(LambdaSymbol lambdaSymbol, ref Binder lambdaBodyBinder, DiagnosticBag diagnostics);
 
         private class QueryUnboundLambdaState : UnboundLambdaState
         {
             private readonly ImmutableArray<RangeVariableSymbol> parameters;
-            private readonly LambdaBodyResolver bodyResolver;
+            private readonly LambdaBodyFactory bodyFactory;
             private readonly RangeVariableMap rangeVariableMap;
 
-            public QueryUnboundLambdaState(UnboundLambda unbound, Binder binder, RangeVariableMap rangeVariableMap, ImmutableArray<RangeVariableSymbol> parameters, LambdaBodyResolver bodyResolver)
-                : base(unbound, binder)
+            public QueryUnboundLambdaState(Binder binder, RangeVariableMap rangeVariableMap, ImmutableArray<RangeVariableSymbol> parameters, LambdaBodyFactory bodyFactory)
+                : base(binder, unboundLambdaOpt: null)
             {
                 this.parameters = parameters;
-                this.bodyResolver = bodyResolver;
                 this.rangeVariableMap = rangeVariableMap;
-            }
-
-            public QueryUnboundLambdaState(UnboundLambda unbound, Binder binder, RangeVariableMap rangeVariableMap, ImmutableArray<RangeVariableSymbol> parameters, ExpressionSyntax body, TypeSyntax castTypeSyntax, TypeSymbol castType)
-                : this(unbound, binder, rangeVariableMap, parameters, (LambdaSymbol lambdaSymbol, ref Binder lambdaBodyBinder, DiagnosticBag diagnostics) =>
-            {
-                BoundExpression expression = lambdaBodyBinder.BindValue(body, diagnostics, BindValueKind.RValue);
-                Debug.Assert((object)castType != null);
-                Debug.Assert(castTypeSyntax != null);
-                // We transform the expression from "expr" to "expr.Cast<castTypeOpt>()".
-                expression = lambdaBodyBinder.MakeQueryInvocation(body, expression, "Cast", castTypeSyntax, castType, diagnostics);
-                return lambdaBodyBinder.CreateBlockFromExpression(body, lambdaBodyBinder.Locals, body, expression, diagnostics);
-            })
-            { }
-
-            public QueryUnboundLambdaState(UnboundLambda unbound, Binder binder, RangeVariableMap rangeVariableMap, ImmutableArray<RangeVariableSymbol> parameters, ExpressionSyntax body)
-                : this(unbound, binder, rangeVariableMap, parameters, (LambdaSymbol lambdaSymbol, ref Binder lambdaBodyBinder, DiagnosticBag diagnostics) =>
-            {
-                return lambdaBodyBinder.BindLambdaExpressionAsBlock(body, diagnostics);
-            })
-            { }
-
-            internal void SetUnboundLambda(UnboundLambda unbound)
-            {
-                Debug.Assert(base.unboundLambda == null);
-                base.unboundLambda = unbound;
+                this.bodyFactory = bodyFactory;
             }
 
             public override string ParameterName(int index) { return parameters[index].Name; }
@@ -74,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             protected override BoundBlock BindLambdaBody(LambdaSymbol lambdaSymbol, ref Binder lambdaBodyBinder, DiagnosticBag diagnostics)
             {
-                return bodyResolver(lambdaSymbol, ref lambdaBodyBinder, diagnostics);
+                return bodyFactory(lambdaSymbol, ref lambdaBodyBinder, diagnostics);
             }
         }
     }

@@ -23,8 +23,9 @@ namespace Roslyn.Test.Utilities
 
         public static EditAndContinueMethodDebugInformation GetEncMethodDebugInfo(byte[] customDebugInfoBlob)
         {
-            var record = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(customDebugInfoBlob, CustomDebugInfoKind.EditAndContinueLocalSlotMap);
-            return EditAndContinueMethodDebugInformation.Create(record);
+            var localSlots = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(customDebugInfoBlob, CustomDebugInfoKind.EditAndContinueLocalSlotMap);
+            var lambdaMap = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(customDebugInfoBlob, CustomDebugInfoKind.EditAndContinueLambdaMap);
+            return EditAndContinueMethodDebugInformation.Create(localSlots, lambdaMap);
         }
     }
 }

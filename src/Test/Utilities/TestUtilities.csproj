@@ -142,6 +142,7 @@
     <Compile Include="ILBuilderVisualizer.cs" />
     <Compile Include="ImmutableArrayInterop.cs" />
     <Compile Include="ImmutableArrayTestExtensions.cs" />
+    <Compile Include="SourceWithMarkedNodes.cs" />
     <Compile Include="MarkupTestFile.cs" />
     <Compile Include="MetadataCacheTestHelpers.cs" />
     <Compile Include="MetadataReader\CustomAttributeRow.cs" />
@@ -157,6 +158,7 @@
     <Compile Include="ProcessLauncher.cs" />
     <Compile Include="ProcessResult.cs" />
     <Compile Include="ReflectionAssert.cs" />
+    <Compile Include="RegexExtensions.cs" />
     <Compile Include="SharedCompilationUtils.cs" />
     <Compile Include="SigningTestHelpers.cs" />
     <Compile Include="StringExtensions.cs" />

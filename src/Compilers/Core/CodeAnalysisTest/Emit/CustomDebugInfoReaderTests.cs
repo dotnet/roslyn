@@ -145,17 +145,97 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
                 new LocalSlotDebugInfo(SynthesizedLocalKind.UserDefined, new LocalDebugId(-1, 10)),
                 new LocalSlotDebugInfo(SynthesizedLocalKind.TryAwaitPendingCaughtException, new LocalDebugId(-20000, 10)));
 
+            var closures = ImmutableArray<ClosureDebugInfo>.Empty;
+            var lambdas = ImmutableArray<LambdaDebugInfo>.Empty;
+
             var customMetadata = new Cci.MemoryStream();
             var cmw = new Cci.BinaryWriter(customMetadata);
 
-            new EditAndContinueMethodDebugInformation(slots).SerializeLocalSlots(cmw);
+            new EditAndContinueMethodDebugInformation(123, slots, closures, lambdas).SerializeLocalSlots(cmw);
 
             var bytes = customMetadata.ToImmutableArray();
-            AssertEx.Equal(new byte[] { 0xFE, 0xC0, 0x00, 0x4E, 0x20, 0x81, 0xC0, 0x00, 0x4E, 0x1F, 0x0A, 0x9A, 0x00, 0x0A }, bytes);
+            AssertEx.Equal(new byte[] { 0xFF, 0xC0, 0x00, 0x4E, 0x20, 0x81, 0xC0, 0x00, 0x4E, 0x1F, 0x0A, 0x9A, 0x00, 0x0A }, bytes);
 
-            var deserialized = EditAndContinueMethodDebugInformation.Create(bytes).LocalSlots;
+            var deserialized = EditAndContinueMethodDebugInformation.Create(bytes, default(ImmutableArray<byte>)).LocalSlots;
 
             AssertEx.Equal(slots, deserialized);
+        }
+
+        [Fact]
+        public void EditAndContinueLambdaAndClosureMap_NegativeSyntaxOffsets()
+        {
+            var slots = ImmutableArray<LocalSlotDebugInfo>.Empty;
+
+            var closures = ImmutableArray.Create(
+                new ClosureDebugInfo(-100), 
+                new ClosureDebugInfo(10),
+                new ClosureDebugInfo(-200));
+
+            var lambdas = ImmutableArray.Create(
+                new LambdaDebugInfo(20, 1),
+                new LambdaDebugInfo(-50, 0),
+                new LambdaDebugInfo(-180, -1));
+
+            var customMetadata = new Cci.MemoryStream();
+            var cmw = new Cci.BinaryWriter(customMetadata);
+
+            new EditAndContinueMethodDebugInformation(0x7b, slots, closures, lambdas).SerializeLambdaMap(cmw);
+
+            var bytes = customMetadata.ToImmutableArray();
+
+            AssertEx.Equal(new byte[] { 0x7C, 0x80, 0xC8, 0x03, 0x64, 0x80, 0xD2, 0x00, 0x80, 0xDC, 0x02, 0x80, 0x96, 0x01, 0x14, 0x00 }, bytes);
+
+            var deserialized = EditAndContinueMethodDebugInformation.Create(default(ImmutableArray<byte>), bytes);
+
+            AssertEx.Equal(closures, deserialized.Closures);
+            AssertEx.Equal(lambdas, deserialized.Lambdas);
+        }
+
+        [Fact]
+        public void EditAndContinueLambdaAndClosureMap_NoClosures()
+        {
+            var slots = ImmutableArray<LocalSlotDebugInfo>.Empty;
+
+            var closures = ImmutableArray<ClosureDebugInfo>.Empty;
+            var lambdas = ImmutableArray.Create(new LambdaDebugInfo(20, -1));
+
+            var customMetadata = new Cci.MemoryStream();
+            var cmw = new Cci.BinaryWriter(customMetadata);
+
+            new EditAndContinueMethodDebugInformation(-1, slots, closures, lambdas).SerializeLambdaMap(cmw);
+
+            var bytes = customMetadata.ToImmutableArray();
+
+            AssertEx.Equal(new byte[] { 0x00, 0x01, 0x00, 0x15, 0x00 }, bytes);
+
+            var deserialized = EditAndContinueMethodDebugInformation.Create(default(ImmutableArray<byte>), bytes);
+
+            AssertEx.Equal(closures, deserialized.Closures);
+            AssertEx.Equal(lambdas, deserialized.Lambdas);
+        }
+
+        [Fact]
+        public void EditAndContinueLambdaAndClosureMap_NoLambdas()
+        {
+            // should not happen in practice, but EditAndContinueMethodDebugInformation should handle it just fine
+
+            var slots = ImmutableArray<LocalSlotDebugInfo>.Empty;
+            var closures = ImmutableArray<ClosureDebugInfo>.Empty;
+            var lambdas = ImmutableArray<LambdaDebugInfo>.Empty;
+
+            var customMetadata = new Cci.MemoryStream();
+            var cmw = new Cci.BinaryWriter(customMetadata);
+
+            new EditAndContinueMethodDebugInformation(10, slots, closures, lambdas).SerializeLambdaMap(cmw);
+
+            var bytes = customMetadata.ToImmutableArray();
+
+            AssertEx.Equal(new byte[] { 0x0B, 0x01, 0x00 }, bytes);
+
+            var deserialized = EditAndContinueMethodDebugInformation.Create(default(ImmutableArray<byte>), bytes);
+
+            AssertEx.Equal(closures, deserialized.Closures);
+            AssertEx.Equal(lambdas, deserialized.Lambdas);
         }
     }
 }

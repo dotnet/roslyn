@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Globalization;
@@ -278,6 +278,14 @@ class C
         <using>
           <namespace usingCount=""1"" />
         </using>
+        <encLambdaMap>
+          <methodOrdinal>2</methodOrdinal>
+          <closure offset=""-45"" />
+          <lambda offset=""-147"" />
+          <lambda offset=""-109"" />
+          <lambda offset=""-45"" />
+          <lambda offset=""-40"" closure=""0"" />
+        </encLambdaMap>
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""9"" endColumn=""7"" document=""0"" />
@@ -348,6 +356,144 @@ class C
       <scope startOffset=""0x0"" endOffset=""0x1e"">
         <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x1e"" attributes=""0"" />
       </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        /// <summary>
+        /// Leading trivia is not included in the syntax offset.
+        /// </summary>
+        [Fact]
+        public void SyntaxOffsetInPresenceOfTrivia_Methods()
+        {
+            string source = @"
+class C
+{
+    public static void Main1() /*Comment1*/{/*Comment2*/int a = 1;/*Comment3*/}/*Comment4*/
+    public static void Main2() {/*Comment2*/int a = 2;/*Comment3*/}/*Comment4*/
+}";
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+
+            // verify that both syntax offsets are the same
+            c.VerifyPdb(@"
+<symbols>
+  <methods>
+    <method containingType=""C"" name=""Main1"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""17"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""4"" startColumn=""44"" endLine=""4"" endColumn=""45"" document=""0"" />
+        <entry offset=""0x1"" startLine=""4"" startColumn=""57"" endLine=""4"" endColumn=""67"" document=""0"" />
+        <entry offset=""0x3"" startLine=""4"" startColumn=""79"" endLine=""4"" endColumn=""80"" document=""0"" />
+      </sequencePoints>
+      <locals>
+        <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0x4"" attributes=""0"" />
+      </locals>
+      <scope startOffset=""0x0"" endOffset=""0x4"">
+        <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0x4"" attributes=""0"" />
+      </scope>
+    </method>
+    <method containingType=""C"" name=""Main2"">
+      <customDebugInfo>
+        <forward declaringType=""C"" methodName=""Main1"" />
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""17"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""32"" endLine=""5"" endColumn=""33"" document=""0"" />
+        <entry offset=""0x1"" startLine=""5"" startColumn=""45"" endLine=""5"" endColumn=""55"" document=""0"" />
+        <entry offset=""0x3"" startLine=""5"" startColumn=""67"" endLine=""5"" endColumn=""68"" document=""0"" />
+      </sequencePoints>
+      <locals>
+        <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0x4"" attributes=""0"" />
+      </locals>
+      <scope startOffset=""0x0"" endOffset=""0x4"">
+        <local name=""a"" il_index=""0"" il_start=""0x0"" il_end=""0x4"" attributes=""0"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        /// <summary>
+        /// Leading and trailing trivia are not included in the syntax offset.
+        /// </summary>
+        [Fact]
+        public void SyntaxOffsetInPresenceOfTrivia_Initializers()
+        {
+            string source = @"
+using System;
+class C1
+{
+    public static Func<int> e=() => 0;
+    public static Func<int> f/*Comment0*/=/*Comment1*/() => 1;/*Comment2*/
+    public static Func<int> g=() => 2;
+}
+class C2
+{
+    public static Func<int> e=() => 0;
+    public static Func<int> f=/*Comment1*/() => 1;
+    public static Func<int> g=() => 2;
+}
+";
+            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
+
+            // verify that syntax offsets of both .cctor's are the same
+            c.VerifyPdb("C1..cctor", @"
+<symbols>
+  <methods>
+    <method containingType=""C1"" name="".cctor"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+        <encLambdaMap>
+          <methodOrdinal>4</methodOrdinal>
+          <lambda offset=""-29"" />
+          <lambda offset=""-9"" />
+          <lambda offset=""-1"" />
+        </encLambdaMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""39"" document=""0"" />
+        <entry offset=""0x15"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""63"" document=""0"" />
+        <entry offset=""0x2a"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""39"" document=""0"" />
+      </sequencePoints>
+      <locals />
+      <scope startOffset=""0x0"" endOffset=""0x40"">
+        <namespace name=""System"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+
+            c.VerifyPdb("C2..cctor", @"
+<symbols>
+  <methods>
+    <method containingType=""C2"" name="".cctor"">
+      <customDebugInfo>
+        <forward declaringType=""C1"" methodName="".cctor"" />
+        <encLambdaMap>
+          <methodOrdinal>4</methodOrdinal>
+          <lambda offset=""-29"" />
+          <lambda offset=""-9"" />
+          <lambda offset=""-1"" />
+        </encLambdaMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""11"" startColumn=""5"" endLine=""11"" endColumn=""39"" document=""0"" />
+        <entry offset=""0x15"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""51"" document=""0"" />
+        <entry offset=""0x2a"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""39"" document=""0"" />
+      </sequencePoints>
+      <locals />
     </method>
   </methods>
 </symbols>");
@@ -1596,364 +1742,6 @@ public class Derived : Base
 
         #endregion
 
-        #region Lambdas
-
-        [WorkItem(539898, "DevDiv")]
-        [Fact]
-        public void LambdaSequencePoints_Body()
-        {
-            var source = @"using System;
-delegate void D();
-class C
-{
-    public static void Main()
-    {
-        D d = () => Console.Write(1);
-        d();
-    }
-}
-";
-
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"<symbols>
-  <methods>
-    <method containingType=""C"" name=""Main"">
-      <customDebugInfo>
-        <using>
-          <namespace usingCount=""1"" />
-        </using>
-        <encLocalSlotMap>
-          <slot kind=""0"" offset=""13"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x1"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""38"" document=""0"" />
-        <entry offset=""0x21"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""13"" document=""0"" />
-        <entry offset=""0x28"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""0"" />
-      </sequencePoints>
-      <locals>
-        <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0x29"" attributes=""0"" />
-      </locals>
-      <scope startOffset=""0x0"" endOffset=""0x29"">
-        <namespace name=""System"" />
-        <local name=""d"" il_index=""0"" il_start=""0x0"" il_end=""0x29"" attributes=""0"" />
-      </scope>
-    </method>
-    <method containingType=""C+&lt;&gt;c"" name=""&lt;Main&gt;b__0_0"">
-      <customDebugInfo>
-        <forward declaringType=""C"" methodName=""Main"" />
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""7"" startColumn=""21"" endLine=""7"" endColumn=""37"" document=""0"" />
-      </sequencePoints>
-      <locals />
-    </method>
-  </methods>
-</symbols>");
-        }
-
-        [Fact, WorkItem(543479, "DevDiv")]
-        public void Lambdas_Nested()
-        {
-            var source = @"using System;
-class Test
-{
-    public static int Main()
-    {
-         if (M(1) != 10) 
-            return 1;
-        return 0;
-    }
-
-    static public int M(int p)
-    {
-        Func<int, int> f1 = delegate(int x)
-        {
-            int q = 2;
-            Func<int, int> f2 = (y) => 
-            {
-                return p + q + x + y;
-            };
-            return f2(3);
-        };
-        return f1(4);
-    }
-}
-";
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugExe);
-            c.VerifyPdb(@"
-<symbols>
-  <entryPoint declaringType=""Test"" methodName=""Main"" />
-  <methods>
-    <method containingType=""Test"" name=""Main"">
-      <customDebugInfo>
-        <using>
-          <namespace usingCount=""1"" />
-        </using>
-        <encLocalSlotMap>
-          <slot kind=""1"" offset=""12"" />
-          <slot kind=""temp"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x1"" startLine=""6"" startColumn=""10"" endLine=""6"" endColumn=""25"" document=""0"" />
-        <entry offset=""0xf"" hidden=""true"" document=""0"" />
-        <entry offset=""0x12"" startLine=""7"" startColumn=""13"" endLine=""7"" endColumn=""22"" document=""0"" />
-        <entry offset=""0x16"" startLine=""8"" startColumn=""9"" endLine=""8"" endColumn=""18"" document=""0"" />
-        <entry offset=""0x1a"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""0"" />
-      </sequencePoints>
-      <locals />
-      <scope startOffset=""0x0"" endOffset=""0x1c"">
-        <namespace name=""System"" />
-      </scope>
-    </method>
-    <method containingType=""Test"" name=""M"" parameterNames=""p"">
-      <customDebugInfo>
-        <forward declaringType=""Test"" methodName=""Main"" />
-        <encLocalSlotMap>
-          <slot kind=""30"" offset=""0"" />
-          <slot kind=""0"" offset=""26"" />
-          <slot kind=""temp"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0xd"" startLine=""12"" startColumn=""5"" endLine=""12"" endColumn=""6"" document=""0"" />
-        <entry offset=""0xe"" startLine=""13"" startColumn=""9"" endLine=""21"" endColumn=""11"" document=""0"" />
-        <entry offset=""0x1b"" startLine=""22"" startColumn=""9"" endLine=""22"" endColumn=""22"" document=""0"" />
-        <entry offset=""0x25"" startLine=""23"" startColumn=""5"" endLine=""23"" endColumn=""6"" document=""0"" />
-      </sequencePoints>
-      <locals>
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
-        <local name=""f1"" il_index=""1"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
-      </locals>
-      <scope startOffset=""0x0"" endOffset=""0x27"">
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
-        <local name=""f1"" il_index=""1"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
-      </scope>
-    </method>
-    <method containingType=""Test+&lt;&gt;c__DisplayClass1_0"" name=""&lt;M&gt;b__0"" parameterNames=""x"">
-      <customDebugInfo>
-        <forward declaringType=""Test"" methodName=""Main"" />
-        <encLocalSlotMap>
-          <slot kind=""30"" offset=""0"" />
-          <slot kind=""0"" offset=""54"" />
-          <slot kind=""temp"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x14"" startLine=""14"" startColumn=""9"" endLine=""14"" endColumn=""10"" document=""0"" />
-        <entry offset=""0x15"" startLine=""15"" startColumn=""13"" endLine=""15"" endColumn=""23"" document=""0"" />
-        <entry offset=""0x1c"" startLine=""16"" startColumn=""13"" endLine=""19"" endColumn=""15"" document=""0"" />
-        <entry offset=""0x29"" startLine=""20"" startColumn=""13"" endLine=""20"" endColumn=""26"" document=""0"" />
-        <entry offset=""0x33"" startLine=""21"" startColumn=""9"" endLine=""21"" endColumn=""10"" document=""0"" />
-      </sequencePoints>
-      <locals>
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
-        <local name=""f2"" il_index=""1"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
-      </locals>
-      <scope startOffset=""0x0"" endOffset=""0x35"">
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
-        <local name=""f2"" il_index=""1"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
-      </scope>
-    </method>
-    <method containingType=""Test+&lt;&gt;c__DisplayClass1_1"" name=""&lt;M&gt;b__1"" parameterNames=""y"">
-      <customDebugInfo>
-        <forward declaringType=""Test"" methodName=""Main"" />
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""17"" startColumn=""13"" endLine=""17"" endColumn=""14"" document=""0"" />
-        <entry offset=""0x1"" startLine=""18"" startColumn=""17"" endLine=""18"" endColumn=""38"" document=""0"" />
-        <entry offset=""0x1f"" startLine=""19"" startColumn=""13"" endLine=""19"" endColumn=""14"" document=""0"" />
-      </sequencePoints>
-      <locals />
-    </method>
-  </methods>
-</symbols>");
-        }
-
-        [Fact, WorkItem(543479, "DevDiv")]
-        public void Lambdas_InitialSequencePoints()
-        {
-            var source = @"
-class Test
-{
-    void Foo(int p)
-    {
-        System.Func<int> f1 = () => p;
-        f1();
-    }
-}
-";
-            // Specifically note the sequence points at 0x0 in Test.Main, Test.M, and the lambda bodies.
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
-<symbols>
-  <methods>
-    <method containingType=""Test"" name=""Foo"" parameterNames=""p"">
-      <customDebugInfo>
-        <using>
-          <namespace usingCount=""0"" />
-        </using>
-        <encLocalSlotMap>
-          <slot kind=""30"" offset=""0"" />
-          <slot kind=""0"" offset=""28"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0xd"" startLine=""5"" startColumn=""5"" endLine=""5"" endColumn=""6"" document=""0"" />
-        <entry offset=""0xe"" startLine=""6"" startColumn=""9"" endLine=""6"" endColumn=""39"" document=""0"" />
-        <entry offset=""0x1b"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""14"" document=""0"" />
-        <entry offset=""0x22"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />
-      </sequencePoints>
-      <locals>
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x23"" attributes=""0"" />
-        <local name=""f1"" il_index=""1"" il_start=""0x0"" il_end=""0x23"" attributes=""0"" />
-      </locals>
-      <scope startOffset=""0x0"" endOffset=""0x23"">
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x23"" attributes=""0"" />
-        <local name=""f1"" il_index=""1"" il_start=""0x0"" il_end=""0x23"" attributes=""0"" />
-      </scope>
-    </method>
-    <method containingType=""Test+&lt;&gt;c__DisplayClass0_0"" name=""&lt;Foo&gt;b__0"">
-      <customDebugInfo>
-        <forward declaringType=""Test"" methodName=""Foo"" parameterNames=""p"" />
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""37"" endLine=""6"" endColumn=""38"" document=""0"" />
-      </sequencePoints>
-      <locals />
-    </method>
-  </methods>
-</symbols>");
-        }
-
-        [Fact, WorkItem(543479, "DevDiv")]
-        public void Lambdas_Nested_InitialSequencePoints()
-        {
-            var source = @"
-using System;
-class Test
-{
-    public static int Main()
-    {
-        if (M(1) != 10) // can't step into M() at all
-            return 1;
-        return 0;
-    }
-
-    static public int M(int p)
-    {
-        Func<int, int> f1 = delegate(int x)
-        {
-            int q = 2;
-            Func<int, int> f2 = (y) => { return p + q + x + y; };
-            return f2(3);
-        };
-        return f1(4);
-    }
-}
-";
-            // Specifically note the sequence points at 0x0 in Test.Main, Test.M, and the lambda bodies.
-            var c = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.DebugDll);
-            c.VerifyPdb(@"
-<symbols>
-  <methods>
-    <method containingType=""Test"" name=""Main"">
-      <customDebugInfo>
-        <using>
-          <namespace usingCount=""1"" />
-        </using>
-        <encLocalSlotMap>
-          <slot kind=""1"" offset=""11"" />
-          <slot kind=""temp"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""0"" />
-        <entry offset=""0x1"" startLine=""7"" startColumn=""9"" endLine=""7"" endColumn=""24"" document=""0"" />
-        <entry offset=""0xf"" hidden=""true"" document=""0"" />
-        <entry offset=""0x12"" startLine=""8"" startColumn=""13"" endLine=""8"" endColumn=""22"" document=""0"" />
-        <entry offset=""0x16"" startLine=""9"" startColumn=""9"" endLine=""9"" endColumn=""18"" document=""0"" />
-        <entry offset=""0x1a"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""0"" />
-      </sequencePoints>
-      <locals />
-      <scope startOffset=""0x0"" endOffset=""0x1c"">
-        <namespace name=""System"" />
-      </scope>
-    </method>
-    <method containingType=""Test"" name=""M"" parameterNames=""p"">
-      <customDebugInfo>
-        <forward declaringType=""Test"" methodName=""Main"" />
-        <encLocalSlotMap>
-          <slot kind=""30"" offset=""0"" />
-          <slot kind=""0"" offset=""26"" />
-          <slot kind=""temp"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0xd"" startLine=""13"" startColumn=""5"" endLine=""13"" endColumn=""6"" document=""0"" />
-        <entry offset=""0xe"" startLine=""14"" startColumn=""9"" endLine=""19"" endColumn=""11"" document=""0"" />
-        <entry offset=""0x1b"" startLine=""20"" startColumn=""9"" endLine=""20"" endColumn=""22"" document=""0"" />
-        <entry offset=""0x25"" startLine=""21"" startColumn=""5"" endLine=""21"" endColumn=""6"" document=""0"" />
-      </sequencePoints>
-      <locals>
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
-        <local name=""f1"" il_index=""1"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
-      </locals>
-      <scope startOffset=""0x0"" endOffset=""0x27"">
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
-        <local name=""f1"" il_index=""1"" il_start=""0x0"" il_end=""0x27"" attributes=""0"" />
-      </scope>
-    </method>
-    <method containingType=""Test+&lt;&gt;c__DisplayClass1_0"" name=""&lt;M&gt;b__0"" parameterNames=""x"">
-      <customDebugInfo>
-        <forward declaringType=""Test"" methodName=""Main"" />
-        <encLocalSlotMap>
-          <slot kind=""30"" offset=""0"" />
-          <slot kind=""0"" offset=""54"" />
-          <slot kind=""temp"" />
-        </encLocalSlotMap>
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" hidden=""true"" document=""0"" />
-        <entry offset=""0x14"" startLine=""15"" startColumn=""9"" endLine=""15"" endColumn=""10"" document=""0"" />
-        <entry offset=""0x15"" startLine=""16"" startColumn=""13"" endLine=""16"" endColumn=""23"" document=""0"" />
-        <entry offset=""0x1c"" startLine=""17"" startColumn=""13"" endLine=""17"" endColumn=""66"" document=""0"" />
-        <entry offset=""0x29"" startLine=""18"" startColumn=""13"" endLine=""18"" endColumn=""26"" document=""0"" />
-        <entry offset=""0x33"" startLine=""19"" startColumn=""9"" endLine=""19"" endColumn=""10"" document=""0"" />
-      </sequencePoints>
-      <locals>
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
-        <local name=""f2"" il_index=""1"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
-      </locals>
-      <scope startOffset=""0x0"" endOffset=""0x35"">
-        <local name=""CS$&lt;&gt;8__locals0"" il_index=""0"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
-        <local name=""f2"" il_index=""1"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
-      </scope>
-    </method>
-    <method containingType=""Test+&lt;&gt;c__DisplayClass1_1"" name=""&lt;M&gt;b__1"" parameterNames=""y"">
-      <customDebugInfo>
-        <forward declaringType=""Test"" methodName=""Main"" />
-      </customDebugInfo>
-      <sequencePoints>
-        <entry offset=""0x0"" startLine=""17"" startColumn=""40"" endLine=""17"" endColumn=""41"" document=""0"" />
-        <entry offset=""0x1"" startLine=""17"" startColumn=""42"" endLine=""17"" endColumn=""63"" document=""0"" />
-        <entry offset=""0x1f"" startLine=""17"" startColumn=""64"" endLine=""17"" endColumn=""65"" document=""0"" />
-      </sequencePoints>
-      <locals />
-    </method>
-  </methods>
-</symbols>");
-        }
-
-        #endregion
-
         #region Field and Property Initializers
 
         [Fact]
@@ -2125,6 +1913,10 @@ class C
         <using>
           <namespace usingCount=""0"" />
         </using>
+        <encLambdaMap>
+          <methodOrdinal>1</methodOrdinal>
+          <lambda offset=""-6"" />
+        </encLambdaMap>
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""50"" document=""0"" />

@@ -1,4 +1,4 @@
-﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System
 Imports System.Collections.Concurrent
@@ -1550,6 +1550,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return New MethodBody(builder.RealizedIL,
                                       builder.MaxStack,
                                       If(method.PartialDefinitionPart, method),
+                                      0, ' TODO: implement Lambda EnC
                                       builder.LocalSlotManager.LocalsInOrder(),
                                       builder.RealizedSequencePoints,
                                       debugDocumentProvider,
@@ -1558,6 +1559,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       hasDynamicLocalVariables:=False,
                                       namespaceScopes:=namespaceScopes,
                                       namespaceScopeEncoding:=Cci.NamespaceScopeEncoding.Forwarding,
+                                      lambdaDebugInfo:=ImmutableArray(Of LambdaDebugInfo).Empty,
+                                      closureDebugInfo:=ImmutableArray(Of ClosureDebugInfo).Empty,
                                       stateMachineTypeNameOpt:=stateMachineTypeOpt?.Name, ' TODO: remove or update AddedOrChangedMethodInfo
                                       stateMachineHoistedLocalScopes:=Nothing,
                                       stateMachineHoistedLocalSlots:=stateMachineHoistedLocalSlots,

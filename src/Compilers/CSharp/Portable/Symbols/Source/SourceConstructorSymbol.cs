@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ConstructorDeclarationSyntax syntax,
             MethodKind methodKind,
             DiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), syntax.Body.GetReferenceOrNull(), ImmutableArray.Create(location))
+            base(containingType, syntax.GetReference(), syntax.Body?.GetReference(), ImmutableArray.Create(location))
         {
             bool modifierErrors;
             var declarationModifiers = this.MakeModifiers(syntax.Modifiers, methodKind, location, diagnostics, out modifierErrors);
@@ -229,18 +229,56 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return true; }
         }
 
-        internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
+        internal override int CalculateLocalSyntaxOffset(int position, SyntaxTree tree)
         {
+            Debug.Assert(position >= 0 && tree != null);
+
             TextSpan span;
 
-            // local defined within the body of the constructor:
-            if (bodySyntaxReferenceOpt != null && localTree == bodySyntaxReferenceOpt.SyntaxTree)
+            // local/lambda/closure defined within the body of the constructor:
+            if (tree == bodySyntaxReferenceOpt?.SyntaxTree)
             {
                 span = bodySyntaxReferenceOpt.Span;
-                if (span.Contains(localPosition))
+                if (span.Contains(position))
                 {
-                    return localPosition - span.Start;
+                    return position - span.Start;
                 }
+            }
+
+            var ctorSyntax = GetSyntax();
+
+            // closure in ctor initializer lifting its parameter(s) spans the constructor declaration:
+            if (position == ctorSyntax.SpanStart)
+            {
+                // Use a constant that is distinct from any other syntax offset.
+                // -1 works since a field initializer and a consturctor declaration header can't squeeze into a single character.
+                return -1;
+            }
+
+            // lambdas in ctor initializer:
+            int ctorInitializerLength;
+            var ctorInitializer = ctorSyntax.Initializer;
+            if (tree == ctorInitializer?.SyntaxTree)
+            {
+                span = ctorInitializer.Span;
+                ctorInitializerLength = span.Length;
+
+                if (span.Contains(position))
+                {
+                    return -ctorInitializerLength + (position - span.Start);
+                }
+            }
+            else
+            {
+                ctorInitializerLength = 0;
+            }
+
+            // lambdas in field/property initializers:
+            int syntaxOffset;
+            var containingType = (SourceNamedTypeSymbol)this.ContainingType;
+            if (containingType.TryCalculateSyntaxOffsetOfPositionInInitializer(position, tree, this.IsStatic, ctorInitializerLength, out syntaxOffset))
+            {
+                return syntaxOffset;
             }
 
             // we haven't found the contructor part that declares the variable:

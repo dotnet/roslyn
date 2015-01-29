@@ -1032,6 +1032,12 @@ class Test
           <slot kind=""0"" offset=""43"" />
           <slot kind=""0"" offset=""102"" />
         </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>2</methodOrdinal>
+          <lambda offset=""27"" />
+          <lambda offset=""63"" />
+          <lambda offset=""125"" />
+        </encLambdaMap>
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />
@@ -1216,6 +1222,11 @@ class Test
           <slot kind=""0"" offset=""948"" />
           <slot kind=""0"" offset=""1018"" />
         </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>0</methodOrdinal>
+          <lambda offset=""1139"" />
+          <lambda offset=""1231"" />
+        </encLambdaMap>
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""0"" />

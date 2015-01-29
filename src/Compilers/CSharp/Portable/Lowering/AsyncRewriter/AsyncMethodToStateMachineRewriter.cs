@@ -95,13 +95,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to find the previous awaiter field.
             if (!awaiterFields.TryGetValue(awaiterType, out result))
             {
-                int slotIndex = -1;
-                if (slotAllocatorOpt != null)
-                {
-                    slotIndex = slotAllocatorOpt.GetPreviousAwaiterSlotIndex((Cci.ITypeReference)awaiterType);
-                }
-
-                if (slotIndex == -1)
+                int slotIndex;
+                if (slotAllocatorOpt == null || !slotAllocatorOpt.TryGetPreviousAwaiterSlotIndex((Cci.ITypeReference)awaiterType, out slotIndex))
                 {
                     slotIndex = nextAwaiterId++;
                 }

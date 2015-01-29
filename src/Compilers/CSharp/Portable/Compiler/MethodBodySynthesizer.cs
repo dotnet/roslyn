@@ -519,8 +519,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         }
 
-        internal static BoundBlock ConstructDestructorBody(CSharpSyntaxNode syntax, MethodSymbol method, BoundBlock block)
+        internal static BoundBlock ConstructDestructorBody(MethodSymbol method, BoundBlock block)
         {
+            var syntax = block.Syntax;
+
             Debug.Assert(method.MethodKind == MethodKind.Destructor);
             Debug.Assert(syntax.Kind() == SyntaxKind.Block);
 

@@ -793,6 +793,7 @@
     <Compile Include="Syntax\SyntaxEquivalence.cs" />
     <Compile Include="Syntax\SyntaxExtensions.cs" />
     <Compile Include="Syntax\SyntaxFactory.cs" />
+    <Compile Include="Syntax\SyntaxUtilities.cs" />
     <Compile Include="Syntax\SyntaxFormatter.cs" />
     <Compile Include="Syntax\SyntaxKind.cs" />
     <Compile Include="Syntax\SyntaxKindEqualityComparer.cs" />
@@ -808,7 +809,7 @@
     <Compile Include="Syntax\SyntaxListBuilderExtensions.cs" />
     <Compile Include="Syntax\SyntaxNavigator.cs" />
     <Compile Include="Syntax\SyntaxNodeExtensions.cs" />
-    <Compile Include="Syntax\SyntaxNodeFacts.cs" />
+    <Compile Include="Syntax\SyntaxFacts.cs" />
     <Compile Include="Syntax\SyntaxNodeOrTokenListBuilder.cs" />
     <Compile Include="Syntax\SyntaxNodeRemover.cs" />
     <Compile Include="Syntax\SyntaxReplacer.cs" />

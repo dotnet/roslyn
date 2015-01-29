@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports CompilerSyntaxUtilities = Microsoft.CodeAnalysis.VisualBasic.SyntaxUtilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
     <ExportLanguageService(GetType(IEditAndContinueAnalyzer), LanguageNames.VisualBasic), [Shared]>
@@ -418,7 +419,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
         End Function
 
         Protected Overrides Function GetPartnerLambdaBody(oldBody As SyntaxNode, newLambda As SyntaxNode) As SyntaxNode
-            Return SyntaxUtilities.GetPartnerLambdaBody(oldBody, newLambda)
+            Return CompilerSyntaxUtilities.GetCorrespondingLambdaBody(oldBody, newLambda)
         End Function
 
         Protected Overrides Function ComputeTopLevelMatch(oldCompilationUnit As SyntaxNode, newCompilationUnit As SyntaxNode) As Match(Of SyntaxNode)

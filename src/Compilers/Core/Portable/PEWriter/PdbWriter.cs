@@ -153,8 +153,10 @@ namespace Microsoft.Cci
             bool suppressNewCustomDebugInfo = !compilationOptions.ExtendedCustomDebugInformation ||
                 (compilationOptions.OutputKind == OutputKind.WindowsRuntimeMetadata);
 
+            bool emitEncInfo = compilationOptions.EnableEditAndContinue && !_metadataWriter.IsFullMetadata;
+
             bool emitExternNamespaces;
-            byte[] blob = customDebugInfoWriter.SerializeMethodDebugInfo(module, methodBody, methodToken, !_metadataWriter.IsFullMetadata, suppressNewCustomDebugInfo, out emitExternNamespaces);
+            byte[] blob = customDebugInfoWriter.SerializeMethodDebugInfo(module, methodBody, methodToken, emitEncInfo, suppressNewCustomDebugInfo, out emitExternNamespaces);
             if (blob != null)
             {
                 DefineCustomMetadata("MD2", blob);

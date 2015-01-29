@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static string MakeMethodScopedSynthesizedName(GeneratedNameKind kind, int methodOrdinal, int generation, string methodNameOpt = null, string suffix = null, int uniqueId = -1, bool isTypeName = false)
         {
             Debug.Assert(methodOrdinal >= -1);
-            Debug.Assert(generation >= 0);
+            Debug.Assert(generation >= 0 || generation == -1 && methodOrdinal == -1);
             Debug.Assert(uniqueId >= -1);
 
             var result = PooledStringBuilder.GetInstance();

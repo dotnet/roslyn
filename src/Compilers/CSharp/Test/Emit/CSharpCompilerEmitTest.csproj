@@ -170,6 +170,7 @@
     <Compile Include="PDB\PDBDynamicLocalsTests.cs" />
     <Compile Include="PDB\CSharpPDBTestBase.cs" />
     <Compile Include="PDB\PDBIteratorTests.cs" />
+    <Compile Include="PDB\PDBLambdaTests.cs" />
     <Compile Include="PDB\PDBTests.cs" />
     <Compile Include="PDB\PDBUsingTests.cs" />
     <Compile Include="PDB\PDBWinMdExpTests.cs" />

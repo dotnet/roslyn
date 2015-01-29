@@ -210,6 +210,21 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 {
                     get { return default(ImmutableArray<Cci.ITypeReference>); }
                 }
+
+                ImmutableArray<ClosureDebugInfo> Cci.IMethodBody.ClosureDebugInfo
+                {
+                    get { return default(ImmutableArray<ClosureDebugInfo>); }
+                }
+
+                ImmutableArray<LambdaDebugInfo> Cci.IMethodBody.LambdaDebugInfo
+                {
+                    get { return default(ImmutableArray<LambdaDebugInfo>); }
+                }
+
+                public int MethodOrdinal
+                {
+                    get { return -1; }
+                }
             }
 
             IEnumerable<Cci.IGenericMethodParameter> Cci.IMethodDefinition.GenericParameters

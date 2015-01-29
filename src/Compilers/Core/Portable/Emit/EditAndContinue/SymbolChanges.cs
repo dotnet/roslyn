@@ -64,17 +64,20 @@ namespace Microsoft.CodeAnalysis.Emit
                             return SymbolChange.Added;
                         }
 
-                        // The symbol should be reused when the generator is updated.
-                        if (!synthesizedDef.HasMethodBodyDependency)
-                        {
-                            return SymbolChange.None;
-                        }
-
                         if (!_definitionMap.DefinitionExists(def))
                         {
                             // A method was changed to a method containing a lambda, to an interator, or to an async method.
                             // The state machine or closure class has been added.
                             return SymbolChange.Added;
+                        }
+
+                        // The existing symbol should be reused when the generator is updated,
+                        // not updated since it's form doesn't depend on the content of the generator.
+                        // For example, when an iterator method changes all methods that implement IEnumerable 
+                        // but MoveNext can be reused as they are.
+                        if (!synthesizedDef.HasMethodBodyDependency)
+                        {
+                            return SymbolChange.None;
                         }
 
                         // If the type produced from the method body existed before then its members are updated.
@@ -88,7 +91,7 @@ namespace Microsoft.CodeAnalysis.Emit
                             // The method body might have been updated.
                             return SymbolChange.Updated;
                         }
-
+                        
                         return SymbolChange.None;
 
                     case SymbolChange.Added:

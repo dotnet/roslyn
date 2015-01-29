@@ -225,10 +225,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var body = scriptEntryPoint.CreateBody();
 
+                const int methodOrdinal = -1;
+
                 var emittedBody = GenerateMethodBody(
                     moduleBeingBuilt,
                     scriptEntryPoint,
+                    methodOrdinal,
                     body,
+                    ImmutableArray<LambdaDebugInfo>.Empty,
+                    ImmutableArray<ClosureDebugInfo>.Empty,
                     stateMachineTypeOpt: null,
                     variableSlotAllocatorOpt: null,
                     diagnostics: diagnostics,
@@ -612,7 +617,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     emittedBody = GenerateMethodBody(
                         moduleBeingBuiltOpt,
                         method,
+                        methodOrdinal,
                         bodyWithoutAsync,
+                        ImmutableArray<LambdaDebugInfo>.Empty,
+                        ImmutableArray<ClosureDebugInfo>.Empty,
                         stateMachineType,
                         variableSlotAllocatorOpt,
                         diagnosticsThisMethod,
@@ -705,10 +713,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // or if had declaration errors - we will fail anyways, but if some types are bad enough, generating may produce duplicate errors about that.
                 if (!hasErrors && !hasDeclarationErrors)
                 {
+                    const int accessorOrdinal = -1;
+
                     MethodBody emittedBody = GenerateMethodBody(
                         moduleBeingBuiltOpt,
                         accessor,
+                        accessorOrdinal,
                         boundBody,
+                        ImmutableArray<LambdaDebugInfo>.Empty,
+                        ImmutableArray<ClosureDebugInfo>.Empty,
                         stateMachineTypeOpt: null,
                         variableSlotAllocatorOpt: null,
                         diagnostics: diagnosticsThisMethod,
@@ -941,134 +954,152 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // and will not be reported to callers Compilation.GetDiagnostics()
 
                 bool hasBody = flowAnalyzedBody != null;
-                VariableSlotAllocator variableSlotAllocatorOpt = null;
+                VariableSlotAllocator lazyVariableSlotAllocator = null;
                 StateMachineTypeSymbol stateMachineTypeOpt = null;
-                int lambdaOrdinalDispenser = 0;
-                int scopeOrdinalDispenser = 0;
+                var lambdaDebugInfoBuilder = ArrayBuilder<LambdaDebugInfo>.GetInstance();
+                var closureDebugInfoBuilder = ArrayBuilder<ClosureDebugInfo>.GetInstance();
                 BoundStatement loweredBodyOpt = null;
 
-                if (hasBody)
+                try
                 {
-                    loweredBodyOpt = LowerBodyOrInitializer(
-                        methodSymbol,
-                        methodOrdinal,
-                        flowAnalyzedBody,
-                        previousSubmissionFields,
-                        compilationState,
-                        diagsForCurrentMethod,
-                        ref lambdaOrdinalDispenser,
-                        ref scopeOrdinalDispenser,
-                        out stateMachineTypeOpt,
-                        out variableSlotAllocatorOpt);
-
-                    Debug.Assert(loweredBodyOpt != null);
-                }
-                else
-                {
-                    loweredBodyOpt = null;
-                }
-
-                hasErrors = hasErrors || (hasBody && loweredBodyOpt.HasErrors) || diagsForCurrentMethod.HasAnyErrors();
-                SetGlobalErrorIfTrue(hasErrors);
-
-                // don't emit if the resulting method would contain initializers with errors
-                if (!hasErrors && (hasBody || includeInitializersInBody))
-                {
-                    // Fields must be initialized before constructor initializer (which is the first statement of the analyzed body, if specified),
-                    // so that the initialization occurs before any method overridden by the declaring class can be invoked from the base constructor
-                    // and access the fields.
-
-                    ImmutableArray<BoundStatement> boundStatements;
-
-                    if (methodSymbol.IsScriptConstructor)
+                    if (hasBody)
                     {
-                        boundStatements = MethodBodySynthesizer.ConstructScriptConstructorBody(loweredBodyOpt, methodSymbol, previousSubmissionFields, compilation);
-                    }
-                    else
-                    {
-                        boundStatements = ImmutableArray<BoundStatement>.Empty;
-
-                        if (analyzedInitializers != null)
-                        {
-                            processedInitializers.LoweredInitializers = (BoundStatementList)LowerBodyOrInitializer(
-                                methodSymbol,
-                                methodOrdinal,
-                                analyzedInitializers,
-                                previousSubmissionFields,
-                                compilationState,
-                                diagsForCurrentMethod,
-                                ref lambdaOrdinalDispenser,
-                                ref scopeOrdinalDispenser,
-                                out stateMachineTypeOpt,
-                                out variableSlotAllocatorOpt);
-
-                            // initializers can't produce state machines
-                            Debug.Assert(stateMachineTypeOpt == null);
-
-                            Debug.Assert(processedInitializers.LoweredInitializers.Kind == BoundKind.StatementList);
-                            Debug.Assert(!hasErrors);
-                            hasErrors = processedInitializers.LoweredInitializers.HasAnyErrors || diagsForCurrentMethod.HasAnyErrors();
-                            SetGlobalErrorIfTrue(hasErrors);
-
-                            if (hasErrors)
-                            {
-                                this.diagnostics.AddRange(diagsForCurrentMethod);
-                                return;
-                            }
-                        }
-
-                        // initializers for global code have already been included in the body
-                        if (includeInitializersInBody)
-                        {
-                            boundStatements = boundStatements.Concat(processedInitializers.LoweredInitializers.Statements);
-                        }
-
-                        if (hasBody)
-                        {
-                            boundStatements = boundStatements.Concat(ImmutableArray.Create(loweredBodyOpt));
-                        }
-                    }
-
-                    // generated struct constructors should ensure that all fields are assigned (even those that do not have initializers)
-                    var container = methodSymbol.ContainingType as SourceMemberContainerTypeSymbol;
-                    if (container != null &&
-                        container.IsStructType() &&
-                        methodSymbol.IsImplicitInstanceConstructor)
-                    {
-                        var chain = ChainImplicitStructConstructor(methodSymbol, container);
-                        chain = LowerBodyOrInitializer(
+                        loweredBodyOpt = LowerBodyOrInitializer(
                             methodSymbol,
                             methodOrdinal,
-                            chain,
+                            flowAnalyzedBody,
                             previousSubmissionFields,
                             compilationState,
                             diagsForCurrentMethod,
-                            ref lambdaOrdinalDispenser,
-                            ref scopeOrdinalDispenser,
-                            out stateMachineTypeOpt,
-                            out variableSlotAllocatorOpt);
+                            ref lazyVariableSlotAllocator,
+                            lambdaDebugInfoBuilder,
+                            closureDebugInfoBuilder,
+                            out stateMachineTypeOpt);
 
-                        boundStatements = boundStatements.Insert(0, chain);
+                        Debug.Assert(loweredBodyOpt != null);
+                    }
+                    else
+                    {
+                        loweredBodyOpt = null;
                     }
 
-                    CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
+                    hasErrors = hasErrors || (hasBody && loweredBodyOpt.HasErrors) || diagsForCurrentMethod.HasAnyErrors();
+                    SetGlobalErrorIfTrue(hasErrors);
 
-                    var boundBody = BoundStatementList.Synthesized(syntax, boundStatements);
+                    // don't emit if the resulting method would contain initializers with errors
+                    if (!hasErrors && (hasBody || includeInitializersInBody))
+                    {
+                        // Fields must be initialized before constructor initializer (which is the first statement of the analyzed body, if specified),
+                        // so that the initialization occurs before any method overridden by the declaring class can be invoked from the base constructor
+                        // and access the fields.
 
-                    var emittedBody = GenerateMethodBody(
-                        moduleBeingBuiltOpt,
-                        methodSymbol,
-                        boundBody,
-                        stateMachineTypeOpt,
-                        variableSlotAllocatorOpt,
-                        diagsForCurrentMethod,
-                        debugDocumentProvider,
-                        GetNamespaceScopes(methodSymbol, debugImports));
+                        ImmutableArray<BoundStatement> boundStatements;
 
-                    moduleBeingBuiltOpt.SetMethodBody(methodSymbol.PartialDefinitionPart ?? methodSymbol, emittedBody);
+                        if (methodSymbol.IsScriptConstructor)
+                        {
+                            boundStatements = MethodBodySynthesizer.ConstructScriptConstructorBody(loweredBodyOpt, methodSymbol, previousSubmissionFields, compilation);
+                        }
+                        else
+                        {
+                            boundStatements = ImmutableArray<BoundStatement>.Empty;
+
+                            if (analyzedInitializers != null)
+                            {
+                                StateMachineTypeSymbol initializerStateMachineTypeOpt = null;
+
+                                processedInitializers.LoweredInitializers = (BoundStatementList)LowerBodyOrInitializer(
+                                    methodSymbol,
+                                    methodOrdinal,
+                                    analyzedInitializers,
+                                    previousSubmissionFields,
+                                    compilationState,
+                                    diagsForCurrentMethod,
+                                    ref lazyVariableSlotAllocator,
+                                    lambdaDebugInfoBuilder,
+                                    closureDebugInfoBuilder,
+                                    out initializerStateMachineTypeOpt);
+
+                                // initializers can't produce state machines
+                                Debug.Assert((object)initializerStateMachineTypeOpt == null);
+
+                                Debug.Assert(processedInitializers.LoweredInitializers.Kind == BoundKind.StatementList);
+                                Debug.Assert(!hasErrors);
+                                hasErrors = processedInitializers.LoweredInitializers.HasAnyErrors || diagsForCurrentMethod.HasAnyErrors();
+                                SetGlobalErrorIfTrue(hasErrors);
+
+                                if (hasErrors)
+                                {
+                                    this.diagnostics.AddRange(diagsForCurrentMethod);
+                                    return;
+                                }
+                            }
+
+                            // initializers for global code have already been included in the body
+                            if (includeInitializersInBody)
+                            {
+                                boundStatements = boundStatements.Concat(processedInitializers.LoweredInitializers.Statements);
+                            }
+
+                            if (hasBody)
+                            {
+                                boundStatements = boundStatements.Concat(ImmutableArray.Create(loweredBodyOpt));
+                            }
+                        }
+
+                        // generated struct constructors should ensure that all fields are assigned (even those that do not have initializers)
+                        var container = methodSymbol.ContainingType as SourceMemberContainerTypeSymbol;
+                        if (container != null &&
+                            container.IsStructType() &&
+                            methodSymbol.IsImplicitInstanceConstructor)
+                        {
+                            StateMachineTypeSymbol ctorStateMachineTypeOpt;
+
+                            var chain = ChainImplicitStructConstructor(methodSymbol, container);
+                            chain = LowerBodyOrInitializer(
+                                methodSymbol,
+                                methodOrdinal,
+                                chain,
+                                previousSubmissionFields,
+                                compilationState,
+                                diagsForCurrentMethod,
+                                ref lazyVariableSlotAllocator,
+                                lambdaDebugInfoBuilder,
+                                closureDebugInfoBuilder,
+                                out ctorStateMachineTypeOpt);
+
+                            // construcot can't produce state machine
+                            Debug.Assert((object)ctorStateMachineTypeOpt == null);
+
+                            boundStatements = boundStatements.Insert(0, chain);
+                        }
+
+                        CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
+
+                        var boundBody = BoundStatementList.Synthesized(syntax, boundStatements);
+
+                        var emittedBody = GenerateMethodBody(
+                            moduleBeingBuiltOpt,
+                            methodSymbol,
+                            methodOrdinal,
+                            boundBody,
+                            lambdaDebugInfoBuilder.ToImmutable(),
+                            closureDebugInfoBuilder.ToImmutable(),
+                            stateMachineTypeOpt,
+                            lazyVariableSlotAllocator,
+                            diagsForCurrentMethod,
+                            debugDocumentProvider,
+                            GetNamespaceScopes(methodSymbol, debugImports));
+
+                        moduleBeingBuiltOpt.SetMethodBody(methodSymbol.PartialDefinitionPart ?? methodSymbol, emittedBody);
+                    }
+
+                    this.diagnostics.AddRange(diagsForCurrentMethod);
                 }
-
-                this.diagnostics.AddRange(diagsForCurrentMethod);
+                finally
+                {
+                    lambdaDebugInfoBuilder.Free();
+                    closureDebugInfoBuilder.Free();
+                }
             }
             finally
             {
@@ -1107,14 +1138,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             SynthesizedSubmissionFields previousSubmissionFields,
             TypeCompilationState compilationState,
             DiagnosticBag diagnostics,
-            ref int lambdaOrdinalDispenser,
-            ref int scopeOrdinalDispenser,
-            out StateMachineTypeSymbol stateMachineTypeOpt,
-            out VariableSlotAllocator variableSlotAllocatorOpt)
+            ref VariableSlotAllocator lazyVariableSlotAllocator,
+            ArrayBuilder<LambdaDebugInfo> lambdaDebugInfoBuilder,
+            ArrayBuilder<ClosureDebugInfo> closureDebugInfoBuilder,
+            out StateMachineTypeSymbol stateMachineTypeOpt)
         {
             Debug.Assert(compilationState.ModuleBuilderOpt != null);
             stateMachineTypeOpt = null;
-            variableSlotAllocatorOpt = null;
 
             if (body.HasErrors)
             {
@@ -1162,16 +1192,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return loweredBody;
             }
 
-            variableSlotAllocatorOpt = compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method);
+            if (lazyVariableSlotAllocator == null)
+            {
+                lazyVariableSlotAllocator = compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method);
+            }
 
             BoundStatement bodyWithoutLambdas = loweredBody;
             if (sawLambdas)
             {
-                var lambdaAnalysis = LambdaRewriter.Analysis.Analyze(loweredBody, method);
-                if (lambdaAnalysis.SeenLambda)
-                {
-                    bodyWithoutLambdas = LambdaRewriter.Rewrite(loweredBody, method.ContainingType, method.ThisParameter, method, methodOrdinal, ref lambdaOrdinalDispenser, ref scopeOrdinalDispenser, variableSlotAllocatorOpt, compilationState, diagnostics, lambdaAnalysis);
-                }
+                bodyWithoutLambdas = LambdaRewriter.Rewrite(
+                    loweredBody,
+                    method.ContainingType,
+                    method.ThisParameter,
+                    method,
+                    methodOrdinal,
+                    lambdaDebugInfoBuilder,
+                    closureDebugInfoBuilder,
+                    lazyVariableSlotAllocator,
+                    compilationState,
+                    diagnostics,
+                    assignLocals: false);
             }
 
             if (bodyWithoutLambdas.HasErrors)
@@ -1180,7 +1220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             IteratorStateMachine iteratorStateMachine;
-            BoundStatement bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLambdas, method, methodOrdinal, variableSlotAllocatorOpt, compilationState, diagnostics, out iteratorStateMachine);
+            BoundStatement bodyWithoutIterators = IteratorRewriter.Rewrite(bodyWithoutLambdas, method, methodOrdinal, lazyVariableSlotAllocator, compilationState, diagnostics, out iteratorStateMachine);
 
             if (bodyWithoutIterators.HasErrors)
             {
@@ -1188,7 +1228,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             AsyncStateMachine asyncStateMachine;
-            BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators, method, methodOrdinal, variableSlotAllocatorOpt, compilationState, diagnostics, out asyncStateMachine);
+            BoundStatement bodyWithoutAsync = AsyncRewriter.Rewrite(bodyWithoutIterators, method, methodOrdinal, lazyVariableSlotAllocator, compilationState, diagnostics, out asyncStateMachine);
 
             Debug.Assert(iteratorStateMachine == null || asyncStateMachine == null);
             stateMachineTypeOpt = (StateMachineTypeSymbol)iteratorStateMachine ?? asyncStateMachine;
@@ -1199,7 +1239,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static MethodBody GenerateMethodBody(
             PEModuleBuilder moduleBuilder,
             MethodSymbol method,
+            int methodOrdinal,
             BoundStatement block, 
+            ImmutableArray<LambdaDebugInfo> lambdaDebugInfo,
+            ImmutableArray<ClosureDebugInfo> closureDebugInfo,
             StateMachineTypeSymbol stateMachineTypeOpt,
             VariableSlotAllocator variableSlotAllocatorOpt,
             DiagnosticBag diagnostics,
@@ -1286,6 +1329,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.RealizedIL,
                     builder.MaxStack,
                     method.PartialDefinitionPart ?? method,
+                    methodOrdinal,
                     localVariables,
                     builder.RealizedSequencePoints,
                     debugDocumentProvider,
@@ -1294,6 +1338,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     builder.HasDynamicLocal,
                     namespaceScopes,
                     Cci.NamespaceScopeEncoding.InPlace,
+                    lambdaDebugInfo,
+                    closureDebugInfo,
                     stateMachineTypeOpt?.Name,
                     stateMachineHoistedLocalScopes,
                     stateMachineHoistedLocalSlots,
@@ -1470,33 +1516,35 @@ namespace Microsoft.CodeAnalysis.CSharp
                 body = null;
             }
 
-            var statements = ArrayBuilder<BoundStatement>.GetInstance();
+            ImmutableArray<BoundStatement> statements;
 
-            if (constructorInitializer != null)
+            if (constructorInitializer == null)
             {
-                statements.Add(constructorInitializer);
+                if (body != null)
+                {
+                    // most common case - we just have a single block for the body.
+                    if (method.MethodKind == MethodKind.Destructor)
+                    {
+                        return MethodBodySynthesizer.ConstructDestructorBody(method, body);
+                    }
+                    else
+                    {
+                        return body;
+                    }
+                }
+
+                statements = ImmutableArray<BoundStatement>.Empty;
             }
-
-            if (body != null)
+            else if (body == null)
             {
-                statements.Add(body);
-            }
-
-            CSharpSyntaxNode syntax = body != null ? body.Syntax : method.GetNonNullSyntaxNode();
-            BoundBlock block;
-
-            if (statements.Count == 1 && statements[0].Kind == ((body == null) ? BoundKind.Block : body.Kind))
-            {
-                // most common case - we just have a single block for the body.
-                block = (BoundBlock)statements[0];
-                statements.Free();
+                statements = ImmutableArray.Create(constructorInitializer);
             }
             else
             {
-                block = new BoundBlock(syntax, ImmutableArray<LocalSymbol>.Empty, statements.ToImmutableAndFree()) { WasCompilerGenerated = true };
+                statements = ImmutableArray.Create(constructorInitializer, body);
             }
 
-            return method.MethodKind == MethodKind.Destructor ? MethodBodySynthesizer.ConstructDestructorBody(syntax, method, block) : block;
+            return new BoundBlock(method.GetNonNullSyntaxNode(), ImmutableArray<LocalSymbol>.Empty, statements) { WasCompilerGenerated = true };
         }
 
         /// <summary>

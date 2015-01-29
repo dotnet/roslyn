@@ -27,5 +27,6 @@ namespace Microsoft.Cci
         internal const byte CdiKindForwardIterator = 4;
         internal const byte CdiKindDynamicLocals = 5;
         internal const byte CdiKindEditAndContinueLocalSlotMap = 6;
+        internal const byte CdiKindEditAndContinueLambdaMap = 7;
     }
 }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -53,9 +53,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
 
                 StateMachineTypeSymbol stateMachineTypeOpt;
-                VariableSlotAllocator variableSlotAllocatorOpt;
-                int lambdaIndexDispenser = 0;
-                int scopeIndexDispenser = 0;
+                VariableSlotAllocator lazyVariableSlotAllocator = null;
+                var lambdaDebugInfoBuilder = ArrayBuilder<LambdaDebugInfo>.GetInstance();
+                var closureDebugInfoBuilder = ArrayBuilder<ClosureDebugInfo>.GetInstance();
 
                 var body = MethodCompiler.LowerBodyOrInitializer(
                     method: method,
@@ -64,10 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     previousSubmissionFields: null,
                     compilationState: compilationState,
                     diagnostics: diagnostics,
-                    lambdaOrdinalDispenser: ref lambdaIndexDispenser,
-                    scopeOrdinalDispenser: ref scopeIndexDispenser,
-                    stateMachineTypeOpt: out stateMachineTypeOpt,
-                    variableSlotAllocatorOpt: out variableSlotAllocatorOpt);
+                    lazyVariableSlotAllocator: ref lazyVariableSlotAllocator,
+                    lambdaDebugInfoBuilder: lambdaDebugInfoBuilder,
+                    closureDebugInfoBuilder: closureDebugInfoBuilder,
+                    stateMachineTypeOpt: out stateMachineTypeOpt);
+
+                lambdaDebugInfoBuilder.Free();
+                closureDebugInfoBuilder.Free();
 
                 return body;
             }

@@ -117,6 +117,9 @@
     <Import Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\Compilers\VisualBasic\Portable\Syntax\SyntaxUtilities.vb">
+      <Link>InternalUtilities\SyntaxUtilities.vb</Link>
+    </Compile>
     <Compile Include="ChangeSignature\ChangeSignatureCodeRefactoringProvider.vb" />
     <Compile Include="ChangeSignature\ChangeSignatureFormattingRule.vb" />
     <Compile Include="ChangeSignature\UnifiedArgumentSyntax.vb" />

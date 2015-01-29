@@ -62,6 +62,7 @@
     <Compile Include="CodeAnalysisResourcesLocalizableErrorArgument.cs" />
     <Compile Include="CodeGen\ArrayMembers.cs" />
     <Compile Include="CodeGen\BasicBlock.cs" />
+    <Compile Include="CodeGen\ClosureDebugInfo.cs" />
     <Compile Include="CodeGen\CompilationTestData.cs" />
     <Compile Include="CodeGen\DebugDocumentProvider.cs" />
     <Compile Include="CodeGen\EmitState.cs" />
@@ -72,6 +73,7 @@
     <Compile Include="CodeGen\ILOpCodeExtensions.cs" />
     <Compile Include="CodeGen\ITokenDeferral.cs" />
     <Compile Include="CodeGen\LabelInfo.cs" />
+    <Compile Include="CodeGen\LambdaDebugInfo.cs" />
     <Compile Include="CodeGen\LocalConstantDefinition.cs" />
     <Compile Include="CodeGen\LocalDefinition.cs" />
     <Compile Include="CodeGen\LocalOrParameter.cs" />
@@ -83,6 +85,7 @@
     <Compile Include="CodeGen\MetadataNamedArgument.cs" />
     <Compile Include="CodeGen\MetadataTypeOf.cs" />
     <Compile Include="CodeGen\MethodBody.cs" />
+    <Compile Include="CodeGen\MethodDebugId.cs" />
     <Compile Include="CodeGen\PermissionSetAttribute.cs" />
     <Compile Include="CodeGen\PrivateImplementationDetails.cs" />
     <Compile Include="CodeGen\RawSequencePoint.cs" />

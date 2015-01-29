@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -9,7 +8,6 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.MetadataUtilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -51,11 +49,6 @@ class C
             {
                 var reader1 = md1.Reader;
 
-                var w = new StringWriter();
-                var v = new MetadataVisualizer(new[] { generation0.MetadataReader, reader1 }, w);
-                v.VisualizeAllGenerations();
-                var s = w.ToString();
-
                 // Field 'o'
                 // Methods: 'F', '.ctor', '<F>b__1'
                 // Type: display class
@@ -73,6 +66,376 @@ class C
                     Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
                     Row(1, TableIndex.NestedClass, EditAndContinueOperation.Default));
             }
+        }
+
+        [Fact]
+        public void MethodWithStaticLambda1()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+class C
+{
+    void F()
+    {
+        Func<int> x = <N:0>() => 1</N:0>;
+    }
+}");
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+    void F()
+    {
+        Func<int> x = <N:0>() => 2</N:0>;
+    }
+}");
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            // no new synthesized members generated (with #1 in names):
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <F>b__0_0}");
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            // Method updates
+            CheckEncLogDefinitions(reader1,
+                Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default));
+        }
+
+        [Fact]
+        public void MethodWithStaticLambdaGeneric1()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+class C
+{
+    void F<T>()
+    {
+        Func<T> x = <N:0>() => default(T)</N:0>;
+    }
+}");
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+    void F<T>()
+    {
+        Func<T> x = <N:0>() => default(T)</N:0>;
+    }
+}");
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            // no new synthesized members generated (with #1 in names):
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c__0}",
+                "C.<>c__0<T>: {<>9__0_0, <F>b__0_0}");
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            // Method updates
+            CheckEncLogDefinitions(reader1,
+                Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default));
+        }
+
+        [Fact]
+        public void MethodWithThisOnlyClosure1()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+class C
+{
+    int F(int a)
+    {
+        Func<int> x = <N:0>() => F(1)</N:0>;
+        return 1;
+    }
+}");
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+    int F(int a)
+    {
+        Func<int> x = <N:0>() => F(2)</N:0>;
+        return 2;
+    }
+}");
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            // no new synthesized members generated (with #1 in names):
+            diff1.VerifySynthesizedMembers(
+                "C: {<F>b__0_0}");
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            // Method updates
+            CheckEncLogDefinitions(reader1,
+                Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(3, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.CustomAttribute, EditAndContinueOperation.Default));
+        }
+
+        [Fact]
+        public void MethodWithClosure1()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+class C
+{
+    int F(int a)
+    <N:0>{</N:0>
+        Func<int> x = <N:1>() => F(a + 1)</N:1>;
+        return 1;
+    }
+}");
+            var source1 = MarkedSource(@"
+using System;
+
+class C
+{
+    int F(int a)
+    <N:0>{</N:0>
+        Func<int> x = <N:1>() => F(a + 2)</N:1>;
+        return 2;
+    }
+}");
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            // no new synthesized members generated (with #1 in names):
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c__DisplayClass0_0}",
+                "C.<>c__DisplayClass0_0: {a, <>4__this, <F>b__0}");
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            // Method updates
+            CheckEncLogDefinitions(reader1,
+                Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default));
+        }
+
+        [Fact]
+        public void ConstructorWithClosure1()
+        {
+            var source0 = MarkedSource(@"
+using System;
+
+class D { public D(Func<int> f) { } } 
+
+class C : D
+{
+    <N:0>public C(int a, int b)</N:0>
+      : base(<N:8>() => a</N:8>) 
+    <N:1>{</N:1>
+        int c = 0;
+
+        Func<int> f1 = <N:2>() => a + 1</N:2>;        
+        Func<int> f2 = <N:3>() => b + 2</N:3>;
+        Func<int> f3 = <N:4>() => c + 3</N:4>;
+        Func<int> f4 = <N:5>() => a + b + c</N:5>;
+        Func<int> f5 = <N:6>() => a + c</N:6>;
+        Func<int> f6 = <N:7>() => b + c</N:7>;
+    }
+}");
+            var source1 = MarkedSource(@"
+using System;
+
+class D { public D(Func<int> f) { } } 
+
+class C : D
+{
+    <N:0>public C(int a, int b)</N:0>
+      : base(<N:8>() => a * 10</N:8>) 
+    <N:1>{</N:1>
+        int c = 0;
+
+        Func<int> f1 = <N:2>() => a * 10 + 1</N:2>;        
+        Func<int> f2 = <N:3>() => b * 10 + 2</N:3>;
+        Func<int> f3 = <N:4>() => c * 10 + 3</N:4>;
+        Func<int> f4 = <N:5>() => a * 10 + b + c</N:5>;
+        Func<int> f5 = <N:6>() => a * 10 + c</N:6>;
+        Func<int> f6 = <N:7>() => b * 10 + c</N:7>;
+    }
+}");
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var ctor0 = compilation0.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single();
+            var ctor1 = compilation1.GetMember<NamedTypeSymbol>("C").InstanceConstructors.Single();
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            // no new synthesized members generated (with #1 in names):
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c__DisplayClass0_0, <>c__DisplayClass0_1}",
+                "C.<>c__DisplayClass0_0: {a, b, <.ctor>b__0, <.ctor>b__1, <.ctor>b__2}",
+                "C.<>c__DisplayClass0_1: {c, CS$<>8__locals1, <.ctor>b__3, <.ctor>b__4, <.ctor>b__5, <.ctor>b__6}");
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            // Method updates
+            CheckEncLogDefinitions(reader1,
+                Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(4, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(4, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(5, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(6, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(8, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(9, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(10, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(11, TableIndex.MethodDef, EditAndContinueOperation.Default));
+        }
+
+        [Fact]
+        public void JoinAndGroupByClauses()
+        {
+            var source0 = MarkedSource(@"
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        var result = <N:0>from a in new[] { 1, 2, 3 }</N:0>
+                     <N:1>join b in new[] { 5 } on a + 1 equals b - 1</N:1>
+                     <N:2>group</N:2> new { a, b = a + 5 } by new { c = a + 4 } into d
+                     <N:3>select d.Key</N:3>;
+    }
+}");
+            var source1 = MarkedSource(@"
+using System.Linq;
+
+class C
+{
+    void F()
+    {
+        var result = <N:0>from a in new[] { 10, 20, 30 }</N:0>
+                     <N:1>join b in new[] { 50 } on a + 10 equals b - 10</N:1>
+                     <N:2>group</N:2> new { a, b = a + 50 } by new { c = a + 40 } into d
+                     <N:3>select d.Key</N:3>;
+    }
+}");
+            var compilation0 = CreateCompilationWithMscorlib(source0.Tree, new[] { SystemCoreRef }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation1 = compilation0.WithSource(source1.Tree);
+
+            var v0 = CompileAndVerify(compilation0);
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreatePdbInfoProvider().GetEncMethodDebugInfo);
+
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+            
+            // no new synthesized members generated (with #1 in names):
+            diff1.VerifySynthesizedMembers(
+                "C: {<>c}",
+                "C.<>c: {<>9__0_0, <>9__0_1, <>9__0_2, <>9__0_3, <>9__0_4, <>9__0_5, <F>b__0_0, <F>b__0_1, <F>b__0_2, <F>b__0_3, <F>b__0_4, <F>b__0_5}",
+                "<>f__AnonymousType1<<c>j__TPar>: {Equals, GetHashCode, ToString}",
+                "<>f__AnonymousType0<<a>j__TPar, <b>j__TPar>: {Equals, GetHashCode, ToString}"); 
+
+            var md1 = diff1.GetMetadata();
+            var reader1 = md1.Reader;
+
+            // Method updates for lambdas:
+            CheckEncLogDefinitions(reader1,
+                Row(9, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(10, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(11, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(12, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
+                Row(12, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(16, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(17, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(18, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(19, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(20, TableIndex.MethodDef, EditAndContinueOperation.Default),
+                Row(21, TableIndex.MethodDef, EditAndContinueOperation.Default));
         }
 
         [Fact]

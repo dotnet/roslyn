@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Immutable;
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MethodKind methodKind,
             bool isAutoPropertyAccessor,
             DiagnosticBag diagnostics) :
-            base(containingType, syntax.GetReference(), syntax.Body.GetReferenceOrNull(), location)
+            base(containingType, syntax.GetReference(), syntax.Body?.GetReference(), location)
         {
             this.property = property;
             this.explicitInterfaceImplementations = explicitInterfaceImplementations;

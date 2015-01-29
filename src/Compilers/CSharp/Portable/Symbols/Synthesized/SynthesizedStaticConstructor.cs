@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override int CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
         {
             var containingType = (SourceMemberContainerTypeSymbol)this.ContainingType;
-            return containingType.CalculateLocalSyntaxOffsetInSynthesizedConstructor(localPosition, localTree, isStatic: true);
+            return containingType.CalculateSyntaxOffsetInSynthesizedConstructor(localPosition, localTree, isStatic: true);
         }
     }
 }

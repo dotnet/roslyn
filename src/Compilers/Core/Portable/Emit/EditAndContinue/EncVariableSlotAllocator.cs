@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Emit
         // syntax:
         private readonly Func<SyntaxNode, SyntaxNode> _syntaxMapOpt;
         private readonly IMethodSymbolInternal _previousMethod;
+        private readonly MethodDebugId _previousMethodId;
 
         // locals:
         private readonly IReadOnlyDictionary<EncLocalInfo, int> _previousLocalSlots;
@@ -31,11 +32,18 @@ namespace Microsoft.CodeAnalysis.Emit
         private readonly int _awaiterCount;
         private readonly IReadOnlyDictionary<Cci.ITypeReference, int> _awaiterMapOpt;
 
+        // closures:
+        private readonly IReadOnlyDictionary<int, KeyValuePair<int, int>> _lambdaMapOpt; // SyntaxOffset -> (Lambda Ordinal, Closure Ordinal)
+        private readonly IReadOnlyDictionary<int, int> _closureMapOpt; // SyntaxOffset -> Ordinal
+
         public EncVariableSlotAllocator(
             SymbolMatcher symbolMap,
             Func<SyntaxNode, SyntaxNode> syntaxMapOpt,
             IMethodSymbolInternal previousMethod,
+            MethodDebugId previousMethodId,
             ImmutableArray<EncLocalInfo> previousLocals,
+            IReadOnlyDictionary<int, KeyValuePair<int, int>> lambdaMapOpt,
+            IReadOnlyDictionary<int, int> closureMapOpt,
             string stateMachineTypeNameOpt,
             int hoistedLocalSlotCount,
             IReadOnlyDictionary<EncHoistedLocalInfo, int> hoistedLocalSlotsOpt,
@@ -50,11 +58,14 @@ namespace Microsoft.CodeAnalysis.Emit
             _syntaxMapOpt = syntaxMapOpt;
             _previousLocals = previousLocals;
             _previousMethod = previousMethod;
+            _previousMethodId = previousMethodId;
             _hoistedLocalSlotsOpt = hoistedLocalSlotsOpt;
             _hoistedLocalSlotCount = hoistedLocalSlotCount;
             _stateMachineTypeNameOpt = stateMachineTypeNameOpt;
             _awaiterCount = awaiterCount;
             _awaiterMapOpt = awaiterMapOpt;
+            _lambdaMapOpt = lambdaMapOpt;
+            _closureMapOpt = closureMapOpt;
 
             // Create a map from local info to slot.
             var previousLocalInfoToSlot = new Dictionary<EncLocalInfo, int>();
@@ -73,6 +84,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
             _previousLocalSlots = previousLocalInfoToSlot;
         }
+
+        public override MethodDebugId PreviousMethodId => _previousMethodId;
 
         public override void AddPreviousLocals(ArrayBuilder<Cci.ILocalDefinition> builder)
         {
@@ -154,56 +167,119 @@ namespace Microsoft.CodeAnalysis.Emit
                 dynamicTransformFlags);
         }
 
-        public override string PreviousStateMachineTypeName
-        {
-            get { return _stateMachineTypeNameOpt; }
-        }
+        public override string PreviousStateMachineTypeName => _stateMachineTypeNameOpt;
 
-        public override int GetPreviousHoistedLocalSlotIndex(SyntaxNode currentDeclarator, Cci.ITypeReference currentType, SynthesizedLocalKind synthesizedKind, LocalDebugId currentId)
+        public override bool TryGetPreviousHoistedLocalSlotIndex(SyntaxNode currentDeclarator, Cci.ITypeReference currentType, SynthesizedLocalKind synthesizedKind, LocalDebugId currentId, out int slotIndex)
         {
             Debug.Assert(_hoistedLocalSlotsOpt != null);
 
             LocalDebugId previousId;
             if (!TryGetPreviousLocalId(currentDeclarator, currentId, out previousId))
             {
-                return -1;
+                slotIndex = -1;
+                return false;
             }
 
             var previousType = _symbolMap.MapReference(currentType);
             if (previousType == null)
             {
-                return -1;
+                slotIndex = -1;
+                return false;
             }
 
             // TODO (bug #781309): Should report a warning if the type of the local has changed
             // and the previous value will be dropped.
             var localKey = new EncHoistedLocalInfo(new LocalSlotDebugInfo(synthesizedKind, previousId), previousType);
 
-            int slotIndex;
-            if (!_hoistedLocalSlotsOpt.TryGetValue(localKey, out slotIndex))
-            {
-                return -1;
-            }
-
-            return slotIndex;
+            return _hoistedLocalSlotsOpt.TryGetValue(localKey, out slotIndex);
         }
 
-        public override int PreviousHoistedLocalSlotCount
-        {
-            get { return _hoistedLocalSlotCount; }
-        }
+        public override int PreviousHoistedLocalSlotCount => _hoistedLocalSlotCount;
+        public override int PreviousAwaiterSlotCount => _awaiterCount;
 
-        public override int GetPreviousAwaiterSlotIndex(Cci.ITypeReference currentType)
+        public override bool TryGetPreviousAwaiterSlotIndex(Cci.ITypeReference currentType, out int slotIndex)
         {
             Debug.Assert(_awaiterMapOpt != null);
-
-            int slotIndex;
-            return _awaiterMapOpt.TryGetValue(_symbolMap.MapReference(currentType), out slotIndex) ? slotIndex : -1;
+            return _awaiterMapOpt.TryGetValue(_symbolMap.MapReference(currentType), out slotIndex);
         }
 
-        public override int PreviousAwaiterSlotCount
+        private bool TryGetPreviousSyntaxOffset(SyntaxNode currentSyntax, out int previousSyntaxOffset)
         {
-            get { return _awaiterCount; }
+            // no syntax map 
+            // => the source of the current method is the same as the source of the previous method 
+            // => relative positions are the same 
+            // => ids are the same
+            SyntaxNode previousSyntax = _syntaxMapOpt?.Invoke(currentSyntax);
+            if (previousSyntax == null)
+            {
+                previousSyntaxOffset = 0;
+                return false;
+            }
+
+            previousSyntaxOffset = _previousMethod.CalculateLocalSyntaxOffset(previousSyntax.SpanStart, previousSyntax.SyntaxTree);
+            return true;
+        }
+
+        private bool TryGetPreviousLambdaSyntaxOffset(SyntaxNode lambdaOrLambdaBodySyntax, bool isLambdaBody, out int previousSyntaxOffset)
+        {
+            // Syntax map contains mapping for lambdas, but not their bodies. 
+            // Map the lambda first and then determine the corresponding body.
+            var currentLambdaSyntax = isLambdaBody ? lambdaOrLambdaBodySyntax.Parent : lambdaOrLambdaBodySyntax;
+
+            // no syntax map 
+            // => the source of the current method is the same as the source of the previous method 
+            // => relative positions are the same 
+            // => ids are the same
+            SyntaxNode previousLambdaSyntax = _syntaxMapOpt?.Invoke(currentLambdaSyntax);
+            if (previousLambdaSyntax == null)
+            {
+                previousSyntaxOffset = 0;
+                return false;
+            }
+
+            SyntaxNode previousSyntax;
+            if (isLambdaBody)
+            {
+                previousSyntax = previousLambdaSyntax.GetCorrespondingLambdaBody(lambdaOrLambdaBodySyntax);
+            }
+            else
+            {
+                previousSyntax = previousLambdaSyntax;
+            }
+
+            previousSyntaxOffset = _previousMethod.CalculateLocalSyntaxOffset(previousSyntax.SpanStart, previousSyntax.SyntaxTree);
+            return true;
+        }
+
+        public override bool TryGetPreviousClosure(SyntaxNode scopeSyntax, out int closureOrdinal)
+        {
+            int syntaxOffset;
+            if (_closureMapOpt != null &&
+                TryGetPreviousSyntaxOffset(scopeSyntax, out syntaxOffset) &&
+                _closureMapOpt.TryGetValue(syntaxOffset, out closureOrdinal))
+            {
+                return true;
+            }
+
+            closureOrdinal = -1;
+            return false;
+        }
+
+        public override bool TryGetPreviousLambda(SyntaxNode lambdaOrLambdaBodySyntax, bool isLambdaBody, out int lambdaOrdinal)
+        {
+            KeyValuePair<int, int> id;
+
+            int syntaxOffset;
+            if (_lambdaMapOpt != null &&
+                TryGetPreviousLambdaSyntaxOffset(lambdaOrLambdaBodySyntax, isLambdaBody, out syntaxOffset) &&
+                _lambdaMapOpt.TryGetValue(syntaxOffset, out id))
+            {
+                lambdaOrdinal = id.Key;
+                return true;
+            }
+
+            lambdaOrdinal = -1;
+            return false;
         }
     }
 }

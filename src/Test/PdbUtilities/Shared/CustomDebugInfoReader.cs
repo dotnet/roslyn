@@ -986,5 +986,6 @@ namespace Microsoft.VisualStudio.SymReaderInterop
         ForwardIterator = CDI.CdiKindForwardIterator,
         DynamicLocals = CDI.CdiKindDynamicLocals,
         EditAndContinueLocalSlotMap = CDI.CdiKindEditAndContinueLocalSlotMap,
+        EditAndContinueLambdaMap = CDI.CdiKindEditAndContinueLambdaMap,
     }
 }

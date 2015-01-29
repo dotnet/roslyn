@@ -10,6 +10,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using Microsoft.Cci;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeGen;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
@@ -220,7 +221,7 @@ namespace Microsoft.CodeAnalysis.Emit
             get { return (ushort)(_previousGeneration.Ordinal + 1); }
         }
 
-        protected override System.Guid EncId
+        protected override Guid EncId
         {
             get { return _encId; }
         }
@@ -597,8 +598,8 @@ namespace Microsoft.CodeAnalysis.Emit
             if (symbolOpt != null && _changes.IsAdded(symbolOpt))
             {
                 this.Context.Diagnostics.Add(this.messageProvider.CreateDiagnostic(
-                    this.messageProvider.ERR_EncReferenceToAddedMember,
-                    GetSymbolLocation(symbolOpt),
+                    this.messageProvider.ERR_EncReferenceToAddedMember, 
+                    GetSymbolLocation(symbolOpt), 
                     symbolOpt.Name,
                     symbolOpt.ContainingAssembly.Name));
             }
@@ -650,7 +651,10 @@ namespace Microsoft.CodeAnalysis.Emit
             if (!method.IsImplicitlyDeclared)
             {
                 var info = new AddedOrChangedMethodInfo(
-                    encInfos.ToImmutable(),
+                    new MethodDebugId(body.MethodOrdinal, this.Generation),
+                    encInfos.ToImmutable(), 
+                    body.LambdaDebugInfo,
+                    body.ClosureDebugInfo,
                     body.StateMachineTypeName,
                     body.StateMachineHoistedLocalSlots,
                     body.StateMachineAwaiterSlots);
@@ -671,7 +675,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
             return new EncLocalInfo(localDef.SlotInfo, localDef.Type, localDef.Constraints, signature);
         }
-
+        
         protected override void PopulateEncLogTableRows(List<EncLogRow> table, ImmutableArray<int> rowCounts)
         {
             // The EncLog table is a log of all the operations needed

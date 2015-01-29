@@ -1,13 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Emit
 {
@@ -16,20 +14,67 @@ namespace Microsoft.CodeAnalysis.Emit
     /// </summary>
     public struct EditAndContinueMethodDebugInformation
     {
+        internal readonly int MethodOrdinal;
         internal readonly ImmutableArray<LocalSlotDebugInfo> LocalSlots;
+        internal readonly ImmutableArray<LambdaDebugInfo> Lambdas;
+        internal readonly ImmutableArray<ClosureDebugInfo> Closures;
 
-        internal EditAndContinueMethodDebugInformation(ImmutableArray<LocalSlotDebugInfo> localSlots)
+        internal EditAndContinueMethodDebugInformation(int methodOrdinal, ImmutableArray<LocalSlotDebugInfo> localSlots, ImmutableArray<ClosureDebugInfo> closures, ImmutableArray<LambdaDebugInfo> lambdas)
         {
+            Debug.Assert(methodOrdinal >= -1);
+
+            this.MethodOrdinal = methodOrdinal;
             this.LocalSlots = localSlots;
+            this.Lambdas = lambdas;
+            this.Closures = closures;
         }
 
-        public static EditAndContinueMethodDebugInformation Create(ImmutableArray<byte> compressedSlotMap)
+        public static EditAndContinueMethodDebugInformation Create(ImmutableArray<byte> compressedSlotMap, ImmutableArray<byte> compressedLambdaMap)
         {
-            return new EditAndContinueMethodDebugInformation(UncompressSlotMap(compressedSlotMap));
+            int methodOrdinal;
+            ImmutableArray<ClosureDebugInfo> closures;
+            ImmutableArray<LambdaDebugInfo> lambdas;
+            UncompressLambdaMap(compressedLambdaMap, out methodOrdinal, out closures, out lambdas);
+            return new EditAndContinueMethodDebugInformation(methodOrdinal, UncompressSlotMap(compressedSlotMap), closures, lambdas);
         }
 
-        private const byte AlignmentValue = 0xff;
-        private const byte SyntaxOffsetBaseline = 0xfe;
+        internal void SerializeCustomDebugInformation(ArrayBuilder<Cci.MemoryStream> customDebugInfo)
+        {
+            if (!this.LocalSlots.IsDefaultOrEmpty)
+            {
+                customDebugInfo.Add(SerializeRecord(Cci.CustomDebugInfoConstants.CdiKindEditAndContinueLocalSlotMap, SerializeLocalSlots));
+            }
+
+            if (!this.Lambdas.IsDefaultOrEmpty)
+            {
+                customDebugInfo.Add(SerializeRecord(Cci.CustomDebugInfoConstants.CdiKindEditAndContinueLambdaMap, SerializeLambdaMap));
+            }
+        }
+
+        private Cci.MemoryStream SerializeRecord(byte kind, Action<Cci.BinaryWriter> data)
+        {
+            Cci.MemoryStream customMetadata = new Cci.MemoryStream();
+            Cci.BinaryWriter cmw = new Cci.BinaryWriter(customMetadata);
+            cmw.WriteByte(Cci.CustomDebugInfoConstants.CdiVersion);
+            cmw.WriteByte(kind); 
+            cmw.Align(4);
+
+            // length (will be patched)
+            uint lengthPosition = cmw.BaseStream.Position;
+            cmw.WriteUint(0);
+
+            data(cmw);
+
+            uint length = customMetadata.Position;
+            cmw.BaseStream.Position = lengthPosition;
+            cmw.WriteUint(length);
+            cmw.BaseStream.Position = length;
+            return customMetadata;
+        }
+
+        #region Local Slots
+
+        private const byte SyntaxOffsetBaseline = 0xff;
 
         private unsafe static ImmutableArray<LocalSlotDebugInfo> UncompressSlotMap(ImmutableArray<byte> compressedSlotMap)
         {
@@ -47,11 +92,6 @@ namespace Microsoft.CodeAnalysis.Emit
                 while (blobReader.RemainingBytes > 0)
                 {
                     byte b = blobReader.ReadByte();
-
-                    if (b == AlignmentValue)
-                    {
-                        break;
-                    }
 
                     if (b == SyntaxOffsetBaseline)
                     {
@@ -72,6 +112,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     int syntaxOffset;
                     if (!blobReader.TryReadCompressedInteger(out syntaxOffset))
                     {
+                        // invalid data
                         return default(ImmutableArray<LocalSlotDebugInfo>);
                     }
 
@@ -80,6 +121,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     int ordinal = 0;
                     if (hasOrdinal && !blobReader.TryReadCompressedInteger(out ordinal))
                     {
+                        // invalid data
                         return default(ImmutableArray<LocalSlotDebugInfo>);
                     }
 
@@ -90,42 +132,8 @@ namespace Microsoft.CodeAnalysis.Emit
             return mapBuilder.ToImmutableAndFree();
         }
 
-        internal void SerializeCustomDebugInformation(ArrayBuilder<Cci.MemoryStream> customDebugInfo)
-        {
-            if (this.LocalSlots.IsDefaultOrEmpty)
-            {
-                return;
-            }
-
-            Cci.MemoryStream customMetadata = new Cci.MemoryStream();
-            Cci.BinaryWriter cmw = new Cci.BinaryWriter(customMetadata);
-            cmw.WriteByte(4); // version
-            cmw.WriteByte(6); // kind: EditAndContinueLocalSlotMap
-            cmw.Align(4);
-
-            // length (will be patched)
-            uint lengthPosition = cmw.BaseStream.Position;
-            cmw.WriteUint(0);
-
-            SerializeLocalSlots(cmw);
-
-            uint length = customMetadata.Position;
-
-            // align with values that the reader skips
-            while (length % 4 != 0)
-            {
-                cmw.WriteByte(AlignmentValue);
-                length++;
-            }
-
-            cmw.BaseStream.Position = lengthPosition;
-            cmw.WriteUint(length);
-            cmw.BaseStream.Position = length;
-
-            customDebugInfo.Add(customMetadata);
-        }
-
-        internal void SerializeLocalSlots(Cci.BinaryWriter cmw)
+        // internal for testing
+        internal void SerializeLocalSlots(Cci.BinaryWriter writer)
         {
             int syntaxOffsetBaseline = -1;
             foreach (LocalSlotDebugInfo localSlot in this.LocalSlots)
@@ -138,8 +146,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
             if (syntaxOffsetBaseline != -1)
             {
-                cmw.WriteByte(SyntaxOffsetBaseline);
-                cmw.WriteCompressedUInt((uint)(-syntaxOffsetBaseline));
+                writer.WriteByte(SyntaxOffsetBaseline);
+                writer.WriteCompressedUInt((uint)(-syntaxOffsetBaseline));
             }
 
             foreach (LocalSlotDebugInfo localSlot in this.LocalSlots)
@@ -147,30 +155,167 @@ namespace Microsoft.CodeAnalysis.Emit
                 SynthesizedLocalKind kind = localSlot.SynthesizedKind;
                 Debug.Assert(kind <= SynthesizedLocalKind.MaxValidValueForLocalVariableSerializedToDebugInformation);
 
-                bool hasOrdinal = localSlot.Id.Ordinal > 0;
-
                 if (!kind.IsLongLived())
                 {
-                    cmw.WriteByte(0);
+                    writer.WriteByte(0);
                     continue;
                 }
 
                 byte b = (byte)(kind + 1);
                 Debug.Assert((b & (1 << 7)) == 0);
 
+                bool hasOrdinal = localSlot.Id.Ordinal > 0;
+
                 if (hasOrdinal)
                 {
                     b |= 1 << 7;
                 }
 
-                cmw.WriteByte(b);
-                cmw.WriteCompressedUInt((uint)(localSlot.Id.SyntaxOffset - syntaxOffsetBaseline));
+                writer.WriteByte(b);
+                writer.WriteCompressedUInt((uint)(localSlot.Id.SyntaxOffset - syntaxOffsetBaseline));
 
                 if (hasOrdinal)
                 {
-                    cmw.WriteCompressedUInt((uint)localSlot.Id.Ordinal);
+                    writer.WriteCompressedUInt((uint)localSlot.Id.Ordinal);
                 }
             }
         }
+
+        #endregion
+
+        #region Lambdas
+
+        private unsafe static void UncompressLambdaMap(
+            ImmutableArray<byte> compressedLambdaMap,
+            out int methodOrdinal,
+            out ImmutableArray<ClosureDebugInfo> closures, 
+            out ImmutableArray<LambdaDebugInfo> lambdas)
+        {
+            methodOrdinal = MethodDebugId.UndefinedOrdinal;
+            closures = default(ImmutableArray<ClosureDebugInfo>);
+            lambdas = default(ImmutableArray<LambdaDebugInfo>);
+
+            if (compressedLambdaMap.IsDefaultOrEmpty)
+            {
+                return;
+            }
+
+            var closuresBuilder = ArrayBuilder<ClosureDebugInfo>.GetInstance();
+            var lambdasBuilder = ArrayBuilder<LambdaDebugInfo>.GetInstance();
+
+            int syntaxOffsetBaseline = -1;
+            int closureCount;
+
+            fixed (byte* blobPtr = &compressedLambdaMap.ToArray()[0])
+            {
+                var blobReader = new BlobReader(blobPtr, compressedLambdaMap.Length);
+
+                if (!blobReader.TryReadCompressedInteger(out methodOrdinal))
+                {
+                    // invalid data
+                    return;
+                }
+
+                // [-1, inf)
+                methodOrdinal--;
+
+                if (!blobReader.TryReadCompressedInteger(out syntaxOffsetBaseline))
+                {
+                    // invalid data
+                    return;
+                }
+
+                syntaxOffsetBaseline = -syntaxOffsetBaseline;
+
+                if (!blobReader.TryReadCompressedInteger(out closureCount))
+                {
+                    // invalid data
+                    return;
+                }
+
+                for (int i = 0; i < closureCount; i++)
+                {
+                    int syntaxOffset;
+                    if (!blobReader.TryReadCompressedInteger(out syntaxOffset))
+                    {
+                        // invalid data
+                        return;
+                    }
+
+                    closuresBuilder.Add(new ClosureDebugInfo(syntaxOffset + syntaxOffsetBaseline));
+                }
+
+                while (blobReader.RemainingBytes > 0)
+                {
+                    int syntaxOffset;
+                    if (!blobReader.TryReadCompressedInteger(out syntaxOffset))
+                    {
+                        // invalid data
+                        return;
+                    }
+
+                    int closureOrdinal;
+                    if (!blobReader.TryReadCompressedInteger(out closureOrdinal))
+                    {
+                        // invalid data
+                        return;
+                    }
+
+                    closureOrdinal--;
+                    if (closureOrdinal < -1 || closureOrdinal >= closureCount)
+                    {
+                        // invalid data
+                        return;
+                    }
+
+                    lambdasBuilder.Add(new LambdaDebugInfo(syntaxOffset + syntaxOffsetBaseline, closureOrdinal));
+                }
+            }
+
+            closures = closuresBuilder.ToImmutableAndFree();
+            lambdas = lambdasBuilder.ToImmutableAndFree();
+        }
+
+        // internal for testing
+        internal void SerializeLambdaMap(Cci.BinaryWriter writer)
+        {
+            Debug.Assert(this.MethodOrdinal >= -1);
+            writer.WriteCompressedUInt((uint)(this.MethodOrdinal + 1));
+
+            int syntaxOffsetBaseline = -1;
+            foreach (ClosureDebugInfo info in this.Closures)
+            {
+                if (info.SyntaxOffset < syntaxOffsetBaseline)
+                {
+                    syntaxOffsetBaseline = info.SyntaxOffset;
+                }
+            }
+
+            foreach (LambdaDebugInfo info in this.Lambdas)
+            {
+                if (info.SyntaxOffset < syntaxOffsetBaseline)
+                {
+                    syntaxOffsetBaseline = info.SyntaxOffset;
+                }
+            }
+
+            writer.WriteCompressedUInt((uint)(-syntaxOffsetBaseline));
+            writer.WriteCompressedUInt((uint)this.Closures.Length);
+
+            foreach (ClosureDebugInfo info in this.Closures)
+            {
+                writer.WriteCompressedUInt((uint)(info.SyntaxOffset - syntaxOffsetBaseline));
+            }
+
+            foreach (LambdaDebugInfo info in this.Lambdas)
+            {
+                Debug.Assert(info.ClosureOrdinal >= -1);
+
+                writer.WriteCompressedUInt((uint)(info.SyntaxOffset - syntaxOffsetBaseline));
+                writer.WriteCompressedUInt((uint)(info.ClosureOrdinal + 1));
+            }
+        }
+
+        #endregion
     }
 }

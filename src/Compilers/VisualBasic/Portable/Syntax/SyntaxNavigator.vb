@@ -1,9 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
     Friend Class SyntaxNavigator
         Inherits AbstractSyntaxNavigator
@@ -16,9 +12,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
         End Enum
 
         Public Shared ReadOnly Instance As AbstractSyntaxNavigator = New SyntaxNavigator()
-
-        Private Shared ReadOnly CommonSyntaxTriviaSkipped As Func(Of SyntaxTrivia, Boolean) =
-            Function(t) t.RawKind = SyntaxKind.SkippedTokensTrivia
 
         Private ReadOnly StepIntoFunctions As Func(Of SyntaxTrivia, Boolean)() = New Func(Of SyntaxTrivia, Boolean)() {
             Nothing,
@@ -36,36 +29,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Return StepIntoFunctions(index)
         End Function
 
-        Public Shared Function ToCommon(func As Func(Of SyntaxTrivia, Boolean)) As Func(Of SyntaxTrivia, Boolean)
-            If func Is SyntaxTrivia.Any Then
-                Return SyntaxTrivia.Any
-            End If
-
-            If func Is SyntaxTriviaFunctions.Skipped Then
-                Return CommonSyntaxTriviaSkipped
-            End If
-
-            If func Is Nothing Then
-                Return Nothing
-            End If
-
-            Return Function(t) func(CType(t, SyntaxTrivia))
-        End Function
-
-        Public Shared Function ToCommon(func As Func(Of SyntaxToken, Boolean)) As Func(Of SyntaxToken, Boolean)
-            If func Is SyntaxToken.Any Then
-                Return SyntaxToken.Any
-            End If
-
-            If func Is SyntaxToken.NonZeroWidth Then
-                Return SyntaxToken.NonZeroWidth
-            End If
-
-            If func Is Nothing Then
-                Return Nothing
-            End If
-
-            Return Function(t) func(CType(t, SyntaxToken))
-        End Function
     End Class
 End Namespace

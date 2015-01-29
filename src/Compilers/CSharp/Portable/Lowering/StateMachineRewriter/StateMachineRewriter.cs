@@ -170,10 +170,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             int ordinal = synthesizedLocalOrdinals.AssignLocalOrdinal(synthesizedKind, syntaxOffset);
                             id = new LocalDebugId(syntaxOffset, ordinal);
 
-                            if (mapToPreviousFields)
+                            // map local id to the previous id, if available:
+                            int previousSlotIndex;
+                            if (mapToPreviousFields && slotAllocatorOpt.TryGetPreviousHoistedLocalSlotIndex(declaratorSyntax, (Cci.ITypeReference)fieldType, synthesizedKind, id, out previousSlotIndex))
                             {
-                                // map local id to the previous id, if available:
-                                slotIndex = slotAllocatorOpt.GetPreviousHoistedLocalSlotIndex(declaratorSyntax, (Cci.ITypeReference)fieldType, synthesizedKind, id);
+                                slotIndex = previousSlotIndex;
                             }
                         }
                         else

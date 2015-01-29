@@ -1220,6 +1220,11 @@ class C
     <method containingType=""C"" name=""M"">
       <customDebugInfo>
         <forwardIterator name=""&lt;M&gt;d__0"" />
+        <encLambdaMap>
+          <methodOrdinal>0</methodOrdinal>
+          <closure offset=""0"" />
+          <lambda offset=""95"" closure=""0"" />
+        </encLambdaMap>
       </customDebugInfo>
       <sequencePoints />
       <locals />
@@ -1373,6 +1378,11 @@ class C
         <encLocalSlotMap>
           <slot kind=""30"" offset=""0"" />
         </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>0</methodOrdinal>
+          <closure offset=""0"" />
+          <lambda offset=""95"" closure=""0"" />
+        </encLambdaMap>
       </customDebugInfo>
       <sequencePoints />
       <locals />

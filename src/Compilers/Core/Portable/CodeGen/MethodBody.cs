@@ -1,6 +1,7 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Emit;
@@ -13,27 +14,38 @@ namespace Microsoft.CodeAnalysis.CodeGen
     /// </summary>
     internal sealed class MethodBody : Cci.IMethodBody
     {
-        private readonly byte[] _ilBits;
-        private readonly Cci.AsyncMethodBodyDebugInfo _asyncMethodDebugInfo;
-        private readonly ushort _maxStack;
         private readonly Cci.IMethodDefinition _parent;
-        private readonly ImmutableArray<Cci.ILocalDefinition> _locals;    // built by someone else
+
+        private readonly byte[] _ilBits;
+        private readonly ushort _maxStack;
+        private readonly ImmutableArray<Cci.ILocalDefinition> _locals;
+        private readonly ImmutableArray<Cci.ExceptionHandlerRegion> _exceptionHandlers;
+
+        // Debug information emitted to Release & Debug PDBs supporting the debugger, EEs and other tools:
         private readonly SequencePointList _sequencePoints;
         private readonly DebugDocumentProvider _debugDocumentProvider;
-        private readonly ImmutableArray<Cci.ExceptionHandlerRegion> _exceptionHandlers;
         private readonly ImmutableArray<Cci.LocalScope> _localScopes;
         private readonly ImmutableArray<Cci.NamespaceScope> _namespaceScopes;
         private readonly string _stateMachineTypeNameOpt;
         private readonly ImmutableArray<Cci.StateMachineHoistedLocalScope> _stateMachineHoistedLocalScopes;
-        private readonly ImmutableArray<EncHoistedLocalInfo> _stateMachineHoistedLocalSlots;
-        private readonly ImmutableArray<Cci.ITypeReference> _stateMachineAwaiterSlots;
         private readonly Cci.NamespaceScopeEncoding _namespaceScopeEncoding;
         private readonly bool _hasDynamicLocalVariables;
+        private readonly Cci.AsyncMethodBodyDebugInfo _asyncMethodDebugInfo;
+
+        // Debug information emitted to Debug PDBs supporting EnC:
+        private readonly int _methodOrdinal;
+        private readonly ImmutableArray<EncHoistedLocalInfo> _stateMachineHoistedLocalSlots;
+        private readonly ImmutableArray<LambdaDebugInfo> _lambdaDebugInfo;
+        private readonly ImmutableArray<ClosureDebugInfo> _closureDebugInfo;
+
+        // Data used when emitting EnC delta:
+        private readonly ImmutableArray<Cci.ITypeReference> _stateMachineAwaiterSlots;
 
         public MethodBody(
             byte[] ilBits,
             ushort maxStack,
             Cci.IMethodDefinition parent,
+            int methodOrdinal,
             ImmutableArray<Cci.ILocalDefinition> locals,
             SequencePointList sequencePoints,
             DebugDocumentProvider debugDocumentProvider,
@@ -42,6 +54,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             bool hasDynamicLocalVariables,
             ImmutableArray<Cci.NamespaceScope> namespaceScopes,
             Cci.NamespaceScopeEncoding namespaceScopeEncoding,
+            ImmutableArray<LambdaDebugInfo> lambdaDebugInfo,
+            ImmutableArray<ClosureDebugInfo> closureDebugInfo,
             string stateMachineTypeNameOpt,
             ImmutableArray<Cci.StateMachineHoistedLocalScope> stateMachineHoistedLocalScopes,
             ImmutableArray<EncHoistedLocalInfo> stateMachineHoistedLocalSlots,
@@ -56,6 +70,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _asyncMethodDebugInfo = asyncMethodDebugInfo;
             _maxStack = maxStack;
             _parent = parent;
+            _methodOrdinal = methodOrdinal;
             _locals = locals;
             _sequencePoints = sequencePoints;
             _debugDocumentProvider = debugDocumentProvider;
@@ -64,6 +79,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
             _namespaceScopeEncoding = namespaceScopeEncoding;
             _hasDynamicLocalVariables = hasDynamicLocalVariables;
             _namespaceScopes = namespaceScopes.IsDefault ? ImmutableArray<Cci.NamespaceScope>.Empty : namespaceScopes;
+            _lambdaDebugInfo = lambdaDebugInfo;
+            _closureDebugInfo = closureDebugInfo;
             _stateMachineTypeNameOpt = stateMachineTypeNameOpt;
             _stateMachineHoistedLocalScopes = stateMachineHoistedLocalScopes;
             _stateMachineHoistedLocalSlots = stateMachineHoistedLocalSlots;
@@ -194,6 +211,30 @@ namespace Microsoft.CodeAnalysis.CodeGen
             get
             {
                 return _hasDynamicLocalVariables;
+            }
+        }
+
+        public int MethodOrdinal
+        {
+            get
+            {
+                return _methodOrdinal;
+            }
+        }
+
+        public ImmutableArray<LambdaDebugInfo> LambdaDebugInfo
+        {
+            get
+            {
+                return _lambdaDebugInfo;
+            }
+        }
+
+        public ImmutableArray<ClosureDebugInfo> ClosureDebugInfo
+        {
+            get
+            {
+                return _closureDebugInfo;
             }
         }
     }

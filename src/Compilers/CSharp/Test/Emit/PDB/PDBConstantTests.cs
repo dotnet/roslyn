@@ -87,6 +87,10 @@ class C
         <using>
           <namespace usingCount=""1"" />
         </using>
+        <encLambdaMap>
+          <methodOrdinal>0</methodOrdinal>
+          <lambda offset=""54"" />
+        </encLambdaMap>
       </customDebugInfo>
       <sequencePoints>
         <entry offset=""0x0"" startLine=""7"" startColumn=""5"" endLine=""7"" endColumn=""6"" document=""0"" />

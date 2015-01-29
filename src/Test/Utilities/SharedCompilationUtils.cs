@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -133,7 +134,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         internal static EditAndContinueMethodDebugInformation GetEncDebugInfo(this CompilationTestData.MethodData methodData)
         {
-            return Cci.CustomDebugInfoWriter.GetEncDebugInfoForLocals(methodData.ILBuilder.LocalSlotManager.LocalsInOrder());
+            // TODO:
+            return new EditAndContinueMethodDebugInformation(
+                0,
+                Cci.CustomDebugInfoWriter.GetLocalSlotDebugInfos(methodData.ILBuilder.LocalSlotManager.LocalsInOrder()),
+                closures: ImmutableArray<ClosureDebugInfo>.Empty,
+                lambdas: ImmutableArray<LambdaDebugInfo>.Empty);
         }
 
         internal static Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> EncDebugInfoProvider(this CompilationTestData.MethodData methodData)

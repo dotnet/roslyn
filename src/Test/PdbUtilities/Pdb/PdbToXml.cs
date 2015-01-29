@@ -48,10 +48,10 @@ namespace Roslyn.Test.PdbUtilities
         {
             var writer = new StringWriter();
             ToXml(
-                writer, 
-                deltaPdb, 
+                writer,
+                deltaPdb,
                 metadataReaderOpt: null,
-                options: PdbToXmlOptions.IncludeTokens, 
+                options: PdbToXmlOptions.IncludeTokens,
                 methodHandles: methodTokens.Select(token => (MethodDefinitionHandle)MetadataTokens.Handle(token)));
 
             return writer.ToString();
@@ -143,7 +143,7 @@ namespace Roslyn.Test.PdbUtilities
 
                 converter.WriteRoot(methodHandles ?? metadataReaderOpt.MethodDefinitions);
             }
-                        
+
             writer.Close();
 
             // Save xml to disk
@@ -261,7 +261,7 @@ namespace Roslyn.Test.PdbUtilities
         private void WriteCustomDebugInfo(byte[] bytes)
         {
             var records = CustomDebugInfoReader.GetCustomDebugInfoRecords(bytes).ToArray();
-            
+
             writer.WriteStartElement("customDebugInfo");
 
             foreach (var record in records)
@@ -294,6 +294,9 @@ namespace Roslyn.Test.PdbUtilities
                             break;
                         case CustomDebugInfoKind.EditAndContinueLocalSlotMap:
                             WriteEditAndContinueLocalSlotMap(record);
+                            break;
+                        case CustomDebugInfoKind.EditAndContinueLambdaMap:
+                            WriteEditAndContinueLambdaMap(record);
                             break;
                         default:
                             WriteUnknownCustomDebugInfo(record);
@@ -482,62 +485,173 @@ namespace Roslyn.Test.PdbUtilities
             Debug.Assert(record.Kind == CustomDebugInfoKind.EditAndContinueLocalSlotMap);
 
             writer.WriteStartElement("encLocalSlotMap");
-
-            int syntaxOffsetBaseline = -1;
-
-            fixed (byte* compressedSlotMapPtr = &record.Data.ToArray()[0])
+            try
             {
-                var blobReader = new BlobReader(compressedSlotMapPtr, record.Data.Length);
+                int syntaxOffsetBaseline = -1;
 
-                while (blobReader.RemainingBytes > 0)
+                fixed (byte* compressedSlotMapPtr = &record.Data.ToArray()[0])
                 {
-                    byte b = blobReader.ReadByte();
+                    var blobReader = new BlobReader(compressedSlotMapPtr, record.Data.Length);
 
-                    if (b == 0xff)
+                    while (blobReader.RemainingBytes > 0)
                     {
-                        break;
-                    }
+                        byte b = blobReader.ReadByte();
 
-                    if (b == 0xfe)
-                    {
-                        syntaxOffsetBaseline = -blobReader.ReadCompressedInteger();
-                        writer.WriteElementString("baseline", syntaxOffsetBaseline.ToString());
-                        continue;
-                    }
-
-                    writer.WriteStartElement("slot");
-
-                    if (b == 0)
-                    {
-                        // short-lived temp, no info
-                        writer.WriteAttributeString("kind", "temp");
-                    }
-                    else
-                    {
-                        int synthesizedKind = (b & 0x3f) - 1;
-                        bool hasOrdinal = (b & (1 << 7)) != 0;
-
-                        int syntaxOffset;
-                        bool badSyntaxOffset = !blobReader.TryReadCompressedInteger(out syntaxOffset);
-                        syntaxOffset += syntaxOffsetBaseline;
-
-                        int ordinal = 0;
-                        bool badOrdinal = hasOrdinal && !blobReader.TryReadCompressedInteger(out ordinal);
-
-                        writer.WriteAttributeString("kind", synthesizedKind.ToString());
-                        writer.WriteAttributeString("offset", badSyntaxOffset ? "?" : syntaxOffset.ToString());
-
-                        if (badOrdinal || hasOrdinal)
+                        if (b == 0xff)
                         {
-                            writer.WriteAttributeString("ordinal", badOrdinal ? "?" : ordinal.ToString());
+                            if (!blobReader.TryReadCompressedInteger(out syntaxOffsetBaseline))
+                            {
+                                writer.WriteElementString("baseline", "?");
+                                return;
+                            }
+
+                            syntaxOffsetBaseline = -syntaxOffsetBaseline;
+                            continue;
+                        }
+
+                        writer.WriteStartElement("slot");
+
+                        if (b == 0)
+                        {
+                            // short-lived temp, no info
+                            writer.WriteAttributeString("kind", "temp");
+                        }
+                        else
+                        {
+                            int synthesizedKind = (b & 0x3f) - 1;
+                            bool hasOrdinal = (b & (1 << 7)) != 0;
+
+                            int syntaxOffset;
+                            bool badSyntaxOffset = !blobReader.TryReadCompressedInteger(out syntaxOffset);
+                            syntaxOffset += syntaxOffsetBaseline;
+
+                            int ordinal = 0;
+                            bool badOrdinal = hasOrdinal && !blobReader.TryReadCompressedInteger(out ordinal);
+
+                            writer.WriteAttributeString("kind", synthesizedKind.ToString());
+                            writer.WriteAttributeString("offset", badSyntaxOffset ? "?" : syntaxOffset.ToString());
+
+                            if (badOrdinal || hasOrdinal)
+                            {
+                                writer.WriteAttributeString("ordinal", badOrdinal ? "?" : ordinal.ToString());
+                            }
+                        }
+
+                        writer.WriteEndElement();
+                    }
+                }
+            }
+            finally
+            {
+                writer.WriteEndElement(); //encLocalSlotMap
+            }
+        }
+
+        private unsafe void WriteEditAndContinueLambdaMap(CustomDebugInfoRecord record)
+        {
+            Debug.Assert(record.Kind == CustomDebugInfoKind.EditAndContinueLambdaMap);
+
+            writer.WriteStartElement("encLambdaMap");
+            try
+            {
+                if (record.Data.Length == 0)
+                {
+                    return;
+                }
+
+                int methodOrdinal = -1;
+                int syntaxOffsetBaseline = -1;
+                int closureCount;
+
+                fixed (byte* blobPtr = &record.Data.ToArray()[0])
+                {
+                    var blobReader = new BlobReader(blobPtr, record.Data.Length);
+
+                    if (!blobReader.TryReadCompressedInteger(out methodOrdinal))
+                    {
+                        writer.WriteElementString("methodOrdinal", "?");
+                        writer.WriteEndElement();
+                        return;
+                    }
+
+                    // [-1, inf)
+                    methodOrdinal--;
+                    writer.WriteElementString("methodOrdinal", methodOrdinal.ToString());
+
+                    if (!blobReader.TryReadCompressedInteger(out syntaxOffsetBaseline))
+                    {
+                        writer.WriteElementString("baseline", "?");
+                        writer.WriteEndElement();
+                        return;
+                    }
+
+                    syntaxOffsetBaseline = -syntaxOffsetBaseline;
+                    if (!blobReader.TryReadCompressedInteger(out closureCount))
+                    {
+                        writer.WriteElementString("closureCount", "?");
+                        writer.WriteEndElement();
+                        return;
+                    }
+
+                    for (int i = 0; i < closureCount; i++)
+                    {
+                        writer.WriteStartElement("closure");
+                        try
+                        {
+                            int syntaxOffset;
+                            if (!blobReader.TryReadCompressedInteger(out syntaxOffset))
+                            {
+                                writer.WriteElementString("offset", "?");
+                                break;
+                            }
+
+                            writer.WriteAttributeString("offset", (syntaxOffset + syntaxOffsetBaseline).ToString());
+                        }
+                        finally
+                        {
+                            writer.WriteEndElement();
                         }
                     }
 
-                    writer.WriteEndElement();
+                    while (blobReader.RemainingBytes > 0)
+                    {
+                        writer.WriteStartElement("lambda");
+                        try
+                        {
+                            int syntaxOffset;
+                            if (!blobReader.TryReadCompressedInteger(out syntaxOffset))
+                            {
+                                writer.WriteElementString("offset", "?");
+                                return;
+                            }
+
+                            writer.WriteAttributeString("offset", (syntaxOffset + syntaxOffsetBaseline).ToString());
+
+                            int closureOrdinal;
+                            if (!blobReader.TryReadCompressedInteger(out closureOrdinal))
+                            {
+                                writer.WriteElementString("closure", "?");
+                                return;
+                            }
+
+                            closureOrdinal--;
+                            if (closureOrdinal != -1)
+                            {
+                                writer.WriteAttributeString("closure",
+                                    closureOrdinal.ToString() + (closureOrdinal < -1 || closureOrdinal >= closureCount ? " (invalid)" : ""));
+                            }
+                        }
+                        finally
+                        {
+                            writer.WriteEndElement();
+                        }
+                    }
                 }
             }
-
-            writer.WriteEndElement(); //encLocalSlotMap
+            finally
+            {
+                writer.WriteEndElement(); //encLocalSlotMap
+            }
         }
 
         private void WriteScopes(ISymUnmanagedScope scope)
@@ -856,7 +970,7 @@ namespace Roslyn.Test.PdbUtilities
                 writer.WriteStartElement("constant");
                 {
                     writer.WriteAttributeString("name", c.GetName());
-                    
+
                     object value = c.GetValue();
                     string typeName = value.GetType().Name;
 
@@ -909,7 +1023,7 @@ namespace Roslyn.Test.PdbUtilities
             writer.WriteStartElement("sequencePoints");
 
             var sequencePoints = method.GetSequencePoints();
-            
+
             // Write out sequence points
             foreach (var sequencePoint in sequencePoints)
             {
@@ -983,7 +1097,7 @@ namespace Roslyn.Test.PdbUtilities
                 writer.WriteAttributeString("languageVendor", doc.GetLanguageVendor().ToString());
                 writer.WriteAttributeString("documentType", doc.GetDocumentType().ToString());
 
-                var checkSum = string.Concat(doc.GetCheckSum().Select(b => string.Format("{0,2:X}", b) + ", ")) ;
+                var checkSum = string.Concat(doc.GetCheckSum().Select(b => string.Format("{0,2:X}", b) + ", "));
 
                 if (!string.IsNullOrEmpty(checkSum))
                 {
@@ -1011,7 +1125,7 @@ namespace Roslyn.Test.PdbUtilities
                     foreach (var methodDocument in method.GetDocumentsForMethod())
                     {
                         writer.WriteStartElement("document");
-                        
+
                         int startLine, endLine;
                         method.GetSourceExtentInDocument(methodDocument, out startLine, out endLine);
 
@@ -1103,7 +1217,7 @@ namespace Roslyn.Test.PdbUtilities
             var fullName = GetFullTypeName(metadataReader, containingTypeHandle);
             if (fullName != null)
             {
-                writer.WriteAttributeString(isReference ? "declaringType" :  "containingType", fullName);
+                writer.WriteAttributeString(isReference ? "declaringType" : "containingType", fullName);
             }
 
             // method name

@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 using CDI = Microsoft.Cci.CustomDebugInfoConstants;
@@ -99,15 +100,22 @@ namespace Microsoft.Cci
                 // delta doesn't need this information - we use information recorded by previous generation emit
                 if (!isEncDelta)
                 {
-                    var encSlotInfo = methodBody.StateMachineHoistedLocalSlots;
+                    ImmutableArray<LocalSlotDebugInfo> encLocalSlots;
 
                     // Kickoff method of a state machine (async/iterator method) doens't have any interesting locals,
                     // so we use its EnC method debug info to store information about locals hoisted to the state machine.
-                    var encDebugInfo = encSlotInfo.IsDefault ?
-                        GetEncDebugInfoForLocals(methodBody.LocalVariables) :
-                        GetEncDebugInfoForLocals(encSlotInfo);
+                    var encSlotInfo = methodBody.StateMachineHoistedLocalSlots;
+                    if (encSlotInfo.IsDefault)
+                    {
+                        encLocalSlots = GetLocalSlotDebugInfos(methodBody.LocalVariables);
+                    }
+                    else
+                    {
+                        encLocalSlots = GetLocalSlotDebugInfos(encSlotInfo);
+                    }
 
-                    encDebugInfo.SerializeCustomDebugInformation(customDebugInfo);
+                    var encMethodInfo = new EditAndContinueMethodDebugInformation(methodBody.MethodOrdinal, encLocalSlots, methodBody.ClosureDebugInfo, methodBody.LambdaDebugInfo);
+                    encMethodInfo.SerializeCustomDebugInformation(customDebugInfo);
                 }
             }
 
@@ -116,24 +124,24 @@ namespace Microsoft.Cci
             return result;
         }
 
-        public static EditAndContinueMethodDebugInformation GetEncDebugInfoForLocals(ImmutableArray<ILocalDefinition> locals)
+        public static ImmutableArray<LocalSlotDebugInfo> GetLocalSlotDebugInfos(ImmutableArray<ILocalDefinition> locals)
         {
             if (!locals.Any(variable => !variable.SlotInfo.Id.IsNone))
             {
-                return default(EditAndContinueMethodDebugInformation);
+                return ImmutableArray<LocalSlotDebugInfo>.Empty;
             }
 
-            return new EditAndContinueMethodDebugInformation(locals.SelectAsArray(variable => variable.SlotInfo));
+            return locals.SelectAsArray(variable => variable.SlotInfo);
         }
 
-        public static EditAndContinueMethodDebugInformation GetEncDebugInfoForLocals(ImmutableArray<EncHoistedLocalInfo> locals)
+        public static ImmutableArray<LocalSlotDebugInfo> GetLocalSlotDebugInfos(ImmutableArray<EncHoistedLocalInfo> locals)
         {
             if (!locals.Any(variable => !variable.SlotInfo.Id.IsNone))
             {
-                return default(EditAndContinueMethodDebugInformation);
+                return ImmutableArray<LocalSlotDebugInfo>.Empty;
             }
 
-            return new EditAndContinueMethodDebugInformation(locals.SelectAsArray(variable => variable.SlotInfo));
+            return locals.SelectAsArray(variable => variable.SlotInfo);
         }
 
         private static void SerializeIteratorClassMetadata(IMethodBody methodBody, ArrayBuilder<MemoryStream> customDebugInfo)

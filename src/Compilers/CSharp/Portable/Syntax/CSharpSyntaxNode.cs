@@ -451,6 +451,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.SyntaxTree.GetDiagnostics(this);
         }
 
+        internal sealed override SyntaxNode GetCorrespondingLambdaBody(SyntaxNode body)
+        {
+            return SyntaxUtilities.GetCorrespondingLambdaBody(body, this);
+        }
+
         #region Directives
 
         internal IList<DirectiveTriviaSyntax> GetDirectives(Func<DirectiveTriviaSyntax, bool> filter = null)
@@ -574,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns></returns>
         public new SyntaxToken GetFirstToken(bool includeZeroWidth = false, bool includeSkipped = false, bool includeDirectives = false, bool includeDocumentationComments = false)
         {
-            return (SyntaxToken)base.GetFirstToken(includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
+            return base.GetFirstToken(includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
         }
 
         /// <summary>
@@ -587,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns></returns>
         internal SyntaxToken GetFirstToken(Func<SyntaxToken, bool> predicate, Func<SyntaxTrivia, bool> stepInto = null)
         {
-            return (SyntaxToken)SyntaxNavigator.Instance.GetFirstToken(this, SyntaxNavigator.ToCommon(predicate), SyntaxNavigator.ToCommon(stepInto));
+            return SyntaxNavigator.Instance.GetFirstToken(this, predicate, stepInto);
         }
 
         /// <summary>
@@ -602,7 +607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns></returns>
         public new SyntaxToken GetLastToken(bool includeZeroWidth = false, bool includeSkipped = false, bool includeDirectives = false, bool includeDocumentationComments = false)
         {
-            return (SyntaxToken)base.GetLastToken(includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
+            return base.GetLastToken(includeZeroWidth, includeSkipped, includeDirectives, includeDocumentationComments);
         }
 
         internal SyntaxToken FindTokenInternal(int position)

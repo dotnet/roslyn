@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-
 using static Microsoft.CodeAnalysis.CSharp.SyntaxKind;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -73,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns></returns>
         public static bool IsInTypeOnlyContext(ExpressionSyntax node)
         {
-            node = (ExpressionSyntax)SyntaxFactory.GetStandaloneExpression(node);
+            node = SyntaxFactory.GetStandaloneExpression(node);
             var parent = node.Parent;
             if (parent != null)
             {
@@ -421,6 +420,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// "Pair lambda" is a synthesized lambda that creates an instance of an anonymous type representing a pair of values. 
+        /// TODO: Avoid generating lambdas. Instead generate a method on the anonymous type, or use KeyValuePair instead.
+        /// </summary>
+        internal static bool IsQueryPairLambda(SyntaxNode syntax)
+        {
+            return syntax.IsKind(GroupClause) || syntax.IsKind(JoinClause) || syntax.IsKind(FromClause);
         }
     }
 }

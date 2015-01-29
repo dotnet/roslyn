@@ -465,14 +465,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal sealed partial class BoundLambda
-    {
-        public BoundLambda(CSharpSyntaxNode syntax, BoundBlock body, ImmutableArray<Diagnostic> diagnostics, Binder binder, TypeSymbol type)
-            : this(syntax, (LambdaSymbol)binder.ContainingMemberOrLambda, body, diagnostics, binder, type)
-        {
-        }
-    }
-
     internal partial class BoundStatementList
     {
         public static BoundStatementList Synthesized(CSharpSyntaxNode syntax, params BoundStatement[] statements)

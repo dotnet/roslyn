@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.EditAndContinue;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using CompilerSyntaxUtilities = Microsoft.CodeAnalysis.CSharp.SyntaxUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 {
@@ -377,7 +378,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         protected override SyntaxNode GetPartnerLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda)
         {
-            return SyntaxUtilities.GetPartnerLambdaBody(oldBody, newLambda);
+            return CompilerSyntaxUtilities.GetCorrespondingLambdaBody(oldBody, newLambda);
         }
 
         protected override Match<SyntaxNode> ComputeTopLevelMatch(SyntaxNode oldCompilationUnit, SyntaxNode newCompilationUnit)

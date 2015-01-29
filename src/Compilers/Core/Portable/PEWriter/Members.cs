@@ -442,6 +442,8 @@ namespace Microsoft.Cci
         /// </summary>
         ImmutableArray<NamespaceScope> NamespaceScopes { get; }
 
+        int MethodOrdinal { get; }
+       
         /// <summary>
         /// Returns debug information for local variables hoisted to state machine fields, 
         /// or null if this method isn't MoveNext method of a state machine.
@@ -475,6 +477,9 @@ namespace Microsoft.Cci
         /// or null if the method isn't the kickoff method of a state machine.
         /// </summary>
         ImmutableArray<ITypeReference> StateMachineAwaiterSlots { get; }
+
+        ImmutableArray<ClosureDebugInfo> ClosureDebugInfo { get; }
+        ImmutableArray<LambdaDebugInfo> LambdaDebugInfo { get; }
     }
 
     /// <summary>

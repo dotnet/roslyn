@@ -1,4 +1,4 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -519,13 +519,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // Editing await expression is not allowed. Thus all spilled fields will be present in the previous state machine.
                         // However, it may happen that the type changes, in which case we need to allocate a new slot.
-                        int slotIndex = -1;
-                        if (slotAllocatorOpt != null)
-                        {
-                            slotIndex = slotAllocatorOpt.GetPreviousHoistedLocalSlotIndex(awaitSyntaxOpt, (Cci.ITypeReference)fieldType, kind, id);
-                        }
-
-                        if (slotIndex == -1)
+                        int slotIndex;
+                        if (slotAllocatorOpt == null || !slotAllocatorOpt.TryGetPreviousHoistedLocalSlotIndex(awaitSyntaxOpt, (Cci.ITypeReference)fieldType, kind, id, out slotIndex))
                         {
                             slotIndex = nextFreeHoistedLocalSlot++;
                         }

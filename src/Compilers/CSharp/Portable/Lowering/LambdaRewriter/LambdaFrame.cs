@@ -20,112 +20,129 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly MethodSymbol staticConstructor;
         private readonly FieldSymbol singletonCache;
         internal readonly CSharpSyntaxNode ScopeSyntaxOpt;
+        internal readonly int ClosureOrdinal;
 
-        internal LambdaFrame(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, MethodSymbol topLevelMethod, int methodOrdinal, CSharpSyntaxNode scopeSyntax, int scopeOrdinal, bool isStatic)
-            : base(MakeName(slotAllocatorOpt, compilationState, methodOrdinal, scopeOrdinal, isStatic), topLevelMethod)
+        internal LambdaFrame(VariableSlotAllocator slotAllocatorOpt, MethodSymbol topLevelMethod, MethodDebugId methodId, CSharpSyntaxNode scopeSyntaxOpt, int closureOrdinal)
+            : base(MakeName(slotAllocatorOpt, scopeSyntaxOpt, methodId, closureOrdinal), topLevelMethod)
         {
             this.topLevelMethod = topLevelMethod;
             this.constructor = new LambdaFrameConstructor(this);
+            this.ClosureOrdinal = closureOrdinal;
 
             // static lambdas technically have the class scope so the scope syntax is null 
-            if (isStatic)
+            if (scopeSyntaxOpt == null)
             {
                 this.staticConstructor = new SynthesizedStaticConstructor(this);
                 var cacheVariableName = GeneratedNames.MakeCachedFrameInstanceFieldName();
                 singletonCache = new SynthesizedLambdaCacheFieldSymbol(this, this, cacheVariableName, topLevelMethod, isReadOnly: true, isStatic: true);
-                this.ScopeSyntaxOpt = null;
-            }
-            else
-            {
-                this.ScopeSyntaxOpt = scopeSyntax;
             }
 
-            AssertIsLambdaScopeSyntax(this.ScopeSyntaxOpt);
+            AssertIsLambdaScopeSyntax(scopeSyntaxOpt);
+            this.ScopeSyntaxOpt = scopeSyntaxOpt;
         }
 
-        private static string MakeName(VariableSlotAllocator slotAllocatorOpt, TypeCompilationState compilationState, int methodOrdinal, int scopeOrdinal, bool isStatic)
+        private static string MakeName(VariableSlotAllocator slotAllocatorOpt, SyntaxNode scopeSyntaxOpt, MethodDebugId methodId, int closureOrdinal)
         {
-            // TODO: slotAllocatorOpt?.GetPrevious()
-
-            int generation = compilationState.ModuleBuilderOpt.CurrentGenerationOrdinal;
-
-            if (isStatic)
+            if (scopeSyntaxOpt == null)
             {
-                // Display class is shared among static non-generic lambdas and also accross generations, method ordinal is -1.
-                Debug.Assert(methodOrdinal >= -1);
-                return GeneratedNames.MakeStaticLambdaDisplayClassName(methodOrdinal, generation);
+                // Display class is shared among static non-generic lambdas accross generations, method ordinal is -1 in that case.
+                // A new display class of a static generic lambda is created for each method and each generation.
+                return GeneratedNames.MakeStaticLambdaDisplayClassName(methodId.Ordinal, methodId.Generation);
             }
 
-            Debug.Assert(methodOrdinal >= 0);
-            return GeneratedNames.MakeLambdaDisplayClassName(methodOrdinal, generation, scopeOrdinal);
+            int previousClosureOrdinal;
+            if (slotAllocatorOpt != null && slotAllocatorOpt.TryGetPreviousClosure(scopeSyntaxOpt, out previousClosureOrdinal))
+            {
+                methodId = slotAllocatorOpt.PreviousMethodId;
+                closureOrdinal = previousClosureOrdinal;
+            }
+
+            // If we haven't found existing closure in the previous generation, use the current generation method ordinal.
+            // That is, don't try to reuse previous generation method ordinal as that might create name conflict. 
+            // E.g. 
+            //     Gen0                    Gen1
+            //                             F() { new closure } // ordinal 0
+            //     G() { } // ordinal 0    G() { new closure } // ordinal 1
+            //
+            // In the example above G is updated and F is added. 
+            // G's ordinal in Gen0 is 0. If we used that ordinal for updated G's new closure it would conflict with F's ordinal.
+
+            Debug.Assert(methodId.Ordinal >= 0);
+            return GeneratedNames.MakeLambdaDisplayClassName(methodId.Ordinal, methodId.Generation, closureOrdinal);
         }
 
         [Conditional("DEBUG")]
-        private static void AssertIsLambdaScopeSyntax(CSharpSyntaxNode syntax)
+        private static void AssertIsLambdaScopeSyntax(CSharpSyntaxNode syntaxOpt)
         {
             // See C# specification, chapter 3.7 Scopes.
 
             // static lambdas technically have the class scope so the scope syntax is null 
-            if (syntax == null)
+            if (syntaxOpt == null)
             {
                 return;
             }
 
             // block:
-            if (syntax.IsKind(SyntaxKind.Block))
+            if (syntaxOpt.IsKind(SyntaxKind.Block))
             {
                 return;
             }
 
             // switch block:
-            if (syntax.IsKind(SyntaxKind.SwitchStatement))
+            if (syntaxOpt.IsKind(SyntaxKind.SwitchStatement))
             {
                 return;
             }
 
             // expression-bodied member:
-            if (syntax.IsKind(SyntaxKind.ArrowExpressionClause))
+            if (syntaxOpt.IsKind(SyntaxKind.ArrowExpressionClause))
             {
                 return;
             }
 
             // catch clause (including filter):
-            if (syntax.IsKind(SyntaxKind.CatchClause))
+            if (syntaxOpt.IsKind(SyntaxKind.CatchClause))
             {
                 return;
             }
 
             // class/struct containing a field/property with a declaration expression
-            if (syntax.IsKind(SyntaxKind.ClassDeclaration) || syntax.IsKind(SyntaxKind.StructDeclaration))
+            if (syntaxOpt.IsKind(SyntaxKind.ClassDeclaration) || syntaxOpt.IsKind(SyntaxKind.StructDeclaration))
             {
                 return;
             }
 
             // lambda in a let clause, 
             // e.g. from item in array let a = new Func<int>(() => item)
-            if (syntax.IsKind(SyntaxKind.LetClause))
+            if (syntaxOpt.IsKind(SyntaxKind.LetClause))
             {
                 return;
             }
 
-            if (IsStatementWithEmbeddedStatementBody(syntax.Kind()))
+            if (IsStatementWithEmbeddedStatementBody(syntaxOpt.Kind()))
             {
                 return;
             }
 
             // lambda bodies:
-            if (SyntaxFacts.IsLambdaBody(syntax))
+            if (SyntaxFacts.IsLambdaBody(syntaxOpt))
+            {
+                return;
+            }
+
+            // lambda in a ctor initializer that refers to a ctor parameter
+            if (syntaxOpt.IsKind(SyntaxKind.ConstructorDeclaration))
             {
                 return;
             }
 
             // TODO: EE expression
-            if (syntax is ExpressionSyntax && syntax.Parent.Parent == null)
+            if (syntaxOpt is ExpressionSyntax && syntaxOpt.Parent.Parent == null)
             {
                 return;
             }
             
-            throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
+            throw ExceptionUtilities.UnexpectedValue(syntaxOpt.Kind());
         }
 
         private static bool IsStatementWithEmbeddedStatementBody(SyntaxKind syntax)

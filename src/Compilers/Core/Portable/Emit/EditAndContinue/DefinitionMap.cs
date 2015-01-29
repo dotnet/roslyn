@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Emit
     {
         protected readonly TSymbolMatcher mapToMetadata;
         protected readonly TSymbolMatcher mapToPrevious;
-
+        
         protected DefinitionMap(PEModule module, IEnumerable<SemanticEdit> edits, TSymbolMatcher mapToMetadata, TSymbolMatcher mapToPrevious)
             : base(module, edits)
         {
@@ -136,6 +136,9 @@ namespace Microsoft.CodeAnalysis.Emit
             out IReadOnlyDictionary<Cci.ITypeReference, int> awaiterMap,
             out int awaiterSlotCount);
 
+        protected abstract ImmutableArray<EncLocalInfo> TryGetLocalSlotMapFromMetadata(MethodDefinitionHandle handle, EditAndContinueMethodDebugInformation debugInfo);
+        protected abstract ITypeSymbol TryGetStateMachineType(Handle methodHandle);
+
         internal VariableSlotAllocator TryCreateVariableSlotAllocator(EmitBaseline baseline, IMethodSymbol method)
         {
             MethodDefinitionHandle handle;
@@ -159,23 +162,37 @@ namespace Microsoft.CodeAnalysis.Emit
                 // since a method may be incorrectly marked by Iterator/AsyncStateMachine attribute by the user, 
                 // in which case we can't reliably figure out that it's an error in semantic edit set. 
 
+                // We should also "preserve locals" of any updated method containing lambdas. The goal is to 
+                // treat lambdas the same as method declarations. Lambdas declared in a method body that escape 
+                // the method (are assigned to a field, added to an event, e.g.) might be invoked after the method 
+                // is updated and when it no longer contains active statements. If we didn't map the lambdas of 
+                // the updated body to the original lambdas we would run the out-of-date lambda bodies, 
+                // which would not happen if the lambdas were named methods.
                 return null;
             }
 
             ImmutableArray<EncLocalInfo> previousLocals;
             IReadOnlyDictionary<EncHoistedLocalInfo, int> hoistedLocalMap = null;
             IReadOnlyDictionary<Cci.ITypeReference, int> awaiterMap = null;
+            IReadOnlyDictionary<int, KeyValuePair<int, int>> lambdaMap = null;
+            IReadOnlyDictionary<int, int> closureMap = null;
+
             int hoistedLocalSlotCount = 0;
             int awaiterSlotCount = 0;
             string stateMachineTypeNameOpt = null;
             TSymbolMatcher symbolMap;
 
             uint methodIndex = (uint)MetadataTokens.GetRowNumber(handle);
-
+            MethodDebugId methodId;
+             
             // Check if method has changed previously. If so, we already have a map.
             AddedOrChangedMethodInfo addedOrChangedMethod;
             if (baseline.AddedOrChangedMethods.TryGetValue(methodIndex, out addedOrChangedMethod))
             {
+                methodId = addedOrChangedMethod.MethodId;
+
+                MakeLambdaAndClosureMaps(addedOrChangedMethod.LambdaDebugInfo, addedOrChangedMethod.ClosureDebugInfo, out lambdaMap, out closureMap);
+
                 if (addedOrChangedMethod.StateMachineTypeNameOpt != null)
                 {
                     // method is async/iterator kickoff method
@@ -208,6 +225,14 @@ namespace Microsoft.CodeAnalysis.Emit
                 // Method has not changed since initial generation. Generate a map
                 // using the local names provided with the initial metadata.
                 var debugInfo = baseline.DebugInformationProvider(handle);
+
+                methodId = new MethodDebugId(debugInfo.MethodOrdinal, 0);
+
+                if (!debugInfo.Lambdas.IsDefaultOrEmpty)
+                {
+                    MakeLambdaAndClosureMaps(debugInfo.Lambdas, debugInfo.Closures, out lambdaMap, out closureMap);
+                }
+
                 ITypeSymbol stateMachineType = TryGetStateMachineType(handle);
                 if (stateMachineType != null)
                 {
@@ -239,7 +264,10 @@ namespace Microsoft.CodeAnalysis.Emit
                 symbolMap,
                 methodUpdate.SyntaxMap,
                 methodUpdate.PreviousMethod,
+                methodId,
                 previousLocals,
+                lambdaMap,
+                closureMap,
                 stateMachineTypeNameOpt,
                 hoistedLocalSlotCount,
                 hoistedLocalMap,
@@ -247,8 +275,30 @@ namespace Microsoft.CodeAnalysis.Emit
                 awaiterMap);
         }
 
-        protected abstract ImmutableArray<EncLocalInfo> TryGetLocalSlotMapFromMetadata(MethodDefinitionHandle handle, EditAndContinueMethodDebugInformation debugInfo);
-        protected abstract ITypeSymbol TryGetStateMachineType(Handle methodHandle);
+        private static void MakeLambdaAndClosureMaps(
+            ImmutableArray<LambdaDebugInfo> lambdaDebugInfo,
+            ImmutableArray<ClosureDebugInfo> closureDebugInfo,
+            out IReadOnlyDictionary<int, KeyValuePair<int, int>> lambdaMap, 
+            out IReadOnlyDictionary<int, int> closureMap)
+        {
+            var lambdas = new Dictionary<int, KeyValuePair<int, int>>(lambdaDebugInfo.Length);
+            var closures = new Dictionary<int, int>(closureDebugInfo.Length);
+
+            for (int i = 0; i < lambdaDebugInfo.Length; i++)
+            {
+                var lambdaInfo = lambdaDebugInfo[i];
+                lambdas[lambdaInfo.SyntaxOffset] = KeyValuePair.Create(i, lambdaInfo.ClosureOrdinal);
+            }
+
+            for (int i = 0; i < closureDebugInfo.Length; i++)
+            {
+                var closureInfo = closureDebugInfo[i];
+                closures[closureInfo.SyntaxOffset] = i;
+            }
+
+            lambdaMap = lambdas;
+            closureMap = closures;
+        }
 
         private static void GetStateMachineFieldMapFromPreviousCompilation(
             ImmutableArray<EncHoistedLocalInfo> hoistedLocalSlots,
