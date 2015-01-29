@@ -12,9 +12,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
     {
         private const int EN_US = 1033;
 
-        private void VerifyCommandLineSplitter(string commandLine, string[] expected)
+        private void VerifyCommandLineSplitter(string commandLine, string[] expected, bool removeHashComments = false)
         {
-            string[] actual = CommandLineSplitter.SplitCommandLine(commandLine);
+            var actual = CommandLineParser.SplitCommandLineIntoArguments(commandLine, removeHashComments).ToArray();
 
             Assert.Equal(expected.Length, actual.Length);
             for (int i = 0; i < actual.Length; ++i)
@@ -94,6 +94,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                                         new string[] { @"\""abc def""", @"\""abc", @"def""" });
             VerifyCommandLineSplitter(@"  \\\\""abc def""  \\\\\""abc def"" ",
                                         new string[] { @"\\""abc def""", @"\\""abc", @"def""" });
+            VerifyCommandLineSplitter(@"abc #Comment ignored",
+                                        new string[] { @"abc" }, removeHashComments: true);
         }
 
         [Fact]
