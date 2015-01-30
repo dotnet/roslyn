@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         // so we need a way to disable these tests during such correctness validation.
 #if !DISABLE_GOOD_HASH_TESTS
 
-        [Fact(Skip = "1118027"), WorkItem(1118027)]
+        [Fact]
         public void SaneHashCode()
         {
             var hash1 = new FileLinePositionSpan("C:\\foo.cs", new LinePosition(1, 2), new LinePosition(3, 5)).GetHashCode();
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.NotEqual(hash1, hash3);
             Assert.NotEqual(hash3, hash4);
             Assert.NotEqual(hash4, hash5);
-            Assert.NotEqual(hash6, hash6);
+            Assert.NotEqual(hash5, hash6);
         }
 
 #endif
