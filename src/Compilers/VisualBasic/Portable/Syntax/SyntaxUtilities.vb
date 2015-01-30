@@ -4,10 +4,10 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    ''' <summary>
-    ''' SyntaxNode.GetCorrespondingLambdaBody(SyntaxNode)
-    ''' </summary>
     Friend NotInheritable Class SyntaxUtilities
+        ''' <summary>
+        ''' SyntaxNode.GetCorrespondingLambdaBody(SyntaxNode)
+        ''' </summary>
         Friend Shared Function GetCorrespondingLambdaBody(oldBody As SyntaxNode, newLambda As SyntaxNode) As SyntaxNode
             Dim oldLambda = oldBody.Parent
 

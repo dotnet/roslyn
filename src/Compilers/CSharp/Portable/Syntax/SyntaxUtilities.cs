@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class SyntaxUtilities
     {
         /// <summary>
-        /// <see cref="SyntaxNode.GetCorrespondingLambdaBody(SyntaxNode)"/>
+        /// See SyntaxNode.GetCorrespondingLambdaBody.
         /// </summary>
         internal static SyntaxNode GetCorrespondingLambdaBody(SyntaxNode oldBody, SyntaxNode newLambda)
         {
