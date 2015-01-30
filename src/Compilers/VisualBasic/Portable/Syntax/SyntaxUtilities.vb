@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
     ''' <summary>
-    ''' <see cref="SyntaxNode.GetCorrespondingLambdaBody(SyntaxNode)"/>
+    ''' SyntaxNode.GetCorrespondingLambdaBody(SyntaxNode)
     ''' </summary>
     Friend NotInheritable Class SyntaxUtilities
         Friend Shared Function GetCorrespondingLambdaBody(oldBody As SyntaxNode, newLambda As SyntaxNode) As SyntaxNode
