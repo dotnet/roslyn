@@ -59,7 +59,7 @@ From the NuGet package manager console:
 ### Source code
 
 * Clone the sources: `git clone https://github.com/dotnet/roslyn.git`
-* [Enhanced source view](http://source.roslyn.codeplex.com/), powered by Roslyn 
+* [Enhanced source view](http://source.roslyn.io/), powered by Roslyn 
 * [Building, testing and debugging the sources](https://github.com/dotnet/roslyn/wiki/Building%20Testing%20and%20Debugging)
 
 ### Get started
