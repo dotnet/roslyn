@@ -2179,7 +2179,6 @@ Module M
             Assert.True(conv3 <> conv2, "Check equality implementation")
             Assert.False(conv3.Equals(conv2), "Check equality implementation")
             Assert.False(conv3.Equals(DirectCast(conv2, Object)), "Check equality implementation")
-            Assert.False(conv3.GetHashCode() = conv2.GetHashCode(), "Check equality implementation")
 
             CompilationUtils.AssertNoErrors(compilation)
         End Sub

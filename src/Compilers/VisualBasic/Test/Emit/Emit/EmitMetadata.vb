@@ -434,7 +434,6 @@ End Class
                         Assert.Null(method1Ret.ContainingSymbol)
                         Assert.Equal(ImmutableArray.Create(Of Location)(), method1Ret.Locations)
                         Assert.Equal(ImmutableArray.Create(Of SyntaxReference)(), method1Ret.DeclaringSyntaxReferences)
-                        Assert.NotEqual(0, method1Ret.GetHashCode)
 
                         Assert.True(classA.IsMustInherit)
                         Assert.Equal(Accessibility.Public, classA.DeclaredAccessibility)

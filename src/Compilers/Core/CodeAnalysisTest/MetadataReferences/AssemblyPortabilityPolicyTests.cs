@@ -422,7 +422,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             policy2 = FusionAssemblyPortabilityPolicy.LoadFromFile(appConfig.Path);
             Assert.NotEqual(policy1, policy2);
-            Assert.NotEqual(policy1.GetHashCode(), policy2.GetHashCode());
 
             var appConfig2 = Temp.CreateFile().WriteAllText(correctAppConfigText);
 

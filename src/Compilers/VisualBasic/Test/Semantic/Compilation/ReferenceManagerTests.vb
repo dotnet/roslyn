@@ -1617,15 +1617,6 @@ End Class
             Assert.NotEqual(mca1, Copymca1)
             Assert.Equal(mca1.ToString, Copymca1.ToString)
             Assert.Equal(mca1.Kind, Copymca1.Kind)
-
-            'With no alias this will result in hashcode of 0
-            Dim mrp1 As MetadataReferenceProperties = refa.Properties
-            Assert.Equal(0, mrp1.GetHashCode)
-
-            'With the use of the alias this will generate a hashcode
-            Dim refb = AssemblyMetadata.CreateFromImage(a.EmitToArray()).GetReference(display:="A", aliases:=ImmutableArray.Create("Alias1"))
-            Dim mrp2 As MetadataReferenceProperties = refb.Properties
-            Assert.NotEqual(0, mrp2.GetHashCode)
         End Sub
 
         <Fact, WorkItem(905495, "DevDiv")>

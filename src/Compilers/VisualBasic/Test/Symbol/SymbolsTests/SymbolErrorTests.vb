@@ -5,9 +5,9 @@ Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -22244,7 +22244,6 @@ End Class
             Assert.Equal("B", errTypeSym.Name)
             Assert.Equal(0, errTypeSym.TypeArguments.Length)
             Assert.Equal(0, errTypeSym.TypeParameters.Length)
-            Assert.NotEqual(0, errTypeSym.GetHashCode)
             Assert.Equal(errTypeSym.CandidateSymbols.Length, errTypeSym.IErrorTypeSymbol_CandidateSymbols.Length)
         End Sub
 

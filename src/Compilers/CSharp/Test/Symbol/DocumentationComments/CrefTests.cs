@@ -1571,8 +1571,10 @@ class C<T, U, V>
             Assert.Equal(actualTypeParameters[0].GetHashCode(), actualTypeParameters[1].GetHashCode());
 
             Assert.NotEqual(actualTypeParameters[0], actualTypeParameters[2]);
-            Assert.NotEqual(actualTypeParameters[0].GetHashCode(), actualTypeParameters[2].GetHashCode());
 
+#if !DISABLE_GOOD_HASH_TESTS
+            Assert.NotEqual(actualTypeParameters[0].GetHashCode(), actualTypeParameters[2].GetHashCode());
+#endif
         }
 
         [Fact]

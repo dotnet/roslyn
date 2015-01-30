@@ -45,6 +45,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(13, lp.Character);
         }
 
+        // In general, different values are not required to have different hash codes.
+        // But for perf reasons we want hash functions with a good distribution, 
+        // so we expect hash codes to differ if a single component is incremented.
+        // But program correctness should be preserved even with a null hash function,
+        // so we need a way to disable these tests during such correctness validation.
+#if !DISABLE_GOOD_HASH_TESTS
+
         [Fact]
         public void SaneHashCode()
         {
@@ -60,6 +67,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.NotEqual(hash2, hash4);
             Assert.NotEqual(hash3, hash4);
         }
+
+#endif
 
         [Fact]
         public void CompareTo()

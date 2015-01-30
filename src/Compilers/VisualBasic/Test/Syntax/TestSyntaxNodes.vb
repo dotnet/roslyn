@@ -110,8 +110,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 Loop
             End If
 
-            Assert.NotEqual(0, children.GetHashCode)
-            Assert.NotEqual(0, children.Reverse.GetHashCode)
             Dim b1 As Integer = 0
             Dim enumerator = children.GetEnumerator
             enumerator.Reset()
