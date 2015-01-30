@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -74,7 +75,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
                 // If the below assert fire then probably the definition of "SymbolDeclaredEvent" has changed and we need to fix this analyzer.
                 var symbolDeclaredEvent = compilationType.GetMembers(SymbolDeclaredEventName).Single();
-                Contract.ThrowIfFalse(symbolDeclaredEvent.GetParameters().Count() == 1);
+                Debug.Assert(symbolDeclaredEvent.GetParameters().Count() == 1);
             }
 
             protected abstract SyntaxNode GetFirstArgumentOfInvocation(SyntaxNode invocation);
