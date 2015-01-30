@@ -2,7 +2,7 @@
 
 namespace Roslyn.VisualStudio.InteractiveWindow
 {
-    internal enum CommandIds : uint
+    public enum CommandIds : uint
     {
         // TODO (crwilcox): should all of these be in the editoroperations?
         SmartExecute = 0x103,

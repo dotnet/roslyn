@@ -3,12 +3,11 @@
 using System.ComponentModel.Composition;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Editor.InteractiveWindow;
-using Roslyn.Editor.InteractiveWindow.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
     [Export]
-    [ExportCommandHandler(PredefinedCommandHandlerNames.Completion, PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName)]
+    [ExportCommandHandler(PredefinedCommandHandlerNames.Completion, InteractiveContentTypeNames.InteractiveCommandContentType)]
     [Order(After = PredefinedCommandHandlerNames.SignatureHelp)]
     internal sealed class InteractiveCompletionCommandHandler : AbstractCompletionCommandHandler
     {

@@ -12,7 +12,7 @@ namespace Roslyn.Editor.InteractiveWindow
 {
     [Export(typeof(IViewTaggerProvider))]
     [TagType(typeof(IntraTextAdornmentTag))]
-    [ContentType(PredefinedInteractiveContentTypes.InteractiveContentTypeName)]
+    [ContentType(InteractiveContentTypeNames.InteractiveContentType)]
     internal sealed class InlineAdornmentProvider : IViewTaggerProvider
     {
         public ITagger<T> CreateTagger<T>(ITextView textView, ITextBuffer buffer) where T : ITag

@@ -11,7 +11,7 @@ namespace Roslyn.Editor.InteractiveWindow.Commands
     {
         public override Task<ExecutionResult> Execute(IInteractiveWindow window, string arguments)
         {
-            window.Operations.ClearView();
+            window.ClearView();
             return ExecutionResult.Succeeded;
         }
 

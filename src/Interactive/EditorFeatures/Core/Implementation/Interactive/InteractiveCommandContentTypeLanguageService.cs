@@ -6,7 +6,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Interactive;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Editor.InteractiveWindow;
-using Roslyn.Editor.InteractiveWindow.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 {
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Interactive
 
         public IContentType GetDefaultContentType()
         {
-            return _contentTypeRegistry.GetContentType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName);
+            return _contentTypeRegistry.GetContentType(InteractiveContentTypeNames.InteractiveCommandContentType);
         }
     }
 }

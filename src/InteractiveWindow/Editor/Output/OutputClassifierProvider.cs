@@ -15,7 +15,7 @@ namespace Roslyn.Editor.InteractiveWindow
     /// Classifies error text in interactive window output.
     /// </summary>
     [Export(typeof(IClassifierProvider))]
-    [ContentType(PredefinedInteractiveContentTypes.InteractiveOutputContentTypeName)]
+    [ContentType(InteractiveContentTypeNames.InteractiveOutputContentType)]
     [TextViewRole(PredefinedTextViewRoles.Document)]
     internal sealed class OutputClassifierProvider : IClassifierProvider
     {

@@ -26,10 +26,10 @@ namespace Microsoft.VisualStudio
         private readonly IOleServiceProvider _provider;
         private readonly IVsEditorAdaptersFactoryService _adapterFactory;
         private readonly IContentTypeRegistryService _contentTypeRegistry;
-        private readonly IEnumerable<Lazy<IVsInteractiveWindowOleCommandTargetProvider, ContentTypeMetadata>> _oleCommandTargetProviders;
+        private readonly IEnumerable<Lazy<IVsInteractiveWindowOleCommandTargetProvider, IContentTypeMetadata>> _oleCommandTargetProviders;
 
         [ImportingConstructor]
-        public VsInteractiveWindowEditorFactoryService(IVsEditorAdaptersFactoryService adaptersFactory, IContentTypeRegistryService contentTypeRegistry, [ImportMany]IEnumerable<Lazy<IVsInteractiveWindowOleCommandTargetProvider, ContentTypeMetadata>> oleCommandTargetProviders)
+        public VsInteractiveWindowEditorFactoryService(IVsEditorAdaptersFactoryService adaptersFactory, IContentTypeRegistryService contentTypeRegistry, [ImportMany]IEnumerable<Lazy<IVsInteractiveWindowOleCommandTargetProvider, IContentTypeMetadata>> oleCommandTargetProviders)
         {
             _adapterFactory = adaptersFactory;
             _provider = (IOleServiceProvider)InteractiveWindowPackage.GetGlobalService(typeof(IOleServiceProvider));

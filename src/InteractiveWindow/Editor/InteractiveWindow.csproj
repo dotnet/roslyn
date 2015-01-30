@@ -10,7 +10,7 @@
     <ProjectGuid>{01E9BD68-0339-4A13-B42F-A3CA84D164F3}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.Editor.InteractiveWindow</RootNamespace>
-    <AssemblyName>Microsoft.VisualStudio.InteractiveWindow</AssemblyName>
+    <AssemblyName>Roslyn.InteractiveWindow</AssemblyName>
     <!-- TODO -->
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
@@ -97,7 +97,6 @@
     <Compile Include="Commands\ClearScreenCommand.cs" />
     <Compile Include="Commands\CommandClassifier.cs" />
     <Compile Include="Commands\CommandClassifierProvider.cs" />
-    <Compile Include="Commands\PredefinedInteractiveCommandsContentTypes.cs" />
     <Compile Include="Commands\InteractiveWindowCommandExtensions.cs" />
     <Compile Include="Commands\InteractiveWindowCommands.cs" />
     <Compile Include="Commands\HelpCommand.cs" />
@@ -107,7 +106,7 @@
     <Compile Include="CustomTrackingSpan.cs" />
     <Compile Include="ExecutionResult.cs" />
     <Compile Include="History.cs" />
-    <Compile Include="ContentTypeMetadata.cs" />
+    <Compile Include="IContentTypeMetadata.cs" />
     <Compile Include="Commands\IInteractiveWindowCommands.cs" />
     <Compile Include="Commands\IInteractiveWindowCommandsFactory.cs" />
     <Compile Include="IInteractiveEvaluator.cs" />
@@ -115,9 +114,8 @@
     <Compile Include="IInteractiveWindowEditorFactoryService.cs" />
     <Compile Include="IInteractiveWindowFactoryService.cs" />
     <Compile Include="Commands\InteractiveCommandsFactory.cs" />
-    <Compile Include="IInteractiveWindowOperations.cs" />
-    <Compile Include="PredefinedInteractiveContentTypes.cs" />
-    <Compile Include="InteractiveContentTypeDefinitions.cs" />
+    <Compile Include="InteractiveConstants.cs" />
+    <Compile Include="InteractiveContentTypeNames.cs" />
     <Compile Include="InteractiveWindow.cs" />
     <Compile Include="InteractiveWindowExtensions.cs" />
     <Compile Include="InteractiveWindowOptions.cs" />
@@ -134,10 +132,10 @@
     <Compile Include="Output\ResizingAdorner.cs" />
     <Compile Include="Output\SortedSpans.cs" />
     <Compile Include="Output\ZoomableInlineAdornment.cs" />
-    <Compile Include="PredefinedInteractiveTextViewRoles.cs" />
     <Compile Include="PromptLineMapping.cs" />
     <Compile Include="ReplInput.cs" />
     <Compile Include="ReplSpanKind.cs" />
+    <Compile Include="RestoreHistoryEditTag.cs" />
     <Compile Include="SmartIndent\InteractiveSmartIndenter.cs" />
     <Compile Include="SmartIndent\InteractiveSmartIndenterProvider.cs" />
     <Compile Include="SmartUpDownOption.cs" />

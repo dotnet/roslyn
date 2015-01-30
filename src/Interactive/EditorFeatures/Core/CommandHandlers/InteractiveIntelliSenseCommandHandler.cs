@@ -2,11 +2,10 @@
 
 using System.ComponentModel.Composition;
 using Roslyn.Editor.InteractiveWindow;
-using Roslyn.Editor.InteractiveWindow.Commands;
 
 namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 {
-    [ExportCommandHandler(PredefinedCommandHandlerNames.IntelliSense, PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName)]
+    [ExportCommandHandler(PredefinedCommandHandlerNames.IntelliSense, InteractiveContentTypeNames.InteractiveCommandContentType)]
     internal sealed class InteractiveIntelliSenseCommandHandler : AbstractIntelliSenseCommandHandler
     {
         [ImportingConstructor]

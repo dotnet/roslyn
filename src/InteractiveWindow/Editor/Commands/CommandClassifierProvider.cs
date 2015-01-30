@@ -8,7 +8,7 @@ using Microsoft.VisualStudio.Utilities;
 namespace Roslyn.Editor.InteractiveWindow.Commands
 {
     [Export(typeof(IClassifierProvider))]
-    [ContentType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName)]
+    [ContentType(InteractiveContentTypeNames.InteractiveCommandContentType)]
     [TextViewRole(PredefinedTextViewRoles.Document)]
     internal sealed class CommandClassifierProvider : IClassifierProvider
     {
