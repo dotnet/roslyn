@@ -161,7 +161,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
             var namespaces = symbols
                 .OfType<INamespaceSymbol>()
                 .Where(n => !n.IsGlobalNamespace &&
-                            n.IsAccessibleWithin(semanticModel.Compilation.Assembly) &&
                             HasAccessibleTypes(n, semanticModel, cancellationToken));
 
             return namespaces;
