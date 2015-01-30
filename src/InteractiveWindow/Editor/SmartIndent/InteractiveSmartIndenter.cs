@@ -14,7 +14,7 @@ namespace Roslyn.Editor.InteractiveWindow
         private readonly ISmartIndent indenter;
 
         internal static InteractiveSmartIndenter Create(
-            IEnumerable<Lazy<ISmartIndentProvider, IContentTypeMetadata>> smartIndenterProviders,
+            IEnumerable<Lazy<ISmartIndentProvider, ContentTypeMetadata>> smartIndenterProviders,
             IContentType contentType,
             ITextView view)
         {
@@ -55,8 +55,8 @@ namespace Roslyn.Editor.InteractiveWindow
         // If there are two providers that support the same content type, or
         // two providers that support different content types that do not have
         // inheritance relationship, we simply return the first we encounter.
-        private static Tuple<IContentType, Lazy<ISmartIndentProvider, IContentTypeMetadata>> GetProvider(
-            IEnumerable<Lazy<ISmartIndentProvider, IContentTypeMetadata>> smartIndenterProviders,
+        private static Tuple<IContentType, Lazy<ISmartIndentProvider, ContentTypeMetadata>> GetProvider(
+            IEnumerable<Lazy<ISmartIndentProvider, ContentTypeMetadata>> smartIndenterProviders,
             IContentType contentType)
         {
             // If there are two providers that both support the
@@ -67,7 +67,7 @@ namespace Roslyn.Editor.InteractiveWindow
                 return Tuple.Create(contentType, provider);
             }
 
-            Tuple<IContentType, Lazy<ISmartIndentProvider, IContentTypeMetadata>> bestPair = null;
+            Tuple<IContentType, Lazy<ISmartIndentProvider, ContentTypeMetadata>> bestPair = null;
             foreach (var baseType in contentType.BaseTypes)
             {
                 var pair = GetProvider(smartIndenterProviders, baseType);
