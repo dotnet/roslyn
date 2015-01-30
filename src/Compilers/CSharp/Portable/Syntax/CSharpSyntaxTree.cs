@@ -65,15 +65,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Gets the root node of the syntax tree asynchronously.
         /// </summary>
+        /// <remarks>
+        /// By default, the work associated with this method will be executed immediately on the current thread.
+        /// Implementations that wish to schedule this work differently should override <see cref="GetRootAsync(CancellationToken)"/>.
+        /// </remarks>
         public new virtual Task<CSharpSyntaxNode> GetRootAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             CSharpSyntaxNode node;
-            if (this.TryGetRoot(out node))
-            {
-                return Task.FromResult(node);
-            }
-
-            return Task.Factory.StartNew(() => this.GetRoot(cancellationToken), cancellationToken); // TODO: Should we use ExceptionFilter.ExecuteWithErrorReporting here?
+            return Task.FromResult(this.TryGetRoot(out node) ? node : this.GetRoot(cancellationToken));
         }
 
         /// <summary>

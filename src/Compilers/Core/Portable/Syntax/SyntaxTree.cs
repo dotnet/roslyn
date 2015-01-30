@@ -82,17 +82,14 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Gets the text of the source document asynchronously.
         /// </summary>
+        /// <remarks>
+        /// By default, the work associated with this method will be executed immediately on the current thread.
+        /// Implementations that wish to schedule this work differently should override <see cref="GetTextAsync(CancellationToken)"/>.
+        /// </remarks>
         public virtual Task<SourceText> GetTextAsync(CancellationToken cancellationToken = default(CancellationToken))
         {
             SourceText text;
-            if (this.TryGetText(out text))
-            {
-                return Task.FromResult(text);
-            }
-            else
-            {
-                return Task.Factory.StartNew(() => this.GetText(cancellationToken), cancellationToken);
-            }
+            return Task.FromResult(this.TryGetText(out text) ? text : this.GetText(cancellationToken));
         }
 
         /// <summary>

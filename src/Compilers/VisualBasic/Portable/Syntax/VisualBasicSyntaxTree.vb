@@ -54,13 +54,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Gets the root node of the syntax tree asynchronously.
         ''' </summary>
+        ''' <remarks>
+        ''' By default, the work associated with this method will be executed immediately on the current thread.
+        ''' Implementations that wish to schedule this work differently should override <see cref="GetRootAsync(CancellationToken)"/>.
+        ''' </remarks>
         Public Overridable Shadows Function GetRootAsync(Optional cancellationToken As CancellationToken = Nothing) As Task(Of VisualBasicSyntaxNode)
             Dim node As VisualBasicSyntaxNode = Nothing
-            If Me.TryGetRoot(node) Then
-                Return Task.FromResult(node)
-            End If
-
-            Return Task.Factory.StartNew(Function() Me.GetRoot(cancellationToken), cancellationToken) ' TODO: Should we use ExceptionFilter.ExecuteWithErrorReporting here?
+            Return Task.FromResult(If(Me.TryGetRoot(node), node, Me.GetRoot(cancellationToken)))
         End Function
 
         ''' <summary>
