@@ -60,7 +60,7 @@ namespace Roslyn.Editor.InteractiveWindow.Commands
             this.classificationRegistry = classificationRegistry;
             if (contentTypeRegistry != null)
             {
-                this.commandContentType = contentTypeRegistry.GetContentType(PredefinedInteractiveCommandsContentTypes.InteractiveCommandContentTypeName);
+                this.commandContentType = contentTypeRegistry.GetContentType(InteractiveContentTypeNames.InteractiveCommandContentType);
             }
 
             if (window != null)

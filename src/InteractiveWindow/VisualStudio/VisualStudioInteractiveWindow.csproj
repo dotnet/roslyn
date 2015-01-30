@@ -14,8 +14,11 @@
     <ProjectGuid>{20BB6FAC-44D2-4D76-ABFE-0C1E163A1A4F}</ProjectGuid>
     <OutputType>Library</OutputType>
     <UseCodebase>true</UseCodebase>
+    <!-- This project includes the VS SDK targets so we can produce a .pkgdef, but should not produce a .vsix or anything related to it -->
+    <CreateVsixContainer>false</CreateVsixContainer>
+    <DeployExtension>false</DeployExtension>
     <RootNamespace>Microsoft.VisualStudio</RootNamespace>
-    <AssemblyName>Microsoft.VisualStudio.VsInteractiveWindow</AssemblyName>
+    <AssemblyName>Roslyn.VisualStudio.InteractiveWindow</AssemblyName>
     <StartAction>Program</StartAction>
     <StartProgram>$(DevEnvDir)devenv.exe</StartProgram>
     <StartArguments>/rootsuffix RoslynDev /log</StartArguments>
@@ -73,7 +76,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommandIds.cs" />
-    <Compile Include="ContentTypeMetadata.cs" />
     <Compile Include="Guids.cs" />
     <Compile Include="IVsInteractiveWindowEditorsFactoryService.cs" />
     <Compile Include="VsInteractiveWindowEditorFactoryService.cs" />
@@ -92,9 +94,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>VSInteractiveWindowResources.resx</DependentUpon>
     </Compile>
-    <None Include="source.extension.vsixmanifest">
-      <SubType>Designer</SubType>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="VSInteractiveWindowResources.resx">

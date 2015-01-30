@@ -1,27 +1,19 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Editor.InteractiveWindow;
 
-namespace Microsoft.VisualStudio
+namespace Roslyn.Editor.InteractiveWindow
 {
-    internal class ContentTypeMetadata
+    public interface IContentTypeMetadata
     {
-        public IEnumerable<string> ContentTypes { get; private set; }
-
-        public ContentTypeMetadata(IDictionary<string, object> data)
-        {
-            this.ContentTypes = (IEnumerable<string>)data["ContentTypes"];
-        }
+        IEnumerable<string> ContentTypes { get; }
     }
 
-    internal static class ContentTypeMetadataHelpers
+    public static class ContentTypeMetadataHelpers
     {
         public static T OfContentType<T>(
-            this IEnumerable<Lazy<T, ContentTypeMetadata>> exports,
+            this IEnumerable<Lazy<T, IContentTypeMetadata>> exports,
             IContentType contentType,
             IContentTypeRegistryService contentTypeRegistry)
         {

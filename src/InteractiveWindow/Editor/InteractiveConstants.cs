@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.ComponentModel.Composition;
+using Microsoft.VisualStudio.Utilities;
 
 namespace Roslyn.Editor.InteractiveWindow
 {
-    public static class PredefinedInteractiveTextViewRoles
+    public static class InteractiveConstants
     {
         /// <summary>
         /// The additional role found in any REPL editor window.
