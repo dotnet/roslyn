@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             this.additionalDependencies = additionalDependencies;
         }
 
-        private RuntimeAssemblyManager CreateAssemblyManager(IEnumerable<ModuleData> compilationDependencies, ModuleData mainModule)
+        private void CreateAssemblyManager(IEnumerable<ModuleData> compilationDependencies, ModuleData mainModule)
         {
             var allModules = compilationDependencies;
             if (additionalDependencies != null)
@@ -57,28 +57,41 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             allModules = allModules.ToArray();
 
             string conflict = DetectNameCollision(allModules);
-            RuntimeAssemblyManager manager;
-
             if (conflict != null)
             {
                 Type appDomainProxyType = typeof(RuntimeAssemblyManager);
                 Assembly thisAssembly = appDomainProxyType.Assembly;
-                this.domain = AppDomain.CreateDomain("HostedRuntimeEnvironment", null, Environment.CurrentDirectory, null, false);
-                manager = (RuntimeAssemblyManager)domain.CreateInstanceAndUnwrap(thisAssembly.FullName, appDomainProxyType.FullName);
+
+                AppDomain appDomain = null;
+                RuntimeAssemblyManager manager;
+                try
+                {   
+                    appDomain = AppDomain.CreateDomain("HostedRuntimeEnvironment", null, Environment.CurrentDirectory, null, false);
+                    manager = (RuntimeAssemblyManager)appDomain.CreateInstanceAndUnwrap(thisAssembly.FullName, appDomainProxyType.FullName);
+                }
+                catch
+                {
+                    if (appDomain != null)
+                    {
+                        AppDomain.Unload(appDomain);
+                    }
+                    throw;
+                }
+
+                this.domain = appDomain;
+                this.assemblyManager = manager;
             }
             else
             {
-                manager = new RuntimeAssemblyManager();
+                this.assemblyManager = new RuntimeAssemblyManager();
             }
 
-            manager.AddModuleData(allModules);
+            this.assemblyManager.AddModuleData(allModules);
 
             if (mainModule != null)
             {
-                manager.AddMainModuleMvid(mainModule.Mvid);
+                this.assemblyManager.AddMainModuleMvid(mainModule.Mvid);
             }
-
-            return manager;
         }
 
         // Determines if any of the given dependencies has the same name as already loaded assembly with different content.
@@ -229,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 this.mainModule = new ModuleData(mainCompilation.Assembly.Identity, mainCompilation.Options.OutputKind, mainImage, mainPdb, inMemoryModule: true);
                 this.allModuleData = dependencies;
                 this.allModuleData.Insert(0, mainModule);
-                this.assemblyManager = CreateAssemblyManager(dependencies, mainModule);
+                CreateAssemblyManager(dependencies, mainModule);
             }
             else
             {
@@ -331,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             if (assemblyManager == null)
             {
-                assemblyManager = CreateAssemblyManager(new ModuleData[0], null);
+                CreateAssemblyManager(new ModuleData[0], null);
             }
 
             return assemblyManager.PeVerifyModules(modulesToVerify, throwOnError);
@@ -373,31 +386,20 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 if (assemblyManager != null)
                 {
                     assemblyManager.Dispose();
-
                     assemblyManager = null;
                 }
             }
             else
             {
-                // KevinH - I'm adding this for debugging...we seem to be getting to AppDomain.Unload when we shouldn't
-                // (causing intermittant failures on the build machine).  We should never be creating a separate
-                // AppDomain without its own assemblyManager.
-                if (assemblyManager == null)
-                {
-                    throw new InvalidOperationException("assemblyManager should never be null if a remote domain was created");
-                }
-                else
-                {
-                    assemblyManager.Dispose();
+                Debug.Assert(assemblyManager != null);
+                assemblyManager.Dispose();
 
-                    if (IsSafeToUnloadDomain)
-                    {
-                        AppDomain.Unload(domain);
-                    }
-
-                    assemblyManager = null;
+                if (IsSafeToUnloadDomain)
+                {
+                    AppDomain.Unload(domain);
                 }
 
+                assemblyManager = null;
                 domain = null;
             }
 
