@@ -1,14 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
@@ -42,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
         internal sealed override Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var flagsAttributeType = WellKnownTypes.FlagsAttribute(model.Compilation);
-            Contract.ThrowIfNull(flagsAttributeType);
+            Debug.Assert(flagsAttributeType != null);
 
             var workspace = document.Project.Solution.Workspace;
             var newEnumBlockSyntax = diagnostic.Id == EnumWithFlagsDiagnosticAnalyzer.RuleIdMarkEnumsWithFlags ?
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
         private static SyntaxNode RemoveFlagsAttribute(Workspace workspace, SemanticModel model, SyntaxNode enumTypeSyntax, INamedTypeSymbol flagsAttributeType, CancellationToken cancellationToken)
         {
             var enumType = model.GetDeclaredSymbol(enumTypeSyntax, cancellationToken) as INamedTypeSymbol;
-            Contract.ThrowIfNull(enumType);
+            Debug.Assert(enumType != null);
 
             var flagsAttribute = enumType.GetAttributes().First(a => a.AttributeClass == flagsAttributeType);
             var attributeNode = flagsAttribute.ApplicationSyntaxReference.GetSyntax(cancellationToken);

@@ -2,7 +2,7 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Shared.Extensions
+namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
 {
     internal static class ObjectExtensions
     {

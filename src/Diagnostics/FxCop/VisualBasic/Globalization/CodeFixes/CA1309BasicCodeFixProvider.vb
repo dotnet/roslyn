@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Globalization
             ' if nothing can be fixed, return the unchanged node
             Dim newRoot = root
             Dim kind = nodeToFix.Kind()
-            Dim syntaxFactoryService = document.GetLanguageService(Of SyntaxGenerator)
+            Dim syntaxFactoryService = document.Project.LanguageServices.GetService(Of SyntaxGenerator)
             Select Case kind
                 Case SyntaxKind.SimpleArgument
                     If Not CType(nodeToFix, SimpleArgumentSyntax).IsNamed Then
@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Globalization
                     ' String.Equals(a, b) => String.Equals(a, b, StringComparison.Ordinal)
                     ' String.Compare(a, b) => String.Compare(a, b, StringComparison.Ordinal)
                     Dim identifier = CType(nodeToFix, IdentifierNameSyntax)
-                    Dim invokeParent = identifier.GetAncestor(Of InvocationExpressionSyntax)()
+                    Dim invokeParent = identifier.Parent?.FirstAncestorOrSelf(Of InvocationExpressionSyntax)()
                     If invokeParent IsNot Nothing Then
                         Dim methodSymbol = TryCast(model.GetSymbolInfo(identifier).Symbol, IMethodSymbol)
                         If methodSymbol IsNot Nothing AndAlso CanAddStringComparison(methodSymbol) Then

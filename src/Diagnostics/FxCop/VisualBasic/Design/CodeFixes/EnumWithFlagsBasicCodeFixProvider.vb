@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
                 End If
             End If
 
-            Throw ExceptionUtilities.Unreachable
+            Throw New InvalidOperationException("Unreachable code")
         End Function
     End Class
 End Namespace

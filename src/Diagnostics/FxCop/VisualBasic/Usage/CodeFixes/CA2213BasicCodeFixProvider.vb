@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Usage
                 Return Task.FromResult(document)
             End If
 
-            Dim factory = document.GetLanguageService(Of SyntaxGenerator)()
+            Dim factory = document.Project.LanguageServices.GetService(Of SyntaxGenerator)()
 
             ' Handle a case where a local in the Dipose method with the same name by generating this (or ClassName) and simplifying it
             Dim path = If(fieldSymbol.IsStatic, factory.IdentifierName(typeSymbol.MetadataName), factory.ThisExpression())

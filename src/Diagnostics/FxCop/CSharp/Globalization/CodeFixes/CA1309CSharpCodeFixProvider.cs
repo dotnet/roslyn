@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Globalization
             // if nothing can be fixed, return the unchanged node
             var newRoot = root;
             var kind = nodeToFix.Kind();
-            var syntaxFactoryService = document.GetLanguageService<SyntaxGenerator>();
+            var syntaxFactoryService = document.Project.LanguageServices.GetService<SyntaxGenerator>();
             switch (kind)
             {
                 case SyntaxKind.Argument:
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.FxCopAnalyzers.Globalization
                     // string.Equals(a, b) => string.Equals(a, b, StringComparison.Ordinal)
                     // string.Compare(a, b) => string.Compare(a, b, StringComparison.Ordinal)
                     var identifier = (IdentifierNameSyntax)nodeToFix;
-                    var invokeParent = identifier.GetAncestor<InvocationExpressionSyntax>();
+                    var invokeParent = identifier.Parent?.FirstAncestorOrSelf<InvocationExpressionSyntax>();
                     if (invokeParent != null)
                     {
                         var methodSymbol = model.GetSymbolInfo(identifier, cancellationToken).Symbol as IMethodSymbol;

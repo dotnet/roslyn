@@ -2,7 +2,7 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Shared.Extensions
+namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
 {
     internal static class INamedTypeSymbolExtensions
     {

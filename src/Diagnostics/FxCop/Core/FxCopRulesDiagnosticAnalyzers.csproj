@@ -119,6 +119,7 @@
     <Compile Include="Design\EnumWithFlagsDiagnosticAnalyzer.cs" />
     <Compile Include="Design\StaticTypeRulesDiagnosticAnalyzer.cs" />
     <Compile Include="DiagnosticKind.cs" />
+    <Compile Include="DocumentChangeAction.cs" />
     <Compile Include="FxCopDiagnosticCategory.cs" />
     <Compile Include="FxCopFixersResources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -147,14 +148,18 @@
     <Compile Include="Shared\CommonAccessibilityUtilities.cs" />
     <Compile Include="Shared\DiagnosticHelpers.cs" />
     <Compile Include="Shared\Extensions\DiagnosticExtensions.cs" />
+    <Compile Include="Shared\Extensions\IEnumerableExtensions.cs" />
     <Compile Include="Shared\Extensions\INamedTypeSymbolExtensions.cs" />
-    <Compile Include="Shared\Extensions\ISymbolExtensions.cs" />
+    <Compile Include="Shared\Extensions\ISymbolExtensions.cs">
+      <ExcludeFromStyleCop>true</ExcludeFromStyleCop>
+    </Compile>
     <Compile Include="Shared\Extensions\ITypeSymbolExtensions.cs" />
     <Compile Include="Shared\Extensions\ObjectExtensions.cs" />
     <Compile Include="Shared\WellKnownTypes.cs" />
     <Compile Include="Shared\WordParser.cs" />
     <Compile Include="Shared\WordParserOptions.cs" />
     <Compile Include="Design\CA1036DiagnosticAnalyzer.cs" />
+    <Compile Include="SolutionChangeAction.cs" />
     <Compile Include="Usage\CA2200DiagnosticAnalyzer.cs" />
     <Compile Include="Usage\CA2213DiagnosticAnalyzer.cs" />
     <Compile Include="Usage\CA2214DiagnosticAnalyzer.cs" />

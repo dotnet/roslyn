@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers
             }
         }
 
-        private class MyCodeAction : CodeAction.DocumentChangeAction
+        private class MyCodeAction : DocumentChangeAction
         {
             public MyCodeAction(string title, Document newDocument) :
                 base(title, c => Task.FromResult(newDocument))

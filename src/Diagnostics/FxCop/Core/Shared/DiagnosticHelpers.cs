@@ -1,8 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
 {
@@ -60,8 +60,8 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
 
         internal static bool TryGetEnumMemberValues(INamedTypeSymbol enumType, out IList<ulong> values)
         {
-            Contract.ThrowIfNull(enumType);
-            Contract.ThrowIfFalse(enumType.TypeKind == TypeKind.Enum);
+            Debug.Assert(enumType != null);
+            Debug.Assert(enumType.TypeKind == TypeKind.Enum);
 
             values = new List<ulong>();
             foreach (IFieldSymbol field in enumType.GetMembers().Where(m => m.Kind == SymbolKind.Field && !m.IsImplicitlyDeclared))

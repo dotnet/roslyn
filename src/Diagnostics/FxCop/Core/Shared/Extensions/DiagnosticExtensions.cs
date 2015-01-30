@@ -2,7 +2,6 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities
 {

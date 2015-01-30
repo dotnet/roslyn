@@ -34,22 +34,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.FxCopAnalyzers.Design
 
             cancellationToken.ThrowIfCancellationRequested()
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken)
-            Dim classStatement = root.FindToken(span.Start).GetAncestor(Of ClassStatementSyntax)
+            Dim classStatement = root.FindToken(span.Start).Parent?.FirstAncestorOrSelf(Of ClassStatementSyntax)
             If classStatement IsNot Nothing Then
-                Dim notInheritableKeyword = SyntaxFactory.Token(SyntaxKind.NotInheritableKeyword).WithAdditionalAnnotations(Formatter.Annotation)
-                Dim newClassStatement = classStatement.AddModifiers(notInheritableKeyword)
-                Dim newRoot = root.ReplaceNode(classStatement, newClassStatement)
-                context.RegisterCodeFix(
-                    New MyCodeAction(String.Format(FxCopRulesResources.StaticHolderTypeIsNotStatic, classStatement.Identifier.Text), document.WithSyntaxRoot(newRoot)),
-                    context.Diagnostics)
+                Dim title As String = String.Format(FxCopRulesResources.StaticHolderTypeIsNotStatic, classStatement.Identifier.Text)
+                Dim fix = New MyCodeAction(title, Function(ct) AddNotInheritableKeyword(document, root, classStatement))
+                context.RegisterCodeFix(fix, context.Diagnostics)
             End If
         End Function
 
-        Private Class MyCodeAction
-            Inherits CodeAction.DocumentChangeAction
+        Private Function AddNotInheritableKeyword(document As Document, root As SyntaxNode, classStatement As ClassStatementSyntax) As Task(Of Document)
+            Dim notInheritableKeyword = SyntaxFactory.Token(SyntaxKind.NotInheritableKeyword).WithAdditionalAnnotations(Formatter.Annotation)
+            Dim newClassStatement = classStatement.AddModifiers(notInheritableKeyword)
+            Dim newRoot = root.ReplaceNode(classStatement, newClassStatement)
+            Return Task.FromResult(document.WithSyntaxRoot(newRoot))
+        End Function
 
-            Public Sub New(title As String, newDocument As Document)
-                MyBase.New(title, Function(c) Task.FromResult(newDocument))
+        Private Class MyCodeAction
+            Inherits DocumentChangeAction
+
+            Public Sub New(title As String, createChangedDocument As Func(Of CancellationToken, Task(Of Document)))
+                MyBase.New(title, createChangedDocument)
             End Sub
         End Class
     End Class

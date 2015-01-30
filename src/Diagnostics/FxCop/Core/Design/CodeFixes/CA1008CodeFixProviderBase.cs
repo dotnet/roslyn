@@ -3,10 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                 }
             }
 
-            throw ExceptionUtilities.Unreachable;
+            throw new InvalidOperationException("This program location is thought to be unreachable."); 
         }
 
         private static SyntaxNode GetDeclaration(ISymbol symbol)
@@ -136,7 +138,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
         internal sealed override async Task<Document> GetUpdatedDocumentAsync(Document document, SemanticModel model, SyntaxNode root, SyntaxNode nodeToFix, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             ISymbol declaredSymbol = model.GetDeclaredSymbol(nodeToFix, cancellationToken);
-            Contract.ThrowIfNull(declaredSymbol);
+            Debug.Assert(declaredSymbol != null);
 
             var editor = SymbolEditor.Create(document);
 

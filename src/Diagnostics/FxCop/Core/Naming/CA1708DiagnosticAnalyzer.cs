@@ -6,10 +6,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.FxCopAnalyzers.Shared.Extensions;
 using Microsoft.CodeAnalysis.FxCopAnalyzers.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
@@ -249,7 +247,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Naming
 
         private static string GetSymbolDisplayString(IGrouping<string, ISymbol> group)
         {
-            return string.Join(", ", group.Select(s => s.ToDisplayString()).OrderBy(StringComparer.InvariantCulture));
+            return string.Join(", ", group.Select(s => s.ToDisplayString()).OrderBy(k => k, StringComparer.InvariantCulture));
         }
 
         public static bool IsExternallyVisible(ISymbol symbol)

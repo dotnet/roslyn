@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -91,7 +92,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
                         IEnumerable<ulong> missingValues;
                         if (!ShouldBeFlags(memberValues, out missingValues))
                         {
-                            Contract.ThrowIfNull(missingValues);
+                            Debug.Assert(missingValues != null);
 
                             var missingValuesString = missingValues.Select(v => v.ToString()).Aggregate((i, j) => i + ", " + j);
                             var location = GetDiagnosticLocation(symbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken));
@@ -116,7 +117,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 
         private static bool IsContiguous(IList<ulong> list)
         {
-            Contract.ThrowIfNull(list);
+            Debug.Assert(list != null);
 
             bool first = true;
             ulong previous = 0;
@@ -155,7 +156,7 @@ namespace Microsoft.CodeAnalysis.FxCopAnalyzers.Design
 
         private static ulong GetMissingBitsInBinaryForm(IList<ulong> values)
         {
-            Contract.ThrowIfNull(values);
+            Debug.Assert(values != null);
 
             // all the powers of two that are individually represented
             ulong powersOfTwo = 0;
