@@ -349,6 +349,33 @@ namespace Roslyn.Diagnostics.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of it&apos;s base types must generate a symbol declared event..
+        /// </summary>
+        internal static string SymbolDeclaredEventRuleDescription {
+            get {
+                return ResourceManager.GetString("SymbolDeclaredEventRuleDescription", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Symbol &apos;{0}&apos; seems to be a source symbol, but neither the symbol nor any of it&apos;s base types invoke method &apos;{1}.{2}&apos; to register a symbol declared event..
+        /// </summary>
+        internal static string SymbolDeclaredEventRuleMessage {
+            get {
+                return ResourceManager.GetString("SymbolDeclaredEventRuleMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SymbolDeclaredEvent must be generated for source symbols.
+        /// </summary>
+        internal static string SymbolDeclaredEventRuleTitle {
+            get {
+                return ResourceManager.GetString("SymbolDeclaredEventRuleTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Avoid zero-length array allocations..
         /// </summary>
         internal static string UseArrayEmptyDescription {

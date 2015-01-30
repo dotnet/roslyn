@@ -246,4 +246,13 @@
   <data name="DoNotCreateTasksWithoutTaskSchedulerMessage" xml:space="preserve">
     <value>Do not call {0} without passing a TaskScheduler</value>
   </data>
+  <data name="SymbolDeclaredEventRuleTitle" xml:space="preserve">
+    <value>SymbolDeclaredEvent must be generated for source symbols</value>
+  </data>
+  <data name="SymbolDeclaredEventRuleMessage" xml:space="preserve">
+    <value>Symbol '{0}' seems to be a source symbol, but neither the symbol nor any of it's base types invoke method '{1}.{2}' to register a symbol declared event.</value>
+  </data>
+  <data name="SymbolDeclaredEventRuleDescription" xml:space="preserve">
+    <value>Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of it's base types must generate a symbol declared event.</value>
+  </data>
 </root>
