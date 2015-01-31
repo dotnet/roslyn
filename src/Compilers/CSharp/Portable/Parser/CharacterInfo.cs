@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <returns>true if the character is a hexadecimal digit 0-9, A-F, a-f.</returns>
         internal static bool IsHexDigit(char c)
         {
-            return (c >= '0' && c <= '9') ||
-                   (c >= 'A' && c <= 'F') ||
-                   (c >= 'a' && c <= 'f');
+            return c.IsDecDigit() ||
+                   c.IsBetween('A','F') ||
+                   c.IsBetween('a','f');
         }
 
         /// <summary>
@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="c">The Unicode character.</param>
         /// <returns>true if the Unicode character is a decimal digit.</returns>
-        internal static bool IsDecDigit(char c)
+        internal static bool IsDecDigit(this char c)
         {
-            return c >= '0' && c <= '9';
+            return c.IsBetween('0','9');
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static int HexValue(char c)
         {
             Debug.Assert(IsHexDigit(c));
-            return (c >= '0' && c <= '9') ? c - '0' : (c & 0xdf) - 'A' + 10;
+            return c.IsDecDigit() ? c - '0' : (c & 0xdf) - 'A' + 10;
         }
 
         /// <summary>

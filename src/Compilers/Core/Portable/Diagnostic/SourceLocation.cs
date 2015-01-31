@@ -21,25 +21,13 @@ namespace Microsoft.CodeAnalysis
             _span = span;
         }
 
-        public SourceLocation(SyntaxNode node)
-            : this(node.SyntaxTree, node.Span)
-        {
-        }
+        public SourceLocation(SyntaxNode   node) : this(node.SyntaxTree, node.Span) {}
 
-        public SourceLocation(SyntaxToken token)
-            : this(token.SyntaxTree, token.Span)
-        {
-        }
+        public SourceLocation(SyntaxToken token) : this(token.SyntaxTree, token.Span) {}
 
-        public SourceLocation(SyntaxNodeOrToken nodeOrToken)
-            : this(nodeOrToken.SyntaxTree, nodeOrToken.Span)
-        {
-        }
+        public SourceLocation(SyntaxNodeOrToken nodeOrToken) : this(nodeOrToken.SyntaxTree, nodeOrToken.Span) {}
 
-        public SourceLocation(SyntaxTrivia trivia)
-            : this(trivia.SyntaxTree, trivia.Span)
-        {
-        }
+        public SourceLocation(SyntaxTrivia trivia)  : this(trivia.SyntaxTree, trivia.Span) {}
 
         public SourceLocation(SyntaxReference syntaxRef)
             : this(syntaxRef.SyntaxTree, syntaxRef.Span)
@@ -49,29 +37,11 @@ namespace Microsoft.CodeAnalysis
             // when binding executable code anywhere, so it has no use.
         }
 
-        public override LocationKind Kind
-        {
-            get
-            {
-                return LocationKind.SourceFile;
-            }
-        }
+        public override LocationKind Kind  { get { return LocationKind.SourceFile; } }
 
-        public override TextSpan SourceSpan
-        {
-            get
-            {
-                return _span;
-            }
-        }
+        public override TextSpan SourceSpan { get { return _span; } }
 
-        public override SyntaxTree SourceTree
-        {
-            get
-            {
-                return _syntaxTree;
-            }
-        }
+        public override SyntaxTree SourceTree { get { return _syntaxTree; } }
 
         public override FileLinePositionSpan GetLineSpan()
         {
@@ -103,10 +73,7 @@ namespace Microsoft.CodeAnalysis
 
         public bool Equals(SourceLocation other)
         {
-            if (ReferenceEquals(this, other))
-            {
-                return true;
-            }
+            if (ReferenceEquals(this, other)) { return true; }
 
             return other != null && other._syntaxTree == _syntaxTree && other._span == _span;
         }
@@ -123,7 +90,7 @@ namespace Microsoft.CodeAnalysis
 
         protected override string GetDebuggerDisplay()
         {
-            return base.GetDebuggerDisplay() + "\"" + _syntaxTree.ToString().Substring(_span.Start, _span.Length) + "\"";
+            return $"{base.GetDebuggerDisplay()}\"{_syntaxTree.ToString().Substring(_span.Start, _span.Length)}\"";
         }
     }
 }

@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SpecialType.System_UInt64:
                     return kind | BinaryOperatorKind.ULong;
                 default:
-                    Debug.Assert(false, "Unexpected binary operator type.");
+                    Debug.Assert(false, _Unexpected);
                     return kind;
             }
         }
@@ -171,10 +171,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SpecialType.System_UInt64:
                     return kind | UnaryOperatorKind.ULong;
                 default:
-                    Debug.Assert(false, "Unexpected unary operator type.");
+                    Debug.Assert(false, _Unexpected);
                     return kind;
             }
         }
+    
 
         public static BinaryOperatorKind WithType(this BinaryOperatorKind kind, BinaryOperatorKind type)
         {
@@ -398,9 +399,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static string Dump(this BinaryOperatorKind kind)
         {
             var b = new StringBuilder();
-            if ((kind & BinaryOperatorKind.Lifted) != 0) b.Append("Lifted");
-            if ((kind & BinaryOperatorKind.Logical) != 0) b.Append("Logical");
-            if ((kind & BinaryOperatorKind.Checked) != 0) b.Append("Checked");
+            if ((kind & BinaryOperatorKind.Lifted) != 0) b.Append(_Lifted);
+            if ((kind & BinaryOperatorKind.Logical) != 0) b.Append(_Logical);
+            if ((kind & BinaryOperatorKind.Checked) != 0) b.Append(_Checked);
             var type = kind & BinaryOperatorKind.TypeMask;
             if (type != 0) b.Append(type.ToString());
             var op = kind & BinaryOperatorKind.OpMask;
@@ -411,14 +412,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static string Dump(this UnaryOperatorKind kind)
         {
             var b = new StringBuilder();
-            if ((kind & UnaryOperatorKind.Lifted) != 0) b.Append("Lifted");
-            if ((kind & UnaryOperatorKind.Checked) != 0) b.Append("Checked");
+            if ((kind & UnaryOperatorKind.Lifted) != 0) b.Append(_Lifted);
+            if ((kind & UnaryOperatorKind.Checked) != 0) b.Append(_Checked);
             var type = kind & UnaryOperatorKind.TypeMask;
             if (type != 0) b.Append(type.ToString());
             var op = kind & UnaryOperatorKind.OpMask;
             if (op != 0) b.Append(op.ToString());
             return b.ToString();
         }
+    const string _Lifted  = "Lifted";
+    const string _Checked = "Checked";
+    const string _Logical = "Logical";
+    const string _Unexpected = "Unexpected unary operator type.";
 #endif
-    }
+  }
 }

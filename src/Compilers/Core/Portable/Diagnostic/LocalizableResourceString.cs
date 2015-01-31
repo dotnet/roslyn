@@ -39,29 +39,14 @@ namespace Microsoft.CodeAnalysis
         /// <param name="formatArguments">Optional arguments for formatting the localizable resource string.</param>
         public LocalizableResourceString(string nameOfLocalizableResource, ResourceManager resourceManager, Type resourceSource, params string[] formatArguments)
         {
-            if (nameOfLocalizableResource == null)
-            {
-                throw new ArgumentNullException(nameof(nameOfLocalizableResource));
-            }
-
-            if (resourceManager == null)
-            {
-                throw new ArgumentNullException(nameof(resourceManager));
-            }
-
-            if (resourceSource == null)
-            {
-                throw new ArgumentNullException(nameof(resourceSource));
-            }
-
-            if (formatArguments == null)
-            {
-                throw new ArgumentNullException(nameof(formatArguments));
-            }
-
-            _resourceManager = resourceManager;
+            if (nameOfLocalizableResource == null) throw new ArgumentNullException(nameof(nameOfLocalizableResource));
+            if (resourceManager == null)           throw new ArgumentNullException(nameof(resourceManager));
+            if (resourceSource  == null)           throw new ArgumentNullException(nameof(resourceSource));
+            if (formatArguments == null)           throw new ArgumentNullException(nameof(formatArguments));
+            
             _nameOfLocalizableResource = nameOfLocalizableResource;
-            _resourceSource = resourceSource;
+            _resourceManager = resourceManager;
+            _resourceSource  = resourceSource;
             _formatArguments = formatArguments;
         }
 

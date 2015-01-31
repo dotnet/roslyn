@@ -116,16 +116,11 @@ namespace Microsoft.CodeAnalysis
             var report = this.GetDiagnosticReport(diagnosticInfo, options);
             switch (report)
             {
-                case ReportDiagnostic.Error:
-                    return diagnosticInfo.GetInstanceWithSeverity(DiagnosticSeverity.Error);
-                case ReportDiagnostic.Warn:
-                    return diagnosticInfo.GetInstanceWithSeverity(DiagnosticSeverity.Warning);
-                case ReportDiagnostic.Info:
-                    return diagnosticInfo.GetInstanceWithSeverity(DiagnosticSeverity.Info);
-                case ReportDiagnostic.Hidden:
-                    return diagnosticInfo.GetInstanceWithSeverity(DiagnosticSeverity.Hidden);
-                case ReportDiagnostic.Suppress:
-                    return null;
+                case ReportDiagnostic.Error:  return diagnosticInfo.GetInstanceWithSeverity(DiagnosticSeverity.Error);
+                case ReportDiagnostic.Warn:   return diagnosticInfo.GetInstanceWithSeverity(DiagnosticSeverity.Warning);
+                case ReportDiagnostic.Info:   return diagnosticInfo.GetInstanceWithSeverity(DiagnosticSeverity.Info);
+                case ReportDiagnostic.Hidden: return diagnosticInfo.GetInstanceWithSeverity(DiagnosticSeverity.Hidden);
+                case ReportDiagnostic.Suppress:  return null;
                 case ReportDiagnostic.Default:
                 default:
                     return diagnosticInfo;

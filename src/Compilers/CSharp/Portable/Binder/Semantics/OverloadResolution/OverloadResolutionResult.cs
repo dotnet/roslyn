@@ -1205,7 +1205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             sb.AppendLine("Detailed results:");
             foreach (var result in ResultsBuilder)
             {
-                sb.AppendFormat("method: {0} reason: {1}\n", result.Member.ToString(), result.Result.Kind.ToString());
+                sb.AppendLine($"method: {result.Member.ToString()} reason: {result.Result.Kind.ToString()}");
             }
 
             return sb.ToString();

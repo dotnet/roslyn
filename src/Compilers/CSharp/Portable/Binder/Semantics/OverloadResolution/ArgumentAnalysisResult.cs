@@ -88,16 +88,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     s += "Valid in expanded form.";
                     break;
                 case ArgumentAnalysisResultKind.NameUsedForPositional:
-                    s += "Invalid because argument " + ArgumentPosition + " had a name.";
+                    s += $"Invalid because argument {ArgumentPosition} had a name.";
                     break;
                 case ArgumentAnalysisResultKind.NoCorrespondingParameter:
-                    s += "Invalid because argument " + ArgumentPosition + " has no corresponding parameter.";
+                    s += $"Invalid because argument {ArgumentPosition} has no corresponding parameter.";
                     break;
                 case ArgumentAnalysisResultKind.NoCorrespondingNamedParameter:
-                    s += "Invalid because named argument " + ArgumentPosition + " has no corresponding parameter.";
+                    s += $"Invalid because named argument {ArgumentPosition} has no corresponding parameter.";
                     break;
                 case ArgumentAnalysisResultKind.RequiredParameterMissing:
-                    s += "Invalid because parameter " + ParameterPosition + " has no corresponding argument.";
+                    s += $"Invalid because parameter {ParameterPosition} has no corresponding argument.";
                     break;
             }
 
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (int i = 0; i < ArgsToParamsOpt.Length; ++i)
                 {
-                    s += "\nArgument " + i + " corresponds to parameter " + ArgsToParamsOpt[i];
+                    s += $"\nArgument {i} corresponds to parameter {ArgsToParamsOpt[i]}";
                 }
             }
 

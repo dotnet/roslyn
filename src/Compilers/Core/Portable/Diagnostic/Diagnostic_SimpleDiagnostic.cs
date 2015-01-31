@@ -139,28 +139,16 @@ namespace Microsoft.CodeAnalysis
 
             internal override Diagnostic WithLocation(Location location)
             {
-                if (location == null)
-                {
-                    throw new ArgumentNullException("location");
-                }
-
-                if (location != _location)
-                {
-                    return new SimpleDiagnostic(_descriptor, _severity, _warningLevel, location, _additionalLocations, _messageArgs);
-                }
-
-                return this;
+                if (location == null) throw new ArgumentNullException("location");
+                if (location == _location) return this;
+                return new SimpleDiagnostic(_descriptor, _severity, _warningLevel, location, _additionalLocations, _messageArgs);
             }
 
             internal override Diagnostic WithSeverity(DiagnosticSeverity severity)
             {
-                if (this.Severity != severity)
-                {
-                    var warningLevel = GetDefaultWarningLevel(severity);
-                    return new SimpleDiagnostic(_descriptor, severity, warningLevel, _location, _additionalLocations, _messageArgs);
-                }
-
-                return this;
+                if (this.Severity != severity) return this;
+                var warningLevel = GetDefaultWarningLevel(severity);
+                return new SimpleDiagnostic(_descriptor, severity, warningLevel, _location, _additionalLocations, _messageArgs);
             }
         }
     }

@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             char ch = lexer.ScanEscapeSequence(out c2);
                             if ((ch == '{' || ch == '}') && error == null)
                             {
-                                error = lexer.MakeError(escapeStart, lexer.TextWindow.Position - escapeStart, ErrorCode.ERR_EscapedCurly, ch);
+                                error = lexer.MakeError(escapeStart, lexer.TextWindow.Position - escapeStart, ErrorCode.ERR_EscapedCurly, ch.ToString());
                             }
 
                             continue;
@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         ch = lexer.ScanEscapeSequence(out c2);
                         if ((ch == '{' || ch == '}') && error == null)
                         {
-                            error = lexer.MakeError(pos, 1, ErrorCode.ERR_EscapedCurly, ch);
+                            error = lexer.MakeError(pos, 1, ErrorCode.ERR_EscapedCurly, ch.ToString());
                         }
                     }
                     else if (ch == '"')

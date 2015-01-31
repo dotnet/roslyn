@@ -55,10 +55,8 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<Location> additionalLocations,
             params object[] messageArgs)
         {
-            if (descriptor == null)
-            {
-                throw new ArgumentNullException("descriptor");
-            }
+            if (descriptor == null) throw new ArgumentNullException("descriptor");
+            
 
             var warningLevel = GetDefaultWarningLevel(descriptor.DefaultSeverity);
             return SimpleDiagnostic.Create(
@@ -109,20 +107,9 @@ namespace Microsoft.CodeAnalysis
             IEnumerable<Location> additionalLocations = null,
             IEnumerable<string> customTags = null)
         {
-            if (id == null)
-            {
-                throw new ArgumentNullException("id");
-            }
-
-            if (category == null)
-            {
-                throw new ArgumentNullException("category");
-            }
-
-            if (message == null)
-            {
-                throw new ArgumentNullException("message");
-            }
+            if (id == null)        throw new ArgumentNullException("id");
+            if (category == null)  throw new ArgumentNullException("category");
+            if (message == null)   throw new ArgumentNullException("message");
 
             return SimpleDiagnostic.Create(id, title ?? string.Empty, category, message, description ?? string.Empty, helpLink ?? string.Empty,
                 severity, defaultSeverity, isEnabledByDefault, warningLevel, location ?? Location.None, additionalLocations, customTags);
@@ -247,12 +234,12 @@ namespace Microsoft.CodeAnalysis
                     // If we called ToString before the diagnostic was resolved,
                     // we would risk infinite recursion (e.g. if we were still computing
                     // member lists).
-                    return "Unresolved diagnostic at " + this.Location;
+                    return $"Unresolved diagnostic at {this.Location}";
 
                 case InternalDiagnosticSeverity.Void:
                     // If we called ToString on a void diagnostic, the MessageProvider
                     // would complain about the code.
-                    return "Void diagnostic at " + this.Location;
+                    return $"Void diagnostic at {this.Location}";
 
                 default:
                     return ToString();

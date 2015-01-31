@@ -48,6 +48,7 @@
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <CodeAnalysisRuleSet>..\CSharpCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
+    <LangVersion>6</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <CodeAnalysisRuleSet>..\CSharpCodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
@@ -345,6 +346,7 @@
     <Compile Include="Errors\SyntaxDiagnosticInfo.cs" />
     <Compile Include="Errors\XmlParseErrorCode.cs" />
     <Compile Include="Errors\XmlSyntaxDiagnosticInfo.cs" />
+    <Compile Include="Utilities\GenericExtensions.cs" />
     <Compile Include="FlowAnalysis\AbstractFlowPass.cs" />
     <Compile Include="FlowAnalysis\AbstractRegionControlFlowPass.cs" />
     <Compile Include="FlowAnalysis\AbstractRegionDataFlowPass.cs" />
@@ -888,6 +890,7 @@
       <HintPath>..\..\..\..\packages\System.Reflection.Metadata.1.0.18-beta\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
     </Reference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="..\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems" Label="Shared" />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\Tools\Microsoft.CodeAnalysis.Toolset.Open\Targets\VSL.Imports.targets" />

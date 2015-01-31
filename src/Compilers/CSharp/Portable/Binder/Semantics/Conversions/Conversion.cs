@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             return LookupResultKind.OverloadResolutionFailure;
                         }
                     default:
-                        Debug.Assert(false, "Unknown UserDefinedConversionResultKind " + this.conversionResult.Kind);
+                        Debug.Assert(false, $"Unknown UserDefinedConversionResultKind {this.conversionResult.Kind}");
                         return LookupResultKind.OverloadResolutionFailure;
                 }
             }

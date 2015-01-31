@@ -34,10 +34,7 @@ namespace Microsoft.CodeAnalysis
                 case LocationKind.ExternalFile:
                     var span = diagnostic.Location.GetLineSpan();
                     var mappedSpan = diagnostic.Location.GetMappedLineSpan();
-                    if (!span.IsValid || !mappedSpan.IsValid)
-                    {
-                        goto default;
-                    }
+                    if (!span.IsValid || !mappedSpan.IsValid) { goto default;  }
 
                     string path, basePath;
                     if (mappedSpan.HasMappedPath)
@@ -96,9 +93,7 @@ namespace Microsoft.CodeAnalysis
                     throw ExceptionUtilities.UnexpectedValue(diagnostic.Severity);
             }
 
-            return string.Format(culture, "{0} {1}",
-                prefix,
-                diagnostic.Id);
+            return string.Format(culture, "{0} {1}", prefix, diagnostic.Id);
         }
 
         internal static readonly DiagnosticFormatter Instance = new DiagnosticFormatter();

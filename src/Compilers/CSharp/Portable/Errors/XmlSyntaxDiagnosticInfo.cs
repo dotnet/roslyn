@@ -9,8 +9,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed class XmlSyntaxDiagnosticInfo : SyntaxDiagnosticInfo
     {
         private readonly XmlParseErrorCode xmlErrorCode;
-
-        internal XmlSyntaxDiagnosticInfo(XmlParseErrorCode code, params object[] args)
+    internal XmlSyntaxDiagnosticInfo(XmlParseErrorCode code, string arg)
+         : this(0, 0, code, arg)
+    {
+    }
+    internal XmlSyntaxDiagnosticInfo(XmlParseErrorCode code, params object[] args)
             : this(0, 0, code, args)
         {
         }
